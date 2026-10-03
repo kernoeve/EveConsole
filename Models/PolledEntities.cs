@@ -252,6 +252,17 @@ public class ContractRecord
     // say why — a 404 — and so a row an older build marked pulled without ever calling can be
     // told from one ESI actually answered.
     public int    ItemsStatus         { get; set; }
+
+    /// <summary>
+    /// The contract was still in its previous status as of this time: this owner's last
+    /// successful contracts poll before the one that saw the change, less the five minutes ESI
+    /// may serve a copy for. The change came after it. Null until a poll sees a change, for a
+    /// row first seen already settled, and when that previous poll failed.
+    ///
+    /// <para>⚠️ What dates a deletion. ESI gives a deleted contract no date at all, and the goods
+    /// it held are back in the hangar from that moment — see ContractLag.</para>
+    /// </summary>
+    public DateTimeOffset? StatusChangedAfter { get; set; }
 }
 
 // One line item on a contract (offered or requested). Shared across owner rows by ContractId.
@@ -1254,7 +1265,18 @@ public class AppErrorEntry
     public string HostName { get; set; } = "";
 
     public bool Headless { get; set; }
+
+    /// <summary>
+    /// How serious it is (<see cref="LogSeverity"/>). Error unless the writer says otherwise, so
+    /// every row written before the column existed, and every client still on an older build,
+    /// reads as the error it was logged as.
+    /// </summary>
+    public int Severity { get; set; }
 }
+
+/// <summary>What a row in the error log is: a fault, something worth a look, or a record of what
+/// happened that is kept because the log is what stays (an SDE import's counts, say).</summary>
+public enum LogSeverity { Error = 0, Warning = 1, Note = 2 }
 
 // ── Client activity monitoring ────────────────────────────────────────────────
 
@@ -1515,15 +1537,26 @@ public class IntelReport
 
     /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
     public int ChatMessageId { get; set; }
+
+    /// <summary>What else the reporter said about the system — spike, gate camp, bubbles,
+    /// wormhole, ESS, cyno, skyhook, combat probes — as <see cref="Monitoring.IntelRules.IntelFlags"/> bits.</summary>
+    public int Flags { get; set; }
+
+    /// <summary>The system whose gate they are on, when the reporter said so: "QZ-X77 gate".</summary>
+    public string? Gate { get; set; }
+
+    /// <summary>Hulls and classes named with no pilot to fly them, as written for a reader:
+    /// "3× Loki, Interdictor". Already counted in <see cref="PlayerCount"/>.</summary>
+    public string? Ships { get; set; }
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
 /// <summary>
-/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
-/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
-/// useful as the one they are in now, and refetching thousands of pilots to chase that would
-/// cost far more than it is worth.
+/// Who a character flies for, cached from ESI. Fetched when a character is first reported in
+/// intel and again when they are reported more than a week after the last fetch — so a pilot
+/// still active is shown under their current ticker, while one not seen lately keeps whatever
+/// they flew for then. PulledAt is the last fetch.
 /// </summary>
 public class CharacterAffiliation
 {
@@ -1551,8 +1584,8 @@ public class IntelReportCharacter
     public long   CharacterId   { get; set; }
     public string CharacterName { get; set; } = "";
 
-    /// <summary>Hull the pilot was called in, where the reporter gave one — "Sevra (Loki)",
-    /// "Levanin  Sabre". Null when only the pilot was named.</summary>
+    /// <summary>Hull the pilot was called in, where the reporter gave one — "Tester (Loki)",
+    /// "Sampler  Sabre". Null when only the pilot was named.</summary>
     public int?    ShipTypeId { get; set; }
     public string? ShipName   { get; set; }
 }

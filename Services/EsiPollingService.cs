@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using EveConsole.Api;
 using EveConsole.Data;
@@ -6,6 +6,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -41,6 +42,7 @@ public class EsiPollingService : ReactiveObject
     private readonly StructureSyncService    _structureSync;
     private readonly IndyStructureLinkService _indyLink;
     private readonly EveRefStructureService   _eveRefStructures;
+    private readonly EveConsole.Services.Pi.PiService _pi;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -217,68 +219,69 @@ public class EsiPollingService : ReactiveObject
 
     private static readonly Dictionary<string, string> s_displayNames = new()
     {
-        ["char.skills"]           = "Skills",
-        ["char.skillqueue"]       = "Skill Queue",
-        ["char.wallet.balance"]   = "Wallet Balance",
-        ["char.wallet.journal"]   = "Wallet Journal",
-        ["char.wallet.txns"]      = "Wallet Transactions",
-        ["char.industry.jobs"]    = "Industry Jobs",
-        ["char.orders.active"]    = "Active Orders",
-        ["char.orders.history"]   = "Order History",
-        ["char.assets"]           = "Assets",
-        ["char.blueprints"]       = "Blueprints",
-        ["char.contracts"]        = "Contracts",
-        ["char.attributes"]       = "Attributes",
-        ["char.clones"]           = "Clones",
-        ["char.implants"]         = "Implants",
-        ["char.fatigue"]          = "Jump Fatigue",
-        ["char.mining"]           = "Mining Ledger",
-        ["char.notifications"]    = "Notifications",
-        ["char.contacts"]         = "Contacts",
-        ["char.killmails"]        = "Kill Mails",
-        ["char.planets"]          = "Planetary Interaction",
-        ["char.agents_research"]  = "Agent Research",
-        ["char.loyalty"]          = "Loyalty Points",
-        ["char.medals"]           = "Medals",
-        ["char.standings"]        = "Standings",
-        ["char.titles"]           = "Titles",
-        ["char.roles"]            = "Roles",
-        ["char.fittings"]         = "Fittings",
-        ["char.mail"]             = "Eve Mail",
-        ["char.online"]           = "Online Status",
-        ["char.location"]         = "Location",
-        ["char.ship"]             = "Current Ship",
-        ["corp.wallet.balances"]  = "Wallet Balances",
-        ["corp.divisions"]        = "Divisions",
-        ["corp.wallet.journal"]   = "Wallet Journal",
-        ["corp.wallet.txns"]      = "Wallet Transactions",
-        ["corp.industry.jobs"]    = "Industry Jobs",
-        ["corp.orders.active"]    = "Active Orders",
-        ["corp.orders.history"]   = "Order History",
-        ["corp.assets"]           = "Assets",
-        ["corp.blueprints"]       = "Blueprints",
-        ["corp.contracts"]        = "Contracts",
-        ["corp.contacts"]         = "Contacts",
-        ["corp.killmails"]        = "Kill Mails",
-        ["corp.standings"]        = "Standings",
-        ["corp.structures"]       = "Structures",
-        ["corp.starbases"]        = "Starbases",
-        ["corp.facilities"]       = "Facilities",
-        ["corp.members"]          = "Members",
-        ["corp.membertracking"]   = "Member Tracking",
-        ["corp.roles"]            = "Roles",
-        ["corp.titles"]           = "Titles",
-        ["corp.medals"]           = "Medals",
-        ["corp.projects"]           = "Corp Projects",
-        ["corp.mining.extractions"] = "Mining Extractions",
-        ["corp.mining.observers"]   = "Mining Observers & Ledger",
-        ["market.refresh"]        = "Market Price Refresh",
-        ["build.costs"]           = "Build Cost Calculation",
-        ["contract.public"]       = "Public Contracts",
-        ["contract.items"]        = "Contract Items",
+        ["char.skills"]           = DataText.EndpointSkills,
+        ["char.skillqueue"]       = DataText.EndpointSkillQueue,
+        ["char.wallet.balance"]   = DataText.EndpointWalletBalance,
+        ["char.wallet.journal"]   = DataText.EndpointWalletJournal,
+        ["char.wallet.txns"]      = DataText.EndpointWalletTransactions,
+        ["char.industry.jobs"]    = DataText.EndpointIndustryJobs,
+        ["char.orders.active"]    = DataText.EndpointActiveOrders,
+        ["char.orders.history"]   = DataText.EndpointOrderHistory,
+        ["char.assets"]           = DataText.EndpointAssets,
+        ["char.blueprints"]       = DataText.EndpointBlueprints,
+        ["char.contracts"]        = DataText.EndpointContracts,
+        ["char.attributes"]       = DataText.EndpointAttributes,
+        ["char.clones"]           = DataText.EndpointClones,
+        ["char.implants"]         = DataText.EndpointImplants,
+        ["char.fatigue"]          = DataText.EndpointJumpFatigue,
+        ["char.mining"]           = DataText.EndpointMiningLedger,
+        ["char.notifications"]    = DataText.EndpointNotifications,
+        ["char.contacts"]         = DataText.EndpointContacts,
+        ["char.killmails"]        = DataText.EndpointKillMails,
+        ["char.planets"]          = DataText.EndpointPlanetaryInteraction,
+        ["char.planets.layouts"]  = DataText.EndpointColonyLayouts,
+        ["char.agents_research"]  = DataText.EndpointAgentResearch,
+        ["char.loyalty"]          = DataText.EndpointLoyaltyPoints,
+        ["char.medals"]           = DataText.EndpointMedals,
+        ["char.standings"]        = DataText.EndpointStandings,
+        ["char.titles"]           = DataText.EndpointTitles,
+        ["char.roles"]            = DataText.EndpointRoles,
+        ["char.fittings"]         = DataText.EndpointFittings,
+        ["char.mail"]             = DataText.EndpointEveMail,
+        ["char.online"]           = DataText.EndpointOnlineStatus,
+        ["char.location"]         = DataText.EndpointLocation,
+        ["char.ship"]             = DataText.EndpointCurrentShip,
+        ["corp.wallet.balances"]  = DataText.EndpointWalletBalances,
+        ["corp.divisions"]        = DataText.EndpointDivisions,
+        ["corp.wallet.journal"]   = DataText.EndpointWalletJournal,
+        ["corp.wallet.txns"]      = DataText.EndpointWalletTransactions,
+        ["corp.industry.jobs"]    = DataText.EndpointIndustryJobs,
+        ["corp.orders.active"]    = DataText.EndpointActiveOrders,
+        ["corp.orders.history"]   = DataText.EndpointOrderHistory,
+        ["corp.assets"]           = DataText.EndpointAssets,
+        ["corp.blueprints"]       = DataText.EndpointBlueprints,
+        ["corp.contracts"]        = DataText.EndpointContracts,
+        ["corp.contacts"]         = DataText.EndpointContacts,
+        ["corp.killmails"]        = DataText.EndpointKillMails,
+        ["corp.standings"]        = DataText.EndpointStandings,
+        ["corp.structures"]       = DataText.EndpointStructures,
+        ["corp.starbases"]        = DataText.EndpointStarbases,
+        ["corp.facilities"]       = DataText.EndpointFacilities,
+        ["corp.members"]          = DataText.EndpointMembers,
+        ["corp.membertracking"]   = DataText.EndpointMemberTracking,
+        ["corp.roles"]            = DataText.EndpointRoles,
+        ["corp.titles"]           = DataText.EndpointTitles,
+        ["corp.medals"]           = DataText.EndpointMedals,
+        ["corp.projects"]           = DataText.EndpointCorpProjects,
+        ["corp.mining.extractions"] = DataText.EndpointMiningExtractions,
+        ["corp.mining.observers"]   = DataText.EndpointMiningObservers,
+        ["market.refresh"]        = DataText.EndpointMarketPriceRefresh,
+        ["build.costs"]           = DataText.EndpointBuildCostCalculation,
+        ["contract.public"]       = DataText.EndpointPublicContracts,
+        ["contract.items"]        = DataText.EndpointContractItems,
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures, EveConsole.Services.Pi.PiService pi)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -292,6 +295,7 @@ public class EsiPollingService : ReactiveObject
         _structureSync      = structureSync;
         _indyLink           = indyLink;
         _eveRefStructures   = eveRefStructures;
+        _pi                 = pi;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -368,14 +372,14 @@ public class EsiPollingService : ReactiveObject
         ? DateTimeOffset.UtcNow
         : _lastStructureSweepUtc + StructureSweepInterval;
 
-    private string _structureSweepSummary = "Not run yet this session";
+    private string _structureSweepSummary = DataText.StructureSweepNotRun;
     public string StructureSweepSummary
     {
         get => _structureSweepSummary;
         private set => this.RaiseAndSetIfChanged(ref _structureSweepSummary, value);
     }
 
-    private string _publicStructureSummary = "Not run yet";
+    private string _publicStructureSummary = DataText.NotRunYet;
     public string PublicStructureSummary
     {
         get => _publicStructureSummary;
@@ -461,6 +465,7 @@ public class EsiPollingService : ReactiveObject
                 .Where(c => c.RefreshToken != "")
                 .AsNoTracking()
                 .ToListAsync(ct);
+            _piOff = await EveConsole.Services.Pi.PiCharacters.OffAsync(db, ct);
         }
 
         if (characters.Count == 0) return;
@@ -489,7 +494,15 @@ public class EsiPollingService : ReactiveObject
         ["char.online"]   = "esi-location.read_online.v1",
         ["char.location"] = "esi-location.read_location.v1",
         ["char.ship"]     = "esi-location.read_ship_type.v1",
+        // Both PI calls: the colony list and each colony's layout.
+        ["char.planets"]         = "esi-planets.manage_planets.v1",
+        ["char.planets.layouts"] = "esi-planets.manage_planets.v1",
     };
+
+    private const string PiLayoutsKey = "char.planets.layouts";
+
+    /// <summary>Characters whose PI box is clear, re-read at the start of every cycle.</summary>
+    private HashSet<long> _piOff = [];
 
     // Endpoints not worth re-polling while a character is logged off. ESI still
     // answers them when offline — it reports where the character logged off — so
@@ -514,6 +527,13 @@ public class EsiPollingService : ReactiveObject
     /// </summary>
     public event Action<long>? CharacterUndocked;
 
+    /// <summary>
+    /// Raised, with the character id, once a pass has seen that character change system or
+    /// undock — after the pass, like <see cref="CharacterUndocked"/>. What lets an intel alarm
+    /// drawn around characters look again the moment what it watches has moved.
+    /// </summary>
+    public event Action<long>? CharacterMoved;
+
     /// <summary>Raised, with the endpoint key, after every successful poll of a character or
     /// corporation endpoint. What lets the fulfilment pass run the moment jobs, contracts or
     /// assets have arrived rather than at its own next interval.</summary>
@@ -527,6 +547,7 @@ public class EsiPollingService : ReactiveObject
     }
 
     private readonly ConcurrentDictionary<long, bool> _undockSeen = new();
+    private readonly ConcurrentDictionary<long, bool> _moveSeen   = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
@@ -565,6 +586,11 @@ public class EsiPollingService : ReactiveObject
     private async Task<PollingResult?> CallEndpointAsync(Character character, EndpointDef ep, DateTimeOffset now, CancellationToken ct)
     {
         if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+            return null;
+
+        // A character whose PI box is clear is not in the PI tool: no layouts are read for it,
+        // and skipping here, before the call, keeps it out of the activity log too.
+        if (ep.Key == PiLayoutsKey && _piOff.Contains(character.Id))
             return null;
 
         // Skip before the call so no API-activity record is written for a request that was
@@ -639,14 +665,20 @@ public class EsiPollingService : ReactiveObject
     private bool ErrorLimited()
         => Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt;
 
-    /// <summary>Fires <see cref="CharacterUndocked"/> once for a pass that saw the undock — after
-    /// the pass, so the ship poll that follows the location poll has had its turn.</summary>
+    /// <summary>Fires <see cref="CharacterUndocked"/> and <see cref="CharacterMoved"/> once for a
+    /// pass that saw the undock or the move — after the pass, so the ship poll that follows the
+    /// location poll has had its turn.</summary>
     private void RaiseUndockIfSeen(long characterId)
     {
         if (_undockSeen.TryRemove(characterId, out _) && CharacterUndocked is { } undocked)
         {
             try { undocked(characterId); }
             catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {characterId}", ex); }
+        }
+        if (_moveSeen.TryRemove(characterId, out _) && CharacterMoved is { } moved)
+        {
+            try { moved(characterId); }
+            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"move of {characterId}", ex); }
         }
     }
 
@@ -1477,10 +1509,15 @@ public class EsiPollingService : ReactiveObject
                 .ToListAsync(ct))
             .ToDictionary(c => c.ContractId);
 
+        // When this character's contracts were last seen as they stood, for any that have moved
+        // on since — the only date a deletion ever gets. See ContractRecord.StatusChangedAfter.
+        var lastSeen = await ContractLag.LastSeenAsync(db, charId, "character", "char.contracts", ct);
+
         foreach (var c in r.Data!)
         {
             if (existing.TryGetValue(c.ContractId, out var row))
             {
+                if (row.Status != c.Status) row.StatusChangedAfter = lastSeen;
                 row.Status        = c.Status;
                 row.AcceptorId    = c.AcceptorId;
                 row.DateAccepted  = c.DateAccepted;
@@ -1761,6 +1798,7 @@ public class EsiPollingService : ReactiveObject
                 status.UndockedShipItemId = status.ShipItemId;
                 status.UndockedShipName   = status.ShipName;
                 _undockSeen[charId]       = true;
+                _moveSeen[charId]         = true;
             }
 
             // A change of system is travel, whatever carried them; where from is kept so the
@@ -1769,6 +1807,7 @@ public class EsiPollingService : ReactiveObject
             {
                 status.SystemChangedAt  = DateTimeOffset.UtcNow;
                 status.PreviousSystemId = previous;
+                _moveSeen[charId]       = true;
             }
 
             status.SolarSystemId     = r.Data.SolarSystemId;
@@ -1932,7 +1971,76 @@ public class EsiPollingService : ReactiveObject
             IsBlocked   = c.IsBlocked ?? false,
         }));
         await db.SaveChangesAsync(ct);
+
+        await FetchAllianceContactsAsync(charId, db, ct);
         return FromResult(r);
+    }
+
+    // When each alliance's contacts were last read, and one gate per alliance: every member
+    // character's contacts poll offers to read them, and only the first in a while needs to.
+    private static readonly ConcurrentDictionary<long, DateTimeOffset> _allianceContactsRead = new();
+    private static readonly ConcurrentDictionary<long, SemaphoreSlim>  _allianceContactsGate = new();
+    private static readonly TimeSpan AllianceContactsEvery = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// The alliance's contacts, read through one of its member characters, stored with
+    /// <c>OwnerType = "alliance"</c> beside the characters' and corporations' own.
+    ///
+    /// <para>⚠️ Where coalition standings live. Blues are usually set once, on the alliance, not
+    /// on every pilot or corporation — and only character and corporation contacts were read, so
+    /// an ally blue only by the alliance's standing showed on the live map as hostile, and the
+    /// intel alarm would have called them in as they killed a target. Everything that asks "is
+    /// this one blue" reads EsiContacts by standing, whoever set it, so these count at once.</para>
+    ///
+    /// <para>Best effort, and never the character poll's failure: a character without the
+    /// alliance scope (granted with the others since it was added) or a refused read leaves
+    /// the alliance's stored contacts as they were.</para>
+    ///
+    /// <para>⚠️ Replaced in one transaction. Deleting and then inserting left a moment with no
+    /// alliance blues at all, and a map or alarm reading then would see every ally as hostile.</para>
+    /// </summary>
+    private async Task FetchAllianceContactsAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var allianceId = await db.Characters.AsNoTracking()
+            .Where(c => c.Id == charId).Select(c => c.AllianceId).FirstOrDefaultAsync(ct);
+        if (allianceId is not > 0) return;
+        long alliance = allianceId.Value;
+
+        var gate = _allianceContactsGate.GetOrAdd(alliance, _ => new SemaphoreSlim(1, 1));
+        if (!await gate.WaitAsync(0, ct)) return;   // another member is reading them now
+        try
+        {
+            if (_allianceContactsRead.TryGetValue(alliance, out var last)
+                && DateTimeOffset.UtcNow - last < AllianceContactsEvery)
+                return;
+
+            var r = await _esi.ExecuteAllPagesAsync<EsiContactData>(charId,
+                $"alliances/{alliance}/contacts/", ct);
+            if (!r.IsSuccess || r.Data is null) return;
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await db.EsiContacts
+                .Where(c => c.OwnerId == alliance && c.OwnerType == "alliance")
+                .ExecuteDeleteAsync(ct);
+            db.EsiContacts.AddRange(r.Data.Select(c => new ContactEntry
+            {
+                OwnerId     = alliance,
+                OwnerType   = "alliance",
+                ContactId   = c.ContactId,
+                ContactType = c.ContactType,
+                Standing    = c.Standing,
+            }));
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            _allianceContactsRead[alliance] = DateTimeOffset.UtcNow;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger?.Log(nameof(EsiPollingService), $"alliance contacts for {alliance}", ex.Message);
+        }
+        finally { gate.Release(); }
     }
 
     private async Task<PollingResult> FetchKillMailsAsync(long charId, AppDbContext db, CancellationToken ct)
@@ -1972,8 +2080,11 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/planets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        // ⚠️ One transaction: deleting and then inserting outside one leaves a moment with no
+        // colonies at all, and the PI tool reading then would show the character with none.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.EsiPlanetaryColonies.Where(p => p.CharacterId == charId).ExecuteDeleteAsync(ct);
-        db.EsiPlanetaryColonies.AddRange(r.Data!.Select(p => new PlanetaryColony
+        db.EsiPlanetaryColonies.AddRange(r.Data!.DistinctBy(p => p.PlanetId).Select(p => new PlanetaryColony
         {
             CharacterId   = charId,
             PlanetId      = p.PlanetId,
@@ -1984,7 +2095,81 @@ public class EsiPollingService : ReactiveObject
             UpgradeLevel  = p.UpgradeLevel,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return FromResult(r);
+    }
+
+    /// <summary>
+    /// Each colony's layout — pins, contents, routes and links — read only when it can have
+    /// changed.
+    ///
+    /// <para>A layout describes the colony as of its last_update, which moves only when the owner
+    /// views it in the client, and the colony list already carries that date. So a colony is read
+    /// when it has never been read, or when the list's last_update differs from the stored
+    /// layout's; every other cycle costs nothing. The char-industry group is shared with jobs and
+    /// mining, which is the reason to be this frugal.</para>
+    ///
+    /// <para>⚠️ Not for a character whose PI box is clear: they are not in the PI tool, so their
+    /// layouts are not wanted. Their colony list is still read — it is one cheap call, and
+    /// existed before PI did.</para>
+    ///
+    /// <para>Each colony is replaced in one transaction (PiLayoutStore), and the tax rates are
+    /// then learned again for the character, since a new snapshot can be exactly what an export
+    /// in the journal was waiting for.</para>
+    /// </summary>
+    private async Task<PollingResult> FetchPlanetLayoutsAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        if (!await EveConsole.Services.Pi.PiCharacters.IsOnAsync(db, charId, ct))
+            return new PollingResult(true, 200);
+
+        var colonies = await db.EsiPlanetaryColonies.AsNoTracking()
+            .Where(c => c.CharacterId == charId).ToListAsync(ct);
+        var stored = await db.EsiPlanetaryLayouts.AsNoTracking()
+            .Where(l => l.CharacterId == charId).ToListAsync(ct);
+
+        // A colony given up in the game: its layout goes too.
+        var current = colonies.Select(c => c.PlanetId).ToHashSet();
+        foreach (var gone in stored.Where(l => !current.Contains(l.PlanetId)))
+            await EveConsole.Services.Pi.PiLayoutStore.DeleteAsync(db, charId, gone.PlanetId, ct);
+
+        // Compared in memory: ⚠️ DateTimeOffset comparisons do not translate on SQLite.
+        var storedAt = stored.ToDictionary(l => l.PlanetId, l => l.LastUpdate);
+        var due = colonies
+            .Where(c => !storedAt.TryGetValue(c.PlanetId, out var at) || at != c.LastUpdate)
+            .ToList();
+
+        PollingResult? last = null;
+        if (due.Count > 0)
+        {
+            var sd = await _pi.StaticDataAsync(ct);
+            foreach (var colony in due)
+            {
+                ct.ThrowIfCancellationRequested();
+                var r = await _esi.ExecuteAuthAsync<EsiPlanetLayout>(charId,
+                    $"characters/{charId}/planets/{colony.PlanetId}/", ct);
+                last = FromResult(r);
+                // The rest wait for the next cycle: a failure here is ESI's, and asking again at
+                // once for the next colony would only spend more of the error budget.
+                if (!r.IsSuccess || r.Data is null) break;
+
+                await EveConsole.Services.Pi.PiLayoutStore.ReplaceAsync(db, colony, r.Data, sd,
+                    DateTimeOffset.UtcNow, ct);
+            }
+        }
+
+        // Best effort: a fault in learning a tax rate is not a failed poll.
+        try
+        {
+            var sd = await _pi.StaticDataAsync(ct);
+            await EveConsole.Services.Pi.PiTaxLearning.LearnAsync(db, charId, sd, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), $"PI tax learning for {charId}", ex);
+        }
+
+        return last ?? new PollingResult(true, 200);
     }
 
     private async Task<PollingResult> FetchAgentResearchAsync(long charId, AppDbContext db, CancellationToken ct)
@@ -2219,6 +2404,10 @@ public class EsiPollingService : ReactiveObject
         new("char.contacts",        300,   1800, FetchContactsAsync),
         new("char.killmails",       300,   900,  FetchKillMailsAsync),
         new("char.planets",         600,   1800, FetchPlanetsAsync),
+        // ⚠️ After the colony list, which is what tells it which layouts have changed. Ten
+        // minutes, the layout's own cache — and it calls ESI only for a colony whose last_update
+        // moved, so most cycles cost no call at all.
+        new("char.planets.layouts", 600,    600, FetchPlanetLayoutsAsync),
         new("char.agents_research", 3600,  7200, FetchAgentResearchAsync),
         new("char.loyalty",         3600,  7200, FetchLoyaltyPointsAsync),
         new("char.medals",          3600, 14400, FetchMedalsAsync),
@@ -2815,10 +3004,15 @@ public class EsiPollingService : ReactiveObject
                 .ToListAsync(ct))
             .ToDictionary(c => c.ContractId);
 
+        // As the character poll: when these were last seen as they stood, for the ones that have
+        // moved on. See ContractRecord.StatusChangedAfter.
+        var lastSeen = await ContractLag.LastSeenAsync(db, corpId, "corporation", "corp.contracts", ct);
+
         foreach (var c in r.Data!)
         {
             if (existing.TryGetValue(c.ContractId, out var row))
             {
+                if (row.Status != c.Status) row.StatusChangedAfter = lastSeen;
                 row.Status        = c.Status;
                 row.AcceptorId    = c.AcceptorId;
                 row.DateAccepted  = c.DateAccepted;
@@ -3009,8 +3203,7 @@ public class EsiPollingService : ReactiveObject
             .ToList();
 
         PublicStructureSummary =
-            $"{ids.Count:N0} listed · {ids.Count(known.Contains):N0} already known · " +
-            $"{unknown.Count:N0} new to resolve";
+            string.Format(DataText.PublicStructuresSummary, ids.Count, ids.Count(known.Contains), unknown.Count);
 
         if (unknown.Count == 0) return;
 
@@ -3537,14 +3730,15 @@ public class EsiPollingService : ReactiveObject
             // visible somewhere, but neither is a fault and filing them as errors makes that log
             // useless for finding the things that are. Only mentioned when non-zero: a summary
             // that always ends "0 superseded · 0 linked" trains people to stop reading it.
-            var extra = "";
-            if (superseded > 0)   extra += $" · {superseded:N0} fitting(s) superseded by assets";
-            if (everefSeen > 0)   extra += $" · EVE Ref: {everefSeen:N0} known, {everefFilled:N0} filled";
-            if (linked > 0)       extra += $" · {linked:N0} linked park fitting(s) updated";
+            var parts = new List<string>
+            {
+                string.Format(DataText.StructureSweepCounts, structureIds.Count, synced, purged, total, resolved),
+            };
+            if (superseded > 0)   parts.Add(string.Format(DataText.StructureSweepSuperseded, superseded));
+            if (everefSeen > 0)   parts.Add(string.Format(DataText.StructureSweepEveRef, everefSeen, everefFilled));
+            if (linked > 0)       parts.Add(string.Format(DataText.StructureSweepLinked, linked));
 
-            StructureSweepSummary =
-                $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
-                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified{extra}";
+            StructureSweepSummary = string.Join(" · ", parts);
 
             StructureSweepAt = DateTimeOffset.UtcNow;
 
@@ -3556,7 +3750,7 @@ public class EsiPollingService : ReactiveObject
         catch (Exception ex)
         {
             StatusText = "Polling: Structure name resolve failed";
-            StructureSweepSummary = $"Failed — {ex.Message}";
+            StructureSweepSummary = string.Format(DataText.StructureSweepFailed, ex.Message);
             _errorLogger.Log("EsiPollingService", "ForceResolveStructureNamesAsync", ex);
         }
         finally { StructureSweepRunning = false; }
@@ -3573,7 +3767,9 @@ public class EsiPollingService : ReactiveObject
         {
             CorporationId      = corpId,
             StructureId        = s.StructureId,
-            Name               = "",
+            // The name ESI sends with the list. Kept, so a rename is picked up on the next poll;
+            // the jump bridges read their destination from it ("A » B - label").
+            Name               = s.Name ?? "",
             TypeId             = s.TypeId,
             SystemId           = s.SystemId,
             ProfileId          = s.ProfileId,

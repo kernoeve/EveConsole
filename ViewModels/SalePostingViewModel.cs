@@ -14,6 +14,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -357,6 +358,20 @@ internal sealed class OutputFormat
 
     public static OutputFormat ByName(string? name) => All.FirstOrDefault(f => f.Name == name) ?? All[0];
 
+    /// <summary>The words a format goes by in the interface. Only these two have any to
+    /// translate; the others are the names of Slack, Discord, Markdown, HTML and BBCode.</summary>
+    public static string Label(string name) => name switch
+    {
+        "Plain Text" => CorpText.FormatPlainText,
+        "EVE Mail"   => CorpText.FormatEveMail,
+        _            => name,
+    };
+
+    /// <summary>Every format as a pick list. ⚠️ The Name is what is saved (one setting shared by
+    /// Sale Posting, Top 10 and Monthly Summary) and compared, in every language.</summary>
+    public static IReadOnlyList<Choice<string>> Choices { get; } =
+        All.Select(f => new Choice<string>(f.Name, Label(f.Name))).ToList();
+
     // ── Slack rich_text (real posting, not the preview/clipboard markup above) ─────────────
     // Slack's legacy mrkdwn `text` field has no underline token at all, but Slack's Block Kit
     // rich_text format DOES support it (confirmed live against Slack's API: an unlisted-in-docs
@@ -477,7 +492,20 @@ public class SalePostingRow : ReactiveObject
     private long?  _locationId;
 
     public string LocationName    => _locationName;
-    public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {_scope}";
+
+    /// <summary>The scope's place as the screen names it — a region, system or NPC station in the
+    /// interface language. ⚠️ Display only: the posting keeps the English.</summary>
+    public string LocationDisplay => InvLevelService.ScopePlaceName(_scope, _locationId, _locationName);
+    public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {ScopeLabel(_scope)}";
+
+    // The scope is saved by its English key; this is the word shown for it.
+    private static string ScopeLabel(string scope) => scope switch
+    {
+        "Station" => SalesText.Station,
+        "System"  => SalesText.System,
+        "Region"  => SalesText.Region,
+        _         => scope,
+    };
     public bool   HasLocationLink => _locationId is > 0 && _locationName.Length > 0
                                   && _scope != "Everywhere";
 
@@ -526,18 +554,22 @@ public class SalePostingRow : ReactiveObject
     {
         Model          = m;
         PostingName    = m.Name;
-        ScopeDisplay   = m.Scope == "Everywhere" ? "Everywhere" : $"{m.LocationName} · {m.Scope}";
         _scope         = m.Scope;
         _locationId    = m.LocationId;
         _locationName  = m.LocationName;
+        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{LocationDisplay} · {ScopeLabel(m.Scope)}";
         this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(HasLocationLink));
+        // The market as the screen names it; the posting keeps the English.
         string basis   = m.PricingBasis switch
         {
-            "Contract" => "Contract",
-            "Market"   => $"Market: {m.MarketStationName} ({m.MarketPriceType})",
-            _          => "Build",
+            "Contract" => SalesText.PriceBasisContract,
+            "Market"   => string.Format(SalesText.PriceBasisMarketAt,
+                              SdeNames.Location(m.MarketStationId ?? 0, m.MarketStationName),
+                              Models.MarketPriceType.Label(m.MarketPriceType)),
+            _          => SalesText.PriceBasisBuild,
         };
         PricingDisplay = $"{basis} × {m.PricePercent:0.#}%";
     }
@@ -619,19 +651,22 @@ public class SalePostingSectionRow : ReactiveObject
 
         var parts = new List<string>();
         if (m.OverrideScope)
-            parts.Add("scope: " + (m.Scope == "Everywhere" ? "Everywhere" : m.LocationName));
+            parts.Add(SalesText.SummaryScope + (m.Scope == "Everywhere"
+                ? SalesText.ScopeEverywhere
+                : InvLevelService.ScopePlaceName(m.Scope, m.LocationId, m.LocationName)));
         if (m.OverridePricing)
         {
             string b = m.PricingBasis switch
             {
-                "Contract" => "Contract",
-                "Market"   => $"Market:{m.MarketStationName}",
-                _          => "Build",
+                "Contract" => SalesText.PriceBasisContract,
+                "Market"   => string.Format(SalesText.PriceBasisMarketShort,
+                                  SdeNames.Location(m.MarketStationId ?? 0, m.MarketStationName)),
+                _          => SalesText.PriceBasisBuild,
             };
             parts.Add($"{b} ×{m.PricePercent:0.#}%");
         }
         if (m.OverrideOnlyPackaged)
-            parts.Add(m.OnlyPackaged ? "packaged only" : "all items");
+            parts.Add(m.OnlyPackaged ? SalesText.SummaryPackagedOnly : SalesText.SummaryAllItems);
         OverrideSummary = parts.Count > 0 ? "⚙ " + string.Join(" · ", parts) : "";
     }
 
@@ -681,7 +716,14 @@ public class SalePostingItemRow : ReactiveObject
     public int    ItemId    { get; }
     public int    SectionId { get; }
     public int    TypeId    { get; }
+
+    /// <summary>⚠️ English, and it has to stay so: the posting is rendered from it (see
+    /// <see cref="ToView"/>) and posted to Slack, Discord and EVE mail, and the items are ordered
+    /// by it because the rendered listing is.</summary>
     public string TypeName  { get; private set; }
+
+    /// <summary>The item as the grid shows it.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -816,11 +858,11 @@ public class SalePostingItemRow : ReactiveObject
         TypeId, TypeName, _nameOverride, _namePrefix, _color,
         _inStock, _inBuild, _reserved,
         _inStockOverride, _inBuildOverride, _reservedOverride,
-        _salePrice, _earliestJobEnd);
+        _salePrice, _earliestJobEnd, DisplayName);
 
     public void ApplyCalc(SalePostingCalc c, string basis, bool showCompletion)
     {
-        TypeName        = c.Name; this.RaisePropertyChanged(nameof(TypeName));
+        TypeName        = c.Name; this.RaisePropertyChanged(nameof(TypeName)); this.RaisePropertyChanged(nameof(DisplayName));
         _inStock        = c.InStock;
         _inBuild        = c.InBuild;
         _reserved       = c.Reserved;
@@ -907,28 +949,44 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         set { this.RaiseAndSetIfChanged(ref _selectedPostingForTab, value); _ = RenderSelectedAsync(); }
     }
 
-    public IReadOnlyList<string> FormatOptions { get; } = OutputFormat.All.Select(f => f.Name).ToList();
+    public IReadOnlyList<Choice<string>> FormatOptions { get; } = OutputFormat.Choices;
     // Shared with Corp Activity's Top 10 and Monthly Summary, and remembered across
     // sessions — see ExportFormatSettings for why it is one setting rather than three.
     private string _selectedFormat = ExportFormatSettings.Default;
-    public string SelectedFormat
+    public Choice<string> SelectedFormat
     {
-        get => _selectedFormat;
+        get => FormatOptions.FirstOrDefault(o => o.Value == _selectedFormat) ?? FormatOptions[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedFormat, value ?? ExportFormatSettings.Default);
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved as one.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedFormat = value.Value;
+            this.RaisePropertyChanged();
             if (_exportFormat is not null) _exportFormat.Format = _selectedFormat;
             _ = RenderSelectedAsync();
         }
     }
 
     // Profit basis toggle (mirrors the Sales Tracker), default Build.
-    public IReadOnlyList<string> ProfitBasisOptions { get; } = ["Build", "Market", "Contract"];
+    // The value is the basis each item's figures are keyed by; only the label is translated.
+    public IReadOnlyList<Choice<string>> ProfitBasisOptions { get; } =
+    [
+        new("Build",    SalesText.BasisBuild),
+        new("Market",   SalesText.BasisMarket),
+        new("Contract", SalesText.BasisContract),
+    ];
     private string _selectedProfitBasis = "Build";
-    public string SelectedProfitBasis
+    public Choice<string> SelectedProfitBasis
     {
-        get => _selectedProfitBasis;
-        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? "Build"); ApplyProfitBasis(); }
+        get => ProfitBasisOptions.FirstOrDefault(o => o.Value == _selectedProfitBasis) ?? ProfitBasisOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedProfitBasis = value.Value;
+            this.RaisePropertyChanged();
+            ApplyProfitBasis();
+        }
     }
 
     public ReactiveCommand<Unit, Unit> AddPostingCommand         { get; }
@@ -938,6 +996,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand  { get; }
     public ReactiveCommand<Unit, Unit> RenderRefreshCommand      { get; }
     public ReactiveCommand<Unit, Unit> PostToSlackCommand        { get; }
+    public ReactiveCommand<Unit, Unit> PostToDiscordCommand      { get; }
 
     // Dialog delegates — wired by the view (ShowDialog decoupling).
     public Func<Task<PostingDialogResult?>>?                        ShowAddPostingDialog;
@@ -950,11 +1009,12 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
         BatchAddService? batchSvc = null, SlackService? slack = null,
-        ExportFormatSettings? exportFormat = null)
+        ExportFormatSettings? exportFormat = null, DiscordService? discord = null)
     {
         _svc          = svc;
         _batchSvc     = batchSvc;
         _slack        = slack;
+        _discord      = discord;
         _exportFormat = exportFormat;
 
         // Restored before the dropdown binds, so the saved choice is what the user sees.
@@ -967,6 +1027,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
         PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
+        PostToDiscordCommand      = ReactiveCommand.CreateFromTask(PostSelectedToDiscordAsync);
 
         _ = InitAsync();
 
@@ -998,9 +1059,9 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         try
         {
             await _svc.ExportPostingAsync(postingId, stream);
-            StatusText = "Posting exported.";
+            StatusText = SalesText.StatusPostingExported;
         }
-        catch (Exception ex) { StatusText = $"Export failed: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(SalesText.StatusExportFailed, ex.Message); }
     }
 
     public async Task ImportPostingAsync(Stream stream)
@@ -1008,7 +1069,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         try
         {
             var posting = await _svc.ImportPostingAsync(stream);
-            if (posting is null) { StatusText = "That file is not a sale posting."; return; }
+            if (posting is null) { StatusText = SalesText.StatusNotAPosting; return; }
 
             // Reloaded rather than appended: the import wrote sections, items and post blocks,
             // and the grid is built from all of them. Rebuilding the one posting by hand here
@@ -1016,7 +1077,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             await InitAsync();
             StatusText = $"Imported \"{posting.Name}\".";
         }
-        catch (Exception ex) { StatusText = $"Import failed: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(SalesText.StatusImportFailed, ex.Message); }
     }
 
     // ── Load ──────────────────────────────────────────────────────────────────
@@ -1024,9 +1085,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     {
         try
         {
-            StatusText = "Loading…";
+            StatusText = CommonText.Loading;
             var postings = await _svc.LoadPostingsAsync();
             var sections = await _svc.LoadSectionsAsync();
+
+            // The posting and section lines name their places in the interface language, worded
+            // once as the rows are built; this first runs at start, so wait for the names.
+            await SdeNames.EnsureLoadedAsync();
 
             _allPostings = postings.Select(MakePostingRow).ToList();
             foreach (var pr in _allPostings)
@@ -1038,7 +1103,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                     var items = await _svc.LoadItemsAsync(sr.SectionId);
                     // Names are placeholders here; ComputePostingAsync fills them from ComputeAsync.
                     sr.AllItems = items
-                        .Select(i => new SalePostingItemRow(i, $"Type {i.TypeId}", _svc))
+                        .Select(i => new SalePostingItemRow(i, string.Format(SalesText.TypeNumbered, i.TypeId), _svc))
                         .ToList();
                 }
                 await ComputePostingAsync(pr);
@@ -1047,11 +1112,11 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
             RebuildGridRows();
             SyncPostings();
-            StatusText = _allPostings.Count == 0 ? "No postings yet — add one to get started." : "";
+            StatusText = _allPostings.Count == 0 ? SalesText.NoPostingsYet : "";
         }
         catch (Exception ex)
         {
-            StatusText = $"Load failed: {ex.Message}";
+            StatusText = string.Format(SalesText.StatusLoadFailed, ex.Message);
         }
     }
 
@@ -1093,10 +1158,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         }
     }
 
+    // ⚠️ By the name the posting prints, in the interface language: the posting is rendered in
+    // this order, and SalePostingService.BuildViewAsync writes it for a store in the same one when
+    // the store speaks the same language.
     private void SortPostingItems(SalePostingRow pr)
     {
         foreach (var s in pr.Sections)
-            s.AllItems = s.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+            s.AllItems = s.AllItems.OrderBy(i => i.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
     private void RebuildGridRows()
@@ -1150,7 +1218,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             var clipboardText = _selectedFormat == "Slack"
                 ? Regex.Replace(clip, "</?u>", "", RegexOptions.IgnoreCase)
                 : clip;
-            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clipboardText, segs));
+            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {PostBlockRow.TypeLabel(post.PostType)}", clipboardText, segs));
         }
     }
 
@@ -1162,6 +1230,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
     public string SlackChannelText =>
         _slack?.ChannelName(SlackService.AreaSalePosting) is { Length: > 0 } n ? $"#{n}" : "";
+
+    /// <summary>Where a post went, for the status line, named as the Corp Activity tool names it: a
+    /// webhook has no channel name to show, and an empty one read "Posted to  — 14:05".</summary>
+    private string SlackDestination =>
+        _slack?.UsesWebhook(SlackService.AreaSalePosting) == true ? CorpText.SlackDestinationWebhook
+        : SlackChannelText is { Length: > 0 } channel ? channel
+        : CorpText.SlackDestinationSlack;
 
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
@@ -1191,10 +1266,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     private async Task PostSelectedToSlackAsync()
     {
         if (_slack is null) return;
-        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = "Select a posting first."; return; }
+        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = SalesText.SlackSelectPosting; return; }
         var channel = _slack.ChannelId(SlackService.AreaSalePosting);
         var viaHook = _slack.UsesWebhook(SlackService.AreaSalePosting);
-        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = SalesText.SlackNotConfigured; return; }
 
         var guardKey = $"{SlackService.AreaSalePosting}.{pr.PostingId}";
         if (_slack.LastPostAt(guardKey) is { } last
@@ -1202,18 +1277,18 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             && ConfirmSlackRepost is not null)
         {
             var confirmed = await ConfirmSlackRepost(
-                $"\"{pr.PostingName}\" was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
-                "Post it again?");
-            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+                string.Format(SalesText.SlackAlreadyPosted, pr.PostingName, NotificationSummary.Age(last)) +
+                SalesText.SlackPostAgain);
+            if (!confirmed) { SlackStatus = SalesText.SlackPostCancelled; return; }
         }
 
         IsPostingToSlack = true;
-        SlackStatus = "Posting to Slack…";
+        SlackStatus = SalesText.SlackPosting;
         try
         {
             var fmt   = OutputFormat.ByName("Slack");
             var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
-            if (posts.Count == 0) { SlackStatus = "Nothing to post — this posting has no post blocks."; return; }
+            if (posts.Count == 0) { SlackStatus = SalesText.SlackNothingToPost; return; }
 
             string? threadTs = null;
             int posted = 0;
@@ -1228,16 +1303,93 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                 var fallbackText = OutputFormat.ByName("Plain Text").Finalize(markup);
                 var block        = OutputFormat.BuildSlackRichTextBlock(markup);
                 var res = await _slack.PostAreaAsync(SlackService.AreaSalePosting, fallbackText, threadTs, blocks: new[] { block });
-                if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
+                if (!res.Ok) { SlackStatus = string.Format(SalesText.SlackPostFailed, post.Name, res.Error); return; }
                 threadTs ??= res.Ts;
                 posted++;
             }
 
-            if (posted == 0) { SlackStatus = "Nothing to post — all post blocks were empty."; return; }
+            if (posted == 0) { SlackStatus = SalesText.SlackAllEmpty; return; }
             await _slack.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
-            SlackStatus = $"Posted to {SlackChannelText} — {DateTimeOffset.Now:t}";
+            SlackStatus = string.Format(SalesText.SlackPosted, SlackDestination, DateTimeOffset.Now);
         }
         finally { IsPostingToSlack = false; }
+    }
+
+    // ── Discord ──────────────────────────────────────────────────────────────
+    // A button of its own beside Slack's, shown only once a Discord webhook is set for Sale
+    // Posting. Re-checked when the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    private readonly DiscordService? _discord;
+
+    public bool IsDiscordConfigured => _discord?.IsConfigured(DiscordService.AreaSalePosting) == true;
+
+    /// <summary>The webhook a post would go to, by its name, for the button's tooltip.</summary>
+    public string DiscordHookText => _discord?.WebhookName(DiscordService.AreaSalePosting) ?? "";
+
+    private string _discordStatus = "";
+    public string DiscordStatus { get => _discordStatus; private set => this.RaiseAndSetIfChanged(ref _discordStatus, value); }
+
+    private bool _isPostingToDiscord;
+    public bool IsPostingToDiscord { get => _isPostingToDiscord; private set => this.RaiseAndSetIfChanged(ref _isPostingToDiscord, value); }
+
+    public void RefreshDiscordState()
+    {
+        this.RaisePropertyChanged(nameof(IsDiscordConfigured));
+        this.RaisePropertyChanged(nameof(DiscordHookText));
+    }
+
+    /// <summary>
+    /// Posts the selected posting's blocks to Discord, one message per block, in order.
+    ///
+    /// <para>⚠️ Rendered as Discord, whatever the preview's format is set to: what arrives is what
+    /// "copy as Discord" gives for the same posting. A webhook cannot thread, so there is no
+    /// parent message — every block after the first is simply the next message, as on a Slack
+    /// webhook. A block too long for one message goes in parts, cut where the splitter allows.</para>
+    /// </summary>
+    private async Task PostSelectedToDiscordAsync()
+    {
+        if (_discord is null) return;
+        if (_selectedPostingForTab is not SalePostingRow pr) { DiscordStatus = SalesText.SlackSelectPosting; return; }
+        if (!_discord.IsConfigured(DiscordService.AreaSalePosting)) { DiscordStatus = SalesText.DiscordNotConfigured; return; }
+
+        // Per posting, like Slack's guard, and kept apart from it: posting to one says nothing
+        // about whether the other has it.
+        var guardKey = $"{DiscordService.AreaSalePosting}.{pr.PostingId}";
+        if (_discord.LastPostAt(guardKey) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                string.Format(SalesText.DiscordAlreadyPosted, pr.PostingName, NotificationSummary.Age(last)) +
+                SalesText.SlackPostAgain);
+            if (!confirmed) { DiscordStatus = SalesText.SlackPostCancelled; return; }
+        }
+
+        IsPostingToDiscord = true;
+        DiscordStatus = SalesText.DiscordPosting;
+        try
+        {
+            var fmt   = OutputFormat.ByName("Discord");
+            var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
+            if (posts.Count == 0) { DiscordStatus = SalesText.SlackNothingToPost; return; }
+
+            int posted = 0;
+            foreach (var post in posts)
+            {
+                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
+                if (string.IsNullOrWhiteSpace(markup)) continue;
+
+                var sent = await _discord.PostAreaAsync(DiscordService.AreaSalePosting, markup);
+                if (!sent.AllPosted) { DiscordStatus = string.Format(SalesText.DiscordPostFailed, post.Name, sent.Error); return; }
+                posted++;
+            }
+
+            if (posted == 0) { DiscordStatus = SalesText.SlackAllEmpty; return; }
+            await _discord.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
+            DiscordStatus = string.Format(SalesText.SlackPosted,
+                _discord.WebhookName(DiscordService.AreaSalePosting), DateTimeOffset.Now);
+        }
+        finally { IsPostingToDiscord = false; }
     }
 
     /// <summary>
@@ -1395,14 +1547,14 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     private async Task AddFromMarketGroupAsync()
     {
         var section = GetContextSection();
-        if (section is null) { StatusText = "Select a section (or an item in one) first."; return; }
+        if (section is null) { StatusText = SalesText.SelectSectionFirst; return; }
         if (ShowMarketGroupPickerDialog is null || _batchSvc is null) return;
 
         var pick = await ShowMarketGroupPickerDialog();
         if (pick is null) return;
 
         var groupItems = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
-        if (groupItems.Count == 0) { StatusText = "No items in that market group."; return; }
+        if (groupItems.Count == 0) { StatusText = SalesText.NoItemsInGroup; return; }
 
         var parent = _allPostings.First(p => p.Sections.Any(s => s.SectionId == section.SectionId));
         int added = 0;
@@ -1414,7 +1566,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             newRows.Add(new SalePostingItemRow(model, name, _svc));
             added++;
         }
-        if (added == 0) { StatusText = "All those items are already in the section."; return; }
+        if (added == 0) { StatusText = SalesText.ItemsAlreadyInSection; return; }
 
         section.AllItems = section.AllItems.Concat(newRows)
             .OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
@@ -1422,7 +1574,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         await ComputePostingAsync(parent);
         SortPostingItems(parent);
         RebuildGridRows();
-        StatusText = $"Added {added} item(s).";
+        StatusText = string.Format(SalesText.AddedItems, added);
     }
 
     private async Task DeleteSelectedItemAsync()

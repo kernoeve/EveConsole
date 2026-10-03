@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Auth;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -34,7 +35,14 @@ public sealed record SlackDestination(string Kind, string Id, string Label, stri
     public const string KindChannel = "chan";
     public const string KindWebhook = "hook";
 
+    /// <summary>A Discord webhook, in the Scheduler's one list of places a task can post.
+    /// ⚠️ Its own kind, never <see cref="KindWebhook"/>: a Slack webhook cannot carry a chart and
+    /// a Discord one can, and the id is a row in a different table.</summary>
+    public const string KindDiscord = "discord";
+
+    /// <summary>A SLACK webhook. A Discord webhook is <see cref="IsDiscord"/>, and is not this.</summary>
     public bool IsWebhook => Kind == KindWebhook;
+    public bool IsDiscord => Kind == KindDiscord;
 
     /// <summary>What the dropdown shows. Webhooks are prefixed so one is never read as a channel
     /// of the same name — they land in different workspaces and behave differently.</summary>
@@ -208,7 +216,7 @@ public class SlackService
             // auth.test confirms the token works and gives us the display name to show.
             return await TestAuthAsync(ct: ct);
         }
-        catch (OperationCanceledException) { return new SlackAuthResult(false, null, null, "Cancelled."); }
+        catch (OperationCanceledException) { return new SlackAuthResult(false, null, null, SettingsText.OperationCancelled); }
         catch (Exception ex)
         {
             _errors.Log("SlackService", "Connect", ex);
@@ -311,7 +319,7 @@ public class SlackService
                             // A DM's "user" is the other party — only your own self-DM is nameable
                             // without users:read, so that's the only DM we surface.
                             if (selfId is null || Str(c, "user") != selfId) continue;
-                            all.Add(new SlackChannel { Id = Str(c, "id") ?? "", Name = "Note to Self", IsSelfDm = true });
+                            all.Add(new SlackChannel { Id = Str(c, "id") ?? "", Name = SettingsText.SlackNoteToSelf, IsSelfDm = true });
                             continue;
                         }
                         all.Add(new SlackChannel
@@ -552,5 +560,5 @@ public class SlackService
         => el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
     // Slack error codes are terse (invalid_auth, not_in_channel, channel_not_found…) — surface as-is.
-    private static string? Err(JsonElement root) => Str(root, "error") ?? "unknown error";
+    private static string? Err(JsonElement root) => Str(root, "error") ?? SettingsText.SlackUnknownError;
 }

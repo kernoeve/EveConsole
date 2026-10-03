@@ -1,0 +1,1099 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>Nombre del grupo</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>Colección</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>Aquí solo aparecen las estaciones con pedidos de venta en caché.</value>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>Fuente de precios de mercado</value>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>Precio máx. sobre la fuente (%)</value>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>p. ej., 100 — déjalo en blanco para desactivarlo</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>Multiplicador</value>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× cantidades objetivo de todos los objetos de este grupo</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Vale</value>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>Anunciante</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Abrir en el explorador de entidades</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Asignado a</value>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>Aceptante</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>Retribución</value>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>Garantía</value>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>Compra</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>Emitido</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Caduca</value>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>Aceptado</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>Obtener objetos de ESI</value>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>Volver a pedir los objetos de este contrato a cada endpoint que lo tiene y mostrar qué ha respondido cada uno.</value>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>Ofrecidos</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Cant.</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Valor de mercado</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Valor de fabr.</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Solicitados</value>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>Corporativos y personales</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Alcance:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Estado:</value>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>Asignado a:</value>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>Aceptante:</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ Actualizar</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Contenido</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>Asignado a</value>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>Aceptante</value>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>Retribución</value>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>Emitido</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Caduca</value>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>Selecciona un contrato para ver sus detalles.</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>Públicos</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Mostrar:</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>Contrato:</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Región:</value>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>Categoría:</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>Objeto:</value>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>nombre del tipo…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Ordenar:</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>Vol. m³</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ Primera</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Anterior</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Siguiente ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Última ⏭</value>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>Valores actuales</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalcular</value>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>Vuelve a valorar todas las ofertas con los precios actuales de mercado y de contratos. Se hace automáticamente cuando se actualizan los precios de mercado; esto lo ejecuta ahora.</value>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>Media de ISK por punto de lealtad entre las ofertas de cada tienda cuyo valor sale por encima de cero. Las ofertas que no valen nada, o menos, se muestran por objeto en el Explorador de objetos, pero aquí no se cuentan, ya que nadie gasta PL en ellas; la mediana abarca exactamente las mismas ofertas. Las corporaciones con las que tienes PL aparecen primero. Haz doble clic en una fila para ver su historial.</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Abrir en Entidades PNJ</value>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / PL</value>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>Media de ISK por PL entre las ofertas contadas para esta corporación.</value>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>Mediana</value>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>La oferta central, sobre las mismas ofertas contadas que la media. Se resalta cuando queda muy por debajo de la media, lo que significa que unas pocas ofertas muy altas elevan el promedio por encima de lo que da una oferta típica.</value>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>Mejor oferta</value>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>Mejor objeto</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>Contadas</value>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>Ofertas en las que se basan estas cifras, del total de la tienda. Excluye las ofertas a las que no se ha podido poner precio y las que valen cero o menos: nadie gasta PL en ellas, así que se muestran por objeto, pero aquí no se promedian.</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Tus PL</value>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>Valor de tus PL</value>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>Actualizado</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporación:</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Periodo:</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Añadir grupo</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Colección</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Añadir objetos desde un equipamiento</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Añadir objetos desde un grupo de mercado</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Añadir objetos desde un plano</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Eliminar objeto</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>Grupo / objeto</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Expandir todos los grupos</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Contraer todos los grupos</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Renombrar</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Objeto</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Objetivo</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>Total obj.</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>Disp.</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>Dif.</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>Precio merc.</value>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>Mín. est.</value>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>Media est.</value>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>Máx. est.</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Precio fabr.</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>Volumen (m³)</value>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>Niveles de mercado</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>N.º de pedidos de venta</value>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>ISK en pedidos de venta</value>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>Tipos en pedidos de venta</value>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>N.º de pedidos de compra</value>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>ISK en pedidos de compra</value>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>Tipos en pedidos de compra</value>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>Unidades vendidas</value>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>ISK en ventas</value>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>Tipos vendidos</value>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>Pedidos de venta por tipo</value>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>No hay pedidos de venta para esta selección.</value>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>Pedidos de compra por tipo</value>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>No hay pedidos de compra para esta selección.</value>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>Ventas por grupo de mercado</value>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>No hay ventas para esta selección.</value>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>ISK de ventas diarias</value>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>No hay historial de ventas para esta selección.</value>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>Por grupo de mercado</value>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>Grupo de mercado</value>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>Unid. en venta</value>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>ISK en venta</value>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>Unid. en compra</value>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>ISK en compra</value>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>Unid. vendidas</value>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>ISK vendidos</value>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>Por tipo</value>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>Pedidos de venta por tipo</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Unidades</value>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>Pedidos de compra por tipo</value>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>Pedido de compra permanente</value>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>Declara un pedido de compra que quieres mantener de forma permanente. EVE Console te indicará si existe un pedido de compra activo que coincida en esta ubicación y cuánto queda de él.</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Tipo de objeto</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Buscar tipo de objeto…</value>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>Estación / estructura</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Buscar estación o estructura…</value>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>Se pueden buscar estaciones PNJ, estructuras de jugadores y las estructuras de tu corporación.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Pedidos de compra permanentes</value>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>Pedidos de compra que quieres mantener de forma permanente en una estación o estructura. Cada uno se compara con los pedidos de compra activos de tus personajes y corporaciones.</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Abrir esta estación o estructura</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Titular</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Tu oferta</value>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>Mejor oferta (estación)</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Restante</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Nota</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calcular</value>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>Escribe para filtrar…</value>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>Bodega (m³)</value>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>Límite de ISK</value>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>Sin límite</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Vol. ISK mín. 30 d</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>Sin filtro</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Vol. unid. mín. 30 d</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Excluir grupos</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Quitar esta exclusión</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>Coste</value>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>Beneficio</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Precio de venta</value>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>Precio destino</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Beneficio / unidad</value>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>Beneficio / m³</value>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>Volumen (m³)</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Coste total</value>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>Beneficio total</value>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>Buscando oportunidades comerciales…</value>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>Oportunidades comerciales</value>
+  </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>Intercambio de objetos</value>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>Subasta</value>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>Reparto</value>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>Préstamo</value>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>Caducado</value>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>{0:N0} línea(s) sin precio de mercado, que no se cuentan</value>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>Todas las líneas tienen precio</value>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>{0:N0} línea(s) sin coste de fabricación, que no se cuentan</value>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>Todas las líneas tienen coste</value>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>Ofrecido</value>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>Solicitado</value>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>No hay ningún precio de mercado para este objeto</value>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>{0} ISK por unidad en la fuente de mercado del valor de los bienes</value>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>No hay ningún coste de fabricación para este objeto</value>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>{0} ISK por unidad para fabricarlo</value>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>Consultando a ESI…</value>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>ESI respondió HTTP {0} al pedir los objetos.</value>
+  </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>Se cerró antes de leer sus objetos y ESI ya no los muestra.</value>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESI no indicó ningún objeto para él.</value>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>Aún no se han pedido: el barrido en segundo plano llegará a él.</value>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>(sin título)</value>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>Público</value>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>Privado</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Ubicación {0}</value>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>Emitido para la corporación por {0}. Abrir en el explorador de entidades.</value>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>Abrir en el explorador de entidades</value>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>Todos los estados</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Activos</value>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>El contrato {0} no está almacenado aquí: puede que sea un anuncio público o que aún no se haya sondeado.</value>
+  </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0} +{1} más</value>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>{0} objeto(s)</value>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>(reparto)</value>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0} iteraciones</value>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>ensamblado</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>No disponible.</value>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>Cargando contratos…</value>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>Todos los propietarios</value>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>Todos los personajes y corporaciones personales</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Alianza {0}</value>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>Todos los asignados</value>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>Todos los aceptantes</value>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>Aún no hay contratos corporativos ni personales almacenados.</value>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>Precio: menor → mayor</value>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>Precio: mayor → menor</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Más recientes primero</value>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>Más antiguos primero</value>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>Retribución: mayor → menor</value>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>Volumen: mayor → menor</value>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>Contenido (A → Z)</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>Todas las categorías</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>Sin resultados</value>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>Página {0:N0} de {1:N0}  ·  {2:N0} contratos</value>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>Todas las regiones</value>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>Históricos</value>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>Todos los tipos</value>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>En curso</value>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>Finalizado (anunciante)</value>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>Finalizado (contratista)</value>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>Rechazado</value>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>Fallido</value>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>Eliminado</value>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>Revertido</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>Todo el historial</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Últimos 365 días</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Últimos 90 días</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Últimos 7 días</value>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>Región {0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Tipo {0}</value>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>ISK vendidos</value>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>todas las regiones</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>Grupo {0}</value>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>No hay datos de mercado para esta selección.</value>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>{0:N0} grupo(s) de mercado</value>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>{0:N0} tipo(s)</value>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>No hay pedidos para esta selección.</value>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>Todos los objetos de «{0}» ya están en el grupo.</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>ID de tipo {0}</value>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>Se han añadido {0} objeto(s) de «{1}»; se han omitido los que ya estaban ({2}).</value>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>Se han añadido {0} objeto(s) de «{1}».</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Cargando los objetos de «{0}»…</value>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>No se han encontrado objetos publicados en «{0}».</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>No hay ningún grupo seleccionado.</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Calculando materiales…</value>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>Error de cálculo: {0}</value>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>No se han encontrado materiales para ese plano.</value>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— Predeterminada de bienes —</value>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— Predeterminada —</value>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>Predeterminada</value>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>No hay grupos configurados. Haz clic en «{0}» para crear uno.</value>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>{0} grupo(s), {1} objeto(s)</value>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>Datos de hace {0} h {1} min</value>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>Datos de hace {0} min</value>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>Datos de ahora mismo</value>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>No hay pedidos en caché: actualiza los precios de mercado para rellenarlos.</value>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>{0} grupo(s)</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Colección «{0}» eliminada.</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Colección «{0}» añadida.</value>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>Comprar en venta → vender a pedido de compra</value>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>Comprar en venta → rebajar el pedido de venta</value>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>Selecciona las estaciones de origen y destino y haz clic en {0}.</value>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>Selecciona una estación de origen y una de destino.</value>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>El origen y el destino deben ser estaciones distintas.</value>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>Introduce un tamaño de bodega válido en m³.</value>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>Introduce un límite de ISK válido (o déjalo en blanco para no poner límite).</value>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>Introduce un volumen mínimo de ISK válido (o déjalo en blanco para no filtrar).</value>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>Introduce un volumen mínimo de unidades válido (o déjalo en blanco para no filtrar).</value>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>Calculando…</value>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>No se ha podido determinar la región de la estación de destino: asegúrate de que se han cargado los datos de mercado de esa ubicación para que funcione el filtro de volumen.</value>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>No se han encontrado oportunidades rentables para esta ruta.</value>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>Últimos 90 días</value>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>Últimos 365 días</value>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>Recalculando los valores de PL…</value>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>No se ha podido recalcular: {0}</value>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>Aún no hay valores de PL: se calculan cuando se actualizan los precios de mercado.</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corporación {0}</value>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>{0:N0} corporación(es) valorada(s) — actualizado el {1:d MMM HH:mm}</value>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>Aún no hay historial de {0} en este periodo. Se registra un punto cada vez que se recalculan los valores.</value>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>ISK por PL</value>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0} día(s) — de {1:N2} a {2:N2} ISK/PL</value>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>Esta estación no es una fuente de mercado configurada, así que no se conocen las ofertas rivales. Añádela en Ajustes → Mercado.</value>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>Superado por {0:N2} ISK: la mejor oferta de la estación es {1:N2}.</value>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>No hay otros pedidos de compra de este objeto aquí.</value>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>Sin pedido activo</value>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>Superado</value>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>No hay ningún pedido de compra activo en esta ubicación</value>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>Superado por {0:N2} ISK (mejor de la estación: {1:N2})</value>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>Por debajo del {0:N0} % del volumen original</value>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>Le queda menos del {0:N0} % de su duración</value>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0} — necesita atención</value>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>Aún no hay pedidos de compra permanentes definidos.</value>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>{0:N0} definido(s)</value>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>{0:N0} sin pedido activo</value>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>{0:N0} superado(s)</value>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>{0:N0} con poco volumen</value>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>{0:N0} a punto de caducar</value>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>todos en buen estado</value>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>Ya existe un pedido permanente de {0} en {1}.</value>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>El grupo seleccionado contiene {0} objetos. ¿Seguro que quieres añadirlos todos?</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Añadir colección</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>Nombre de la colección</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Renombrar colección</value>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>Editar pedido de compra permanente</value>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>Elige un tipo de objeto de los resultados de la búsqueda.</value>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>Elige una estación o estructura de los resultados de la búsqueda.</value>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>¿Seguro que quieres eliminar este pedido de compra permanente?</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Añadir grupo</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Editar grupo</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>El nombre del grupo es obligatorio.</value>
+  </data>
+  <data name="StatusItemTypesLoadedOne" xml:space="preserve">
+    <value>{0} tipo de objeto  ·  {1:N1} m³ cargados</value>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>{0} tipos de objeto  ·  {1:N1} m³ cargados</value>
+  </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>Desconocida ({0})</value>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="NoOtherBids" xml:space="preserve">
+    <value>sin otras ofertas</value>
+  </data>
+  <data name="PriceMaxOf" xml:space="preserve">
+    <value>{0:N2} (máx. de {1})</value>
+  </data>
+  <data name="OwnersCount" xml:space="preserve">
+    <value>{0} titulares</value>
+  </data>
+  <data name="TipOwnerOrderLine" xml:space="preserve">
+    <value>{0} — {1:N2} ISK, {2:N0}/{3:N0}, caduca el {4:yyyy-MM-dd}</value>
+  </data>
+  <data name="OwnerOrdersCount" xml:space="preserve">
+    <value>{0} ({1} pedidos)</value>
+  </data>
+  <data name="ExpiryExpired" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (caducado)</value>
+  </data>
+  <data name="ExpiryDaysLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (quedan {1} d)</value>
+  </data>
+  <data name="ExpiryHoursLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (quedan {1} h)</value>
+  </data>
+  <data name="ExpiryFirst" xml:space="preserve">
+    <value>{0} (el primero)</value>
+  </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Dest. unid. vend. 30 d</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Dest. ISK vendidos 30 d</value>
+  </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Compra máx. (días de ventas dest.)</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>No compra de un objeto más de lo que la región del destino vendió en estos días; 30 son las ventas de un mes. Déjalo vacío para no poner límite. Los objetos cuyo historial de ventas aún no se ha leído no se limitan.</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Introduce un número entero de días para Compra máx., o déjalo vacío para no poner límite.</value>
+  </data>
+</root>

@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using EveConsole.Monitoring;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -43,13 +44,44 @@ public class ChatChannelViewModel : ReactiveObject
         }
     }
 
-    public ChatChannelViewModel(string name, bool selected, bool intel, Action onChanged)
+    public ChatChannelViewModel(string name, bool selected, bool intel, Action onChanged,
+                                string regions = "", Action? onRegionsTyped = null)
     {
-        Name        = name;
-        _isSelected = selected;
-        _isIntel    = intel;
-        _onChanged  = onChanged;
+        Name           = name;
+        _isSelected    = selected;
+        _isIntel       = intel;
+        _onChanged     = onChanged;
+        _regionsText   = regions;
+        _onRegionsTyped = onRegionsTyped;
     }
+
+    private readonly Action? _onRegionsTyped;
+
+    private string _regionsText;
+    /// <summary>Optional: the regions this intel channel reports on, comma-separated. Empty means
+    /// learned from what it has reported.</summary>
+    public string RegionsText
+    {
+        get => _regionsText;
+        set
+        {
+            if (_regionsText == value) return;
+            this.RaiseAndSetIfChanged(ref _regionsText, value);
+            _onRegionsTyped?.Invoke();
+        }
+    }
+
+    private string _learnedText = "";
+    /// <summary>The regions it has been seen to report on — shown in the empty box.</summary>
+    public string LearnedText { get => _learnedText; set => this.RaiseAndSetIfChanged(ref _learnedText, value); }
+
+    private string? _regionsError;
+    public string? RegionsError
+    {
+        get => _regionsError;
+        set { this.RaiseAndSetIfChanged(ref _regionsError, value); this.RaisePropertyChanged(nameof(HasRegionsError)); }
+    }
+    public bool HasRegionsError => _regionsError is not null;
 }
 
 /// <summary>
@@ -66,6 +98,7 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private bool _loading = true;
     /// <summary>Path reachability, probed off the UI thread — see ThrottledUiProbe.</summary>
     private readonly ThrottledUiProbe _pathProbe;
+    private readonly AutoSave         _regionsSave;
 
 
     public ChatLogSettingsViewModel(
@@ -74,6 +107,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
         _settings = settings;
         _importer = importer;
         _intel    = intel;
+        _regionsSave = new AutoSave(SaveRegionsAsync,
+            ex => IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         _enabled     = settings.ChatEnabled;
         _historyDays = settings.ChatHistoryDays;
@@ -88,10 +123,9 @@ public class ChatLogSettingsViewModel : ReactiveObject
         CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
         SelectNoneCommand      = ReactiveCommand.Create(SelectNone);
         ParseIntelHistoryCommand = ReactiveCommand.CreateFromTask(ParseIntelHistoryAsync);
-        ParseIntelHistoryCommand.ThrownExceptions.Subscribe(ex => IntelStatus = $"Error: {ex.Message}");
+        ParseIntelHistoryCommand.ThrownExceptions.Subscribe(ex => IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
         AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
         RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
-        DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
         OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
 
         _pathProbe = new ThrottledUiProbe(TimeSpan.FromSeconds(30),
@@ -152,7 +186,6 @@ public class ChatLogSettingsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddDirectoryCommand    { get; }
     public ReactiveCommand<Unit, Unit> RemoveDirectoryCommand { get; }
-    public ReactiveCommand<Unit, Unit> DetectDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDirectoryCommand   { get; }
 
     private string _resolvedPaths = "";
@@ -197,12 +230,61 @@ public class ChatLogSettingsViewModel : ReactiveObject
                              .Distinct(StringComparer.OrdinalIgnoreCase)
                              .OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
 
+        var regions = _settings.IntelChannelRegions;
+
         Channels.Clear();
         foreach (var name in names)
             Channels.Add(new ChatChannelViewModel(
-                name, selected.Contains(name), intel.Contains(name), SaveSelection));
+                name, selected.Contains(name), intel.Contains(name), SaveSelection,
+                regions.TryGetValue(name, out var set) ? string.Join(", ", set) : "",
+                () => _regionsSave.Typed()));
 
         UpdateSelectionText();
+        _ = ShowLearnedRegionsAsync();
+    }
+
+    /// <summary>Each intel channel's learned regions, in its empty Regions box. Read off the UI
+    /// thread: it counts a year of the channel's reports.</summary>
+    private async Task ShowLearnedRegionsAsync()
+    {
+        if (_intel is null) return;
+        foreach (var channel in Channels.Where(c => c.IsIntel).ToList())
+        {
+            try
+            {
+                var learned = await Task.Run(() => _intel.LearnedRegionsAsync(channel.Name));
+                channel.LearnedText = learned.Count == 0
+                    ? SettingsText.IntelRegionsNoneLearned
+                    : string.Format(SettingsText.IntelRegionsLearned, string.Join(", ", learned));
+            }
+            catch { /* the box simply stays empty */ }
+        }
+    }
+
+    /// <summary>Saves a change still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => _regionsSave.FlushAsync();
+
+    /// <summary>
+    /// Saves the regions typed for each intel channel. Names are taken in English or the interface
+    /// language and stored in English; a name that is no region is left out and said so under its
+    /// box. The next intel pass reads them.
+    /// </summary>
+    private async Task SaveRegionsAsync()
+    {
+        if (_intel is null) return;
+        var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var channel in Channels.ToList())
+        {
+            var typed = channel.RegionsText.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (typed.Length == 0) { channel.RegionsError = null; continue; }
+
+            var (english, unknown) = await _intel.ResolveRegionNamesAsync(typed);
+            channel.RegionsError = unknown.Count == 0 ? null
+                : string.Format(SettingsText.IntelRegionsUnknown, string.Join(", ", unknown));
+            if (english.Count > 0) map[channel.Name] = english;
+        }
+        _settings.IntelChannelRegions = map;
+        _intel.ForgetChannelHints();
     }
 
     private void SaveSelection()
@@ -227,11 +309,11 @@ public class ChatLogSettingsViewModel : ReactiveObject
         {
             var progress = new Progress<string>(s => IntelStatus = s);
             var n = await _intel.BackfillAsync(progress);
-            IntelStatus = $"Parsed {n:N0} sighting(s) from stored history.";
+            IntelStatus = string.Format(SettingsText.ChatIntelParsed, n);
         }
         catch (Exception ex)
         {
-            IntelStatus = $"Intel parsing failed — {ex.Message}";
+            IntelStatus = string.Format(SettingsText.ChatIntelFailed, ex.Message);
         }
         finally
         {
@@ -247,9 +329,7 @@ public class ChatLogSettingsViewModel : ReactiveObject
     }
 
     public string IntelHelp =>
-        "Messages in the ticked channels are parsed into sightings: the system, how many " +
-        "were reported, and any pilots named. \"clr\" retires whatever was standing in that " +
-        "system. Sightings drive the Intel overlays on the Universe map.";
+        SettingsText.ChatIntelHelp;
 
     private void SelectNone()
     {
@@ -261,8 +341,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
     {
         var n = Channels.Count(c => c.IsSelected);
         SelectionText = n == 0
-            ? "No channels selected — nothing will be stored."
-            : $"{n:N0} of {Channels.Count:N0} channel(s) selected.";
+            ? SettingsText.ChatNoChannelsSelected
+            : string.Format(SettingsText.ChatChannelsSelected, n, Channels.Count);
     }
 
     /// <summary>⚠️ Enumerates the log directories — off the UI thread, for the same reason as
@@ -279,10 +359,10 @@ public class ChatLogSettingsViewModel : ReactiveObject
             {
                 var files = _importer.EstimateHistoryFiles(days);
                 text = days <= 0
-                    ? $"All {files:N0} file(s) for the selected channels will be processed."
-                    : $"{files:N0} file(s) from the last {days:N0} day(s) will be processed.";
+                    ? string.Format(SettingsText.ChatImportAllFiles, files)
+                    : string.Format(SettingsText.ChatImportFilesSince, files, days);
             }
-            catch (Exception ex) { text = $"Could not count files — {ex.Message}"; }
+            catch (Exception ex) { text = string.Format(SettingsText.LogsCountFailed, ex.Message); }
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => EstimateText = text);
         });
@@ -311,18 +391,6 @@ public class ChatLogSettingsViewModel : ReactiveObject
         if (SelectedDirectory is null) return;
         Directories.Remove(SelectedDirectory);
         await SaveDirectoriesAsync();
-    }
-
-    private async Task DetectDirectoryAsync()
-    {
-        var auto = MonitoringSettings.DefaultChatLogDirectory();
-        if (auto is null) { ResolvedPaths = "Could not find a local EVE chat log folder."; return; }
-
-        if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
-        {
-            Directories.Add(auto);
-            await SaveDirectoriesAsync();
-        }
     }
 
     private void OpenSelectedDirectory()
@@ -369,9 +437,12 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private string DescribeResolvedPaths()
     {
         var resolved = _settings.ResolveChatDirectories();
+        var local    = MonitoringSettings.DefaultChatLogDirectory();
         return resolved.Count == 0
-            ? "No chat log folder found — add one below."
+            ? SettingsText.ChatNoFolder
             : string.Join("\n", resolved.Select(d =>
-                (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));
+                MonitoringSettings.IsLocalDefault(d, local) ? string.Format(SettingsText.LogsFolderThisComputer, d)
+                : Directory.Exists(d) ? "✓ " + d
+                : string.Format(SettingsText.LogsFolderUnreachable, d)));
     }
 }

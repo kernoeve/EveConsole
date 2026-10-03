@@ -11,6 +11,7 @@ using EveConsole.Api;
 using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
+using EveConsole.Localization;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,17 @@ public class App : Application
 
     public override void Initialize()
     {
-        LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
+        LiveCharts.Configure(config =>
+        {
+            config.AddSkiaSharp().AddDefaultMappers();
+
+            // Charts draw their text with Skia, outside Avalonia's font fallback. LiveCharts finds
+            // a face for a character its own lacks, but by the character alone — and Chinese,
+            // Japanese and Korean share characters with different shapes, so a Chinese label
+            // could come out in a Japanese face. The language's own face, when it has one.
+            if (EveConsole.Localization.Languages.ChartTypeface() is { } face)
+                config.HasTextSettings(new TextSettings { DefaultTypeface = face });
+        });
         AvaloniaXamlLoader.Load(this);
 
         // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the
@@ -139,9 +150,7 @@ public class App : Application
 
             while (await Task.WhenAny(work, Task.Delay(1000)) != work)
                 if (lastPct is > 5 and < 85)
-                    p.Report((lastPct,
-                        $"Shrinking database — {Elapsed(startedAt)} elapsed. " +
-                        "Please leave the application open."));
+                    p.Report((lastPct, string.Format(ShellText.SplashShrinking, Elapsed(startedAt))));
 
             await work;
         }
@@ -163,7 +172,7 @@ public class App : Application
         // a 958 MB leftover could not be deleted while the app was running.
         if (DbEngine.IsSqlite && !DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
         {
-            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
+            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? ShellText.RecoveryReasonUnknown);
 
             // ⚠️ The splash stays up and owns the dialog. Hiding it first is what broke this on
             // its first real run: a modal dialog must have a *visible* owner, so hiding the splash
@@ -173,7 +182,7 @@ public class App : Application
             // window that is never shown fails the identical check.
             if (splash is not null)
             {
-                splash.ReportProgress(0, "Waiting — the database could not be opened");
+                splash.ReportProgress(0, ShellText.SplashWaitingDatabase);
                 await recovery.ShowDialog(splash);
             }
             else
@@ -209,6 +218,11 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+
+        // A line each time ESI's error budget makes the governor hold background work back further,
+        // saying how much is left and which routes spent it — and one when it lets go.
+        EsiBudget.Shared.LevelChanged += (from, to, why) =>
+            errorLogger.Log("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
 
         // Dates any damage that appears while running, rather than leaving the next launch to
         // find it with no idea when it started. Fifteen minutes is frequent enough to place it
@@ -252,8 +266,7 @@ public class App : Application
             {
                 var why = e.Exception.Message;
                 splash?.ReportProgress(100,
-                    "Startup failed — " + (why.Length > 160 ? why[..160] + "…" : why) +
-                    "  (full details in the error log)");
+                    string.Format(ShellText.SplashStartupFailed, why.Length > 160 ? why[..160] + "…" : why));
             }
             e.Handled = true;
         };
@@ -362,6 +375,12 @@ public class App : Application
             polling.CharacterUndocked += characterId =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
 
+            // An intel alarm around characters watches wherever they are, so an undock or a jump
+            // changes what it watches: evaluated then, so a hostile already reported next door
+            // is heard on arrival rather than at the alarm's next interval.
+            polling.CharacterMoved += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
             // The web sites do NOT follow the pass: it runs every half minute and after every
@@ -406,6 +425,27 @@ public class App : Application
                 try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "settings not saved", reason); }
                 catch { }
             };
+
+            // Names in the interface language that could not be read, said out loud for the same
+            // reason: the screens quietly staying in English is otherwise all anybody would see.
+            SdeNames.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeNames", "names not loaded", reason); }
+                catch { }
+            };
+            SdeTexts.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeTexts", "description not read", reason); }
+                catch { }
+            };
+
+            // The move out of the install folder runs before there is a log to write to; what it
+            // could not do is said here, once per start until it succeeds.
+            if (AppConfig.DataMoveProblem is { } moveProblem)
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "data not moved out of the install folder", moveProblem); }
+                catch { }
+            }
 
             esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
@@ -672,22 +712,38 @@ public class App : Application
                     new InvalidOperationException(
                         $"database is at {dbVersion}, this client is {AppVersion.Number}"));
 
-                if (splash is not null)
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
                 {
-                    splash.ReportProgress(0, "Stopping — version mismatch");
-                    await new FatalDialog("This build does not match the database", message)
-                        .ShowDialog(splash);
+                    splash?.ReportProgress(0, ShellText.SplashStoppingMismatch);
 
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
-                        stopping.Shutdown();
-                    else
-                        Environment.Exit(1);
+                    // ⚠️ A database AHEAD of this build is the one mismatch this client can fix by
+                    // itself, and it is the one every client meets when another upgrades a shared
+                    // database first. The updater lives in the main window, which a stopped client
+                    // never reaches, so this looks for the release there and then and offers it.
+                    // The other direction is another client's to fix: a plain stop, as before.
+                    //
+                    // ⚠️ The dialog says `message` again, in the interface's language; the console
+                    // line below keeps the English, as every log line does. A change to one is a
+                    // change to the other.
+                    Avalonia.Controls.Window dialog = dbV > appV
+                        ? new UpdateRequiredDialog(
+                            string.Format(ShellText.VersionMismatchDatabaseAhead, dbVersion, AppVersion.Number),
+                            dbV!, errorLogger)
+                        : new FatalDialog(ShellText.VersionMismatchHeading,
+                            string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
+
+                    // A tray start has no splash to own it, and used to end here without a word.
+                    await ShowAndWaitAsync(dialog, splash);
+                    stopping.Shutdown();
                 }
                 else
                 {
                     // Headless, or anything else with nowhere to draw. ⚠️ A non-zero code, so a
-                    // service manager sees a failed start rather than a clean one.
+                    // service manager sees a failed start rather than a clean one. Whether an update
+                    // exists is the next thing whoever reads this will need, so it is said here too.
                     Console.Error.WriteLine(message);
+                    if (dbV > appV)
+                        Console.Error.WriteLine(await AppUpdater.DescribeForLogAsync(dbV!, errorLogger));
                     Environment.Exit(1);
                 }
 
@@ -695,10 +751,20 @@ public class App : Application
             }
         }
 
+        static Task ShowAndWaitAsync(Avalonia.Controls.Window dialog, Avalonia.Controls.Window? owner)
+        {
+            if (owner is not null) return dialog.ShowDialog(owner);
+            var closed = new TaskCompletionSource();
+            dialog.Closed += (_, _) => closed.TrySetResult();
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen;
+            dialog.Show();
+            return closed.Task;
+        }
+
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
         await Task.Run(() =>
         {
-        p.Report((5, "Initializing database…"));
+        p.Report((5, ShellText.SplashInitializingDatabase));
         // Ensure the database is created / migrated
         //
         // ⚠️ Only the client holding the worker lease reaches here with skipSchema false, and that
@@ -938,6 +1004,7 @@ public class App : Application
                         "CharacterId"   INTEGER NOT NULL DEFAULT 0,
                         "CharacterName" TEXT    NOT NULL DEFAULT '',
                         "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                        "Language"      TEXT    NOT NULL DEFAULT '',
                         -- ⚠️ Both default to the closed position. A shop that served everyone the
                         -- moment it was created would start answering strangers before its owner had
                         -- decided that was wanted, and a mail cannot be unsent.
@@ -1034,6 +1101,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCustomHostname" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // The language the shop speaks to buyers; empty for the app's own.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Language" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
 
                 db.Database.ExecuteSqlRaw("""
@@ -1056,6 +1125,14 @@ public class App : Application
                     """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "SlackWebhooks" (
+                        "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name" TEXT    NOT NULL DEFAULT '',
+                        "Url"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                // Discord's named webhooks, the same shape as Slack's. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "DiscordWebhooks" (
                         "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "Name" TEXT    NOT NULL DEFAULT '',
                         "Url"  TEXT    NOT NULL DEFAULT ''
@@ -1336,7 +1413,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((20, "Building character tables…"));
+                p.Report((20, ShellText.SplashCharacterTables));
                 // ── Polled-data tables — drop old names, create Esi* names ──────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -1587,6 +1664,7 @@ public class App : Application
                         "RegionId"            INTEGER NOT NULL DEFAULT 0,
                         "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
                         "ItemsStatus"         INTEGER NOT NULL DEFAULT 0,
+                        "StatusChangedAfter"  TEXT,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
                     )
                     """);
@@ -1594,6 +1672,9 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsStatus" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // What dates a deletion, which ESI does not — see ContractLag. Mirrored for
+                // PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "StatusChangedAfter" TEXT"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiContractItems" (
@@ -1793,6 +1874,103 @@ public class App : Application
                     )
                     """);
 
+                // ── Planetary Industry: colony layouts ──────────────────────────────
+                // One colony replaced whole, in one transaction, whenever the colony list
+                // reports a new last_update. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLayouts" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "LastUpdate"  TEXT    NOT NULL,
+                        "FetchedAt"   TEXT    NOT NULL,
+                        CONSTRAINT "PK_EsiPlanetaryLayouts" PRIMARY KEY ("CharacterId", "PlanetId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPins" (
+                        "CharacterId"            INTEGER NOT NULL,
+                        "PlanetId"               INTEGER NOT NULL,
+                        "PinId"                  INTEGER NOT NULL,
+                        "TypeId"                 INTEGER NOT NULL DEFAULT 0,
+                        "SchematicId"            INTEGER NULL,
+                        "InstallTime"            TEXT    NULL,
+                        "ExpiryTime"             TEXT    NULL,
+                        "LastCycleStart"         TEXT    NULL,
+                        "Latitude"               REAL    NOT NULL DEFAULT 0,
+                        "Longitude"              REAL    NOT NULL DEFAULT 0,
+                        "ExtractorProductTypeId" INTEGER NULL,
+                        "ExtractorCycleTime"     INTEGER NULL,
+                        "ExtractorQtyPerCycle"   INTEGER NULL,
+                        "ExtractorHeadRadius"    REAL    NULL,
+                        "ExtractorHeadCount"     INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPins" PRIMARY KEY ("CharacterId", "PlanetId", "PinId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPinContents" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "PinId"       INTEGER NOT NULL,
+                        "TypeId"      INTEGER NOT NULL,
+                        "Amount"      INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPinContents" PRIMARY KEY ("CharacterId", "PlanetId", "PinId", "TypeId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryRoutes" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "RouteId"          INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL DEFAULT 0,
+                        "DestinationPinId" INTEGER NOT NULL DEFAULT 0,
+                        "ContentTypeId"    INTEGER NOT NULL DEFAULT 0,
+                        "Quantity"         REAL    NOT NULL DEFAULT 0,
+                        "Waypoints"        TEXT    NOT NULL DEFAULT '',
+                        CONSTRAINT "PK_EsiPlanetaryRoutes" PRIMARY KEY ("CharacterId", "PlanetId", "RouteId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLinks" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL,
+                        "DestinationPinId" INTEGER NOT NULL,
+                        "LinkLevel"        INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryLinks" PRIMARY KEY ("CharacterId", "PlanetId", "SourcePinId", "DestinationPinId")
+                    )
+                    """);
+
+                // What left and arrived between two snapshots of a colony, and the tax rate each
+                // planet was learned to charge from it. See PiTaxLearning.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiColonyMovements" (
+                        "Id"          INTEGER NOT NULL CONSTRAINT "PK_PiColonyMovements" PRIMARY KEY AUTOINCREMENT,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "PlanetId"    INTEGER NOT NULL DEFAULT 0,
+                        "FromUpdate"  TEXT    NOT NULL DEFAULT '',
+                        "ToUpdate"    TEXT    NOT NULL DEFAULT '',
+                        "TypeId"      INTEGER NOT NULL DEFAULT 0,
+                        "Removed"     INTEGER NOT NULL DEFAULT 0,
+                        "Added"       INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiPlanetTaxRates" (
+                        "PlanetId"    INTEGER NOT NULL CONSTRAINT "PK_PiPlanetTaxRates" PRIMARY KEY,
+                        "Rate"        REAL    NOT NULL DEFAULT 0,
+                        "LearnedAt"   TEXT    NOT NULL DEFAULT '',
+                        "JournalId"   INTEGER NOT NULL DEFAULT 0,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "Source"      TEXT    NOT NULL DEFAULT '',
+                        "Units"       INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiAgentResearch" (
                         "CharacterId"     INTEGER NOT NULL,
@@ -1965,7 +2143,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((45, "Building corporation tables…"));
+                p.Report((45, ShellText.SplashCorporationTables));
                 // ── Corp tables ───────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2242,6 +2420,19 @@ public class App : Application
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Fits saved in the fitting tool, as EFT text. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SavedFits" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "ShipTypeId" INTEGER NOT NULL DEFAULT 0,
+                        "Eft"        TEXT    NOT NULL DEFAULT '',
+                        "State"      TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SavedFits" ADD COLUMN "State" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_SavedFits_ShipTypeId" ON "SavedFits" ("ShipTypeId")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                         "EntityId"   INTEGER NOT NULL,
@@ -2281,7 +2472,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((65, "Building market tables…"));
+                p.Report((65, ShellText.SplashMarketTables));
                 // ── Market pricing ────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2371,7 +2562,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
                     """);
 
-                p.Report((78, "Building industry tables…"));
+                p.Report((78, ShellText.SplashIndustryTables));
                 // ── Indy Parks ───────────────────────────────────────────────────────
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IndyParks" (
@@ -2492,7 +2683,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
                     """);
 
-                p.Report((90, "Finalizing schema…"));
+                p.Report((90, ShellText.SplashFinalizingSchema));
                 // ── Application error log ─────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2504,7 +2695,8 @@ public class App : Application
                         "Message"      TEXT    NOT NULL DEFAULT '',
                         "InnerMessage" TEXT,
                         "HostName"     TEXT    NOT NULL DEFAULT '',
-                        "Headless"     INTEGER NOT NULL DEFAULT 0
+                        "Headless"     INTEGER NOT NULL DEFAULT 0,
+                        "Severity"     INTEGER NOT NULL DEFAULT 0
                     )
                     """);
 
@@ -2513,6 +2705,8 @@ public class App : Application
                 // ever had one writer, a file copied to a server keeps its history.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "HostName" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "Headless" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // Error, warning or note (LogSeverity); 0, an error, for everything already logged. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "Severity" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 // ── Standing buy orders ──────────────────────────────────────────
                 // User-declared intent; the live counterpart lives in EsiMarketOrders.
@@ -2589,7 +2783,8 @@ public class App : Application
                         "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
                         "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
                         "Note"                  TEXT    NOT NULL DEFAULT '',
-                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1
+                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1,
+                        "PlanetaryIndustry"     INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2601,6 +2796,10 @@ public class App : Application
                 // column with no default would silence every character's skill queue on upgrade,
                 // which is the opposite of what clearing a box is for.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "SkillQueue" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
+                // The PI box, on by default for the same reason: every character already listed
+                // keeps doing PI until somebody clears it. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "PlanetaryIndustry" INTEGER NOT NULL DEFAULT 1"""); } catch { }
 
                 // Added after the rules table shipped on this branch, so it needs its own ALTER —
                 // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
@@ -2807,7 +3006,12 @@ public class App : Application
                         "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
                         "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1,
                         "OutstandingContracts"       INTEGER NOT NULL DEFAULT 1,
-                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1
+                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1,
+                        "PiExtractors"               INTEGER NOT NULL DEFAULT 1,
+                        "PiStorage"                  INTEGER NOT NULL DEFAULT 1,
+                        "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
+                        "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
+                        "PiStaleData"                INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -2816,6 +3020,12 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "OutstandingContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "ExpiringContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Planetary Industry alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiExtractors" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStorage" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiInputs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiFreeSlots" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2825,8 +3035,9 @@ public class App : Application
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
-                         "OutstandingContracts", "ExpiringContracts")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1)
+                         "OutstandingContracts", "ExpiringContracts",
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -3285,6 +3496,13 @@ public class App : Application
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
 
+                    // Jump bridges entered by hand (the ones ESI shows are read from corporation
+                    // structures, never stored). Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "ManualJumpBridges" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "FromSystemId" INTEGER NOT NULL DEFAULT 0, "ToSystemId" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NOT NULL DEFAULT '', "CreatedAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ManualJumpBridges_Pair" ON "ManualJumpBridges" ("FromSystemId", "ToSystemId")""",
+                    """CREATE TABLE IF NOT EXISTS "EveScoutConnections" ("Id" TEXT NOT NULL PRIMARY KEY, "HubSystemId" INTEGER NOT NULL DEFAULT 0, "HubSystemName" TEXT NOT NULL DEFAULT '', "HubSignature" TEXT NOT NULL DEFAULT '', "OtherSystemId" INTEGER NOT NULL DEFAULT 0, "OtherSystemName" TEXT NOT NULL DEFAULT '', "OtherSignature" TEXT NOT NULL DEFAULT '', "OtherRegionId" INTEGER NULL, "OtherRegionName" TEXT NOT NULL DEFAULT '', "OtherClass" TEXT NOT NULL DEFAULT '', "WormholeType" TEXT NOT NULL DEFAULT '', "MaxShipSize" TEXT NOT NULL DEFAULT '', "ExpiresAt" TEXT NULL, "ReadAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE TABLE IF NOT EXISTS "EveScoutStorms" ("Id" TEXT NOT NULL PRIMARY KEY, "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "RegionId" INTEGER NULL, "RegionName" TEXT NOT NULL DEFAULT '', "StormType" TEXT NOT NULL DEFAULT '', "DisplayName" TEXT NOT NULL DEFAULT '', "HoursInSystem" INTEGER NOT NULL DEFAULT 0, "ReportedAt" TEXT NOT NULL DEFAULT '', "ReadAt" TEXT NOT NULL DEFAULT '')""",
+
                     """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
                     """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",
@@ -3292,6 +3510,9 @@ public class App : Application
                     """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Flags" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Gate" TEXT NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Ships" TEXT NULL""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the
@@ -3461,6 +3682,18 @@ public class App : Application
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
 
+                // Intel report alarms saved before they could watch characters (a comma list and
+                // one ranged system) are rewritten to "around Systems", once, so they go on
+                // watching their systems rather than turning into the new default.
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "intel").ToList())
+                        if (EveConsole.Alarms.Conditions.IntelCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading intel alarms", ex); }
+
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
 
@@ -3487,7 +3720,7 @@ public class App : Application
         }
         }); // end Task.Run — schema migration complete
 
-        p.Report((80, "Loading settings…"));
+        p.Report((80, ShellText.SplashLoadingSettings));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
         try
@@ -3571,19 +3804,19 @@ public class App : Application
             return;
         }
 
-        p.Report((84, "Preparing tools…"));
+        p.Report((84, ShellText.SplashPreparingTools));
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
-        p.Report((88, "Starting background services…"));
+        p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
         // that is already usable — the old behaviour, but as a fallback rather than the norm.
-        p.Report((94, "Loading overview…"));
+        p.Report((94, ShellText.SplashLoadingOverview));
         await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
 
-        p.Report((99, "Opening…"));
+        p.Report((99, ShellText.SplashOpening));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
         {
             mainWindow             = new MainWindow();
@@ -3591,7 +3824,7 @@ public class App : Application
             desktopFinal.MainWindow   = mainWindow;
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
-            p.Report((100, "Ready."));
+            p.Report((100, ShellText.SplashReady));
             mainWindow.Show();
 
             await Task.Delay(250); // brief pause so the 100 % state is visible
@@ -3639,12 +3872,14 @@ public class App : Application
                 var alarms   = Services.GetRequiredService<AlarmActionRunner>();
                 var activity = Services.GetRequiredService<WorkerActivityService>();
 
-                // ⚠️ Activity first, and it says whether the payload was its own. Both kinds arrive
+                // ⚠️ Activity first, and it says whether the payload was its own. Every kind arrives
                 // on one channel, and each handler ignores what is not addressed to it — so the
-                // alarm path is only reached by something that really is an alarm.
+                // alarm path is only reached by something that really is an alarm. An SDE import
+                // on any client means new names for every client, each in its own language.
                 signals.Received += payload =>
                 {
                     if (activity.TryApplySignal(payload)) return;
+                    if (SdeNames.TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();
@@ -3713,6 +3948,7 @@ public class App : Application
             // run over the same hour at the same time.
             Start("map stats backfill", () => Services.GetRequiredService<MapStatsBackfillService>().Start());
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
+            Start("EVE-Scout",          () => Services.GetRequiredService<EveScoutService>().Start());
 
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
@@ -3783,6 +4019,7 @@ public class App : Application
                 Halt("database backup",     Services.GetRequiredService<DatabaseBackupService>(),     s => s.StopAsync()),
                 Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
+                Halt("EVE-Scout",           Services.GetRequiredService<EveScoutService>(),           s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
                 Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
@@ -3947,7 +4184,10 @@ public class App : Application
             // when adopting a newer field, having checked nothing else in that release
             // changes shape underneath us.
             client.DefaultRequestHeaders.Add("X-Compatibility-Date", "2026-08-01");
-        });
+        })
+        // Every response into the shared record of ESI's limits, and background calls held back
+        // by its governor as they run low — see EsiBudget.
+        .AddHttpMessageHandler(() => new EsiBudgetHandler());
 
         // Separate client for the public /status/ check. Kept apart from "esi" on purpose:
         // it is the one call that must still run while everything else is paused for
@@ -3957,7 +4197,9 @@ public class App : Application
             client.BaseAddress = new Uri("https://esi.evetech.net/latest/");
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
             client.Timeout = TimeSpan.FromSeconds(15);
-        });
+        })
+        // Recorded, never governed: this is how downtime is noticed, whatever the budget says.
+        .AddHttpMessageHandler(() => new EsiBudgetHandler(governed: false));
 
         // Named HTTP client for Fuzzwork market aggregates
         services.AddHttpClient("fuzzwork", client =>
@@ -3973,6 +4215,15 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
+        // absolute URL, and no Authorization header — the link is the whole credential. A timeout
+        // of its own, since a chart upload is a request somebody is sitting in front of.
+        services.AddHttpClient("discord", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Named HTTP client for zKillboard (zkillboard.com + r2z2.zkillboard.com). No
         // BaseAddress — the API and history/firehose endpoints live on different hosts,
         // so callers use absolute URLs. Automatic gzip decompression since daily dumps
@@ -3982,6 +4233,19 @@ public class App : Application
         {
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
             client.Timeout = TimeSpan.FromSeconds(30);
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
+        });
+
+        // ⚠️ The entity viewer's pages, on a client of their own for the timeout. A page
+        // zKillboard has not served lately is built on request: measured on a large alliance,
+        // page 1 answered in 0.14s and page 10 in 36.7s — past the 30s above, which cut it off
+        // and read as the list simply ending.
+        services.AddHttpClient("zkillboard-pages", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromMinutes(2);
         }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
             AutomaticDecompression = System.Net.DecompressionMethods.All,
@@ -4010,6 +4274,7 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<DiscordService>();
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
@@ -4017,6 +4282,11 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
+        // its alerts and its worklist tasks read colonies through.
+        services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
+        services.AddSingleton<EveConsole.Services.Pi.PiSettings>();
+        services.AddSingleton<EveConsole.Services.Pi.PiService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<TypePriceHistoryService>();
@@ -4123,6 +4393,8 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.PiGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
@@ -4189,6 +4461,14 @@ public class App : Application
         services.AddSingleton<MapStatsService>();
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
+        services.AddSingleton<EveScoutService>();
+        services.AddSingleton<SovCampaignService>();
+        services.AddHttpClient("eve-scout", c =>
+        {
+            c.BaseAddress = new Uri(EveScoutService.BaseUrl);
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(30);
+        });
         services.AddSingleton<SystemViewService>();
 
         // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent

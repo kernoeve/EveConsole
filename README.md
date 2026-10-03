@@ -16,7 +16,7 @@ Runs natively on both Windows and Linux, which is why I went with Avalonia in th
 
 By default everything sits in a local SQLite file and that is all you need.  If you would rather run it against PostgreSQL you can point it at a server instead, and then you can have several clients open at once -- different machines, same data.  In that setup exactly one of them does the background work and the rest just read.  You can also run it with no window at all (`--headless`), or install it as a Windows service or a systemd user unit, so the polling keeps going when nothing is open.  None of that is required; the default is still one client and one file.
 
-There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.
+There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.  The interface also comes in eight languages: English, German, Spanish, French, Japanese, Korean, Russian and Simplified Chinese, with item, station and other game names in the same language the game client uses.
 
 Keep in mind this application is still very green.  You are free to play around with it, but do expect issues during use.  Do not give up your old tools for this quite yet.  Needs a bit of a hardening period.
 
@@ -134,22 +134,27 @@ Keep in mind this application is still very green.  You are free to play around 
 - Build costs price blueprint copies off actual contracts (per run and by ME), and take the cheaper of building or buying each component
 - Tranquility status sits in the header, and ESI polling pauses on its own while the server is down
 - Database tab reports the size of every table, and can shrink, move or rename the database
-- Data retention rules for the error log, killmails, price history, game logs and chat, swept in the background at least daily
+- Data retention rules for the error log, killmails (your own characters' and corporations' kept on a separate window from everyone else's), price history, game logs and chat, swept in the background at least daily
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
 - Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
 - Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
 - Eight UI themes: light, dark, and blue/pink/beige in both.  Applies immediately, remembered per machine rather than per database
+- Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one
+- UI scale from 50% to 200%, per machine
+- The main window splits into two sides with tabs dragged between them, and any tool can be dragged out into a window of its own
 
 ### Industry / Trade
 - Market Levels - Allows you to monitor a specific definable market for inventory of sell orders on a specific list of items
 - Inventory Levels - Allow you to monitor your current inventory amounts (plus in build, buy, etc.) of a definable list of items (similar to jEveAssets stockpiles)
-- Trade Opportunities - Compares markets for opportunities between them
+- Trade Opportunities - Compares markets for opportunities between them.  Results can be narrowed by item name without recalculating
 - Net Worth - A Chart with lines to make you feel better/worse
+- Income & Expense and Wallet - Where your ISK came from and went, by category, and the wallets themselves - journal, market transactions and corp divisions
+- Planetary Industry - Every colony of your PI characters: when extractors end, when storage fills or inputs run out, what each colony imports and exports, what is sitting there waiting to be hauled, and profit per day.  Feeds Overview alerts, an alarm and worklist tasks
 - Production Calculator - Accurate calculation of production jobs for the player.  Includes build costs, materials needed, etc.  Reports what you are missing and turns it into a shopping list
 - Market Overview - What you have on the market, broken down by market group.  Sell and buy order units and ISK, alongside what has actually sold
-- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Nine sources you can switch on and off independently - industry jobs, logistics, invention and copying, material purchases, standing buy orders, inventory levels, corp projects, skill queues and asset safety
+- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Eleven sources you can switch on and off independently - industry jobs, logistics, invention and copying, refining, material purchases, standing buy orders, inventory levels, corp projects, skill queues, asset safety and planetary industry
 - Order Tracker - Track items you have agreed to supply.  Pending orders are matched against stock, active industry jobs and the contracts that deliver them, so an order completes itself when the contract is accepted
 - Standing Buy Orders - Declare the buy orders you intend to keep standing at a station or structure, and see whether they are actually there, outbid, or nearly expired
 - Sale Posting - Build shareable sale postings from your stock, with build/market/contract pricing and a configurable sale price.  Renders to Plain, Slack, Discord, Markdown, HTML or BBCode
@@ -157,17 +162,28 @@ Keep in mind this application is still very green.  You are free to play around 
 - LP Market Values - What your loyalty points are actually worth, offer by offer, priced against the market
 - Contracts - Browse your contracts and their items
 - Industry Jobs - Every running job, with a check on whether it is actually getting the rig bonus you planned for
-- Industry Opportunities - What is worth building right now
+- Industry Opportunities - What is worth building right now.  Can be narrowed by item name, like Trade Opportunities
+- Item Valuation - Paste a list (from the game client, in any language) and see what it is worth at any station: market, build and reprocessed values side by side, with stations compared
+- Stores - Run your own store.  Buyers order by EVE mail, or on a small web site of your own on Cloudflare that the app deploys and keeps current, and orders land in the Order Tracker
 - Price Overrides - Pin a price when you disagree with the market
 
+### Ships
+- Fitting - A fitting tool built on the game's own dogma rules out of the SDE.  DPS, capacitor simulation, tank and repairs, fleet boosts and remote support from other fits, mining yield, electronic warfare and lock times
+- One fit per tab.  EFT paste and copy, drag and drop from a market-group item finder, damage profiles, cargo and market value
+- Opens fits saved in EVE Console and your characters' in-game fittings from one picker, and saves back to where the fit came from
+- Existing ships - Every assembled ship your characters and personal corps own, filtered by ship name, hull or system, with hull, fit and total value.  Opens one with its fit as a new fit, ready to Save As
+
 ### Universe / Navigation
-- Universe Map - One continuous map of New Eden, from the whole cluster down to a single system.  Overlays colour systems by security, kills, jumps, industry indices, sovereignty, stations, planetary output and intel sightings
-- System pages - Celestials, kills, industry indices, agents, graphs and intel sightings for any system
-- Jump Planner - Capital route planning with draggable waypoints and midpoints, jump-through structures, and the fuel and distance for each leg
+- Universe Map - One continuous map of New Eden, from the whole cluster down to a single system.  Overlays colour systems by security, kills, jumps, industry indices, sovereignty (owner, ADM, standings and zones), faction warfare, incursions, stations, planetary output and intel sightings.  Maps open in tabs, two side by side if you like, and show your own characters and live hostiles from intel and recent kills
+- System pages - Celestials, kills, industry indices, agents, graphs, intel sightings, sov campaigns, jump bridges and Thera/Turnur connections for any system, and which of your characters are there
+- Route Planner - Routes through gates, jump bridges and Thera/Turnur (connections from EVE-Scout), with an avoid list.  Shows the route on the map and can set it as the in-game destination for a character who is online
+- Jump Planner - Capital route planning with draggable waypoints and midpoints, jump-through structures, and the fuel and distance for each leg.  A tab of the map, beside a Jump range tab that rings every system a jump drive reaches
+- Jump bridges - Ansiblexes read from ESI, or added by hand, drawn on the map and used for routes
+- Sov campaigns - Every sovereignty campaign now and coming, in a map tab and on the map itself
 - Structure Browser - Player structures pulled from the public structure list rather than only the ones you happen to have visited.  Links to Indy Parks so a park can name a real facility
 
 ### Intel / Logs
-- Intel parsing - Reads your intel channel logs, works out who was seen where and in what, and puts the sightings on the map
+- Intel parsing - Reads your intel channel logs, works out who was seen where and in what (short system names, ship slang, counts like "3 camping", gate and flags), leaves your blues out, and puts the sightings on the map
 - Game Log and Chat Log viewers - Search your local EVE logs, with past history importable in bulk
 - Session tracking - Which characters are online, where they are, and what they are flying
 
@@ -182,20 +198,23 @@ Keep in mind this application is still very green.  You are free to play around 
 - Item Browser - Full items browser, and description/attributes/etc. of every item in the game.  Also includes current market orders and price history for defined markets.
 - Asset Viewer - Search across all personal and corp assets
 - Killmail viewer - Corp and personal, or everything in New Eden if you turn the zKillboard feed on
-- Player Entities - Every pilot, corp and alliance the app has met in a killmail, contract or chat log, with kills, losses and member counts
+- Player Entities - Every pilot, corp and alliance the app has met in a killmail, contract or chat log.  Shows zKillboard's stats for each, and pages in their whole kill and loss history from zKillboard
 - NPC Entities - Agents, NPC corporations and factions out of the SDE.  Search an agent by name, or ask what is in a station
 - Alerts - On the overview of the main screen alerts will show for things the tool believes you should look at (definable)
-- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks
+- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (wake-up call), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
 - Eve Mail - Read and write eve mail... just because
 - Notifications - Your in-game notifications, without logging in
-- Slack - Optional.  Sends alerts to a direct message with yourself
+- Slack - Optional.  Sends alerts to a direct message with yourself, and posts corp reports and sale postings to channels
+- Discord - Optional.  Posts the Corp Top 10, monthly summary, sale postings and scheduled tasks to your channels through webhooks -- no bot, and it never pings anyone
+- Scheduler - Posts messages and corp reports to Slack or Discord on a schedule you set
 - ESI Explorer - Poke at the raw ESI data the app holds
 
 ### AI Agent ("Eden")
 - Built-in conversational assistant with access to your character/corp data via tool calls
-- Configurable to use external (Claude/OpenAI) or local (i.e., Ollama)
-- Optional text-to-speech (Piper local TTS or ElevenLabs) and speech-to-text (local Whisper or OpenAI) for hands-free interaction
-- Customizable name and voice
+- Configurable to use external (Claude/OpenAI) or local (i.e., Ollama).  Models are picked from the service's own list, a role each (conversation, data questions, summaries), with a fallback when one fails
+- Optional text-to-speech (Piper or Kokoro locally, your own speech server, OpenAI or ElevenLabs) and speech-to-text (local Whisper or OpenAI) with a push-to-talk key, for hands-free interaction
+- Customizable name and voices
+- AI Usage - What the agent has cost you, call by call
 
 ---
 
@@ -230,7 +249,7 @@ If you would rather not build it, grab a release: an installer on Windows, and o
 
 On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO.
 
-Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EveConsole\EveConsole.db` on Windows or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
+Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace) or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
 
 See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
 

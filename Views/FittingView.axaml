@@ -1,0 +1,267 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:fit="using:EveConsole.Services.Fitting"
+             xmlns:ctl="using:EveConsole.Controls"
+             xmlns:views="using:EveConsole.Views"
+             xmlns:loc="using:EveConsole.Localization"
+             x:Class="EveConsole.Views.FittingView"
+             x:DataType="vm:FittingViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Margin"     Value="0 14 0 4" />
+    </Style>
+    <Style Selector="TextBlock.big">
+      <Setter Property="FontSize"   Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="TextBlock.line">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.over">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="ProgressBar">
+      <Setter Property="Minimum"  Value="0" />
+      <Setter Property="Maximum"  Value="1" />
+      <Setter Property="Height"   Value="4" />
+      <Setter Property="MinHeight" Value="4" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="ProgressBar.over">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Padding"  Value="10 4" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <!-- Module state: grey when off, plain when online, lit when active, warm when overheated. -->
+    <Style Selector="Button.state">
+      <Setter Property="Width"    Value="40" />
+      <Setter Property="Padding"  Value="0 2" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.state.off">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="Button.state.active">
+      <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+    </Style>
+    <Style Selector="Button.state.heated">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+    <Style Selector="Button.heat">
+      <Setter Property="Width"    Value="30" />
+      <Setter Property="Padding"  Value="0 2" />
+      <Setter Property="FontSize" Value="8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.heat.on">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <!-- Numbers are typed; spinner arrows only crowd the boxes. -->
+    <Style Selector="NumericUpDown">
+      <Setter Property="ShowButtonSpinner" Value="False" />
+    </Style>
+    <!-- A fighter ability: lit when on. Damage abilities in the accent, the rest plainer. -->
+    <Style Selector="ToggleButton.ability">
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ability:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ability.damage:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.remove">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="Auto,*" Background="{DynamicResource SurfaceBaseBrush}">
+
+    <!-- ══ Items: what goes on a fit. Hidden with the button on the new-fit bar. ══ -->
+    <Border Grid.Column="0" Width="300" IsVisible="{Binding FinderVisible}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="10">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:FittingText.ItemsHeading}" FontWeight="SemiBold" FontSize="13"
+                   Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
+        <ComboBox DockPanel.Dock="Top" ItemsSource="{x:Static vm:FittingViewModel.KindFilters}"
+                  SelectedItem="{Binding SelectedKindFilter}" HorizontalAlignment="Stretch" Margin="0 0 0 6" />
+        <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}" Watermark="{x:Static loc:FittingText.SearchWatermark}" Margin="0 0 0 6" />
+        <CheckBox DockPanel.Dock="Top" IsChecked="{Binding FitsOnly}" Content="{x:Static loc:FittingText.FitsOnly}"
+                  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 6" />
+        <!-- Set by clicking an empty slot on the ring. -->
+        <Border DockPanel.Dock="Top" IsVisible="{Binding HasFinderSlot}" Margin="0 0 0 6" Padding="8 3"
+                Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="3">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding FinderSlotText}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="remove" Content="✕" Command="{Binding ClearFinderSlotCommand}"
+                    ToolTip.Tip="{x:Static loc:FittingText.TipShowEverySlot}" />
+          </Grid>
+        </Border>
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,6,*" Margin="0 6 0 0">
+          <Button Grid.Column="0" Classes="tool" Content="{x:Static loc:FittingText.AddToFit}" Command="{Binding AddSelectedCommand}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:FittingText.AddToCargo}" Command="{Binding AddToCargoCommand}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipAddToCargo}" />
+        </Grid>
+        <TextBlock DockPanel.Dock="Bottom" Text="{x:Static loc:FittingText.FinderDragHint}" FontSize="10" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextFaintBrush}" Margin="0 6 0 0" />
+        <!-- Nothing typed: what there is, in the market's groups (only those with something in
+             them). Something typed: a list of what matches, in the interface language or English.
+             Either way an item is added by double-clicking it or dragging it onto the fit. -->
+        <Panel>
+          <TreeView x:Name="FinderTree" IsVisible="{Binding IsBrowsing}" ItemsSource="{Binding FinderGroups}"
+                    SelectedItem="{Binding SelectedTreeItem}" DoubleTapped="OnResultDoubleTapped"
+                    Background="Transparent" BorderThickness="0">
+            <TreeView.Styles>
+              <!-- A group's open state is the view model's, so a rebuilt tree keeps it; an item has none. -->
+              <Style Selector="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded, Mode=TwoWay, FallbackValue=False}" />
+                <Setter Property="Padding" Value="0 1" />
+                <Setter Property="MinHeight" Value="22" />
+              </Style>
+            </TreeView.Styles>
+            <TreeView.DataTemplates>
+              <TreeDataTemplate DataType="vm:FinderGroupNode" ItemsSource="{Binding Children}">
+                <TextBlock Text="{Binding Label}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+              </TreeDataTemplate>
+              <DataTemplate DataType="fit:CatalogEntry">
+                <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.Tip="{Binding DisplayGroupName}"
+                      PointerPressed="OnEntryPressed" PointerMoved="OnEntryMoved" PointerReleased="OnEntryReleased">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </TreeView.DataTemplates>
+          </TreeView>
+          <ListBox IsVisible="{Binding !IsBrowsing}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedResult}"
+                   DoubleTapped="OnResultDoubleTapped"
+                   Background="Transparent" BorderThickness="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="fit:CatalogEntry">
+                <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.Tip="{Binding DisplayGroupName}"
+                      PointerPressed="OnEntryPressed" PointerMoved="OnEntryMoved" PointerReleased="OnEntryReleased">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Panel>
+      </DockPanel>
+    </Border>
+
+
+    <!-- ══ Fits: one tab each, on one side or two ══════════════════════════ -->
+    <DockPanel Grid.Column="1">
+
+      <!-- Ways to start a fit. Each opens a new tab on the side last clicked. -->
+      <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="10 8 10 4">
+        <WrapPanel Orientation="Horizontal">
+          <ToggleButton Classes="tool" IsChecked="{Binding FinderVisible}" Margin="0 0 12 4" Padding="8 4"
+                        Background="{DynamicResource SurfaceRaisedBrush}" FontSize="11"
+                        ToolTip.Tip="{x:Static loc:FittingText.TipToggleItems}">
+            <TextBlock Text="{x:Static loc:FittingText.ToggleItems}" />
+          </ToggleButton>
+          <TextBlock Text="{x:Static loc:FittingText.NewFitLabel}" Classes="section" Margin="0 0 8 4" VerticalAlignment="Center" />
+          <AutoCompleteBox x:Name="HullPicker" Width="260" Margin="0 0 6 4" FontSize="12" GotFocus="OnHullPickerFocused"
+                           Watermark="{x:Static loc:FittingText.HullWatermark}"
+                           ItemsSource="{Binding Hulls}" FilterMode="Custom" ItemFilter="{Binding HullFilter}"
+                           MinimumPrefixLength="1" MaxDropDownHeight="420"
+                           ValueMemberBinding="{Binding DisplayName, x:DataType=fit:CatalogEntry}"
+                           SelectionChanged="OnHullPicked">
+            <AutoCompleteBox.ItemTemplate>
+              <DataTemplate x:DataType="fit:CatalogEntry">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding DisplayGroupName}" FontSize="10" Margin="10 0 0 0"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </AutoCompleteBox.ItemTemplate>
+          </AutoCompleteBox>
+          <Button Classes="tool" Content="{x:Static loc:FittingText.PasteEft}" Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
+          <!-- Every saved fit, EVE Console's and the game's, in one picker. -->
+          <Button Classes="tool" Content="{x:Static loc:FittingText.OpenFit}" Command="{Binding OpenFitCommand}" Margin="0 0 6 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipOpenFit}" />
+          <!-- The characters' and personal corporations' own ships, as the asset list has them fitted. -->
+          <Button Classes="tool" Content="{x:Static loc:FittingText.ExistingShips}" Command="{Binding OpenShipCommand}" Margin="0 0 0 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipExistingShips}" />
+        </WrapPanel>
+      </Border>
+
+      <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" FontSize="11" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextMutedBrush}" Margin="14 4 14 8" />
+
+      <Panel>
+        <TextBlock Text="{x:Static loc:FittingText.EmptyToolHint}"
+                   IsVisible="{Binding !HasTab}" FontSize="13" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap" TextAlignment="Center" Margin="40 0"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <!-- One side, or two halves while the right one holds a tab. -->
+        <Grid x:Name="Sides" ColumnDefinitions="*,0" IsVisible="{Binding HasTab}">
+          <views:FitPaneView Grid.Column="0" DataContext="{Binding LeftPane}" />
+          <Border Grid.Column="1" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1 0 0 0"
+                  IsVisible="{Binding IsSplit}">
+            <views:FitPaneView DataContext="{Binding RightPane}" />
+          </Border>
+        </Grid>
+
+        <!-- While a tab is dragged with only one side open: drop it on the right half to open a second. -->
+        <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowSplitDropZone}">
+          <Border Grid.Column="1" x:Name="SplitDropZone" DragDrop.AllowDrop="True" Margin="0 34 0 0"
+                  Background="{DynamicResource SurfaceOverlayBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                  BorderThickness="2" CornerRadius="4">
+            <TextBlock Text="{x:Static loc:FittingText.DropSideBySide}" FontSize="14"
+                       Foreground="{DynamicResource TextBrightBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </Grid>
+      </Panel>
+    </DockPanel>
+  </Grid>
+</UserControl>

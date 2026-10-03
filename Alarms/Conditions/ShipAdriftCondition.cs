@@ -2,7 +2,9 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
+using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Alarms.Conditions;
@@ -34,6 +36,11 @@ namespace EveConsole.Alarms.Conditions;
 /// after the landing, for good: a pilot who docked is awake, and the undock that follows in
 /// the same system is an ordinary undock, the other mode's business.</para>
 ///
+/// <para>Stopping the ship after an undock ends that episode too, unless unticked: the danger
+/// is drifting off the undock, and a stopped ship does not drift — besides, somebody pressed
+/// it. Only the game log says so ("Ship stopping"), so it needs the log folder of the client
+/// the character is on; without it the stages run as before.</para>
+///
 /// <para>Repeat and cooldown do not apply to a staged alarm; the stages are its cadence.</para>
 /// </summary>
 public sealed class ShipAdriftCondition : IAlarmCondition
@@ -44,6 +51,16 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private const int DefaultStage2 = 240;
     private const int DefaultStage3 = 300;
     private const int DefaultSnooze = 30;
+
+    /// <summary>
+    /// How long before the undock stamp a stop still counts. The stamp is the location poll
+    /// seeing the character in space: one second's poll behind ESI's five-second cache, so up to
+    /// about six seconds after the undock — and no stop comes sooner than seven seconds after
+    /// one, the squeeze being about ten. The other way, a stop pressed on the way in to dock was
+    /// at least twelve seconds before the next undock in every log read. Five sits between.
+    /// A slow poll can only make a stop miss, and the alarm then fires as it always did.
+    /// </summary>
+    private static readonly TimeSpan StopSlack = TimeSpan.FromSeconds(5);
 
     private const int CapsuleGroupId   = 29;
     private const int AttrJumpFuelType = 866;   // a hull with this dogma attribute has a jump drive
@@ -59,7 +76,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         "space — the thirty seconds after a jump. Docking, leaving the " +
         "system or logging off ends it. Pressing the dialog's button, or replying anything at all " +
         "to the agent, quiets it for a while; when that lapses and the ship is still there, the " +
-        "stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's " +
+        "stages start over. Stopping the ship after the undock (the game log's \"Ship stopping\") ends " +
+        "it too, unless unticked. Each stage has its own actions — TTS direct or the agent to say the stage's " +
         "line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.";
 
     public int Stages => StageCount;
@@ -78,6 +96,16 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                               "still in space; only hulls with a jump drive are watched, and an empty " +
                               "Flying list means all of them. Unticked: the clock starts at an undock, " +
                               "any hull, and Flying must name what to watch.",
+            },
+            stop_ends = new
+            {
+                type        = "boolean",
+                @default    = true,
+                title       = "Stopping the ship ends it",
+                description = "Ticked: a \"Ship stopping\" in the game log after the undock ends that " +
+                              "undock's alarm — a stopped ship does not drift off the undock, and " +
+                              "somebody pressed it. Needs that client's game logs being read.",
+                show_if     = new Dictionary<string, string[]> { ["arrivals"] = ["false"] },
             },
             ships = new
             {
@@ -130,6 +158,25 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         },
     };
 
+    // The editor's words; the three above are the agent's and stay English.
+    public string ScreenName        => AlarmsText.CheckUndockedTooLong;
+    public string ScreenDescription => AlarmsText.CheckUndockedTooLongNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "arrivals"       => new(AlarmsText.AdriftArrivalsLabel, AlarmsText.AdriftArrivalsNote),
+        "stop_ends"      => new(AlarmsText.AdriftStopEndsLabel, AlarmsText.AdriftStopEndsNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "ships"          => new(AlarmsText.FlyingLabel,         string.Format(AlarmsText.AdriftShipsNote,
+                                SdeNames.Type(28844, "Rhea"), SdeNames.Group(513, "Freighter"),
+                                SdeNames.Group(902, "Jump Freighter"), SdeNames.Group(28, "Hauler"))),
+        "stage1_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 1), AlarmsText.AdriftStage1Note, AlarmsText.SuffixSecondsUndocked),
+        "stage2_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 2), AlarmsText.AdriftStage2Note, AlarmsText.SuffixSecondsUndocked),
+        "stage3_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 3), AlarmsText.AdriftStage3Note, AlarmsText.SuffixSecondsUndocked),
+        "snooze_minutes" => new(AlarmsText.AdriftSnoozeLabel,   AlarmsText.AdriftSnoozeNote,   AlarmsText.SuffixMinutes),
+        _                => null,
+    };
+
     public string Describe(JsonElement config)
     {
         var ships    = ReadList(config, "ships");
@@ -142,6 +189,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
             sb.Append(" — ").Append(string.Join(", ", stages.Select(s => $"{s.Seconds}s")))
               .Append(arrivals ? " after landing" : " after undock");
         sb.Append($"; quiet {Snooze(config)} min after a reply");
+        if (!arrivals && StopEnds(config)) sb.Append("; stopping the ship ends it");
         return sb.ToString();
 
         static string Few(List<string> items) =>
@@ -153,11 +201,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     {
         if (matches.Count == 1 && matches[0].Detail is { } d && d.ContainsKey("character"))
         {
-            return ($"Wake up, {User(d)}",
-                    $"{Str(d, "character")}'s {HullWord(d)} " +
-                    (IsArrival(d) ? $"landed in {Str(d, "system")} {Span(d)} ago" : $"has been undocked in {Str(d, "system")} for {Span(d)}") +
-                    " and has not docked. " +
-                    $"Press I'm awake to keep this quiet for {Snooze(config)} minutes while the ship stays out.");
+            // In the interface language. "I'm awake" in the body names the dialog's button.
+            return (string.Format(AlarmsText.AdriftTitle, SpokenUser(d)),
+                    string.Format(IsArrival(d) ? AlarmsText.AdriftBodyLanded : AlarmsText.AdriftBodyUndocked,
+                                  Str(d, "character"), SpokenHullWord(d), Str(d, "system"), SpokenSpan(d), Snooze(config)));
         }
         return (alarmName, IAlarmCondition.JoinSummaries(matches));
     }
@@ -170,6 +217,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     /// The whole prompt for the agent: what to say for this stage, word for word, and that the
     /// reply is the acknowledgement. Asking "is everything all right" needs a reply, which is
     /// the one thing the generic prompt forbids.
+    ///
+    /// <para>⚠️ English, and so are the hull, the time and the name it uses, since the agent reads
+    /// it. The line to say is the one exception: it is said to the person, so it is the stage's
+    /// line in the interface language, the same words a TTS action would speak.</para>
     /// </summary>
     public string? AgentPrompt(JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
@@ -195,34 +246,34 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     /// <summary>
     /// Addressed to the person at the keyboard, by the name they gave the agent; the character is
     /// named too, because they may have several clients up and need to know which one. The
-    /// character is not who is being spoken to.
+    /// character is not who is being spoken to. In the interface language: it is said to them.
     /// </summary>
     internal static string StageLine(int stage, IReadOnlyDictionary<string, object?> d)
     {
-        var user    = User(d);
+        var user    = SpokenUser(d);
         var name    = Str(d, "character");
-        var hull    = HullWord(d);
+        var hull    = SpokenHullWord(d);
         var system  = Str(d, "system");
-        var span    = Span(d);
-        if (IsArrival(d))
-            return stage switch
-            {
-                1 => $"{Cap(user)}, {name}'s {hull} landed in {system} {span} ago and is not docked yet. Is everything all right?",
-                2 => $"Wake up, {user}. {name}'s {hull} is still in space in {system}, {span} after landing. Dock up now.",
-                _ => $"{Cap(user)}! {name}'s {hull} has been sitting in {system} for {span} since landing. Dock up now!",
-            };
-        return stage switch
+        var span    = SpokenSpan(d);
+
+        // Where the name opens the sentence it is capitalised — "Capsuleer, …" — and not where
+        // it follows "Wake up".
+        return (IsArrival(d), stage) switch
         {
-            1 => $"{Cap(user)}, {name}'s {hull} has been undocked in {system} for {span}. Is everything all right?",
-            2 => $"Wake up, {user}. {name}'s {hull} undocked in {system} {span} ago and still is not docked. Dock up, or answer me.",
-            _ => $"{Cap(user)}! {name}'s {hull} is still undocked in {system} after {span}. Wake up and dock now.",
+            (true,  1) => string.Format(AlarmsText.AdriftLandedStage1,   Cap(user), name, hull, system, span),
+            (true,  2) => string.Format(AlarmsText.AdriftLandedStage2,   user,      name, hull, system, span),
+            (true,  _) => string.Format(AlarmsText.AdriftLandedStage3,   Cap(user), name, hull, system, span),
+            (false, 1) => string.Format(AlarmsText.AdriftUndockedStage1, Cap(user), name, hull, system, span),
+            (false, 2) => string.Format(AlarmsText.AdriftUndockedStage2, user,      name, hull, system, span),
+            (false, _) => string.Format(AlarmsText.AdriftUndockedStage3, Cap(user), name, hull, system, span),
         };
     }
 
     private static bool IsArrival(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("arrival", out var a) && a is true;
 
-    /// <summary>"45 seconds" under two minutes, "3 minutes" from there — a jump alarm is set in seconds.</summary>
+    /// <summary>"45 seconds" under two minutes, "3 minutes" from there — a jump alarm is set in seconds.
+    /// English, for the agent's prompt and the match summary; <see cref="SpokenSpan"/> is the person's.</summary>
     private static string Span(IReadOnlyDictionary<string, object?> d)
     {
         var seconds = d.TryGetValue("seconds", out var s) && s is int n ? n : Minutes(d) * 60;
@@ -231,9 +282,24 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         return minutes == 1 ? "1 minute" : $"{minutes} minutes";
     }
 
-    /// <summary>The person's name as the agent knows it, or "capsuleer" when they never gave one.</summary>
+    /// <summary>The same span in the interface language, for what the person reads and hears.</summary>
+    private static string SpokenSpan(IReadOnlyDictionary<string, object?> d)
+    {
+        var seconds = d.TryGetValue("seconds", out var s) && s is int n ? n : Minutes(d) * 60;
+        if (seconds < 120)
+            return Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.SpanSecondsOther), seconds);
+        var minutes = (int)Math.Round(seconds / 60.0);
+        return Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.SpanMinutesOther), minutes);
+    }
+
+    /// <summary>The person's name as the agent knows it, or "capsuleer" when they never gave one.
+    /// English, for the agent's prompt.</summary>
     private static string User(IReadOnlyDictionary<string, object?> d)
         => Str(d, "user") is { Length: > 0 } u ? u : "capsuleer";
+
+    /// <summary>The same, with "capsuleer" in the interface language, for what is said to them.</summary>
+    private static string SpokenUser(IReadOnlyDictionary<string, object?> d)
+        => Str(d, "user") is { Length: > 0 } u ? u : AlarmsText.AdriftCapsuleer;
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
@@ -241,7 +307,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
     {
         var arrivals  = ReadBool(config, "arrivals");
-        var wantShips = ReadList(config, "ships").Select(Norm).ToHashSet();
+        var shipNames = ReadList(config, "ships");
+        var wantShips = shipNames.Select(Norm).ToHashSet();
         if (wantShips.Count == 0 && !arrivals) return [];
 
         var stages = StageSeconds(config);
@@ -261,6 +328,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var adrift = arrivals
             ? inSpace.Where(s => s.SystemChangedAt != null && s.PreviousSystemId != null && s.SolarSystemId != null && !DockedSinceLanding(s)).ToList()
             : inSpace.Where(s => s.UndockedAt != null && s.UndockedSystemId != null && s.SolarSystemId == s.UndockedSystemId).ToList();
+        if (!arrivals && StopEnds(config) && adrift.Count > 0)
+        {
+            var stopped = await StoppedSinceUndockAsync(db, adrift, ct);
+            adrift = adrift.Where(s => !stopped.Contains(s.CharacterId)).ToList();
+        }
         if (adrift.Count == 0) return [];
 
         var typeIds = adrift.Select(s => s.ShipTypeId!.Value).Distinct().ToList();
@@ -269,6 +341,9 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                              where typeIds.Contains(t.TypeId)
                              select new { t.TypeId, t.Name, g.GroupId, Group = g.Name })
                             .ToDictionaryAsync(x => x.TypeId, ct);
+
+        // Hulls and classes named in the client's other languages, as the ids they name.
+        var otherShips = await OtherLanguageNames.IdsAsync(db, shipNames, ct, SdeNameKind.Type, SdeNameKind.Group);
 
         // Arrivals: only a hull with a jump drive, and only a landing no gate could have made —
         // the previous system and this one are not neighbours on the stargate map.
@@ -307,10 +382,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         {
             if (!hulls.TryGetValue(s.ShipTypeId!.Value, out var hull)) continue;
             var isPod = hull.GroupId == CapsuleGroupId;
-            if (wantShips.Count > 0
-                && !wantShips.Contains(Norm(hull.Name)) && !wantShips.Contains(Norm(hull.Group))
-                && !(isPod && wantShips.Contains("pod")))
-                continue;
+            var named = wantShips.Contains(Norm(hull.Name)) || wantShips.Contains(Norm(hull.Group))
+                     || otherShips[SdeNameKind.Type].Contains(hull.TypeId) || otherShips[SdeNameKind.Group].Contains(hull.GroupId)
+                     || (isPod && wantShips.Contains("pod"));
+            if (wantShips.Count > 0 && !named) continue;
 
             var undockedAt = (arrivals ? s.SystemChangedAt : s.UndockedAt)!.Value.ToUniversalTime();
             var systemId   = arrivals ? s.SolarSystemId!.Value : s.UndockedSystemId!.Value;
@@ -366,6 +441,27 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         return matches;
     }
 
+    /// <summary>
+    /// The characters whose game log says "Ship stopping" since their undock — less
+    /// <see cref="StopSlack"/>, for the poll's lag behind the undock itself.
+    /// </summary>
+    private static async Task<HashSet<long>> StoppedSinceUndockAsync(
+        AppDbContext db, IReadOnlyList<CharacterStatus> undocked, CancellationToken ct)
+    {
+        var from    = undocked.ToDictionary(s => s.CharacterId, s => s.UndockedAt!.Value - StopSlack);
+        var ids     = from.Keys.ToList();
+        var since   = GameLogRules.FormatTimestamp(from.Values.Min());
+        var stops   = await db.GameLogEvents.AsNoTracking()
+            .Where(e => e.CharacterId != null && ids.Contains(e.CharacterId.Value)
+                     && e.Kind == GameLogRules.KindShipStopped && string.Compare(e.OccurredAt, since) >= 0)
+            .Select(e => new { CharacterId = e.CharacterId!.Value, e.OccurredAt })
+            .ToListAsync(ct);
+
+        // OccurredAt is ISO-8601 UTC to the second, so it compares as text against the same format.
+        return stops.Where(e => string.CompareOrdinal(e.OccurredAt, GameLogRules.FormatTimestamp(from[e.CharacterId])) >= 0)
+                    .Select(e => e.CharacterId).ToHashSet();
+    }
+
     /// <summary>Whether a stargate joins the two systems. A jump drive lands where none does.</summary>
     private static Task<bool> AdjacentAsync(AppDbContext db, int fromId, int toId, CancellationToken ct)
         => (from a in db.SdeStargates.AsNoTracking()
@@ -393,6 +489,18 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                    && s.UndockedSystemId is not null && s.SolarSystemId == s.UndockedSystemId;
         var landing = s.SystemChangedAt is { } c && EpisodeKey(c) == episode && !DockedSinceLanding(s);
         if (!undock && !landing) return false;
+
+        // A stop since the undock ends it here as it does in the evaluation, or a sound set to
+        // repeat would carry on after the pilot had answered it by stopping.
+        if (undock && !landing)
+        {
+            var json = await db.Alarms.AsNoTracking().Where(a => a.Id == alarmId)
+                .Select(a => a.ConditionJson).FirstOrDefaultAsync(ct);
+            using var config = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json);
+            if (!ReadBool(config.RootElement, "arrivals") && StopEnds(config.RootElement)
+                && (await StoppedSinceUndockAsync(db, [s], ct)).Count > 0)
+                return false;
+        }
 
         var snooze = await db.AlarmSnoozes.AsNoTracking()
             .FirstOrDefaultAsync(x => x.AlarmId == alarmId && x.ScopeKey == scopeKey, ct);
@@ -426,8 +534,12 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private static int Minutes(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("minutes", out var m) && m is int n ? n : 0;
 
+    // English, for the agent's prompt.
     private static string HullWord(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("is_pod", out var p) && p is true ? "pod" : Str(d, "hull");
+
+    private static string SpokenHullWord(IReadOnlyDictionary<string, object?> d)
+        => d.TryGetValue("is_pod", out var p) && p is true ? AlarmsText.AdriftPod : Str(d, "hull");
 
     private static string Norm(string s) => s.Trim().ToLowerInvariant();
 
@@ -445,6 +557,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                 list.Add((i, seconds));
         return list;
     }
+
+    /// <summary>On unless unticked: alarms saved before the option existed have it on.</summary>
+    private static bool StopEnds(JsonElement config) =>
+        !(config.ValueKind == JsonValueKind.Object && config.TryGetProperty("stop_ends", out var p)
+          && p.ValueKind == JsonValueKind.False);
 
     private static int Snooze(JsonElement config)
         => ReadInt(config, "snooze_minutes") is { } m && m > 0 ? m : DefaultSnooze;

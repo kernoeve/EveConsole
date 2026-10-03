@@ -1,0 +1,1588 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>Подтвердить — выключить звук</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>Звук</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Громкость</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ Прослушать</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>Добавить звук…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>Повторять, пока тревогу не подтвердят или ситуация не разрешится сама</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>Текст для озвучки (необязательно)</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>оставьте пустым, чтобы произнести текст, составленный проверкой</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>Произносится сразу синтезом речи, без участия помощника, — нужен голос в «Настройки → Помощник», а не модель, и работает даже при выключенном помощнике. В окне помощника показывается как строка самого приложения. Подстановки: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>Дополнительное указание помощнику (необязательно)</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>например: назвать систему и говорить коротко</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>Помощнику сообщается, что сработало, и он сам формулирует сообщение. Он произнесёт его вслух, если настроен синтез речи; если помощник не настроен, вместо этого записывается оповещение.</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>Использовать стандартный текст этой проверки</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>Сообщение</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>Подстановки: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>Новая тревога</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>Звук, окна и сообщения помощнику — только на этом компьютере. Оповещения записываются в любом случае, а другие клиенты это не затрагивает.</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>Ранняя стадия разработки — этот инструмент ещё складывается, и его поведение, макет и сохранённые настройки могут измениться.</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>помощник</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>Открытые оповещения</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>Для чего эта тревога?</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Включена</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>Активна с</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>всегда</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>Время по часам этого компьютера, например с 18:00 по 02:00. Пусто — всегда. Вне этого времени тревога вообще не проверяется.</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>Проверка</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>начните вводить название предмета…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>начните вводить название, затем нажмите «Добавить»…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>После срабатывания</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>Проверять каждые (с)</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>Пауза (с)</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>Тревога сообщает только о том, о чём ещё не сообщала, поэтому условие, которое остаётся верным, не повторяется. «Постоянно» — тревога остаётся взведённой, пока вы её не выключите; «Однократно» — выключается сама после первого срабатывания. «Пауза» дополнительно задаёт минимальный промежуток между срабатываниями.</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>Тогда</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>Добавить действие</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>через</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>На этом этапе нет действий — добавьте действие или снимите флажок этапа.</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>Выберите тревогу или создайте новую.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>Проверить звуки</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>Последние срабатывания (время EVE)</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>Новая задача</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>Время указано по EVE</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>Выберите задачу или создайте новую.</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>Что делает эта задача?</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>Тип задачи</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>Повтор</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>Каждые</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>мин</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>ч</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>В эти дни</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>День месяца</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>Время (ЧЧ:ММ, EVE)</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>Пропустить, если в этот день приложение было закрыто</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>Куда публиковать</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Каналы рабочих пространств и веб-хуки из настроек Slack — одним списком.</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>Не публиковать, если динамические разделы пусты</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>Если выключено, сообщение отправляется, что бы ни показывали данные. Если включено, оно придерживается, пока хотя бы одному разделу, который читает данные (любому, кроме раздела «Текст»), действительно есть что сказать.</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>Добавить раздел</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>Предпросмотр</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>Показывает разделы такими, какими они будут опубликованы, но не публикует их.</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>Пока сообщать нечего. Выберите тип раздела и добавьте его — разделы отправляются в этом порядке, одним сообщением.</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>Что сказать. Здесь работает разметка Slack.</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>Какие списки включить</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>Показывать только долю от общего, без ISK</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>Каждый список выводит сумму и её долю. Если флажок установлен, сумма убирается — кроме списка «Победы», где число означает количество, а не стоимость.</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>Динамика за двенадцать месяцев в виде изображения, которое загружается под сообщением.</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>Этот раздел не будет опубликован. Задача направлена в веб-хук, а веб-хук не может передать изображение — выберите выше канал рабочего пространства, иначе при запуске задачи этот раздел будет пропущен.</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>Объявление</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>Цены и количества — в точности как в инструменте «Объявления о продаже». Его блоки публикации по порядку объединяются в этот раздел.</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>Тип проекта</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>Отчёт</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>«Отсутствующие» — всё, что не покрыто ни одним активным проектом корпорации, включая то, что приложение не смогло проверить. «Заканчивающиеся» добавляют проекты корпорации, у которых осталось меньше 10%, — их скоро нужно будет заменить.</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>Заголовок раздела</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>Без заголовка</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>Заголовки столбцов</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>Столбец «Остаток ISK»</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>Столбец «Последнее завершение»</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>Какие проекты включить</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Ни одного</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>По строке на каждый постоянный проект, как он задан; проект для сектора или созвездия показан здесь один раз, а при публикации разворачивается в строку на каждую подходящую систему. Публикуется то, что отмечено на момент сохранения, — постоянный проект, заданный позже, сам не добавится.</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>Предпросмотр</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>Нажмите «Предпросмотр», чтобы увидеть разделы такими, какими они будут опубликованы.</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>Оповещение</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>Оставьте пустым, чтобы использовать название задачи.</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>Текст оповещения.</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>Показывается в «Обзоре» и в инструменте «Тревоги», пока его не закроют, — так же, как оповещение самой тревоги.</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>Отменить изменения</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>Возвращает редактор к сохранённому состоянию.</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>Выполняет по-настоящему то, что на экране, и засчитывается как запуск по расписанию.</value>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>Текущий месяц</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>Прошлый месяц</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>Доставить предмет</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>Уничтожить NPC</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>Отсутствующие проекты</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>Отсутствующие и заканчивающиеся проекты</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>Все проекты</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>Списки топ-10</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>Месячная сводка корпорации</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>Объявление о продаже</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>График динамики ISK корпорации</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>График динамики активности корпорации</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>График побед и потерь корпорации</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>График добычи корпорации</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>Месяц ещё идёт — данные за {0:MMMM yyyy} на текущий момент.</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>Данные за {0:MMMM yyyy} на текущий момент.</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>Не удалось прочитать постоянные проекты: {0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>Для этой корпорации не задано постоянных проектов типа «Доставить предмет».</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>Для этой корпорации не задано постоянных проектов типа «Уничтожить NPC».</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>Перейти к другой задаче и потерять их?</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Опубликовать в Slack</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>Создать оповещение</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>Топ-10 корпорации</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>Месячная сводка корпорации</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>Объявление о продаже</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>График динамики ISK корпорации</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>График динамики активности корпорации</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>График побед и потерь корпорации</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>График добычи корпорации</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>С интервалом</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>По дням недели</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>Раз в месяц</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>Раз в год</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>Вс</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>Пн</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>Вт</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>Ср</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>Чт</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>Пт</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>Сб</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>Январь</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>Февраль</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>Март</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>Апрель</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>Май</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>Июнь</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>Июль</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>Август</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>Сентябрь</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>Октябрь</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>Ноябрь</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>Декабрь</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>Отсчитывается от последнего запуска. Если приложение было закрыто дольше интервала, задача выполнится один раз при открытии, а не по разу за каждый пропущенный период.</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>Если отмечены все дни, задача ежедневная. День, прошедший при закрытом приложении, потом не наверстывается, поэтому время сразу после полуночи лучше, чем незадолго до неё.</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>Выполняется раз в месяц, начиная с этого дня и времени. Если в коротком месяце такого дня нет, задача выполняется в его последний день, так что 31-е число наступает и в феврале.</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>Выполняется раз в год, начиная с этого дня и времени. 29 февраля в те три года из четырёх, когда его нет, переносится на 28-е.</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>Обновить и потерять их?</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>(без названия)</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>Ещё не запускалась</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>Последний запуск: {0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>Задач: {0}.</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Веб-хук: {0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>Создать новую задачу и потерять их?</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>Новая задача.</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>без названия</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>В задаче «{0}» есть несохранённые изменения.</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>Дайте задаче название.</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>Время суток нужно указать в формате HH:mm, по времени EVE.</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>Выберите хотя бы один день.</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>Каналов и веб-хуков пока нет — добавьте их в «Настройки → Slack».</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>Выберите, куда публиковать.</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>Добавьте содержимое сообщения.</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>Напишите текст оповещения.</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>Для раздела {0} ({1}) нужна корпорация.</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>Для раздела {0} ({1}) нужно объявление.</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>Для раздела {0} ({1}) нужен хотя бы один список.</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>Раздел {0} ({1}) пуст.</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>В разделе {0} ({1}) нужно отметить хотя бы один проект.</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>Нечего отменять.</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>Изменения отменены.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Удалено.</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>Нечего показать: в этой задаче нет блоков.</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>Формирование…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — пропущено: назначение — веб-хук]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — загружается как изображение]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>(разделы получились пустыми)</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>Сформировано, но ни одному динамическому разделу нечего сказать — публикации не будет.</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>Символов: {0:N0}.</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>Не удалось выполнить предпросмотр: {0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Выполнение…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>Запустить сейчас</value>
+  </data>
+  <data name="MonthsBackOne" xml:space="preserve">
+    <value>{0} месяц назад</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0} месяца назад</value>
+  </data>
+  <data name="MonthsBackFew" xml:space="preserve">
+    <value>{0} месяца назад</value>
+  </data>
+  <data name="MonthsBackMany" xml:space="preserve">
+    <value>{0} месяцев назад</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>Выключена</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>Взведена · сработала {0}×</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>Взведена</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>Время EVE</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>Местное время</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} по местному времени</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} по времени EVE</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>Название «{0}» приложению неизвестно — выберите его из списка.</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>Этот тип файла не поддерживается.</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>Этап {0}</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>Постоянно</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>Однократно</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>Тревог: {0} · открытых оповещений: {1}</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>Новая тревога</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…здесь будут подробности совпадения</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>Эта тревога</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>Текст составит проверка.</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>например, «{0}», а под этим — совпадения.</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>Сначала выберите проверку.</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>Дайте тревоге название.</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>Предмет «{0}» не найден — выберите его из списка.</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>Добавьте хотя бы одну запись в список «{0}».</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>Для «Активна с» нужно время вида 18:00.</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>Для «Активна по» нужно время вида 18:00.</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>Тревога создана.</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>Тревога сохранена.</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>Тревога удалена.</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>Звуки тревоги воспроизведены. Чтобы проверить остальные действия, сначала сохраните тревогу.</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>Звучит тревога — {0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>Звук повторяется, пока вы его не подтвердите.</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>Выбор звука тревоги</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>Аудио</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>Тревога</value>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>Дата / время</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>Срабатывает в заданные дату и время и при желании затем повторяется с постоянным интервалом. Подходит для напоминаний и всего, что запланировано. Срабатывание, которое пришлось на время, когда приложение было закрыто, происходит при следующем запуске, а не пропускается.</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>Сообщение разведки</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>Срабатывает, когда кто-то сообщает о пилоте рядом с тем, что вы отслеживаете: вашими персонажами вне дока, вашими персонажами где угодно или списком систем — каждый с радиусом в прыжках. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Учитываются и победы там, где среди атакующих есть пилоты противника: победа показывает, что атакующие были в этой системе.</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>Выход корабля из дока</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>Срабатывает, когда один из ваших персонажей выходит из дока. При желании — только с указанных станций, сооружений, в указанных системах или секторах, только на указанных корпусах или классах кораблей и только в заданном состоянии: оснащён или нет, топлива для прыжков меньше заданного или нет, боеприпасов меньше заданного или нет. Каждый фильтр сужает выборку, так что две тревоги можно настроить на разные выходы из дока, а не на один и тот же дважды. Выход из дока замечается опросом местоположения примерно за десять секунд; что было на борту, определяется по последнему снимку имущества, который ESI обновляет раз в час, и в каждом совпадении указано, насколько он старый.</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>Слишком долго вне дока (будильник)</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>Будит вас. Срабатывает в несколько этапов (до трёх), когда один из ваших персонажей на указанном корпусе или классе корабля выходит из дока и через заданное число секунд всё ещё находится в той же системе — например, пришвартованный фрейтер или джамп-фрейтер, пока пилот задремал. Или, если отмечены прибытия после прыжка, — когда корабль с гипердвигателем прибыл гиперпрыжком или через гипермост и всё ещё в космосе: те самые тридцать секунд после прыжка. Вход в док, уход из системы или выход из игры прекращают её. Нажатие кнопки в окне или любой ответ помощнику на время заглушают тревогу; когда это время истекает, а корабль всё ещё там, этапы начинаются заново. У каждого этапа свои действия — «Озвучка напрямую» или помощник, чтобы произнести фразу этапа, окно, звук, повторяющийся до подтверждения. Повтор и пауза здесь не действуют.</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>События заказов магазина</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>Срабатывает на то, что происходит с заказами магазина через почту EVE: новый заказ (с магазином, покупателем, предметом, ценой и тем, есть ли он в запасе или его нужно произвести), заказ, который теперь можно выполнить из запасов или который ушёл в производство, созданный под него контракт, принятие контракта (заказ выполнен) или отмена заказа. Отметьте нужные виды событий. О заказах, добавленных вручную в «Учёте заказов», не сообщается. Срабатывает сразу, как только магазин регистрирует или обновляет заказ.</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>Цена на рынке / в контрактах</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>Срабатывает, когда предмет выставлен по указанной вами цене или дешевле — на рынке, в общедоступных контрактах или и там и там. Читает рынки, настроенные в «Настройки → Рынок», и общедоступные контракты, которые уже просматриваются, поэтому видит только то, что они охватывают.</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>Запрос к базе данных</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>Периодически выполняет SELECT к локальной базе данных EVE Console и срабатывает на возвращённые строки — или на их отсутствие. Используйте, когда не подходит ни одна специальная проверка. Разрешён только SELECT.</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>Когда сработать, в формате ISO 8601. Укажите смещение (например, 2026-08-04T18:00:00-05:00) или Z в конце для UTC; время без смещения считается местным временем этого компьютера.</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>Повторять каждые (с)</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>Необязательно. Как часто повторять после первого срабатывания. Пусто или 0 — однократный таймер.</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>Отслеживаемые системы, например {0} или {1}. Добавляйте по одной; при 0 прыжков отслеживаются только эти системы.</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>Прыжки</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>На сколько прыжков через врата от каждого персонажа или системы вести наблюдение. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>Мин. пилотов</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>Срабатывать, только если в сообщении названо не меньше стольких пилотов. По умолчанию 1.</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>Пропускать NV (нет визуала)</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>Пропускать сообщения с пометкой NV (no visual) — когда кто-то передаёт контакт, которого сам не видит.</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>Место выхода из дока</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>Необязательно. Названия станций, сооружений, звёздных систем или секторов в любом сочетании. Подходит выход из дока в любом из них; пусто — где угодно.</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>Корабли</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>Необязательно. Названия корпусов («{0}»), классов кораблей («{1}», «{2}») или «Pod» в любом сочетании. Подходит любой из них; пусто — любой корабль.</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>Оснащение</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>«Не оснащён» — ни в одном разъёме ничего нет. «Оснащён» — что-то есть. У капсулы и катера разъёмов нет, и они не подходят ни под то, ни под другое. Определяется по последнему снимку имущества, который ESI обновляет только раз в час, — он может отставать от того, что на борту сейчас, на срок до часа.</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>Топливо для прыжков</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>Только корабли с гипердвигателем; любой другой корпус не подходит ни под один вариант. Считаются единицы изотопа, который расходует гипердвигатель корабля, в топливном и грузовом отсеках вместе, — по последнему снимку имущества, который ESI обновляет только раз в час, так что топливо, загруженное за последний час, может быть ещё не учтено.</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>Боеприпасы</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>Для каждой установленной турели или пусковой установки: заряды на борту, которые она может использовать, — заряженные плюс в грузовом отсеке, всех совместимых типов вместе. «Меньше» — какому-либо орудию не хватает. «Не меньше» — орудия установлены, и всем хватает. Энергетической турели нужен всего один кристалл. Корабль без орудий не подходит ни под один вариант. По последнему снимку имущества, который ESI обновляет только раз в час, — боеприпасы, загруженные за последний час, могут быть ещё не учтены.</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>ед.</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>Не важно</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>Не оснащён</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>Оснащён</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>Меньше</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>Не меньше</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>Прибытия после прыжка, а не выходы из дока</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>Если отмечено: отсчёт начинается, когда корабль с гипердвигателем прибывает в систему, куда из прежней не ведут звёздные врата (гиперпрыжком или через гипермост), и остаётся в космосе; отслеживаются только корабли с гипердвигателем, а пустой список «Корабли» означает все такие корабли. Если не отмечено: отсчёт начинается при выходе из дока, для любого корпуса, и в списке «Корабли» нужно указать, что отслеживать.</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>Названия корпусов («{0}») или классов кораблей («{1}», «{2}», «{3}») в любом сочетании. Отслеживаются только они — или, для прибытий после прыжка, оставьте список пустым, чтобы отслеживать все корабли с гипердвигателем.</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>Этап {0} через</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>Первый, более мягкий этап. Снимите флажок, чтобы пропустить его.</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>Снимите флажок, чтобы пропустить его.</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>Крайняя мера — добавьте к нему действие «Звук» с повтором до подтверждения. Снимите флажок, чтобы пропустить его.</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>с вне дока</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>Тишина после подтверждения</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>Как долго ответ или кнопка в окне заглушают тревогу, пока корабль остаётся вне дока, — достаточно, чтобы дождаться гипермоста титана. Потом этапы начинаются заново.</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>мин</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>Новый заказ</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>С магазином, покупателем, предметом, ценой и состоянием на момент поступления.</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>Теперь можно выполнить из запасов</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>Заказ, товар для которого теперь нашёлся в запасе, — оформите контракт.</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>Ушёл в производство</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>Под заказ теперь занят промышленный проект.</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>Контракт создан</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>Контракт покупателю с этим заказом ожидает принятия.</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>Контракт принят — заказ выполнен</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>Заказ отменён</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>Письмом покупателя, отклонённым контрактом или вручную.</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>Магазин</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>Необязательно: только этот магазин, по названию. Пусто — все магазины.</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>Точное название предмета, например «{0}» или «{1}». Должно в точности совпадать с названием типа; название, которое не удаётся распознать, ни с чем не совпадёт.</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>Макс. цена за ед.</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>Срабатывать, когда цена за единицу не выше этой, в ISK.</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>Мин. количество</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>Срабатывать, только если в одном предложении выставлено не меньше стольких единиц. По умолчанию 1.</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>Где искать. По умолчанию — «везде».</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>Необязательно. Ограничить поиск на рынке одним из настроенных рынков, по названию, например «Jita». Пусто — отслеживать все.</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>Контракты с другими предметами</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>Учитывать контракты, в которых есть не только этот предмет. По умолчанию выключено: запрошенная цена тогда покрывает и остальное содержимое, и полученная цена за единицу не настоящая.</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>везде</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>рынок</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>контракты</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>Выполняемый SELECT. Разрешён только SELECT (или WITH…SELECT). Делайте запрос небольшим и добавьте LIMIT — он выполняется при каждой проверке. Включите стабильный идентифицирующий столбец и укажите его в key_column («Ключевой столбец»).</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>Ключевой столбец</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>Столбец со стабильным уникальным идентификатором каждой строки — Id или подобный. Именно он не даёт сообщить об одной строке дважды. Никогда не указывайте то, что меняется между запусками, иначе тревога будет срабатывать при каждой проверке. По умолчанию — столбец Id, если он есть в запросе, иначе ключом служит вся строка целиком.</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>Столбец текста</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>Необязательный столбец, значение которого станет текстом оповещения. По умолчанию — вся строка.</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>«есть строки» (по умолчанию) — срабатывает на возвращённые строки. «нет строк» — срабатывает, когда запрос не возвращает ничего, и снова взводится, когда строки появляются, — чтобы следить, не прекратилось ли то, что должно происходить.</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>есть строки</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>нет строк</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>Замечен противник</value>
+  </data>
+  <data name="IntelHostileReportsOne" xml:space="preserve">
+    <value>{0} сообщение разведки</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>{0} сообщения разведки</value>
+  </data>
+  <data name="IntelHostileReportsFew" xml:space="preserve">
+    <value>{0} сообщения разведки</value>
+  </data>
+  <data name="IntelHostileReportsMany" xml:space="preserve">
+    <value>{0} сообщений разведки</value>
+  </data>
+  <data name="IntelSaidReportedOne" xml:space="preserve">
+    <value>Замечен {0} противник: {1}.</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>Замечены {0} противника: {1}.</value>
+  </data>
+  <data name="IntelSaidReportedFew" xml:space="preserve">
+    <value>Замечены {0} противника: {1}.</value>
+  </data>
+  <data name="IntelSaidReportedMany" xml:space="preserve">
+    <value>Замечено {0} противников: {1}.</value>
+  </data>
+  <data name="IntelSaidReportedAtOne" xml:space="preserve">
+    <value>Замечен {0} противник: {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>Замечены {0} противника: {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidReportedAtFew" xml:space="preserve">
+    <value>Замечены {0} противника: {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidReportedAtMany" xml:space="preserve">
+    <value>Замечено {0} противников: {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>прямо здесь</value>
+  </data>
+  <data name="IntelSaidJumpsOutOne" xml:space="preserve">
+    <value>в {0} прыжке</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>в {0} прыжках</value>
+  </data>
+  <data name="IntelSaidJumpsOutFew" xml:space="preserve">
+    <value>в {0} прыжках</value>
+  </data>
+  <data name="IntelSaidJumpsOutMany" xml:space="preserve">
+    <value>в {0} прыжках</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>Корабли: {0}.</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0} и ещё {1}.</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Замечен при уничтожении корабля</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>неизвестная система</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>капсула</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>корабль</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} и {1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} и другие</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>И ещё {0}.</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0}: выход из дока ({1})</value>
+  </data>
+  <data name="UndocksOne" xml:space="preserve">
+    <value>{0} выход из дока</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>{0} выхода из дока</value>
+  </data>
+  <data name="UndocksFew" xml:space="preserve">
+    <value>{0} выхода из дока</value>
+  </data>
+  <data name="UndocksMany" xml:space="preserve">
+    <value>{0} выходов из дока</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0}: выход из дока в системе {1} ({2}).</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0}: выход из дока в системе {1} ({2}) — {3}.</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>ничего не установлено</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>нет топлива</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>мало топлива</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>нет боеприпасов</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>мало боеприпасов</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>Проснитесь, {0}</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>Корабль персонажа {0} ({1}) прибыл в систему {2} {3} назад и так и не вошёл в док. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>Корабль персонажа {0} ({1}) уже {3} находится вне дока в системе {2}. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}, корабль персонажа {1} ({2}) прибыл в систему {3} {4} назад и ещё не вошёл в док. У вас всё в порядке?</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) всё ещё в космосе в системе {3} — спустя {4} после прибытия. Немедленно войдите в док.</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}! Корабль персонажа {1} ({2}) уже {4} стоит в системе {3} после прибытия. Немедленно войдите в док!</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}, корабль персонажа {1} ({2}) уже {4} находится вне дока в системе {3}. У вас всё в порядке?</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) вышел из дока в системе {3} {4} назад и до сих пор не вернулся в док. Войдите в док или ответьте мне.</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}! Корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Проснитесь и немедленно войдите в док.</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>капсула</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>капсулёр</value>
+  </data>
+  <data name="SpanSecondsOne" xml:space="preserve">
+    <value>{0} секунду</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0} секунды</value>
+  </data>
+  <data name="SpanSecondsFew" xml:space="preserve">
+    <value>{0} секунды</value>
+  </data>
+  <data name="SpanSecondsMany" xml:space="preserve">
+    <value>{0} секунд</value>
+  </data>
+  <data name="SpanMinutesOne" xml:space="preserve">
+    <value>{0} минуту</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="SpanMinutesFew" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="SpanMinutesMany" xml:space="preserve">
+    <value>{0} минут</value>
+  </data>
+  <data name="StoreEventsOne" xml:space="preserve">
+    <value>{0} событие заказов магазина</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>{0} события заказов магазина</value>
+  </data>
+  <data name="StoreEventsFew" xml:space="preserve">
+    <value>{0} события заказов магазина</value>
+  </data>
+  <data name="StoreEventsMany" xml:space="preserve">
+    <value>{0} событий заказов магазина</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>Новый заказ: {0}, покупатель: {1}</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>Заказ {0}: теперь можно выполнить из запасов</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>Заказ {0}: теперь в производстве</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>Заказ {0}: контракт создан</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>Заказ {0}: доставлено {1:N0} из {2:N0}</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>Заказ {0} выполнен</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>Заказ {0} отменён</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>Новый заказ в магазине {0}: {1}, покупатель {2}, {3}. Есть в запасе — оформите контракт.</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>Новый заказ в магазине {0}: {1}, покупатель {2}, {3}. Уже в производстве.</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>Новый заказ в магазине {0}: {1}, покупатель {2}, {3}. Контракт уже создан.</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>Новый заказ в магазине {0}: {1}, покупатель {2}, {3}. Нет в запасе и не в производстве — нужно новое производство.</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>Заказ ({0}, покупатель {1}) теперь можно выполнить из запасов.</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>Заказ ({0}, покупатель {1}) теперь в производстве.</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>Заказ ({0}, покупатель {1}): контракт создан и ожидает принятия.</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>Заказ ({0}, покупатель {1}): контракт на {2:N0} из {3:N0} создан и ожидает принятия.</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>Покупатель {0} принял контракт на часть заказа ({1}): доставлено {2:N0} из {3:N0}.</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>Покупатель {0} принял контракт ({1}). Заказ выполнен.</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>Заказ ({0}, покупатель {1}) отменён.</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##} млрд ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##} млн ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##} тыс. ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0} — от {1:N0} ISK</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} — есть в продаже</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>Заглушить тревоги</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>Включить звук тревог</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>Звук недоступен: не удалось загрузить libvlc. Установите VLC и его плагины (пакет «vlc» в Arch и Fedora; «vlc» или «libvlc-dev» в Debian и Ubuntu), затем перезапустите приложение. [{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>Звук недоступен: {0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>Перезвон — мягкий</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>Перезвон — трезвучие</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>Звон — стеклянный</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>Колокол — латунный</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>Колокол — низкий</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>Гонг — низкий</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>Сигнал — двойной</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>Тревога — срочная</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>Предупреждение — двухтональное</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>Предупреждение — клаксон</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>Предупреждение — зуммер</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>Предупреждение — сирена</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>Предупреждение — гудок</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>Звук не выбран.</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>Файл своего звука не найден: {0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>Встроенный звук отсутствует: {0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>Не удалось распаковать {0} в {1}: {2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC не удалось воспроизвести {0}. В Linux причина обычно в отсутствующем пакете плагинов или в отсутствии аудиовыхода (проверьте, воспроизводят ли звук другие приложения).</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>Ошибка воспроизведения: {0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>Я не сплю</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>(Помощник не настроен, поэтому это записано как оповещение.)</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>Раз в {0} ч</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>Раз в {0} мин</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0}, в {1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>{0}-е число каждого месяца, в {1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>Ежегодно: {0}, {1}-е число, в {2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>Каждый день</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>Дни не выбраны</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>Неизвестный тип задачи «{0}».</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>Нечего публиковать: разделы не настроены.</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>Нечего публиковать: разделы получились пустыми.</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>Нечего публиковать: ни одному динамическому разделу нечего сказать.</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>Опубликовано.</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack отклонил публикацию: {0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>Опубликовано сообщений: {0} из {1} (символов: {2:N0}); следующее Slack отклонил: {3}.</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>Опубликовано символов: {0:N0}, сообщений: {1}.</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>Опубликовано символов: {0:N0}.</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>Загружено графиков: {0}.</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>Ошибки графиков ({0}): {1}.</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>Пропущено разделов с графиками: {0} — веб-хук не может передать изображение.</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>Нечего создавать: у оповещения нет текста.</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>Оповещение по расписанию</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>Оповещение создано.</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>Веб-хук не выбран.</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>Этот веб-хук удалён.</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} × 100 млн ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} × 10 тыс. ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Опубликовать в Slack или Discord</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>Каналов и веб-хуков пока нет — добавьте их в разделе «Настройки → Slack» или «Настройки → Discord».</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Каналы и веб-хуки Slack, затем веб-хуки Discord — как они настроены в разделе «Настройки», в одном списке.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord отклонил публикацию: {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>Опубликовано сообщений: {0} из {1} (символов: {2:N0}); следующее Discord отклонил: {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Наблюдать вокруг</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Персонажи вне дока: где бы ни находились в космосе ваши персонажи в сети; пристыкованные не отслеживаются. Персонажи: где бы они ни были, пока в сети, в доке или нет. Системы: системы из списка ниже.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Персонажи вне дока</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Необязательно. Ваши персонажи, вокруг которых вести наблюдение; оставьте пустым для всех. Учитываются только персонажи в сети.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>там, где {0}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>в {0} прыжке от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromFew" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromMany" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Остановка корабля завершает его</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Отмечено: остановка корабля после выхода из дока завершает тревогу этого выхода — остановленный корабль не дрейфует от точки выхода, и кто-то нажал «стоп». Читается из игрового журнала, поэтому папка игровых журналов этого клиента должна читаться (Настройки → Игровые журналы); без неё этапы идут как прежде.</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Событие игрового журнала</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Срабатывает, когда игровой журнал одного из ваших персонажей сообщает, что с него сняло маскировку что-то поблизости, его варп-двигатель заблокирован или подавлен, или он под атакой — отметьте любое сочетание. Блокировка или атака срабатывает один раз за бой: строки с промежутком не больше двух минут — один бой. Нужно, чтобы читалась папка игровых журналов этого клиента (Настройки → Игровые журналы); замечается за секунды.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Маскировка снята</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Маскировка снялась рядом со звёздными вратами, сооружением или чем-то ещё, что её снимает.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Варп заблокирован</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>На вас попал блокировщик или подавитель варп-двигателя.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Под атакой</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>Вы получаете урон.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Только игроки</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Отмечено: блокировка или атака считается только от игрока, не от NPC — иначе фарм NPC включал бы её весь вечер.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Необязательно. Ваши персонажи, за которыми следить; оставьте пустым для всех.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>События игрового журнала: {0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>С {0} снята маскировка рядом с {1}.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}: варп заблокирован — {1}.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} под атакой: {1}.</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Срабатывает для колоний персонажей, занятых PI: программа экстрактора закончилась или скоро закончится (точно), хранилище или стартовая площадка заполнены, или у производственной планеты кончаются материалы (последние два — оценка с момента, когда колонию в последний раз открывали в игре). Каждое событие колонии срабатывает один раз; после перезапуска экстракторов или нового открытия колонии оно снова считается новым.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Следить за</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>На какое из трёх событий срабатывать.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Упреждение</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Срабатывать за столько часов до события. 0 — в момент события.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>ч</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Все три</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Остановка экстракторов</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Заполнение хранилища</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Материалы на исходе</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} колония планетарной промышленности требует внимания</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} колонии планетарной промышленности требуют внимания</value>
+  </data>
+  <data name="PiTitleFew" xml:space="preserve">
+    <value>{0} колонии планетарной промышленности требуют внимания</value>
+  </data>
+  <data name="PiTitleMany" xml:space="preserve">
+    <value>{0} колоний планетарной промышленности требуют внимания</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Световые годы</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Необязательно. Следить также за каждой системой в пределах стольких световых лет, сколько бы гейтов до неё ни было, — то, что достаёт прыжковый двигатель или цино. Срабатывает отчёт, попавший в любую из двух дальностей. Не больше 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>в {0} св. г. от {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>в {0} св. г.</value>
+  </data>
+</root>

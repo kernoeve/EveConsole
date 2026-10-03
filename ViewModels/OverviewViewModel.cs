@@ -13,6 +13,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.Pi;
 using EveConsole.Services.Worklist;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -20,6 +21,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -50,7 +52,7 @@ public class NewsItemVm : ReactiveObject
         }
     }
     public bool   IsCollapsed => !IsExpanded;
-    public string ExpandLabel => IsExpanded ? "▲ Less" : "▼ More";
+    public string ExpandLabel => IsExpanded ? OverviewText.NewsLess : OverviewText.NewsMore;
 
     public ReactiveCommand<Unit, Unit> ToggleCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenCommand   { get; }
@@ -208,10 +210,10 @@ public class OverviewViewModel : ReactiveObject
     // ── Period selection ──────────────────────────────────────────────────────
     public IReadOnlyList<ActivityPeriodOption> Periods { get; } =
     [
-        new("Last 24 Hours",  24),
-        new("Last 7 Days",    168),
-        new("Last 30 Days",   720),
-        new("Last 90 Days",   2160),
+        new(OverviewText.PeriodLast24Hours,  24),
+        new(OverviewText.PeriodLast7Days,    168),
+        new(OverviewText.PeriodLast30Days,   720),
+        new(OverviewText.PeriodLast90Days,   2160),
     ];
 
     private ActivityPeriodOption _selectedPeriod;
@@ -247,15 +249,21 @@ public class OverviewViewModel : ReactiveObject
     public string LoadStatus
     {
         get => _loadStatus;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _loadStatus, value);
-            this.RaisePropertyChanged(nameof(HasLoadStatus));
-            this.RaisePropertyChanged(nameof(HasLoadError));
-        }
+        private set => SetLoadStatus(value, failed: false);
     }
-    public bool HasLoadError  => LoadStatus.StartsWith("Error:");
+
+    /// <summary>The status is the error a load ended in. A flag of its own rather than a test of
+    /// the text: the status is in the interface language, and "Error:" is only its English.</summary>
+    public bool HasLoadError  { get; private set; }
     public bool HasLoadStatus => LoadStatus.Length > 0;
+
+    private void SetLoadStatus(string text, bool failed)
+    {
+        HasLoadError = failed;
+        this.RaiseAndSetIfChanged(ref _loadStatus, text, nameof(LoadStatus));
+        this.RaisePropertyChanged(nameof(HasLoadStatus));
+        this.RaisePropertyChanged(nameof(HasLoadError));
+    }
 
     // ── Pie charts ────────────────────────────────────────────────────────────
     private ISeries[] _incomeSeries = [];
@@ -376,6 +384,14 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
+    /// <summary>The Planetary Industry tool on one colony (character, planet), or on its list when
+    /// both are null; the second opens its Characters tab.</summary>
+    public Action<long?, int?>? NavigateToPi                        { get; set; }
+    public Action?          NavigateToPiCharacters                  { get; set; }
+
+    /// <summary>Planetary Industry colonies, for the PI alerts. Set by MainWindowViewModel; null
+    /// leaves them out.</summary>
+    public PiService?       Pi                                      { get; set; }
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
 
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
@@ -514,6 +530,16 @@ public class OverviewViewModel : ReactiveObject
         Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
+
+        // Names in the interface language that arrive after the cards were built — a first load
+        // slower than the wait for it, an SDE import — reach them on the next refresh: forgetting
+        // the signature makes that refresh build the cards again rather than keep them, and
+        // forgetting the personal kills' ids does the same for their rows.
+        SdeNames.Changed += () =>
+        {
+            _notificationSignature = "";
+            _lastPersonalKillIds   = [];
+        };
     }
 
 
@@ -736,7 +762,7 @@ public class OverviewViewModel : ReactiveObject
         // hunting for a freeze that isn't there.
         const int SlowSectionMs = 250;
         var sectionAt   = 0L;
-        var sectionName = "Querying scope";
+        var sectionName = OverviewText.StepQueryingScope;
 
         void Step(string next)
         {
@@ -754,7 +780,7 @@ public class OverviewViewModel : ReactiveObject
             LoadStatus  = next;
         }
 
-        LoadStatus = "Querying scope";
+        LoadStatus = OverviewText.StepQueryingScope;
         try
         {
             if (Shown("Alerts")) await _alertSettings.LoadAsync();
@@ -776,7 +802,7 @@ public class OverviewViewModel : ReactiveObject
             if (charIds.Count == 0 && corpIds.Count == 0)
             {
                 ResetAllMetrics();
-                LoadStatus = "No characters found.";
+                LoadStatus = OverviewText.StatusNoCharacters;
                 return;
             }
 
@@ -802,7 +828,7 @@ public class OverviewViewModel : ReactiveObject
                 Shown("IncomePie") || Shown("ExpensePie") ? owners : [];
 
             // ── Market transactions ────────────────────────────────────────────
-            Step("Loading market transactions");
+            Step(OverviewText.StepMarketTransactions);
             // Aggregate in SQL with date filter — avoids loading all rows and the
             // DateTimeOffset LINQ translation bug. UnitPrice stored as TEXT so CAST
             // to REAL for arithmetic; result arrives as double, converted to decimal.
@@ -849,7 +875,7 @@ public class OverviewViewModel : ReactiveObject
             MktBuyIsk    = FormatIsk(mktBuyTotal);
 
             // ── Active market orders ───────────────────────────────────────────
-            Step("Loading market orders");
+            Step(OverviewText.StepMarketOrders);
             var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
             foreach (var (ot, oid) in activityOwners)
                 orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
@@ -871,7 +897,7 @@ public class OverviewViewModel : ReactiveObject
             BuyOrderIsk    = FormatIsk(buyOrderIsk);
 
             // ── Contracts ─────────────────────────────────────────────────────
-            Step("Loading contracts");
+            Step(OverviewText.StepContracts);
             //
             // ⚠️ Only contracts WE issued. ESI returns every contract an owner could act on, and
             // for a corporation that includes everything assigned to its alliance: 73 of the 77
@@ -897,7 +923,7 @@ public class OverviewViewModel : ReactiveObject
             CtrActiveCount = contracts.Count.ToString("N0");
 
             // ── Industry jobs ──────────────────────────────────────────────────
-            Step("Loading industry jobs");
+            Step(OverviewText.StepIndustryJobs);
             var jobs = new List<(string Status, DateTimeOffset? Completed)>();
             foreach (var (ot, oid) in activityOwners)
                 jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
@@ -916,7 +942,7 @@ public class OverviewViewModel : ReactiveObject
             // where one of our characters is an attacker but not the victim. KillMailDetails
             // only exist for killmails we hold (from character OR corp refs), so two aggregate
             // queries replace the old per-character/per-corp loop (much faster).
-            Step("Counting kills and losses");
+            Step(OverviewText.StepKillsLosses);
             int totalKills = 0, totalLosses = 0;
             if (activityOwners.Count > 0 && charIds.Count > 0)
             {
@@ -952,11 +978,11 @@ public class OverviewViewModel : ReactiveObject
             ShipLossCount = totalLosses.ToString("N0");
 
             // ── Personal killmails section (bound to the same period) ───────────
-            Step("Personal killmails");
+            Step(OverviewText.StepPersonalKillmails);
             await LoadPersonalKillsAsync(charIds, Math.Max(1, SelectedPeriod.Hours / 24));
 
             // ── Standing projects section ───────────────────────────────────────
-            Step("Standing projects");
+            Step(OverviewText.StepStandingProjects);
             await LoadStandingProjectsAsync();
 
             // ── Standing buy orders section ─────────────────────────────────────
@@ -966,7 +992,7 @@ public class OverviewViewModel : ReactiveObject
                 (Shown("WorklistAll") || Shown("WorklistBuy") || Shown("WorklistHaul") ||
                  Shown("WorklistJobs") || Shown("WorklistNeeds")))
             {
-                Step("Worklist");
+                Step(OverviewText.StepWorklist);
                 await Worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
 
                 // The needs report is loaded lazily by the tool when its tab is opened, which the
@@ -974,25 +1000,25 @@ public class OverviewViewModel : ReactiveObject
                 if (Shown("WorklistNeeds")) await Worklist.EnsureNeedsLoadedAsync();
             }
 
-            Step("Standing buy orders");
+            Step(OverviewText.StepStandingBuyOrders);
             await LoadStandingBuyOrdersAsync();
 
-            Step("Orders");
+            Step(OverviewText.StepOrders);
             await LoadOrdersAsync();
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
-            Step("Loading journal data");
+            Step(OverviewText.StepJournal);
             // Summed per RefType in SQL, across every owner, with ISK moved between the player's
             // own wallets left out — the same figures the Income & Expense tool shows.
             var journalByType = await Off(() => WalletJournalTotals.ByRefTypeAsync(_db, pieOwners, cutoff));
 
-            Step("Building charts");
+            Step(OverviewText.StepCharts);
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
-            Step("Evaluating alerts");
+            Step(OverviewText.StepAlerts);
             if (Shown("Alerts")) await EvaluateAlertsAsync(charIds);
 
-            Step("Loading news");
+            Step(OverviewText.StepNews);
             if (newsTask is not null)
             {
                 var newsItems = await newsTask;
@@ -1002,18 +1028,18 @@ public class OverviewViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(NoNews));
             }
 
-            Step("Loading notifications");
+            Step(OverviewText.StepNotifications);
             if (Shown("Notifications")) await LoadNotificationsAsync();
 
             Step("done");   // closes out the last section so it is timed like the rest
-            LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
+            LoadStatus = string.Format(OverviewText.StatusLoaded, sw.ElapsedMilliseconds, owners.Count, _selectedPeriod.Label);
             if (_panelFailures.Count > 0)
-                LoadStatus += $" — {string.Join(", ", _panelFailures)} failed, see the Error Log";
+                LoadStatus += " — " + string.Format(OverviewText.StatusPanelsFailed, string.Join(", ", _panelFailures));
         }
         catch (Exception ex)
         {
             _errorLogger.Log("OverviewViewModel", "LoadAsync", ex);
-            LoadStatus = $"Error: {ex.Message}";
+            SetLoadStatus(string.Format(CommonText.ErrorWithMessage, ex.Message), failed: true);
         }
     }
 
@@ -1102,7 +1128,7 @@ public class OverviewViewModel : ReactiveObject
                 if (recipientsByNotif.TryGetValue(r.NotificationId, out var cids) && cids.Count == 1)
                     recipient = new NotifValueVm
                     {
-                        Text    = characterNames.TryGetValue(cids[0], out var cn) && cn.Length > 0 ? cn : $"ID {cids[0]}",
+                        Text    = characterNames.TryGetValue(cids[0], out var cn) && cn.Length > 0 ? cn : string.Format(OverviewText.CharacterIdNumbered, cids[0]),
                         IconUrl = $"characters/{cids[0]}/portrait?size=32",
                     };
 
@@ -1180,6 +1206,9 @@ public class OverviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NoPersonalKills));
             return;
         }
+
+        // The rows take their hull and place names once, as they are built.
+        await SdeNames.EnsureLoadedAsync();
         _lastPersonalKillIds = ids;
 
         PersonalKills.Clear();
@@ -1202,6 +1231,10 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
+            // The rows name items and places as the interface does, and a rule's label is worded
+            // inside BuildMaintainGridRowsAsync, so the names are in before the first build.
+            await SdeNames.EnsureLoadedAsync();
+
             // Off() like every other query in this view model: awaited directly, SQLite's
             // synchronous-underneath async would run both this and the per-corp grid builds on
             // the UI thread.
@@ -1271,11 +1304,15 @@ public class OverviewViewModel : ReactiveObject
                     .Where(t => typeIds.Contains(t.TypeId))
                     .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
+                // The item in the interface language: the row only shows it (sort and copy
+                // follow the shown name), and the order itself keys on TypeId.
+                await SdeNames.EnsureLoadedAsync();
+
                 // Newest first. Ordered on the tick count rather than the displayed date, which
                 // is day-resolution only and would leave same-day orders in whatever sequence
                 // the query happened to return them.
                 return open
-                    .Select(o => new OrderSummaryRowVm(o, names.GetValueOrDefault(o.TypeId, "")))
+                    .Select(o => new OrderSummaryRowVm(o, names.TryGetValue(o.TypeId, out var n) ? SdeNames.Type(o.TypeId, n) : ""))
                     .OrderByDescending(v => v.CreatedSort)
                     .ToList();
             });
@@ -1424,7 +1461,7 @@ public class OverviewViewModel : ReactiveObject
                 {
                     newAlerts.Add(new AlertRowVm
                     {
-                        Message = $"{ch.Name}: Skill queue is empty.",
+                        Message = string.Format(OverviewText.AlertSkillQueueEmpty, ch.Name),
                         NavigateCommand = skillsNavCommand,
                         Icon = await GetPortraitAsync(ch.Id)
                     });
@@ -1437,7 +1474,7 @@ public class OverviewViewModel : ReactiveObject
                     if (!anyActive)
                         newAlerts.Add(new AlertRowVm
                         {
-                            Message = $"{ch.Name}: Skill queue is paused.",
+                            Message = string.Format(OverviewText.AlertSkillQueuePaused, ch.Name),
                             NavigateCommand = skillsNavCommand,
                             Icon = await GetPortraitAsync(ch.Id)
                         });
@@ -1455,11 +1492,11 @@ public class OverviewViewModel : ReactiveObject
                     {
                         var remaining = lastFinish - now;
                         string when = remaining.TotalDays >= 1
-                            ? $"{(int)remaining.TotalDays}d {remaining.Hours}h"
-                            : $"{remaining.Hours}h {remaining.Minutes}m";
+                            ? string.Format(OverviewText.DurationDaysHours, (int)remaining.TotalDays, remaining.Hours)
+                            : string.Format(OverviewText.DurationHoursMinutes, remaining.Hours, remaining.Minutes);
                         newAlerts.Add(new AlertRowVm
                         {
-                            Message = $"{ch.Name}: Skill queue ends in {when} (within {warnDays}-day threshold).",
+                            Message = string.Format(OverviewText.AlertSkillQueueEnds, ch.Name, when, warnDays),
                             NavigateCommand = skillsNavCommand,
                             Icon = await GetPortraitAsync(ch.Id)
                         });
@@ -1503,10 +1540,8 @@ public class OverviewViewModel : ReactiveObject
                 row = new AlertRowVm
                 {
                     Message       = AssetSafetyGenerator.WindowEnd(notif.Text) is { } deadline
-                        ? $"{charName}: Items moved to Asset Safety on {dateText} — "
-                          + $"choose a destination by {deadline.ToLocalTime():d MMM HH:mm} "
-                          + $"({(int)(deadline - now).TotalDays}d left) or the game picks one."
-                        : $"{charName}: Items moved to Asset Safety on {dateText}.",
+                        ? string.Format(OverviewText.AlertAssetSafetyDeadline, charName, dateText, deadline.ToLocalTime(), (int)(deadline - now).TotalDays)
+                        : string.Format(OverviewText.AlertAssetSafety, charName, dateText),
                     IsDismissible = true,
                     DismissKey    = $"notif:{charId}:{notifId}",
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -1546,9 +1581,7 @@ public class OverviewViewModel : ReactiveObject
             if (inactiveCount > 0)
                 newAlerts.Add(new AlertRowVm
                 {
-                    Message = inactiveCount == 1
-                        ? "There is 1 standing project not currently active."
-                        : $"There are {inactiveCount} standing projects not currently active.",
+                    Message = Counted(nameof(OverviewText.AlertInactiveProjectsOther), inactiveCount),
                     NavigateCommand = NavigateToStandingProjects is not null
                         ? ReactiveCommand.Create(NavigateToStandingProjects)
                         : null
@@ -1573,15 +1606,15 @@ public class OverviewViewModel : ReactiveObject
                 // whether to place an order, raise a price, top one up or renew one, and
                 // those are different jobs.
                 var reasons = new List<string>();
-                if (missing > 0)  reasons.Add(missing == 1  ? "1 is missing"          : $"{missing} are missing");
-                if (outbid > 0)   reasons.Add(outbid == 1   ? "1 is outbid"           : $"{outbid} are outbid");
-                if (low > 0)      reasons.Add(low == 1      ? "1 is nearly bought out": $"{low} are nearly bought out");
-                if (expiring > 0) reasons.Add(expiring == 1 ? "1 is close to expiry"  : $"{expiring} are close to expiry");
+                if (missing > 0)  reasons.Add(Counted(nameof(OverviewText.SboMissingOther),          missing));
+                if (outbid > 0)   reasons.Add(Counted(nameof(OverviewText.SboOutbidOther),           outbid));
+                if (low > 0)      reasons.Add(Counted(nameof(OverviewText.SboNearlyBoughtOutOther),  low));
+                if (expiring > 0) reasons.Add(Counted(nameof(OverviewText.SboCloseToExpiryOther),    expiring));
 
                 if (reasons.Count > 0)
                     newAlerts.Add(new AlertRowVm
                     {
-                        Message = "Standing buy orders: " + string.Join(", ", reasons) + ".",
+                        Message = string.Format(OverviewText.AlertStandingBuyOrders, string.Join(CommonText.ListSeparator, reasons)),
                         NavigateCommand = NavigateToStandingBuyOrders is not null
                             ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
                             : null
@@ -1600,9 +1633,7 @@ public class OverviewViewModel : ReactiveObject
                 if (unrigged > 0)
                     newAlerts.Add(new AlertRowVm
                     {
-                        Message = unrigged == 1
-                            ? "1 running job is using a facility not rigged for it."
-                            : $"{unrigged} running jobs are using a facility not rigged for them.",
+                        Message = Counted(nameof(OverviewText.AlertUnriggedJobsOther), unrigged),
                         NavigateCommand = NavigateToIndustryJobs is not null
                             ? ReactiveCommand.Create(NavigateToIndustryJobs)
                             : null
@@ -1629,9 +1660,7 @@ public class OverviewViewModel : ReactiveObject
                 if (ready > 0)
                     newAlerts.Add(new AlertRowVm
                     {
-                        Message = ready == 1
-                            ? "You have 1 industry job ready to deliver."
-                            : $"You have {ready} industry jobs ready to deliver.",
+                        Message = Counted(nameof(OverviewText.AlertJobsReadyOther), ready),
                         NavigateCommand = NavigateToIndustryJobs is not null
                             ? ReactiveCommand.Create(NavigateToIndustryJobs)
                             : null
@@ -1666,7 +1695,7 @@ public class OverviewViewModel : ReactiveObject
                     if (toMe > 0)
                         newAlerts.Add(new AlertRowVm
                         {
-                            Message = toMe == 1 ? "1 outstanding contract issued to you." : $"{toMe} outstanding contracts issued to you.",
+                            Message = Counted(nameof(OverviewText.AlertContractsToYouOther), toMe),
                             NavigateCommand = NavigateToActiveContracts is not null ? ReactiveCommand.Create(NavigateToActiveContracts) : null,
                         });
                 }
@@ -1685,12 +1714,106 @@ public class OverviewViewModel : ReactiveObject
                     if (expiring > 0)
                         newAlerts.Add(new AlertRowVm
                         {
-                            Message = expiring == 1 ? "1 contract is about to expire." : $"{expiring} contracts are about to expire.",
+                            Message = Counted(nameof(OverviewText.AlertContractsExpiringOther), expiring),
                             NavigateCommand = NavigateToActiveContracts is not null ? ReactiveCommand.Create(NavigateToActiveContracts) : null,
                         });
                 }
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "ContractAlerts", ex); }
+        }
+
+        // Planetary Industry: only the characters that do PI (PiService returns no one else).
+        // One row per kind of trouble: named and opening the colony when it is one colony, counted
+        // and opening the tool's list when there are several — twenty-two colonies left alone for
+        // a month should be one line, not forty-four.
+        if (Pi is { } pi && (_alertSettings.PiExtractors || _alertSettings.PiStorage || _alertSettings.PiInputs
+                             || _alertSettings.PiFreeSlots || _alertSettings.PiStaleData))
+        {
+            try
+            {
+                var wantSlots = _alertSettings.PiFreeSlots;
+                var t         = pi.Settings.Thresholds;
+                var colonies  = await Off(() => pi.ColoniesAsync(DateTimeOffset.UtcNow));
+                var piChars   = wantSlots ? await Off(() => pi.CharactersAsync()) : [];
+                var judged    = colonies
+                    .Select(c => (C: c, A: PiColonyAttention.For(c.Forecast, t)))
+                    .OrderBy(x => x.A.NextActionAt ?? DateTimeOffset.MaxValue)
+                    .ToList();
+
+                async Task Add(List<(PiColonyStatus C, PiColonyAttention A)> hits,
+                               Func<PiColonyStatus, PiColonyAttention, string> one, string manyFamily)
+                {
+                    if (hits.Count == 0) return;
+                    if (hits.Count == 1)
+                    {
+                        var (c, a) = hits[0];
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message         = one(c, a),
+                            NavigateCommand = NavigateToPi is not null
+                                ? ReactiveCommand.Create(() => NavigateToPi!(c.CharacterId, c.PlanetId)) : null,
+                            Icon            = await GetPortraitAsync(c.CharacterId),
+                        });
+                        return;
+                    }
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message         = Counted(manyFamily, hits.Count),
+                        NavigateCommand = NavigateToPi is not null
+                            ? ReactiveCommand.Create(() => NavigateToPi!(null, null)) : null,
+                    });
+                }
+
+                if (_alertSettings.PiExtractors)
+                    await Add(judged.Where(x => x.A.ExtractorsStopped || x.A.ExtractorsStopping).ToList(),
+                        (c, a) => a.ExtractorsStopped
+                            ? string.Format(OverviewText.AlertPiExtractorsStopped, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiExtractorsStopping, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.ExtractorsStopAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiExtractorsManyOther));
+
+                if (_alertSettings.PiStorage)
+                    await Add(judged.Where(x => x.A.StorageFull || x.A.StorageFilling).ToList(),
+                        (c, a) => a.StorageFull
+                            ? string.Format(OverviewText.AlertPiStorageFull, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiStorageFilling, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.StorageFullAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiStorageManyOther));
+
+                if (_alertSettings.PiInputs)
+                    await Add(judged.Where(x => x.C.Forecast.Kind == PiColonyKind.Factory && (x.A.InputsOut || x.A.InputsLow)).ToList(),
+                        (c, a) => a.InputsOut
+                            ? string.Format(OverviewText.AlertPiInputsOut, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiInputsLow, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.InputsRunOutAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiInputsManyOther));
+
+                if (_alertSettings.PiStaleData)
+                    await Add(judged.Where(x => x.A.Stale).ToList(),
+                        (c, a) => string.Format(OverviewText.AlertPiStale, c.CharacterName, PiNames.Planet(c),
+                                                PiFormat.Duration(a.DataAge)),
+                        nameof(OverviewText.AlertPiStaleManyOther));
+
+                if (wantSlots)
+                {
+                    var free = piChars.Where(c => c.ColoniesFree > 0).ToList();
+                    if (free.Count == 1)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = Plurals.Format(OverviewText.ResourceManager, nameof(OverviewText.AlertPiFreeSlotsOther),
+                                                     free[0].ColoniesFree, free[0].Name),
+                            NavigateCommand = NavigateToPiCharacters is not null ? ReactiveCommand.Create(NavigateToPiCharacters) : null,
+                            Icon = await GetPortraitAsync(free[0].CharacterId),
+                        });
+                    else if (free.Count > 1)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = Counted(nameof(OverviewText.AlertPiFreeSlotsCharsOther), free.Count),
+                            NavigateCommand = NavigateToPiCharacters is not null ? ReactiveCommand.Create(NavigateToPiCharacters) : null,
+                        });
+                }
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "PiAlerts", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
@@ -1764,6 +1887,10 @@ public class OverviewViewModel : ReactiveObject
         NewsItems.Clear(); HasNews = false;
         this.RaisePropertyChanged(nameof(NoNews));
     }
+
+    /// <summary>A counted phrase, in the form <paramref name="n"/> needs. The family is named by
+    /// its Other entry, as <see cref="Plurals"/> names them.</summary>
+    private static string Counted(string family, long n) => Plurals.Format(OverviewText.ResourceManager, family, n);
 
     private static string FormatIsk(decimal v) => v switch
     {

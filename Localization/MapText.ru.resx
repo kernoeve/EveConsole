@@ -1,0 +1,2414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShipLabel" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="HullLabel" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="JumpDriveCalibrationLabel" xml:space="preserve">
+    <value>Калибровка гипердвигателей</value>
+  </data>
+  <data name="JumpFuelConservationLabel" xml:space="preserve">
+    <value>Топливоснабжение гипердв.</value>
+  </data>
+  <data name="JumpThroughLabel" xml:space="preserve">
+    <value>Прыжки через</value>
+  </data>
+  <data name="LimitsWhereTheRouteNote" xml:space="preserve">
+    <value>Ограничивает, где маршрут может делать остановки, но не где он начинается или заканчивается. «Станции и сооружения» — любое место с доком: станция NPC или сооружение игрока. Сооружения игроков — только те, названия которых приложение смогло определить, поэтому оба варианта скорее недосчитывают, чем гадают.</value>
+  </data>
+  <data name="WaypointsLabel" xml:space="preserve">
+    <value>Точки маршрута</value>
+  </data>
+  <data name="HintSystemName" xml:space="preserve">
+    <value>название системы…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="TipDragToReorder" xml:space="preserve">
+    <value>Перетащите, чтобы изменить порядок</value>
+  </data>
+  <data name="PlanRoute" xml:space="preserve">
+    <value>Проложить маршрут</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Use" xml:space="preserve">
+    <value>Использовать</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="ColFittingSource" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Открыть эту систему</value>
+  </data>
+  <data name="ColJumpTo" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="TipFrameThisRegionOnThe" xml:space="preserve">
+    <value>Показать этот сектор на карте</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Безоп.</value>
+  </data>
+  <data name="ColDistance" xml:space="preserve">
+    <value>Расстояние</value>
+  </data>
+  <data name="ColFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="ResolveViaEsi" xml:space="preserve">
+    <value>Определить через ESI</value>
+  </data>
+  <data name="AddById" xml:space="preserve">
+    <value>Добавить по ID…</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>Сбросить фильтры</value>
+  </data>
+  <data name="ShowUnknown" xml:space="preserve">
+    <value>Показывать неизвестные</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="HintAny" xml:space="preserve">
+    <value>любой</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>Созвездие</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="ColStructure" xml:space="preserve">
+    <value>Сооружение</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Открыть на карте</value>
+  </data>
+  <data name="ColConstellation" xml:space="preserve">
+    <value>Созвездие</value>
+  </data>
+  <data name="TipFrameThisConstellationOnThe" xml:space="preserve">
+    <value>Показать это созвездие на карте</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Ближайший объект</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="SelectAStructureAboveNote" xml:space="preserve">
+    <value>Выберите сооружение выше, чтобы посмотреть и изменить его.</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>ID места</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Сведения</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="HintTypeTwoLettersOf" xml:space="preserve">
+    <value>Введите две буквы названия системы…</value>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>Заметки</value>
+  </data>
+  <data name="HintAccessNotesWhoTo" xml:space="preserve">
+    <value>Заметки о доступе, к кому обратиться за приглашением в док — всё, чего никогда не будет в ESI.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="PullFromEsi" xml:space="preserve">
+    <value>Загрузить из ESI</value>
+  </data>
+  <data name="TipAsksEsiAboutThis" xml:space="preserve">
+    <value>Запрашивает у ESI сведения об этом сооружении прямо сейчас, не дожидаясь окончания 30-дневной паузы, которую обычно влечёт ответ 403. Используйте после получения права на вход в док.</value>
+  </data>
+  <data name="LocationIdCannotBeNote" xml:space="preserve">
+    <value>ID места изменить нельзя — это идентификатор сооружения.</value>
+  </data>
+  <data name="TabFitting" xml:space="preserve">
+    <value>Оснастка</value>
+  </data>
+  <data name="HintFilterModules" xml:space="preserve">
+    <value>фильтр модулей…</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="ClearSlot" xml:space="preserve">
+    <value>Освободить разъём</value>
+  </data>
+  <data name="ColSlot" xml:space="preserve">
+    <value>Разъём</value>
+  </data>
+  <data name="ColModule" xml:space="preserve">
+    <value>Модуль</value>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Контейнер</value>
+  </data>
+  <data name="ColWhere" xml:space="preserve">
+    <value>Где</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="TabCargo" xml:space="preserve">
+    <value>Груз</value>
+  </data>
+  <data name="TabFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="TabFighters" xml:space="preserve">
+    <value>Истребители</value>
+  </data>
+  <data name="ColFighter" xml:space="preserve">
+    <value>Истребитель</value>
+  </data>
+  <data name="TabIndustryJobs" xml:space="preserve">
+    <value>Промышленные проекты</value>
+  </data>
+  <data name="EndsFromLabel" xml:space="preserve">
+    <value>Окончание с</value>
+  </data>
+  <data name="EndsThruLabel" xml:space="preserve">
+    <value>Окончание по</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Вид работ</value>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Продукция</value>
+  </data>
+  <data name="ColRuns" xml:space="preserve">
+    <value>Прогоны</value>
+  </data>
+  <data name="ColEnds" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="AddAStructureByLocation" xml:space="preserve">
+    <value>Добавить сооружение по ID места</value>
+  </data>
+  <data name="StructuresNormallyArriveOnNote" xml:space="preserve">
+    <value>Обычно сооружения появляются сами — из имущества, проектов, контрактов и уничтожений. Используйте это для тех, что не появились: станции, к доку которой вам дали доступ, или ID, который вам кто-то передал.</value>
+  </data>
+  <data name="LocationIdLabel" xml:space="preserve">
+    <value>ID места</value>
+  </data>
+  <data name="LookUp" xml:space="preserve">
+    <value>Найти</value>
+  </data>
+  <data name="TipTrueSecurity" xml:space="preserve">
+    <value>Истинный статус безопасности</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="Constellation" xml:space="preserve">
+    <value>Созвездие</value>
+  </data>
+  <data name="Sovereignty" xml:space="preserve">
+    <value>Право владения</value>
+  </data>
+  <data name="LocalPirates" xml:space="preserve">
+    <value>Местные пираты</value>
+  </data>
+  <data name="IndustryIndices" xml:space="preserve">
+    <value>Промышленные индексы</value>
+  </data>
+  <data name="TipManufacturingTimeEfficiencyMaterial" xml:space="preserve">
+    <value>Производство · экономия времени · экономия материалов · копирование · модернизация · реакции</value>
+  </data>
+  <data name="Production" xml:space="preserve">
+    <value>Выработка</value>
+  </data>
+  <data name="Planets" xml:space="preserve">
+    <value>Планеты</value>
+  </data>
+  <data name="Moons" xml:space="preserve">
+    <value>Спутники</value>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>Пояса</value>
+  </data>
+  <data name="Jumps1h24h" xml:space="preserve">
+    <value>Прыжки 1 ч / 24 ч</value>
+  </data>
+  <data name="ShipKills" xml:space="preserve">
+    <value>Уничтожено кораблей</value>
+  </data>
+  <data name="NpcKills" xml:space="preserve">
+    <value>Уничтожено NPC</value>
+  </data>
+  <data name="PodKills" xml:space="preserve">
+    <value>Уничтожено капсул</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="JumpsLabel" xml:space="preserve">
+    <value>Прыжки</value>
+  </data>
+  <data name="NpcKillsLabel" xml:space="preserve">
+    <value>Уничтожено NPC</value>
+  </data>
+  <data name="ShipKillsLabel" xml:space="preserve">
+    <value>Уничтожено кораблей</value>
+  </data>
+  <data name="PodKillsLabel" xml:space="preserve">
+    <value>Уничтожено капсул</value>
+  </data>
+  <data name="SovereigntyStructuresLabel" xml:space="preserve">
+    <value>Сооружения права владения</value>
+  </data>
+  <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
+    <value>В этой системе нет сооружений права владения.</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="VulnerabilityWindowLabel" xml:space="preserve">
+    <value>Окно уязвимости</value>
+  </data>
+  <data name="SovereigntyChangesLabel" xml:space="preserve">
+    <value>Смена права владения</value>
+  </data>
+  <data name="NoChangesRecordedInNote" xml:space="preserve">
+    <value>За сохранённый период изменений не записано.</value>
+  </data>
+  <data name="GatesLabel" xml:space="preserve">
+    <value>Врата</value>
+  </data>
+  <data name="PlayerStructuresLabel" xml:space="preserve">
+    <value>Сооружения игроков</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр сооружений»</value>
+  </data>
+  <data name="NpcStationsLabel" xml:space="preserve">
+    <value>Станции NPC</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Открыть в справочнике NPC</value>
+  </data>
+  <data name="TabCelestials" xml:space="preserve">
+    <value>Небесные объекты</value>
+  </data>
+  <data name="LaidOutAsTheNote" xml:space="preserve">
+    <value>Расположено так же, как система устроена в космосе: звезда, врата, затем каждая планета в порядке орбит, а под ней — её пояса, спутники и всё, что расположено рядом с ними.</value>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>Объект</value>
+  </data>
+  <data name="PowerLabel" xml:space="preserve">
+    <value>Энергия</value>
+  </data>
+  <data name="WorkforceLabel" xml:space="preserve">
+    <value>Рабочая сила</value>
+  </data>
+  <data name="ReagentLabel" xml:space="preserve">
+    <value>Реагент</value>
+  </data>
+  <data name="TabGraphs" xml:space="preserve">
+    <value>Графики</value>
+  </data>
+  <data name="ShipJumpsLabel" xml:space="preserve">
+    <value>Прыжки кораблей</value>
+  </data>
+  <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
+    <value>Коэффициент защиты планетной системы (ADM)</value>
+  </data>
+  <data name="IndustryCostIndicesLabel" xml:space="preserve">
+    <value>Индексы стоимости проектов</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="DivisionLabel" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="LevelLabel" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="LocatorLabel" xml:space="preserve">
+    <value>Розыск</value>
+  </data>
+  <data name="TipOpenTheStationInNpc" xml:space="preserve">
+    <value>Открыть станцию в справочнике NPC</value>
+  </data>
+  <data name="TabKills" xml:space="preserve">
+    <value>Уничтожения</value>
+  </data>
+  <data name="TipDoubleClickToOpen" xml:space="preserve">
+    <value>Дважды щёлкните, чтобы открыть в разделе «Отчёты о боях»</value>
+  </data>
+  <data name="TabEvents" xml:space="preserve">
+    <value>События</value>
+  </data>
+  <data name="NoEventsRecordedInNote" xml:space="preserve">
+    <value>За сохранённый период событий не записано.</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="WhenUtcLabel" xml:space="preserve">
+    <value>Когда (UTC)</value>
+  </data>
+  <data name="PilotsLabel" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="NoteLabel" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="ReportedByLabel" xml:space="preserve">
+    <value>Кто сообщил</value>
+  </data>
+  <data name="TipNoVisualReportedPresent" xml:space="preserve">
+    <value>Нет визуала — о присутствии сообщили, но никто не видел</value>
+  </data>
+  <data name="TipOpenInPlayerEntities" xml:space="preserve">
+    <value>Открыть в справочнике игроков</value>
+  </data>
+  <data name="OverlayLabel" xml:space="preserve">
+    <value>Слой</value>
+  </data>
+  <data name="GoToLabel" xml:space="preserve">
+    <value>Перейти</value>
+  </data>
+  <data name="HintRegionOrSystem" xml:space="preserve">
+    <value>сектор или система</value>
+  </data>
+  <data name="ClickANodeForNote" xml:space="preserve">
+    <value>Щёлкните по узлу, чтобы увидеть подробности. Двойной щелчок открывает его.</value>
+  </data>
+  <data name="LegendLabel" xml:space="preserve">
+    <value>Условные обозначения</value>
+  </data>
+  <data name="DockingBarAboveTheBoxLabel" xml:space="preserve">
+    <value>Вход в док — полоса над рамкой</value>
+  </data>
+  <data name="ServicesUnderTheBoxLabel" xml:space="preserve">
+    <value>Службы — под рамкой</value>
+  </data>
+  <data name="MergedFromNpcStationsNote" xml:space="preserve">
+    <value>Сведено по станциям NPC и сооружениям игроков. Сооружение, тип которого не определён, ничего не добавляет, поэтому пустое место означает «неизвестно», а не «ничего нет».</value>
+  </data>
+  <data name="ScrollToZoomDragNote" xml:space="preserve">
+    <value>Колесо мыши — масштаб, перетаскивание — сдвиг. Число уничтожений берётся из отчётов о боях, сохранённых в приложении, а не по всему Новому Эдему.</value>
+  </data>
+  <data name="WaypointDetailHighSec" xml:space="preserve">
+    <value>{0} · {1} · хай-сек</value>
+  </data>
+  <data name="WaypointDetailPinned" xml:space="preserve">
+    <value>{0} · {1} · выбранная промежуточная точка</value>
+  </data>
+  <data name="StatusAddStartAndDestination" xml:space="preserve">
+    <value>Добавьте начальную и конечную точки.</value>
+  </data>
+  <data name="MidpointsAnywhere" xml:space="preserve">
+    <value>Где угодно</value>
+  </data>
+  <data name="MidpointsStationsAndStructures" xml:space="preserve">
+    <value>Станции и сооружения</value>
+  </data>
+  <data name="MidpointsCitadelSystems" xml:space="preserve">
+    <value>Системы с Fortizar / Keepstar</value>
+  </data>
+  <data name="MidpointsKeepstarSystems" xml:space="preserve">
+    <value>Системы с Keepstar</value>
+  </data>
+  <data name="RangePerJump" xml:space="preserve">
+    <value>{0:N2} св. г. за прыжок (база {1:N1}, калибровка {2})</value>
+  </data>
+  <data name="StatusLoadHullsFailed" xml:space="preserve">
+    <value>Не удалось загрузить корабли с гипердвигателем: {0}</value>
+  </data>
+  <data name="StatusNotASystem" xml:space="preserve">
+    <value>«{0}» — не система; выберите систему из списка.</value>
+  </data>
+  <data name="StatusAddDestination" xml:space="preserve">
+    <value>Добавьте конечную точку.</value>
+  </data>
+  <data name="StatusReadyToPlan" xml:space="preserve">
+    <value>Можно прокладывать маршрут.</value>
+  </data>
+  <data name="StatusWaypointOrderChanged" xml:space="preserve">
+    <value>Порядок точек изменён — проложите маршрут заново, чтобы обновить его.</value>
+  </data>
+  <data name="CandidateCost" xml:space="preserve">
+    <value>{0:N2} св. г. · топливо: {1:N0}</value>
+  </data>
+  <data name="CandidateCostVs" xml:space="preserve">
+    <value>{0} св. г. · топливо: {1} по сравнению с системой {2}</value>
+  </data>
+  <data name="AlternativesTitle" xml:space="preserve">
+    <value>Вместо системы {0}</value>
+  </data>
+  <data name="StatusNoAlternatives" xml:space="preserve">
+    <value>При этой дальности ни одна другая система не дотягивается до обеих соседних остановок вокруг системы {0}.</value>
+  </data>
+  <data name="StatusMoveCancelled" xml:space="preserve">
+    <value>Перемещение отменено — отпустите точку на одной из подсвеченных систем.</value>
+  </data>
+  <data name="StatusCannotMoveThere" xml:space="preserve">
+    <value>Точку {0} нельзя перенести туда — эта система вне досягаемости с одной из сторон прыжка.</value>
+  </data>
+  <data name="StatusRoutingThrough" xml:space="preserve">
+    <value>Маршрут через систему {0}.</value>
+  </data>
+  <data name="StatusPickShip" xml:space="preserve">
+    <value>Выберите корабль.</value>
+  </data>
+  <data name="StatusAddAtLeastStartAndDestination" xml:space="preserve">
+    <value>Добавьте хотя бы начальную и конечную точки.</value>
+  </data>
+  <data name="StatusHighSecUnreachable" xml:space="preserve">
+    <value>Система {0} находится в хай-секе — гипердвигатель туда не доставит.</value>
+  </data>
+  <data name="StatusLegProblem" xml:space="preserve">
+    <value>{0} → {1}: {2}</value>
+  </data>
+  <data name="StatusRoutePlanned" xml:space="preserve">
+    <value>Маршрут проложен.</value>
+  </data>
+  <data name="StatusPlanFailed" xml:space="preserve">
+    <value>Не удалось проложить маршрут: {0}</value>
+  </data>
+  <data name="StatusAlternativesOne" xml:space="preserve">
+    <value>{0} система может заменить систему {1}.</value>
+  </data>
+  <data name="StatusAlternativesOther" xml:space="preserve">
+    <value>{0} системы могут заменить систему {1}.</value>
+  </data>
+  <data name="StatusAlternativesFew" xml:space="preserve">
+    <value>{0} системы могут заменить систему {1}.</value>
+  </data>
+  <data name="StatusAlternativesMany" xml:space="preserve">
+    <value>{0} систем могут заменить систему {1}.</value>
+  </data>
+  <data name="RouteTotalsOne" xml:space="preserve">
+    <value>{0} прыжок · {1:N3} св. г. · {3}: {2:N0} · дальность {4:N2} св. г.</value>
+  </data>
+  <data name="RouteTotalsOther" xml:space="preserve">
+    <value>{0} прыжка · {1:N3} св. г. · {3}: {2:N0} · дальность {4:N2} св. г.</value>
+  </data>
+  <data name="RouteTotalsFew" xml:space="preserve">
+    <value>{0} прыжка · {1:N3} св. г. · {3}: {2:N0} · дальность {4:N2} св. г.</value>
+  </data>
+  <data name="RouteTotalsMany" xml:space="preserve">
+    <value>{0} прыжков · {1:N3} св. г. · {3}: {2:N0} · дальность {4:N2} св. г.</value>
+  </data>
+  <data name="JumpMapPlanFirst" xml:space="preserve">
+    <value>Проложите маршрут, чтобы увидеть его на карте.</value>
+  </data>
+  <data name="JumpMapHint" xml:space="preserve">
+    <value>перетащите промежуточную точку, чтобы переместить её · щёлкните по ней, чтобы увидеть альтернативы · колесо мыши — масштаб</value>
+  </data>
+  <data name="TipNoKnownDocking" xml:space="preserve">
+    <value>нет известных станций и сооружений</value>
+  </data>
+  <data name="FittingBandHigh" xml:space="preserve">
+    <value>Большие</value>
+  </data>
+  <data name="FittingBandMid" xml:space="preserve">
+    <value>Средние</value>
+  </data>
+  <data name="FittingBandLow" xml:space="preserve">
+    <value>Малые</value>
+  </data>
+  <data name="FittingBandRigs" xml:space="preserve">
+    <value>Модификаторы</value>
+  </data>
+  <data name="FittingBandServices" xml:space="preserve">
+    <value>Службы</value>
+  </data>
+  <data name="FittingBandSubsystems" xml:space="preserve">
+    <value>Подсистемы</value>
+  </data>
+  <data name="FittingNoInfo" xml:space="preserve">
+    <value>Для этого типа нет сведений об оснастке.</value>
+  </data>
+  <data name="TipSlotFromAssets" xml:space="preserve">
+    <value>{0} · разъём {1} · из имущества — здесь решает игра</value>
+  </data>
+  <data name="TipClickToFitModule" xml:space="preserve">
+    <value>Нажмите, чтобы установить модуль</value>
+  </data>
+  <data name="TipSlotEnteredByHand" xml:space="preserve">
+    <value>{0} · разъём {1} · введено вручную</value>
+  </data>
+  <data name="ServiceManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="TipServiceManufacturing" xml:space="preserve">
+    <value>Фабрика NPC или Standup Manufacturing Plant либо Shipyard</value>
+  </data>
+  <data name="ServiceResearch" xml:space="preserve">
+    <value>Исследования / модернизация</value>
+  </data>
+  <data name="TipServiceResearch" xml:space="preserve">
+    <value>Лаборатория NPC или Standup Research Lab либо Invention Lab</value>
+  </data>
+  <data name="ServiceReprocessing" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="TipServiceReprocessing" xml:space="preserve">
+    <value>Перерабатывающий завод NPC или Standup Reprocessing Facility</value>
+  </data>
+  <data name="ServiceReactions" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="TipServiceReactions" xml:space="preserve">
+    <value>Реактор Standup. Ни одна станция NPC не проводит реакции, так что это всегда сооружение игрока</value>
+  </data>
+  <data name="ServiceCloning" xml:space="preserve">
+    <value>Медотсек</value>
+  </data>
+  <data name="TipServiceCloning" xml:space="preserve">
+    <value>Служба клонирования или джамп-клонов на станции NPC либо Standup Cloning Center</value>
+  </data>
+  <data name="ServiceMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="TipServiceMarket" xml:space="preserve">
+    <value>Рынок NPC или Standup Market Hub</value>
+  </data>
+  <data name="DockSupers" xml:space="preserve">
+    <value>Суперкары и титаны — только Keepstar</value>
+  </data>
+  <data name="TipDockSupers" xml:space="preserve">
+    <value>Здесь есть Keepstar. Суперкары и титаны могут войти в док</value>
+  </data>
+  <data name="DockCapitals" xml:space="preserve">
+    <value>Корабли большого тоннажа — Fortizar или станция NPC</value>
+  </data>
+  <data name="TipDockCapitals" xml:space="preserve">
+    <value>Корабли большого тоннажа могут войти в док, суперкары и титаны — нет</value>
+  </data>
+  <data name="DockSubcaps" xml:space="preserve">
+    <value>Прочие корабли — любое другое сооружение</value>
+  </data>
+  <data name="TipDockSubcaps" xml:space="preserve">
+    <value>Здесь есть док, но ни один не принимает корабли большого тоннажа</value>
+  </data>
+  <data name="TipDoubleClickToOpenRegion" xml:space="preserve">
+    <value>Дважды щёлкните, чтобы открыть сектор {0}</value>
+  </data>
+  <data name="EmptyHighSlot" xml:space="preserve">
+    <value>Пустой разъём большой мощности</value>
+  </data>
+  <data name="EmptyMidSlot" xml:space="preserve">
+    <value>Пустой разъём средней мощности</value>
+  </data>
+  <data name="EmptyLowSlot" xml:space="preserve">
+    <value>Пустой разъём малой мощности</value>
+  </data>
+  <data name="EmptyRigSlot" xml:space="preserve">
+    <value>Пустой разъём для модификатора</value>
+  </data>
+  <data name="EmptyServiceSlot" xml:space="preserve">
+    <value>Пустой служебный разъём</value>
+  </data>
+  <data name="EmptySubsystemSlot" xml:space="preserve">
+    <value>Пустой разъём подсистемы</value>
+  </data>
+  <data name="StructureKindNpc" xml:space="preserve">
+    <value>NPC</value>
+  </data>
+  <data name="StructureKindPlayer" xml:space="preserve">
+    <value>Игрок</value>
+  </data>
+  <data name="AgentLocator" xml:space="preserve">
+    <value>Розыск</value>
+  </data>
+  <data name="CorporationNumbered" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Альянс {0}</value>
+  </data>
+  <data name="IntelNoVisual" xml:space="preserve">
+    <value>NV</value>
+  </data>
+  <data name="IntelSuperseded" xml:space="preserve">
+    <value>заменено</value>
+  </data>
+  <data name="IntelStanding" xml:space="preserve">
+    <value>актуально</value>
+  </data>
+  <data name="NoIntelNote" xml:space="preserve">
+    <value>Разведданных по этой системе нет. Сообщения разбираются из каналов, отмеченных как «Разведка» в «Настройки → Журналы чата»; чтобы прочитать сообщения, уже сохранённые на диске, используйте там «Разобрать сохранённую историю».</value>
+  </data>
+  <data name="ProductionPower" xml:space="preserve">
+    <value>{0:N0} энергии</value>
+  </data>
+  <data name="ProductionWorkforce" xml:space="preserve">
+    <value>{0:N0} рабочей силы</value>
+  </data>
+  <data name="ProductionMagmaticGas" xml:space="preserve">
+    <value>{0:N0}/ч магматического газа</value>
+  </data>
+  <data name="ProductionSuperionicIce" xml:space="preserve">
+    <value>{0:N0}/ч суперионного льда</value>
+  </data>
+  <data name="SovUnclaimed" xml:space="preserve">
+    <value>Нет владельца</value>
+  </data>
+  <data name="IntelSummary" xml:space="preserve">
+    <value>Сообщений: {0:N0}, из них актуальных: {1:N0}. Заменённые сообщения показаны приглушённо.</value>
+  </data>
+  <data name="AgentsNone" xml:space="preserve">
+    <value>В этой системе нет агентов.</value>
+  </data>
+  <data name="AgentsSummary" xml:space="preserve">
+    <value>Агентов: {0}, станций: {1}.</value>
+  </data>
+  <data name="SovHistoryNone" xml:space="preserve">
+    <value>История права владения ещё не сохранена.</value>
+  </data>
+  <data name="SovHistoryNote" xml:space="preserve">
+    <value>Получено из сохранённых снимков начиная с {0:yyyy-MM-dd}. Более ранние изменения произошли до того, как приложение начало записывать данные, и восстановить их нельзя.</value>
+  </data>
+  <data name="KillsNone" xml:space="preserve">
+    <value>Для этой системы нет сохранённых отчётов о боях.</value>
+  </data>
+  <data name="HourlyNone" xml:space="preserve">
+    <value>Почасовая история ещё не сохранена.</value>
+  </data>
+  <data name="HourlyNote" xml:space="preserve">
+    <value>За последние {0:F0} ч, по часам. Чтобы охватить больший период, увеличьте в настройках «Хранить почасовые данные».</value>
+  </data>
+  <data name="GraphNone" xml:space="preserve">
+    <value>История активности для этой системы ещё не сохранена.</value>
+  </data>
+  <data name="GraphNote" xml:space="preserve">
+    <value>Итоги по дням, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}. Каждая точка — полные сутки UTC; последние могут быть неполными.</value>
+  </data>
+  <data name="SeriesJumps" xml:space="preserve">
+    <value>Прыжки</value>
+  </data>
+  <data name="AdmNone" xml:space="preserve">
+    <value>Истории ADM нет: в этой системе нет сооружения права владения.</value>
+  </data>
+  <data name="AdmNote" xml:space="preserve">
+    <value>Суточный максимум ADM, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}.</value>
+  </data>
+  <data name="SeriesAdm" xml:space="preserve">
+    <value>ADM</value>
+  </data>
+  <data name="ActivityTimeEfficiency" xml:space="preserve">
+    <value>Экономия времени</value>
+  </data>
+  <data name="ActivityMaterialEfficiency" xml:space="preserve">
+    <value>Экономия материалов</value>
+  </data>
+  <data name="IndexNone" xml:space="preserve">
+    <value>История индексов стоимости проектов для этой системы ещё не сохранена.</value>
+  </data>
+  <data name="IndexNote" xml:space="preserve">
+    <value>Индекс стоимости по дням, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}. Показан в процентах, как в окне промышленности.</value>
+  </data>
+  <data name="KillsMostRecent" xml:space="preserve">
+    <value>Последние: {0}</value>
+  </data>
+  <data name="KillsMostRecentMore" xml:space="preserve">
+    <value>Последние: {0} (есть и более старые)</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Модернизация</value>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="FittingSourceAssets" xml:space="preserve">
+    <value>имущество</value>
+  </data>
+  <data name="FittingSourceManual" xml:space="preserve">
+    <value>вручную</value>
+  </data>
+  <data name="EditLockReason" xml:space="preserve">
+    <value>Название, система и тип берутся из ESI, и изменить их нельзя — следующее определение их перезапишет.</value>
+  </data>
+  <data name="JobCount" xml:space="preserve">
+    <value>Проектов: {0:N0}</value>
+  </data>
+  <data name="JobCountFiltered" xml:space="preserve">
+    <value>Проектов: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="FittingReadOnlyNote" xml:space="preserve">
+    <value>Оснастка взята из имущества — только для чтения</value>
+  </data>
+  <data name="FittingEditableNote" xml:space="preserve">
+    <value>В имуществе нет оснастки — нажмите на разъём, чтобы записать её</value>
+  </data>
+  <data name="StatusFittingLocked" xml:space="preserve">
+    <value>Эта оснастка известна из имущества, её нельзя изменить.</value>
+  </data>
+  <data name="StatusModulesFit" xml:space="preserve">
+    <value>Подходящих для этого разъёма модулей: {0}.</value>
+  </data>
+  <data name="StatusFitted" xml:space="preserve">
+    <value>Установлено: {0}.</value>
+  </data>
+  <data name="StatusSlotCleared" xml:space="preserve">
+    <value>Разъём освобождён.</value>
+  </data>
+  <data name="StatusRecordModuleFailed" xml:space="preserve">
+    <value>Не удалось записать этот модуль: {0}</value>
+  </data>
+  <data name="StructureStatusOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="StructureStatusNoAccess" xml:space="preserve">
+    <value>Нет доступа</value>
+  </data>
+  <data name="StructureStatusGone" xml:space="preserve">
+    <value>Снято с якоря (исчезло)</value>
+  </data>
+  <data name="StructureStatusPending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="StructureNumbered" xml:space="preserve">
+    <value>Сооружение {0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="StatusStructures" xml:space="preserve">
+    <value>Сооружений: {0}.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="ProvenanceNeverWritten" xml:space="preserve">
+    <value>Ещё не записывалось · {0}</value>
+  </data>
+  <data name="ProvenanceLastWritten" xml:space="preserve">
+    <value>Последняя запись: {0}, {1:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>Подразделение {0}</value>
+  </data>
+  <data name="DivisionWithNumber" xml:space="preserve">
+    <value>{0} (подр. {1})</value>
+  </data>
+  <data name="DetailCounts" xml:space="preserve">
+    <value>установлено: {0} · на хранении: {1:N0} · груз: {2:N0} · топливо: {3:N0} · истребители: {4:N0} · проекты: {5:N0}</value>
+  </data>
+  <data name="StatusDetailLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить подробности: {0}</value>
+  </data>
+  <data name="JobActivityTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="JobActivityMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="JobActivityReactions" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="JobActivityNumbered" xml:space="preserve">
+    <value>Вид работ {0}</value>
+  </data>
+  <data name="EveRefFieldName" xml:space="preserve">
+    <value>название</value>
+  </data>
+  <data name="EveRefFieldSystem" xml:space="preserve">
+    <value>система</value>
+  </data>
+  <data name="EveRefFieldType" xml:space="preserve">
+    <value>тип</value>
+  </data>
+  <data name="EveRefFieldOwner" xml:space="preserve">
+    <value>владелец</value>
+  </data>
+  <data name="StatusPickersFailed" xml:space="preserve">
+    <value>Не удалось загрузить списки выбора: {0}</value>
+  </data>
+  <data name="PickNoType" xml:space="preserve">
+    <value>— нет —</value>
+  </data>
+  <data name="StatusStructureGone" xml:space="preserve">
+    <value>Этого сооружения больше нет в таблице.</value>
+  </data>
+  <data name="StatusPickSystem" xml:space="preserve">
+    <value>Выберите систему из списка или очистите поле, чтобы оставить её не заданной.</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="StatusNotesSaved" xml:space="preserve">
+    <value>Заметки сохранены (идентификационные данные берутся из ESI).</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить: {0}</value>
+  </data>
+  <data name="StatusAskingEsi" xml:space="preserve">
+    <value>Запрос к ESI…</value>
+  </data>
+  <data name="PullResolved" xml:space="preserve">
+    <value>Определено через ESI.</value>
+  </data>
+  <data name="PullNoAccess" xml:space="preserve">
+    <value>Нет доступа (403) — нет права на вход в док этого сооружения.</value>
+  </data>
+  <data name="PullNotFound" xml:space="preserve">
+    <value>Не найдено (404) — сооружение снято с якоря или уничтожено.</value>
+  </data>
+  <data name="PullNoAnswer" xml:space="preserve">
+    <value>ESI не ответил. См. журнал ошибок.</value>
+  </data>
+  <data name="StatusPullFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="AddEnterNumericId" xml:space="preserve">
+    <value>Введите числовой ID места.</value>
+  </data>
+  <data name="AddAlreadyInTable" xml:space="preserve">
+    <value>Уже есть в таблице.</value>
+  </data>
+  <data name="AddPreviewNoAnswer" xml:space="preserve">
+    <value>ESI не ответил — см. журнал ошибок. Сооружение всё равно можно добавить и заполнить вручную.</value>
+  </data>
+  <data name="AddStatusNoAnswer" xml:space="preserve">
+    <value>Нет ответа.</value>
+  </data>
+  <data name="AddPreviewNoAccess" xml:space="preserve">
+    <value>Нет доступа (403) — нет права на вход в док этого сооружения. Его всё равно можно добавить и заполнить вручную.</value>
+  </data>
+  <data name="AddPreviewNotFound" xml:space="preserve">
+    <value>Не найдено (404) — такого сооружения нет или оно снято с якоря. Проверьте ID перед добавлением.</value>
+  </data>
+  <data name="AddPreviewNothingUsable" xml:space="preserve">
+    <value>ESI не вернул по этому ID ничего пригодного.</value>
+  </data>
+  <data name="AddLookupFailed" xml:space="preserve">
+    <value>Не удалось выполнить поиск: {0}</value>
+  </data>
+  <data name="SystemNumbered" xml:space="preserve">
+    <value>Система {0}</value>
+  </data>
+  <data name="PreviewUnknownType" xml:space="preserve">
+    <value>неизвестный тип</value>
+  </data>
+  <data name="PreviewUnknownOwner" xml:space="preserve">
+    <value>неизвестный владелец</value>
+  </data>
+  <data name="AddFailed" xml:space="preserve">
+    <value>Не удалось добавить: {0}</value>
+  </data>
+  <data name="StatusStructuresShown" xml:space="preserve">
+    <value>Сооружений: {0} из {1}.</value>
+  </data>
+  <data name="StatusStructuresUnknownHidden" xml:space="preserve">
+    <value>Показано: {0} · скрыто неизвестных: {1}.</value>
+  </data>
+  <data name="StatusResolving" xml:space="preserve">
+    <value>Определение сооружений через ESI…</value>
+  </data>
+  <data name="StatusResolveFailed" xml:space="preserve">
+    <value>Не удалось определить: {0}</value>
+  </data>
+  <data name="JobStatusAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>идёт</value>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>отменён</value>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>доставлен</value>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>приостановлен</value>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>готов</value>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>свёрнут</value>
+  </data>
+  <data name="PickerTitleHigh" xml:space="preserve">
+    <value>Разъём большой мощности {0}</value>
+  </data>
+  <data name="PickerTitleMid" xml:space="preserve">
+    <value>Разъём средней мощности {0}</value>
+  </data>
+  <data name="PickerTitleLow" xml:space="preserve">
+    <value>Разъём малой мощности {0}</value>
+  </data>
+  <data name="PickerTitleRig" xml:space="preserve">
+    <value>Разъём для модификатора {0}</value>
+  </data>
+  <data name="PickerTitleService" xml:space="preserve">
+    <value>Служебный разъём {0}</value>
+  </data>
+  <data name="PickerTitleSubsystem" xml:space="preserve">
+    <value>Разъём подсистемы {0}</value>
+  </data>
+  <data name="StatusNothingFitsHigh" xml:space="preserve">
+    <value>Ни один модуль не подходит для разъёма большой мощности этого корпуса.</value>
+  </data>
+  <data name="StatusNothingFitsMid" xml:space="preserve">
+    <value>Ни один модуль не подходит для разъёма средней мощности этого корпуса.</value>
+  </data>
+  <data name="StatusNothingFitsLow" xml:space="preserve">
+    <value>Ни один модуль не подходит для разъёма малой мощности этого корпуса.</value>
+  </data>
+  <data name="StatusNothingFitsRig" xml:space="preserve">
+    <value>Ни один модификатор не подходит для этого корпуса.</value>
+  </data>
+  <data name="StatusNothingFitsService" xml:space="preserve">
+    <value>Ни один модуль не подходит для служебного разъёма этого корпуса.</value>
+  </data>
+  <data name="StatusNothingFitsSubsystem" xml:space="preserve">
+    <value>Ни одна подсистема не подходит для этого корпуса.</value>
+  </data>
+  <data name="ProvenanceWriterUser" xml:space="preserve">
+    <value>пользователь</value>
+  </data>
+  <data name="EveRefNote" xml:space="preserve">
+    <value>Сведения ({0}) получены из EVE Ref — это наблюдение третьей стороны, а не данные, подтверждённые ESI. Они могут быть устаревшими.</value>
+  </data>
+  <data name="EveRefNoteRead" xml:space="preserve">
+    <value>Сведения ({0}) получены из EVE Ref {1:yyyy-MM-dd} — это наблюдение третьей стороны, а не данные, подтверждённые ESI. Они могут быть устаревшими.</value>
+  </data>
+  <data name="AddAskingEsi" xml:space="preserve">
+    <value>Запрос к ESI по ID {0}…</value>
+  </data>
+  <data name="AddAskingEsiLowId" xml:space="preserve">
+    <value>Запрос к ESI по ID {0} (он ниже диапазона ID сооружений игроков, поэтому вероятен ответ 404)…</value>
+  </data>
+  <data name="AddStatusResolved" xml:space="preserve">
+    <value>Определено.</value>
+  </data>
+  <data name="AddStatusNoAccess" xml:space="preserve">
+    <value>Нет доступа.</value>
+  </data>
+  <data name="AddStatusGone" xml:space="preserve">
+    <value>Снято с якоря (исчезло).</value>
+  </data>
+  <data name="AddStatusPending" xml:space="preserve">
+    <value>Ожидает.</value>
+  </data>
+  <data name="AddPreviewResolved" xml:space="preserve">
+    <value>{0}
+{1}, система {2}
+Владелец: {3}</value>
+  </data>
+  <data name="OverlaySecurity" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="OverlayConstellation" xml:space="preserve">
+    <value>Созвездия</value>
+  </data>
+  <data name="OverlaySovereignty" xml:space="preserve">
+    <value>Право владения</value>
+  </data>
+  <data name="OverlaySovereigntyAdm" xml:space="preserve">
+    <value>ADM права владения</value>
+  </data>
+  <data name="OverlayIndustryManufacturing" xml:space="preserve">
+    <value>Промышленность — производство</value>
+  </data>
+  <data name="OverlayIndustryReactions" xml:space="preserve">
+    <value>Промышленность — реакции</value>
+  </data>
+  <data name="OverlayIndustryMeResearch" xml:space="preserve">
+    <value>Промышленность — исследование ME</value>
+  </data>
+  <data name="OverlayIndustryTeResearch" xml:space="preserve">
+    <value>Промышленность — исследование TE</value>
+  </data>
+  <data name="OverlayIndustryCopying" xml:space="preserve">
+    <value>Промышленность — копирование</value>
+  </data>
+  <data name="OverlayIndustryInvention" xml:space="preserve">
+    <value>Промышленность — модернизация</value>
+  </data>
+  <data name="OverlayShipKills24h" xml:space="preserve">
+    <value>Уничтожено кораблей (24 ч)</value>
+  </data>
+  <data name="OverlayShipKills7d" xml:space="preserve">
+    <value>Уничтожено кораблей (7 д)</value>
+  </data>
+  <data name="OverlayShipKills30d" xml:space="preserve">
+    <value>Уничтожено кораблей (30 д)</value>
+  </data>
+  <data name="OverlayPodKills24h" xml:space="preserve">
+    <value>Уничтожено капсул (24 ч)</value>
+  </data>
+  <data name="OverlayPodKills7d" xml:space="preserve">
+    <value>Уничтожено капсул (7 д)</value>
+  </data>
+  <data name="OverlayPodKills30d" xml:space="preserve">
+    <value>Уничтожено капсул (30 д)</value>
+  </data>
+  <data name="OverlayIntel15m" xml:space="preserve">
+    <value>Разведка (15 мин)</value>
+  </data>
+  <data name="OverlayIntelPaths15m" xml:space="preserve">
+    <value>Разведка — пути (15 мин)</value>
+  </data>
+  <data name="OverlayIntelPaths1h" xml:space="preserve">
+    <value>Разведка — пути (1 ч)</value>
+  </data>
+  <data name="OverlayIntelPaths24h" xml:space="preserve">
+    <value>Разведка — пути (24 ч)</value>
+  </data>
+  <data name="OverlayShipJumps24h" xml:space="preserve">
+    <value>Прыжки кораблей (24 ч)</value>
+  </data>
+  <data name="OverlayShipJumps7d" xml:space="preserve">
+    <value>Прыжки кораблей (7 д)</value>
+  </data>
+  <data name="OverlayNpcKills24h" xml:space="preserve">
+    <value>Уничтожено NPC (24 ч)</value>
+  </data>
+  <data name="OverlayFactionWarfare" xml:space="preserve">
+    <value>Межгосударственные войны</value>
+  </data>
+  <data name="OverlayIncursions" xml:space="preserve">
+    <value>Вторжения</value>
+  </data>
+  <data name="OverlayPlanetaryPower" xml:space="preserve">
+    <value>Энергия планет</value>
+  </data>
+  <data name="OverlayPlanetaryWorkforce" xml:space="preserve">
+    <value>Рабочая сила планет</value>
+  </data>
+  <data name="OverlayStations" xml:space="preserve">
+    <value>Станции (NPC/игроков)</value>
+  </data>
+  <data name="OverlayPlanets" xml:space="preserve">
+    <value>Планеты</value>
+  </data>
+  <data name="OverlayMoons" xml:space="preserve">
+    <value>Спутники</value>
+  </data>
+  <data name="OverlayAsteroidBelts" xml:space="preserve">
+    <value>Пояса астероидов</value>
+  </data>
+  <data name="StatusLoadingUniverse" xml:space="preserve">
+    <value>Загрузка вселенной…</value>
+  </data>
+  <data name="StatusUniverse" xml:space="preserve">
+    <value>Секторов: {0} · систем: {1:N0} · приблизьте карту, чтобы открыть секторы · дважды щёлкните по системе, чтобы увидеть подробности</value>
+  </data>
+  <data name="StatusLoadingPlace" xml:space="preserve">
+    <value>Загрузка: {0}…</value>
+  </data>
+  <data name="StatusPlaceSystems" xml:space="preserve">
+    <value>{0} — систем: {1}</value>
+  </data>
+  <data name="StatusLoadingSystem" xml:space="preserve">
+    <value>Загрузка системы…</value>
+  </data>
+  <data name="StatusSystemViewUnavailable" xml:space="preserve">
+    <value>Просмотр системы недоступен</value>
+  </data>
+  <data name="StatusSystemNotFound" xml:space="preserve">
+    <value>Система не найдена</value>
+  </data>
+  <data name="CrumbUniverse" xml:space="preserve">
+    <value>Вселенная</value>
+  </data>
+  <data name="DetailSystems" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="DetailConstellations" xml:space="preserve">
+    <value>Созвездия</value>
+  </data>
+  <data name="DetailNpcStations" xml:space="preserve">
+    <value>Станции NPC</value>
+  </data>
+  <data name="DetailAvgSecurity" xml:space="preserve">
+    <value>Средняя безопасность</value>
+  </data>
+  <data name="DetailRegionGateways" xml:space="preserve">
+    <value>Выходы в другие секторы</value>
+  </data>
+  <data name="DetailSecurity" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="DetailSecurityClass" xml:space="preserve">
+    <value>Класс безопасности</value>
+  </data>
+  <data name="DetailStargates" xml:space="preserve">
+    <value>Звёздные врата</value>
+  </data>
+  <data name="LegendHighSec" xml:space="preserve">
+    <value>Хай-сек  1,0 – 0,5</value>
+  </data>
+  <data name="LegendLowSec" xml:space="preserve">
+    <value>Лоу-сек  0,4 – 0,1</value>
+  </data>
+  <data name="LegendNullSec" xml:space="preserve">
+    <value>Нуль-сек  0,0 и ниже</value>
+  </data>
+  <data name="NodeSecurityRegionAverage" xml:space="preserve">
+    <value>Безопасность {0:F2} (среднее по сектору)</value>
+  </data>
+  <data name="NodeConstellationSecurity" xml:space="preserve">
+    <value>{0} · безопасность {1:F2}</value>
+  </data>
+  <data name="TipOpenRegionForSovereignty" xml:space="preserve">
+    <value>Откройте сектор, чтобы увидеть право владения</value>
+  </data>
+  <data name="NodeHolderAdm" xml:space="preserve">
+    <value>{0} · ADM {1:F1}</value>
+  </data>
+  <data name="LegendSovSummary" xml:space="preserve">
+    <value>…альянсов: {0:N0}, систем: {1:N0}</value>
+  </data>
+  <data name="LegendUnclaimedNpc" xml:space="preserve">
+    <value>Ничейные / NPC</value>
+  </data>
+  <data name="NodeNoSovStructure" xml:space="preserve">
+    <value>Нет сооружения права владения</value>
+  </data>
+  <data name="LegendLowest" xml:space="preserve">
+    <value>минимум</value>
+  </data>
+  <data name="LegendNoData" xml:space="preserve">
+    <value>нет данных</value>
+  </data>
+  <data name="TipOpenRegionForFw" xml:space="preserve">
+    <value>Откройте сектор, чтобы увидеть межгосударственные войны</value>
+  </data>
+  <data name="NodeNotFwSpace" xml:space="preserve">
+    <value>Вне зоны межгосударственных войн</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Фракция {0}</value>
+  </data>
+  <data name="LegendNotFwSpace" xml:space="preserve">
+    <value>Вне зоны войн</value>
+  </data>
+  <data name="NodeNoIncursion" xml:space="preserve">
+    <value>Нет вторжения</value>
+  </data>
+  <data name="LegendNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="NodeNoStations" xml:space="preserve">
+    <value>Нет станций и известных сооружений</value>
+  </data>
+  <data name="LegendNpcPlayer" xml:space="preserve">
+    <value>NPC/игроки</value>
+  </data>
+  <data name="LegendMostShown" xml:space="preserve">
+    <value>{0:N0} — максимум на карте</value>
+  </data>
+  <data name="LegendHighestShown" xml:space="preserve">
+    <value>{0:N0} — максимум на карте</value>
+  </data>
+  <data name="StatusRegionSystems" xml:space="preserve">
+    <value>{0} — систем: {1}</value>
+  </data>
+  <data name="StatusRegionSystemsAdjacent" xml:space="preserve">
+    <value>{0} — систем: {1} · соседних систем из других секторов: {2}</value>
+  </data>
+  <data name="CountPlanetsOne" xml:space="preserve">
+    <value>{0:N0} планета</value>
+  </data>
+  <data name="CountPlanetsOther" xml:space="preserve">
+    <value>{0:N0} планеты</value>
+  </data>
+  <data name="CountPlanetsFew" xml:space="preserve">
+    <value>{0:N0} планеты</value>
+  </data>
+  <data name="CountPlanetsMany" xml:space="preserve">
+    <value>{0:N0} планет</value>
+  </data>
+  <data name="CountMoonsOne" xml:space="preserve">
+    <value>{0:N0} спутник</value>
+  </data>
+  <data name="CountMoonsOther" xml:space="preserve">
+    <value>{0:N0} спутника</value>
+  </data>
+  <data name="CountMoonsFew" xml:space="preserve">
+    <value>{0:N0} спутника</value>
+  </data>
+  <data name="CountMoonsMany" xml:space="preserve">
+    <value>{0:N0} спутников</value>
+  </data>
+  <data name="CountBeltsOne" xml:space="preserve">
+    <value>{0:N0} пояс астероидов</value>
+  </data>
+  <data name="CountBeltsOther" xml:space="preserve">
+    <value>{0:N0} пояса астероидов</value>
+  </data>
+  <data name="CountBeltsFew" xml:space="preserve">
+    <value>{0:N0} пояса астероидов</value>
+  </data>
+  <data name="CountBeltsMany" xml:space="preserve">
+    <value>{0:N0} поясов астероидов</value>
+  </data>
+  <data name="CountPlayersOne" xml:space="preserve">
+    <value>{0:N0} пилот</value>
+  </data>
+  <data name="CountPlayersOther" xml:space="preserve">
+    <value>{0:N0} пилота</value>
+  </data>
+  <data name="CountPlayersFew" xml:space="preserve">
+    <value>{0:N0} пилота</value>
+  </data>
+  <data name="CountPlayersMany" xml:space="preserve">
+    <value>{0:N0} пилотов</value>
+  </data>
+  <data name="CountPlayersReportedOne" xml:space="preserve">
+    <value>сообщено о {0:N0} пилоте</value>
+  </data>
+  <data name="CountPlayersReportedOther" xml:space="preserve">
+    <value>сообщено о {0:N0} пилотах</value>
+  </data>
+  <data name="CountPlayersReportedFew" xml:space="preserve">
+    <value>сообщено о {0:N0} пилотах</value>
+  </data>
+  <data name="CountPlayersReportedMany" xml:space="preserve">
+    <value>сообщено о {0:N0} пилотах</value>
+  </data>
+  <data name="CountPower" xml:space="preserve">
+    <value>{0:N0} энергии</value>
+  </data>
+  <data name="CountWorkforce" xml:space="preserve">
+    <value>{0:N0} рабочей силы</value>
+  </data>
+  <data name="CountPodKillsOne" xml:space="preserve">
+    <value>{0:N0} уничтоженная капсула</value>
+  </data>
+  <data name="CountPodKillsOther" xml:space="preserve">
+    <value>{0:N0} уничтоженной капсулы</value>
+  </data>
+  <data name="CountPodKillsFew" xml:space="preserve">
+    <value>{0:N0} уничтоженные капсулы</value>
+  </data>
+  <data name="CountPodKillsMany" xml:space="preserve">
+    <value>{0:N0} уничтоженных капсул</value>
+  </data>
+  <data name="CountShipKillsOne" xml:space="preserve">
+    <value>{0:N0} уничтоженный корабль</value>
+  </data>
+  <data name="CountShipKillsOther" xml:space="preserve">
+    <value>{0:N0} уничтоженного корабля</value>
+  </data>
+  <data name="CountShipKillsFew" xml:space="preserve">
+    <value>{0:N0} уничтоженных корабля</value>
+  </data>
+  <data name="CountShipKillsMany" xml:space="preserve">
+    <value>{0:N0} уничтоженных кораблей</value>
+  </data>
+  <data name="CountJumpsOne" xml:space="preserve">
+    <value>{0:N0} прыжок</value>
+  </data>
+  <data name="CountJumpsOther" xml:space="preserve">
+    <value>{0:N0} прыжка</value>
+  </data>
+  <data name="CountJumpsFew" xml:space="preserve">
+    <value>{0:N0} прыжка</value>
+  </data>
+  <data name="CountJumpsMany" xml:space="preserve">
+    <value>{0:N0} прыжков</value>
+  </data>
+  <data name="CountNpcKillsOne" xml:space="preserve">
+    <value>{0:N0} уничтоженный NPC</value>
+  </data>
+  <data name="CountNpcKillsOther" xml:space="preserve">
+    <value>{0:N0} уничтоженного NPC</value>
+  </data>
+  <data name="CountNpcKillsFew" xml:space="preserve">
+    <value>{0:N0} уничтоженных NPC</value>
+  </data>
+  <data name="CountNpcKillsMany" xml:space="preserve">
+    <value>{0:N0} уничтоженных NPC</value>
+  </data>
+  <data name="CountNpcStationsOne" xml:space="preserve">
+    <value>{0:N0} станция NPC</value>
+  </data>
+  <data name="CountNpcStationsOther" xml:space="preserve">
+    <value>{0:N0} станции NPC</value>
+  </data>
+  <data name="CountNpcStationsFew" xml:space="preserve">
+    <value>{0:N0} станции NPC</value>
+  </data>
+  <data name="CountNpcStationsMany" xml:space="preserve">
+    <value>{0:N0} станций NPC</value>
+  </data>
+  <data name="CountKnownStructuresOne" xml:space="preserve">
+    <value>{0:N0} известное сооружение игрока</value>
+  </data>
+  <data name="CountKnownStructuresOther" xml:space="preserve">
+    <value>{0:N0} известного сооружения игроков</value>
+  </data>
+  <data name="CountKnownStructuresFew" xml:space="preserve">
+    <value>{0:N0} известных сооружения игроков</value>
+  </data>
+  <data name="CountKnownStructuresMany" xml:space="preserve">
+    <value>{0:N0} известных сооружений игроков</value>
+  </data>
+  <data name="NodeSecurity" xml:space="preserve">
+    <value>Безопасность {0:F2}</value>
+  </data>
+  <data name="NodeAdm" xml:space="preserve">
+    <value>ADM {0:F1}</value>
+  </data>
+  <data name="NodeAdmRegionAverage" xml:space="preserve">
+    <value>ADM {0:F1} (среднее по сектору)</value>
+  </data>
+  <data name="NodeIndex" xml:space="preserve">
+    <value>Индекс {0}: {1:F2}%</value>
+  </data>
+  <data name="NodeIndexRegionAverage" xml:space="preserve">
+    <value>Индекс {0}: {1:F2}% (среднее по сектору)</value>
+  </data>
+  <data name="NodeNoIndex" xml:space="preserve">
+    <value>Индекс не записан</value>
+  </data>
+  <data name="LegendHighestRegionShown" xml:space="preserve">
+    <value>{0:F2}% — максимум среди секторов на карте</value>
+  </data>
+  <data name="LegendHighestSystemShown" xml:space="preserve">
+    <value>{0:F2}% — максимум среди систем на карте</value>
+  </data>
+  <data name="IndexActivityManufacturing" xml:space="preserve">
+    <value>производства</value>
+  </data>
+  <data name="IndexActivityReaction" xml:space="preserve">
+    <value>реакций</value>
+  </data>
+  <data name="IndexActivityMeResearch" xml:space="preserve">
+    <value>исследования экономии материалов</value>
+  </data>
+  <data name="IndexActivityTeResearch" xml:space="preserve">
+    <value>исследования экономии времени</value>
+  </data>
+  <data name="IndexActivityCopying" xml:space="preserve">
+    <value>копирования</value>
+  </data>
+  <data name="IndexActivityInvention" xml:space="preserve">
+    <value>модернизации</value>
+  </data>
+  <data name="FactionUnknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="NodeVictoryPoints" xml:space="preserve">
+    <value>очки за победу: {0:N0}/{1:N0}</value>
+  </data>
+  <data name="FwCaptured" xml:space="preserve">
+    <value>захвачена</value>
+  </data>
+  <data name="FwContested" xml:space="preserve">
+    <value>оспаривается</value>
+  </data>
+  <data name="FwUncontested" xml:space="preserve">
+    <value>не оспаривается</value>
+  </data>
+  <data name="FwVulnerable" xml:space="preserve">
+    <value>уязвима</value>
+  </data>
+  <data name="IncursionEstablished" xml:space="preserve">
+    <value>подготовка</value>
+  </data>
+  <data name="IncursionMobilizing" xml:space="preserve">
+    <value>мобилизация</value>
+  </data>
+  <data name="IncursionWithdrawing" xml:space="preserve">
+    <value>отступление</value>
+  </data>
+  <data name="NodeStaging" xml:space="preserve">
+    <value>сбор</value>
+  </data>
+  <data name="NodeStagingSystem" xml:space="preserve">
+    <value>место сбора флота</value>
+  </data>
+  <data name="NodeInfluence" xml:space="preserve">
+    <value>влияние {0:F0}%</value>
+  </data>
+  <data name="NodeBossUp" xml:space="preserve">
+    <value>босс появился</value>
+  </data>
+  <data name="LegendStagingSystem" xml:space="preserve">
+    <value>Место сбора флота</value>
+  </data>
+  <data name="LegendIncursionsActive" xml:space="preserve">
+    <value>Активных: {0}</value>
+  </data>
+  <data name="SecBandHigh" xml:space="preserve">
+    <value>Хай-сек</value>
+  </data>
+  <data name="SecBandLow" xml:space="preserve">
+    <value>Лоу-сек</value>
+  </data>
+  <data name="SecBandNull" xml:space="preserve">
+    <value>Нуль-сек</value>
+  </data>
+  <data name="SecurityTip" xml:space="preserve">
+    <value>{0} · истинный статус безопасности {1}</value>
+  </data>
+  <data name="GoToRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="AlternativeDetail" xml:space="preserve">
+    <value>{0} · сюда {1:N2} св. г. · дальше {2:N2} св. г.</value>
+  </data>
+  <data name="FuelIsotopes" xml:space="preserve">
+    <value>Изотопы</value>
+  </data>
+  <data name="BadgeNpcStation" xml:space="preserve">
+    <value>станция NPC</value>
+  </data>
+  <data name="BadgePlayerStructuresOne" xml:space="preserve">
+    <value>{0} сооружение игрока</value>
+  </data>
+  <data name="BadgePlayerStructuresOther" xml:space="preserve">
+    <value>{0} сооружения игроков</value>
+  </data>
+  <data name="BadgePlayerStructuresFew" xml:space="preserve">
+    <value>{0} сооружения игроков</value>
+  </data>
+  <data name="BadgePlayerStructuresMany" xml:space="preserve">
+    <value>{0} сооружений игроков</value>
+  </data>
+  <data name="BadgeMoreStructures" xml:space="preserve">
+    <value>ещё {0}</value>
+  </data>
+  <data name="RouteStartHighSec" xml:space="preserve">
+    <value>Начальная система находится в хай-секе, закрытом для кораблей большого тоннажа, — гипердвигатель не может стартовать оттуда.</value>
+  </data>
+  <data name="RouteDestinationHighSec" xml:space="preserve">
+    <value>До конечной точки не добраться с помощью гипердвигателя — хай-сек закрыт для кораблей большого тоннажа.</value>
+  </data>
+  <data name="RouteSameSystem" xml:space="preserve">
+    <value>Начальная и конечная точки — одна и та же система.</value>
+  </data>
+  <data name="RouteNoneKeepstar" xml:space="preserve">
+    <value>Нет маршрута с прыжками не длиннее {0:N2} св. г. только через известные системы с Keepstar. Нужно расширить выбор промежуточных точек или определить больше сооружений.</value>
+  </data>
+  <data name="RouteNoneStations" xml:space="preserve">
+    <value>Нет маршрута с прыжками не длиннее {0:N2} св. г. только через системы со станциями.</value>
+  </data>
+  <data name="RouteNone" xml:space="preserve">
+    <value>Нет маршрута с прыжками не длиннее {0:N2} св. г. Нужен корпус с большей дальностью или более высокий уровень навыка «Калибровка гипердвигателей».</value>
+  </data>
+  <data name="IndexShortManufacturing" xml:space="preserve">
+    <value>Произв.</value>
+  </data>
+  <data name="IndexShortTimeEfficiency" xml:space="preserve">
+    <value>TE</value>
+  </data>
+  <data name="IndexShortMaterialEfficiency" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="IndexShortCopying" xml:space="preserve">
+    <value>Коп.</value>
+  </data>
+  <data name="IndexShortInvention" xml:space="preserve">
+    <value>Мод.</value>
+  </data>
+  <data name="IndexShortReaction" xml:space="preserve">
+    <value>Реакц.</value>
+  </data>
+  <data name="SovWindow" xml:space="preserve">
+    <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm} ({2:F0} ч)</value>
+  </data>
+  <data name="SovStructureFallbackType" xml:space="preserve">
+    <value>Сооружение права владения</value>
+  </data>
+  <data name="SovHolderNoOne" xml:space="preserve">
+    <value>никто</value>
+  </data>
+  <data name="FallbackStationType" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="FallbackUnknownType" xml:space="preserve">
+    <value>Неизвестный тип</value>
+  </data>
+  <data name="SovStateVulnerable" xml:space="preserve">
+    <value>Уязвимо</value>
+  </data>
+  <data name="SovStateInvulnerable" xml:space="preserve">
+    <value>Неуязвимо</value>
+  </data>
+  <data name="SovStateUnknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="SovEventGained" xml:space="preserve">
+    <value>Право владения получено</value>
+  </data>
+  <data name="SovEventLost" xml:space="preserve">
+    <value>Право владения утрачено</value>
+  </data>
+  <data name="ReagentMagmaticGasPerHour" xml:space="preserve">
+    <value>Магматический газ: {0:N0}/ч</value>
+  </data>
+  <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
+    <value>Суперионный лёд: {0:N0}/ч</value>
+  </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Созвездие · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>Отметки в реальном времени</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает. «!» — разведка сообщила здесь о чём-то (всплеск, бублики, кемп), но никого не насчитала.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Перетащите вдоль полосы, чтобы изменить порядок, или на правую половину, чтобы видеть две вкладки рядом.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Закрыть вкладку</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ Новая карта</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Открыть карту Нового Эдема в новой вкладке</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>система, созвездие или сектор</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Открывает выбранное в новой вкладке: страницу системы или карту созвездия или сектора.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>Нет открытых вкладок. Добавьте карту кнопкой «+ Новая карта» или найдите систему, созвездие или сектор.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Отпустите здесь, чтобы видеть две вкладки рядом</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Противники ({1}): {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Ваши персонажи ({1}): {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>корабль неизвестен</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>только что</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>отчёт о бое</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>разведка</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>разведка, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} без имени</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>в космосе</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>в доке: {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>в доке</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Сведения</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Показать или скрыть сведения и легенду справа</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Все известные прыжковые мосты — из ESI или добавленные вручную — и добавление новых</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Показать или скрыть прыжковые мосты на карте</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Прыжковый мост: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>топливо до {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI показывает только ворота в {0}</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Добавлен вручную</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Прыжковые мосты: {0} · из ESI: {1} · вручную: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Мосты из ESI — это «Ансиблексы» корпораций, для которых вы добавили токен; они ведут туда, куда указывает их название («A » B»). Остальные добавьте вручную: мосты других корпораций и союзников. Удалить здесь можно только мосты, добавленные вручную.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>Прыжковые мосты пока неизвестны.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>Ворота, по названию которых не понять, куда они ведут</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (в {1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(без названия)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>Ворота</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, оба конца</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, один конец</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI и вручную</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} дн. ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Открыть систему во вкладке</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Удалить мост</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>Добавить мост</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>один конец (система)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>другой конец (система)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>заметка (необязательно)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Выберите систему для каждого конца.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Добавлен мост {0} ⇄ {1}.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>Этот мост уже в списке, или оба конца — одна и та же система.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>Вставить список</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>Один мост на строку, например:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+или в формате экспорта другой программы</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Добавлено {0} · уже известно {1} · не прочитано {2} (остались в поле)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Прыжковый мост — каждая половина в цвете зоны своего конца; бледнее, если ESI показывает только один конец</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Альянс {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>зона 1 ({0:0.0} св. л. от столицы), бесплатно</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>зона {0} ({1:0.0} св. л. от столицы), ×{2} конденсатора</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>зона неизвестна (у альянса нет столичной системы)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: в {0} ни у кого нет суверенитета, поэтому в эту сторону прыгать нельзя</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Не удалось узнать, кто может прыгать: данные о суверенитете сейчас недоступны.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>С 22 сентября 2026 года мостом может пользоваться только альянс, владеющий суверенитетом в системе, откуда начинается прыжок, и не капитальные корабли (кроме «Рорквалов» и грузовозов). Каждый прыжок расходует конденсатор моста — тем больше, чем дальше от столицы этого альянса он заканчивается: до 5 св. л. бесплатно (зона 1), затем каждые 5 св. л. — ×2, ×6, ×9 и ×15 от базовой стоимости корабля.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Зоны суверенитета</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>З{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Зона {1}: {2:0.0} св. л. от столицы, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Нет столичной системы, поэтому нет зоны</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>З1: до 5 св. л., бесплатно</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>З2: 5–10 св. л., ×2</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>З3: 10–15 св. л., ×6</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>З4: 15–20 св. л., ×9</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>З5: дальше 20 св. л., ×15</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>У владельца нет столичной системы</value>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>Планировщик маршрутов</value>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>Проложить маршрут через врата, прыжковые мосты и Thera или Turnur</value>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>Планировщик прыжков</value>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>Проложить прыжковый маршрут для КБТ</value>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>Убрать маршрут</value>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>Убрать проложенные маршруты с карты</value>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — в {1}</value>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>Его альянс определяет, какие прыжковые мосты открыты: пользоваться мостом может только альянс, владеющий суверенитетом в системе начала прыжка.</value>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>Название системы</value>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>Отсюда</value>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>Начать там, где находится персонаж</value>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>Поменять местами «откуда» и «куда»</value>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>Предпочитать</value>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>Кратчайший</value>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>Безопаснее (высокая безопасность)</value>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>Менее безопасный (низкая и нулевая)</value>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>Использовать прыжковые мосты</value>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Использовать Thera и Turnur</value>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>Червоточины из списка EVE-Scout (Настройки → Данные карты)</value>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>Фрегат или эсминец</value>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>Крейсер или линейный крейсер</value>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>Линкор</value>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>Грузовой корабль</value>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>Список избегания</value>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>Показать или скрыть системы, которые маршруты обходят</value>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>Избегаемых систем: {0}</value>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>Добавить систему для обхода</value>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>Убрать из списка избегания</value>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>Щёлкните правой кнопкой по системе на карте или в маршруте, чтобы добавить или убрать её.</value>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>Добавить {0} в список избегания</value>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>Убрать {0} из списка избегания</value>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>КБТ не могут пользоваться прыжковыми мостами, кроме Rorqual, грузовых кораблей и прыжковых грузовиков. Автопилот игры получает каждый мост как путевую точку; врата между ними он выбирает сам.</value>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>Показать на карте</value>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>Задать пункт назначения</value>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>Отправить маршрут в автопилот игры для выбранного персонажа</value>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>Выберите систему отправления и систему назначения.</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>Маршрута нет: системы не связаны разрешёнными путями, или список избегания перекрывает все пути.</value>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>Прыжков: {0} — по мостам: {1}, через червоточины: {2} · минимальная безопасность {3}</value>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>У некоторых мостов на этом маршруте владелец суверенитета неизвестен, поэтому неизвестно, кто может ими пользоваться.</value>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>Пункт назначения задан для {0} (путевых точек: {1}). Каждый мост и червоточину проходите сами.</value>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>Пункт назначения не задан: {0}</value>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>Врата</value>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>Прыжковый мост</value>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>Прыжковый мост · зона {0}, ×{1} конденсатора</value>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>Червоточина {0} → {1}</value>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>Червоточина</value>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>Через</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Враги</value>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>Убийства (1 ч)</value>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Показать соединения Thera и Turnur из списка EVE-Scout</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Червоточина в Thera (Θ) или Turnur (T); пунктир от Turnur. Наведите курсор, чтобы увидеть сигнатуры.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>КБТ</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Червоточины в {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: здесь {1}, на той стороне {2} · до {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Червоточины из {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): здесь {2}, на той стороне {3} · до {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Червоточины Thera и Turnur в {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>осталось {0} ч</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>осталось меньше часа</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Все в игре</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>Ни один персонаж не в игре; игра принимает пункт назначения только для персонажа в игре.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Убрать маршрут здесь и на карте</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Рисовать маршрут на вкладках карты вселенной</value>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Зона Ansiblex</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Зона {0} · {1:0.0} св. л. от столицы {2} · прыжковые мосты с прибытием сюда: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>бесплатно</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>×{0} конденсатора</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>У владельца нет столичной системы, поэтому зоны нет</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>Врагов замечено здесь за последние 5 минут — {0}: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Ваши персонажи здесь: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera и Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Ведёт в</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Мост здесь</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Кто может прыгать</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Сигнатура здесь</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Другая сторона</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>До</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Суверенитет по репутации</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Свои</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Отличная</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Хорошая</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Нейтральная</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Плохая</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Ужасная</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>По контактам ваших персонажей, корпораций и альянсов; мнение альянса важнее мнения корпорации, а оно — мнения персонажа.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Инкурсия</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · влияние {1:0}% · {2} · сбор в {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>этой системе</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Штормы</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Показать металиминальные штормы из списка EVE-Scout</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Металиминальный шторм (⚡) по сообщениям EVE-Scout. Наведите курсор, чтобы увидеть вид.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Погода в {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Штормы в {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · здесь {1} ч</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Погода</value>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Бои за суверенитет</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Показать бои за суверенитет: ⚔ там, где бой назначен, красное кольцо, когда он идёт</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Бой за суверенитет (⚔); красное кольцо, когда начался. Наведите курсор: структура, защитник, начало и счёт.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Бои за суверенитет</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Все текущие и предстоящие бои за суверенитет, по данным ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Хаб суверенитета</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Блок территориальных претензий</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Свободный порт</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} ч {1:00} мин</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>идёт {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>начнётся через {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · местное {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>защитник {0:0}% · нападающие {1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · защищает {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Бой за суверенитет в {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Бои за суверенитет в {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Все регионы</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>Сейчас боёв за суверенитет нет.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Боёв: {0} · идёт: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Идёт</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Назначен</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Структура</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Защитник</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Бой</value>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Линия фронта</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Командные операции</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Тыл</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Пунктир: идёт борьба ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>всплеск в локале</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>кемп на гейте</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>бублики</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>риск хотдропа</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>цино</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>вормхол</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>боевые зонды</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>на ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>на скайхуке</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>на гейте в {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Сообщено в {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Корабли: {0}</value>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Дальность прыжка</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Все системы, до которых достаёт прыжковый двигатель от персонажа или системы, обведены на карте</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>При выборе персонажа берутся его система, его корпус, если у него есть прыжковый двигатель, и его Jump Drive Calibration. Дальше дальность следует за ним, когда он перемещается.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ПРИЗЕМЛЕНИЕ</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Обвести системы в пределах дальности на вкладках карты вселенной</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Прыжковый двигатель нельзя использовать в хайсеке, в пространстве червоточин, в Почвене и в Зарзахе, поэтому они никогда не попадают в дальность. Расстояния — световые годы по прямой.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>СВ. Л.</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} систем в пределах {1} св. л. от {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Следует за {0} при перемещении</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>В хайсеке прыжковый двигатель использовать нельзя ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>В {0} прыжковый двигатель использовать нельзя.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>В пределах дальности ничего нет.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>В дальности прыжка от системы вкладки «Дальность прыжка» (толстое кольцо — сама система)</value>
+  </data>
+</root>

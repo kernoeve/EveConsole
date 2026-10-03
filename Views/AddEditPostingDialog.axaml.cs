@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -18,6 +19,13 @@ public partial class AddEditPostingDialog : Window
     private string _selectedLocationName = "";
     private bool   _loaded;
 
+    /// <summary>
+    /// A market as the box lists it: the station named as the screen names it, which the item
+    /// template binds, over the station. ⚠️ The station keeps the English, and that is what the
+    /// posting saves.
+    /// </summary>
+    private sealed record ShownMarket(StationOption Station, string Name);
+
     public AddEditPostingDialog(
         PostingDialogResult? existing,
         Func<string, string, Task<IReadOnlyList<LocationOption>>> searchFn,
@@ -26,15 +34,19 @@ public partial class AddEditPostingDialog : Window
     {
         _searchFn = searchFn;
         InitializeComponent();
-        Title = existing == null ? "Add Posting" : "Edit Posting";
+        Title = existing == null ? SalesText.TitleAddPosting : SalesText.TitleEditPosting;
 
         _postsVm    = new PostsEditorViewModel(existingPosts);
         DataContext = _postsVm;
 
-        MarketStationBox.ItemsSource = marketStations;
+        var markets = marketStations
+            .Select(s => new ShownMarket(s, SdeNames.Location(s.LocationId, s.Name)))
+            .OrderBy(m => m.Name, StringComparer.CurrentCulture)
+            .ToList();
+        MarketStationBox.ItemsSource = markets;
         NoStationsText.IsVisible     = marketStations.Count == 0;
-        PriceTypeBox.ItemsSource     = new[] { "Buy", "Midpoint", "Sell" };
-        PriceTypeBox.SelectedItem    = "Sell";
+        PriceTypeBox.ItemsSource     = Choice.PriceTypes;
+        PriceTypeBox.SelectedItem    = PriceTypeChoice("Sell");
 
         ScopeStation.IsCheckedChanged    += OnScopeChanged;
         ScopeSystem.IsCheckedChanged     += OnScopeChanged;
@@ -61,7 +73,7 @@ public partial class AddEditPostingDialog : Window
             {
                 _selectedLocationId       = existing.LocationId;
                 _selectedLocationName     = existing.LocationName;
-                SelectedLocationText.Text = existing.LocationName;
+                SelectedLocationText.Text = InvLevelService.ScopePlaceName(existing.Scope, existing.LocationId, existing.LocationName);
             }
 
             switch (existing.PricingBasis)
@@ -72,11 +84,11 @@ public partial class AddEditPostingDialog : Window
             }
             if (existing.MarketStationId.HasValue)
             {
-                MarketStationBox.SelectedItem = marketStations
-                    .FirstOrDefault(s => s.LocationId == existing.MarketStationId.Value);
+                MarketStationBox.SelectedItem = markets
+                    .FirstOrDefault(m => m.Station.LocationId == existing.MarketStationId.Value);
             }
             if (!string.IsNullOrEmpty(existing.MarketPriceType))
-                PriceTypeBox.SelectedItem = existing.MarketPriceType;
+                PriceTypeBox.SelectedItem = PriceTypeChoice(existing.MarketPriceType);
 
             PercentBox.Value    = (decimal)existing.PricePercent;
             ShowInStockBox.IsChecked      = existing.ShowInStock;
@@ -100,7 +112,7 @@ public partial class AddEditPostingDialog : Window
         LocationPanel.IsVisible = !everywhere;
 
         var scope = GetScope();
-        LocationLabel.Text = scope == "Station" ? "STATION" : scope == "System" ? "SOLAR SYSTEM" : "REGION";
+        LocationLabel.Text = scope == "Station" ? SalesText.LocStationLabel : scope == "System" ? SalesText.LocSolarSystemLabel : SalesText.LocRegionLabel;
 
         _selectedLocationId   = null;
         _selectedLocationName = "";
@@ -114,10 +126,20 @@ public partial class AddEditPostingDialog : Window
         var text = LocationSearchBox.Text ?? "";
         if (text.Length < 2) { LocationResultsBorder.IsVisible = false; return; }
 
-        var results = await _searchFn(GetScope(), text);
-        LocationListBox.ItemsSource     = results.Select(r => r.Name).ToList();
+        var scope   = GetScope();
+        var results = await _searchFn(scope, text);
+
+        // A region, system or NPC station is listed, in that name's order, as the screen names it.
+        // The option keeps the English, which is what the posting saves. Tag and list stay in one
+        // order: a pick is read back by its index.
+        var shown = results
+            .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
+            .OrderBy(x => x.Name, StringComparer.CurrentCulture)
+            .ToList();
+
+        LocationListBox.ItemsSource     = shown.Select(x => new ShownPlace(x.Name, x.Option.RegionLabel)).ToList();
         LocationResultsBorder.IsVisible = results.Count > 0;
-        LocationListBox.Tag             = results;
+        LocationListBox.Tag             = shown.Select(x => x.Option).ToList();
     }
 
     private void OnLocationSelected(object? sender, SelectionChangedEventArgs e)
@@ -129,7 +151,7 @@ public partial class AddEditPostingDialog : Window
         var chosen = opts[LocationListBox.SelectedIndex];
         _selectedLocationId   = chosen.Id;
         _selectedLocationName = chosen.Name;
-        SelectedLocationText.Text       = chosen.Name;
+        SelectedLocationText.Text       = InvLevelService.ScopePlaceName(GetScope(), chosen.Id, chosen.Name);
         LocationSearchBox.Text          = "";
         LocationResultsBorder.IsVisible = false;
         LocationListBox.SelectedIndex   = -1;
@@ -149,20 +171,25 @@ public partial class AddEditPostingDialog : Window
     private void OnOkClick(object? sender, RoutedEventArgs e)
     {
         var name = NameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(name)) { ErrorText.Text = "Posting name is required."; return; }
+        if (string.IsNullOrEmpty(name)) { ErrorText.Text = SalesText.PostingNameRequired; return; }
 
         var scope = GetScope();
         if (scope != "Everywhere" && _selectedLocationId is null)
         {
-            ErrorText.Text = $"Select a {scope.ToLowerInvariant()} or choose Everywhere.";
+            ErrorText.Text = scope switch
+            {
+                "Station" => SalesText.ScopePickStation,
+                "System"  => SalesText.ScopePickSystem,
+                _         => SalesText.ScopePickRegion,
+            };
             return;
         }
 
         var basis   = GetBasis();
-        var station = MarketStationBox.SelectedItem as StationOption;
+        var station = (MarketStationBox.SelectedItem as ShownMarket)?.Station;
         if (basis == "Market" && station is null)
         {
-            ErrorText.Text = "Select a market for the Specific Market basis.";
+            ErrorText.Text = SalesText.SelectMarketForBasis;
             return;
         }
 
@@ -175,7 +202,7 @@ public partial class AddEditPostingDialog : Window
             (double)(PercentBox.Value ?? 100m),
             basis == "Market" ? station!.LocationId : null,
             basis == "Market" ? station!.Name       : "",
-            basis == "Market" ? (PriceTypeBox.SelectedItem as string ?? "Sell") : "Sell",
+            basis == "Market" ? ((PriceTypeBox.SelectedItem as Choice<string>)?.Value ?? "Sell") : "Sell",
             ShowInStockBox.IsChecked  == true,
             ShowInBuildBox.IsChecked  == true,
             ShowReservedBox.IsChecked == true,
@@ -199,6 +226,10 @@ public partial class AddEditPostingDialog : Window
     }
 
     private void OnCancelClick(object? sender, RoutedEventArgs e) => Close(null);
+
+    // The price type a posting saved, as the entry in the box.
+    private static Choice<string> PriceTypeChoice(string key) =>
+        Choice.PriceTypes.FirstOrDefault(c => c.Value == key) ?? Choice.PriceTypes[^1];
 
     private string GetScope()
     {

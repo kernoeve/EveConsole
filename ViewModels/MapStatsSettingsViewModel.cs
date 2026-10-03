@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -18,6 +19,7 @@ public class MapStatsSettingsViewModel : ReactiveObject
     private readonly MapStatsBackfillService  _backfill;
     private readonly MapStatsPollingService   _polling;
     private readonly MapStatsService          _stats;
+    private readonly EveScoutService?         _eveScout;
 
     private bool _loading = true;
 
@@ -25,8 +27,11 @@ public class MapStatsSettingsViewModel : ReactiveObject
         MapStatsSettings        settings,
         MapStatsBackfillService backfill,
         MapStatsPollingService  polling,
-        MapStatsService         stats)
+        MapStatsService         stats,
+        EveScoutService?        eveScout = null)
     {
+        _eveScout = eveScout;
+        _eveScoutEnabled = settings.EveScoutEnabled;
         _settings = settings;
         _backfill = backfill;
         _polling  = polling;
@@ -45,11 +50,29 @@ public class MapStatsSettingsViewModel : ReactiveObject
             await RefreshCoverageAsync();
         });
 
-        StartBackfillCommand .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        CancelBackfillCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        RefreshNowCommand    .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
+        StartBackfillCommand .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        CancelBackfillCommand.ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        RefreshNowCommand    .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         this.WhenAnyValue(x => x.Enabled).Skip(1).Subscribe(v => { if (!_loading) settings.Enabled = v; });
+
+        // Off deletes the connections: they close within hours, and a stale list would route
+        // pilots into holes that are gone. On reads them at once rather than at the next pass.
+        this.WhenAnyValue(x => x.EveScoutEnabled).Skip(1).Subscribe(v =>
+        {
+            if (_loading) return;
+            settings.EveScoutEnabled = v;
+            if (_eveScout is null) return;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (v) { await _eveScout.PollOnceAsync(); await _eveScout.PollStormsAsync(); }
+                    else   await _eveScout.ClearAsync();
+                }
+                catch (Exception ex) { Avalonia.Threading.Dispatcher.UIThread.Post(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message)); }
+            });
+        });
         this.WhenAnyValue(x => x.BackfillDays).Skip(1).Subscribe(v =>
         {
             if (!_loading && int.TryParse(v, out var n) && n is > 0 and <= 3650) settings.BackfillDays = n;
@@ -75,6 +98,21 @@ public class MapStatsSettingsViewModel : ReactiveObject
     {
         get => _enabled;
         set => this.RaiseAndSetIfChanged(ref _enabled, value);
+    }
+
+    private bool _eveScoutEnabled;
+    /// <summary>Whether Thera and Turnur connections are read from EVE-Scout.</summary>
+    public bool EveScoutEnabled
+    {
+        get => _eveScoutEnabled;
+        set => this.RaiseAndSetIfChanged(ref _eveScoutEnabled, value);
+    }
+
+    private string _eveScoutStatus = "";
+    public string EveScoutStatus
+    {
+        get => _eveScoutStatus;
+        private set => this.RaiseAndSetIfChanged(ref _eveScoutStatus, value);
     }
 
     private string _backfillDays;
@@ -145,21 +183,25 @@ public class MapStatsSettingsViewModel : ReactiveObject
     {
         IsRunning  = _backfill.IsRunning;
         PollStatus = _polling.StatusText;
+        EveScoutStatus = _eveScout is null || !EveScoutEnabled ? ""
+                       : _eveScout.LastRefused is { } code ? string.Format(SettingsText.EveScoutRefused, code)
+                       : _eveScout.LastRead is { } at ? string.Format(SettingsText.EveScoutRead, _eveScout.LastCount, at.ToLocalTime())
+                       : "";
 
         if (_backfill.IsRunning)
         {
             var total = Math.Max(_backfill.ProgressTotal, 1);
             Progress     = 100.0 * _backfill.ProgressCurrent / total;
             ProgressText = $"{_backfill.ProgressCurrent:N0} / {total:N0} — {_backfill.StatusText}";
-            Status       = "Backfilling from the EVE Ref archive…";
+            Status       = SettingsText.MapStatsBackfilling;
         }
         else
         {
             Progress     = _settings.InitialBackfillDone ? 100 : 0;
             ProgressText = _backfill.StatusText;
             Status = _settings.InitialBackfillDone
-                ? "History complete — keeping the current hour up to date"
-                : "Waiting to start";
+                ? SettingsText.MapStatsHistoryComplete
+                : SettingsText.MapStatsWaiting;
         }
 
         // Coverage means counting stored buckets, so it refreshes on a slower beat than the
@@ -183,10 +225,10 @@ public class MapStatsSettingsViewModel : ReactiveObject
         {
             var lines = await _stats.GetCoverageAsync();
             Coverage = lines.Count == 0
-                ? "Nothing stored yet."
+                ? SettingsText.MapStatsNothingStored
                 : string.Join("\n", lines.Select(c =>
-                    $"{c.Dataset,-24} {c.Buckets,6:N0} buckets   {c.Days,4:N0} days   {c.Earliest} → {c.Latest}"));
+                    string.Format(SettingsText.MapStatsCoverageRow, c.Dataset, c.Buckets, c.Days, c.Earliest, c.Latest)));
         }
-        catch (Exception ex) { Coverage = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Coverage = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -59,17 +60,17 @@ public static class WalletCategorizer
         void Inc(string n, decimal v, SKColor c) { if (v > 0) cats.Add(new WalletCategory(n, v, true, c)); }
         void Exp(string n, decimal v, SKColor c) { if (v > 0) cats.Add(new WalletCategory(n, v, false, c)); }
 
-        Inc("Market Sales",       mktSell,     new SKColor(200, 168,  75));
-        Inc("NPC Bounties",       npcBounty,   new SKColor(110, 190, 100));
-        Inc("Contract Sales",     contractInc, new SKColor( 91, 155, 213));
-        Inc("Other Income",       otherIncome, new SKColor(155, 120, 200));
+        Inc(FinanceText.SliceMarketSales,       mktSell,     new SKColor(200, 168,  75));
+        Inc(FinanceText.SliceNpcBounties,       npcBounty,   new SKColor(110, 190, 100));
+        Inc(FinanceText.SliceContractSales,     contractInc, new SKColor( 91, 155, 213));
+        Inc(FinanceText.SliceOtherIncome,       otherIncome, new SKColor(155, 120, 200));
 
-        Exp("Market Purchases",   mktBuy,      new SKColor(200,  90,  90));
-        Exp("Contract Purchases", contractExp, new SKColor(200, 120, 160));
-        Exp("Broker Fees",        brokerFees,  new SKColor(220, 150,  60));
-        Exp("Transaction Tax",    txnTax,      new SKColor(180, 180,  60));
-        Exp("Industry Tax",       indyTax,     new SKColor(100, 170, 200));
-        Exp("Other Expenses",     otherExpense,new SKColor(160, 100, 120));
+        Exp(FinanceText.SliceMarketPurchases,   mktBuy,      new SKColor(200,  90,  90));
+        Exp(FinanceText.SliceContractPurchases, contractExp, new SKColor(200, 120, 160));
+        Exp(FinanceText.SliceBrokerFees,        brokerFees,  new SKColor(220, 150,  60));
+        Exp(FinanceText.SliceTransactionTax,    txnTax,      new SKColor(180, 180,  60));
+        Exp(FinanceText.SliceIndustryTax,       indyTax,     new SKColor(100, 170, 200));
+        Exp(FinanceText.SliceOtherExpenses,     otherExpense,new SKColor(160, 100, 120));
 
         return cats;
     }
@@ -112,18 +113,18 @@ public static class WalletCategorizer
         var cats = new List<WalletCategory>();
 
         // Income: named buckets, then each "other" ref-type (positive), largest first.
-        if (mktSell     > 0) cats.Add(new WalletCategory("Market Sales",   mktSell,     true, new SKColor(200, 168,  75)));
-        if (npcBounty   > 0) cats.Add(new WalletCategory("NPC Bounties",   npcBounty,   true, new SKColor(110, 190, 100)));
-        if (contractInc > 0) cats.Add(new WalletCategory("Contract Sales", contractInc, true, new SKColor( 91, 155, 213)));
+        if (mktSell     > 0) cats.Add(new WalletCategory(FinanceText.SliceMarketSales,   mktSell,     true, new SKColor(200, 168,  75)));
+        if (npcBounty   > 0) cats.Add(new WalletCategory(FinanceText.SliceNpcBounties,   npcBounty,   true, new SKColor(110, 190, 100)));
+        if (contractInc > 0) cats.Add(new WalletCategory(FinanceText.SliceContractSales, contractInc, true, new SKColor( 91, 155, 213)));
         foreach (var (rt, amt) in other.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value))
             cats.Add(new WalletCategory(CorpActivityViewModel.FormatRefType(rt), amt, true, otherIncColor));
 
         // Expenses: named buckets, then each "other" ref-type (negative), largest first.
-        if (mktBuy      > 0) cats.Add(new WalletCategory("Market Purchases",   mktBuy,      false, new SKColor(200,  90,  90)));
-        if (contractExp > 0) cats.Add(new WalletCategory("Contract Purchases", contractExp, false, new SKColor(200, 120, 160)));
-        if (brokerFees  > 0) cats.Add(new WalletCategory("Broker Fees",        brokerFees,  false, new SKColor(220, 150,  60)));
-        if (txnTax      > 0) cats.Add(new WalletCategory("Transaction Tax",    txnTax,      false, new SKColor(180, 180,  60)));
-        if (indyTax     > 0) cats.Add(new WalletCategory("Industry Tax",       indyTax,     false, new SKColor(100, 170, 200)));
+        if (mktBuy      > 0) cats.Add(new WalletCategory(FinanceText.SliceMarketPurchases,   mktBuy,      false, new SKColor(200,  90,  90)));
+        if (contractExp > 0) cats.Add(new WalletCategory(FinanceText.SliceContractPurchases, contractExp, false, new SKColor(200, 120, 160)));
+        if (brokerFees  > 0) cats.Add(new WalletCategory(FinanceText.SliceBrokerFees,        brokerFees,  false, new SKColor(220, 150,  60)));
+        if (txnTax      > 0) cats.Add(new WalletCategory(FinanceText.SliceTransactionTax,    txnTax,      false, new SKColor(180, 180,  60)));
+        if (indyTax     > 0) cats.Add(new WalletCategory(FinanceText.SliceIndustryTax,       indyTax,     false, new SKColor(100, 170, 200)));
         foreach (var (rt, amt) in other.Where(kv => kv.Value < 0).OrderBy(kv => kv.Value))
             cats.Add(new WalletCategory(CorpActivityViewModel.FormatRefType(rt), -amt, false, otherExpColor));
 

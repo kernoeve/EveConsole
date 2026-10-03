@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -12,7 +13,7 @@ public record ActivityEntry(
     int            HttpStatus,
     string?        ErrorMessage)
 {
-    public string StatusDisplay  => Success ? "OK" : (ErrorMessage ?? $"HTTP {HttpStatus}");
+    public string StatusDisplay  => Success ? DataText.CallOk : (ErrorMessage ?? $"HTTP {HttpStatus}");
     public string StatusColor    => Success ? "#4caf81" : "#e85555";
     public string StatusCodeText => HttpStatus > 0 ? HttpStatus.ToString() : "—";
 }

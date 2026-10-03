@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -96,7 +97,7 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     /// jumps the queue without saying why reads as the list being arbitrary.</para>
     /// </summary>
     public string Head => string.Join(" + ", Reasons)
-                        + (Blocks > 1 ? $" [{Blocks:N0} item(s) downstream wait on this]" : "");
+                        + (Blocks > 1 ? " " + string.Format(WorklistText.HeadDownstream, Blocks) : "");
 
     /// <summary>
     /// The gross the three parts add up to, which is not <see cref="Units"/> — that is the net
@@ -174,7 +175,7 @@ public sealed record ScopeStock(
 
     /// <summary>
     /// Everything in scope: assets by owner, what running jobs will deliver, and what delivered
-    /// jobs have put in hangars that the asset poll has not seen yet.
+    /// jobs and contracts have moved in and out of hangars that the asset poll has not seen yet.
     ///
     /// <para>One loader for the three tools that net demand against it — jobs, hauling and
     /// purchasing — so they cannot disagree about what exists. Purchasing planned against
@@ -249,6 +250,16 @@ public sealed record ScopeStock(
             if (!Ours(d.OwnerType, d.OwnerId)) continue;
             var pile = d.OwnerType == "corporation" ? corpStock : personalStock;
             pile[(d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.TypeId, d.OwnerId)) + d.Units;
+        }
+
+        // And what contracts have moved since, the same way: out with one made, back with one
+        // deleted, in with one accepted. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (!Ours(m.OwnerType, m.OwnerId)) continue;
+            var pile = m.OwnerType == "corporation" ? corpStock : personalStock;
+            pile[(m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.TypeId, m.OwnerId)) + m.Units);
         }
 
         return new ScopeStock(corpStock, personalStock, inBuild);
@@ -344,6 +355,59 @@ public class IndustryDemandService(
     /// and never mentioned the fifty-odd component jobs in between — every one of which is real
     /// work someone has to queue.</para>
     /// </summary>
+    /// <summary>
+    /// Inventory levels of T2 blueprints themselves — "five Gaia Blueprints on the shelf" — as
+    /// invention demand, in copy RUNS — the unit every blueprint level is written in. Only Build
+    /// rules, only blueprints that are invented, and the same shortfall rule every other level
+    /// uses (<see cref="InvRuleShortfall"/>): runs on hand and in jobs against the target, fired at
+    /// the rule's threshold, filled to its target.
+    ///
+    /// <para>⚠️ Kept out of <see cref="GatherAsync"/>, which drops anything that is not
+    /// manufactured ("bought, not built") and whose result the job and haul generators build
+    /// from. A blueprint is not manufactured — that is exactly why these levels raised no science
+    /// before — so the invention callers add these to the demand they plan from, and nothing else
+    /// sees them.</para>
+    /// </summary>
+    public async Task<Dictionary<int, BuildDemand>> BlueprintLevelsAsync(AppDbContext db, CancellationToken ct = default)
+    {
+        var rules = await db.WorklistInvRules.AsNoTracking()
+            .Where(r => r.Enabled && r.Action == "Build")
+            .ToListAsync(ct);
+        if (rules.Count == 0) return [];
+
+        var groupIds = rules.Select(r => r.GroupId).Distinct().ToList();
+        var groups   = await db.InvLevelGroups.AsNoTracking().Where(g => groupIds.Contains(g.Id)).ToDictionaryAsync(g => g.Id, ct);
+        var invented = await InventionService.InventedBlueprintIdsAsync(db, ct);
+        var items    = (await db.InvLevelItems.AsNoTracking().Where(i => groupIds.Contains(i.GroupId)).ToListAsync(ct))
+            .Where(i => invented.Contains(i.TypeId))
+            .GroupBy(i => i.GroupId).ToDictionary(g => g.Key, g => g.ToList());
+        if (items.Count == 0) return [];
+
+        var avail = await invLevels.LoadAvailableAsync(
+            items.Where(kv => groups.ContainsKey(kv.Key))
+                 .Select(kv => (groups[kv.Key], (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
+                 .ToList(), ct);
+
+        var result = new Dictionary<int, BuildDemand>();
+        foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
+        {
+            if (!groups.TryGetValue(rule.GroupId, out var group) || !items.TryGetValue(group.Id, out var groupItems)) continue;
+            var groupAvail = avail.GetValueOrDefault(group.Id) ?? [];
+            foreach (var gi in groupItems)
+            {
+                var need = InvRuleShortfall.For(rule, group, gi, groupAvail.GetValueOrDefault(gi.TypeId));
+                if (need is null) continue;
+                // Two rules on one blueprint are two statements of one shelf: the larger asks.
+                if (result.TryGetValue(gi.TypeId, out var had) && had.Units >= need.Shortfall) continue;
+                var band = rule.IsFinalProduct ? WorklistPriority.ForFinalStock(need.Percent) : WorklistPriority.ForStock(need.Percent);
+                result[gi.TypeId] = new BuildDemand(gi.TypeId, need.Shortfall, band,
+                    [$"{group.Name} · {need.StockText}.{need.FillText(rule)}"],
+                    RuleUnits: need.Shortfall, ShelfLevel: need.Wanted, ShelfHave: need.Have);
+            }
+        }
+        return result;
+    }
+
     /// <param name="meOverrides">The efficiency of the print each item would really be built
     /// with, where the caller knows it. Every level of the cascade is then planned at it, so a
     /// child's requirement is what the parent's actual print will take rather than what a
@@ -475,7 +539,7 @@ public class IndustryDemandService(
             g.Consumed   += units;
             g.OrderUnits += units;
             g.Fires       = true;
-            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
+            g.Reasons.Add(string.Format(WorklistText.ReasonPendingOrders, count, units));
             topLevel.Add((typeId, units));
 
             // ⚠️ URGENCY, unlike quantity, does stop when the order is already met. An order
@@ -551,7 +615,8 @@ public class IndustryDemandService(
 
             if (root is null) continue;
 
-            var name    = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
+            // Only ever read out in a row's reasons, so named as the screen shows it.
+            var name    = SdeNames.Type(typeId, ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)));
             var portion = already > 0 ? (double)(net - already) / net : 1.0;
 
             foreach (var m in root.Materials)
@@ -567,7 +632,7 @@ public class IndustryDemandService(
                 child.ParentUnits += qty;
                 child.Fires        = true;
                 child.Priority  = Math.Max(child.Priority, g.Priority);
-                child.Reasons.Add($"{qty:N0} for {name}.");
+                child.Reasons.Add(string.Format(WorklistText.ReasonForParent, qty, name));
 
                 // What waits on this: the parent, and everything already waiting on the parent.
                 // The queue reaches parents before children, so by the time a child is written the
@@ -679,11 +744,10 @@ public class IndustryDemandService(
     {
         // Contributors first, in the order they were added, then the arithmetic.
         foreach (var r in g.Reasons.Take(3)) yield return r;
-        if (g.Reasons.Count > 3) yield return $"and {g.Reasons.Count - 3} more.";
+        if (g.Reasons.Count > 3) yield return string.Format(WorklistText.ReasonsAndMore, g.Reasons.Count - 3);
 
         if (g.Consumed > 0)
-            yield return $"Keeping {g.Level:N0} and consuming {g.Consumed:N0}, "
-                       + $"against {have:N0} on hand.";
+            yield return string.Format(WorklistText.ReasonKeepingConsuming, g.Level, g.Consumed, have);
     }
 
     /// <summary>Pending orders: gross units, what is still outstanding, and how many orders.</summary>
@@ -756,11 +820,20 @@ public class IndustryDemandService(
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
         // Delivered since the asset poll is on hand, for the same reason it is everywhere else.
-        var delivered = (await DeliveryLag.ItemsAsync(db, ct, wanted))
-            .Where(d => scope is null || scope.Contains(d.Site))
-            .Where(d => d.OwnerType != "corporation" || corps is null || corps.Contains(d.OwnerId))
-            .GroupBy(d => d.TypeId)
-            .ToDictionary(g => g.Key, g => g.Sum(d => d.Units));
+        bool Counts(long site, string ownerType, long ownerId) =>
+            (scope is null || scope.Contains(site))
+            && (ownerType != "corporation" || corps is null || corps.Contains(ownerId));
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, wanted))
+            if (Counts(d.Site, d.OwnerType, d.OwnerId))
+                onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
+
+        // ⚠️ And what a contract took since is not. The order it was made for stops being demand
+        // the moment the contract is linked — see above — while the hull it took stays in the
+        // snapshot for up to an hour, where it covered the next order in line and nothing was
+        // built for it. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, wanted))
+            if (Counts(m.Site, m.OwnerType, m.OwnerId))
+                onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
 
         return orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key)
             .Select(g =>
@@ -768,8 +841,7 @@ public class IndustryDemandService(
                 var units = g.Sum(o => (long)OrderContractLinks.StillToSupply(o));
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
-                                          - inBuild.GetValueOrDefault(g.Key)
-                                          - delivered.GetValueOrDefault(g.Key)),
+                                          - inBuild.GetValueOrDefault(g.Key)),
                         g.Count(),
                         // Several orders can want the same item; the most urgent of them decides
                         // how urgent building it is.

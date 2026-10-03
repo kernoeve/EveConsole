@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.SalesTrackerView"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
@@ -43,7 +44,7 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Sales Tracker" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+          <TextBlock Text="{x:Static loc:SalesText.SalesTracker2}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" />
@@ -63,19 +64,19 @@
               <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
             </Style>
           </StackPanel.Styles>
-          <TextBlock Classes="fl" Text="From" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.From}" />
           <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd" Width="105" />
-          <TextBlock Classes="fl" Text="Thru" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Thru}" />
           <TextBox Text="{Binding DateThru}" Watermark="yyyy-MM-dd" Width="105" />
-          <TextBlock Classes="fl" Text="Owner" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Owner}" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding OwnerOptions}" SelectedItem="{Binding SelectedOwner}" MinWidth="140" />
-          <TextBlock Classes="fl" Text="Sale Type" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.SaleType}" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding SaleTypeOptions}" SelectedItem="{Binding SelectedType}" MinWidth="110" />
-          <TextBlock Classes="fl" Text="Profit based on" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.ProfitBasedOn}" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding ProfitBasisOptions}" SelectedItem="{Binding SelectedProfitBasis}" MinWidth="90" />
-          <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="Show not for profit"
+          <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="{x:Static loc:SalesText.ShowNotForProfit}"
                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="12 0 0 0" VerticalAlignment="Center"
-                    ToolTip.Tip="Include sales marked as not for profit. They count everywhere on this screen when shown: the summaries, the charts and the grid all follow this box." />
+                    ToolTip.Tip="{x:Static loc:SalesText.TipIncludeSalesMarkedAs}" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -84,7 +85,7 @@
          lived on one tab would look like it applied to that tab only. -->
     <TabControl Grid.Row="1" Padding="0" Background="Transparent">
 
-    <TabItem Header="Summary" FontSize="12">
+    <TabItem Header="{x:Static loc:SalesText.TabSummary}" FontSize="12">
       <Grid RowDefinitions="190,Auto,Auto,*">
 
     <!-- Rollups: profit by buyer / by market group / by item, grouped over the filtered sales
@@ -93,7 +94,7 @@
 
       <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="Profit by Buyer" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="{x:Static loc:SalesText.ProfitByBuyer}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
@@ -105,12 +106,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Buyer" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+              <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:GroupRowVm">
                     <Panel>
                       <Button Classes="link" Click="OnOpenGroup" IsVisible="{Binding HasLink}"
-                              ToolTip.Tip="Open in the entity browser">
+                              ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                         <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                       </Button>
                       <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
@@ -119,8 +120,8 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColSales}"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit}" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
@@ -129,7 +130,7 @@
 
       <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="Profit by Market Group" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="{x:Static loc:SalesText.ProfitByMarketGroup}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding MarketGroups}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
@@ -141,9 +142,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Group"  Binding="{Binding Name}"   Width="*" />
-              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColGroup}"  Binding="{Binding Name}"   Width="*" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColSales}"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit}" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
@@ -152,7 +153,7 @@
 
       <Border Grid.Column="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="Profit by Item" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="{x:Static loc:SalesText.ProfitByItem}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
@@ -164,12 +165,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+              <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColItem}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:GroupRowVm">
                     <Panel>
                       <Button Classes="link" Click="OnOpenGroup" IsVisible="{Binding HasLink}"
-                              ToolTip.Tip="Open in the Item Browser">
+                              ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheItemBrowser}">
                         <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                       </Button>
                       <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
@@ -178,8 +179,8 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColSales}"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit}" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
@@ -194,7 +195,7 @@
             <Panel>
               <lvc:PieChart IsVisible="{Binding HasBuyerPie}" Series="{Binding BuyerPie}"
                             LegendPosition="Right" LegendTextSize="9" Background="Transparent" Height="170" />
-              <TextBlock IsVisible="{Binding !HasBuyerPie}" Text="No profit to show" FontSize="11" FontStyle="Italic"
+              <TextBlock IsVisible="{Binding !HasBuyerPie}" Text="{x:Static loc:SalesText.NoProfitToShow}" FontSize="11" FontStyle="Italic"
                          Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Panel>
           </Border>
@@ -202,7 +203,7 @@
             <Panel>
               <lvc:PieChart IsVisible="{Binding HasGroupPie}" Series="{Binding GroupPie}"
                             LegendPosition="Right" LegendTextSize="9" Background="Transparent" Height="170" />
-              <TextBlock IsVisible="{Binding !HasGroupPie}" Text="No profit to show" FontSize="11" FontStyle="Italic"
+              <TextBlock IsVisible="{Binding !HasGroupPie}" Text="{x:Static loc:SalesText.NoProfitToShow}" FontSize="11" FontStyle="Italic"
                          Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Panel>
           </Border>
@@ -210,7 +211,7 @@
             <Panel>
               <lvc:PieChart IsVisible="{Binding HasItemPie}" Series="{Binding ItemPie}"
                             LegendPosition="Right" LegendTextSize="9" Background="Transparent" Height="170" />
-              <TextBlock IsVisible="{Binding !HasItemPie}" Text="No profit to show" FontSize="11" FontStyle="Italic"
+              <TextBlock IsVisible="{Binding !HasItemPie}" Text="{x:Static loc:SalesText.NoProfitToShow}" FontSize="11" FontStyle="Italic"
                          Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Panel>
           </Border>
@@ -219,7 +220,7 @@
         <!-- Granularity sits with the charts it governs, not on the filter row: the filter row
              decides which sales are counted, this decides how they are bucketed. -->
         <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,*" Margin="10 10 10 4">
-          <TextBlock Grid.Column="0" Text="Chart by" VerticalAlignment="Center"
+          <TextBlock Grid.Column="0" Text="{x:Static loc:SalesText.ChartBy}" VerticalAlignment="Center"
                      FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 8 0" />
           <ComboBox Grid.Column="1" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
                     FontSize="11" MinWidth="100" Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -235,7 +236,7 @@
           <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
-              <TextBlock DockPanel.Dock="Top" Text="Costs, sales and profit" FontSize="11"
+              <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SalesText.CostsSalesAndProfit}" FontSize="11"
                          FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding IskSeries}"
                                   XAxes="{Binding ChartXAxes}" YAxes="{Binding IskYAxes}"
@@ -247,7 +248,7 @@
           <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
-              <TextBlock DockPanel.Dock="Top" Text="Margin" FontSize="11"
+              <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SalesText.Margin}" FontSize="11"
                          FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding MarginSeries}"
                                   XAxes="{Binding ChartXAxes}" YAxes="{Binding MarginYAxes}"
@@ -259,7 +260,7 @@
       </Grid>
     </TabItem>
 
-    <TabItem Header="Detail" FontSize="12">
+    <TabItem Header="{x:Static loc:SalesText.TabDetail}" FontSize="12">
     <DataGrid x:Name="SalesGrid" ItemsSource="{Binding Rows}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               SelectionMode="Extended"
@@ -268,13 +269,13 @@
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.ContextMenu>
         <ContextMenu>
-          <MenuItem Header="Mark as not for profit" Click="OnMarkNotForProfit" />
-          <MenuItem Header="Restore to profit"      Click="OnRestoreToProfit" />
+          <MenuItem Header="{x:Static loc:SalesText.MenuMarkAsNotForProfit}" Click="OnMarkNotForProfit" />
+          <MenuItem Header="{x:Static loc:SalesText.MenuRestoreToProfit}"      Click="OnRestoreToProfit" />
           <Separator />
           <!-- Built when the menu opens: the label list grows as things are tagged, and one
                populated at startup would offer yesterday's. -->
-          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
-          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
+          <MenuItem x:Name="AddLabelMenu"    Header="{x:Static loc:SalesText.MenuAddLabel}" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="{x:Static loc:SalesText.MenuRemoveLabel}" />
         </ContextMenu>
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
@@ -287,17 +288,17 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="" Binding="{Binding NotForProfitMark}" Width="24"
                             CanUserSort="False" />
-        <DataGridTextColumn Header="Date / Time"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
-        <DataGridTextColumn Header="Type"         Binding="{Binding Kind}"     Width="80" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColDateTime}"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColType}"         Binding="{Binding Kind}"     Width="80" />
         <!-- Owner, Location, Buyer and Item(s) are links: each one names something with a page of
              its own, and a sale is mostly a set of pointers at those four things. A row whose id
              is missing renders the same text without the button rather than a dead link. -->
-        <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="150" ClipboardContentBinding="{Binding Owner}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColOwner}" SortMemberPath="Owner" Width="150" ClipboardContentBinding="{Binding Owner}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenOwner" IsVisible="{Binding HasOwnerLink}"
-                        ToolTip.Tip="Open in the entity browser">
+                        ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Owner}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Owner}" IsVisible="{Binding !HasOwnerLink}"
@@ -307,12 +308,12 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Location" SortMemberPath="Location" Width="220" ClipboardContentBinding="{Binding Location}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColLocation}" SortMemberPath="Location" Width="220" ClipboardContentBinding="{Binding Location}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
-                        ToolTip.Tip="Open this station or structure">
+                        ToolTip.Tip="{x:Static loc:SalesText.TipOpenThisStationOrStructure}">
                   <TextBlock Text="{Binding Location}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Location}" IsVisible="{Binding !HasLocationLink}"
@@ -322,12 +323,12 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenBuyer" IsVisible="{Binding HasBuyerLink}"
-                        ToolTip.Tip="Open in the entity browser">
+                        ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Buyer}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Buyer}" IsVisible="{Binding !HasBuyerLink}"
@@ -337,12 +338,12 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Item(s)" SortMemberPath="Items" Width="220" ClipboardContentBinding="{Binding Items}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColItemS}" SortMemberPath="Items" Width="220" ClipboardContentBinding="{Binding Items}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
-                        ToolTip.Tip="Open in the Item Browser">
+                        ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding Items}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Items}" IsVisible="{Binding !HasItemLink}"
@@ -351,11 +352,11 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Units"        Binding="{Binding Units}"    Width="90"  CellStyleClasses="num" />
-        <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw"    Width="110" CellStyleClasses="num" />
-        <DataGridTemplateColumn Header="Profit" SortMemberPath="ProfitRaw" Width="110" ClipboardContentBinding="{Binding Profit}">
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"        Binding="{Binding Units}"    Width="90"  CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColTotalSale}"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuildPrice}"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColMarketPrice}" Binding="{Binding Market}"   SortMemberPath="MarketRaw"    Width="110" CellStyleClasses="num" />
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColProfit}" SortMemberPath="ProfitRaw" Width="110" ClipboardContentBinding="{Binding Profit}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -363,7 +364,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="90" ClipboardContentBinding="{Binding ProfitPct}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColProfit2}" SortMemberPath="ProfitPctRaw" Width="90" ClipboardContentBinding="{Binding ProfitPct}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -374,7 +375,7 @@
 
         <!-- Read-only chips, same colours as the Order Tracker: one tag looks the same wherever
              it appears. Added and removed by right-click. -->
-        <DataGridTemplateColumn Header="Labels" Width="180" ClipboardContentBinding="{Binding Labels}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColLabels}" Width="180" ClipboardContentBinding="{Binding Labels}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
@@ -397,7 +398,7 @@
 
         <!-- The contract behind the sale, carrying its description where it has one. Blank on
              market rows. Opens in the Contracts tool, the same jump the Order Tracker offers. -->
-        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220" ClipboardContentBinding="{Binding Contract}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColContract}" SortMemberPath="Contract" Width="220" ClipboardContentBinding="{Binding Contract}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:ctrl="clr-namespace:EveConsole.Controls"
              xmlns:views="clr-namespace:EveConsole.Views"
@@ -65,40 +66,43 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
-        <TextBlock Grid.Column="0" Text="OVERLAY" Classes="flabel"
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{x:Static loc:MapText.OverlayLabel}" Classes="flabel"
                    VerticalAlignment="Center" Margin="0 0 6 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding OverlayModes}"
                   SelectedItem="{Binding SelectedOverlay}"
                   FontSize="11" MinWidth="140" />
 
-        <TextBlock Grid.Column="2" Text="GO TO" Classes="flabel"
-                   VerticalAlignment="Center" Margin="16 0 6 0" />
-        <!-- Filtering is done by the query, not by the box, so FilterMode is None; otherwise
-             it would filter the already-filtered results again on the display string. -->
-        <AutoCompleteBox Grid.Column="3" Text="{Binding RegionSearch}"
-                         ItemsSource="{Binding Places}"
-                         SelectedItem="{Binding SelectedPlace}"
-                         FilterMode="None" MinimumPrefixLength="2"
-                         Watermark="region or system" FontSize="11" MinWidth="210">
-          <AutoCompleteBox.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                           VerticalAlignment="Center" />
-              </StackPanel>
-            </DataTemplate>
-          </AutoCompleteBox.ItemTemplate>
-        </AutoCompleteBox>
-
-        <Button Grid.Column="4" Command="{Binding RefreshCommand}" Content="Refresh"
+        <Button Grid.Column="2" Command="{Binding RefreshCommand}" Content="{x:Static loc:MapText.Refresh}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}"
                 BorderThickness="1" Padding="12 4" FontSize="11" Margin="16 0 0 0" />
 
-        <TextBlock Grid.Column="5" Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+        <TextBlock Grid.Column="3" Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0"
                    TextTrimming="CharacterEllipsis" />
+
+        <!-- Takes a planned route off this map. -->
+        <Button Grid.Column="4" Command="{Binding ClearRouteCommand}" Content="{x:Static loc:MapText.ClearRoute}"
+                IsVisible="{Binding HasRoute}" ToolTip.Tip="{x:Static loc:MapText.TipClearRoute}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                BorderThickness="1" Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+
+        <!-- Shows or hides the details and legend on the right, so the map can have the room. -->
+        <ToggleButton Grid.Column="5" IsChecked="{Binding ShowBridges}" Content="{x:Static loc:MapText.JumpBridgesToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipJumpBridgesToggle}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <ToggleButton Grid.Column="6" IsChecked="{Binding ShowHoles}" Content="{x:Static loc:MapText.WormholesToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipWormholesToggle}" IsVisible="{Binding HolesAvailable}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <ToggleButton Grid.Column="7" IsChecked="{Binding ShowStorms}" Content="{x:Static loc:MapText.StormsToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipStormsToggle}" IsVisible="{Binding HolesAvailable}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <ToggleButton Grid.Column="8" IsChecked="{Binding ShowCampaigns}" Content="{x:Static loc:MapText.CampaignsToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipCampaignsToggle}" IsVisible="{Binding CampaignsAvailable}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <ToggleButton Grid.Column="9" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipSidePanel}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
       </Grid>
     </Border>
 
@@ -130,31 +134,33 @@
     <Rectangle Grid.Row="3" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Map + side panel ─────────────────────────────────────────── -->
-    <Grid Grid.Row="4" ColumnDefinitions="*,1,220">
+    <!-- The panel's column sizes to its content, so hiding it gives the map the whole width. -->
+    <Grid Grid.Row="4" ColumnDefinitions="*,Auto,Auto">
 
+      <!-- A system's page opens in a tab of its own (the map tool's), so this is always the map. -->
       <ctrl:MapCanvas Grid.Column="0"
-                      IsVisible="{Binding IsMapLevel}"
                       Graph="{Binding Graph}"
                       Overlay="{Binding Overlay}"
                       Badges="{Binding Badges}"
+                      Markers="{Binding Markers}"
+                      Bridges="{Binding VisibleBridges}"
+                      Routes="{Binding Routes}"
+                      Avoided="{Binding Avoided}"
+                      JumpRange="{Binding JumpRange}"
+                      Holes="{Binding VisibleHoles}"
+                      Storms="{Binding VisibleStorms}"
+                      Campaigns="{Binding VisibleCampaigns}"
+                      HoleLinks="{Binding VisibleHoleLinks}"
+                      ContextRequested="OnMapContextRequested"
+                      Camera="{Binding Camera, Mode=TwoWay}"
                       SelectedId="{Binding SelectedId, Mode=TwoWay}"
                       FocusBounds="{Binding FocusBounds, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
 
-      <!-- ── System page — replaces the map, since there is no graph at this level ──
-           The visibility binding lives on the wrapper, not on SystemPageView itself: every
-           binding on an element resolves against that element's DataContext, so putting both
-           IsVisible and DataContext on the view made IsVisible look for IsSystemLevel on the
-           page's own view model, fail, and fall back to true — leaving the page permanently
-           on top of the map. -->
-      <ContentControl Grid.Column="0" IsVisible="{Binding IsSystemLevel}">
-        <views:SystemPageView DataContext="{Binding SystemPage}" />
-      </ContentControl>
+      <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource BorderSubtleBrush}" IsVisible="{Binding ShowSidePanel}" />
 
-
-      <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
-
-      <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10">
+      <Border Grid.Column="2" Width="220" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10"
+              IsVisible="{Binding ShowSidePanel}">
         <StackPanel Spacing="10">
 
           <StackPanel IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
@@ -172,14 +178,14 @@
             </ItemsControl>
           </StackPanel>
 
-          <TextBlock Text="Click a node for details. Double-click to open it."
+          <TextBlock Text="{x:Static loc:MapText.ClickANodeForNote}"
                      FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                      IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
 
           <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" IsVisible="{Binding Legend.Count}" />
 
           <StackPanel IsVisible="{Binding Legend.Count}">
-            <TextBlock Classes="flabel" Text="LEGEND" Margin="0 0 0 4" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.LegendLabel}" Margin="0 0 0 4" />
             <ItemsControl ItemsSource="{Binding Legend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">
@@ -211,7 +217,7 @@
                change with the overlay — and a row of small coloured squares with nothing
                explaining them is decoration rather than information. -->
           <StackPanel Spacing="4">
-            <TextBlock Classes="flabel" Text="DOCKING — BAR ABOVE THE BOX" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.DockingBarAboveTheBoxLabel}" />
             <ItemsControl ItemsSource="{Binding DockLegend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">
@@ -232,7 +238,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Classes="flabel" Text="SERVICES — UNDER THE BOX" Margin="0 6 0 0" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.ServicesUnderTheBoxLabel}" Margin="0 6 0 0" />
             <ItemsControl ItemsSource="{Binding ServiceLegend}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="vm:LegendEntryVm">
@@ -252,13 +258,66 @@
             </ItemsControl>
 
             <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 4 0 0"
-                       Text="Merged from NPC stations and player structures. A structure whose type we have not resolved contributes nothing, so a blank side means &quot;not known&quot; rather than &quot;nothing there&quot;." />
+                       Text="{x:Static loc:MapText.MergedFromNpcStationsNote}" />
+          </StackPanel>
+
+          <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />
+
+          <!-- The live marks, drawn the same way as on the map: round and right for hostiles,
+               square and left for your own characters. -->
+          <StackPanel Spacing="4">
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.LiveMarksLabel}" />
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Width="11" Height="11" Fill="{DynamicResource BadBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:MapText.LiveMarkHostiles}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Rectangle Width="11" Height="11" RadiusX="2" RadiusY="2" Fill="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:MapText.LiveMarkOwn}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Line StartPoint="0,6" EndPoint="11,6" Stroke="#c084fc" StrokeThickness="1.8" StrokeDashArray="2,1.5"
+                    VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:MapText.LegendJumpBridge}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding HasJumpRange}">
+              <Ellipse Width="12" Height="12" Stroke="{DynamicResource GoodBrush}" StrokeThickness="1.6" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:MapText.LegendJumpRange}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding HolesAvailable}">
+              <Border Width="13" Height="13" CornerRadius="3" Background="#2DD4BF" VerticalAlignment="Center">
+                <TextBlock Text="Θ" FontSize="9" FontWeight="Bold" Foreground="#062925"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LegendWormholes}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding HolesAvailable}">
+              <Border Width="13" Height="13" CornerRadius="3" Background="#F5B83D" VerticalAlignment="Center">
+                <TextBlock Text="⚡" FontSize="9" FontWeight="Bold" Foreground="#2b1d00"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LegendStorms}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding CampaignsAvailable}">
+              <Border Width="13" Height="13" CornerRadius="3" Background="#DC2626" VerticalAlignment="Center">
+                <TextBlock Text="⚔" FontSize="9" FontWeight="Bold" Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LegendCampaigns}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
           </StackPanel>
 
           <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
           <TextBlock FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                     Text="Scroll to zoom, drag to pan. Kill counts come from killmails this app has stored, not from all of New Eden." />
+                     Text="{x:Static loc:MapText.ScrollToZoomDragNote}" />
 
         </StackPanel>
       </Border>

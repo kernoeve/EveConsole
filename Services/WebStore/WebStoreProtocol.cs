@@ -87,6 +87,10 @@ public sealed class SyncRequest
 public sealed class StoreInfoDto
 {
     public string Name          { get; set; } = "";
+    /// <summary>The language the store speaks to its buyers, as a code ("en", "ru", "zh-Hans"):
+    /// the language its item and group names come in, and the one a site that words itself can
+    /// word itself in. Sites from before the field ignore it.</summary>
+    public string Language      { get; set; } = "en";
     /// <summary>The owner's own words for the web, plain text with blank lines as paragraphs.</summary>
     public string Blurb         { get; set; } = "";
     /// <summary>The store's mailbox character, when it has one. Informational; the site shows nothing from it.</summary>

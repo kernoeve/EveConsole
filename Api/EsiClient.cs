@@ -72,6 +72,10 @@ public class EsiClient
         return new LaneRestore(previous);
     }
 
+    /// <summary>Whether the code running now is in the background lane — what the governor in
+    /// <see cref="EsiBudgetHandler"/> holds back, and the only thing it does.</summary>
+    internal static bool IsBackgroundLane => _isBackground.Value;
+
     private sealed class LaneRestore(bool previous) : IDisposable
     {
         public void Dispose() => _isBackground.Value = previous;
@@ -526,12 +530,47 @@ public class EsiClient
     {
         [System.Text.Json.Serialization.JsonPropertyName("alliance")]
         public EsiSovAlliance? Alliance { get; set; }
+        /// <summary>An NPC holder. Exactly one of alliance, faction or unclaimed is present.</summary>
+        [System.Text.Json.Serialization.JsonPropertyName("faction")]
+        public EsiSovFaction?  Faction  { get; set; }
+    }
+
+    public sealed class EsiSovFaction
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("faction_id")]
+        public int FactionId { get; set; }
+    }
+
+    /// <summary>The structure holding an alliance's claim. Its window is left out while the hub is
+    /// in an active campaign.</summary>
+    public sealed class EsiSovHub
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public long                    Id                  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("vulnerability_window")]
+        public EsiSovVulnerability?    VulnerabilityWindow { get; set; }
+    }
+
+    public sealed class EsiSovVulnerability
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("start")]
+        public DateTimeOffset? Start { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("end")]
+        public DateTimeOffset? End   { get; set; }
     }
 
     public sealed class EsiSovAlliance
     {
         [System.Text.Json.Serialization.JsonPropertyName("alliance_id")]
         public long                 AllianceId  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("corporation_id")]
+        public long?                CorporationId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sovereignty_hub")]
+        public EsiSovHub?           SovereigntyHub { get; set; }
+        /// <summary>The alliance's capital system. Since 2026-09-22 an Ansiblex jump's capacitor
+        /// cost grows with the distance from here to where the jump lands.</summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_capital_system")]
+        public bool                 IsCapitalSystem { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("development")]
         public EsiSovDevelopment?   Development { get; set; }
     }
@@ -646,7 +685,7 @@ public class EsiClient
         catch { return null; }
     }
 
-    // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
+    // Moon detail (public). Returns null on error. name is e.g. "Jita IV - Moon 4".
     public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
     {
         try { return await GetAsync<EsiMoonDetail>($"universe/moons/{moonId}/", ct); }
@@ -1279,6 +1318,35 @@ public class EsiClient
     }
 
     /// <summary>
+    /// <see cref="PostAuthAsync{T}"/> with a corporation's own token — the asset names of a
+    /// corporation's ships. Stands down while ESI is paused, as every corporation call does.
+    /// </summary>
+    internal async Task<(int StatusCode, T? Data)> PostCorpAuthAsync<T>(
+        long corpId, string path, object body, CancellationToken ct)
+    {
+        if (IsErrorLimitBlocked) return (_serverOffline ? 503 : 420, default);
+        try
+        {
+            var token = await EnsureValidCorpTokenAsync(corpId, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Post, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            request.Content = JsonBody(body);
+
+            HttpResponseMessage response;
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
+
+            var statusCode = (int)response.StatusCode;
+            T? data = default;
+            if (response.IsSuccessStatusCode)
+                data = await response.Content.ReadFromJsonAsync<T>(JsonOptions, ct);
+            return (statusCode, data);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return (0, default); }
+    }
+
+    /// <summary>
     /// A JSON request body that declares its length.
     ///
     /// <para><b>⚠️ Not <c>JsonContent.Create</c>.</b> JsonContent cannot compute its length up
@@ -1339,6 +1407,24 @@ public class EsiClient
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { return (0, ex.Message, null); }
+    }
+
+    /// <summary>Authenticated DELETE. Returns the status code, 0 when nothing was sent or the call failed.</summary>
+    internal async Task<int> DeleteAuthAsync(long characterId, string path, CancellationToken ct)
+    {
+        try
+        {
+            var token = await EnsureValidTokenAsync(characterId, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Delete, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+
+            HttpResponseMessage response;
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
+            return (int)response.StatusCode;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return 0; }
     }
 
     /// <summary>

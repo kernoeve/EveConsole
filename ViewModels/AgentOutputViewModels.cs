@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reactive;
 using System.Text;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -47,7 +48,7 @@ public sealed class AgentGridViewModel : ReactiveObject
     public string Caption { get; }
     public bool   HasCaption => Caption.Length > 0;
 
-    public string RowCountText => Rows.Count == 1 ? "1 row" : $"{Rows.Count:N0} rows";
+    public string RowCountText => Plurals.Format(AgentText.ResourceManager, nameof(AgentText.GridRowsOther), Rows.Count);
 
     private string _statusText = "";
     public string StatusText
@@ -105,7 +106,7 @@ public sealed class AgentGridViewModel : ReactiveObject
             sb.AppendLine(string.Join('\t', Columns.Select((_, i) => Flatten(r[i]))));
 
         await CopyToClipboard(sb.ToString());
-        StatusText = $"Copied {rows.Count:N0} row(s) with headers.";
+        StatusText = string.Format(AgentText.StatusCopiedRows, rows.Count);
     }
 
     /// <summary>
@@ -126,7 +127,7 @@ public sealed class AgentGridViewModel : ReactiveObject
 
         var suggested = SafeFileName(Title) + ".csv";
         var saved     = await SaveTextFile(suggested, sb.ToString());
-        StatusText    = saved is null ? "" : $"Saved {Rows.Count:N0} row(s) to {saved}";
+        StatusText    = saved is null ? "" : string.Format(AgentText.StatusSavedRows, Rows.Count, saved);
     }
 
     /// <summary>
@@ -185,7 +186,7 @@ public sealed class AgentDocumentViewModel : ReactiveObject
     {
         Title    = title;
         Markdown = markdown;
-        SubtitleText = DateTimeOffset.Now.ToString("d MMMM yyyy, HH:mm", CultureInfo.CurrentCulture);
+        SubtitleText = DateTimeOffset.Now.ToString(CommonText.DateTimeLong, CultureInfo.CurrentCulture);
 
         CopyCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -193,7 +194,7 @@ public sealed class AgentDocumentViewModel : ReactiveObject
             // The source, not the rendering. What is on screen is one presentation of this text;
             // the markdown is what pastes usefully into anything else.
             await CopyToClipboard(Markdown);
-            StatusText = "Copied the document as Markdown.";
+            StatusText = AgentText.StatusCopiedDocument;
         });
     }
 
@@ -201,6 +202,6 @@ public sealed class AgentDocumentViewModel : ReactiveObject
     {
         if (SaveTextFile is null) return;
         var saved  = await SaveTextFile(AgentGridViewModel.SafeFileName(Title) + ".md", Markdown);
-        StatusText = saved is null ? "" : $"Saved to {saved}";
+        StatusText = saved is null ? "" : string.Format(AgentText.StatusSavedTo, saved);
     }
 }

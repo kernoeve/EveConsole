@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:loc="using:EveConsole.Localization"
                     xmlns:vm="clr-namespace:EveConsole.ViewModels">
 
   <!-- The killmail list row. Lives here rather than inside the Killmail Browser so
@@ -8,7 +9,9 @@
        drifts the first time either is touched. -->
           <DataTemplate x:Key="KillmailRowTemplate" DataType="vm:KillmailListRowVm">
             <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
-              <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+              <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                   nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+              <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4 4 4 4">
 
                   <!-- Date / Time / ISK -->
                   <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
@@ -31,24 +34,24 @@
                          Margin="0 0 6 0" />
 
                   <!-- System / Constellation / Region -->
-                  <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                    <StackPanel Orientation="Horizontal" Spacing="3">
-                      <TextBlock Text="{Binding SecurityText}"
+                  <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                    <Grid ColumnDefinitions="Auto,*">
+                      <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0"
                                  FontSize="10" FontWeight="SemiBold"
                                  ToolTip.Tip="{Binding SecurityTip}"
                                  Foreground="{Binding SecurityColor}" />
                       <!-- The system name opens that system on the Universe map. -->
-                      <Button Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"
+                      <Button Grid.Column="1" Command="{Binding $parent[UserControl].DataContext.OpenSystemMapCommand}"
                               CommandParameter="{Binding SystemId}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              ToolTip.Tip="Open on the Universe map">
+                              ToolTip.Tip="{x:Static loc:CorpText.TipOpenOnTheUniverseMap}">
                         <TextBlock Text="{Binding SystemName}"
                                    FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                    TextDecorations="Underline"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
-                    </StackPanel>
+                    </Grid>
                     <TextBlock Text="{Binding ConstellationName}"
                                FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                TextTrimming="CharacterEllipsis"
@@ -69,7 +72,7 @@
                            VerticalAlignment="Center"
                            ToolTip.Tip="{Binding VictimAlliance}"
                            Margin="0 0 4 0" />
-                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                    <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                       <Button Content="{Binding VictimName}" Command="{Binding OpenVictimCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
@@ -94,7 +97,7 @@
                            VerticalAlignment="Center"
                            ToolTip.Tip="{Binding FbAlliance}"
                            Margin="0 0 4 0" />
-                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                    <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                       <Button Content="{Binding FbName}" Command="{Binding OpenFbCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"

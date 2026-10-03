@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.AgentUsageView"
              x:DataType="vm:AgentUsageViewModel"
@@ -49,23 +50,23 @@
             BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="AI Usage &amp; Cost" FontSize="13" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:DataText.AiUsageCost}" FontSize="13" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
                      Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
         </Grid>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Classes="fl" Text="From" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.From}" />
           <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd" Width="120" />
-          <TextBlock Classes="fl" Text="Thru" />
-          <TextBox Text="{Binding DateThru}" Watermark="(today)" Width="120" />
-          <TextBlock Classes="fl" Text="Group by" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Thru}" />
+          <TextBox Text="{Binding DateThru}" Watermark="{x:Static loc:DataText.HintToday}" Width="120" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.GroupBy}" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding PeriodOptions}" SelectedItem="{Binding Period}"
                     FontSize="11" Width="100" />
-          <TextBlock Classes="fl" Text="Service" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Service}" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding KindOptions}" SelectedItem="{Binding KindFilter}"
                     FontSize="11" Width="130" />
-          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+          <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:DataText.Refresh}" FontSize="10" Padding="8 2"
                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                   BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   VerticalAlignment="Center" Margin="8 0 0 0" />
@@ -79,23 +80,23 @@
       <StackPanel Spacing="6">
         <StackPanel Orientation="Horizontal" Spacing="28">
           <StackPanel>
-            <TextBlock Classes="figlabel" Text="ESTIMATED COST" />
+            <TextBlock Classes="figlabel" Text="{x:Static loc:DataText.EstimatedCostLabel}" />
             <TextBlock Classes="fig" Text="{Binding TotalCostText}" Foreground="{DynamicResource AccentBrush}" />
           </StackPanel>
           <StackPanel>
-            <TextBlock Classes="figlabel" Text="AGENT" />
+            <TextBlock Classes="figlabel" Text="{x:Static loc:DataText.AgentLabel}" />
             <TextBlock Classes="fig" Text="{Binding AgentCostText}" />
           </StackPanel>
           <StackPanel>
-            <TextBlock Classes="figlabel" Text="SPEECH OUT" />
+            <TextBlock Classes="figlabel" Text="{x:Static loc:DataText.SpeechOutLabel}" />
             <TextBlock Classes="fig" Text="{Binding TtsCostText}" />
           </StackPanel>
           <StackPanel>
-            <TextBlock Classes="figlabel" Text="SPEECH IN" />
+            <TextBlock Classes="figlabel" Text="{x:Static loc:DataText.SpeechInLabel}" />
             <TextBlock Classes="fig" Text="{Binding SttCostText}" />
           </StackPanel>
           <StackPanel>
-            <TextBlock Classes="figlabel" Text="CALLS" />
+            <TextBlock Classes="figlabel" Text="{x:Static loc:DataText.CallsLabel}" />
             <TextBlock Classes="fig" Text="{Binding CallsText}" />
           </StackPanel>
         </StackPanel>
@@ -110,73 +111,73 @@
     <!-- ── Summary / Detail / Rates ─────────────────────────────────────── -->
     <TabControl Grid.Row="2" Padding="0" Background="{DynamicResource SurfaceBaseBrush}">
 
-      <TabItem Header="Summary">
+      <TabItem Header="{x:Static loc:DataText.TabSummary}">
         <DataGrid ItemsSource="{Binding Summary}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Period"    Binding="{Binding PeriodText}" SortMemberPath="PeriodSort" Width="150" />
-            <DataGridTextColumn Header="Service"   Binding="{Binding KindText}"   Width="95" />
-            <DataGridTextColumn Header="Provider"  Binding="{Binding Provider}"   Width="160" />
-            <DataGridTextColumn Header="Model"     Binding="{Binding ModelText}"  Width="*" />
-            <DataGridTextColumn Header="Calls"     Binding="{Binding Calls}"      Width="65" />
-            <DataGridTextColumn Header="Input"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="90" />
-            <DataGridTextColumn Header="Output"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="90" />
-            <DataGridTextColumn Header="Cache rd"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="90" />
-            <DataGridTextColumn Header="Cache wr"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="90" />
-            <DataGridTextColumn Header="Units"     Binding="{Binding UnitKind}"   Width="85" />
-            <DataGridTextColumn Header="Avg"       Binding="{Binding AvgText}"    Width="60" />
-            <DataGridTextColumn Header="Errors"    Binding="{Binding ErrorText}"  Width="60" />
-            <DataGridTextColumn Header="Cost"      Binding="{Binding CostText}"   SortMemberPath="Cost" Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColPeriod}"    Binding="{Binding PeriodText}" SortMemberPath="PeriodSort" Width="150" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColService}"   Binding="{Binding KindText}"   Width="95" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColProvider}"  Binding="{Binding Provider}"   Width="160" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColModel}"     Binding="{Binding ModelText}"  Width="*" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColCalls}"     Binding="{Binding Calls}"      Width="65" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColInput}"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColOutput}"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColCacheRd}"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColCacheWr}"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColUnits}"     Binding="{Binding UnitKind}"   Width="85" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColAvg}"       Binding="{Binding AvgText}"    Width="60" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColErrors}"    Binding="{Binding ErrorText}"  Width="60" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColCost}"      Binding="{Binding CostText}"   SortMemberPath="Cost" Width="90" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
 
-      <TabItem Header="Detail">
+      <TabItem Header="{x:Static loc:DataText.TabDetail}">
         <Grid RowDefinitions="*,Auto">
           <DataGrid Grid.Row="0" ItemsSource="{Binding Detail}"
                     AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                     CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                     Background="{DynamicResource SurfaceBaseBrush}">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Time"      Binding="{Binding TimeText}"  SortMemberPath="TimeSort" Width="150" />
-              <DataGridTextColumn Header="Service"   Binding="{Binding KindText}"  Width="95" />
-              <DataGridTextColumn Header="Provider"  Binding="{Binding Provider}"  Width="160" />
-              <DataGridTextColumn Header="Model"     Binding="{Binding ModelText}" Width="170" />
-              <DataGridTextColumn Header="Input"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="85" />
-              <DataGridTextColumn Header="Output"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="85" />
-              <DataGridTextColumn Header="Cache rd"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="85" />
-              <DataGridTextColumn Header="Cache wr"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="85" />
-              <DataGridTextColumn Header="Units"     Binding="{Binding UnitKind}"      Width="80" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColTime}"      Binding="{Binding TimeText}"  SortMemberPath="TimeSort" Width="150" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColService}"   Binding="{Binding KindText}"  Width="95" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColProvider}"  Binding="{Binding Provider}"  Width="160" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColModel}"     Binding="{Binding ModelText}" Width="170" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColInput}"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="85" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColOutput}"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="85" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColCacheRd}"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="85" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColCacheWr}"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="85" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColUnits}"     Binding="{Binding UnitKind}"      Width="80" />
               <DataGridTextColumn Header=""          Binding="{Binding EstimatedText}" Width="45" />
-              <DataGridTextColumn Header="Took"      Binding="{Binding DurationText}"  Width="60" />
-              <DataGridTextColumn Header="Cost"      Binding="{Binding CostText}"      SortMemberPath="Cost" Width="85" />
-              <DataGridTextColumn Header="Activity"  Binding="{Binding Activity}"      Width="*" />
-              <DataGridTextColumn Header="Error"     Binding="{Binding Error}"         Width="200" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColTook}"      Binding="{Binding DurationText}"  Width="60" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColCost}"      Binding="{Binding CostText}"      SortMemberPath="Cost" Width="85" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColActivity}"  Binding="{Binding Activity}"      Width="*" />
+              <DataGridTextColumn Header="{x:Static loc:DataText.ColError}"     Binding="{Binding Error}"         Width="200" />
             </DataGrid.Columns>
           </DataGrid>
 
           <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-              <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
-              <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:DataText.First}" FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:DataText.Prev}"  FontSize="11" Padding="8 2" />
               <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                          VerticalAlignment="Center" Margin="12 0" MinWidth="220" TextAlignment="Center" />
-              <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
-              <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:DataText.Next}"  FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:DataText.Last}"  FontSize="11" Padding="8 2" />
             </StackPanel>
           </Border>
         </Grid>
       </TabItem>
 
-      <TabItem Header="Rates">
+      <TabItem Header="{x:Static loc:DataText.TabRates}">
         <Grid RowDefinitions="Auto,*,Auto">
 
           <TextBlock Grid.Row="0" Margin="12 10 12 6" FontSize="11" TextWrapping="Wrap"
                      Foreground="{DynamicResource TextMutedBrush}"
-                     Text="What each service charges. Cost is worked out from these at the moment you look, never stored with the usage — published prices change, and a figure baked into a release six months ago is a number that looks authoritative and is wrong. The values below are the list prices at the time this version was built; correct any that have moved. Rates are entered at the scale each vendor quotes them in, shown beside every row. A provider with no row here is counted as unpriced, not as free — only the rows marked local are genuinely free." />
+                     Text="{x:Static loc:DataText.WhatEachServiceChargesNote}" />
 
           <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding Rates}" Margin="12 0 12 12">
@@ -201,23 +202,23 @@
 
                       <StackPanel Orientation="Horizontal" Spacing="14">
                         <StackPanel>
-                          <TextBlock Classes="ratelabel" Text="Input" />
+                          <TextBlock Classes="ratelabel" Text="{x:Static loc:DataText.Input}" />
                           <TextBox Text="{Binding Input}" Width="100" />
                         </StackPanel>
                         <StackPanel>
-                          <TextBlock Classes="ratelabel" Text="Output" />
+                          <TextBlock Classes="ratelabel" Text="{x:Static loc:DataText.Output}" />
                           <TextBox Text="{Binding Output}" Width="100" />
                         </StackPanel>
                         <StackPanel IsVisible="{Binding HasCache}">
-                          <TextBlock Classes="ratelabel" Text="Cache read" />
+                          <TextBlock Classes="ratelabel" Text="{x:Static loc:DataText.CacheRead}" />
                           <TextBox Text="{Binding CacheRead}" Width="100" />
                         </StackPanel>
                         <StackPanel IsVisible="{Binding HasCache}">
-                          <TextBlock Classes="ratelabel" Text="Cache write" />
+                          <TextBlock Classes="ratelabel" Text="{x:Static loc:DataText.CacheWrite}" />
                           <TextBox Text="{Binding CacheWrite}" Width="100" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Stretch" MinWidth="260">
-                          <TextBlock Classes="ratelabel" Text="Notes" />
+                          <TextBlock Classes="ratelabel" Text="{x:Static loc:DataText.Notes}" />
                           <TextBox Text="{Binding Notes}" MinWidth="260" />
                         </StackPanel>
                       </StackPanel>
@@ -232,7 +233,7 @@
           <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <Button Command="{Binding SaveRatesCommand}" Content="Save Rates" FontSize="11" Padding="12 4"
+              <Button Command="{Binding SaveRatesCommand}" Content="{x:Static loc:DataText.SaveRates}" FontSize="11" Padding="12 4"
                       Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                       BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
               <TextBlock Text="{Binding RatesStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"

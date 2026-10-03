@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -24,7 +25,7 @@ public partial class AddEditInvGroupDialog : Window
         _searchFn    = searchFn;
         _collections = collections;
         InitializeComponent();
-        Title = existing == null ? "Add Group" : "Edit Group";
+        Title = existing == null ? AssetsText.TitleAddGroup : AssetsText.TitleEditGroup;
 
         // Wire scope radio buttons
         ScopeStation.IsCheckedChanged    += OnScopeChanged;
@@ -68,7 +69,7 @@ public partial class AddEditInvGroupDialog : Window
         {
             _selectedLocationId   = existing.LocationId;
             _selectedLocationName = existing.LocationName;
-            SelectedLocationText.Text = existing.LocationName;
+            SelectedLocationText.Text = InvLevelService.ScopePlaceName(existing.Scope, existing.LocationId, existing.LocationName);
         }
     }
 
@@ -78,7 +79,7 @@ public partial class AddEditInvGroupDialog : Window
         LocationPanel.IsVisible = !everywhere;
 
         var scope = GetScope();
-        LocationLabel.Text = scope == "Station" ? "STATION" : scope == "System" ? "SOLAR SYSTEM" : "REGION";
+        LocationLabel.Text = scope == "Station" ? AssetsText.LocationLabelStation : scope == "System" ? AssetsText.LocationLabelSolarSystem : AssetsText.LocationLabelRegion;
 
         _selectedLocationId   = null;
         _selectedLocationName = "";
@@ -99,9 +100,17 @@ public partial class AddEditInvGroupDialog : Window
         var scope   = GetScope();
         var results = await _searchFn(scope, text);
 
-        LocationListBox.ItemsSource      = results.Select(r => r.Name).ToList();
+        // A region, system or NPC station is listed, in that name's order, as the screen names it.
+        // The option keeps the English, which is what the group saves. Tag and list stay in one
+        // order: a pick is read back by its index.
+        var shown = results
+            .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
+            .OrderBy(x => x.Name, StringComparer.CurrentCulture)
+            .ToList();
+
+        LocationListBox.ItemsSource      = shown.Select(x => new ShownPlace(x.Name, x.Option.RegionLabel)).ToList();
         LocationResultsBorder.IsVisible  = results.Count > 0;
-        LocationListBox.Tag              = results;
+        LocationListBox.Tag              = shown.Select(x => x.Option).ToList();
     }
 
     private void OnLocationSelected(object? sender, SelectionChangedEventArgs e)
@@ -114,7 +123,7 @@ public partial class AddEditInvGroupDialog : Window
         _selectedLocationId   = chosen.Id;
         _selectedLocationName = chosen.Name;
 
-        SelectedLocationText.Text      = chosen.Name;
+        SelectedLocationText.Text      = InvLevelService.ScopePlaceName(GetScope(), chosen.Id, chosen.Name);
         LocationSearchBox.Text         = "";
         LocationResultsBorder.IsVisible = false;
         LocationListBox.SelectedIndex  = -1;
@@ -125,14 +134,22 @@ public partial class AddEditInvGroupDialog : Window
         var name = NameBox.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(name))
         {
-            ErrorText.Text = "Group name is required.";
+            ErrorText.Text = AssetsText.ErrGroupNameRequired;
             return;
         }
 
         var scope = GetScope();
         if (scope != "Everywhere" && _selectedLocationId is null)
         {
-            ErrorText.Text = $"Select a {scope.ToLowerInvariant()} or choose Everywhere.";
+            // One sentence per scope, keyed on the scope's value: the word cannot be lower-cased
+            // into another sentence in every language.
+            var ask = scope switch
+            {
+                "Station" => AssetsText.ErrSelectStation,
+                "System"  => AssetsText.ErrSelectSystem,
+                _         => AssetsText.ErrSelectRegion,
+            };
+            ErrorText.Text = string.Format(ask, AssetsText.Everywhere);
             return;
         }
 

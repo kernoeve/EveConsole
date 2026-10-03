@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -86,19 +87,19 @@ public partial class InvLevelView : UserControl
         vm.ShowConfirmLargeGroup = async (groupName, count) =>
         {
             var dlg = new ConfirmDialog(
-                $"The selected group contains {count} items. Are you sure you want to add them all?");
+                Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.ConfirmAddLargeGroupOther), count));
             return await dlg.ShowDialog<bool>(GetWindow());
         };
 
         vm.ShowAddCollectionDialog = async () =>
         {
-            var dlg = new NameDialog("Add Collection", "COLLECTION NAME");
+            var dlg = new NameDialog(AssetsText.TitleAddCollection, AssetsText.CollectionNameLabel);
             return await dlg.ShowDialog<string?>(GetWindow());
         };
 
         vm.ShowRenameCollectionDialog = async currentName =>
         {
-            var dlg = new NameDialog("Rename Collection", "COLLECTION NAME", currentName);
+            var dlg = new NameDialog(AssetsText.TitleRenameCollection, AssetsText.CollectionNameLabel, currentName);
             return await dlg.ShowDialog<string?>(GetWindow());
         };
 
@@ -109,7 +110,7 @@ public partial class InvLevelView : UserControl
 
             var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title             = "Export Collection",
+                Title             = AssetsText.TitleExportCollection,
                 SuggestedFileName = $"{Safe(name)}.json",
                 FileTypeChoices   = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
             });
@@ -126,7 +127,7 @@ public partial class InvLevelView : UserControl
 
             var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title          = "Import Collection",
+                Title          = AssetsText.ImportCollection,
                 AllowMultiple  = false,
                 FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
             });

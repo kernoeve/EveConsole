@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -25,7 +26,13 @@ public record BlueprintPickerResult(
 public class MarketGroupPickerNode : ReactiveObject
 {
     public int    MarketGroupId { get; }
+
+    /// <summary>English: what the pick hands back (MarketGroupPickerResult.GroupName).</summary>
     public string Name         { get; }
+
+    /// <summary>The name in the interface language, which the tree shows and sorts on.</summary>
+    public string DisplayName  { get; }
+
     public ObservableCollection<MarketGroupPickerNode> Children { get; } = [];
 
     private bool _isExpanded;
@@ -39,6 +46,7 @@ public class MarketGroupPickerNode : ReactiveObject
     {
         MarketGroupId = id;
         Name          = name;
+        DisplayName   = SdeNames.MarketGroup(id, name);
     }
 }
 
@@ -73,7 +81,7 @@ public class MarketGroupPickerViewModel : ReactiveObject
 
     public bool CanConfirm => _selectedNode != null;
 
-    private string _statusText = "Loading market groups…";
+    private string _statusText = CommonText.LoadingMarketGroups;
     public string StatusText
     {
         get => _statusText;
@@ -88,6 +96,7 @@ public class MarketGroupPickerViewModel : ReactiveObject
 
     public async Task LoadAsync(CancellationToken ct = default)
     {
+        await SdeNames.EnsureLoadedAsync(ct);   // the nodes keep the names they are built with
         var allGroups    = await _svc.LoadAllMarketGroupsAsync(ct);
         var withItems    = await _svc.GetGroupIdsWithItemsAsync(ct);
 
@@ -120,21 +129,21 @@ public class MarketGroupPickerViewModel : ReactiveObject
                 roots.Add(node);
         }
 
-        // Sort each level by name
-        roots.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+        // Sort each level by the name shown
+        roots.Sort((a, b) => StringComparer.CurrentCulture.Compare(a.DisplayName, b.DisplayName));
         SortChildren(roots);
 
         RootNodes.Clear();
         foreach (var r in roots) RootNodes.Add(r);
 
-        StatusText = "Select a market group to add its items.";
+        StatusText = CommonText.SelectMarketGroup;
     }
 
     private static void SortChildren(IEnumerable<MarketGroupPickerNode> nodes)
     {
         foreach (var n in nodes)
         {
-            var sorted = n.Children.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            var sorted = n.Children.OrderBy(c => c.DisplayName, StringComparer.CurrentCulture).ToList();
             n.Children.Clear();
             foreach (var c in sorted) n.Children.Add(c);
             SortChildren(n.Children);

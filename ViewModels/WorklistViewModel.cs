@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using EveConsole.Services.Worklist;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -64,7 +65,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     // link. ⚠️ The em dash CharacterName falls back to is not a name, so HasCharacterLink tests
     // the id rather than the displayed text.
     public bool HasCharacterLink => _item.CharacterId > 0 && _item.CharacterName.Length > 0;
-    public bool HasLocationLink  => _item.LocationId  > 0 && _item.LocationName.Length  > 0;
+    public bool HasLocationLink  => _item.LocationId  > 0 && _item.LocationName.Length  > 0 && !IsPlanet(_item.LocationId);
     public bool HasItemLink      => _item.TypeId      > 0 && _item.TypeName.Length      > 0;
 
     public void OpenCharacter() =>
@@ -77,10 +78,16 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 
     private static void OpenPlace(long id)
     {
-        if (id <= 0) return;
+        if (id <= 0 || IsPlanet(id)) return;
+        // A Planetary Industry haul with several stops in one system is placed at the system.
+        if (id is >= 30_000_000 and <= 32_999_999) { EntityNavigator.Instance.System((int)id); return; }
         if (id <= int.MaxValue) EntityNavigator.Instance.Entity(EntityKind.Station, id);
         else                    EntityNavigator.Instance.Structure(id);
     }
+
+    /// <summary>A planet — where a Planetary Industry task happens — has nothing of its own to
+    /// open, and taken for a station id it would open the wrong thing.</summary>
+    private static bool IsPlanet(long id) => id is >= 40_000_000 and <= 49_999_999;
 
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
@@ -115,10 +122,13 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public async Task LoadIconAsync()
     {
-        if (_item.TypeId <= 0) return;
+        // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
+        var url = _item.TypeId > 0
+            ? $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32"
+            : _item.IconUrl;
+        if (string.IsNullOrEmpty(url)) return;
 
-        var bmp = await EveImageCache.GetAsync(
-            $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32");
+        var bmp = await EveImageCache.GetAsync(url);
 
         if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
     }
@@ -143,14 +153,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// <summary>The kind of doing, as its own scannable column.</summary>
     public string KindText => _item.Kind switch
     {
-        WorklistKind.Buy         => "Buy",
-        WorklistKind.Haul        => "Haul",
-        WorklistKind.Refine      => "Refine",
-        WorklistKind.Decompress  => "Decompress",
-        WorklistKind.Job         => "Job",
-        WorklistKind.AssetSafety => "Asset Safety",
-        WorklistKind.SkillQueue  => "Skill Queue",
-        _                        => "Corp Project",
+        WorklistKind.Buy         => WorklistText.KindBuy,
+        WorklistKind.Haul        => WorklistText.KindHaul,
+        WorklistKind.Refine      => WorklistText.KindRefine,
+        WorklistKind.Decompress  => WorklistText.KindDecompress,
+        WorklistKind.Job         => WorklistText.KindJob,
+        WorklistKind.AssetSafety => WorklistText.KindAssetSafety,
+        WorklistKind.SkillQueue  => WorklistText.KindSkillQueue,
+        WorklistKind.Pi          => WorklistText.KindPi,
+        _                        => WorklistText.KindCorpProject,
     };
 
     /// <summary>
@@ -215,6 +226,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         (WorklistKind.AssetSafety, _) =>
             "M8,2 L13.5,4 V8 C13.5,11 11,13.2 8,14 C5,13.2 2.5,11 2.5,8 V4 Z",
 
+        // A ringed planet: Planetary Industry.
+        (WorklistKind.Pi, _) =>
+            "M8,4 A4,4 0 1,0 8,12 A4,4 0 1,0 8,4 M1.5,10.5 C0.5,12.5 5,11.5 8.5,9.5 C12,7.5 15.5,4.5 14.5,3.8",
+
         // Rising bars: a skill queue.
         _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
     };
@@ -238,17 +253,18 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// <summary>Names the glyph, since a shape at row height can only hint.</summary>
     public string KindGlyphTip => (_item.Kind, _item.Pool) switch
     {
-        (WorklistKind.Buy,  _)                        => "Buy",
-        (WorklistKind.Haul, _)                        => "Haul",
-        (WorklistKind.Refine, _)                      => "Reprocess ore",
-        (WorklistKind.Decompress, _)                  => "Decompress gas",
-        (WorklistKind.Job, IndustryPool.Manufacturing) => "Manufacturing job",
-        (WorklistKind.Job, IndustryPool.Reaction)      => "Reaction job",
-        (WorklistKind.Job, IndustryPool.Science)       => "Science job — copying or invention",
-        (WorklistKind.Job, _)                          => "Industry job",
-        (WorklistKind.CorpProject, _)                  => "Corp project",
-        (WorklistKind.AssetSafety, _)                  => "Asset safety",
-        _                                              => "Skill queue",
+        (WorklistKind.Buy,  _)                        => WorklistText.KindBuy,
+        (WorklistKind.Haul, _)                        => WorklistText.KindHaul,
+        (WorklistKind.Refine, _)                      => WorklistText.KindTipRefine,
+        (WorklistKind.Decompress, _)                  => WorklistText.KindTipDecompress,
+        (WorklistKind.Job, IndustryPool.Manufacturing) => WorklistText.KindTipManufacturing,
+        (WorklistKind.Job, IndustryPool.Reaction)      => WorklistText.KindTipReaction,
+        (WorklistKind.Job, IndustryPool.Science)       => WorklistText.KindTipScience,
+        (WorklistKind.Job, _)                          => WorklistText.KindTipIndustry,
+        (WorklistKind.CorpProject, _)                  => WorklistText.KindTipCorpProject,
+        (WorklistKind.AssetSafety, _)                  => WorklistText.KindTipAssetSafety,
+        (WorklistKind.Pi, _)                           => WorklistText.KindTipPi,
+        _                                              => WorklistText.KindTipSkillQueue,
     };
 
     /// <summary>
@@ -264,7 +280,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public string BlueprintMeText =>
         _item.Pool == IndustryPool.Manufacturing && _item.BlueprintMe is { } me
-            ? $"ME{me} TE{_item.BlueprintTe ?? 0}"
+            ? string.Format(WorklistText.BlueprintMeTe, me, _item.BlueprintTe ?? 0)
             : "";
 
     public bool HasBlueprintMe => BlueprintMeText.Length > 0;
@@ -328,9 +344,9 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 
     public string ReadinessText => _item.Readiness switch
     {
-        WorklistReadiness.Ready   => "Ready",
-        WorklistReadiness.Blocked => "Blocked",
-        _                         => "Waiting",
+        WorklistReadiness.Ready   => WorklistText.StateReady,
+        WorklistReadiness.Blocked => WorklistText.StateBlocked,
+        _                         => WorklistText.StateWaiting,
     };
 
     // Which shape the row draws in. A DataGrid has one column set for every row, so per-type
@@ -431,19 +447,19 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 
     /// <summary>How stale the data behind the suggestion is. Shown so the player does not act
     /// on an hour-old order book without knowing it.</summary>
-    public string DataAgeText => _item.DataAsOf is { } d ? $"data {Ago(d)}" : "";
+    public string DataAgeText => _item.DataAsOf is { } d ? string.Format(WorklistText.DataAge, Ago(d)) : "";
 
     public string SnoozeText => _item.SnoozedUntil is { } s && s > DateTimeOffset.UtcNow
-        ? $"snoozed until {s.ToLocalTime():d MMM HH:mm}"
+        ? string.Format(WorklistText.SnoozedUntil, s.ToLocalTime())
         : "";
 
     private static string Ago(DateTimeOffset t)
     {
         var d = DateTimeOffset.UtcNow - t;
-        if (d.TotalMinutes <  1) return "just now";
-        if (d.TotalHours   <  1) return $"{(int)d.TotalMinutes}m ago";
-        if (d.TotalDays    <  1) return $"{(int)d.TotalHours}h ago";
-        return $"{(int)d.TotalDays}d ago";
+        if (d.TotalMinutes <  1) return WorklistText.AgoJustNow;
+        if (d.TotalHours   <  1) return string.Format(WorklistText.AgoMinutes, (int)d.TotalMinutes);
+        if (d.TotalDays    <  1) return string.Format(WorklistText.AgoHours, (int)d.TotalHours);
+        return string.Format(WorklistText.AgoDays, (int)d.TotalDays);
     }
 }
 
@@ -456,7 +472,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 /// <summary>A slot pool, how hard it is being pushed, and what would buy more of it.</summary>
 public sealed class SlotPressureRowVm(SlotPressure p)
 {
-    public string Pool     => p.Pool.ToString();
+    public string Pool => p.Pool switch
+    {
+        IndustryPool.Manufacturing => WorklistText.PoolManufacturing,
+        IndustryPool.Reaction      => WorklistText.PoolReaction,
+        _                          => WorklistText.PoolScience,
+    };
     public string Capacity => p.Capacity.ToString("N0");
     public string InUse    => p.InUse.ToString("N0");
     public string Free     => p.Free.ToString("N0");
@@ -475,11 +496,19 @@ public sealed class SlotPressureRowVm(SlotPressure p)
     /// room — while "eleven weeks to catch up" is the fact somebody can act on.
     /// </summary>
     public string Headline => p.IsBottleneck
-        ? $"{p.Waiting:N0} job(s) queued — {p.ClearDays:N0} day(s) to work through at "
-        + $"{p.Capacity:N0} slot(s), which have been turning out {p.ThroughputPerDay:N1} job(s) a day."
+        ? string.Format(WorklistText.SlotsQueued, p.Waiting, p.ClearDays, p.Capacity, p.ThroughputPerDay)
         : p.Capacity == 0
-            ? $"No character is configured to run {p.Pool.ToString().ToLowerInvariant()} jobs."
-            : $"Nothing is queued behind this pool. {p.Free:N0} free of {p.Capacity:N0}.";
+            ? NoCharacterFor(p.Pool)
+            : string.Format(WorklistText.SlotsNothingQueued, p.Free, p.Capacity);
+
+    /// <summary>A sentence per pool rather than the pool's name dropped into one: other languages
+    /// may need the name in a different form, or in a different place.</summary>
+    private static string NoCharacterFor(IndustryPool pool) => pool switch
+    {
+        IndustryPool.Manufacturing => WorklistText.SlotsNoCharacterManufacturing,
+        IndustryPool.Reaction      => WorklistText.SlotsNoCharacterReaction,
+        _                          => WorklistText.SlotsNoCharacterScience,
+    };
 
     /// <summary>
     /// How long the queue takes to work off at the bandwidth on hand.
@@ -490,13 +519,14 @@ public sealed class SlotPressureRowVm(SlotPressure p)
     /// </summary>
     public string ClearDays => !p.IsBottleneck ? ""
                              : double.IsInfinity(p.ClearDays) ? "—"
-                             : $"{p.ClearDays:N0}d";
+                             : string.Format(WorklistText.DaysN0, p.ClearDays);
 
     public string Throughput => p.JobsDone == 0 ? ""
-                              : $"{p.ThroughputPerDay:N1}/d";
+                              : string.Format(WorklistText.PerDayN1, p.ThroughputPerDay);
 
     public string AvgJob => p.AvgJobDays <= 0 ? ""
-                          : p.AvgJobDays >= 1 ? $"{p.AvgJobDays:N1}d" : $"{p.AvgJobDays * 24:N1}h";
+                          : p.AvgJobDays >= 1 ? string.Format(WorklistText.DaysN1, p.AvgJobDays)
+                          : string.Format(WorklistText.HoursN1, p.AvgJobDays * 24);
 
     public IReadOnlyList<SlotRemedy> Remedies => p.Remedies;
 }
@@ -530,10 +560,27 @@ public sealed class ShortageTaskRowVm : ReactiveObject
 
     public string Title => t.Title;
     public string Why   => t.Why;
-    public string State => t.State;
 
-    /// <summary>What this task makes. Blank on an installed job, whose title says it already.</summary>
-    public string Item => t.TypeName;
+    /// <summary>
+    /// The task's state as a word.
+    ///
+    /// <para>⚠️ <see cref="ShortageTask.State"/> is a key here, not text: a readiness name or
+    /// "Running", from the services that build these rows. The label comes from the resources and
+    /// <see cref="StateColor"/> keys on the same value, so a translated label cannot lose its
+    /// colour. Anything else (a count of stops) is shown as the service wrote it.</para>
+    /// </summary>
+    public string State => t.State switch
+    {
+        nameof(WorklistReadiness.Ready)   => WorklistText.StateReady,
+        nameof(WorklistReadiness.Blocked) => WorklistText.StateBlocked,
+        nameof(WorklistReadiness.Waiting) => WorklistText.StateWaiting,
+        "Running"                         => WorklistText.StateRunning,
+        _                                 => t.State,
+    };
+
+    /// <summary>What this task makes, as the screen names it. Blank on an installed job, whose
+    /// title says it already.</summary>
+    public string Item => SdeNames.Type(t.TypeId, t.TypeName);
 
     /// <summary>Indented by how far down the chain it sits, so the hops read as a shape rather
     /// than as a column of numbers.</summary>
@@ -541,20 +588,20 @@ public sealed class ShortageTaskRowVm : ReactiveObject
 
     /// <summary>Where it sits: directly short of the material, behind something that is, or
     /// making the material itself.</summary>
-    public string Role => t.Role == "Hauling" ? "the trip"
-                        : t.Role == "Needs"   ? "needs"
-                        : t.Role == "Using"  ? "uses it"
-                        : t.Role == "Making" ? "makes it"
-                        : t.Hop == 0         ? "needs it"
-                        :                      $"behind ({t.Hop})";
+    public string Role => t.Role == "Hauling" ? WorklistText.RoleTrip
+                        : t.Role == "Needs"   ? WorklistText.RoleNeeds
+                        : t.Role == "Using"  ? WorklistText.RoleUsesIt
+                        : t.Role == "Making" ? WorklistText.RoleMakesIt
+                        : t.Hop == 0         ? WorklistText.RoleNeedsIt
+                        :                      string.Format(WorklistText.RoleBehind, t.Hop);
 
     public IBrush StateColor => t.State switch
     {
-        "Blocked" => Palette.Bad,
-        "Waiting" => Palette.Accent,
-        "Running" => Palette.Good,
-        "Ready"   => Palette.Good,
-        _         => Palette.TextMuted,
+        nameof(WorklistReadiness.Blocked) => Palette.Bad,
+        nameof(WorklistReadiness.Waiting) => Palette.Accent,
+        "Running"                         => Palette.Good,
+        nameof(WorklistReadiness.Ready)   => Palette.Good,
+        _                                 => Palette.TextMuted,
     };
 }
 
@@ -591,9 +638,9 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 
     public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
 
-    public string Item      => s.Name;
-    public string Used      => $"{s.UsedPerDay:N1}/d";
-    public string Made      => s.Buildable ? $"{s.MadePerDay:N1}/d" : "—";
+    public string Item      => SdeNames.Type(s.TypeId, s.Name);
+    public string Used      => string.Format(WorklistText.PerDayN1, s.UsedPerDay);
+    public string Made      => s.Buildable ? string.Format(WorklistText.PerDayN1, s.MadePerDay) : "—";
     public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";
     public string OnHand    => s.OnHand.ToString("N0");
 
@@ -632,13 +679,39 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 
     public bool HasTasks => s.Tasks is { Count: > 0 };
 
-    public string Verdict   => s.Verdict;
+    /// <summary>
+    /// The verdict as shown.
+    ///
+    /// <para>⚠️ <see cref="ItemShortage.Verdict"/> is the service's key as much as its text — it
+    /// switches on it for the advice, and <see cref="VerdictColor"/> keys on it here. So what is
+    /// shown comes from the resources while the colour stays on the service's word, and a
+    /// translated label cannot lose its colour. A verdict not listed shows as the service wrote
+    /// it.</para>
+    /// </summary>
+    public string Verdict => s.Verdict switch
+    {
+        "Buy now"        => WorklistText.ContentionVerdictBuyNow,
+        "On order"       => WorklistText.ContentionVerdictOnOrder,
+        "Buffer spent"   => WorklistText.ContentionVerdictBufferSpent,
+        "Blocked"        => WorklistText.ContentionVerdictBlocked,
+        "Level too low"  => WorklistText.ContentionVerdictLevelTooLow,
+        "No buffer"      => WorklistText.ContentionVerdictNoBuffer,
+        "Not the shelf"  => WorklistText.ContentionVerdictNotTheShelf,
+        "Making too few" => WorklistText.ContentionVerdictMakingTooFew,
+        "Buy"            => WorklistText.ContentionVerdictBuy,
+        "Buffer thin"    => WorklistText.ContentionVerdictBufferThin,
+        "No level set"   => WorklistText.ContentionVerdictNoLevelSet,
+        "Wave"           => WorklistText.ContentionVerdictWave,
+        "Holding"        => WorklistText.ContentionVerdictHolding,
+        _                => s.Verdict,
+    };
+
     public string Advice    => s.Advice;
 
     /// <summary>Days the level covers at the current draw. The number a buffer is judged on.</summary>
     public string Cover => s.Level <= 0 ? "—"
                          : double.IsInfinity(s.DaysOfCover) ? "—"
-                         : $"{s.DaysOfCover:N0}d";
+                         : string.Format(WorklistText.DaysN0, s.DaysOfCover);
 
     /// <summary>Made per unit consumed. Under 1.0 and the shelf drains however full it looks.</summary>
     public string Balance => !s.Buildable ? "—" : $"{s.Balance:N2}×";
@@ -708,12 +781,15 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     /// same print listed twenty identical rows saying the same thing — a wall of text that told
     /// the reader nothing the first line had not, and made the expanded row taller than the grid.
     /// </summary>
-    public string TypeName => _count > 1 ? $"{_w.TypeName} × {_count:N0}" : _w.TypeName;
+    public string TypeName => _count > 1 ? $"{Shown} × {_count:N0}" : Shown;
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
     public bool   HasItemLink => _w.HasItemLink;
     public void   OpenItem()  => _w.OpenItem();
+
+    /// <summary>The product as the screen names it. The record keeps the English.</summary>
+    private string Shown => SdeNames.Type(_w.TypeId, _w.TypeName);
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon
@@ -742,7 +818,8 @@ public sealed class WorklistLineVm : ReactiveObject
 
     public WorklistLine Line => _line;
 
-    public string TypeName   => _line.TypeName;
+    /// <summary>As the screen names it; <see cref="Line"/> keeps the English.</summary>
+    public string TypeName   => SdeNames.Type(_line.TypeId, _line.TypeName);
     public long   Quantity   => _line.Quantity;
     public string ValueText  => _line.ValueText;
     public string VolumeText => _line.VolumeText;
@@ -800,18 +877,18 @@ public sealed class ObservationVm(Observation o)
 
     /// <summary>The one finding to act on is marked, not merely first: a list read top-down
     /// reads as four jobs to do rather than one lever and three things to know about.</summary>
-    public string Marker      => o.IsPrimary ? "START HERE" : Kind;
+    public string Marker      => o.IsPrimary ? WorklistText.FindingStartHere : Kind;
     public IBrush MarkerColor => o.IsPrimary ? Palette.Accent : Palette.TextFaint;
     public IBrush RuleColor   => o.IsPrimary ? Palette.Accent : Palette.SurfaceRaised;
 
     private string Kind => o.Kind switch
     {
-        "slots"     => "SLOTS",
-        "prints"    => "BLUEPRINTS",
-        "formulas"  => "FORMULAS",
-        "buying"    => "BUYING",
-        "levels"    => "BUFFERS",
-        _           => "HAULING",
+        "slots"     => WorklistText.FindingSlots,
+        "prints"    => WorklistText.FindingBlueprints,
+        "formulas"  => WorklistText.FindingFormulas,
+        "buying"    => WorklistText.FindingBuying,
+        "levels"    => WorklistText.FindingBuffers,
+        _           => WorklistText.FindingHauling,
     };
 }
 
@@ -849,12 +926,21 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
     public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
 
     public string Task     => h.Title;
-    public string Station  => h.StationName.Length > 0 ? h.StationName : $"Location {h.StationId}";
+    public string Station  => h.StationName.Length > 0 ? h.StationName
+                                                       : string.Format(WorklistText.LocationWithId, h.StationId);
     public string Blocking => h.StalledTasks > 0 ? h.StalledTasks.ToString("N0") : "";
     public string Hauls    => h.HaulTasks > 0 ? h.HaulTasks.ToString("N0") : "";
     public string Items    => h.ItemTypes.ToString("N0");
     public string Sources  => h.Sources > 0 ? h.Sources.ToString("N0") : "";
-    public string Verdict  => h.Verdict;
+    /// <summary>The verdict as shown. ⚠️ <see cref="HaulBlock.Verdict"/> is a key — see
+    /// <see cref="ItemShortageRowVm.Verdict"/>.</summary>
+    public string Verdict  => h.Verdict switch
+    {
+        "Nothing moving" => WorklistText.HaulingVerdictNothingMoving,
+        "Several stops"  => WorklistText.HaulingVerdictSeveralStops,
+        "Haul raised"    => WorklistText.HaulingVerdictHaulRaised,
+        _                => h.Verdict,
+    };
     public string Advice   => h.Advice;
 
     /// <summary>Sized the way a hauler thinks about it, not to the nearest cubic metre.</summary>
@@ -941,12 +1027,13 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
 
     public bool HasTasks => p.Tasks.Count > 0;
 
-    public string Product   => p.ProductName;
-    public string Cycle     => p.CycleDays >= 1 ? $"{p.CycleDays:N1}d" : $"{p.CycleDays * 24:N1}h";
+    public string Product   => SdeNames.Type(p.ProductTypeId, p.ProductName);
+    public string Cycle     => p.CycleDays >= 1 ? string.Format(WorklistText.DaysN1, p.CycleDays)
+                                                : string.Format(WorklistText.HoursN1, p.CycleDays * 24);
     public string Prints    => p.Prints.ToString("N0");
     public string Busy      => p.Busy > 0 ? p.Busy.ToString("N0") : "";
-    public string Capacity  => $"{p.CapacityPerDay:N2}/d";
-    public string Demand    => $"{p.MadePerDay:N2}/d";
+    public string Capacity  => string.Format(WorklistText.PerDayN2, p.CapacityPerDay);
+    public string Demand    => string.Format(WorklistText.PerDayN2, p.MadePerDay);
 
     /// <summary>
     /// ⚠️ The share of the window when EVERY copy was busy — the only figure that says whether
@@ -956,20 +1043,43 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
     public string Cover     => $"{p.ContentionPercent:N0}%";
 
     /// <summary>Where it sits among this operation's own prints, which is what decides the flag.</summary>
-    public string Rank      => p.ContentionPercent <= 0 ? "" : $"top {Math.Max(1, 100 - p.ContentionRank):N0}%";
+    public string Rank      => p.ContentionPercent <= 0 ? ""
+                             : string.Format(WorklistText.RankTopPercent, Math.Max(1, 100 - p.ContentionRank));
 
     /// <summary>Kept beside it as context, deliberately not as the ranking.</summary>
     public string Used      => $"{p.UtilPercent:N0}%";
     public string Blocked   => p.BlockedNow > 0 ? p.BlockedNow.ToString("N0") : "";
 
-    public string WithOneMore => $"{p.CeilingWithOneMore:N2}/d";
+    public string WithOneMore => string.Format(WorklistText.PerDayN2, p.CeilingWithOneMore);
     public string Wanted      => p.WantedNow > 0 ? p.WantedNow.ToString("N0") : "";
-    /// <summary>Named Verdict like the other two tabs: three columns doing the same job
-    /// under three names made them read as three different kinds of thing.</summary>
-    public string Verdict      => p.Verdict;
+    /// <summary>
+    /// Named Verdict like the other two tabs: three columns doing the same job under three names
+    /// made them read as three different kinds of thing.
+    ///
+    /// <para>⚠️ <see cref="ItemBandwidth.Verdict"/> is a key — see
+    /// <see cref="ItemShortageRowVm.Verdict"/>.</para>
+    /// </summary>
+    public string Verdict => p.Verdict switch
+    {
+        "Blocking"  => WorklistText.BlueprintVerdictBlocking,
+        "Steady"    => WorklistText.BlueprintVerdictSteady,
+        "Contended" => WorklistText.BlueprintVerdictContended,
+        "Blocked"   => WorklistText.BlueprintVerdictBlocked,
+        "Surge"     => WorklistText.BlueprintVerdictSurge,
+        "Building"  => WorklistText.BlueprintVerdictBuilding,
+        "Minor"     => WorklistText.BlueprintVerdictMinor,
+        _           => p.Verdict,
+    };
 
-    /// <summary>Recent squeeze against the whole window — a quarter-long average hides a busy month.</summary>
-    public string Trend       => p.Trend;
+    /// <summary>Recent squeeze against the whole window — a quarter-long average hides a busy month.
+    /// ⚠️ <see cref="ItemBandwidth.Trend"/> is a key, as the verdict is.</summary>
+    public string Trend => p.Trend switch
+    {
+        "Rising" => WorklistText.BlueprintTrendRising,
+        "Easing" => WorklistText.BlueprintTrendEasing,
+        "Steady" => WorklistText.BlueprintTrendSteady,
+        _        => p.Trend,
+    };
     public string Recent      => p.RecentContentionPercent <= 0 ? "" : $"{p.RecentContentionPercent:N0}%";
 
     public IBrush TrendColor => p.Trend switch
@@ -1038,7 +1148,13 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandabl
     public string Glyph => !HasDrivers ? "" : _isExpanded ? "▾" : "▸";
 
     public string Station => n.StationName;
-    public string Item    => n.TypeName;
+
+    /// <summary>
+    /// The item as the screen names it — which is also what Item Needs groups under and sorts its
+    /// groups by, so the headings read in the reader's own order. Nothing matches on it: the
+    /// need itself keeps the English, and the links go by id.
+    /// </summary>
+    public string Item    => SdeNames.Type(n.TypeId, n.TypeName);
 
     // Both names on a need point somewhere; the ids were already on the record.
     public bool HasStationLink => n.StationId > 0 && n.StationName.Length > 0;
@@ -1195,7 +1311,7 @@ public class WorklistViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _hasSharedTrips, value);
     }
 
-    private string _bottleneckStatus = "Not loaded yet.";
+    private string _bottleneckStatus = WorklistText.StatusNotLoadedYet;
     public string BottleneckStatus
     {
         get => _bottleneckStatus;
@@ -1226,15 +1342,14 @@ public class WorklistViewModel : ReactiveObject
     /// are then evidence of the constraint rather than the absence of one, and saying so is the
     /// difference between buying an account and buying a print.</para>
     /// </summary>
-    private static string Crossed(
+    /// <returns>The free slots and the blueprints with every copy busy, or null when the two
+    /// panels agree. The status line says it in a sentence of its own.</returns>
+    private static (int Free, int Pinched)? Crossed(
         IReadOnlyList<SlotPressure> slots, IReadOnlyList<ItemBandwidth> prints)
     {
         var free    = slots.Sum(s => s.Free);
         var pinched = prints.Count(p => p.IsTight);
-        if (free <= 0 || pinched == 0) return "";
-
-        return $"⚠ {free:N0} slot(s) sitting free while {pinched} blueprint(s) have every copy "
-             + "busy — the constraint here is prints, not slots. ";
+        return free <= 0 || pinched == 0 ? null : (free, pinched);
     }
 
     private async Task RefreshBottlenecksAsync()
@@ -1296,17 +1411,17 @@ public class WorklistViewModel : ReactiveObject
                 // ⚠️ The calibration is stated, not hidden. Nothing here uses a fixed cut-off any
                 // more, so the reader is owed the scale the flags were drawn against — otherwise
                 // "top 10%" is a number with no visible basis.
+                //
+                // One whole sentence per case, the scale (the service's own text) last in each.
+                var draining = shorts.Count(s => s.IsDraining);
                 BottleneckStatus = items.Count == 0
-                    ? "The worklist is empty — generate it first and this will have something to read."
+                    ? WorklistText.BottlenecksWorklistEmpty
                     : tight == 0 && prints.Count == 0
-                        ? "Nothing is bottlenecked: no pool has work waiting on a slot, and no "
-                        + "blueprint has had every copy busy often enough to make anything wait. "
-                        + scale
-                        : $"{tight} pool(s) with work waiting on a slot; "
-                        + $"{prints.Count} blueprint(s) worth a look; "
-                        + $"{shorts.Count(s => s.IsDraining)} material(s) being used faster than "
-                        + "they are made. "
-                        + Crossed(slots, prints) + scale;
+                        ? string.Format(WorklistText.BottlenecksNone, scale)
+                        : Crossed(slots, prints) is { } crossed
+                            ? string.Format(WorklistText.BottlenecksSummaryCrossed,
+                                            tight, prints.Count, draining, crossed.Free, crossed.Pinched, scale)
+                            : string.Format(WorklistText.BottlenecksSummary, tight, prints.Count, draining, scale);
             });
         }
         finally { BottlenecksLoading = false; }
@@ -1315,7 +1430,7 @@ public class WorklistViewModel : ReactiveObject
     private bool _needsLoading;
     public bool NeedsLoading { get => _needsLoading; private set => this.RaiseAndSetIfChanged(ref _needsLoading, value); }
 
-    private string _needsStatus = "Open this tab to work out what every station wants.";
+    private string _needsStatus = WorklistText.NeedsNotLoaded;
     public string NeedsStatus { get => _needsStatus; private set => this.RaiseAndSetIfChanged(ref _needsStatus, value); }
 
     public ReactiveCommand<Unit, Unit> RefreshNeedsCommand { get; private set; } = null!;
@@ -1407,13 +1522,18 @@ public class WorklistViewModel : ReactiveObject
         var logistics = _service.Generators.OfType<LogisticsGenerator>().FirstOrDefault();
         if (logistics is null)
         {
-            NeedsStatus = "The Logistics source is not available.";
+            NeedsStatus = WorklistText.NeedsNoLogistics;
             return;
         }
 
         NeedsLoading = true;
         try
         {
+            // The rows name their items in the interface language, and Item Needs groups by that
+            // name: in before the first rows are built, or a tab opened right after start is
+            // grouped under the English and stays that way.
+            await SdeNames.EnsureLoadedAsync();
+
             var rows = await logistics.NeedsAsync();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -1441,15 +1561,13 @@ public class WorklistViewModel : ReactiveObject
                 var stations = rows.Select(r => r.StationId).Distinct().Count();
                 var short_   = rows.Count(r => r.Shortfall > 0);
                 NeedsStatus = rows.Count == 0
-                    ? "Nothing is wanted anywhere — no build rules, orders or station levels are asking for material."
-                    : $"{rows.Count:N0} need(s) across {stations} station(s); {short_:N0} short. "
-                    + "Shortest first. These are wants, not tasks — a small shortfall may sit inside "
-                    + "the station-level deadband and raise no haul.";
+                    ? WorklistText.NeedsNothingWanted
+                    : string.Format(WorklistText.NeedsSummary, rows.Count, stations, short_);
             });
         }
         catch (Exception ex)
         {
-            NeedsStatus = $"Could not work out station needs: {ex.Message}";
+            NeedsStatus = string.Format(WorklistText.NeedsError, ex.Message);
         }
         finally { NeedsLoading = false; }
     }
@@ -1523,7 +1641,7 @@ public class WorklistViewModel : ReactiveObject
 
         RefreshBottlenecksCommand = ReactiveCommand.CreateFromTask(RefreshBottlenecksAsync);
         RefreshBottlenecksCommand.ThrownExceptions.Subscribe(
-            ex => BottleneckStatus = $"Could not read the bottlenecks: {ex.Message}");
+            ex => BottleneckStatus = string.Format(WorklistText.BottlenecksError, ex.Message));
 
         MarketAltsVm  = marketAlts;
         RulesVm  = rules;
@@ -1564,7 +1682,7 @@ public class WorklistViewModel : ReactiveObject
         foreach (var g in _service.Generators)
             Sources.Add(new WorklistToggleVm(
                 g.DisplayName,
-                "Include this source in the worklist.",
+                WorklistText.SourceIncludeTip,
                 s.IsSourceEnabled(g.Id),
                 on => s.SetSourceEnabledAsync(g.Id, on),
                 RefreshAsync));
@@ -1573,26 +1691,25 @@ public class WorklistViewModel : ReactiveObject
         // and material-purchase generators both read. It belongs on this tab because this is where
         // a player looks to answer "what is the worklist built from".
         Sources.Add(new WorklistToggleVm(
-            "Customer orders",
-            "Plan the pending orders from the Order Tracker, netted against what is already built "
-          + "or in production. Uses the park and buy location set on the Industry tab.",
+            WorklistText.SourceCustomerOrders,
+            WorklistText.SourceCustomerOrdersTip,
             s.PlanCustomerOrders,
             on => s.SetPlanCustomerOrdersAsync(on),
             RefreshAsync));
 
         // Standing-buy conditions are separate switches because they are separate jobs: an
         // outbid order needs a price change, a missing one needs creating, a low one topping up.
-        Conditions.Add(new WorklistToggleVm("Missing orders",
-            "A standing order with no live buy order at its station.",
+        Conditions.Add(new WorklistToggleVm(WorklistText.ConditionMissing,
+            WorklistText.ConditionMissingTip,
             s.RaiseMissing,  on => s.SetConditionAsync("missing", on),  RefreshAsync));
-        Conditions.Add(new WorklistToggleVm("Outbid",
-            "Someone else is bidding higher, so the order is buying nothing.",
+        Conditions.Add(new WorklistToggleVm(WorklistText.ConditionOutbid,
+            WorklistText.ConditionOutbidTip,
             s.RaiseOutbid,   on => s.SetConditionAsync("outbid", on),   RefreshAsync));
-        Conditions.Add(new WorklistToggleVm("Running low",
-            "Remaining volume has fallen below the top-up threshold.",
+        Conditions.Add(new WorklistToggleVm(WorklistText.ConditionRunningLow,
+            WorklistText.ConditionRunningLowTip,
             s.RaiseLow,      on => s.SetConditionAsync("low", on),      RefreshAsync));
-        Conditions.Add(new WorklistToggleVm("Expiring soon",
-            "The order is close to the end of its duration.",
+        Conditions.Add(new WorklistToggleVm(WorklistText.ConditionExpiring,
+            WorklistText.ConditionExpiringTip,
             s.RaiseExpiring, on => s.SetConditionAsync("expiring", on), RefreshAsync));
     }
 
@@ -1629,14 +1746,14 @@ public class WorklistViewModel : ReactiveObject
     // and a number that moved when an unrelated column filter changed would read as the toggle
     // having done something.
 
-    private string _notReadyLabel = "Show blocked / waiting";
+    private string _notReadyLabel = WorklistText.ShowNotReady;
     public string NotReadyLabel
     {
         get => _notReadyLabel;
         private set => this.RaiseAndSetIfChanged(ref _notReadyLabel, value);
     }
 
-    private string _snoozedLabel = "Show snoozed";
+    private string _snoozedLabel = WorklistText.ShowSnoozed;
     public string SnoozedLabel
     {
         get => _snoozedLabel;
@@ -1653,8 +1770,10 @@ public class WorklistViewModel : ReactiveObject
     // applied. Options that vanished as you narrowed would make it impossible to widen again
     // without clearing everything first.
 
-    /// <summary>Shown at the top of each dropdown; means no filter on that column.</summary>
-    public const string AnyValue = "(any)";
+    /// <summary>Shown at the top of each dropdown; means no filter on that column. ⚠️ A sentinel
+    /// the filters compare against — always this same field, so a translated word still matches
+    /// itself.</summary>
+    public static readonly string AnyValue = WorklistText.FilterAny;
 
     private List<WorklistRowVm> _pool = [];
 
@@ -1874,10 +1993,7 @@ public class WorklistViewModel : ReactiveObject
     /// three lines forever. Now shown only when the grid is empty — which is the one moment someone
     /// is asking why there is nothing here.
     /// </summary>
-    public const string HelpText =
-        "Items are rebuilt from live data each refresh — one disappears once the work is done. " +
-        "Detection runs off polled ESI data, so each row shows how old the data behind it is. " +
-        "The summary above is counted off the whole run, not the filters.";
+    public static readonly string HelpText = WorklistText.EmptyListHelp;
 
 
     private void UpdateSummary(List<WorklistItem> items)
@@ -1894,11 +2010,11 @@ public class WorklistViewModel : ReactiveObject
 
         Fill(KindSummary, new[]
             {
-                new SummaryStatVm("buy",           ready.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
-                new SummaryStatVm("haul",          ready.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
-                new SummaryStatVm("manufacturing", ready.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
-                new SummaryStatVm("reactions",     ready.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
-                new SummaryStatVm("science",       ready.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
+                new SummaryStatVm(WorklistText.ChipBuy,           ready.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
+                new SummaryStatVm(WorklistText.ChipHaul,          ready.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
+                new SummaryStatVm(WorklistText.ChipManufacturing, ready.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
+                new SummaryStatVm(WorklistText.ChipReactions,     ready.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
+                new SummaryStatVm(WorklistText.ChipScience,       ready.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
             }
             .Where(s => s.Value != "0"));
 
@@ -1915,10 +2031,16 @@ public class WorklistViewModel : ReactiveObject
         && Is(_characterFilter, r.CharacterName)
         && Is(_sourceFilter,    r.LocationName)
         && Is(_destFilter,      r.DestinationName)
-        && Has(_descriptionFilter, r.Title)
+        // ⚠️ The title names the item in the interface language, and a name pasted from a website
+        // or chat is English — so the row's own item is matched in English too. Not on a haul,
+        // whose title names no item and whose TypeName is merely the first line of its manifest.
+        && (Has(_descriptionFilter, r.Title)
+            || !r.IsHaul && SdeNames.Matches(Models.SdeNameKind.Type, r.TypeId, r.Item.TypeName, _descriptionFilter))
         // The note cell shows the detail, the blocked reason and the snooze line together, so a
-        // search over it has to cover all three or it would miss what the reader can see.
-        && Has(_noteFilter, $"{r.Detail} {r.Note} {r.SnoozeText}");
+        // search over it has to cover all three or it would miss what the reader can see — and
+        // what a job is short of, in English, for the same reason as the title above.
+        && (Has(_noteFilter, $"{r.Detail} {r.Note} {r.SnoozeText}")
+            || r.Item.Shortages.Any(s => s.TypeName.Contains(_noteFilter, StringComparison.OrdinalIgnoreCase)));
 
     private static bool Is(string filter, string value) =>
         filter == AnyValue
@@ -1966,11 +2088,13 @@ public class WorklistViewModel : ReactiveObject
 
         // "Shown" is only worth saying when it differs from the ready count — otherwise the two
         // numbers are the same fact stated twice.
-        var shownPart = shown == _readyTotal ? "" : $"  ·  {shown:N0} shown";
+        var shownPart = shown == _readyTotal ? "" : "  ·  " + string.Format(WorklistText.StatusShown, shown);
 
+        // The two optional parts go in as one placeholder, each opening with its own space.
+        var tail = shownPart + _hiddenTail;
         Status = _readyTotal == 0
-            ? $"Nothing ready{shownPart}{_hiddenTail}."
-            : $"{_readyTotal:N0} ready{shownPart}{_hiddenTail}";
+            ? string.Format(WorklistText.StatusNothingReady, tail)
+            : string.Format(WorklistText.StatusReady, _readyTotal, tail);
     }
 
     private bool _isLoading;
@@ -2070,7 +2194,7 @@ public class WorklistViewModel : ReactiveObject
                 // quadratic — see BulkObservableCollection.
                 PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
-                RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
+                RefreshedText   = string.Format(WorklistText.RefreshedAt, DateTime.Now);
 
                 RebuildFilterOptions();
                 ApplyFilters();
@@ -2086,15 +2210,15 @@ public class WorklistViewModel : ReactiveObject
                 // Hidden counts are always reported, even when nothing is actionable. "Nothing to
                 // do" beside nine blocked items would be a lie of omission — there is plenty to
                 // do, none of it right now.
-                NotReadyLabel = $"Show blocked / waiting ({blocked + waiting:N0})";
-                SnoozedLabel  = $"Show snoozed ({snoozed:N0})";
+                NotReadyLabel = string.Format(WorklistText.ShowNotReadyCount, blocked + waiting);
+                SnoozedLabel  = string.Format(WorklistText.ShowSnoozedCount, snoozed);
 
                 var hidden = new List<string>();
-                if (!ShowNotReady && blocked > 0) hidden.Add($"{blocked} blocked");
-                if (!ShowNotReady && waiting > 0) hidden.Add($"{waiting} waiting");
-                if (!ShowSnoozed  && snoozed > 0) hidden.Add($"{snoozed} snoozed");
+                if (!ShowNotReady && blocked > 0) hidden.Add(string.Format(WorklistText.HiddenBlocked, blocked));
+                if (!ShowNotReady && waiting > 0) hidden.Add(string.Format(WorklistText.HiddenWaiting, waiting));
+                if (!ShowSnoozed  && snoozed > 0) hidden.Add(string.Format(WorklistText.HiddenSnoozed, snoozed));
 
-                _hiddenTail = hidden.Count > 0 ? $" ({string.Join(", ", hidden)} hidden)" : "";
+                _hiddenTail = hidden.Count > 0 ? " " + string.Format(WorklistText.HiddenList, string.Join(CommonText.ListSeparator, hidden)) : "";
                 UpdateStatus();
 
                 Errors = failed.Count == 0
@@ -2110,7 +2234,7 @@ public class WorklistViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
         finally { IsLoading = false; }
     }

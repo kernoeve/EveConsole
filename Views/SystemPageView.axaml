@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.SystemPageView"
@@ -102,19 +103,19 @@
                        ToolTip.Tip="{Binding SecurityTip}"
                        Foreground="{Binding SecurityColor}" VerticalAlignment="Center" />
             <TextBlock Text="{Binding SecurityTrue}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                       ToolTip.Tip="True security" VerticalAlignment="Center" Margin="-4 0 0 0" />
+                       ToolTip.Tip="{x:Static loc:MapText.TipTrueSecurity}" VerticalAlignment="Center" Margin="-4 0 0 0" />
             <TextBlock Text="{Binding SecurityClass}" Classes="hlabel" />
           </StackPanel>
 
           <StackPanel Orientation="Horizontal">
-            <TextBlock Classes="hlabel" Text="Region" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.Region}" Margin="0 0 6 0" />
             <Panel>
               <Button Classes="link" Click="OnOpenRegion" IsVisible="{Binding HasRegionLink}">
                 <TextBlock Text="{Binding Region}" Classes="linktext hvalue" Margin="0" />
               </Button>
               <TextBlock Classes="hvalue" Text="{Binding Region}" IsVisible="{Binding !HasRegionLink}" />
             </Panel>
-            <TextBlock Classes="hlabel" Text="Constellation" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.Constellation}" Margin="0 0 6 0" />
             <Panel>
               <Button Classes="link" Click="OnOpenConstellation" IsVisible="{Binding HasConstellationLink}">
                 <TextBlock Text="{Binding Constellation}" Classes="linktext hvalue" Margin="0" />
@@ -124,7 +125,7 @@
           </StackPanel>
 
           <StackPanel Orientation="Horizontal">
-            <TextBlock Classes="hlabel" Text="Sovereignty" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.Sovereignty}" Margin="0 0 6 0" />
             <!-- Split into its two halves so each can be clicked. The combined string is kept for
                  the case where neither is a link, which is how "Unclaimed" still appears. -->
             <Button Classes="link" Command="{Binding OpenSovAllianceCommand}"
@@ -139,7 +140,7 @@
             </Button>
             <TextBlock Classes="hvalue" Text="{Binding Holder}"
                        IsVisible="{Binding HasSovNeither}" />
-            <TextBlock Classes="hlabel" Text="Local pirates" Margin="0 0 6 0"
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.LocalPirates}" Margin="0 0 6 0"
                        IsVisible="{Binding LocalPirates, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <Panel>
               <Button Classes="link" Click="OnOpenPirates" IsVisible="{Binding HasPirateLink}">
@@ -152,14 +153,49 @@
                        Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
           </StackPanel>
 
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding IncursionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysIncursionLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IncursionText}" Foreground="{Binding IncursionColor}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Campaign, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysCampaignLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Campaign}" Foreground="#DC2626" FontWeight="SemiBold"
+                       TextWrapping="Wrap" MaxWidth="1000" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Weather, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysWeatherLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Weather}" Foreground="#F5B83D" />
+          </StackPanel>
+
+          <!-- From the map: the Ansiblex zone, and who is placed here now. -->
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasZone}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysZoneLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding ZoneText}" Foreground="{Binding ZoneColor}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding HostilesNow, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysNowLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding HostilesNow}" Foreground="{DynamicResource BadBrush}"
+                       TextWrapping="Wrap" MaxWidth="900" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding OwnNow, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysNowLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding OwnNow}" Foreground="{DynamicResource InfoBrush}" />
+          </StackPanel>
+
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasIndustryIndex}">
-            <TextBlock Classes="hlabel" Text="Industry indices" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.IndustryIndices}" Margin="0 0 6 0" />
             <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="{DynamicResource TextSecondaryBrush}"
-                       ToolTip.Tip="Manufacturing · time efficiency · material efficiency · copying · invention · reactions" />
+                       ToolTip.Tip="{x:Static loc:MapText.TipManufacturingTimeEfficiencyMaterial}" />
           </StackPanel>
 
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasProduction}">
-            <TextBlock Classes="hlabel" Text="Production" Margin="0 0 6 0" />
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.Production}" Margin="0 0 6 0" />
             <TextBlock Classes="hvalue" Text="{Binding Production}" Foreground="{DynamicResource GoodBrush}" />
           </StackPanel>
         </StackPanel>
@@ -167,19 +203,19 @@
         <!-- Counters, mirroring dotlan's 1h / 24h pairing -->
         <Grid Grid.Column="3" ColumnDefinitions="Auto,Auto"
               RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Top">
-          <TextBlock Grid.Row="0" Grid.Column="0" Classes="hlabel" Text="Planets"        Margin="0 0 12 2" />
+          <TextBlock Grid.Row="0" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.Planets}"        Margin="0 0 12 2" />
           <TextBlock Grid.Row="0" Grid.Column="1" Classes="col"    Text="{Binding PlanetCount}" />
-          <TextBlock Grid.Row="1" Grid.Column="0" Classes="hlabel" Text="Moons"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.Moons}"          Margin="0 0 12 2" />
           <TextBlock Grid.Row="1" Grid.Column="1" Classes="col"    Text="{Binding MoonCount}" />
-          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="Belts"          Margin="0 0 12 2" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.Belts}"          Margin="0 0 12 2" />
           <TextBlock Grid.Row="2" Grid.Column="1" Classes="col"    Text="{Binding BeltCount}" />
-          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="Jumps 1h / 24h" Margin="0 6 12 2" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.Jumps1h24h}" Margin="0 6 12 2" />
           <TextBlock Grid.Row="3" Grid.Column="1" Classes="col"    Text="{Binding Jumps}" Margin="0 6 0 2" />
-          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="Ship kills"     Margin="0 0 12 2" />
+          <TextBlock Grid.Row="4" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.ShipKills}"     Margin="0 0 12 2" />
           <TextBlock Grid.Row="4" Grid.Column="1" Classes="col"    Text="{Binding ShipKills}" />
-          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="NPC kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="5" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.NpcKills}"      Margin="0 0 12 2" />
           <TextBlock Grid.Row="5" Grid.Column="1" Classes="col"    Text="{Binding NpcKills}" />
-          <TextBlock Grid.Row="6" Grid.Column="0" Classes="hlabel" Text="Pod kills"      Margin="0 0 12 2" />
+          <TextBlock Grid.Row="6" Grid.Column="0" Classes="hlabel" Text="{x:Static loc:MapText.PodKills}"      Margin="0 0 12 2" />
           <TextBlock Grid.Row="6" Grid.Column="1" Classes="col"    Text="{Binding PodKills}" />
         </Grid>
       </Grid>
@@ -189,7 +225,7 @@
     <TabControl Grid.Row="1" Background="Transparent" Padding="0">
 
       <!-- ── Overview ──────────────────────────────────────────────────── -->
-      <TabItem Header="Overview">
+      <TabItem Header="{x:Static loc:MapText.TabOverview}">
         <ScrollViewer>
           <StackPanel Margin="16" Spacing="16">
 
@@ -198,25 +234,25 @@
               <TextBlock Classes="note" Text="{Binding HourNote}" />
               <Grid ColumnDefinitions="*,12,*,12,*,12,*">
                 <StackPanel Grid.Column="0">
-                  <TextBlock Classes="colhead" Text="JUMPS" />
+                  <TextBlock Classes="colhead" Text="{x:Static loc:MapText.JumpsLabel}" />
                   <lvc:CartesianChart Height="110" Series="{Binding HourJumpSeries}"
                                       XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
                                       EasingFunction="{x:Null}" Background="Transparent" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
-                  <TextBlock Classes="colhead" Text="NPC KILLS" />
+                  <TextBlock Classes="colhead" Text="{x:Static loc:MapText.NpcKillsLabel}" />
                   <lvc:CartesianChart Height="110" Series="{Binding HourNpcSeries}"
                                       XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
                                       EasingFunction="{x:Null}" Background="Transparent" />
                 </StackPanel>
                 <StackPanel Grid.Column="4">
-                  <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                  <TextBlock Classes="colhead" Text="{x:Static loc:MapText.ShipKillsLabel}" />
                   <lvc:CartesianChart Height="110" Series="{Binding HourShipSeries}"
                                       XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
                                       EasingFunction="{x:Null}" Background="Transparent" />
                 </StackPanel>
                 <StackPanel Grid.Column="6">
-                  <TextBlock Classes="colhead" Text="POD KILLS" />
+                  <TextBlock Classes="colhead" Text="{x:Static loc:MapText.PodKillsLabel}" />
                   <lvc:CartesianChart Height="110" Series="{Binding HourPodSeries}"
                                       XAxes="{Binding HourXAxes}" YAxes="{Binding HourYAxes}"
                                       EasingFunction="{x:Null}" Background="Transparent" />
@@ -225,15 +261,15 @@
             </StackPanel>
 
             <StackPanel>
-              <TextBlock Classes="colhead" Text="SOVEREIGNTY STRUCTURES" Margin="0 0 0 6" />
-              <TextBlock Classes="note" Text="No sovereignty structures in this system."
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SovereigntyStructuresLabel}" Margin="0 0 0 6" />
+              <TextBlock Classes="note" Text="{x:Static loc:MapText.NoSovereigntyStructuresInThis}"
                          IsVisible="{Binding !SovStructures.Count}" />
               <Grid ColumnDefinitions="36,2*,2*,60,110,3*" IsVisible="{Binding SovStructures.Count}">
-                <TextBlock Grid.Column="1" Classes="colhead" Text="TYPE" />
-                <TextBlock Grid.Column="2" Classes="colhead" Text="OWNER" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.TypeLabel}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.OwnerLabel}" />
                 <TextBlock Grid.Column="3" Classes="colhead" Text="ADM" Margin="0 0 14 0" />
-                <TextBlock Grid.Column="4" Classes="colhead" Text="STATE" Margin="0 0 14 0" />
-                <TextBlock Grid.Column="5" Classes="colhead" Text="VULNERABILITY WINDOW" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.StateLabel}" Margin="0 0 14 0" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.VulnerabilityWindowLabel}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding SovStructures}">
                 <ItemsControl.ItemTemplate>
@@ -243,7 +279,7 @@
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <Panel Grid.Column="1">
                           <Button Classes="link" Click="OnOpenSovType" IsVisible="{Binding HasTypeLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding TypeName}" Classes="linktext col" Margin="0" />
                           </Button>
                           <TextBlock Classes="col" Text="{Binding TypeName}"
@@ -251,7 +287,7 @@
                         </Panel>
                         <Panel Grid.Column="2">
                           <Button Classes="link" Click="OnOpenSovOwner" IsVisible="{Binding HasOwnerLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Owner}" Classes="linktext col" Margin="0" />
                           </Button>
                           <TextBlock Classes="col" Text="{Binding Owner}"
@@ -269,9 +305,9 @@
             </StackPanel>
 
             <StackPanel>
-              <TextBlock Classes="colhead" Text="SOVEREIGNTY CHANGES" Margin="0 0 0 6" />
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SovereigntyChangesLabel}" Margin="0 0 0 6" />
               <TextBlock Classes="note" Text="{Binding HistoryNote}" />
-              <TextBlock Classes="note" Text="No changes recorded in the stored window."
+              <TextBlock Classes="note" Text="{x:Static loc:MapText.NoChangesRecordedInNote}"
                          IsVisible="{Binding !SovChanges.Count}" />
               <ItemsControl ItemsSource="{Binding SovChanges}">
                 <ItemsControl.ItemTemplate>
@@ -290,8 +326,67 @@
               </ItemsControl>
             </StackPanel>
 
+            <StackPanel IsVisible="{Binding HasBridges}">
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SysBridgesLabel}" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="150,2*,3*,120">
+                <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.ColLeadsTo}" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.ColGate}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.ColAccess}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.ColFuel}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Bridges}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysBridgeVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="150,2*,3*,120">
+                        <Button Grid.Column="0" Classes="link" Command="{Binding OpenCommand}"
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}" VerticalAlignment="Top">
+                          <TextBlock Text="{Binding OtherLabel}" Classes="linktext col" Margin="0" />
+                        </Button>
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Gate}" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Access}" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Fuel}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding HasWormholes}">
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SysWormholesLabel}" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="2*,120,120,2*,120">
+                <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.ColLeadsTo}" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.ColSigHere}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.ColSigFar}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.ColUpTo}" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.ColLeft}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Wormholes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysHoleVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="2*,120,120,2*,120">
+                        <Panel Grid.Column="0">
+                          <Button Classes="link" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}"
+                                  ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
+                            <TextBlock Text="{Binding Far}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Far}" IsVisible="{Binding !CanOpen}" />
+                        </Panel>
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding HereSig}" Foreground="#2DD4BF" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding FarSig}" />
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Size}" />
+                        <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Left}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
             <StackPanel>
-              <TextBlock Classes="colhead" Text="GATES" Margin="0 0 0 6" />
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.GatesLabel}" Margin="0 0 0 6" />
               <ItemsControl ItemsSource="{Binding Gates}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="vm:GateVm">
@@ -299,7 +394,7 @@
                       <Grid ColumnDefinitions="150,Auto,*">
                         <Panel Grid.Column="0">
                           <Button Classes="link" Click="OnOpenGateSystem" IsVisible="{Binding HasSystemLink}"
-                                  ToolTip.Tip="Open this system">
+                                  ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
                             <TextBlock Text="{Binding Name}" Classes="linktext col"
                                        Foreground="{DynamicResource TextSecondaryBrush}" Margin="0" />
                           </Button>
@@ -322,13 +417,13 @@
                  should be settled before you click rather than after. Each hides when the system
                  has none of that kind. -->
             <StackPanel IsVisible="{Binding HasPlayerStructures}">
-              <TextBlock Classes="colhead" Text="PLAYER STRUCTURES" Margin="0 0 0 6" />
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.PlayerStructuresLabel}" Margin="0 0 0 6" />
               <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
-                <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
-                <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
-                <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
-                <TextBlock Grid.Column="4" Classes="colhead" Text="ALLIANCE" />
-                <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATION" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.NameLabel}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.TypeLabel}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.CorporationLabel}" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.AllianceLabel}" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.LocationLabel}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding PlayerStructures}">
                 <ItemsControl.ItemTemplate>
@@ -337,12 +432,12 @@
                       <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
-                                ToolTip.Tip="Open in the Structure Browser">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheStructureBrowser}">
                           <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextWrapping="Wrap" />
                         </Button>
                         <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
                                      Foreground="{DynamicResource TextDimBrush}" />
                         </Button>
@@ -366,12 +461,12 @@
             </StackPanel>
 
             <StackPanel IsVisible="{Binding HasNpcStations}">
-              <TextBlock Classes="colhead" Text="NPC STATIONS" Margin="0 0 0 6" />
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.NpcStationsLabel}" Margin="0 0 0 6" />
               <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
-                <TextBlock Grid.Column="1" Classes="colhead" Text="NAME" />
-                <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
-                <TextBlock Grid.Column="3" Classes="colhead" Text="CORPORATION" />
-                <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATION" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.NameLabel}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.TypeLabel}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.CorporationLabel}" />
+                <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.LocationLabel}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding NpcStations}">
                 <ItemsControl.ItemTemplate>
@@ -380,18 +475,18 @@
                       <Grid ColumnDefinitions="36,3*,140,2*,140,2*">
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="28" Height="28" />
                         <Button Grid.Column="1" Classes="link" Command="{Binding OpenCommand}"
-                                ToolTip.Tip="Open in NPC Entities">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInNpcEntities}">
                           <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextWrapping="Wrap" />
                         </Button>
                         <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
                                      Foreground="{DynamicResource TextDimBrush}" />
                         </Button>
                         <Button Grid.Column="3" Classes="link" Command="{Binding OpenCorpCommand}"
                                 IsVisible="{Binding HasCorporation}"
-                                ToolTip.Tip="Open in NPC Entities">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInNpcEntities}">
                           <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
                                      Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -409,18 +504,18 @@
       </TabItem>
 
       <!-- ── Celestials ────────────────────────────────────────────────── -->
-      <TabItem Header="Celestials">
+      <TabItem Header="{x:Static loc:MapText.TabCelestials}">
         <ScrollViewer>
           <StackPanel Margin="16">
             <TextBlock Classes="note"
-                       Text="Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath." />
+                       Text="{x:Static loc:MapText.LaidOutAsTheNote}" />
             <Grid ColumnDefinitions="*,2*,180,70,80,150">
-              <TextBlock Grid.Column="0" Classes="colhead" Text="OBJECT" />
-              <TextBlock Grid.Column="1" Classes="colhead" Text="OWNER" />
-              <TextBlock Grid.Column="2" Classes="colhead" Text="TYPE" />
-              <TextBlock Grid.Column="3" Classes="colhead" Text="POWER" />
-              <TextBlock Grid.Column="4" Classes="colhead" Text="WORKFORCE" />
-              <TextBlock Grid.Column="5" Classes="colhead" Text="REAGENT" />
+              <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.ObjectLabel}" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.OwnerLabel}" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.TypeLabel}" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.PowerLabel}" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.WorkforceLabel}" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.ReagentLabel}" />
             </Grid>
             <ItemsControl ItemsSource="{Binding Celestials}">
               <ItemsControl.ItemTemplate>
@@ -470,7 +565,7 @@
 
                       <Button Grid.Column="2" Classes="link" Command="{Binding OpenTypeCommand}"
                               IsVisible="{Binding HasType}"
-                              ToolTip.Tip="Open in the Item Browser">
+                              ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
                         <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10.5"
                                    Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -488,7 +583,7 @@
       </TabItem>
 
       <!-- ── Graphs ────────────────────────────────────────────────────── -->
-      <TabItem Header="Graphs">
+      <TabItem Header="{x:Static loc:MapText.TabGraphs}">
         <ScrollViewer>
           <StackPanel Margin="16" Spacing="14">
             <TextBlock Classes="note" Text="{Binding GraphNote}" />
@@ -499,28 +594,28 @@
             <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,14,Auto,14,Auto">
 
               <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                <TextBlock Classes="colhead" Text="SHIP JUMPS" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.ShipJumpsLabel}" />
                 <lvc:CartesianChart Height="255" Series="{Binding JumpSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
-                <TextBlock Classes="colhead" Text="NPC KILLS" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.NpcKillsLabel}" />
                 <lvc:CartesianChart Height="255" Series="{Binding NpcKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
-                <TextBlock Classes="colhead" Text="SHIP KILLS" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.ShipKillsLabel}" />
                 <lvc:CartesianChart Height="255" Series="{Binding ShipKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
               </StackPanel>
 
               <StackPanel Grid.Row="2" Grid.Column="2" Spacing="4">
-                <TextBlock Classes="colhead" Text="POD KILLS" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.PodKillsLabel}" />
                 <lvc:CartesianChart Height="255" Series="{Binding PodKillSeries}"
                                     XAxes="{Binding HistoryXAxes}" YAxes="{Binding HistoryYAxes}"
                                     EasingFunction="{x:Null}" Background="Transparent" />
@@ -529,7 +624,7 @@
               <!-- ADM keeps a fixed 0–6 axis: autoscaling would turn routine drift between 5.8
                    and 6.0 into a dramatic-looking collapse. -->
               <StackPanel Grid.Row="4" Grid.Column="0" Spacing="4">
-                <TextBlock Classes="colhead" Text="ACTIVITY DEFENSE MULTIPLIER" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.ActivityDefenseMultiplierLabel}" />
                 <TextBlock Classes="note" Text="{Binding AdmNote}" />
                 <lvc:CartesianChart Height="255" Series="{Binding AdmSeries}"
                                     IsVisible="{Binding HasAdmGraph}"
@@ -540,7 +635,7 @@
               <!-- All six indices share one chart: they share a scale, and reading them against
                    each other is the point. -->
               <StackPanel Grid.Row="4" Grid.Column="2" Spacing="4">
-                <TextBlock Classes="colhead" Text="INDUSTRY COST INDICES" />
+                <TextBlock Classes="colhead" Text="{x:Static loc:MapText.IndustryCostIndicesLabel}" />
                 <TextBlock Classes="note" Text="{Binding IndexNote}" />
                 <lvc:CartesianChart Height="255" Series="{Binding IndexSeries}"
                                     IsVisible="{Binding HasIndexGraph}"
@@ -556,17 +651,17 @@
       </TabItem>
 
       <!-- ── Agents ────────────────────────────────────────────────────── -->
-      <TabItem Header="Agents">
+      <TabItem Header="{x:Static loc:MapText.TabAgents}">
         <ScrollViewer>
           <StackPanel Margin="16">
             <TextBlock Classes="note" Text="{Binding AgentNote}" />
             <Grid ColumnDefinitions="2*,2*,140,190,60,70" IsVisible="{Binding Agents.Count}">
-              <TextBlock Grid.Column="0" Classes="colhead" Text="NAME" />
-              <TextBlock Grid.Column="1" Classes="colhead" Text="CORPORATION" />
-              <TextBlock Grid.Column="2" Classes="colhead" Text="DIVISION" />
-              <TextBlock Grid.Column="3" Classes="colhead" Text="TYPE" />
-              <TextBlock Grid.Column="4" Classes="colhead" Text="LEVEL" Margin="0 0 12 0" />
-              <TextBlock Grid.Column="5" Classes="colhead" Text="LOCATOR" />
+              <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.NameLabel}" />
+              <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.CorporationLabel}" />
+              <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.DivisionLabel}" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.TypeLabel}" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.LevelLabel}" Margin="0 0 12 0" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.LocatorLabel}" />
             </Grid>
             <ItemsControl ItemsSource="{Binding Agents}">
               <ItemsControl.ItemTemplate>
@@ -575,14 +670,14 @@
                     <Grid ColumnDefinitions="2*,2*,140,190,60,70">
                       <StackPanel Grid.Column="0">
                         <Button Classes="link" Command="{Binding OpenCommand}"
-                                ToolTip.Tip="Open in NPC Entities">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenInNpcEntities}">
                           <TextBlock Text="{Binding Name}" Classes="linktext" Foreground="{DynamicResource TextPrimaryBrush}" />
                         </Button>
                         <!-- The station is on each row rather than as a group header, so the
                              list stays sortable and copies out intact. -->
                         <Button Classes="link" Command="{Binding OpenStationCommand}"
                                 IsVisible="{Binding HasStation}"
-                                ToolTip.Tip="Open the station in NPC Entities">
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenTheStationInNpc}">
                           <TextBlock Text="{Binding Location}" Classes="linktext"
                                      FontSize="10.5" Foreground="{DynamicResource TextDimBrush}"
                                      TextTrimming="CharacterEllipsis" />
@@ -590,7 +685,7 @@
                       </StackPanel>
                       <Button Grid.Column="1" Classes="link" Command="{Binding OpenCorpCommand}"
                               IsVisible="{Binding HasCorporation}"
-                              ToolTip.Tip="Open in NPC Entities">
+                              ToolTip.Tip="{x:Static loc:MapText.TipOpenInNpcEntities}">
                         <TextBlock Text="{Binding Corporation}" Classes="linktext" FontSize="10.5"
                                    Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -616,7 +711,7 @@
            part of what the system is rather than a place to go and look. -->
 
       <!-- ── Kills ─────────────────────────────────────────────────────── -->
-      <TabItem Header="Kills">
+      <TabItem Header="{x:Static loc:MapText.TabKills}">
         <ScrollViewer>
           <StackPanel Margin="16">
             <TextBlock Classes="note" Text="{Binding KillsNote}" />
@@ -632,8 +727,10 @@
                        inside it already claim their own clicks. -->
                   <Border Classes="rowline" Background="Transparent"
                           DoubleTapped="OnKillRowDoubleTapped"
-                          ToolTip.Tip="Double-click to open in the Killmail Browser">
-                    <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+                          ToolTip.Tip="{x:Static loc:MapText.TipDoubleClickToOpen}">
+                    <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                         nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+                    <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4">
 
                       <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                         <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
@@ -652,11 +749,11 @@
                            row still reads like the ones in Corp Activity and the Killmail
                            tool rather than a one-off; the ship keeps its name on the render's
                            tooltip, as it does there. -->
-                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                          <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                        <Grid ColumnDefinitions="Auto,*">
+                          <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0" FontSize="10" FontWeight="SemiBold"
                                      ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
-                          <Panel>
+                          <Panel Grid.Column="1">
                             <Button Classes="link" Command="{Binding OpenSystemCommand}"
                                     IsVisible="{Binding HasSystemLink}">
                               <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10"
@@ -667,7 +764,7 @@
                                        FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Panel>
-                        </StackPanel>
+                        </Grid>
                         <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                    TextTrimming="CharacterEllipsis"
                                    IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -689,7 +786,7 @@
                           <Image Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" />
                         </Button>
-                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenVictimCommand}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10"
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -713,7 +810,7 @@
                           <Image Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" />
                         </Button>
-                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenFbCommand}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10"
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -740,11 +837,11 @@
       </TabItem>
 
       <!-- ── Events ────────────────────────────────────────────────────── -->
-      <TabItem Header="Events">
+      <TabItem Header="{x:Static loc:MapText.TabEvents}">
         <ScrollViewer>
           <StackPanel Margin="16">
             <TextBlock Classes="note" Text="{Binding HistoryNote}" />
-            <TextBlock Classes="note" Text="No events recorded in the stored window."
+            <TextBlock Classes="note" Text="{x:Static loc:MapText.NoEventsRecordedInNote}"
                        IsVisible="{Binding !Events.Count}" />
             <ItemsControl ItemsSource="{Binding Events}">
               <ItemsControl.ItemTemplate>
@@ -766,7 +863,7 @@
       </TabItem>
 
       <!-- ── Intel ─────────────────────────────────────────────────────── -->
-      <TabItem Header="Intel">
+      <TabItem Header="{x:Static loc:MapText.TabIntel}">
         <ScrollViewer>
           <StackPanel Margin="16" Spacing="8">
             <TextBlock Classes="note" Text="{Binding IntelNote}"
@@ -775,14 +872,14 @@
                        IsVisible="{Binding HasIntel}" />
 
             <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80" IsVisible="{Binding HasIntel}">
-              <TextBlock Grid.Column="0" Classes="colhead" Text="WHEN (UTC)" />
+              <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.WhenUtcLabel}" />
               <TextBlock Grid.Column="1" Classes="colhead" Text="N" />
               <TextBlock Grid.Column="2" Classes="colhead" Text="NV" />
-              <TextBlock Grid.Column="3" Classes="colhead" Text="PILOTS" />
-              <TextBlock Grid.Column="4" Classes="colhead" Text="SHIP" />
-              <TextBlock Grid.Column="5" Classes="colhead" Text="NOTE" />
-              <TextBlock Grid.Column="6" Classes="colhead" Text="REPORTED BY" />
-              <TextBlock Grid.Column="7" Classes="colhead" Text="STATUS" />
+              <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.PilotsLabel}" />
+              <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.ShipLabel}" />
+              <TextBlock Grid.Column="5" Classes="colhead" Text="{x:Static loc:MapText.NoteLabel}" />
+              <TextBlock Grid.Column="6" Classes="colhead" Text="{x:Static loc:MapText.ReportedByLabel}" />
+              <TextBlock Grid.Column="7" Classes="colhead" Text="{x:Static loc:MapText.StatusLabel}" />
             </Grid>
 
             <ItemsControl ItemsSource="{Binding Intel}">
@@ -799,7 +896,7 @@
                                  VerticalAlignment="Center" />
                       <TextBlock Grid.Column="2" Text="{Binding NoVisual}" FontSize="10"
                                  Foreground="{DynamicResource BadBrush}" VerticalAlignment="Center"
-                                 ToolTip.Tip="No visual — reported present but not seen" />
+                                 ToolTip.Tip="{x:Static loc:MapText.TipNoVisualReportedPresent}" />
                       <ItemsControl Grid.Column="3" ItemsSource="{Binding Pilots}" Margin="0 0 8 0"
                                     VerticalAlignment="Center">
                         <ItemsControl.ItemTemplate>
@@ -829,7 +926,7 @@
                                        VerticalAlignment="Center" />
                               </Button>
                               <Button Classes="link" Command="{Binding OpenCommand}"
-                                      Margin="2 0 0 0" ToolTip.Tip="Open in Player Entities">
+                                      Margin="2 0 0 0" ToolTip.Tip="{x:Static loc:MapText.TipOpenInPlayerEntities}">
                                 <TextBlock Text="{Binding Name}" Classes="linktext"
                                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" />
                               </Button>
@@ -852,7 +949,7 @@
                                       Background="Transparent" BorderThickness="0" Padding="0"
                                       HorizontalContentAlignment="Left" Cursor="Hand"
                                       VerticalAlignment="Center"
-                                      ToolTip.Tip="Open in the Item Browser">
+                                      ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
                                 <TextBlock Text="{Binding Ship}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                            TextDecorations="Underline"
                                            TextTrimming="CharacterEllipsis" />
@@ -862,10 +959,17 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <TextBlock Grid.Column="5" Text="{Binding Note}" FontSize="11"
-                                 Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
-                                 VerticalAlignment="Center" />
+                      <!-- What else was said — flags and the gate, the unflown hulls — above the
+                           note, so the facts read first and the commentary after. -->
+                      <StackPanel Grid.Column="5" Margin="0 0 8 0" VerticalAlignment="Center"
+                                  ToolTip.Tip="{Binding NoteTip}">
+                        <TextBlock Text="{Binding Facts}" IsVisible="{Binding HasFacts}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource WarnBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Ships}" IsVisible="{Binding HasShips}" FontSize="11"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="11"
+                                   Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
                       <!-- The reporter, shown and linked exactly like the pilots they called.
                            The channel moves onto the name, where it belongs to the report rather
                            than to whichever badge the cursor happened to land on. -->

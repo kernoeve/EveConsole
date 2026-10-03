@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavGroupGeneral" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="NavGroupAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="NavGroupStructures" xml:space="preserve">
+    <value>Strukturen / Navigation</value>
+  </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Schiffe</value>
+  </data>
+  <data name="NavGroupIndustry" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="NavGroupMarket" xml:space="preserve">
+    <value>Markt / Handel</value>
+  </data>
+  <data name="NavGroupFinance" xml:space="preserve">
+    <value>Finanzen</value>
+  </data>
+  <data name="NavGroupCorp" xml:space="preserve">
+    <value>Corp / Interaktionen</value>
+  </data>
+  <data name="NavGroupCommunication" xml:space="preserve">
+    <value>Kommunikation</value>
+  </data>
+  <data name="NavGroupData" xml:space="preserve">
+    <value>Daten / Protokolle</value>
+  </data>
+  <data name="NavOverview" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="NavWorklist" xml:space="preserve">
+    <value>Arbeitsliste</value>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="NavAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="NavItemBrowser" xml:space="preserve">
+    <value>Gegenstandsbrowser</value>
+  </data>
+  <data name="NavInventoryLevels" xml:space="preserve">
+    <value>Sollbestände</value>
+  </data>
+  <data name="NavStructureBrowser" xml:space="preserve">
+    <value>Strukturbrowser</value>
+  </data>
+  <data name="NavUniverseMap" xml:space="preserve">
+    <value>Universumskarte</value>
+  </data>
+  <data name="NavIndustryJobs" xml:space="preserve">
+    <value>Industrieaufträge</value>
+  </data>
+  <data name="NavIndyParks" xml:space="preserve">
+    <value>Indy-Parks</value>
+  </data>
+  <data name="NavProductionCalc" xml:space="preserve">
+    <value>Produktionsrechner</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Ausrüstung</value>
+  </data>
+  <data name="NavPriceOverrides" xml:space="preserve">
+    <value>Preisvorgaben</value>
+  </data>
+  <data name="NavIndustryOpportunities" xml:space="preserve">
+    <value>Industriechancen</value>
+  </data>
+  <data name="NavMarketOverview" xml:space="preserve">
+    <value>Marktübersicht</value>
+  </data>
+  <data name="NavItemValuation" xml:space="preserve">
+    <value>Gegenstandsbewertung</value>
+  </data>
+  <data name="NavLpMarketValues" xml:space="preserve">
+    <value>LP-Marktwerte</value>
+  </data>
+  <data name="NavMarketLevels" xml:space="preserve">
+    <value>Marktbestände</value>
+  </data>
+  <data name="NavContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="NavTradeOpportunities" xml:space="preserve">
+    <value>Handelschancen</value>
+  </data>
+  <data name="NavStandingBuyOrders" xml:space="preserve">
+    <value>Dauer-Kaufaufträge</value>
+  </data>
+  <data name="NavOrderTracker" xml:space="preserve">
+    <value>Bestellverfolgung</value>
+  </data>
+  <data name="NavSalesTracker" xml:space="preserve">
+    <value>Verkaufsverfolgung</value>
+  </data>
+  <data name="NavSalePosting" xml:space="preserve">
+    <value>Verkaufsanzeigen</value>
+  </data>
+  <data name="NavStores" xml:space="preserve">
+    <value>Shops</value>
+  </data>
+  <data name="NavNetWorth" xml:space="preserve">
+    <value>Gesamtkapital</value>
+  </data>
+  <data name="NavIncomeExpense" xml:space="preserve">
+    <value>Einnahmen &amp; Ausgaben</value>
+  </data>
+  <data name="NavWallet" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="NavCorpActivity" xml:space="preserve">
+    <value>Corp-Aktivität</value>
+  </data>
+  <data name="NavKillmails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="NavPlayerEntities" xml:space="preserve">
+    <value>Spielerentitäten</value>
+  </data>
+  <data name="NavNpcEntities" xml:space="preserve">
+    <value>NPC-Entitäten</value>
+  </data>
+  <data name="NavEveMail" xml:space="preserve">
+    <value>EVE-Mail</value>
+  </data>
+  <data name="NavNotifications" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="NavBackgroundProcesses" xml:space="preserve">
+    <value>Hintergrundprozesse</value>
+  </data>
+  <data name="NavEsiExplorer" xml:space="preserve">
+    <value>ESI-Explorer</value>
+  </data>
+  <data name="NavErrorLog" xml:space="preserve">
+    <value>Fehlerprotokoll</value>
+  </data>
+  <data name="NavAiUsage" xml:space="preserve">
+    <value>KI-Nutzung</value>
+  </data>
+  <data name="NavGameLog" xml:space="preserve">
+    <value>Spielprotokoll</value>
+  </data>
+  <data name="NavChatLog" xml:space="preserve">
+    <value>Chatprotokoll</value>
+  </data>
+  <data name="TabUniverse" xml:space="preserve">
+    <value>Universum</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Hier ablegen, um zwei Werkzeuge nebeneinander zu sehen</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Loslassen, um es in einem eigenen Fenster zu öffnen</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Navigation ein- oder ausblenden</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Andere Tabs schließen</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Alle Tabs schließen</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Andere Tabs auf dieser Seite schließen</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Alle Tabs auf dieser Seite schließen</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Alarme</value>
+  </data>
+  <data name="TabScheduler" xml:space="preserve">
+    <value>Planer</value>
+  </data>
+  <data name="TabTrade" xml:space="preserve">
+    <value>Handel</value>
+  </data>
+  <data name="TabIndustryOpps" xml:space="preserve">
+    <value>Indy-Chancen</value>
+  </data>
+  <data name="TabInvLevels" xml:space="preserve">
+    <value>Sollbestände</value>
+  </data>
+  <data name="TabSaleListingBuild" xml:space="preserve">
+    <value>Verkaufsliste (Baukosten)</value>
+  </data>
+  <data name="TabSaleListingMarket" xml:space="preserve">
+    <value>Verkaufsliste (Marktwert)</value>
+  </data>
+  <data name="TipScheduler" xml:space="preserve">
+    <value>Planer</value>
+  </data>
+  <data name="TipSettings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="TipAbout" xml:space="preserve">
+    <value>Über EVE Console</value>
+  </data>
+  <data name="TipVersion" xml:space="preserve">
+    <value>Die Version, die Sie verwenden.</value>
+  </data>
+  <data name="TipReleasePage" xml:space="preserve">
+    <value>Release-Seite auf GitHub öffnen</value>
+  </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>Über EVE Console</value>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>Ein Industrie-Begleiter für EVE Online: Produktionsplanung, Besitzverwaltung, Marktpreise und Charakterverwaltung.</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Dokumentation</value>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>Community-Chat und Support</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console – Datenbankproblem</value>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>Die Datenbank konnte nicht geöffnet werden</value>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>Gemeldet</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Aus einer Sicherung wiederherstellen</value>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>Die neueste Sicherung ist ausgewählt. Alles, was seitdem erfasst wurde, muss erneut abgefragt werden.</value>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>Neben der Datenbank wurden keine Sicherungen gefunden, daher gibt es nichts wiederherzustellen. „Neu beginnen“ legt eine leere Datenbank an und lässt die beschädigte, wo sie ist.</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Beenden</value>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>Neu beginnen</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Sicherung wiederherstellen</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>aktuell</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>Hintergrund:</value>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>Keiner Ihrer Charaktere ist online.</value>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>Static Data Export: {0}</value>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>Neueste Version von CCP: {0}</value>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>Neueste Version: {0} – SDE-Einstellungen öffnen</value>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>KI-Assistent {0} ein-/ausblenden</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>Wird initialisiert…</value>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>Eine neue Version von EVE Console ist verfügbar.</value>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>Aktuell:</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Neueste:</value>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>Die App lädt das Update herunter und startet neu, um es zu installieren.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>EVE Console wird aktualisiert…</value>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>Diese Version ist älter als die Datenbank</value>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>Suche nach Updates…</value>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>Release-Seite</value>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>Aktualisieren und neu starten</value>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>Willkommen bei EVE Console</value>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Console lädt im Hintergrund die benötigten EVE-Spieldaten herunter (den Static Data Export und die Hoboleaks-Daten). Das kann einige Minuten dauern – Gegenstandssuche, Marktpreise und Industrie-Tools füllen sich, sobald der Download abgeschlossen ist. Den Fortschritt sehen Sie in den Einstellungen im Tab „SDE“.</value>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>Starten Sie EVE Console danach neu. Einige Tools laden ihre Referenzdaten beim ersten Öffnen; ein Neustart stellt sicher, dass alle die frisch importierten Daten sehen.</value>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>Um Ihre eigenen Charaktere und Corporation-Daten abzurufen, fügen Sie Ihre ESI-Charakter-Token hinzu. Als Nächstes öffnet sich das Einstellungsfenster im Tab „ESI-Token“ – klicken Sie dort unter „Charaktere“ auf „Hinzufügen“, um sich über das SSO von EVE anzumelden.</value>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>Los geht's</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>Datei nicht gefunden</value>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0} – Details konnten nicht gelesen werden: {1}</value>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>Es wird geprüft, welcher Client die Hintergrundarbeit erledigt…</value>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>dieser Client</value>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>Die Hintergrundprozesse laufen in diesem Client.</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>keiner</value>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>Kein Client erledigt die Hintergrundarbeit – dies ist der letzte, der sie erledigt hat.</value>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>Die Hintergrundprozesse laufen in einem anderen Client.</value>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>vor {0} Sek.</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>vor {0} Min.</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>vor {0} Std.</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>Alarme – keiner scharfgeschaltet</value>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>{0} von {1} online</value>
+  </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>Keine Charaktere online</value>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>Standort unbekannt</value>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>eine Struktur in {0}</value>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>Schiff unbekannt</value>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>EVE-Zeit (UTC) – klicken, um {0} zu öffnen</value>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>Design</value>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>Design: {0} – zum Ändern klicken</value>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>UI-Skalierung: {0} – zum Ändern klicken</value>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Serverstatus von Tranquility</value>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Tranquility ist offline – die ESI-Abfrage pausiert, bis der Server zurück ist</value>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>Baukosten: noch nicht berechnet</value>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>PostgreSQL auf {0}
+Datenbank: {1}
+Größe: {2}</value>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+Größe: {1}</value>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+
+SQLite erlaubt nur einen Client gleichzeitig, daher gibt es keinen, an den übergeben werden könnte.</value>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>Kein Client hat die Hintergrundarbeit übernommen.
+
+ESI-Abfrage, Baukosten und Sicherungen laufen nicht.</value>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+Seit: {4:yyyy-MM-dd HH:mm}
+Letztes Lebenszeichen: {5}</value>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}  (ohne Fenster)</value>
+  </data>
+  <data name="AlarmsArmedOne" xml:space="preserve">
+    <value>Alarme – {0} scharfgeschaltet</value>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>Alarme – {0} scharfgeschaltet</value>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>Auf diesem Client stummgeschaltet: Hier wird weder ein Ton noch ein Dialog noch eine Benachrichtigung des KI-Assistenten ausgelöst. Warnungen werden weiterhin erfasst.
+
+Rechtsklick hebt die Stummschaltung auf.</value>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>Rechtsklick schaltet diesen Client stumm.</value>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Tranquility ist online</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOne" xml:space="preserve">
+    <value>Tranquility ist online – {0:N0} Spieler</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Tranquility ist online – {0:N0} Spieler</value>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>Dev-Build</value>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>k. A. – keine installierte Version</value>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>Suche nach Updates…</value>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>Auf dem neuesten Stand.</value>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>Ein Update ist verfügbar.</value>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>Update wird heruntergeladen…</value>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>Neustart zum Installieren…</value>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>{0} verfügbar</value>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>{0} wird heruntergeladen…</value>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>{0} wird heruntergeladen… {1} %</value>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>{0} wird installiert, dann Neustart…</value>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>Das Update ist fehlgeschlagen: {0}. Laden Sie {1} von der Release-Seite herunter.</value>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Console konnte ihre Datenbank unter {0} nicht lesen. Bisher wurde nichts geändert oder gelöscht.</value>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>Wie auch immer Sie sich entscheiden: Die beschädigte Datei wird umbenannt statt gelöscht – sie bleibt in ihrem Ordner, und an ihren Namen werden „.damaged-“ und das Datum angehängt –, damit sie später untersucht oder wiederhergestellt werden kann.</value>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>Die beschädigte Datei konnte nicht beiseitegelegt werden: {0}</value>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>Wiederherstellung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0} online</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>Blau (dunkel)</value>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>Blau (hell)</value>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>Pink (dunkel)</value>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>Pink (hell)</value>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>Beige (dunkel)</value>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>Beige (hell)</value>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>Diese Kopie wurde nicht mit dem Installationsprogramm eingerichtet und kann sich daher nicht selbst aktualisieren. Installieren Sie {0} oder neuer von der Release-Seite.</value>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>Die Suche nach Updates ist fehlgeschlagen: {0}. Laden Sie {1} oder neuer von der Release-Seite herunter.</value>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>Die Suche nach Updates ist ohne Angabe von Gründen fehlgeschlagen. Laden Sie {0} oder neuer von der Release-Seite herunter.</value>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>Es gibt noch kein neueres Release. {0} wurde noch nicht veröffentlicht: Die Datenbank wurde von einer Entwicklerversion geöffnet, oder das Release wird gerade erst veröffentlicht.</value>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>Das neueste Release, {0}, ist immer noch älter als diese Datenbank ({1}), die von einer unveröffentlichten Version geöffnet wurde.</value>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>Version {0} ist verfügbar. Das Update installiert sie und startet EVE Console mit dieser Datenbank neu.</value>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>Diese Datenbank hat Version {0}, dieser Client Version {1}.
+
+Eine neuere Version hat diese Datenbank bereits auf eine Weise geändert, die diese Version nicht kennt – und Schemaänderungen gehen immer nur vorwärts.
+
+Aktualisieren Sie diesen Client auf {0} oder neuer.</value>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>Diese Datenbank hat Version {0}, dieser Client Version {1}.
+
+Ein anderer Client führt die Hintergrundprozesse mit {0} aus, und nur dieser Client darf das Schema ändern. Die Änderungen, die diese Version erwartet, wurden nicht vorgenommen, daher würde vieles nicht funktionieren.
+
+Aktualisieren Sie den Client mit den Hintergrundprozessen auf {1}, oder schließen Sie ihn und starten Sie zuerst diesen, damit er übernimmt und die Änderungen anwendet.</value>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>Diese Version passt nicht zur Datenbank</value>
+  </data>
+  <data name="SplashShrinking" xml:space="preserve">
+    <value>Datenbank wird verkleinert – {0} vergangen. Bitte lassen Sie die Anwendung geöffnet.</value>
+  </data>
+  <data name="SplashWaitingDatabase" xml:space="preserve">
+    <value>Warten – die Datenbank konnte nicht geöffnet werden</value>
+  </data>
+  <data name="SplashStartupFailed" xml:space="preserve">
+    <value>Start fehlgeschlagen – {0}  (alle Details im Fehlerprotokoll)</value>
+  </data>
+  <data name="SplashStoppingMismatch" xml:space="preserve">
+    <value>Wird beendet – Versionskonflikt</value>
+  </data>
+  <data name="SplashInitializingDatabase" xml:space="preserve">
+    <value>Datenbank wird initialisiert…</value>
+  </data>
+  <data name="SplashCharacterTables" xml:space="preserve">
+    <value>Charaktertabellen werden erstellt…</value>
+  </data>
+  <data name="SplashCorporationTables" xml:space="preserve">
+    <value>Corporation-Tabellen werden erstellt…</value>
+  </data>
+  <data name="SplashMarketTables" xml:space="preserve">
+    <value>Markttabellen werden erstellt…</value>
+  </data>
+  <data name="SplashIndustryTables" xml:space="preserve">
+    <value>Industrietabellen werden erstellt…</value>
+  </data>
+  <data name="SplashFinalizingSchema" xml:space="preserve">
+    <value>Schema wird abgeschlossen…</value>
+  </data>
+  <data name="SplashLoadingSettings" xml:space="preserve">
+    <value>Einstellungen werden geladen…</value>
+  </data>
+  <data name="SplashPreparingTools" xml:space="preserve">
+    <value>Tools werden vorbereitet…</value>
+  </data>
+  <data name="SplashStartingServices" xml:space="preserve">
+    <value>Hintergrunddienste werden gestartet…</value>
+  </data>
+  <data name="SplashLoadingOverview" xml:space="preserve">
+    <value>Übersicht wird geladen…</value>
+  </data>
+  <data name="SplashOpening" xml:space="preserve">
+    <value>Wird geöffnet…</value>
+  </data>
+  <data name="SplashReady" xml:space="preserve">
+    <value>Bereit.</value>
+  </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>EVE Console öffnen</value>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>Beenden</value>
+  </data>
+  <data name="NavPlanetaryIndustry" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI gedrosselt</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Klicken für die ESI-Limits.</value>
+  </data>
+</root>

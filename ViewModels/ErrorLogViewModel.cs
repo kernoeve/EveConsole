@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -23,8 +24,21 @@ public class ErrorLogRowVm
     /// <summary>Which client wrote the row. Blank on anything logged before the columns existed.</summary>
     public string Client   { get; }
 
+    /// <summary>Error, warning or note. A warning's or note's second message is its detail, not an inner error.</summary>
+    public LogSeverity Severity { get; }
+    public string SeverityText => Severity switch
+    {
+        LogSeverity.Warning => DataText.SeverityWarning,
+        LogSeverity.Note    => DataText.SeverityNote,
+        _                   => DataText.SeverityError,
+    };
+    public bool IsError   => Severity == LogSeverity.Error;
+    public bool IsWarning => Severity == LogSeverity.Warning;
+    public bool IsNote    => Severity == LogSeverity.Note;
+
     // Combined message shown in the detail pane.
-    public string Detail => Inner.Length > 0 ? $"{Message}\n\nInner: {Inner}" : Message;
+    public string Detail => Inner.Length == 0 ? Message
+        : Message + "\n\n" + string.Format(IsError ? DataText.ErrorInner : DataText.ErrorDetails, Inner);
 
     public ErrorLogRowVm(AppErrorEntry e)
     {
@@ -35,11 +49,12 @@ public class ErrorLogRowVm
         Context    = e.Context;
         Message    = e.Message;
         Inner      = e.InnerMessage ?? "";
+        Severity   = Enum.IsDefined((LogSeverity)e.Severity) ? (LogSeverity)e.Severity : LogSeverity.Error;
 
         // ⚠️ Host and kind together, as one column. Either alone is ambiguous: one machine can run
         // a desktop client and the worker at once, and "headless" says nothing about where.
         Client     = e.HostName.Length == 0 ? ""
-                   : e.Headless            ? $"{e.HostName} (worker)"
+                   : e.Headless            ? string.Format(DataText.ErrorClientWorker, e.HostName)
                    :                          e.HostName;
     }
 }
@@ -58,6 +73,10 @@ public class ErrorLogViewModel : ReactiveObject
 
     private string _dateThru = "";
     public string DateThru { get => _dateThru; set { this.RaiseAndSetIfChanged(ref _dateThru, value); _ = LoadAsync(); } }
+
+    /// <summary>Hides warnings and notes. Off by default: an SDE import's notes are worth seeing too.</summary>
+    private bool _errorsOnly;
+    public bool ErrorsOnly { get => _errorsOnly; set { this.RaiseAndSetIfChanged(ref _errorsOnly, value); _ = LoadAsync(); } }
 
     private ErrorLogRowVm? _selected;
     public ErrorLogRowVm? Selected { get => _selected; set => this.RaiseAndSetIfChanged(ref _selected, value); }
@@ -96,7 +115,7 @@ public class ErrorLogViewModel : ReactiveObject
     {
         if (_isLoading) return;
         _isLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             // DateTimeOffset can't be compared in a LINQ Where against SQLite, so filter in raw SQL
@@ -107,6 +126,7 @@ public class ErrorLogViewModel : ReactiveObject
             { int i = ps.Count; ps.Add(from); parts.Add($"\"OccurredAt\" >= {{{i}}}"); }
             if (TryDate(_dateThru, out var thru))
             { int i = ps.Count; ps.Add(thru); parts.Add($"\"OccurredAt\" < {{{i}}}"); }
+            if (_errorsOnly) parts.Add($"\"Severity\" = {(int)LogSeverity.Error}");
             var where = parts.Count > 0 ? "WHERE " + string.Join(" AND ", parts) : "";
 
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -118,7 +138,8 @@ public class ErrorLogViewModel : ReactiveObject
 
             Rows.Clear();
             foreach (var e in list) Rows.Add(new ErrorLogRowVm(e));
-            StatusText = list.Count == 0 ? "No errors in range." : $"{list.Count:N0} error(s)";
+            StatusText = list.Count == 0 ? DataText.ErrorLogNone
+                       : string.Format(DataText.ErrorLogCount, list.Count, list.Count(e => e.Severity == (int)LogSeverity.Error));
         }
         catch (Exception ex)
         {

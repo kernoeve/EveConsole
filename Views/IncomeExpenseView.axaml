@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.IncomeExpenseView"
@@ -11,7 +12,7 @@
     <!-- Header -->
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <Grid ColumnDefinitions="Auto,*">
-        <TextBlock Text="Income &amp; Expense" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+        <TextBlock Text="{x:Static loc:FinanceText.IncomeExpense}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                    VerticalAlignment="Center" Margin="0 0 12 0" />
         <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" HorizontalAlignment="Right" />
@@ -25,7 +26,7 @@
               CornerRadius="4" Padding="12 10">
         <Grid RowDefinitions="Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
-            <TextBlock Text="INCOME" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
+            <TextBlock Text="{x:Static loc:FinanceText.IncomeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
             <TextBlock Grid.Column="1" Text="{Binding IncomeTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GoodBrush}" />
           </Grid>
           <ScrollViewer Grid.Row="1" x:Name="IncomeList" VerticalScrollBarVisibility="Auto">
@@ -47,7 +48,7 @@
               CornerRadius="4" Padding="12 10">
         <Grid RowDefinitions="Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
-            <TextBlock Text="EXPENSES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
+            <TextBlock Text="{x:Static loc:FinanceText.ExpensesLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
             <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BadBrush}" />
           </Grid>
           <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -72,9 +73,9 @@
             CornerRadius="4" Margin="12 0 12 12" Padding="10 8">
       <Grid RowDefinitions="Auto,*">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
-          <TextBlock Text="Daily Income · Expense · Cashflow" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:FinanceText.DailyIncomeExpenseCashflow}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="{Binding NetTotal, StringFormat='Net: {0}'}" FontSize="11"
+          <TextBlock Grid.Column="1" Text="{Binding NetTotal, StringFormat={x:Static loc:FinanceText.FmtNet}}" FontSize="11"
                      FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
         </Grid>
         <lvc:CartesianChart Grid.Row="1" MinHeight="150"

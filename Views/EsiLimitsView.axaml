@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.EsiLimitsView"
+             x:DataType="vm:EsiLimitsViewModel">
+
+  <!-- The Background Processes tool's ESI limits tab: the error budget this connection has left,
+       what the governor is doing about it, the rate-limit groups met, and the errors by route. -->
+  <UserControl.Styles>
+    <Style Selector="DataGrid.monitor">
+      <Setter Property="IsReadOnly"            Value="True" />
+      <Setter Property="AutoGenerateColumns"   Value="False" />
+      <Setter Property="FontSize"              Value="10" />
+      <Setter Property="RowHeight"             Value="24" />
+      <Setter Property="Background"            Value="Transparent" />
+      <Setter Property="GridLinesVisibility"   Value="None" />
+      <Setter Property="RowBackground"         Value="Transparent" />
+      <Setter Property="CanUserReorderColumns" Value="False" />
+      <Setter Property="CanUserSortColumns"    Value="False" />
+      <Setter Property="HeadersVisibility"     Value="Column" />
+    </Style>
+    <Style Selector="DataGrid.monitor TextBlock">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="DataGrid.monitor DataGridCell.num TextBlock">
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin"        Value="0 0 6 0" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="10 12 10 10" Spacing="6">
+      <TextBlock Text="{x:Static loc:DataText.EsiErrorBudgetLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+      <Grid ColumnDefinitions="220,*" Margin="0 0 0 2">
+        <ProgressBar Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding BudgetPercent}" Height="10" MinWidth="0"
+                     Foreground="{Binding BudgetBrush}" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" Text="{Binding BudgetText}" FontSize="12" Margin="10 0 0 0" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextPrimaryBrush}" />
+      </Grid>
+      <TextBlock Text="{Binding WindowText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+      <TextBlock Text="{Binding CallsText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+
+      <TextBlock Text="{x:Static loc:DataText.EsiGovernorLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 8 0 0" />
+      <TextBlock Text="{Binding GovernorText}" FontSize="12" Foreground="{Binding GovernorBrush}" TextWrapping="Wrap" />
+
+      <TextBlock Text="{x:Static loc:DataText.EsiGroupsHeading}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 8 0 0" />
+      <TextBlock Text="{x:Static loc:DataText.EsiGroupsNone}" IsVisible="{Binding NoGroups}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+      <DataGrid ItemsSource="{Binding Groups}" Classes="monitor" IsVisible="{Binding !NoGroups}" MaxHeight="320">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiGroup}" Binding="{Binding Group}"     Width="170" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLimit}" Binding="{Binding LimitText}" Width="110" />
+          <DataGridTemplateColumn Header="{x:Static loc:DataText.ColEsiLeft}" Width="150" x:DataType="vm:EsiGroupRowVm">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EsiGroupRowVm">
+                <Grid ColumnDefinitions="70,*" Margin="4 0" VerticalAlignment="Center">
+                  <ProgressBar Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding LeftPercent}" Height="8" MinWidth="0"
+                               Foreground="{Binding LeftBrush}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding LeftText}" Margin="8 0 0 0" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLowest}"  Binding="{Binding LowestText}" Width="220" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiSpentHere}"      Binding="{Binding SpentHereText}"      Width="110" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiSpentElsewhere}" Binding="{Binding SpentElsewhereText}" Width="120" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiRefused}" Binding="{Binding Refusals}"   Width="80" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiState}"   Binding="{Binding StateText}"  Width="140" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiRoutes}"  Binding="{Binding RoutesText}" Width="*" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <TextBlock Text="{x:Static loc:DataText.EsiErrorsHeading}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 8 0 0" />
+      <TextBlock Text="{x:Static loc:DataText.EsiErrorsNone}" IsVisible="{Binding NoErrors}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+      <DataGrid ItemsSource="{Binding Errors}" Classes="monitor" IsVisible="{Binding !NoErrors}" MaxHeight="360">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiRoute}"      Binding="{Binding Route}"      Width="*" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiStatus}"     Binding="{Binding Status}"     Width="70"  CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLastMinute}" Binding="{Binding LastMinute}" Width="100" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLastHour}"   Binding="{Binding LastHour}"   Width="100" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiSinceStart}" Binding="{Binding SinceStart}" Width="100" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLastAt}"     Binding="{Binding LastAtText}" Width="90" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <TextBlock Text="{x:Static loc:DataText.EsiLimitsNote}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

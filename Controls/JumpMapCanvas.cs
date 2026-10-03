@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Controls;
 
@@ -23,7 +24,13 @@ public sealed record JumpMapNode(
     bool   IsWaypoint,
     string Caption,
     bool   IsPinned = false,
-    string Region   = "");
+    string Region   = "")
+{
+    /// <summary>The system as the interface names it. <see cref="Name"/> and
+    /// <see cref="Region"/> stay English — Region is what the region colours are looked up by;
+    /// <see cref="Caption"/> is already display text.</summary>
+    public string Label => SdeNames.SolarSystem(Id, Name);
+}
 
 /// <summary>
 /// A system drawn for context around the route. Carries what a pilot needs to judge it as a
@@ -37,7 +44,14 @@ public sealed record JumpMapDot(
     double X,
     double Y,
     double Security,
-    string Badges);
+    string Badges,
+    int    RegionId = 0)
+{
+    /// <summary>As the interface names them. Name and Region stay English, as on
+    /// <see cref="JumpMapNode"/>.</summary>
+    public string Label       => SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel => SdeNames.Region(RegionId, Region);
+}
 
 /// <summary>A stargate connection, in map coordinates.</summary>
 public sealed record JumpMapLink(double X1, double Y1, double X2, double Y2);
@@ -546,7 +560,7 @@ public class JumpMapCanvas : Control
 
                 if (showDotNames || isCandidate)
                 {
-                    var t = new FormattedText(d.Name, System.Globalization.CultureInfo.CurrentCulture,
+                    var t = new FormattedText(d.Label, System.Globalization.CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight, Face, 9, RegionBrush(d.Region));
                     ctx.DrawText(t, new Point(s.X + (isCandidate ? 7 : 4), s.Y - t.Height / 2));
                 }
@@ -555,7 +569,7 @@ public class JumpMapCanvas : Control
 
         if (route is null || route.Count == 0)
         {
-            DrawCentred(ctx, "Plan a route to see it on the map.");
+            DrawCentred(ctx, MapText.JumpMapPlanFirst);
             return;
         }
 
@@ -596,7 +610,7 @@ public class JumpMapCanvas : Control
             // riding the pointer. Moving with the marker meant the one name you needed while
             // choosing a replacement — the one you are replacing — was the one that ran away.
             var s    = ReferenceEquals(n, _drag) ? ToScreen(n.X, n.Y) : PointFor(n);
-            var name = new FormattedText(n.Name, System.Globalization.CultureInfo.CurrentCulture,
+            var name = new FormattedText(n.Label, System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, BoldFace, 11, LabelBrush);
             // Caption carries the region, so it takes the region's colour — the same code the
             // context system names use, which is what makes a route crossing a border legible.
@@ -619,7 +633,7 @@ public class JumpMapCanvas : Control
 
         if (_hoverDot is { } tipDot) DrawTooltip(ctx, tipDot);
 
-        DrawHint(ctx, "drag a midpoint to move it · click one for alternatives · scroll to zoom");
+        DrawHint(ctx, MapText.JumpMapHint);
     }
 
     /// <summary>
@@ -631,17 +645,17 @@ public class JumpMapCanvas : Control
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
 
-        var title = new FormattedText(dot.Name, culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
+        var title = new FormattedText(dot.Label, culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
 
         var lines = new List<FormattedText>
         {
-            new($"{dot.Region} · {dot.Security:N2}", culture, FlowDirection.LeftToRight, Face, 10, TipBody),
+            new($"{dot.RegionLabel} · {dot.Security:N2}", culture, FlowDirection.LeftToRight, Face, 10, TipBody),
         };
 
         if (dot.Badges.Length > 0)
             lines.Add(new FormattedText(dot.Badges, culture, FlowDirection.LeftToRight, Face, 10, TipBody));
         else
-            lines.Add(new FormattedText("no known station or structure", culture,
+            lines.Add(new FormattedText(MapText.TipNoKnownDocking, culture,
                 FlowDirection.LeftToRight, Face, 10, TipBody));
 
         // Only meaningful mid-drag, and only for a system that could actually be chosen.

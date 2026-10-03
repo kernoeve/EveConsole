@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services;
 
 /// <summary>
@@ -31,5 +33,20 @@ public static class EntityLinks
         "corporation" => EntityKind.PlayerCorp,
         "alliance"    => EntityKind.Alliance,
         _             => KindOf(id),
+    };
+
+    /// <summary>
+    /// A name resolved for a bare id, as a screen shows it: an NPC corporation's or an agent's in
+    /// the interface language, anybody else's as it came.
+    ///
+    /// <para>The same guess as <see cref="KindOf(long)"/>, and harmless where it is wrong: an id
+    /// that is not an NPC's is in neither of those tables, and comes back unchanged. ⚠️ Display
+    /// only — see <c>EveConsole.Localization.SdeNames</c>.</para>
+    /// </summary>
+    public static string ShownName(long id, string english) => KindOf(id) switch
+    {
+        EntityKind.NpcCorp => SdeNames.NpcCorporation(id, english),
+        EntityKind.Pilot   => SdeNames.Agent(id, english),
+        _                  => english,
     };
 }

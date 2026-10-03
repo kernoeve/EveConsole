@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -145,7 +146,7 @@ public class ZkillboardSettingsViewModel : ReactiveObject
         ProgressText    = _backfill.ProgressText;
         BackfillStatus  = _backfill.StatusText;
         LiveStatus      = _settings.Scope == ZkbScope.All ? _firehose.StatusText : _poller.StatusText;
-        LastFullDayText = _settings.LastFullDay is { } d ? d.ToString("yyyy-MM-dd") : "never";
+        LastFullDayText = _settings.LastFullDay is { } d ? d.ToString("yyyy-MM-dd") : SettingsText.ZkbNeverFull;
         PostStatus       = _post.StatusText;
         CoverageFromText = _post.CoverageText;
     }

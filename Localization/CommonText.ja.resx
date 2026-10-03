@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>アイテムを追加</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>アイテムを検索</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>アイテム名を入力…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>変更</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>目標数量</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>上のリストからアイテムを選択してください。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>ブループリントからアイテムを追加</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>ブループリント（製品名で検索）</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>入力して検索…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>MEレベル</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>実行回数</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>資源の範囲</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>このブループリント</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>チェーン全体</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>インディパーク（チェーン全体）</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>アイテムを追加</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>カスタムカラー</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>EVEメールはほぼ黒の背景に表示されるため、非常に暗い色はほとんど見えなくなります。下の見本は、このダイアログの背景ではなく、その背景の上に表示しています。</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>この色を使用</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>ブラウザで開きますか？</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>このリンクはブラウザでウェブサイトを開きます。</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>今後は確認しない</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>装備からアイテムを追加</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>追加先のグループ：</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>装備の内容</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>アイテムを追加</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>マーケットグループからアイテムを追加</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>アイテムごとの目標数量</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>色を選択します</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>EVEメールの色</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>カスタム…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>色なし</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>使用中のラベルをすべて表示します</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>一致するものがありません — Enterキーを押すと作成します。</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>読み込み中…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>確認中…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>エラー：{0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>買値</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>売値</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>中間値</value>
+  </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>準備完了</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0}日{1}時間{2}分</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0}分{1}秒</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>サウンド</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTSで直接読み上げ（AIアシスタントなし）</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>AIアシスタントに通知</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>アラート</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>ダイアログ</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>結果なし</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>{0:N0}/{1:N0}ページ  ·  {2:N0}件</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— パークなし —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>先にブループリントを選択してください。</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>確認のため「{0}」と入力してください：</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>名前を入力してください。</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>マーケットグループを読み込み中…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>マーケットグループを選択すると、そのアイテムを追加できます。</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>個</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>ESIから装備を取得中…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>ツリーを作成中…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>装備が見つかりません。キャラクターに「esi-fittings.read_fittings.v1」スコープがあることを確認してください。</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>タイプID {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{1}種類の艦船に{0}件の装備</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>ハイパワースロット</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>ミディアムスロット</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>ローパワースロット</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>リグ</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>サブシステム</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>ドローン</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>艦載戦闘機</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>カーゴ</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>フリートハンガー</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="ClauseSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>英語</value>
+  </data>
+  <data name="LanguageChineseSimplified" xml:space="preserve">
+    <value>簡体字中国語</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>ドイツ語</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>スペイン語</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>フランス語</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>韓国語</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>ロシア語</value>
+  </data>
+  <data name="LanguageLocalAndNative" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>M月d日</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>yyyy年M月</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>yy年M月</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>M月d日 HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>yyyy年M月d日（ddd） HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:yyyy年M月d日}</value>
+  </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>アイテム名:</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>名前の全部または一部</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>名前にこの文字列を含むアイテムだけを表示します（大文字・小文字は区別しません）。入力に合わせて一覧が絞り込まれるので、再計算は不要です。</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>{1:N0} 件中 {0:N0} 件を表示</value>
+  </data>
+</root>

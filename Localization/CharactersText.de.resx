@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Zusammenfassung</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>Alle Charaktere</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>Doppelklicken Sie auf eine Zeile, um sie im Tab „Details“ zu öffnen.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>Kapselwert</value>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>Heimatstation</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>Warteschlange</value>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>Einträge in der Trainingswarteschlange und die Zeit, bis der letzte fertig ist.</value>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>SP gesamt</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>Fert.</value>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>Fertigungsslots: frei von gesamt</value>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>Reak.</value>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>Reaktionsslots: frei von gesamt</value>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>Wiss.</value>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>Wissenschaftsslots: frei von gesamt – Kopieren, Forschung und Erfindung</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Charakter:</value>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>SP gesamt: </value>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>Nicht vergeben: </value>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>Sicherheitsstatus: </value>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>Skillgruppen</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Im Gegenstandsbrowser öffnen</value>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>Trainingswarteschlange</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>Charakterattribute</value>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>Intelligenz</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Gedächtnis</value>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>Ausstrahlung</value>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>Auffassungsgabe</value>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>Willenskraft</value>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>Keine Attributdaten vorhanden. Charakterattribute werden bei der ESI-Abfrage geladen.</value>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>Neurale Umprogrammierung</value>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>Zuletzt umprogrammiert:</value>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>Klone</value>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>Implantate des aktiven Klons</value>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>Im aktiven Klon sind keine Implantate eingesetzt.</value>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>Sprungklone</value>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>Keine Sprungklone.</value>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>Dieser Charakter hat keine Titel.</value>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>Ansehen</value>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>Keine Ansehenswerte vorhanden.</value>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>Aktualisiert: {0:dd. MMM yyyy HH:mm}</value>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>Charakteransicht</value>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="StatusOffline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="QueueEmptyShort" xml:space="preserve">
+    <value>leer</value>
+  </data>
+  <data name="QueuePausedShort" xml:space="preserve">
+    <value>{0} · pausiert</value>
+  </data>
+  <data name="SpanDone" xml:space="preserve">
+    <value>fertig</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0:F0} Tg.</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0:F0} Std.</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0:F0} Min.</value>
+  </data>
+  <data name="SpMillions" xml:space="preserve">
+    <value>{0:F2}M SP</value>
+  </data>
+  <data name="SpThousands" xml:space="preserve">
+    <value>{0:F0}k SP</value>
+  </data>
+  <data name="SpPlain" xml:space="preserve">
+    <value>{0} SP</value>
+  </data>
+  <data name="QueuePaused" xml:space="preserve">
+    <value>Pausiert</value>
+  </data>
+  <data name="QueueComplete" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="StandingTypeFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="StandingTypeCorp" xml:space="preserve">
+    <value>Corp</value>
+  </data>
+  <data name="StandingTypeAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="SummaryStatusOne" xml:space="preserve">
+    <value>{0} Charakter. Die Zahlen stammen aus abgefragten Daten – „Aktualisieren“ im Tab „Details“ aktualisiert einen Charakter, die Abfrage alle.</value>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>{0} Charaktere. Die Zahlen stammen aus abgefragten Daten – „Aktualisieren“ im Tab „Details“ aktualisiert einen Charakter, die Abfrage alle.</value>
+  </data>
+  <data name="SummaryLoadFailed" xml:space="preserve">
+    <value>Die Zusammenfassung konnte nicht geladen werden: {0}</value>
+  </data>
+  <data name="NoMedalsOnRecord" xml:space="preserve">
+    <value>Für diesen Charakter sind keine Orden verzeichnet.</value>
+  </data>
+  <data name="MedalCountOne" xml:space="preserve">
+    <value>{0} Orden</value>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>{0} Orden</value>
+  </data>
+  <data name="StatusSelectCharacterToView" xml:space="preserve">
+    <value>Wählen Sie einen Charakter, um seine Daten anzuzeigen.</value>
+  </data>
+  <data name="StatusLoadingCharacter" xml:space="preserve">
+    <value>{0} wird geladen…</value>
+  </data>
+  <data name="StatusCharacterSp" xml:space="preserve">
+    <value>{0} – {1:N0} SP</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>Fehler beim Laden von {0}: {1}</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp #{0}</value>
+  </data>
+  <data name="SkillGroupUnknown" xml:space="preserve">
+    <value>Unbekannt</value>
+  </data>
+  <data name="SkillNumbered" xml:space="preserve">
+    <value>Skill #{0}</value>
+  </data>
+  <data name="AllSkills" xml:space="preserve">
+    <value>Alle Skills</value>
+  </data>
+  <data name="QueueEmpty" xml:space="preserve">
+    <value>Warteschlange leer</value>
+  </data>
+  <data name="RemapNoData" xml:space="preserve">
+    <value>Keine Attributdaten vorhanden</value>
+  </data>
+  <data name="RemapBonusOne" xml:space="preserve">
+    <value>{0} Bonus-Umprogrammierung verfügbar</value>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>{0} Bonus-Umprogrammierungen verfügbar</value>
+  </data>
+  <data name="RemapAvailableOn" xml:space="preserve">
+    <value>Umprogrammierung verfügbar: {0:dd. MMM yyyy}</value>
+  </data>
+  <data name="RemapLastAvailableNow" xml:space="preserve">
+    <value>Letzte Umprogrammierung: {0:dd. MMM yyyy} – jetzt wieder verfügbar</value>
+  </data>
+  <data name="RemapAvailable" xml:space="preserve">
+    <value>Umprogrammierung verfügbar</value>
+  </data>
+  <data name="ImplantNumbered" xml:space="preserve">
+    <value>Implantat #{0}</value>
+  </data>
+  <data name="CloneLocation" xml:space="preserve">
+    <value>Standort {0} ({1})</value>
+  </data>
+  <data name="MedalNumbered" xml:space="preserve">
+    <value>Orden #{0}</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Fraktion #{0}</value>
+  </data>
+  <data name="AgentNumbered" xml:space="preserve">
+    <value>Agent #{0}</value>
+  </data>
+  <data name="EntityNumbered" xml:space="preserve">
+    <value>Entität #{0}</value>
+  </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0} (im All)</value>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>Station {0}</value>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>Struktur {0}</value>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>System {0}</value>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>Standort {0}</value>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>Typ {0}</value>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>Allianz {0}</value>
+  </data>
+  <data name="StatusSelectCharacter" xml:space="preserve">
+    <value>Wählen Sie einen Charakter.</value>
+  </data>
+  <data name="DurationDaysOne" xml:space="preserve">
+    <value>{0} Tag</value>
+  </data>
+  <data name="DurationDaysOther" xml:space="preserve">
+    <value>{0} Tage</value>
+  </data>
+  <data name="DurationHoursOne" xml:space="preserve">
+    <value>{0} Stunde</value>
+  </data>
+  <data name="DurationHoursOther" xml:space="preserve">
+    <value>{0} Stunden</value>
+  </data>
+  <data name="DurationMinutesOne" xml:space="preserve">
+    <value>{0} Minute</value>
+  </data>
+  <data name="DurationMinutesOther" xml:space="preserve">
+    <value>{0} Minuten</value>
+  </data>
+  <data name="QueueSkillsFinishOne" xml:space="preserve">
+    <value>{0} Skill – fertig am {1:dd. MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsFinishOther" xml:space="preserve">
+    <value>{0} Skills – fertig am {1:dd. MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsPausedOne" xml:space="preserve">
+    <value>{0} Skill (pausiert)</value>
+  </data>
+  <data name="QueueSkillsPausedOther" xml:space="preserve">
+    <value>{0} Skills (pausiert)</value>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+</root>

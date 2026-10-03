@@ -1,0 +1,1463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Window title in AddEditGroupDialog.</comment>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>GROUP NAME</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>COLLECTION</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>STATION</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>Only stations with cached sell orders appear here.</value>
+    <comment>Note in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>MARKET PRICE SOURCE</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>MAX PRICE OVER SOURCE (%)</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>e.g. 100 — leave blank to disable</value>
+    <comment>Hint in an empty box in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>MULTIPLIER</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× target quantities for all items in this group</value>
+    <comment>Note in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button or option in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>Issuer</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Assignee</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>Acceptor</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>Reward</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>Collateral</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>Buyout</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>To</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>Accepted</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>Pull items from ESI</value>
+    <comment>Button or option in ContractDetailView.</comment>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>Ask every endpoint this contract has for its items, once more, and say what each answered.</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>Offered</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Build value</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Requested</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>Corporation &amp; Personal</value>
+    <comment>Tab in ContractsView.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Scope:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>Assignee:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>Acceptor:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ Refresh</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Contents</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>Assignee</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>Acceptor</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>Price</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>Reward</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>Select a contract to view its details.</value>
+    <comment>Note in ContractsView.</comment>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>Public</value>
+    <comment>Tab in ContractsView.</comment>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Show:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>Contract:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Region:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>Category:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>Item:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>type name…</value>
+    <comment>Hint in an empty box in ContractsView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sort:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>Vol m³</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>Current Values</value>
+    <comment>Tab in LpMarketValuesView.</comment>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalculate</value>
+    <comment>Button or option in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>Re-price every offer against current market and contract prices. Happens automatically when market prices refresh; this runs it now.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>Mean ISK per loyalty point across the offers in each store that price out above zero. Offers worth nothing or less are shown per item in the Item Browser but are not counted here, since nobody spends LP on them; the median covers exactly the same offers. Corporations you hold LP with are listed first. Double-click a row for its history.</value>
+    <comment>Note in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Open in NPC Entities</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / LP</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>Mean ISK per LP across the offers counted for this corporation.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>Median</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>The middle offer, over the same counted offers as the mean. Highlighted when it sits well below the mean, which means a few very high offers are lifting the average above what a typical offer returns.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>Best Offer</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>Best Item</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>Counted</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>Offers behind these figures, out of the store total. Excludes offers that could not be priced, and offers worth zero or less — nobody spends LP on those, so they are shown per item but not averaged here.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Your LP</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>Holding Worth</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>Updated</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>History</value>
+    <comment>Tab in LpMarketValuesView.</comment>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporation:</value>
+    <comment>Label in LpMarketValuesView.</comment>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in LpMarketValuesView.</comment>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Add Group</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Collection</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Add Items From Fit</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Add Items From Market Group</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Add Items From Blueprint</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Delete Item</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>GROUP / ITEM</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Expand all groups</value>
+    <comment>Tooltip in MarketLevelView.</comment>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Collapse all groups</value>
+    <comment>Tooltip in MarketLevelView.</comment>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Item</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>TARGET</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>TGT TOTAL</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>AVAIL</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>DIFF</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>MKT PRICE</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>ST MIN</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>ST AVG</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>ST MAX</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>BUILD PRICE</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>VOLUME (m³)</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>Market Levels</value>
+    <comment>Window title in MarketLevelWindow.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>SELL ORDER COUNT</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>SELL ORDER ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>SELL ORDER TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>BUY ORDER COUNT</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>BUY ORDER ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>BUY ORDER TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>SALES UNITS</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>SALES ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>SALES TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>Sell Orders by Type</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>No sell orders for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>Buy Orders by Type</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>No buy orders for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>Sales by Market Group</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>No sales for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>Daily Sales ISK</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>No sales history for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>By Market Group</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>Market Group</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>Sell Order Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>Sell Order ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>Buy Order Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>Buy Order ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>Sales Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>Sales ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>By Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>Sell Orders by Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>Buy Orders by Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>Standing Buy Order</value>
+    <comment>Window title in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>Declare a buy order you intend to keep standing. EVE Console will report whether a matching live buy order exists at this location, and how much of it is left.</value>
+    <comment>Note in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>ITEM TYPE</value>
+    <comment>Label in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Search for item type…</value>
+    <comment>Hint in an empty box in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>STATION / STRUCTURE</value>
+    <comment>Label in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Search for station or structure…</value>
+    <comment>Hint in an empty box in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>NPC stations, player structures and your corp's structures are all searchable.</value>
+    <comment>Note in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+    <comment>Text in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>Buy orders you intend to keep standing at a station or structure. Each is matched against your characters' and corporations' live buy orders.</value>
+    <comment>Note in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Held by</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Our bid</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>Station best bid</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Remaining</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Button or option in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>Type to filter…</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>Cargo (m³)</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>ISK Cap</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>No limit</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Min 30d ISK Vol</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>No filter</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Min 30d Unit Vol</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Exclude Groups</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Remove this exclusion</value>
+    <comment>Tooltip in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>VOLUME</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>COST</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>PROFIT</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Sell Price</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>Dest Price</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Profit / Unit</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>Profit / m³</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>Volume (m³)</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Total Cost</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>Total Profit</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>Scanning for trade opportunities…</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>Trade Opportunities</value>
+    <comment>Window title in TradeOpportunitiesWindow.</comment>
+  </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>Item Exchange</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>Auction</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>Courier</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>Loan</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>Expired</value>
+    <comment>A contract's status: past its expiry.</comment>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>Total</value>
+    <comment>The totals row of a contract's items.</comment>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>{0:N0} line(s) have no market price and are not counted</value>
+    <comment>Tooltip. {0} is how many item lines.</comment>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>Every line priced</value>
+    <comment>Tooltip.</comment>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>{0:N0} line(s) have no build cost and are not counted</value>
+    <comment>Tooltip. {0} is how many item lines.</comment>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>Every line costed</value>
+    <comment>Tooltip.</comment>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>Offered</value>
+    <comment>A contract line: an item the issuer gives.</comment>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>Requested</value>
+    <comment>A contract line: an item the issuer asks for.</comment>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>No market price held for this item</value>
+    <comment>Tooltip on an item's market value.</comment>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>{0} ISK a unit at the asset-value market source</value>
+    <comment>Tooltip on an item's market value. {0} is the ISK amount.</comment>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>No build cost held for this item</value>
+    <comment>Tooltip on an item's build value.</comment>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>{0} ISK a unit to build</value>
+    <comment>Tooltip on an item's build value. {0} is the ISK amount.</comment>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>Asking ESI…</value>
+    <comment>Status while the app asks ESI for a contract's items.</comment>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>ESI answered HTTP {0} when the items were asked for.</value>
+    <comment>Why a contract has no items. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>It closed before its items were read, and ESI no longer lists them.</value>
+    <comment>Why a public contract has no items: it left the public listing before they were fetched, and the public endpoint refuses it after that.</comment>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESI listed no items for it.</value>
+    <comment>Why a contract has no items.</comment>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>Not asked for yet — the background sweep will get to it.</value>
+    <comment>Why a contract has no items.</comment>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>(no title)</value>
+    <comment>A contract without a title.</comment>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>Public</value>
+    <comment>Who can see a contract.</comment>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>Private</value>
+    <comment>Who can see a contract.</comment>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>A place whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>Issued for the corporation by {0}. Open in the entity browser.</value>
+    <comment>Tooltip on a contract's issuer. {0} is the character who issued it.</comment>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip on a character, corporation or alliance.</comment>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>All statuses</value>
+    <comment>Contract status filter: every status.</comment>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Contract status filter: still open.</comment>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>Contract {0} is not stored on this side — it may be a public listing, or not yet polled.</value>
+    <comment>Status line. {0} is a contract number.</comment>
+  </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0} +{1} more</value>
+    <comment>Contracts → Contents column when a contract offers several items. {0} is the first item's name, {1} the number of the other items.</comment>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>{0} item(s)</value>
+    <comment>Contracts → Contents column when a contract only asks for items. {0} is how many.</comment>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>(courier)</value>
+    <comment>Contracts → Contents column of a courier contract, which carries a package rather than listed items.</comment>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+    <comment>Contract items → Details: the item is a blueprint copy. The game's abbreviation; keep it unless your language's client shows another.</comment>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+    <comment>Contract items → Details: the item is a blueprint original. The game's abbreviation; keep it unless your language's client shows another.</comment>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0} runs</value>
+    <comment>Contract items → Details: how many runs a blueprint copy has left. {0} is the number.</comment>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>assembled</value>
+    <comment>Contract items → Details: the item is assembled rather than packaged.</comment>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>Not available.</value>
+    <comment>Shown when the contracts service is not available.</comment>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>Loading contracts…</value>
+    <comment>Status while loading.</comment>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>All owners</value>
+    <comment>Whose contracts to show.</comment>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>All characters and personal corps</value>
+    <comment>Whose contracts to show: the user's characters and the corporations marked personal.</comment>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>All assignees</value>
+    <comment>Filter: every assignee.</comment>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>All acceptors</value>
+    <comment>Filter: every acceptor.</comment>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>No corporation or personal contracts stored yet.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>Price: low → high</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>Price: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Newest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>Oldest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>Reward: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>Volume: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>Contents (A → Z)</value>
+    <comment>Sort order: by what the contract holds, alphabetically.</comment>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>All categories</value>
+    <comment>Category filter: every category.</comment>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>No results</value>
+    <comment>Paging line when nothing matches.</comment>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>Page {0:N0} of {1:N0}  ·  {2:N0} contracts</value>
+    <comment>Paging line. {0} is the page, {1} how many pages, {2} how many contracts.</comment>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>All regions</value>
+    <comment>Region filter: every region.</comment>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>Historical</value>
+    <comment>Public contract filter: no longer open.</comment>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>All</value>
+    <comment>Public contract filter: open and closed.</comment>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>All types</value>
+    <comment>Contract type filter: every type.</comment>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>Outstanding</value>
+    <comment>A contract's status: open, not yet accepted.</comment>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>In Progress</value>
+    <comment>A contract's status: a courier contract accepted and under way.</comment>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>Finished</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>Finished Issuer</value>
+    <comment>A contract's status: finished by the issuer.</comment>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>Finished Contractor</value>
+    <comment>A contract's status: finished by the contractor.</comment>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>Rejected</value>
+    <comment>A contract's status: the assignee turned it down.</comment>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>Failed</value>
+    <comment>A contract's status: a courier contract not delivered in time.</comment>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>Deleted</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>Reversed</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>All Time</value>
+    <comment>Period choice: no start date, everything held.</comment>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Last 365 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Last 7 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>Region {0}</value>
+    <comment>A region whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>Sales ISK</value>
+    <comment>Chart line on the Market Overview summary: the ISK value of each day's sales.</comment>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>all regions</value>
+    <comment>Start of the Market Overview status line when no region is picked (lower case); the period follows after " · ".</comment>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Pie chart slice holding everything too small to show on its own.</comment>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>Group {0}</value>
+    <comment>A market group whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>No market data for this selection.</value>
+    <comment>Status line: nothing held for the chosen region and period.</comment>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>{0:N0} market group(s)</value>
+    <comment>Status line. {0} is how many market groups are listed.</comment>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>{0:N0} type(s)</value>
+    <comment>Status line. {0} is how many item types are listed.</comment>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>No orders for this selection.</value>
+    <comment>Status line: no market orders for the chosen region.</comment>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>All items from '{0}' are already in the group.</value>
+    <comment>Status line. {0} is the fit, market group or blueprint the items came from.</comment>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>TypeId {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>Added {0} item(s) from '{1}'; {2} already present, skipped.</value>
+    <comment>Status line. {0} is how many items were added, {1} the fit, market group or blueprint they came from, {2} how many were already in the group.</comment>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>Added {0} item(s) from '{1}'.</value>
+    <comment>Status line. {0} is how many items were added, {1} the fit, market group or blueprint they came from.</comment>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Loading items in '{0}'…</value>
+    <comment>Status line while a market group's items load. {0} is the market group.</comment>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>No published items found under '{0}'.</value>
+    <comment>Status line. {0} is a market group.</comment>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+    <comment>Status line: the user said no.</comment>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>No group selected.</value>
+    <comment>Status line: items can only be added to a group.</comment>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Calculating materials…</value>
+    <comment>Status line while a blueprint's materials are worked out.</comment>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>Calculation error: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>No materials found for that blueprint.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— Asset Default —</value>
+    <comment>Market price source choice in the group dialog: the asset-value market source set in Settings.</comment>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— Default —</value>
+    <comment>Collection choice in the group dialog: no collection of its own, so the group sits under Default.</comment>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>Default</value>
+    <comment>Name of the collection that holds every group not put in a collection of its own.</comment>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>No groups configured. Click '{0}' to create one.</value>
+    <comment>Status line when nothing is set up. {0} is the label of the Add Group button.</comment>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>{0} group(s), {1} item(s)</value>
+    <comment>Status line. {0} is how many groups, {1} how many items.</comment>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>Data from {0}h {1}m ago</value>
+    <comment>How old the market data is. {0} is hours, {1} minutes (h and m are their abbreviations).</comment>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>Data from {0}m ago</value>
+    <comment>How old the market data is. {0} is minutes (m is its abbreviation).</comment>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>Data from just now</value>
+    <comment>How old the market data is: under a minute.</comment>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>No cached orders — run market pricing to populate.</value>
+    <comment>Shown when no market orders are held for the groups' stations.</comment>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>{0} group(s)</value>
+    <comment>Status line. {0} is how many groups.</comment>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Collection '{0}' deleted.</value>
+    <comment>Status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Collection '{0}' added.</value>
+    <comment>Status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>Buy Sell → Sell to Buy Order</value>
+    <comment>Trade mode: buy from sell orders at the source, sell into buy orders at the destination.</comment>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>Buy Sell → Undercut Sell Order</value>
+    <comment>Trade mode: buy from sell orders at the source, list below the cheapest sell order at the destination.</comment>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>Select source and destination stations, then click {0}.</value>
+    <comment>Status line before the first run. {0} is the label of the Calculate button.</comment>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>Please select both a source and destination station.</value>
+    <comment>Status line: a station is missing.</comment>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>Source and destination must be different stations.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>Please enter a valid cargo size in m³.</value>
+    <comment>Status line: the cargo box does not hold a number above zero.</comment>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>Please enter a valid ISK cap (or leave blank for no limit).</value>
+    <comment>Status line: the ISK cap box does not hold a number above zero.</comment>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>Please enter a valid minimum ISK volume (or leave blank for no filter).</value>
+    <comment>Status line: the minimum 30-day ISK volume box does not hold a number.</comment>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>Please enter a valid minimum unit volume (or leave blank for no filter).</value>
+    <comment>Status line: the minimum 30-day unit volume box does not hold a number.</comment>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>Calculating…</value>
+    <comment>Status line while trade opportunities are worked out.</comment>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>Could not resolve the destination station's region — ensure market data has been loaded for that location so the volume filter can work.</value>
+    <comment>Status line: the volume filters need the destination's region.</comment>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>No profitable opportunities found for this route.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>Past 30 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>Past 90 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>Past 365 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>Recalculating LP values…</value>
+    <comment>Status line while loyalty point values are recalculated.</comment>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>Recalculation failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>No LP values yet — they are calculated when market prices refresh.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>A corporation whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>{0:N0} corporation(s) valued — updated {1:d MMM HH:mm}</value>
+    <comment>Status line. {0} is how many corporations, {1} when the values were last worked out.</comment>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>No history yet for {0} in this period. A point is recorded each time values are recalculated.</value>
+    <comment>History tab. {0} is an NPC corporation.</comment>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>ISK per LP</value>
+    <comment>Chart line and axis title: ISK per loyalty point.</comment>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0} day(s) — {1:N2} to {2:N2} ISK/LP</value>
+    <comment>History tab. {0} is how many days are charted, {1} the lowest and {2} the highest ISK per loyalty point.</comment>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market.</value>
+    <comment>Tooltip on a standing buy order's price when its station is not a market source.</comment>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>Outbid by {0:N2} ISK — the station's best bid is {1:N2}.</value>
+    <comment>Tooltip on a standing buy order's price. {0} is how much higher the best rival bid is, {1} that bid (ISK).</comment>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>No other buy orders for this item here.</value>
+    <comment>Tooltip on a standing buy order's price.</comment>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>A standing buy order's status: no live buy order matches it.</comment>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>Outbid</value>
+    <comment>A standing buy order's status: live, but another buyer bids more.</comment>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>A standing buy order's status: live and healthy.</comment>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>No live buy order at this location</value>
+    <comment>Note column of a standing buy order.</comment>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>Outbid by {0:N2} ISK (station best {1:N2})</value>
+    <comment>Note column. {0} is how much higher the best rival bid is, {1} that bid (ISK).</comment>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>Below {0:N0}% of original volume</value>
+    <comment>Note column. {0} is a percentage.</comment>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>Under {0:N0}% of its duration left</value>
+    <comment>Note column. {0} is a percentage.</comment>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0} — needs attention</value>
+    <comment>Note column. {0} is one or more of the notes above, joined by semicolons.</comment>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>No standing buy orders defined yet.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>{0:N0} defined</value>
+    <comment>Part of the status line, joined to the others by " · ". {0} is how many standing buy orders are defined.</comment>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>{0:N0} missing</value>
+    <comment>Part of the status line. {0} is how many standing buy orders have no live order.</comment>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>{0:N0} outbid</value>
+    <comment>Part of the status line. {0} is how many standing buy orders are outbid.</comment>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>{0:N0} running low</value>
+    <comment>Part of the status line. {0} is how many standing buy orders have little volume left.</comment>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>{0:N0} expiring soon</value>
+    <comment>Part of the status line. {0} is how many standing buy orders are close to expiring.</comment>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>all healthy</value>
+    <comment>Part of the status line: no standing buy order needs attention.</comment>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>A standing order for {0} at {1} already exists.</value>
+    <comment>Status line. {0} is an item, {1} a station or structure.</comment>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>The selected group contains {0} items. Are you sure you want to add them all?</value>
+    <comment>Asked before adding a large market group. {0} is how many items (always more than 100).</comment>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Add Collection</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>COLLECTION NAME</value>
+    <comment>Label over the name box in the collection dialog.</comment>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Rename Collection</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>Edit Standing Buy Order</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>Pick an item type from the search results.</value>
+    <comment>Error in the standing buy order dialog.</comment>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>Pick a station or structure from the search results.</value>
+    <comment>Error in the standing buy order dialog.</comment>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>Are you sure you want to delete this standing buy order?</value>
+    <comment>Asked before a standing buy order is deleted.</comment>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Add Group</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Edit Group</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>Group name is required.</value>
+    <comment>Error in the group dialog.</comment>
+  </data>
+  <data name="StatusItemTypesLoadedOne" xml:space="preserve">
+    <value>{0} item type  ·  {1:N1} m³ loaded</value>
+    <comment>Trade Opportunities status line after a run, one item type. {0} is how many item types are in the shopping list, {1} the cargo volume they fill.</comment>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>{0} item types  ·  {1:N1} m³ loaded</value>
+    <comment>Trade Opportunities status line after a run, several item types. {0} is how many item types are in the shopping list, {1} the cargo volume they fill.</comment>
+  </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>Unknown ({0})</value>
+    <comment>A market location whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>#{0}</value>
+    <comment>A character whose name is unknown, shown by its number. {0} is the character's id.</comment>
+  </data>
+  <data name="NoOtherBids" xml:space="preserve">
+    <value>no other bids</value>
+    <comment>Standing Buy Orders, Station best bid column: nobody else has a buy order for this item at this station.</comment>
+  </data>
+  <data name="PriceMaxOf" xml:space="preserve">
+    <value>{0:N2} (max of {1})</value>
+    <comment>Standing Buy Orders, Our bid column, when several of our buy orders back one row. {0} is the highest of their prices (ISK), {1} the number of orders.</comment>
+  </data>
+  <data name="OwnersCount" xml:space="preserve">
+    <value>{0} owners</value>
+    <comment>Standing Buy Orders, Held by column, when the orders behind one row belong to several characters or corporations. {0} is how many (always two or more).</comment>
+  </data>
+  <data name="TipOwnerOrderLine" xml:space="preserve">
+    <value>{0} — {1:N2} ISK, {2:N0}/{3:N0}, expires {4:yyyy-MM-dd}</value>
+    <comment>Standing Buy Orders, tooltip on Held by: one line per order. {0} is the character or corporation holding it, {1} its price (ISK), {2} the units still wanted, {3} the units ordered, {4} the day it expires.</comment>
+  </data>
+  <data name="OwnerOrdersCount" xml:space="preserve">
+    <value>{0} ({1} orders)</value>
+    <comment>Standing Buy Orders, Held by column, when one character or corporation holds several orders behind one row. {0} is its name, {1} the number of orders (always two or more).</comment>
+  </data>
+  <data name="ExpiryExpired" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (expired)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column: the order has expired. {0} is the day it expired. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryDaysLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}d left)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column. {0} is the day the order expires, {1} the whole days left; "d" abbreviates days. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryHoursLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}h left)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column, under a day left. {0} is the day the order expires, {1} the whole hours left; "h" abbreviates hours. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryFirst" xml:space="preserve">
+    <value>{0} (first)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column, when several orders back one row: {0} is the expiry of the one that lapses first, as in the entries above. Keep {0} first: the column sorts on this text.</comment>
+  </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Dest Units Sold 30d</value>
+    <comment>Trade Opportunities, column: units traded in the destination's region over the last 30 days.</comment>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Dest ISK Sold 30d</value>
+    <comment>Trade Opportunities, column: ISK traded in the destination's region over the last 30 days.</comment>
+  </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Max Buy (Days of Dest Sales)</value>
+    <comment>Trade Opportunities, label before a box: each item's buy is capped at what the destination's region sold in this many days.</comment>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>Buys no more of an item than the destination's region sold in this many days — 30 is a month's sales. Leave it empty for no cap. Items whose sales history has not been read yet are not capped.</value>
+    <comment>Trade Opportunities, tooltip on the Max Buy (Days of Dest Sales) box.</comment>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Please enter a whole number of days for Max Buy, or leave it empty for no cap.</value>
+    <comment>Trade Opportunities status line: the Max Buy (Days of Dest Sales) box does not hold a whole number above zero.</comment>
+  </data>
+</root>

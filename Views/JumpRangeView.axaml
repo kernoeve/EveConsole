@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.JumpRangeView"
+             x:DataType="vm:JumpRangeTabViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Margin" Value="2 0 0 2" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InfoSurfaceBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBox">   <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="ComboBox">  <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="CheckBox">  <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader"><Setter Property="FontSize" Value="10" /></Style>
+
+    <!-- Security in the game's colours: high sec is never in range. -->
+    <Style Selector="TextBlock.low"> <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="TextBlock.null"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.Resources>
+    <!-- The region beside the system, as every system picker shows it. -->
+    <DataTemplate x:Key="PlaceItem" x:DataType="svc:PlaceMatch">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid ColumnDefinitions="330,1,*">
+
+    <!-- ── From where, in what ─────────────────────────────────────────── -->
+    <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="12">
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RouteCharacterLabel}" />
+          <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding Character}" HorizontalAlignment="Stretch" />
+          <TextBlock Text="{x:Static loc:MapText.JumpRangeCharacterNote}" FontSize="10" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" Margin="2 2 0 0" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RouteFromLabel}" />
+          <Grid ColumnDefinitions="*,Auto">
+            <AutoCompleteBox Text="{Binding FromText}" ItemsSource="{Binding FromPlaces}" SelectedItem="{Binding From}"
+                             FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                             ItemTemplate="{StaticResource PlaceItem}"
+                             Watermark="{x:Static loc:MapText.HintRouteSystem}" />
+            <Button Grid.Column="1" Classes="tool" Margin="6 0 0 0" Padding="8 4"
+                    Content="{x:Static loc:MapText.RouteFromHere}" ToolTip.Tip="{x:Static loc:MapText.TipRouteFromHere}"
+                    Command="{Binding FromHereCommand}" IsEnabled="{Binding CanStartHere}" />
+          </Grid>
+          <TextBlock Text="{Binding FollowText}" FontSize="10" Foreground="{DynamicResource GoodBrush}" Margin="2 2 0 0"
+                     IsVisible="{Binding FollowText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.HullLabel}" />
+          <ComboBox ItemsSource="{Binding Ships}" SelectedItem="{Binding SelectedShip}"
+                    HorizontalAlignment="Stretch" MaxDropDownHeight="360" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.JumpDriveCalibrationLabel}" />
+          <ComboBox ItemsSource="{Binding SkillLevels}" SelectedItem="{Binding JdcLevel}" Width="90" HorizontalAlignment="Left" />
+          <TextBlock Text="{Binding RangeText}" FontSize="10.5" Foreground="{DynamicResource AccentBrush}" Margin="2 4 0 0" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.JumpRangeLandLabel}" />
+          <ComboBox ItemsSource="{Binding Landings}" SelectedItem="{Binding Landing}" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <CheckBox IsChecked="{Binding ShowOnMap}" Content="{x:Static loc:MapText.RouteShowOnMap}"
+                  ToolTip.Tip="{x:Static loc:MapText.TipJumpRangeShowOnMap}" />
+
+        <TextBlock Text="{Binding Message}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}"
+                   IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <TextBlock Text="{x:Static loc:MapText.JumpRangeRulesNote}" FontSize="10" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextFaintBrush}" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
+
+    <!-- ── In range ───────────────────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="Auto,*">
+      <Border Grid.Row="0" Padding="12 8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+        <TextBlock Text="{Binding Summary}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
+      </Border>
+
+      <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}"
+                AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                CanUserReorderColumns="False" CanUserSortColumns="True"
+                Background="{DynamicResource SurfaceBaseBrush}">
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSystem}" Width="170" SortMemberPath="Name"
+                                  ClipboardContentBinding="{Binding Name}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:JumpRangeRowVm">
+                <Button Classes="link" Command="{Binding $parent[UserControl].((vm:JumpRangeTabViewModel)DataContext).OpenCommand}"
+                        CommandParameter="{Binding}" ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
+                  <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColRegion}" Binding="{Binding Region}" Width="170" />
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSec}" Width="60" SortMemberPath="Security"
+                                  ClipboardContentBinding="{Binding Security}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:JumpRangeRowVm">
+                <TextBlock Text="{Binding Security}" VerticalAlignment="Center" Classes.low="{Binding IsLow}" Classes.null="{Binding IsNull}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:MapText.JumpRangeColLy}" Binding="{Binding Ly}" SortMemberPath="Distance" Width="70" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </Grid>
+  </Grid>
+</UserControl>

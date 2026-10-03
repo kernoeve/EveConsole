@@ -1,0 +1,1647 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>Fitting</value>
+    <comment>Title of the fitting tool's own window, once it is detached from the main window. The tool's name, as in the navigation menu.</comment>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>Items</value>
+    <comment>Fitting tool: heading of the item list on the left, from which modules, charges, drones and the rest are added to a fit. Other texts point to the list by this name ("Add modules from Items").</comment>
+  </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Not on the market</value>
+    <comment>Fitting tool, item list: the group, at the end of the tree of market groups, holding items the market does not list.</comment>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Double-click an item to add it, or drag it onto a slot.</value>
+    <comment>Fitting tool, under the item list: how to put an item on the fit. A slot is a place on the ship a module goes, on the ring or in the list below it.</comment>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Fitting tool, item list: the category pick list — every kind of item. Short.</comment>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>Modules</value>
+    <comment>Fitting tool, item list: the category pick list — modules. Short.</comment>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>Rigs</value>
+    <comment>Fitting tool, item list: the category pick list — rigs. Short.</comment>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>Subsystems</value>
+    <comment>Fitting tool, item list: the category pick list — subsystems (Tech III ships). Short.</comment>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>Charges</value>
+    <comment>Fitting tool, item list: the category pick list — charges (ammunition, scripts, anything a module loads). Short.</comment>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>Drones</value>
+    <comment>Fitting tool, item list: the category pick list — drones and fighters. Short.</comment>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>Implants</value>
+    <comment>Fitting tool, item list: the category pick list — implants. Short.</comment>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>Boosters</value>
+    <comment>Fitting tool, item list: the category pick list — boosters (the drugs a pilot takes). Short.</comment>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>Other items</value>
+    <comment>Fitting tool, item list: the category pick list — anything else, which a fit can only carry in its cargo hold. Short.</comment>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>Search by name or group…</value>
+    <comment>Fitting tool, item list: hint in the empty search box. The search matches an item's name and its group's.</comment>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>Only what fits this hull</value>
+    <comment>Fitting tool, item list: check box — list only the modules, rigs and subsystems the open fit's hull can take.</comment>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>Show every slot</value>
+    <comment>Fitting tool, item list: tooltip on the ✕ beside a note such as "High slot modules only" — takes the note away and lists modules for every slot again.</comment>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>Add to fit</value>
+    <comment>Fitting tool, item list: button under the list — puts the selected item on the fit. Short.</comment>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>Add to cargo</value>
+    <comment>Fitting tool, item list: button under the list — puts the selected item in the fit's cargo hold. Short.</comment>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>Put the selected item in the cargo hold — anything can be carried</value>
+    <comment>Fitting tool, item list: tooltip on the Add to cargo button.</comment>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>High</value>
+    <comment>Fitting tool, item list: small label beside a module — the slot it goes in: a high slot. Very short.</comment>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>Mid</value>
+    <comment>Fitting tool, item list: small label beside a module — the slot it goes in: a mid slot. Very short.</comment>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>Low</value>
+    <comment>Fitting tool, item list: small label beside a module — the slot it goes in: a low slot. Very short.</comment>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>Service</value>
+    <comment>Fitting tool, item list: small label beside a module — the slot it goes in: a structure's service slot. Very short.</comment>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>Rig</value>
+    <comment>Fitting tool, item list: small label beside an item — it is a rig. Very short.</comment>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>Subsystem</value>
+    <comment>Fitting tool, item list: small label beside an item — it is a subsystem (Tech III ships). Very short.</comment>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>Charge</value>
+    <comment>Fitting tool, item list: small label beside an item — it is a charge (ammunition, a script: something a module loads). Very short.</comment>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>Drone</value>
+    <comment>Fitting tool, item list: small label beside an item — it is a drone. Very short.</comment>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>Fighter</value>
+    <comment>Fitting tool, item list: small label beside an item — it is a fighter. Very short.</comment>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>Implant</value>
+    <comment>Fitting tool: small label beside an item — it is an implant. In the item list, and in the fit's list of implants and boosters. Very short.</comment>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>Booster</value>
+    <comment>Fitting tool: small label beside an item — it is a booster (a drug a pilot takes). In the item list, and in the fit's list of implants and boosters. Very short.</comment>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>High slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty high slot was clicked on the ring — the list shows only modules for that slot.</comment>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>Mid slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty mid slot was clicked on the ring — the list shows only modules for that slot.</comment>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>Low slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty low slot was clicked on the ring — the list shows only modules for that slot.</comment>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>Rig slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty rig slot was clicked on the ring — the list shows only modules for that slot.</comment>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>Subsystem slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty subsystem slot was clicked on the ring — the list shows only modules for that slot (Tech III ships).</comment>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>Service slot modules only</value>
+    <comment>Fitting tool, item list: note above the list after an empty service slot was clicked on the ring — the list shows only modules for that slot (a structure's service slot).</comment>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ Items</value>
+    <comment>Fitting tool, top bar: button that shows or hides the item list. Keep the ☰ sign; the word is the list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>Show or hide the item list</value>
+    <comment>Fitting tool, top bar: tooltip on the ☰ Items button.</comment>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>NEW FIT</value>
+    <comment>Fitting tool, top bar: label before the ways to start a fit — the hull box, Paste EFT…, From the game… and the saved fits. Upper case in English.</comment>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>Hull — type a name or class…</value>
+    <comment>Fitting tool, top bar: hint in the empty box where a hull (a ship type) is picked to start a new fit. The box matches a ship's name and its class (Frigate, Cruiser…).</comment>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>Paste EFT…</value>
+    <comment>Fitting tool, top bar: button — import a fit pasted as EFT text. EFT is the name of the fitting text format the game and fitting sites use: keep it. Short.</comment>
+  </data>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Open fit…</value>
+    <comment>Fitting tool, new-fit bar: opens the picker of saved fits — EVE Console's own and the game's.</comment>
+  </data>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Open a fit saved in EVE Console, or one of your characters' fittings in the game</value>
+    <comment>Fitting tool, new-fit bar: tooltip on Open fit.</comment>
+  </data>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Open Fit</value>
+    <comment>Fitting tool: title of the window listing saved fits to open.</comment>
+  </data>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Search by fit or hull name…</value>
+    <comment>Fitting tool, Open Fit window: placeholder in the search box above the list of fits.</comment>
+  </data>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>No fits match the search.</value>
+    <comment>Fitting tool, Open Fit window: status when the search leaves nothing in the list.</comment>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Delete fit</value>
+    <comment>Fitting tool, Open Fit window: title of the yes/no question before deleting a fit saved in EVE Console.</comment>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Delete the fit "{0}" saved in EVE Console? This cannot be undone.</value>
+    <comment>Fitting tool, Open Fit window: asked before deleting a fit saved in the app. {0} is the fit's name.</comment>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Fitting tool, top bar: button — deletes the saved fit chosen in the list beside it. A verb.</comment>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>Delete the fit chosen — only fits saved in EVE Console</value>
+    <comment>Fitting tool, Open Fit window: tooltip on Delete. Fittings in the game are not deleted from here.</comment>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>Start a fit from a hull, paste one, or open one from the game or your saved fits. Each opens in its own tab.</value>
+    <comment>Fitting tool: shown in the middle while no fit is open.</comment>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Drop here to see two fits side by side</value>
+    <comment>Fitting tool: shown over the right half while a fit's tab is dragged — dropping it there shows two fits at once.</comment>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>New fit</value>
+    <comment>Fitting tool: the title of a fit's tab while the fit has neither a name nor a hull.</comment>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>Drag to reorder, or onto the right half to see two fits side by side</value>
+    <comment>Fitting tool: tooltip on a fit's tab.</comment>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>Changed since it was opened or saved</value>
+    <comment>Fitting tool: tooltip on the dot on a fit's tab.</comment>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>Close this fit</value>
+    <comment>Fitting tool: tooltip on the ✕ on a fit's tab.</comment>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>PILOT</value>
+    <comment>Fitting tool, above a fit: label before the pilot pick list — whose skills the numbers are worked out with. Upper case in English.</comment>
+  </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>MODE</value>
+    <comment>Fitting tool, above a tactical destroyer's fit: label before the pick list of its modes (Defense, Propulsion, Sharpshooter). Upper case in English, like PILOT.</comment>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>The tactical mode the ship is in — its bonuses are in the numbers</value>
+    <comment>Fitting tool: tooltip on the tactical mode pick list of a tactical destroyer.</comment>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>Whose skills the numbers are calculated with</value>
+    <comment>Fitting tool, above a fit: tooltip on the pilot pick list.</comment>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>All V</value>
+    <comment>Fitting tool, pilot pick list: a pilot with every skill at level V (the game writes skill levels in Roman numerals). Short.</comment>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>All 0</value>
+    <comment>Fitting tool, pilot pick list: a pilot with no skill trained (every skill at level 0). Short.</comment>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>Fit name</value>
+    <comment>Fitting tool, above a fit: hint in the empty box holding the fit's name.</comment>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>New {0}</value>
+    <comment>Fitting tool: the name a new fit starts with, which the user can change. {0} is the hull's name (a ship type).</comment>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>{0} fit</value>
+    <comment>Fitting tool: the name offered when a fit with no name is saved. {0} is the hull's name (a ship type).</comment>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>Saved from EVE Console</value>
+    <comment>Written into the game as the description of a fitting saved from the fitting tool; the player reads it in the game client's fitting window. Keep "EVE Console" (the app's name) as it is.</comment>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Written into the game as the name of a fitting saved with no name of its own (rare: a name is normally offered first). One short word.</comment>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>Copy EFT</value>
+    <comment>Fitting tool, above a fit: button — copies the fit to the clipboard as EFT text. EFT is the name of the fitting text format: keep it. Short.</comment>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>Copy this fit to the clipboard as EFT text</value>
+    <comment>Fitting tool, above a fit: tooltip on the Copy EFT button.</comment>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>Save</value>
+    <comment>Fitting tool, beside the fit's name: saves the fit back where it was opened from or last saved (EVE Console, or a character's fittings in the game), without asking anything.</comment>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>Save over the fit this was opened from or last saved as, without asking. For a fit never saved, use Save As.</value>
+    <comment>Fitting tool: tooltip on Save. Save As is the button beside it.</comment>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Save As…</value>
+    <comment>Fitting tool, beside Save: opens a dialog to choose a name and where to save the fit.</comment>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Choose a name and where to save: EVE Console, or a character's fittings in the game</value>
+    <comment>Fitting tool: tooltip on Save As.</comment>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Saved in EVE Console</value>
+    <comment>Fitting tool, under the fit's name: where Save writes — this fit is one saved in the app itself.</comment>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Saved in {0}'s fittings in the game</value>
+    <comment>Fitting tool, under the fit's name: where Save writes — a character's saved fittings in the game. {0} is the character's name.</comment>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Not saved yet</value>
+    <comment>Fitting tool, under the fit's name: the fit has never been saved, so Save is off until Save As is used.</comment>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Overwrite fit</value>
+    <comment>Fitting tool: title of the yes/no question asked before Save As overwrites a fit.</comment>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>A fit named "{0}" for this hull is already saved in EVE Console. Overwrite it?</value>
+    <comment>Fitting tool, Save As: asked before overwriting a fit of the same name and hull saved in the app. {0} is the fit's name.</comment>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Replace the fitting "{0}" in {1}'s fittings in the game? The game cannot change a fitting, so the new one is saved first and the old one then deleted.</value>
+    <comment>Fitting tool, Save As: asked before replacing a character's fitting in the game. {0} is the fitting's name, {1} the character's.</comment>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>From {0}'s fittings in the game: {1}</value>
+    <comment>Fitting tool, under a fit opened from the game: where it came from. {0} is the character's name, {1} the fitting's name.</comment>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>High slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the high slots. {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>Mid slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the mid slots. {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>Low slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the low slots. {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>Rig slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the rig slots. {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>Subsystem slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the subsystem slots (Tech III ships). {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>Service slots  {0} / {1}</value>
+    <comment>Fitting tool, module list: heading of the service slots (a structure's service slot). {0} is how many are fitted, {1} how many the hull has. Two spaces before the numbers in English.</comment>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[Empty high slot]</value>
+    <comment>Fitting tool, module list: a free high slot. In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[Empty mid slot]</value>
+    <comment>Fitting tool, module list: a free mid slot. In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[Empty low slot]</value>
+    <comment>Fitting tool, module list: a free low slot. In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[Empty rig slot]</value>
+    <comment>Fitting tool, module list: a free rig slot. In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[Empty subsystem slot]</value>
+    <comment>Fitting tool, module list: a free subsystem slot (Tech III ships). In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[Empty service slot]</value>
+    <comment>Fitting tool, module list: a free service slot (a structure's service slot). In square brackets, the way fitting texts mark a free slot.</comment>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>OFF</value>
+    <comment>Fitting tool, module list: the button showing a module's state, clicked to change it — offline. Very short (about four letters fit); upper case in English.</comment>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>ON</value>
+    <comment>Fitting tool, module list: the button showing a module's state, clicked to change it — online (fitted and powered, not running). Very short (about four letters fit); upper case in English.</comment>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>ACT</value>
+    <comment>Fitting tool, module list: the button showing a module's state, clicked to change it — active (running). Short for ACTIVE. Very short (about four letters fit); upper case in English.</comment>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>HEAT</value>
+    <comment>Fitting tool, module list: the button showing a module's state, clicked to change it — overheated. Very short (about four letters fit); upper case in English.</comment>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>Offline — click to put online</value>
+    <comment>Fitting tool, module list: tooltip on the state button of a module that is offline.</comment>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>Online — click to activate</value>
+    <comment>Fitting tool, module list: tooltip on the state button of a module that is online and can be activated.</comment>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>Online — click to take offline</value>
+    <comment>Fitting tool, module list: tooltip on the state button of a module that is online and cannot be activated (a plate, a heat sink…).</comment>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>Active — click to take offline</value>
+    <comment>Fitting tool, module list: tooltip on the state button of a module that is active.</comment>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>Overheated — click to take offline</value>
+    <comment>Fitting tool, module list: tooltip on the state button of a module that is overheated.</comment>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>HEAT</value>
+    <comment>Fitting tool, module list: the overheat switch beside a module's state button. Very short (about four letters fit, in a smaller type than the state button); upper case in English.</comment>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>Overheated — click to stop</value>
+    <comment>Fitting tool, module list: tooltip on the overheat switch while the module is overheated.</comment>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>Click to overheat</value>
+    <comment>Fitting tool, module list: tooltip on the overheat switch while the module is not overheated.</comment>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>No charge</value>
+    <comment>Fitting tool, module list: the charge pick list of a module with nothing loaded.</comment>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>Market value of the module</value>
+    <comment>Fitting tool, module list: tooltip on a module's value.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Fitting tool: tooltip on the ✕ of a module, drone, cargo or implant row, and the last item of a module's right-click menu on the ring — takes it off the fit. A verb.</comment>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>Click to choose a module for this slot</value>
+    <comment>Fitting tool, the ring of slots around the ship: tooltip on an empty slot. Clicking it lists modules for that slot.</comment>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Fitting tool, the ring of slots: a module's state, in the tooltip on its slot.</comment>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Fitting tool, the ring of slots: a module's state, in the tooltip on its slot.</comment>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Fitting tool, the ring of slots: a module's state, in the tooltip on its slot.</comment>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>Overheated</value>
+    <comment>Fitting tool, the ring of slots: a module's state, in the tooltip on its slot.</comment>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>Put online</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring.</comment>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>Put offline</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring.</comment>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>Activate</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring. A verb.</comment>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>Deactivate</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring. A verb.</comment>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>Overheat</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring. A verb.</comment>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>Stop overheating</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring.</comment>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>Unload {0}</value>
+    <comment>Fitting tool: item of a module's right-click menu on the ring — takes its charge out. {0} is the charge's name.</comment>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>DRONES AND FIGHTERS</value>
+    <comment>Fitting tool: heading of the fit's drones and fighter squadrons. Upper case in English.</comment>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>in bay</value>
+    <comment>Fitting tool, a drone row: label before the number of drones in the drone bay. Short, lower case in English.</comment>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>launched</value>
+    <comment>Fitting tool, a drone row: label before the number of those drones launched (out in space). Short, lower case in English.</comment>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>in tube</value>
+    <comment>Fitting tool, a fighter squadron row: check box — the squadron sits in a launch tube. Short, lower case in English.</comment>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>Launched — squadrons in tubes are the ones counted in the fit's damage</value>
+    <comment>Fitting tool, a fighter squadron row: tooltip on the in tube check box.</comment>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>Market value of the whole stack</value>
+    <comment>Fitting tool: tooltip on the value of a drone stack or a cargo stack.</comment>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>Fitting tool: a fighter squadron's class — light fighters. Shown beside a squadron. Short.</comment>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>Support</value>
+    <comment>Fitting tool: a fighter squadron's class — support fighters. Shown beside a squadron. Short.</comment>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>Heavy</value>
+    <comment>Fitting tool: a fighter squadron's class — heavy fighters. Shown beside a squadron. Short.</comment>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>Light squadron of up to {0}</value>
+    <comment>Fitting tool: tooltip on the size of a light fighter squadron. {0} is the most fighters it can hold.</comment>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>Support squadron of up to {0}</value>
+    <comment>Fitting tool: tooltip on the size of a support fighter squadron. {0} is the most fighters it can hold.</comment>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>Heavy squadron of up to {0}</value>
+    <comment>Fitting tool: tooltip on the size of a heavy fighter squadron. {0} is the most fighters it can hold.</comment>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>Squadron of up to {0}</value>
+    <comment>Fitting tool: tooltip on the size of a fighter squadron whose class is not known. {0} is the most fighters it can hold.</comment>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>Attack</value>
+    <comment>Fitting tool: a fighter ability (its standing attack), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>Missiles</value>
+    <comment>Fitting tool: a fighter ability (its secondary missiles), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>Bomb</value>
+    <comment>Fitting tool: a fighter ability (a heavy bomber's bomb), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>Kamikaze</value>
+    <comment>Fitting tool: a fighter ability (a strike that spends the squadron), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>Energy neutralizer</value>
+    <comment>Fitting tool: a fighter ability (drains a target's capacitor), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>Stasis webifier</value>
+    <comment>Fitting tool: a fighter ability (slows a target), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>Warp disruptor</value>
+    <comment>Fitting tool: a fighter ability (stops a target warping), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>ECM</value>
+    <comment>Fitting tool: a fighter ability (jams a target's sensors), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>Tackle</value>
+    <comment>Fitting tool: a fighter ability (holds a target), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>Evasive maneuvers</value>
+    <comment>Fitting tool: a fighter ability (a speed burst), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>Afterburner</value>
+    <comment>Fitting tool: a fighter ability (a speed boost), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>Microwarpdrive</value>
+    <comment>Fitting tool: a fighter ability (a large speed boost), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>Micro jump drive</value>
+    <comment>Fitting tool: a fighter ability (a short jump), on its on/off switch under a squadron and before its damage. Use the game client's word where it has one. Short.</comment>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0}: counted in the DPS while on</value>
+    <comment>Fitting tool: tooltip on the switch of a fighter ability that does damage. {0} is the ability's name. DPS is damage per second.</comment>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0}: no effect on the fit's numbers</value>
+    <comment>Fitting tool: tooltip on the switch of a fighter ability that does no damage. {0} is the ability's name.</comment>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>CARGO HOLD</value>
+    <comment>Fitting tool: heading of the fit's cargo. Upper case in English.</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>quantity</value>
+    <comment>Fitting tool, a cargo row: label before the number of items. Short, lower case in English.</comment>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>IMPLANTS AND BOOSTERS</value>
+    <comment>Fitting tool: heading of the pilot's implants and boosters. Upper case in English.</comment>
+  </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>FLEET BOOSTS</value>
+    <comment>Fitting tool, list under the ring: heading of the fleet boosts section — command bursts boosting this fit. Upper case in English, like the other section headings.</comment>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Its own command bursts boost it</value>
+    <comment>Fitting tool, fleet boosts: tick box shown when the fit runs command bursts of its own.</comment>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Bursts reach every fleet member in range, the ship running them included. Untick for a booster flying alone.</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the tick box for a fit's own bursts boosting it.</comment>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Add a boosting fit…</value>
+    <comment>Fitting tool, fleet boosts: placeholder of the pick list of fits (open tabs, saved fits) that can be added as boosters.</comment>
+  </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Add a Boosting Fit</value>
+    <comment>Fitting tool: title of the fit picker when it is used to add a fit boosting another.</comment>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Add</value>
+    <comment>Fitting tool: confirm button of the fit picker when it adds a fit boosting another.</comment>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Whose skills this fit's bursts and remote modules are worked out with</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the pilot pick list beside a boosting fit.</comment>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Fits that help this one — any number: their running command bursts (of the same bonus from several, the strongest applies), and their remote repairers, shield boosters, capacitor transmitters and logistics drones (which add up)</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the section heading and the button that adds a fit boosting this one.</comment>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+    <comment>Fitting tool, fleet boosts: one bonus reaching the fit. {0} is the bonus's name (from the game), {1} its value (+17.25%), {2} the fit whose burst sends the strongest of it.</comment>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Remote shield boost  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: shield one boosting fit repairs on this one. {0} HP per second, {1} the boosting fit's name.</comment>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Remote armor repair  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: armor one boosting fit repairs on this one.</comment>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Remote hull repair  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: hull one boosting fit repairs on this one.</comment>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Capacitor transfer  {0:N1} GJ/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: capacitor one boosting fit's transmitters send this one.</comment>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>RESOURCES</value>
+    <comment>Fitting tool, the figures on the right: heading of the ship's fitting resources. Upper case in English.</comment>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>CPU</value>
+    <comment>Fitting tool, figures: the ship's CPU, which fitted modules use up. The game client's word.</comment>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>Powergrid</value>
+    <comment>Fitting tool, figures: the ship's powergrid, which fitted modules use up. The game client's word.</comment>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>Calibration</value>
+    <comment>Fitting tool, figures: the ship's calibration, which rigs use up. The game client's word.</comment>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>Turrets {0} / {1}    Launchers {2} / {3}</value>
+    <comment>Fitting tool, figures: {0} turrets fitted of {1} turret hardpoints; {2} launchers fitted of {3} launcher hardpoints. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>Cargo {0:N1} / {1:N0} m³</value>
+    <comment>Fitting tool, figures: {0} the volume the cargo takes up, {1} the cargo hold's capacity, in cubic metres.</comment>
+  </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>Cargo {0:N1} m³</value>
+    <comment>Fitting tool, RESOURCES, for an Upwell structure: the volume of what the fit carries (fuel, ammunition). {0} is cubic metres. Structures' holds have no set size, so there is no limit after it.</comment>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>Drone bay {0:0} / {1:0} m³    Bandwidth {2:0} / {3:0} Mbit/s</value>
+    <comment>Fitting tool, figures: {0} the volume of drones in the drone bay, {1} its capacity; {2} the drone bandwidth the launched drones use, {3} the ship's. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>Fighter bay {0:N0} / {1:N0} m³    Tubes {2} / {3}</value>
+    <comment>Fitting tool, figures: {0} the volume of fighters in the fighter bay, {1} its capacity; {2} squadrons in launch tubes, {3} the tubes the ship has. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>Light {0} / {1}</value>
+    <comment>Fitting tool, figures, after the fighter bay: the light fighter launch slots. {0} in use, {1} how many the ship has.</comment>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>Support {0} / {1}</value>
+    <comment>Fitting tool, figures, after the fighter bay: the support fighter launch slots. {0} in use, {1} how many the ship has.</comment>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>Heavy {0} / {1}</value>
+    <comment>Fitting tool, figures, after the fighter bay: the heavy fighter launch slots. {0} in use, {1} how many the ship has.</comment>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>VALUE</value>
+    <comment>Fitting tool, figures: heading of what the fit is worth on the market. Upper case in English.</comment>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>Hull {0}</value>
+    <comment>Fitting tool, VALUE: what the hull (the ship itself) is worth. {0} is an amount of ISK, such as 12.5M.</comment>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>Modules {0}</value>
+    <comment>Fitting tool, VALUE: what the fitted modules are worth. {0} is an amount of ISK, such as 12.5M.</comment>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>Drones {0}</value>
+    <comment>Fitting tool, VALUE: what the drones and fighters are worth. {0} is an amount of ISK, such as 12.5M.</comment>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>Cargo {0}</value>
+    <comment>Fitting tool, VALUE: what the cargo is worth. {0} is an amount of ISK, such as 12.5M.</comment>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>Implants and boosters {0} (the pilot's, not in the total)</value>
+    <comment>Fitting tool, VALUE: what the implants and boosters are worth, which belong to the pilot rather than the ship. {0} is an amount of ISK, such as 12.5M.</comment>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>No market prices yet — choose an asset value market in Settings → Market.</value>
+    <comment>Fitting tool, VALUE: shown when there are no prices. "Settings → Market" names the place in the Settings window.</comment>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>Prices: {0}</value>
+    <comment>Fitting tool, VALUE: which prices the value uses. {0} is the price type and the market, such as "Split, Jita".</comment>
+  </data>
+  <data name="ValuePricesUnpricedOne" xml:space="preserve">
+    <value>Prices: {1} — {0} item has no price</value>
+    <comment>Fitting tool, VALUE: which prices the value uses, when some items have none. {0} is the number of items with no price (this form: one), {1} the price type and the market, such as "Split, Jita".</comment>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>Prices: {1} — {0} items have no price</value>
+    <comment>Fitting tool, VALUE: which prices the value uses, when some items have none. {0} is the number of items with no price, {1} the price type and the market, such as "Split, Jita".</comment>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}, {1}</value>
+    <comment>Fitting tool, VALUE: the prices used. {0} is the price type (Buy, Sell or Split), {1} the market's name. A comma and a space in English.</comment>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>OFFENSE</value>
+    <comment>Fitting tool, figures: heading of the fit's damage. Upper case in English.</comment>
+  </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Fitting tool: heading of the section with the fit's mining yield. Upper case in English, as the other headings.</comment>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Ore {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: ore mined an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Ice {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: ice harvested an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Gas {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: gas harvested an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>An hour with every miner running, critical successes averaged in. Residue is lost from the rock or cloud, not from what you bring in. Mining crystals, skills, boosts and the hull are all counted.</value>
+    <comment>Fitting tool, MINING: tooltip on the yield line.</comment>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} m³ every {1:0.#} s</value>
+    <comment>Fitting tool, under a mining module or drone stack: what one cycle brings in and how long it takes. {0} cubic metres, {1} seconds.</comment>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>residue {0:0.#}%</value>
+    <comment>Fitting tool, under a mining module: the chance a cycle also wastes some of the rock or cloud. {0} the percentage.</comment>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} DPS</value>
+    <comment>Fitting tool, OFFENSE: the fit's damage per second, in large type. DPS is the usual abbreviation of damage per second.</comment>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>Weapons {0:N1}</value>
+    <comment>Fitting tool, OFFENSE: damage per second of the fitted weapons. {0} is the number.</comment>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>Drones {0:N1}</value>
+    <comment>Fitting tool, OFFENSE: damage per second of the launched drones. {0} is the number.</comment>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>Fighters {0:N1}</value>
+    <comment>Fitting tool, OFFENSE: damage per second of the fighter squadrons in tubes. {0} is the number.</comment>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>Volley {0:N0}</value>
+    <comment>Fitting tool, OFFENSE: the damage of one volley of every weapon at once (alpha). {0} is the number.</comment>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>With reloads {0:N1}</value>
+    <comment>Fitting tool, OFFENSE: weapon DPS with the time spent reloading counted. {0} is the number.</comment>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Fully spooled {0:N1} after {1}</value>
+    <comment>Fitting tool, OFFENSE: the DPS of weapons that build up damage while they keep firing on one target (entropic disintegrators), once at their most. {0} is the DPS, {1} how long it takes (e.g. 1m 12s).</comment>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS is between reloads. With reloads, each weapon's load of charges is fired and then reloaded, over and over. Lasers never reload: crystals are not spent. Fully spooled is what entropic disintegrators reach after firing on one target without stopping.</value>
+    <comment>Fitting tool, OFFENSE: tooltip on the line with reload and spooled DPS.</comment>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}: {1:N0} {2}, every {3}</value>
+    <comment>Fitting tool, OFFENSE: a doomsday that strikes once. {0} the module, {1} the damage, {2} its damage type, {3} how often it can fire (e.g. 4m 0s).</comment>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}: {1:N0} {2} a second for {3:0} s ({4:N0} in all), every {6}</value>
+    <comment>Fitting tool, OFFENSE: a lance, reaper or field generator, which hurts everything in its area each second. {0} the module, {1} damage a second, {2} damage type, {3} seconds it lasts, {4} the total, {6} how often it can fire. {5} (the area's radius in m) is available but not shown.</comment>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}: {1:N0} {2} to everything within {3:0.#} km, every {4}</value>
+    <comment>Fitting tool, OFFENSE: a bomb. {0} the launcher, {1} the damage, {2} its damage type, {3} the blast radius in km, {4} how often it can launch.</comment>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}: {1:0.##}% of the target's hull a second, up to {2:N0} HP, for {3:0} s, every {4}</value>
+    <comment>Fitting tool, OFFENSE: a breacher pod, whose boarders damage the target's hull directly, ignoring resistances. {0} the launcher, {1} the share of hull a second, {2} the most a second, {3} seconds it lasts, {4} how often it can launch.</comment>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Neutralizing {0:N1} GJ/s</value>
+    <comment>Fitting tool, OFFENSE: the capacitor the fit's energy neutralizers (modules and drones) take from a target each second. {0} the number.</comment>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Nosferatu {0:N1} GJ/s</value>
+    <comment>Fitting tool, OFFENSE: the capacitor the fit's nosferatus drain from a target each second, at most. {0} the number.</comment>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>EM {0:P0} · Th {1:P0} · Kin {2:P0} · Exp {3:P0}</value>
+    <comment>Fitting tool, OFFENSE: the share of each damage type in the fit's damage. EM, Th (thermal), Kin (kinetic) and Exp (explosive) are the damage types, short. {0} to {3} are percentages.</comment>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} DPS</value>
+    <comment>Fitting tool: under a weapon or a drone stack, its damage per second. DPS is the usual abbreviation.</comment>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0} {1:N0} DPS</value>
+    <comment>Fitting tool, under a fighter squadron: one ability's damage per second. {0} is the ability's name (Attack, Missiles…), {1} the number.</comment>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0} {1:N0} alpha</value>
+    <comment>Fitting tool, under a fighter squadron: the damage of a one-off strike (a bomb, a kamikaze run). {0} is the ability's name, {1} the damage. "alpha" is players' word for a single volley's damage.</comment>
+  </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} charge, rearmed at {1:0.#} s each</value>
+    <comment>Fitting tool: tooltip on a fighter ability with limited uses. {0} is how many uses (charges) a squadron has before it must rearm in its launch tube; {1} the seconds to rearm each one.</comment>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} charges, rearmed at {1:0.#} s each</value>
+    <comment>Fitting tool: as TipAbilityChargesOne, for other counts.</comment>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>{0:0} s cooldown</value>
+    <comment>Fitting tool: tooltip on a fighter ability: seconds before it can be used again. {0} is the number.</comment>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>Not usable in high-sec</value>
+    <comment>Fitting tool: tooltip on a fighter ability the game does not allow in high-security space.</comment>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>Not usable in high-sec or low-sec</value>
+    <comment>Fitting tool: tooltip on a fighter ability the game allows only in null-sec and wormhole space (a heavy fighter's bomb).</comment>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Fighters {0:N1} ({1:N1} sustained)</value>
+    <comment>Fitting tool, OFFENSE: fighter damage per second while every ability fires ({0}), and averaged over the time the squadrons spend rearming in their tubes ({1}). Shown instead of DpsFighters when the two differ.</comment>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>Sustained: each squadron fights until the charges of the abilities switched on are spent, then rearms and refuels in its tube before going back. The flight to and from the target is not counted.</value>
+    <comment>Fitting tool, OFFENSE: tooltip explaining the sustained fighter damage figure (DpsFightersSustained).</comment>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>Calibration {0:0}</value>
+    <comment>Fitting tool, under a rig: the calibration it uses. {0} is the number.</comment>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>CPU {0:0.##}</value>
+    <comment>Fitting tool, under a module: the CPU it uses. {0} is the number.</comment>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>PG {0:0.##}</value>
+    <comment>Fitting tool, under a module: the powergrid it uses. PG is short for powergrid. {0} is the number.</comment>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>{0:N1} shield HP/s</value>
+    <comment>Fitting tool, under a shield booster: the shield it restores per second. {0} is the number; HP/s is hit points per second.</comment>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>{0:N1} armor HP/s</value>
+    <comment>Fitting tool, under an armor repairer: the armor it repairs per second. {0} is the number; HP/s is hit points per second.</comment>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} with reloads</value>
+    <comment>Fitting tool, under a weapon or ancillary repairer: its rate with reloading counted. {0} the number.</comment>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} spooled</value>
+    <comment>Fitting tool, under an entropic disintegrator: its DPS at full spool. {0} the number.</comment>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Speed {0:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a stasis webifier: how it changes the target's speed. {0} the percentage, signed.</comment>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Warp disruption strength {0:0.#}</value>
+    <comment>Fitting tool, under a warp disruptor or scrambler: the points of warp disruption it applies. {0} the number.</comment>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Neutralizes {0:N1} GJ/s</value>
+    <comment>Fitting tool, under an energy neutralizer: the target's capacitor it takes each second. {0} the number.</comment>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Drains up to {0:N1} GJ/s</value>
+    <comment>Fitting tool, under a nosferatu: the most capacitor it moves from the target to the ship each second. {0} the number.</comment>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Jam strength {0}</value>
+    <comment>Fitting tool, under an ECM module or drone: its jamming strength. {0} is one number when it is the same against every sensor type, or each type's (Radar 3 · Ladar 3 …).</comment>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Lock range {0:+0.#;-0.#}% · scan res {1:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a sensor dampener: how it changes the target's lock range and scan resolution. {0} and {1} percentages, signed.</comment>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Optimal {0:+0.#;-0.#}% · falloff {1:+0.#;-0.#}% · tracking {2:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a tracking disruptor: how it changes the target's turrets. {0} optimal range, {1} falloff, {2} tracking, percentages, signed.</comment>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Missile velocity {0:+0.#;-0.#}% · flight time {1:+0.#;-0.#}% · explosion velocity {2:+0.#;-0.#}% · explosion radius {3:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a guidance disruptor: how it changes the target's missiles. Four percentages, signed.</comment>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Signature {0:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a target painter: how it changes the target's signature radius. {0} the percentage, signed.</comment>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+    <comment>Fitting tool, under an electronic warfare module: its optimal range and falloff, in km.</comment>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+    <comment>Fitting tool, under an electronic warfare module without falloff: its range, in km.</comment>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} each</value>
+    <comment>Fitting tool, under a stack of EWAR drones or a fighter squadron: an effect each one applies. {0} the effect (e.g. 'Speed -20%').</comment>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Fitting tool, under a fighter squadron: what a utility ability does. {0} the ability's name, {1} its effect.</comment>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>capitals and citadels only</value>
+    <comment>Fitting tool, under a fighter squadron with a kamikaze strike: the only targets it hurts. Shown in parentheses.</comment>
+  </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Speed {0:N0} m/s</value>
+    <comment>Fitting tool, under a fighter squadron: its top speed, with skills, hull and modules. {0} the speed.</comment>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s for {1:0} s</value>
+    <comment>Fitting tool, under a fighter squadron: its speed while a propulsion ability runs, and for how long. {0} the speed, {1} seconds.</comment>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>signature {0:+0;-0}%</value>
+    <comment>Fitting tool, under a fighter squadron: how a propulsion ability changes its signature radius. {0} the percentage, signed.</comment>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>jumps {0:0.#} km after {1:0} s</value>
+    <comment>Fitting tool, under a fighter squadron: its micro jump drive's jump. {0} the distance in km, {1} the seconds before it jumps.</comment>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>shield resists {0:0}%</value>
+    <comment>Fitting tool, under a fighter squadron: the shield resistances evasive maneuvers give while they run. {0} the percentage.</comment>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>{0:N1} hull HP/s</value>
+    <comment>Fitting tool, under a hull repairer: the hull (structure) it repairs per second. {0} is the number; HP/s is hit points per second.</comment>
+  </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>breacher pod damage {0:0}% while running</value>
+    <comment>Fitting tool, under Breach Control: how much of the damage breacher pods do it takes while running. {0} is a percentage change, such as -90.</comment>
+  </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>settles at {0}</value>
+    <comment>Fitting tool, under a Reactive Armor Hardener: the resistances it ends up at against the chosen damage. {0} is a list such as "EM 0% / Th 10.5% / Kin 12% / Exp 37.5%", built from the resistance table's column heads.</comment>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>DEFENSE</value>
+    <comment>Fitting tool, figures: heading of the fit's tank. Upper case in English.</comment>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>Against</value>
+    <comment>Fitting tool, DEFENSE: label before the damage profile pick list — the damage the tank is measured against.</comment>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>The damage the tank is judged against — and that a Reactive Armor Hardener adapts to</value>
+    <comment>Fitting tool, DEFENSE: tooltip on the damage profile pick list. A Reactive Armor Hardener is a module whose resistances shift toward the damage taken.</comment>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>Even (25% each)</value>
+    <comment>Fitting tool, DEFENSE, damage profile pick list: all four damage types in equal parts.</comment>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>Custom</value>
+    <comment>Fitting tool, DEFENSE, damage profile pick list: the user's own mix, typed in boxes that appear below.</comment>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>EM</value>
+    <comment>Fitting tool, DEFENSE: a damage type, electromagnetic. In the damage profile pick list, and above its box in a custom profile.</comment>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>Thermal</value>
+    <comment>Fitting tool, DEFENSE: a damage type. In the damage profile pick list, and above its box in a custom profile.</comment>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>Kinetic</value>
+    <comment>Fitting tool, DEFENSE: a damage type. In the damage profile pick list, and above its box in a custom profile.</comment>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>Explosive</value>
+    <comment>Fitting tool, DEFENSE: a damage type. In the damage profile pick list, and above its box in a custom profile.</comment>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>Relative amounts of each damage type — any scale</value>
+    <comment>Fitting tool, DEFENSE: tooltip on the four boxes of a custom damage profile.</comment>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} EHP</value>
+    <comment>Fitting tool, DEFENSE: the fit's effective hit points, in large type. EHP is the usual abbreviation.</comment>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>Effective HP against the damage chosen above</value>
+    <comment>Fitting tool, DEFENSE: tooltip on the effective hit points, which are worked out against the damage profile chosen in the pick list above.</comment>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>HP</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — hit points. Very short.</comment>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>EM</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — EM resistance. Very short.</comment>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>Th</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — thermal resistance. Very short.</comment>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>Kin</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — kinetic resistance. Very short.</comment>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>Exp</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — explosive resistance. Very short.</comment>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>EHP</value>
+    <comment>Fitting tool, DEFENSE, resistance table: column head — effective hit points. Very short.</comment>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>Shield</value>
+    <comment>Fitting tool, DEFENSE, resistance table: the row of the shield. Short.</comment>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>Armor</value>
+    <comment>Fitting tool, DEFENSE, resistance table: the row of the armor. Short.</comment>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Fitting tool, DEFENSE, resistance table: the row of the hull (structure). Short.</comment>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>Shield regen {0:N1} HP/s at peak ({1:N0} EHP/s)    Recharge {2}</value>
+    <comment>Fitting tool, DEFENSE: the shield's own regeneration. {0} hit points per second at its fastest, {1} the same as effective hit points, {2} the time to recharge from empty ("4 m 10 s"). Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>Shield boost {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: what the shield boosters restore. {0} hit points per second, {1} the same as effective hit points.</comment>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>Armor repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: what the armor repairers repair. {0} hit points per second, {1} the same as effective hit points.</comment>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>Hull repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: what the hull repairers repair. {0} hit points per second, {1} the same as effective hit points.</comment>
+  </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Remote shield boost {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: shield repaired by other fits' remote shield boosters and drones. {0} HP per second, {1} effective HP per second.</comment>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Remote armor repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: armor repaired by other fits' remote armor repairers and drones.</comment>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Remote hull repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: hull repaired by other fits' remote hull repairers and drones.</comment>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>Repairs that use capacitor stop when it runs out ({0})</value>
+    <comment>Fitting tool, DEFENSE: under the repairs when the capacitor is not stable. {0} is how long it lasts ("4 m 10 s").</comment>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>CAPACITOR</value>
+    <comment>Fitting tool, figures: heading of the capacitor. Upper case in English.</comment>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>Stable at {0:0.0}%</value>
+    <comment>Fitting tool, CAPACITOR: the capacitor holds out with every active module running. {0} is the lowest level it falls to, in percent.</comment>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>Lasts {0}</value>
+    <comment>Fitting tool, CAPACITOR: the capacitor runs out. {0} is how long it lasts ("4 m 10 s").</comment>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>Use {0:0.0} GJ/s    Peak recharge {1:0.0} GJ/s</value>
+    <comment>Fitting tool, CAPACITOR: {0} what the active modules draw, {1} the fastest the capacitor recharges, in gigajoules per second. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>Boosters +{0:0.0} GJ/s</value>
+    <comment>Fitting tool, CAPACITOR, after the use and recharge: what capacitor boosters put back, in gigajoules per second.</comment>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transfers +{0:0.0} GJ/s</value>
+    <comment>Fitting tool, CAPACITOR: capacitor other fits' capacitor transmitters send, on the line with use and recharge.</comment>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>NAVIGATION</value>
+    <comment>Fitting tool, figures: heading of speed and agility. Upper case in English.</comment>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>Align {0:0.00} s    Signature {1:N0} m    Warp {2:0.##} AU/s</value>
+    <comment>Fitting tool, NAVIGATION: {0} seconds to align for warp, {1} the signature radius in metres, {2} the warp speed in AU per second. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>Signature {0:N0} m</value>
+    <comment>Fitting tool, NAVIGATION, for an Upwell structure, which does not move: only its signature radius. {0} is metres.</comment>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>Align {0:0.00} s    Signature {1:N0} m    Cannot warp</value>
+    <comment>Fitting tool, NAVIGATION: as NavLine, when something running on the ship (a doomsday firing) keeps it from warping. {0} seconds to align, {1} signature radius in metres.</comment>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>Mass {0:N0} kg    Inertia {1:0.###}</value>
+    <comment>Fitting tool, NAVIGATION: {0} the ship's mass in kilograms, {1} its inertia modifier. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>TARGETING</value>
+    <comment>Fitting tool, figures: heading of targeting. Upper case in English.</comment>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>Range {0:0.#} km    Scan res {1:N0} mm    Targets {2:0}</value>
+    <comment>Fitting tool, TARGETING: {0} the targeting range in km, {1} the scan resolution in mm, {2} the most targets it can lock. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Lock: frigate {0:0.0} s · cruiser {1:0.0} s · battleship {2:0.0} s · capital {3:0.0} s</value>
+    <comment>Fitting tool, TARGETING: seconds to lock a typical target of each size. {0}–{3} the seconds.</comment>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Seconds to lock a target with the signature of a typical frigate (35 m), cruiser (125 m), battleship (400 m) and capital (5,000 m), at this fit's scan resolution.</value>
+    <comment>Fitting tool, TARGETING: tooltip on the lock time line.</comment>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>Radar {0:0.#}</value>
+    <comment>Fitting tool, TARGETING: the ship's sensor strength, of the radar type. {0} is the number.</comment>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>Ladar {0:0.#}</value>
+    <comment>Fitting tool, TARGETING: the ship's sensor strength, of the ladar type. {0} is the number.</comment>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>Magnetometric {0:0.#}</value>
+    <comment>Fitting tool, TARGETING: the ship's sensor strength, of the magnetometric type. {0} is the number.</comment>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>Gravimetric {0:0.#}</value>
+    <comment>Fitting tool, TARGETING: the ship's sensor strength, of the gravimetric type. {0} is the number.</comment>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0} h {1} m</value>
+    <comment>Fitting tool: a time of an hour or more, as in "2 h 5 m". {0} is hours, {1} minutes (h and m their abbreviations).</comment>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0} m {1} s</value>
+    <comment>Fitting tool: a time of a minute or more, as in "4 m 10 s". {0} is minutes, {1} seconds (m and s their abbreviations).</comment>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0} s</value>
+    <comment>Fitting tool: a time under a minute, as in "12.5 s". {0} is seconds (s its abbreviation).</comment>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>Loading game data…</value>
+    <comment>Fitting tool, status line: while the game data is read, when the tool is first opened.</comment>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>No game data yet — import the SDE in Settings → SDE, then reopen this tool.</value>
+    <comment>Fitting tool, status line: there is no game data. SDE is CCP's name for the game data; "Settings → SDE" names the place in the Settings window.</comment>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>The game data is being updated for fitting (Settings → SDE shows the progress). Reopen this tool when it finishes.</value>
+    <comment>Fitting tool, status line: the game data lacks what the tool calculates with, and an update is adding it. "Settings → SDE" names the place in the Settings window.</comment>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>Start a fit from a hull, paste one, or open one from the game or your saved fits.</value>
+    <comment>Fitting tool, status line: once the tool is ready.</comment>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Could not load game data: {0}</value>
+    <comment>Fitting tool, status line: the game data could not be read. {0} is the error.</comment>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>Start a fit first.</value>
+    <comment>Fitting tool, status line: Add to cargo was clicked while no fit is open.</comment>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>Pick a hull first.</value>
+    <comment>Fitting tool, status line: an item was added while the fit has no hull (ship).</comment>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>New {0} fit. Add modules from Items.</value>
+    <comment>Fitting tool, status line: a new fit was started. {0} is the hull's name (a ship type); "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>New fit. Pick a hull.</value>
+    <comment>Fitting tool, status line: a fit was emptied.</comment>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Imported {0}.</value>
+    <comment>Fitting tool, status line: a pasted fit was opened. {0} is the fit's name.</comment>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>Imported, but not recognised: {0}</value>
+    <comment>Fitting tool, status line: a pasted fit was opened, but some of its lines named nothing the game data knows. {0} is those names, as pasted, in a list.</comment>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>No characters to read fittings from.</value>
+    <comment>Fitting tool, status line: From the game… was clicked with no characters or corporations added.</comment>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>Imported {0} from the game.</value>
+    <comment>Fitting tool, status line: a fitting saved in the game was opened. {0} is the fitting's name.</comment>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>Opened {0}.</value>
+    <comment>Fitting tool, status line: a fit saved in EVE Console was opened. {0} is its name.</comment>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Deleted {0}.</value>
+    <comment>Fitting tool, status line: a saved fit was deleted. {0} is its name.</comment>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>Added {0}.</value>
+    <comment>Fitting tool, status line: an item was put on the fit. {0} is the item's name.</comment>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>Added a squadron of {0} {1}.</value>
+    <comment>Fitting tool, status line: a fighter squadron was added. {0} is the number of fighters, {1} the fighter's name.</comment>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>{0} is already plugged in.</value>
+    <comment>Fitting tool, status line: an implant or booster the fit already has was added again. {0} is its name.</comment>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>Nothing fitted can load {0}.</value>
+    <comment>Fitting tool, status line: a charge was added that no fitted module takes. {0} is the charge's name.</comment>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>Loaded {0}.</value>
+    <comment>Fitting tool, status line: a charge was loaded into one module. {0} is the charge's name.</comment>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} does not go in that slot.</value>
+    <comment>Fitting tool, status line: an item was dragged onto a slot of the wrong kind (a mid-slot module onto a high slot, say). {0} is the item's name.</comment>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} cannot load {1}.</value>
+    <comment>Fitting tool, status line: a charge was dragged onto a module that does not take it. {0} is the module's name, {1} the charge's.</comment>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{0} replaces {1}.</value>
+    <comment>Fitting tool, status line: an item was dragged onto a fitted module and took its place. {0} is the new item's name, {1} the one it replaced.</comment>
+  </data>
+  <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
+    <value>Loaded {1} in {0} module.</value>
+    <comment>Fitting tool, status line: a charge was loaded into several modules at once. {0} is the number of modules (this form: one), {1} the charge's name.</comment>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>Loaded {1} in {0} modules.</value>
+    <comment>Fitting tool, status line: a charge was loaded into several modules at once. {0} is the number of modules, {1} the charge's name.</comment>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>{0} in the cargo hold.</value>
+    <comment>Fitting tool, status line: an item was put in the cargo hold. {0} is its name.</comment>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>Choose a high slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty high slot was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>Choose a mid slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty mid slot was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>Choose a low slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty low slot was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>Choose a rig slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty rig slot was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>Choose a subsystem slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty subsystem slot (Tech III ships) was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>Choose a service slot module from Items.</value>
+    <comment>Fitting tool, status line: an empty service slot (a structure's service slot) was clicked on the ring; the item list now shows modules for it. "Items" is the item list's heading (ItemsHeading).</comment>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>Calculation failed: {0}</value>
+    <comment>Fitting tool, status line: the fit's figures could not be worked out. {0} is the error.</comment>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>Launched drones and fighters cut back to what the pilot can control and the hull can launch.</value>
+    <comment>Fitting tool, status line: more drones or fighter squadrons were launched than the pilot's skills or the ship allow, and the tool took some back.</comment>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>Nothing to copy yet.</value>
+    <comment>Fitting tool, status line: Copy EFT was clicked on a fit with no hull.</comment>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>Fit copied to the clipboard as EFT text.</value>
+    <comment>Fitting tool, status line: after Copy EFT. EFT is the name of the fitting text format: keep it.</comment>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>Nothing to save yet.</value>
+    <comment>Fitting tool, status line: Save… was clicked on a fit with no hull.</comment>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>Saved {0} in EVE Console.</value>
+    <comment>Fitting tool, status line: a fit was saved in EVE Console. {0} is its name.</comment>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>The game cannot be reached from here.</value>
+    <comment>Fitting tool, status line: a fit cannot be saved to the game from this window.</comment>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>Saving to {0}'s fittings…</value>
+    <comment>Fitting tool, status line: while a fit is saved to a character's fittings in the game. {0} is the character's name.</comment>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>Saved to {0}'s fittings in the game.</value>
+    <comment>Fitting tool, status line: a fit was saved to a character's fittings in the game. {0} is the character's name. NotSavedNoPlace may follow it.</comment>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>This fit was not opened from the game.</value>
+    <comment>Fitting tool, status line: replacing a fitting in the game was chosen for a fit that did not come from one.</comment>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>Updating {0}'s fitting…</value>
+    <comment>Fitting tool, status line: while a fitting in the game is replaced. {0} is the character's name.</comment>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>Updated {0} in {1}'s fittings.</value>
+    <comment>Fitting tool, status line: a fitting in the game was replaced. {0} is the fit's name, {1} the character's. NotSavedNoPlace may follow it.</comment>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>Saved the new fitting, but the old fitting could not be removed (HTTP {0}). Delete the old one in the game.</value>
+    <comment>Fitting tool, status line: replacing a fitting in the game saved the new one, but the game refused to delete the old one. {0} is the HTTP status code the game answered with.</comment>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>That character is not in EVE Console.</value>
+    <comment>Fitting tool, status line: the character chosen to save to has been removed from the app.</comment>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>{0}'s token has expired — re-authorise in Settings → ESI Tokens.</value>
+    <comment>Fitting tool, status line: a fit cannot be saved to this character: its login has expired. {0} is the character's name; "Settings → ESI Tokens" names the place in the Settings window.</comment>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>{0} has not granted the fittings write scope — update the character in Settings → ESI Tokens.</value>
+    <comment>Fitting tool, status line: a fit cannot be saved to this character: it has not allowed the app to write its fittings. {0} is the character's name; "Settings → ESI Tokens" names the place in the Settings window.</comment>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>Not saved (a fitting has no place for them): {0}.</value>
+    <comment>Fitting tool, status line: after a fit was saved to the game, the items the game's fittings cannot hold (implants, boosters). {0} is their names, in a list.</comment>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>type {0}</value>
+    <comment>Fitting tool, status line: in the list of items not saved, an item whose name is not known. {0} is its type id. Lower case in English, in the middle of a list.</comment>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>Save fit</value>
+    <comment>Title of the dialog asking where to save a fit and under what name.</comment>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Save fit dialog: label above the fit's name. Upper case in English.</comment>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>SAVE TO</value>
+    <comment>Save fit dialog: label above the places a fit can be saved. Upper case in English.</comment>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>Implants are the pilot's and are not part of an in-game fitting.</value>
+    <comment>Save fit dialog: note under the places a fit can be saved.</comment>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>Save</value>
+    <comment>Save fit dialog: the button that saves. A verb. Short.</comment>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console (this app)</value>
+    <comment>Save fit dialog: one of the places a fit can be saved — in EVE Console itself.</comment>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>In game: replace "{0}" in {1}'s fittings</value>
+    <comment>Save fit dialog: one of the places a fit can be saved — over the fitting in the game it was opened from. {0} is that fitting's name, {1} the character's.</comment>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>In game: new fitting on {0}</value>
+    <comment>Save fit dialog: one of the places a fit can be saved — as a new fitting of a character in the game. {0} is the character's name.</comment>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>token expired — re-authorise in Settings → ESI Tokens</value>
+    <comment>Save fit dialog: why a character cannot be saved to, after its name and a dash; also shown alone in red when that character is chosen. Lower case in English. "Settings → ESI Tokens" names the place in the Settings window.</comment>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>fittings write scope not granted — update the character in Settings → ESI Tokens</value>
+    <comment>Save fit dialog: why a character cannot be saved to — it has not allowed the app to write its fittings. After its name and a dash; also shown alone in red when that character is chosen. Lower case in English. "Settings → ESI Tokens" names the place in the Settings window.</comment>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>A fit needs a name.</value>
+    <comment>Save fit dialog, in red: Save was clicked with the name empty.</comment>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>Choose where to save it.</value>
+    <comment>Save fit dialog, in red: Save was clicked with no place chosen.</comment>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>That character cannot be saved to.</value>
+    <comment>Save fit dialog, in red: a place was chosen that cannot be saved to, when the reason is not known.</comment>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>Import fit</value>
+    <comment>Title of the dialog where a fit is pasted as EFT text.</comment>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>Paste a fit in EFT format — what the game's fitting window copies, and what fitting sites share. The first line names the hull: [Rifter, My fit].</value>
+    <comment>Import fit dialog: note above the box. EFT is the name of the fitting text format: keep it. [Rifter, My fit] shows a first line: Rifter is a ship, "My fit" a fit's name — both may be put in your language, the brackets and comma stay.</comment>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>Import</value>
+    <comment>Import fit dialog: the button that opens the pasted fit. A verb. Short.</comment>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>An EFT fit starts with [Ship, Fit name].</value>
+    <comment>Import fit dialog, in red: the pasted text does not start with a line in square brackets. Keep the brackets and the comma; the words in them may be translated.</comment>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>An EFT fit starts with a line like [Ship, Fit name].</value>
+    <comment>Fitting tool, status line: a pasted fit's first line is not in square brackets. Keep the brackets and the comma; the words in them may be translated.</comment>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>Unknown ship: {0}</value>
+    <comment>Fitting tool, status line: a pasted fit names a hull the game data does not know. {0} is the name as pasted.</comment>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>The game could not be reached.</value>
+    <comment>Fitting tool, status line: saving a fitting to the game failed — ESI did not answer.</comment>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>This character has not granted the fittings write scope — re-authorise it in Settings → ESI Tokens.</value>
+    <comment>Fitting tool, status line: saving a fitting to the game was refused — the character has not allowed the app to write its fittings. "Settings → ESI Tokens" names the place in the Settings window.</comment>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>The game refused the fitting (HTTP {0}).</value>
+    <comment>Fitting tool, status line: saving a fitting to the game was refused. {0} is the HTTP status code the game answered with.</comment>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0} is not fitted to a slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — it goes in no slot. {0} is the item's name.</comment>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>No free high slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every high slot is taken.</comment>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>No free mid slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every mid slot is taken.</comment>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>No free low slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every low slot is taken.</comment>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>No free rig slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every rig slot is taken.</comment>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>No free subsystem slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every subsystem slot (Tech III ships) is taken.</comment>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>No free service slot.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every service slot (a structure's service slot) is taken.</comment>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>No free turret hardpoint.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every turret hardpoint is taken.</comment>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>No free launcher hardpoint.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — every launcher hardpoint is taken.</comment>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>Rig size does not match the hull.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the rig is made for another size of ship.</comment>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>This subsystem belongs to a different hull.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the subsystem is made for another Tech III ship.</comment>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>That subsystem position is already filled.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the ship already has a subsystem of that kind.</comment>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>{0} cannot be fitted to a {1}.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the item is restricted to other ships. {0} is the item's name, {1} the ship's (a ship type).</comment>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>Only {0:0} of this group can be fitted.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the fit already has as many modules of this group as a ship may. {0} is that number.</comment>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>Only {0:0} of this module can be fitted.</value>
+    <comment>Fitting tool, status line: an item was not added to the fit — the fit already has as many of this module as a ship may. {0} is that number.</comment>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>Load Fit</value>
+    <comment>Fit picker, opened from the fitting tool: the button that opens the chosen fitting. Short.</comment>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Fit picker: beside a coloured dot — what that dot beside a fitting means: a character's own. Short.</comment>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>Show one character's fittings, or EVE Console's</value>
+    <comment>Fit picker: tooltip on the pick list of owners.</comment>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>Everyone</value>
+    <comment>Fit picker, the pick list of owners: every character's and corporation's fittings. Short.</comment>
+  </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Existing ships…</value>
+    <comment>Fitting tool, toolbar button: opens a list of the user's own assembled ships to load one as a fit.</comment>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Every assembled ship your characters and personal corporations own, with its fit as the asset list last saw it. The one you pick opens in a new tab as a new fit — use Save As to keep it.</value>
+    <comment>Fitting tool, tooltip on the Existing ships button.</comment>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Existing ships</value>
+    <comment>Window title: the list of the user's own assembled ships.</comment>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Part of a ship's name, its hull, its system or its owner</value>
+    <comment>Existing ships window, placeholder in the filter box.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Existing ships window, column header: the name the owner gave the ship.</comment>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Existing ships window, column header: the ship's type.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Existing ships window, column header: the character or corporation that owns it.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Existing ships window, column header: the solar system the ship is in.</comment>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Hull value</value>
+    <comment>Existing ships window, column header: what the hull alone is worth.</comment>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Fit value</value>
+    <comment>Existing ships window, column header: what is fitted to it is worth.</comment>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Total value</value>
+    <comment>Existing ships window, column header: hull and fit together.</comment>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Open as a new fit</value>
+    <comment>Existing ships window, button: loads the chosen ship into a new tab.</comment>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Opens the ship and its fit in a new tab, saved nowhere yet: Save As keeps it in EVE Console or in a character's fittings.</value>
+    <comment>Existing ships window, tooltip on the open button.</comment>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Reading your ships…</value>
+    <comment>Existing ships window, while the list is loading.</comment>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} ships</value>
+    <comment>Existing ships window, beside the filter: how many ships are listed. {0} is the number.</comment>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>No assembled ships in your characters' or personal corporations' assets.</value>
+    <comment>Existing ships window, when there is nothing to list.</comment>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Values at {0}. The fit is what the last asset update saw fitted: modules, rigs, subsystems, loaded charges, drones and fighters — not the cargo.</value>
+    <comment>Existing ships window, under the list. {0} is the price basis, e.g. "Sell price at Jita 4-4".</comment>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>No prices: choose a market for asset values in Settings → Market. The fit is what the last asset update saw fitted: modules, rigs, subsystems, loaded charges, drones and fighters — not the cargo.</value>
+    <comment>Existing ships window, under the list, when no market is chosen for asset values.</comment>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Some ship names could not be read from the game; those are listed by hull only.</value>
+    <comment>Existing ships window, added after the note when ESI did not give some ships' names.</comment>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>Opened {0} as a new fit — not saved yet; use Save As to keep it.</value>
+    <comment>Fitting tool status line after opening an existing ship. {0} is the ship's name.</comment>
+  </data>
+</root>

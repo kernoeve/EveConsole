@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EveConsole.ViewModels"
+        xmlns:loc="using:EveConsole.Localization"
+        x:Class="EveConsole.Views.SaveFitDialog"
+        Title="{x:Static loc:FittingText.TitleSaveFit}"
+        Width="560" Height="440" MinWidth="420" MinHeight="320"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Margin="20">
+    <TextBlock Grid.Row="0" Text="{x:Static loc:FittingText.SaveNameLabel}" FontSize="10" FontWeight="SemiBold" LetterSpacing="1"
+               Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 4" />
+    <TextBox Grid.Row="1" x:Name="NameBox" MaxLength="50"
+             Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+             CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" FontSize="13" Padding="8 5" />
+
+    <TextBlock Grid.Row="2" Text="{x:Static loc:FittingText.SaveToLabel}" FontSize="10" FontWeight="SemiBold" LetterSpacing="1"
+               Foreground="{DynamicResource TextFaintBrush}" Margin="0 14 0 4" />
+    <ListBox Grid.Row="3" x:Name="Targets" Background="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:SaveTarget">
+          <TextBlock Text="{Binding Display}" FontSize="12" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextPrimaryBrush}" Opacity="{Binding Enabled, Converter={x:Static vm:SaveFitDialogConverters.EnabledOpacity}}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <TextBlock Grid.Row="4" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 8 0 0"
+               Text="{x:Static loc:FittingText.SaveNote}" />
+
+    <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto" Margin="0 12 0 0">
+      <TextBlock x:Name="ErrorText" Grid.Column="0" FontSize="11" Foreground="{DynamicResource BadBrush}" IsVisible="False"
+                 VerticalAlignment="Center" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="{x:Static loc:CommonText.Cancel}"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0" Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="{x:Static loc:FittingText.SaveConfirm}"
+              Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
+              Padding="14 6" Click="OnSaveClick" />
+    </Grid>
+  </Grid>
+</Window>

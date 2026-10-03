@@ -1,0 +1,242 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.RoutePlannerView"
+             x:DataType="vm:RouteTabViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Margin" Value="2 0 0 2" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InfoSurfaceBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBox">   <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="ComboBox">  <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="CheckBox">  <Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader"><Setter Property="FontSize" Value="10" /></Style>
+
+    <!-- Security in the game's three colours. -->
+    <Style Selector="TextBlock.high"><Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.low"> <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="TextBlock.null"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+
+    <!-- A name that opens something, as in the jump planner. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.Resources>
+    <!-- The region beside the system, as every system picker shows it. -->
+    <DataTemplate x:Key="PlaceItem" x:DataType="svc:PlaceMatch">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid ColumnDefinitions="330,1,*">
+
+    <!-- ── What to plan ─────────────────────────────────────────────────── -->
+    <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="12">
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RouteCharacterLabel}" />
+          <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding Character}" HorizontalAlignment="Stretch" />
+          <TextBlock Text="{x:Static loc:MapText.RouteCharacterNote}" FontSize="10" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" Margin="2 2 0 0" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RouteFromLabel}" />
+          <Grid ColumnDefinitions="*,Auto">
+            <AutoCompleteBox Text="{Binding FromText}" ItemsSource="{Binding FromPlaces}" SelectedItem="{Binding From}"
+                             FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                             ItemTemplate="{StaticResource PlaceItem}"
+                             Watermark="{x:Static loc:MapText.HintRouteSystem}" />
+            <Button Grid.Column="1" Classes="tool" Margin="6 0 0 0" Padding="8 4"
+                    Content="{x:Static loc:MapText.RouteFromHere}" ToolTip.Tip="{x:Static loc:MapText.TipRouteFromHere}"
+                    Command="{Binding FromHereCommand}" IsEnabled="{Binding CanStartHere}" />
+          </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RouteToLabel}" VerticalAlignment="Bottom" />
+            <Button Grid.Column="1" Classes="link" Command="{Binding SwapCommand}"
+                    ToolTip.Tip="{x:Static loc:MapText.TipRouteSwap}">
+              <TextBlock Classes="linktext" Text="⇅" FontSize="13" Foreground="{DynamicResource InfoBrush}" />
+            </Button>
+          </Grid>
+          <AutoCompleteBox Text="{Binding ToText}" ItemsSource="{Binding ToPlaces}" SelectedItem="{Binding To}"
+                           FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                           ItemTemplate="{StaticResource PlaceItem}"
+                           Watermark="{x:Static loc:MapText.HintRouteSystem}" />
+        </StackPanel>
+
+        <StackPanel Spacing="2">
+          <TextBlock Classes="flabel" Text="{x:Static loc:MapText.RoutePreferenceLabel}" />
+          <ComboBox ItemsSource="{Binding Preferences}" SelectedItem="{Binding Preference}" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <CheckBox IsChecked="{Binding UseBridges}" Content="{x:Static loc:MapText.RouteUseBridges}" />
+          <CheckBox IsChecked="{Binding UseWormholes}" Content="{x:Static loc:MapText.RouteUseWormholes}"
+                    ToolTip.Tip="{x:Static loc:MapText.TipRouteUseWormholes}" />
+          <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding UseWormholes}" Margin="26 0 0 0">
+            <TextBlock Text="{x:Static loc:MapText.RouteShipSizeLabel}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 8 0" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding ShipSizes}" SelectedItem="{Binding ShipSize}" HorizontalAlignment="Stretch" />
+          </Grid>
+        </StackPanel>
+
+        <!-- The avoid list: shown on request, edited here or by right-clicking a system. -->
+        <StackPanel Spacing="6">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding AvoidSummary}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <Button Grid.Column="1" Classes="tool" Padding="8 3" Command="{Binding ToggleAvoidListCommand}"
+                    Content="{x:Static loc:MapText.AvoidListButton}" ToolTip.Tip="{x:Static loc:MapText.TipAvoidList}" />
+          </Grid>
+          <Border IsVisible="{Binding ShowAvoidList}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="8">
+            <StackPanel Spacing="6">
+              <AutoCompleteBox Text="{Binding AvoidText}" ItemsSource="{Binding AvoidPlaces}" SelectedItem="{Binding AvoidPick}"
+                               FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                               ItemTemplate="{StaticResource PlaceItem}"
+                               Watermark="{x:Static loc:MapText.HintAvoidAdd}" />
+              <ItemsControl ItemsSource="{Binding Avoid}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AvoidRowVm">
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0 1">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Label}" FontSize="11" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding RegionLabel}" FontSize="10" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextDimBrush}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Text="{Binding SecurityText}" FontSize="10" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource TextDimBrush}" Margin="8 0" />
+                      <Button Grid.Column="2" Content="×" FontSize="12" Padding="4 0" MinHeight="0"
+                              Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextDimBrush}"
+                              ToolTip.Tip="{x:Static loc:MapText.TipAvoidRemove}" Command="{Binding RemoveCommand}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:MapText.AvoidNote}" FontSize="10" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Classes="tool" Content="{x:Static loc:MapText.PlanRoute}" Command="{Binding PlanCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MapText.Clear}" Command="{Binding ClearCommand}"
+                  ToolTip.Tip="{x:Static loc:MapText.TipRouteClear}" />
+        </StackPanel>
+
+        <CheckBox IsChecked="{Binding ShowOnMap}" Content="{x:Static loc:MapText.RouteShowOnMap}"
+                  ToolTip.Tip="{x:Static loc:MapText.TipShowOnMap}" />
+
+        <TextBlock Text="{Binding Message}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" />
+
+        <TextBlock Text="{x:Static loc:MapText.RouteRulesNote}" FontSize="10" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextFaintBrush}" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
+
+    <!-- ── The route ──────────────────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="Auto,*">
+      <Border Grid.Row="0" Padding="12 8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding Summary}" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextPrimaryBrush}" />
+          <!-- One character online: set for them. More: pick one, or all of them. -->
+          <Button Grid.Column="1" Classes="tool" Margin="8 0 0 0" Content="{x:Static loc:MapText.RouteSetDestination}"
+                  ToolTip.Tip="{x:Static loc:MapText.TipRouteSetDestination}"
+                  Click="OnSetDestinationClick" IsEnabled="{Binding HasRoute}" />
+        </Grid>
+      </Border>
+
+      <DataGrid Grid.Row="1" x:Name="StepsGrid" ItemsSource="{Binding Steps}"
+                AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                CanUserReorderColumns="False" CanUserSortColumns="False"
+                ContextRequested="OnStepContextRequested"
+                Background="{DynamicResource SurfaceBaseBrush}">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="40" />
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSystem}" Width="150" ClipboardContentBinding="{Binding Step.Name}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:RouteStepRowVm">
+                <Button Classes="link" Command="{Binding OpenCommand}" ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
+                  <TextBlock Text="{Binding Label}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColRegion}" Binding="{Binding RegionLabel}" Width="150" />
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSec}" Width="60" ClipboardContentBinding="{Binding SecurityText}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:RouteStepRowVm">
+                <TextBlock Text="{Binding SecurityText}" VerticalAlignment="Center"
+                           Classes.high="{Binding IsHighSec}" Classes.low="{Binding IsLowSec}" Classes.null="{Binding IsNullSec}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColVia}" Width="300" ClipboardContentBinding="{Binding Via}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:RouteStepRowVm">
+                <TextBlock Text="{Binding Via}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColHostiles}" Width="80" ClipboardContentBinding="{Binding HostilesText}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:RouteStepRowVm">
+                <TextBlock Text="{Binding HostilesText}" VerticalAlignment="Center" FontWeight="SemiBold"
+                           Foreground="{DynamicResource BadBrush}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColKillsHour}" Binding="{Binding KillsText}" Width="90" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -76,6 +76,9 @@ public static class AppKnowledge
         structure exceptions. They drive the industry costs — job cost, ME/TE bonuses, rig and
         structure effects — used by the Production Calculator and the build-cost engine.
 
+        ### Planetary Industry
+        PI characters' colonies: extractor end (exact), storage full and inputs out (estimated), profit; colony detail; slots.
+
         ### Production Calc (Production Calculator)
         Plan a manufacturing job for a blueprint or product. Build cost, materials (optionally
         down the full build chain) and job details, from your Indy Parks and current prices.
@@ -328,13 +331,26 @@ public static class AppKnowledge
         Cargo, Fuel, Fighters and Industry Jobs.
 
         ### Universe Map
-        A drill-down map: New Eden, then a region, then a system page. Overlays colour systems by
-        security, kills, jumps, industry indices, sovereignty, stations, planetary output and
-        intel sightings. The system page has tabs for its celestials, kills, industry indices,
-        graphs and intel.
+        Tabs of maps and system pages, two side by side if dragged apart. Overlays colour systems
+        by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
+        intel. Live marks show hostiles placed in the last 5 minutes by intel or killmails, and
+        the user's online characters. A system page has tabs for its celestials, kills, industry
+        indices, graphs and intel.
+
+        ### Route Planner
+        A Universe Map tab. Plans a route from system to system through gates, the jump bridges
+        the chosen character's alliance may use, and Thera/Turnur wormholes from EVE-Scout;
+        shortest, safer or less secure, keeping out of the avoid list (right-click a system to
+        add or remove it). Lists each jump with security, hostiles and last-hour kills; Show on
+        map draws it, Set destination sends it to the game's autopilot.
+
+        ### Jump Range
+        A Universe Map tab. Every system a jump drive reaches from a character's system (taking
+        their hull and Jump Drive Calibration, and following them as they move) or any system,
+        nearest first, optionally only where you can dock; ringed green on the map.
 
         ### Jump Planner
-        Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
+        A Universe Map tab. Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
         Conservation levels (the range per jump is shown) and a Jump Through rule for where
         midpoints may stop (anywhere, stations and structures, Fortizar/Keepstar or Keepstar
         systems), then add waypoints by name and Plan Route. The map shows the route with total
@@ -424,10 +440,13 @@ public static class AppKnowledge
         ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
         ("structure_browser",   "Structure Browser",      "Structure Browser"),
         ("universe",            "Universe Map",           "Universe Map"),
+        ("route_planner",       "Route Planner",          "Route Planner"),
         ("jump_planner",        "Jump Planner",           "Jump Planner"),
         ("industry",            "Industry Jobs",          "Industry Jobs"),
         ("indy_parks",          "Indy Parks",             "Indy Parks"),
         ("prod_calc",           "Production Calculator",  "Production Calc"),
+        ("fitting",             "Fitting",                "Fitting"),
+        ("planetary_industry",  "Planetary Industry",     "Planetary Industry"),
         ("price_overrides",     "Price Overrides",        "Price Overrides"),
         ("industry_opps",       "Industry Opportunities", "Industry Opportunities"),
         ("market_viewer",       "Market Overview",        "Market Overview"),

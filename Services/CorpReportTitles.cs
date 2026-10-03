@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -17,29 +18,30 @@ public class CorpReportTitles(AppPreferencesService prefs)
     /// <summary>The Top 10 lists, in the order the exports print them.</summary>
     public static readonly (string Key, string Title)[] Top10Categories =
     [
-        ("ratting",  "Ratting Tax"),
-        ("mining",   "Mining — Reprocessed Value"),
-        ("kills",    "Kills"),
-        ("projects", "Project Contributors"),
-        ("industry", "Industry Tax"),
+        ("ratting",  CorpText.Top10TitleRatting),
+        ("mining",   CorpText.Top10TitleMining),
+        ("kills",    CorpText.Top10TitleKills),
+        ("projects", CorpText.Top10TitleProjects),
+        ("industry", CorpText.Top10TitleIndustry),
     ];
 
     /// <summary>
     /// The monthly summary's sections, in the order Build emits them.
     ///
-    /// <para>⚠️ The default titles here are what the report writes into its lines, so the two must
-    /// agree exactly — a section renamed in one and not the other stops being overridable and
-    /// nothing says why.</para>
+    /// <para>⚠️ The report asks for its headings by these KEYS. It used to write the default words
+    /// and have them looked up here by text, which stops working the moment the words are in
+    /// another language — and a section the lookup misses stops being overridable with nothing
+    /// to say why.</para>
     /// </summary>
     public static readonly (string Key, string Title)[] SummarySections =
     [
-        ("income",   "Income"),
-        ("expenses", "Expenses"),
-        ("net",      "Net"),
-        ("combat",   "Combat"),
-        ("mining",   "Mining"),
-        ("projects", "Corp Projects"),
-        ("members",  "Members"),
+        ("income",   CorpText.SummarySectionIncome),
+        ("expenses", CorpText.SummarySectionExpenses),
+        ("net",      CorpText.SummarySectionNet),
+        ("combat",   CorpText.SummarySectionCombat),
+        ("mining",   CorpText.SummarySectionMining),
+        ("projects", CorpText.SummarySectionProjects),
+        ("members",  CorpText.SummarySectionMembers),
     ];
 
     public const string Top10Group   = "top10";
@@ -87,17 +89,4 @@ public class CorpReportTitles(AppPreferencesService prefs)
 
     public Task SetHeaderPrefixAsync(string? value) =>
         prefs.SetAsync(PrefixKey, string.IsNullOrWhiteSpace(value) ? null : value.Trim());
-
-    /// <summary>
-    /// The summary section name for a built-in title.
-    ///
-    /// <para>⚠️ Looked up by the DEFAULT text rather than by key, because the report builds its
-    /// lines from those words and does not carry keys through them. Anything unrecognised comes
-    /// back untouched, so a section added to the report without being added here still prints.</para>
-    /// </summary>
-    public string SummaryTitleForDefault(string defaultTitle)
-    {
-        var match = SummarySections.FirstOrDefault(sec => sec.Title == defaultTitle);
-        return match.Key is null ? defaultTitle : SummaryTitle(match.Key);
-    }
 }

@@ -4,7 +4,7 @@ using System.Reflection;
 using EveConsole.Services;
 using ReactiveUI;
 using Velopack;
-using Velopack.Sources;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -13,7 +13,6 @@ namespace EveConsole.ViewModels;
 // (declining is remembered so we re-prompt only for the next version).
 public class UpdateViewModel : ReactiveObject
 {
-    private const string RepoUrl        = "https://github.com/kernoeve/EveConsole";
     // ⚠️ Both local, not in the shared preference table. Whether THIS installation checks for
     // updates, and which version it has already said no to, are facts about a machine — one client
     // declining v1.6 used to hide the notice from every other client on the database, including
@@ -28,7 +27,7 @@ public class UpdateViewModel : ReactiveObject
     {
         _prefs       = prefs;
         _errorLogger = errorLogger;
-        _mgr         = new UpdateManager(new GithubSource(RepoUrl, null, false));
+        _mgr         = AppUpdater.CreateManager();
 
         // ⚠️ Asked once, here. Whether this is an installed build is knowable at startup,
         // and reading it from the update check's side effect meant the badge stayed blank
@@ -36,7 +35,7 @@ public class UpdateViewModel : ReactiveObject
         IsInstalledBuild = _mgr.IsInstalled;
 
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        CurrentVersionText = ver is not null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "unknown";
+        CurrentVersionText = ver is not null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : ShellText.UpdateVersionUnknown;
         // Seeded from the shared row once: turning the check off was a deliberate choice.
         _autoCheck = UiState.Get(UiState.UpdateAutoCheck, _prefs) != "0";   // default on
 
@@ -75,8 +74,8 @@ public class UpdateViewModel : ReactiveObject
     /// tag is "v0.9.13", so adding another would 404.</para>
     /// </summary>
     public string ReleaseUrl => UpdateAvailable && LatestVersionText.StartsWith('v')
-        ? $"{RepoUrl}/releases/tag/{LatestVersionText}"
-        : $"{RepoUrl}/releases";
+        ? $"{AppUpdater.RepoUrl}/releases/tag/{LatestVersionText}"
+        : $"{AppUpdater.RepoUrl}/releases";
 
     /// <summary>
     /// What the title bar says next to the version: whether this build is current.
@@ -86,12 +85,16 @@ public class UpdateViewModel : ReactiveObject
     /// either verdict.</para>
     /// </summary>
     public string UpdateBadgeText =>
-        !IsInstalledBuild             ? "dev build"
-      : UpdateAvailable               ? $"{LatestVersionText} available"
-      : StatusText == "Up to date."  ? "up to date"
+        !IsInstalledBuild ? ShellText.UpdateBadgeDevBuild
+      : UpdateAvailable   ? string.Format(ShellText.UpdateBadgeAvailable, LatestVersionText)
+      : _upToDate         ? ShellText.UpToDate
       : "";
 
     public bool HasUpdateBadge => UpdateBadgeText.Length > 0;
+
+    /// <summary>The last check found nothing newer — what the badge's "up to date" says. A state of
+    /// its own rather than a test of StatusText, whose words change with the language.</summary>
+    private bool _upToDate;
 
     private string _latestVersionText = "—";
     public string LatestVersionText
@@ -140,13 +143,14 @@ public class UpdateViewModel : ReactiveObject
         if (auto && !AutoCheck) return;
         if (!_mgr.IsInstalled)
         {
-            LatestVersionText = "n/a — not an installed build";
+            LatestVersionText = ShellText.UpdateLatestNotInstalled;
             return;
         }
 
         try
         {
-            StatusText = "Checking for updates…";
+            _upToDate  = false;
+            StatusText = ShellText.UpdateStatusChecking;
             var info = await _mgr.CheckForUpdatesAsync();
             if (info is null)
             {
@@ -154,7 +158,8 @@ public class UpdateViewModel : ReactiveObject
                 UpdateAvailable = false;
                 ShouldPrompt = false;
                 LatestVersionText = CurrentVersionText;
-                StatusText = "Up to date.";
+                _upToDate  = true;
+                StatusText = ShellText.UpdateStatusUpToDate;   // raises the badge
                 return;
             }
 
@@ -162,7 +167,7 @@ public class UpdateViewModel : ReactiveObject
             var latest = "v" + info.TargetFullRelease.Version;
             LatestVersionText = latest;
             UpdateAvailable = true;
-            StatusText = "An update is available.";
+            StatusText = ShellText.UpdateStatusAvailable;
 
             // Only nag once per version — respect a previous "Not now".
             // ⚠️ Deliberately NOT seeded from the shared row. It records a version this client is
@@ -192,10 +197,10 @@ public class UpdateViewModel : ReactiveObject
         try
         {
             IsBusy = true;
-            StatusText = "Downloading update…";
+            StatusText = ShellText.UpdateStatusDownloading;
             await _mgr.DownloadUpdatesAsync(_pending);
-            StatusText = "Restarting to apply…";
-            _mgr.ApplyUpdatesAndRestart(_pending);   // exits the process
+            StatusText = ShellText.UpdateStatusRestarting;
+            _mgr.ApplyUpdatesAndRestart(_pending, AppUpdater.RestartArgs());   // exits the process
         }
         catch (Exception ex)
         {

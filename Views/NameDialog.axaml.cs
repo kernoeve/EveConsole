@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -18,7 +19,7 @@ public partial class NameDialog : Window
         var name = NameBox.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(name))
         {
-            ErrorText.Text      = "Name is required.";
+            ErrorText.Text      = CommonText.NameRequired;
             ErrorText.IsVisible = true;
             return;
         }

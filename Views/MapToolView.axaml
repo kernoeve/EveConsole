@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.MapToolView"
+             x:DataType="vm:MapToolViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <DockPanel>
+    <!-- ── Above the tabs: a new map, and search ─────────────────────── -->
+    <Border DockPanel.Dock="Top" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Command="{Binding NewUniverseTabCommand}" Content="{x:Static loc:MapText.NewUniverseTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipNewUniverseTab}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowRouteTabCommand}" Content="{x:Static loc:MapText.RoutePlannerTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipRoutePlannerTab}" IsVisible="{Binding HasRoutes}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowJumpPlannerTabCommand}" Content="{x:Static loc:MapText.JumpPlannerTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipJumpPlannerTab}" IsVisible="{Binding HasJumpPlanner}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowJumpRangeTabCommand}" Content="{x:Static loc:MapText.JumpRangeTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipJumpRangeTab}" IsVisible="{Binding HasJumpPlanner}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowCampaignsTabCommand}" Content="{x:Static loc:MapText.CampaignsTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipCampaignsTab}" IsVisible="{Binding HasCampaigns}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowBridgesTabCommand}" Content="{x:Static loc:MapText.JumpBridgesTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipJumpBridgesTab}" IsVisible="{Binding HasBridges}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <!-- Filtering is done by the query, not by the box, so FilterMode is None; otherwise it
+             would filter the already-filtered results again on the display string. -->
+        <AutoCompleteBox Text="{Binding SearchText}"
+                         ItemsSource="{Binding Places}"
+                         SelectedItem="{Binding SelectedPlace}"
+                         FilterMode="None" MinimumPrefixLength="2"
+                         Watermark="{x:Static loc:MapText.HintSystemConstellationRegion}"
+                         ToolTip.Tip="{x:Static loc:MapText.TipMapSearch}"
+                         FontSize="11" MinWidth="280" VerticalAlignment="Center">
+          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
+      </StackPanel>
+    </Border>
+
+    <Panel>
+      <TextBlock Text="{x:Static loc:MapText.EmptyMapToolHint}" IsVisible="{Binding !HasTab}"
+                 FontSize="13" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" MaxWidth="420"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+
+      <Grid x:Name="Sides" ColumnDefinitions="*,0" IsVisible="{Binding HasTab}">
+        <views:MapPaneView Grid.Column="0" DataContext="{Binding LeftPane}" />
+        <Border Grid.Column="1" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1 0 0 0"
+                IsVisible="{Binding IsSplit}">
+          <views:MapPaneView DataContext="{Binding RightPane}" />
+        </Border>
+      </Grid>
+
+      <!-- Drop a tab on the right half to see two side by side. Clear of the tab strip, which is
+           where a drop reorders instead. -->
+      <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowSplitDropZone}">
+        <Border Grid.Column="1" x:Name="SplitDropZone" DragDrop.AllowDrop="True" Margin="0 34 0 0"
+                Background="{DynamicResource SurfaceOverlayBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                BorderThickness="2" CornerRadius="4">
+          <TextBlock Text="{x:Static loc:MapText.DropSideBySide}" FontSize="14"
+                     Foreground="{DynamicResource TextBrightBrush}" TextWrapping="Wrap" TextAlignment="Center"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12" />
+        </Border>
+      </Grid>
+    </Panel>
+  </DockPanel>
+</UserControl>

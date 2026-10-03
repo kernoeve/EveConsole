@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EveConsole.Models;
@@ -328,6 +328,67 @@ public record EsiPlanetaryColony(
     [property: JsonPropertyName("upgrade_level")]  int           UpgradeLevel
 );
 
+// GET /characters/{id}/planets/{planet_id}: one colony's layout. ⚠️ A snapshot as of the colony's
+// last_update, which only moves when the colony is viewed in the client.
+public record EsiPlanetLayout(
+    [property: JsonPropertyName("links")]  List<EsiPlanetLink>?  Links,
+    [property: JsonPropertyName("pins")]   List<EsiPlanetPin>?   Pins,
+    [property: JsonPropertyName("routes")] List<EsiPlanetRoute>? Routes
+);
+
+public record EsiPlanetLink(
+    [property: JsonPropertyName("source_pin_id")]      long SourcePinId,
+    [property: JsonPropertyName("destination_pin_id")] long DestinationPinId,
+    [property: JsonPropertyName("link_level")]         int  LinkLevel
+);
+
+public record EsiPlanetPin(
+    [property: JsonPropertyName("pin_id")]            long                     PinId,
+    [property: JsonPropertyName("type_id")]           int                      TypeId,
+    [property: JsonPropertyName("latitude")]          double                   Latitude,
+    [property: JsonPropertyName("longitude")]         double                   Longitude,
+    [property: JsonPropertyName("schematic_id")]      int?                     SchematicId,
+    [property: JsonPropertyName("install_time")]      DateTimeOffset?          InstallTime,
+    [property: JsonPropertyName("expiry_time")]       DateTimeOffset?          ExpiryTime,
+    [property: JsonPropertyName("last_cycle_start")]  DateTimeOffset?          LastCycleStart,
+    [property: JsonPropertyName("contents")]          List<EsiPlanetContent>?  Contents,
+    [property: JsonPropertyName("extractor_details")] EsiExtractorDetails?     ExtractorDetails,
+    [property: JsonPropertyName("factory_details")]   EsiFactoryDetails?       FactoryDetails
+);
+
+public record EsiPlanetContent(
+    [property: JsonPropertyName("type_id")] int  TypeId,
+    [property: JsonPropertyName("amount")]  long Amount
+);
+
+// ⚠️ cycle_time is in SECONDS, as ESI documents it. qty_per_cycle can be missing.
+public record EsiExtractorDetails(
+    [property: JsonPropertyName("cycle_time")]      int?                    CycleTime,
+    [property: JsonPropertyName("head_radius")]     double?                 HeadRadius,
+    [property: JsonPropertyName("heads")]           List<EsiExtractorHead>? Heads,
+    [property: JsonPropertyName("product_type_id")] int?                    ProductTypeId,
+    [property: JsonPropertyName("qty_per_cycle")]   int?                    QtyPerCycle
+);
+
+public record EsiExtractorHead(
+    [property: JsonPropertyName("head_id")]   int    HeadId,
+    [property: JsonPropertyName("latitude")]  double Latitude,
+    [property: JsonPropertyName("longitude")] double Longitude
+);
+
+public record EsiFactoryDetails(
+    [property: JsonPropertyName("schematic_id")] int SchematicId
+);
+
+public record EsiPlanetRoute(
+    [property: JsonPropertyName("route_id")]           long        RouteId,
+    [property: JsonPropertyName("source_pin_id")]      long        SourcePinId,
+    [property: JsonPropertyName("destination_pin_id")] long        DestinationPinId,
+    [property: JsonPropertyName("content_type_id")]    int         ContentTypeId,
+    [property: JsonPropertyName("quantity")]           double      Quantity,
+    [property: JsonPropertyName("waypoints")]          List<long>? Waypoints
+);
+
 // ── Agents research ───────────────────────────────────────────────────────────
 
 public record EsiAgentResearch(
@@ -470,6 +531,13 @@ public record EsiFittingData(
     [property: JsonPropertyName("items")]       List<EsiFittingItem> Items
 );
 
+/// <summary>POST characters/{id}/assets/names/ (and the corporation's): the name given to an item —
+/// a ship's, a container's. An item never named comes back as "None".</summary>
+public record EsiAssetName(
+    [property: JsonPropertyName("item_id")] long   ItemId,
+    [property: JsonPropertyName("name")]    string Name
+);
+
 public record EsiFittingItem(
     [property: JsonPropertyName("type_id")]  int    TypeId,
     [property: JsonPropertyName("flag")]     string Flag,
@@ -542,7 +610,8 @@ public record EsiCorpStructureEntry(
     [property: JsonPropertyName("fuel_expires")]         DateTimeOffset? FuelExpires,
     [property: JsonPropertyName("next_reinforce_apply")] DateTimeOffset? NextReinforceApply,
     [property: JsonPropertyName("next_reinforce_hour")]  int?            NextReinforceHour,
-    [property: JsonPropertyName("reinforce_hour")]       int?            ReinforceHour
+    [property: JsonPropertyName("reinforce_hour")]       int?            ReinforceHour,
+    [property: JsonPropertyName("name")]                 string?         Name = null
 );
 
 public record EsiCorpStarbaseEntry(

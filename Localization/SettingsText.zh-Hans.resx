@@ -1,0 +1,3439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="TabEsiTokens" xml:space="preserve">
+    <value>ESI 令牌</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="TabSde" xml:space="preserve">
+    <value>SDE</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>价格历史</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="TabTimers" xml:space="preserve">
+    <value>计时器</value>
+  </data>
+  <data name="TabPolling" xml:space="preserve">
+    <value>轮询</value>
+  </data>
+  <data name="TabGameLogs" xml:space="preserve">
+    <value>游戏日志</value>
+  </data>
+  <data name="TabChatLogs" xml:space="preserve">
+    <value>聊天日志</value>
+  </data>
+  <data name="TabMapData" xml:space="preserve">
+    <value>地图数据</value>
+  </data>
+  <data name="TabKillMails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="TabCorpTop10" xml:space="preserve">
+    <value>军团前十 / 摘要</value>
+  </data>
+  <data name="TabAiAgent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="TabAgent" xml:space="preserve">
+    <value>助手</value>
+  </data>
+  <data name="TabPersonalisation" xml:space="preserve">
+    <value>个性化</value>
+  </data>
+  <data name="TabVoice" xml:space="preserve">
+    <value>语音（TTS）</value>
+  </data>
+  <data name="TabSpeechInput" xml:space="preserve">
+    <value>语音输入（STT）</value>
+  </data>
+  <data name="TabSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="TabAlerts" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="TabDatabase" xml:space="preserve">
+    <value>数据库</value>
+  </data>
+  <data name="TabDataRetention" xml:space="preserve">
+    <value>数据保留</value>
+  </data>
+  <data name="TabUpdates" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="AppearanceHeader" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="ThemeLabel" xml:space="preserve">
+    <value>主题：</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>界面缩放：</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>语言：</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>跟随系统（{0}）</value>
+  </data>
+  <data name="LanguagePreviewNote" xml:space="preserve">
+    <value>预览：应用的部分内容尚未翻译，将以英文显示。</value>
+  </data>
+  <data name="LanguageRestartNote" xml:space="preserve">
+    <value>新语言将在下次启动时生效。</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>无法重启：{0}</value>
+  </data>
+  <data name="AppearanceNote" xml:space="preserve">
+    <value>主题和缩放会立即应用到所有窗口和对话框，语言则从下次启动时生效。这三项设置只保存在此客户端——使用同一数据库的其他客户端各自保留自己的设置。缩放也可以在状态栏右端快速调整。</value>
+  </data>
+  <data name="EveTimeLinkHeader" xml:space="preserve">
+    <value>EVE 时间链接</value>
+  </data>
+  <data name="EveTimeLinkNote" xml:space="preserve">
+    <value>点击标题栏中的 EVE 时钟会打开此网站。请从建议中选择一个，或选择“自定义网址”并输入你自己的网址。</value>
+  </data>
+  <data name="OpenLabel" xml:space="preserve">
+    <value>打开：</value>
+  </data>
+  <data name="CustomUrlOption" xml:space="preserve">
+    <value>自定义网址…</value>
+  </data>
+  <data name="EveTimeLinkEffective" xml:space="preserve">
+    <value>点击时钟将打开：{0}</value>
+  </data>
+  <data name="ServerStatusHeader" xml:space="preserve">
+    <value>服务器状态链接</value>
+  </data>
+  <data name="ServerStatusNote" xml:space="preserve">
+    <value>点击时钟旁的 Tranquility（宁静）指示器会打开 CCP 官方服务状态页面。此项不可配置——没有其他网站提供相同的信息。</value>
+  </data>
+  <data name="ABrowserTabWillNote" xml:space="preserve">
+    <value>将打开一个浏览器标签页，供你登录并授权访问。请查看下方的权限范围，取消勾选任何你不想授予的项。这些选择仅适用于本次认证。</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>取消全选</value>
+  </data>
+  <data name="RemovingScopesWillDisableNote" xml:space="preserve">
+    <value>移除权限范围会禁用本应用中的相关功能。你可以随时运行“更新”重新授予。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="ContinueToBrowser" xml:space="preserve">
+    <value>继续前往浏览器</value>
+  </data>
+  <data name="TitleEveStaticDataUpdate" xml:space="preserve">
+    <value>EVE 静态数据更新</value>
+  </data>
+  <data name="ANewerEveStaticNote" xml:space="preserve">
+    <value>有更新的 EVE 静态数据版本可用。</value>
+  </data>
+  <data name="LoadedLabel" xml:space="preserve">
+    <value>已加载：</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>最新：</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>立即更新</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="UpdatingEveStaticData" xml:space="preserve">
+    <value>正在更新 EVE 静态数据…</value>
+  </data>
+  <data name="SdeUpdateComplete" xml:space="preserve">
+    <value>SDE 更新完成。</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="HoboleaksComplement" xml:space="preserve">
+    <value>Hoboleaks 补充数据</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote" xml:space="preserve">
+    <value>蓝图、精炼、压缩和打包体积数据，在每次 TQ 更新后不久即会更新——通常早于官方 SDE。</value>
+  </data>
+  <data name="ImportFromHoboleaks" xml:space="preserve">
+    <value>从 Hoboleaks 导入</value>
+  </data>
+  <data name="Characters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="GrantedScopesLabel" xml:space="preserve">
+    <value>已授予的权限范围：</value>
+  </data>
+  <data name="Corporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="TipPersonalCorporation" xml:space="preserve">
+    <value>个人军团</value>
+  </data>
+  <data name="PersonalCorporation" xml:space="preserve">
+    <value>个人军团</value>
+  </data>
+  <data name="TipPersonalCorpsCountToward" xml:space="preserve">
+    <value>个人军团计入你的个人净资产。联盟中的军团或你受雇的军团则被视为独立实体。</value>
+  </data>
+  <data name="AuthCharacterScopesLabel" xml:space="preserve">
+    <value>授权角色的权限范围：</value>
+  </data>
+  <data name="WhichCharactersMayBeNote" xml:space="preserve">
+    <value>哪些角色可以分配工业任务，以及可以分配哪类任务。每个已授权的角色都会自动列出，三类活动默认全部勾选——取消勾选不应分配给该角色的活动，小号就是这样被排除在外的。任务会分配给能执行它的能力最低的角色，让高技能小号空出来做只有它们才能做的工作。对于有意让技能队列保持为空的角色，取消勾选“技能队列”，它就不会产生技能队列提醒。</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColSlotsUsedFor" xml:space="preserve">
+    <value>栏位用于</value>
+  </data>
+  <data name="Mfg" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="TipManufacturing" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="Rxn" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="TipReactions" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="Sci" xml:space="preserve">
+    <value>科研</value>
+  </data>
+  <data name="TipScienceCopyingResearchInvention" xml:space="preserve">
+    <value>科研——拷贝、研究、发明</value>
+  </data>
+  <data name="ColFreeTotal" xml:space="preserve">
+    <value>空闲 / 总数</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="TipCharacterSkillQueueShould" xml:space="preserve">
+    <value>角色的技能队列应保持运行。对于有意让队列保持为空的小号，取消勾选此项，概览提醒和工作清单都不会再报告它。</value>
+  </data>
+  <data name="EveStaticData" xml:space="preserve">
+    <value>EVE 静态数据</value>
+  </data>
+  <data name="UpdateSde" xml:space="preserve">
+    <value>更新 SDE</value>
+  </data>
+  <data name="TipDownloadAndImportThe" xml:space="preserve">
+    <value>下载并导入最新的 EVE 静态数据。即使已是最新版本也可以运行。</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote2" xml:space="preserve">
+    <value>蓝图、精炼、压缩和打包体积——在每次 TQ 更新后不久即会更新，通常早于官方 SDE。</value>
+  </data>
+  <data name="TipDownloadBlueprintReprocessingCompression" xml:space="preserve">
+    <value>从 sde.hoboleaks.space 下载蓝图、精炼、压缩和打包体积数据。</value>
+  </data>
+  <data name="PriceSources" xml:space="preserve">
+    <value>价格来源</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>获取方式</value>
+  </data>
+  <data name="FuzzworkFetchesPreComputedNote" xml:space="preserve">
+    <value>Fuzzwork：从 fuzzwork.co.uk 获取预先计算好的百分位价格。速度快，无需授权，在本地存储的数据很少（每个物品一行价格）。不存储单个订单——物品浏览器中的“市场订单”选项卡需要使用“星域”或“玩家建筑”。</value>
+  </data>
+  <data name="EsiRegionFetchesAllNote" xml:space="preserve">
+    <value>星域：从 ESI 获取整个星域的所有公开订单。适用于 NPC 贸易中心（例如 Jita → The Forge）。注意：不包含在玩家建筑内发布的订单——只有在建筑中挂出的星域范围买单才会出现。</value>
+  </data>
+  <data name="PlayerStructureFetchesAllNote" xml:space="preserve">
+    <value>玩家建筑：获取某个玩家建筑（城堡、工程复合体等）内的所有订单。需要一个拥有停靠权限的授权角色。适用于 00 区的集结星城和其他私有市场。</value>
+  </data>
+  <data name="LocationName" xml:space="preserve">
+    <value>位置名称</value>
+  </data>
+  <data name="HintEGJita44" xml:space="preserve">
+    <value>例如 Jita 4-4</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>位置 ID</value>
+  </data>
+  <data name="HintStationOrStructureId" xml:space="preserve">
+    <value>空间站或建筑 ID</value>
+  </data>
+  <data name="SectionFindLocationByName" xml:space="preserve">
+    <value>按名称查找位置…</value>
+  </data>
+  <data name="SearchForAStationNote" xml:space="preserve">
+    <value>按名称搜索空间站或建筑。结果会填入上方的位置 ID。</value>
+  </data>
+  <data name="HintStationOrStructureName" xml:space="preserve">
+    <value>空间站或建筑名称…</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>使用所选</value>
+  </data>
+  <data name="StationFilter" xml:space="preserve">
+    <value>空间站筛选</value>
+  </data>
+  <data name="RestrictPricesToANote" xml:space="preserve">
+    <value>将价格限定在单个空间站（例如 Jita 4-4）。请先刷新该来源以填充列表。</value>
+  </data>
+  <data name="AuthCharacter" xml:space="preserve">
+    <value>授权角色</value>
+  </data>
+  <data name="FilterHighLowOrders" xml:space="preserve">
+    <value>过滤极端高/低价订单</value>
+  </data>
+  <data name="RemovesAnomaliesCausedByNote" xml:space="preserve">
+    <value>去除订单簿两端的小量订单造成的异常价格。卖价取第 N 百分位（靠近最低价）；买价取第 (100-N) 百分位（靠近最高价）。</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>过滤 %</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="LastRefreshLabel" xml:space="preserve">
+    <value>上次刷新：</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>状态：</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="RefreshThis" xml:space="preserve">
+    <value>刷新此项</value>
+  </data>
+  <data name="DefaultPricing" xml:space="preserve">
+    <value>默认定价</value>
+  </data>
+  <data name="AssetValueLabel" xml:space="preserve">
+    <value>资产价值：</value>
+  </data>
+  <data name="ManufacturingCostLabel" xml:space="preserve">
+    <value>制造成本：</value>
+  </data>
+  <data name="MissingPriceMarkupLabel" xml:space="preserve">
+    <value>无价格时加价：</value>
+  </data>
+  <data name="AppliedWhenTheMarketNote" xml:space="preserve">
+    <value>当市场上某物品没有卖单时使用。价格 = 制造成本 × (1 + 加价%)。如果没有买单，买价默认取卖价。</value>
+  </data>
+  <data name="FilterLowballBuyOrdersBelow" xml:space="preserve">
+    <value>排除出价低于</value>
+  </data>
+  <data name="OfBuildCost" xml:space="preserve">
+    <value>% 制造成本的低价买单</value>
+  </data>
+  <data name="AppliesToEsiRegionNote" xml:space="preserve">
+    <value>仅适用于 ESI 星域 / 建筑市场。这些订单仍会在市场界面中显示，但不计入买价计算。</value>
+  </data>
+  <data name="SaveDefaults" xml:space="preserve">
+    <value>保存默认设置</value>
+  </data>
+  <data name="RefreshAll" xml:space="preserve">
+    <value>全部刷新</value>
+  </data>
+  <data name="PriceHistoryRegions" xml:space="preserve">
+    <value>价格历史星域</value>
+  </data>
+  <data name="ABackgroundJobRefreshesNote" xml:space="preserve">
+    <value>后台任务会为这些星域中每个有交易的物品刷新 30 天的市场历史，每个物品每 24 小时一次，这样机会类工具和物品详情就能直接从数据库读取。它会根据 ESI 的错误限额控制节奏，绝不会让应用超出限额。大型星域（例如 The Forge）会在多次运行中逐步填满。</value>
+  </data>
+  <data name="ColRegionId" xml:space="preserve">
+    <value>星域 ID</value>
+  </data>
+  <data name="ColRegionName" xml:space="preserve">
+    <value>星域名称</value>
+  </data>
+  <data name="HintSelectARegionToAdd" xml:space="preserve">
+    <value>选择要添加的星域…</value>
+  </data>
+  <data name="AddRegion" xml:space="preserve">
+    <value>添加星域</value>
+  </data>
+  <data name="TipWatchLivePerNote" xml:space="preserve">
+    <value>提示：可在“后台进程 → 价格历史”选项卡中实时查看各星域的扫描进度（已刷新与排队中的数量，以及是否正在运行）。</value>
+  </data>
+  <data name="BuildCosts" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="RecalculateStoredBuildCostsNote" xml:space="preserve">
+    <value>为每个可制造的物品重新计算已存储的制造成本。市场刷新后会自动运行；更改定价或价格覆盖后，可用此按钮强制更新。</value>
+  </data>
+  <data name="RecalculateBuildCosts" xml:space="preserve">
+    <value>重新计算制造成本</value>
+  </data>
+  <data name="ProductionCalculator" xml:space="preserve">
+    <value>生产计算器</value>
+  </data>
+  <data name="PurchaseAComponentInstead" xml:space="preserve">
+    <value>组件市场价值 ≤</value>
+  </data>
+  <data name="OfBuildValue" xml:space="preserve">
+    <value>% 制造价值时，改为购买而非制造</value>
+  </data>
+  <data name="OffByDefaultComponentNote" xml:space="preserve">
+    <value>默认关闭。组件市场价格波动大，少量低价挂单并不能保证你所需的数量都能以该价格买到——也不能保证值得花工夫去找货和运输。关闭时，计算器会制造所有能制造的组件（确实无法核算成本的物品仍会购买）。开启后，由“制造与购买取较便宜者”来决定。</value>
+  </data>
+  <data name="AdjustHowOftenEachNote" xml:space="preserve">
+    <value>调整每个接口的轮询频率。更改将在下一个轮询周期生效。</value>
+  </data>
+  <data name="CharacterEndpoints" xml:space="preserve">
+    <value>角色接口</value>
+  </data>
+  <data name="ForceNow" xml:space="preserve">
+    <value>立即轮询</value>
+  </data>
+  <data name="TipResetTheInMemory" xml:space="preserve">
+    <value>重置内存中的计时器，使此接口在下一个轮询周期（约 10 秒内）触发。</value>
+  </data>
+  <data name="CorporationEndpoints" xml:space="preserve">
+    <value>军团接口</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="SaveTimers" xml:space="preserve">
+    <value>保存计时器</value>
+  </data>
+  <data name="StructureNameResolution" xml:space="preserve">
+    <value>建筑名称解析</value>
+  </data>
+  <data name="WhenResolvingUnknownStructureNote" xml:space="preserve">
+    <value>解析未知的建筑名称时，EVE Console 会依次尝试每个已认证的角色，直到有一个成功。如果大多数建筑都拒绝你的角色访问，在此选择单个角色可以避免不必要的失败调用，以免消耗你的 ESI 错误额度。</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>角色：</value>
+  </data>
+  <data name="SelectNoneTryAllNote" xml:space="preserve">
+    <value>选择“（不指定——逐个尝试）”即可恢复原来逐个尝试所有角色的方式。选择会立即生效——无需重启。</value>
+  </data>
+  <data name="ABackgroundServiceIsNote" xml:space="preserve">
+    <value>已安装后台服务，而此客户端使用的是 SQLite。一个 SQLite 文件同一时间只能由一个进程占用，先启动的一方会把另一方锁在外面。请停止并移除该服务，或将此客户端切换到 PostgreSQL。</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>数据库：</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>启动</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="NotificationAreaIcon" xml:space="preserve">
+    <value>通知区域图标</value>
+  </data>
+  <data name="ASmallSeparateProcessNote" xml:space="preserve">
+    <value>一个独立的小进程，显示是哪个客户端在执行后台工作，并可从其菜单打开“后台进程”窗口或新的 EVE Console。它自己从不执行后台工作，也从不处理警报——要停止警报，请关闭 EVE Console。</value>
+  </data>
+  <data name="GameLogImport" xml:space="preserve">
+    <value>游戏日志导入</value>
+  </data>
+  <data name="ReadsEvesOwnGameNote" xml:space="preserve">
+    <value>读取 EVE 自身的游戏日志并存储其中的内容——战斗、采矿、赏金、跳跃、出站——供其他工具查询。日志以只读方式打开；绝不会写回任何内容，也不会向游戏客户端发送任何东西。</value>
+  </data>
+  <data name="ImportGameLogsOnBy" xml:space="preserve">
+    <value>导入游戏日志（默认开启）</value>
+  </data>
+  <data name="ThisCapturesActivityFromNote" xml:space="preserve">
+    <value>此项只记录从现在起的活动。EVE 此前已写入的日志，只有在你运行下方的导入后才会加载。</value>
+  </data>
+  <data name="ParsePositionIsRememberedNote" xml:space="preserve">
+    <value>每个文件的解析位置都会被记住，因此 EVE Console 关闭期间记录的内容会在下次启动时读取。</value>
+  </data>
+  <data name="LogFolders" xml:space="preserve">
+    <value>日志文件夹</value>
+  </data>
+  <data name="LeaveTheListEmptyNote" xml:space="preserve">
+    <value>只要能找到，本计算机自己的 EVE 游戏日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Gamelogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="CurrentlyReadingLabel" xml:space="preserve">
+    <value>正在读取：</value>
+  </data>
+  <data name="ImportPastLogs" xml:space="preserve">
+    <value>导入历史日志</value>
+  </data>
+  <data name="TurningTheImporterOnNote" xml:space="preserve">
+    <value>开启导入后，只会记录从那一刻起的新活动。若还要加载 EVE 已记录的内容，请选择要追溯多久，然后开始导入。此操作只运行一次——之后的新活动会自动读取。</value>
+  </data>
+  <data name="ImportLogsFromTheLastLabel" xml:space="preserve">
+    <value>导入最近的日志（天）：</value>
+  </data>
+  <data name="N0AllHistory" xml:space="preserve">
+    <value>0 = 全部历史</value>
+  </data>
+  <data name="StartImport" xml:space="preserve">
+    <value>开始导入</value>
+  </data>
+  <data name="Recount" xml:space="preserve">
+    <value>重新统计</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>选项</value>
+  </data>
+  <data name="CheckForNewLinesEveryLabel" xml:space="preserve">
+    <value>检查新行的间隔（秒）：</value>
+  </data>
+  <data name="KeepLinesThatNoRule" xml:space="preserve">
+    <value>保留未被任何规则识别的行</value>
+  </data>
+  <data name="RecommendedEvesLogFormatNote" xml:space="preserve">
+    <value>推荐开启。EVE 的日志格式没有公开文档，且随客户端版本而变化，识别规则只能覆盖有人实际做过的活动。保留未识别的行（类型记为“unmatched”），缺失的覆盖就会在你自己的数据中显现出来，而不会被忽视。</value>
+  </data>
+  <data name="ChatLogImport" xml:space="preserve">
+    <value>聊天日志导入</value>
+  </data>
+  <data name="UnlikeGameLogsChatNote" xml:space="preserve">
+    <value>与游戏日志不同，聊天日志包含其他人写的内容。只有同时开启此项并在下方勾选具体频道，才会存储任何内容。</value>
+  </data>
+  <data name="NotePrivateConversationsAppearNote" xml:space="preserve">
+    <value>注意：私人对话显示为“Private Chat (2)”、“Private Chat (3)”等。EVE 会随时间把这些名称重复用于不同的人，因此勾选其中一个可能会捕获与许多不同玩家的私信。</value>
+  </data>
+  <data name="ImportChatLogs" xml:space="preserve">
+    <value>导入聊天日志</value>
+  </data>
+  <data name="LeaveTheListEmptyNote2" xml:space="preserve">
+    <value>只要能找到，本计算机自己的 EVE 聊天日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Chatlogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。下方的频道发现会查看所有正在读取的文件夹中的频道。</value>
+  </data>
+  <data name="ChannelsToStore" xml:space="preserve">
+    <value>要存储的频道</value>
+  </data>
+  <data name="OnlyTickedChannelsAreNote" xml:space="preserve">
+    <value>只有勾选的频道才会被读取——其他频道的文件从不打开。频道发现只读取文件名；由于这些文件夹中有数万个文件，可能需要一些时间。</value>
+  </data>
+  <data name="DiscoverChannels" xml:space="preserve">
+    <value>发现频道</value>
+  </data>
+  <data name="UntickAll" xml:space="preserve">
+    <value>全部取消勾选</value>
+  </data>
+  <data name="ChannelLabel" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="IntelLabel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="TipParseThisChannelForSightings" xml:space="preserve">
+    <value>解析此频道中的目击报告</value>
+  </data>
+  <data name="ParseStoredHistory" xml:space="preserve">
+    <value>解析已存储的历史</value>
+  </data>
+  <data name="ImportPastChat" xml:space="preserve">
+    <value>导入历史聊天</value>
+  </data>
+  <data name="AsWithGameLogsNote" xml:space="preserve">
+    <value>与游戏日志一样，开启后只会捕获新消息。使用此功能可同时加载所选频道的历史聊天。</value>
+  </data>
+  <data name="ImportChatFromTheLastLabel" xml:space="preserve">
+    <value>导入最近的聊天（天）：</value>
+  </data>
+  <data name="MapStatistics" xml:space="preserve">
+    <value>地图统计</value>
+  </data>
+  <data name="JumpsKillsSovereigntyIndustryNote" xml:space="preserve">
+    <value>跳跃数、击毁数、主权、工业指数、势力战争和入侵，供星图的叠加层使用。ESI 只提供当前小时的数据，因此历史数据来自 EVE Ref 存档——这意味着关闭应用不会留下永久的空缺。</value>
+  </data>
+  <data name="CollectMapStatistics" xml:space="preserve">
+    <value>收集地图统计</value>
+  </data>
+  <data name="BackfillDays" xml:space="preserve">
+    <value>回填天数</value>
+  </data>
+  <data name="KeepHourlyDetailDays" xml:space="preserve">
+    <value>保留逐小时明细（天）</value>
+  </data>
+  <data name="PastTheHourlyWindowNote" xml:space="preserve">
+    <value>超出逐小时明细的保留期后，跳跃数和击毁数按天汇总，主权、工业和建筑数据每天保留一个快照。工业指数仍然每小时刷新，因此当前值始终是最新的——只有较早的小时数据会被精简。</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="BackfillNow" xml:space="preserve">
+    <value>立即回填</value>
+  </data>
+  <data name="RefreshCurrentHour" xml:space="preserve">
+    <value>刷新当前小时</value>
+  </data>
+  <data name="Coverage" xml:space="preserve">
+    <value>覆盖范围</value>
+  </data>
+  <data name="ZkillboardKillImport" xml:space="preserve">
+    <value>zKillboard 击毁导入</value>
+  </data>
+  <data name="EsiOnlyReturnsANote" xml:space="preserve">
+    <value>只有当你是受害者或打出最后一击时，ESI 才会返回击毁报告——参与了击毁但没有打出最后一击，ESI 是看不到的。zKillboard 会记录每一位参与者，因此合并它的数据可以填补这一空缺。默认开启，覆盖你自己的角色及其军团；取消勾选即可关闭。数据会合并到各处共用的同一份击毁数据中，绝不会重复或覆盖 ESI 已提供的内容。</value>
+  </data>
+  <data name="EnableZkillboardKillImport" xml:space="preserve">
+    <value>启用 zKillboard 击毁导入</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="MyCharactersCorpOnly" xml:space="preserve">
+    <value>仅我的角色和军团</value>
+  </data>
+  <data name="LiveCapturePollsZkillboardNote" xml:space="preserve">
+    <value>实时捕获会按下方的间隔轮询 zKillboard，只针对本应用已跟踪的角色和军团。</value>
+  </data>
+  <data name="CaptureAllKills" xml:space="preserve">
+    <value>捕获所有击毁</value>
+  </data>
+  <data name="LiveCaptureSwitchesToNote" xml:space="preserve">
+    <value>实时捕获会改用 zKillboard 的实时数据流，无需设置间隔——它会持续推送。数据库的增长速度会比“仅我的角色和军团”模式快得多，因为新伊甸的每一次击毁都会被存储，而不只是你自己的。</value>
+  </data>
+  <data name="LivePollInterval" xml:space="preserve">
+    <value>实时轮询间隔</value>
+  </data>
+  <data name="CheckZkillboardForNewNote" xml:space="preserve">
+    <value>检查 zKillboard 新击毁的间隔（秒）：</value>
+  </data>
+  <data name="NotUsedInAllNote" xml:space="preserve">
+    <value>“捕获所有击毁”范围下不使用——数据流会自行控制节奏。</value>
+  </data>
+  <data name="BackfillHistory" xml:space="preserve">
+    <value>回填历史</value>
+  </data>
+  <data name="PullsZkillboardsDailyKillNote" xml:space="preserve">
+    <value>拉取所选范围内 zKillboard 的每日击毁数据包，并合并所有符合上方范围的内容。它还会每小时自动运行一次，补上应用上次运行以来的空缺——此按钮主要用于拉取开始跟踪之前的历史。</value>
+  </data>
+  <data name="BackfillTheLastDaysLabel" xml:space="preserve">
+    <value>回填最近的击毁（天）：</value>
+  </data>
+  <data name="StartBackfill" xml:space="preserve">
+    <value>开始回填</value>
+  </data>
+  <data name="PostKillsToZkillboard" xml:space="preserve">
+    <value>向 zKillboard 提交击毁</value>
+  </data>
+  <data name="SubmitsKillmailsThisAppNote" xml:space="preserve">
+    <value>提交本应用拥有而 zKillboard 缺失的击毁报告——通常是没有其他人上传过的 ESI 击毁。只考虑下方覆盖日期范围内的击毁，而且要等它们产生几个小时后才会提交，因此 zKillboard 仍在处理中的击毁不会被多余地提交。同一条击毁绝不会提交两次。</value>
+  </data>
+  <data name="PostKillmailsToZkillboard" xml:space="preserve">
+    <value>向 zKillboard 提交击毁报告</value>
+  </data>
+  <data name="ThatIsTheOldestNote" xml:space="preserve">
+    <value>这是 zKillboard 上已确认存在的最早的击毁。更早的击毁早于 zKillboard 向我们展示过的所有记录，因此无法判断是否缺失，不予处理——回填更早的数据即可扩大范围。</value>
+  </data>
+  <data name="Top10ListTitles" xml:space="preserve">
+    <value>前十榜单标题</value>
+  </data>
+  <data name="TheHeadingEachSectionNote" xml:space="preserve">
+    <value>每个部分发布时使用的标题。留空则使用内置名称。每个前十标题都带有其涵盖的月份，因此单独阅读某个榜单时也能知道是哪个月。</value>
+  </data>
+  <data name="SummaryTitles" xml:space="preserve">
+    <value>摘要标题</value>
+  </data>
+  <data name="SummaryHeaderPrefixLabel" xml:space="preserve">
+    <value>摘要首行前缀</value>
+  </data>
+  <data name="HintPutInFrontOf" xml:space="preserve">
+    <value>加在摘要第一行的前面</value>
+  </data>
+  <data name="SaveTitles" xml:space="preserve">
+    <value>保存标题</value>
+  </data>
+  <data name="Top10ExcludeList" xml:space="preserve">
+    <value>前十排除名单</value>
+  </data>
+  <data name="AnyoneHereIsLeftNote" xml:space="preserve">
+    <value>此处列出的任何人都不会出现在任何前十榜单中，无论是在此选项卡中还是在计划发布的帖子中。</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>输入名称中的两个字符…</value>
+  </data>
+  <data name="Models" xml:space="preserve">
+    <value>模型</value>
+  </data>
+  <data name="EveryModelTheAgentNote" xml:space="preserve">
+    <value>助手可以用来思考的所有模型：可以是你自己的服务器（例如免费的 Ollama），也可以是付费服务。各模型负责什么，在下方的“职能”中设置。</value>
+  </data>
+  <data name="TipAtLeastOneModelStays" xml:space="preserve">
+    <value>至少要保留一个模型</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="ClaudeAnthropicApiKey" xml:space="preserve">
+    <value>Claude（Anthropic）API 密钥</value>
+  </data>
+  <data name="HintSkAnt" xml:space="preserve">
+    <value>sk-ant-…</value>
+  </data>
+  <data name="OneKeyForEveryNote" xml:space="preserve">
+    <value>列表中的所有 Claude 模型共用一个密钥。</value>
+  </data>
+  <data name="GetYourAnthropicApi" xml:space="preserve">
+    <value>在 console.anthropic.com 获取 Anthropic API 密钥</value>
+  </data>
+  <data name="OpenaiApiKey" xml:space="preserve">
+    <value>OpenAI API 密钥</value>
+  </data>
+  <data name="HintSk" xml:space="preserve">
+    <value>sk-…</value>
+  </data>
+  <data name="OneKeyForEveryNote2" xml:space="preserve">
+    <value>列表中的所有 OpenAI 模型共用一个密钥，OpenAI 的语音和语音输入也使用它。</value>
+  </data>
+  <data name="GetYourOpenaiApi" xml:space="preserve">
+    <value>在 platform.openai.com 获取 OpenAI API 密钥</value>
+  </data>
+  <data name="ServerAddress" xml:space="preserve">
+    <value>服务器地址</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>模型</value>
+  </data>
+  <data name="TipAskTheServiceFor" xml:space="preserve">
+    <value>重新向服务获取模型列表</value>
+  </data>
+  <data name="LetItThinkBeforeAnswering" xml:space="preserve">
+    <value>让它先思考再回答（较慢）</value>
+  </data>
+  <data name="ForModelsThatThinkNote" xml:space="preserve">
+    <value>适用于会先思考再回答的模型，例如 Qwen3。思考过程从不显示，但每次回答都要等它完成。取消勾选可加快回复：模型会被告知不要思考，代价是不够周全——尤其是在选择工具时。不会思考的模型会忽略此项。</value>
+  </data>
+  <data name="PromptCacheLifetime" xml:space="preserve">
+    <value>提示缓存有效期</value>
+  </data>
+  <data name="AnthropicKeepsTheInstructionsNote" xml:space="preserve">
+    <value>Anthropic 会在消息之间缓存指令、工具和对话内容，读取缓存的费用只有重新发送的十分之一。缓存条目从最后一条消息起保留 5 分钟；每条消息都会为其续期。如果你的消息通常间隔 5–60 分钟，选择 1 小时可以省钱——但这样写入缓存的费用是 2 倍而不是 1.25 倍，所以如果消息间隔更短，反而会更贵。AI 用量工具会显示每条消息的缓存读取和写入。适用于列表中的所有 Claude 模型。</value>
+  </data>
+  <data name="TestThisModel" xml:space="preserve">
+    <value>测试此模型</value>
+  </data>
+  <data name="TipAsksItForOne" xml:space="preserve">
+    <value>保存前，按此处的设置请它说一句话。在你自己的服务器上免费；在付费服务上会消耗少量 token。</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>职能</value>
+  </data>
+  <data name="Conversation" xml:space="preserve">
+    <value>对话</value>
+  </data>
+  <data name="TalksWithYouAndNote" xml:space="preserve">
+    <value>与你对话并操作应用——打开和排列工具、设置警报和目的地、记住你的长期指令。</value>
+  </data>
+  <data name="IfItStopsAnsweringNote" xml:space="preserve">
+    <value>如果它停止响应，切换到</value>
+  </data>
+  <data name="SaySoWhenIt" xml:space="preserve">
+    <value>切换到备用和恢复时告知——在聊天中显示，朗读开启时也会说出来</value>
+  </data>
+  <data name="QuestionsAboutYourData" xml:space="preserve">
+    <value>关于你的数据的问题</value>
+  </data>
+  <data name="AnythingThatNeedsYourNote" xml:space="preserve">
+    <value>任何需要用到你的数据库或 ESI 的问题——你有什么、拥有什么、正在做或做过什么。此处的模型会获得完整的提示词和所有工具。</value>
+  </data>
+  <data name="SendAMessageToNote" xml:space="preserve">
+    <value>在以下情况下，将消息发给此模型…</value>
+  </data>
+  <data name="ResetToTheDefault" xml:space="preserve">
+    <value>恢复默认</value>
+  </data>
+  <data name="Summaries" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="CompactsOlderMessagesWhenNote" xml:space="preserve">
+    <value>对话变长时压缩较早的消息（见“上下文管理”）。一个小型免费模型就能胜任。</value>
+  </data>
+  <data name="WhenAModelChanges" xml:space="preserve">
+    <value>模型切换时</value>
+  </data>
+  <data name="SaidForARoleNote" xml:space="preserve">
+    <value>对于在上方勾选了告知的职能，当其模型停止响应、由备用模型接替时，会说出这段话；职能原本的模型恢复时还会再说一次。{user} 是你在“个性化”中填写的名字，{purpose} 为“our conversation”或“data access”，{primary} 和 {fallback} 是两个模型的名称。启动时不会悄悄切换：如果某个职能原本的模型不可用，会在第一条消息时发现并告知你。</value>
+  </data>
+  <data name="FallingOver" xml:space="preserve">
+    <value>切换到备用时</value>
+  </data>
+  <data name="ComingBack" xml:space="preserve">
+    <value>恢复时</value>
+  </data>
+  <data name="AtLeast" xml:space="preserve">
+    <value>至少间隔</value>
+  </data>
+  <data name="MinutesBetweenOneChangeNote" xml:space="preserve">
+    <value>分钟，才会在一次切换后再次切回</value>
+  </data>
+  <data name="UpFor" xml:space="preserve">
+    <value>连续可用</value>
+  </data>
+  <data name="MinutesWithoutABreakNote" xml:space="preserve">
+    <value>分钟后，职能原本的模型才会恢复</value>
+  </data>
+  <data name="AModelThatStopsNote" xml:space="preserve">
+    <value>停止响应的模型会被立即替换，在回答的第一个字出现之前就完成——这些设置只控制切回，因此频繁掉线的服务器不会让助手来回切换。切回要等到你的下一条消息，并且要等恢复的模型真正回应出一个字。</value>
+  </data>
+  <data name="ContextManagement" xml:space="preserve">
+    <value>上下文管理</value>
+  </data>
+  <data name="PersistConversationHistoryAcrossSessions" xml:space="preserve">
+    <value>跨会话保留对话历史</value>
+  </data>
+  <data name="SummarizationThresholdEstimatedTokens" xml:space="preserve">
+    <value>摘要阈值（估算 token 数）</value>
+  </data>
+  <data name="Tokens" xml:space="preserve">
+    <value>token</value>
+  </data>
+  <data name="Personalisation" xml:space="preserve">
+    <value>个性化</value>
+  </data>
+  <data name="EverythingOnThisTabNote" xml:space="preserve">
+    <value>此选项卡中的所有内容都与你本人有关，而不是这台电脑，因此保存在数据库中，由所有打开该数据库的客户端共享。其他选项卡——提供商、密钥、语音、麦克风——只属于这台电脑。</value>
+  </data>
+  <data name="AgentName" xml:space="preserve">
+    <value>助手名称</value>
+  </data>
+  <data name="ResponseVerbosity" xml:space="preserve">
+    <value>回答详细程度</value>
+  </data>
+  <data name="ConciseShortDirectAnswersNote" xml:space="preserve">
+    <value>简洁：简短、直接的回答（1-3 句）。均衡：完整但不冗长。详细：透彻，包含背景和推理。每次发送消息时，此设置都会加入系统提示词。</value>
+  </data>
+  <data name="YourName" xml:space="preserve">
+    <value>你的名字</value>
+  </data>
+  <data name="StandingInstructions" xml:space="preserve">
+    <value>长期指令</value>
+  </data>
+  <data name="Voices" xml:space="preserve">
+    <value>语音</value>
+  </data>
+  <data name="SpeakTheAgentsReplies" xml:space="preserve">
+    <value>朗读助手的回复</value>
+  </data>
+  <data name="InOrderOfPreferenceNote" xml:space="preserve">
+    <value>按优先顺序排列。使用第一个能发声的语音；如果它出错，下一个会立即接替，而当第一个恢复并保持稳定后，会重新切回它。语音可以有自己的名字——语音也是你交谈对象的一部分——它说话时，这个名字就是助手的名字，在面板和对话中都是如此。没有名字的语音使用“个性化”中的助手名称。</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>▲ 上移</value>
+  </data>
+  <data name="TipPreferThisVoiceOver" xml:space="preserve">
+    <value>优先使用此语音，而不是它上面的那个</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>▼ 下移</value>
+  </data>
+  <data name="Engine" xml:space="preserve">
+    <value>引擎</value>
+  </data>
+  <data name="Kokoro82mRunsFullyNote" xml:space="preserve">
+    <value>Kokoro 82M 完全离线运行在这台电脑上。它的语音随应用一起提供；模型只需下载一次。</value>
+  </data>
+  <data name="Voice" xml:space="preserve">
+    <value>语音</value>
+  </data>
+  <data name="LoadModel" xml:space="preserve">
+    <value>加载模型</value>
+  </data>
+  <data name="ModelLoaded" xml:space="preserve">
+    <value>✔ 模型已加载</value>
+  </data>
+  <data name="OneModelServesEveryNote" xml:space="preserve">
+    <value>所有 Kokoro 语音共用一个模型。它只需下载一次（约 320 MB，仅包含神经网络权重——不含可执行代码），存放在这台电脑的数据文件夹中，应用更新不会动它。</value>
+  </data>
+  <data name="AnyServerThatSpeaksNote" xml:space="preserve">
+    <value>任何支持 OpenAI 语音 API 的服务器——Kokoro-FastAPI、Chatterbox-TTS-Server（完整版或 Turbo）、Orpheus-FastAPI——通常运行在另一台机器的 GPU 上。免费使用；如果服务器无法发声，列表中的下一个语音会接替。</value>
+  </data>
+  <data name="ServerAddressUpToNote" xml:space="preserve">
+    <value>服务器地址（包括末尾的 /v1）</value>
+  </data>
+  <data name="HintAsTheServerNames" xml:space="preserve">
+    <value>按服务器使用的名称——kokoro、chatterbox、orpheus…</value>
+  </data>
+  <data name="HintAsTheServerNames2" xml:space="preserve">
+    <value>按服务器使用的名称——af_heart、tara…</value>
+  </data>
+  <data name="ChatterboxAFileFromNote" xml:space="preserve">
+    <value>Chatterbox：其 voices 文件夹中的一个文件，带 .wav 后缀——如 Emily.wav（它会忽略模型）。Orpheus：tara、leah、jess、leo、dan、mia、zac 或 zoe（模型填 orpheus）。Kokoro-FastAPI：af_heart、bf_emma…（模型填 kokoro）。</value>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>语速</value>
+  </data>
+  <data name="ApiKeyOnlyIfNote" xml:space="preserve">
+    <value>API 密钥（仅当服务器要求时）</value>
+  </data>
+  <data name="PiperIsAFastNote" xml:space="preserve">
+    <value>Piper 是一个快速的离线引擎。其运行时随应用一起提供；只需下载语音模型。</value>
+  </data>
+  <data name="RuntimeLabel" xml:space="preserve">
+    <value>运行时：</value>
+  </data>
+  <data name="Bundled" xml:space="preserve">
+    <value>✔ 已内置</value>
+  </data>
+  <data name="NotFoundInAppDirectory" xml:space="preserve">
+    <value>⚠ 未在应用目录中找到</value>
+  </data>
+  <data name="DownloadVoiceModel" xml:space="preserve">
+    <value>下载语音模型</value>
+  </data>
+  <data name="VoiceReady" xml:space="preserve">
+    <value>✔ 语音已就绪</value>
+  </data>
+  <data name="OpenaisVoicesBilledPerCharacter" xml:space="preserve">
+    <value>OpenAI 的语音，按字符计费。</value>
+  </data>
+  <data name="OneKeyForEveryNote3" xml:space="preserve">
+    <value>所有 OpenAI 语音共用一个密钥，“助手”选项卡中的 OpenAI 模型和语音输入也使用它。</value>
+  </data>
+  <data name="HintAsOpenaiNamesIt" xml:space="preserve">
+    <value>按 OpenAI 使用的名称</value>
+  </data>
+  <data name="TipAskOpenaiForIts" xml:space="preserve">
+    <value>重新向 OpenAI 获取语音模型列表</value>
+  </data>
+  <data name="ElevenlabsVoicesBilledPerCharacter" xml:space="preserve">
+    <value>ElevenLabs 的语音，按字符计费。</value>
+  </data>
+  <data name="ElevenlabsApiKey" xml:space="preserve">
+    <value>ElevenLabs API 密钥</value>
+  </data>
+  <data name="OneKeyForEveryElevenlabs" xml:space="preserve">
+    <value>所有 ElevenLabs 语音共用一个密钥。</value>
+  </data>
+  <data name="GetYourElevenlabsApi" xml:space="preserve">
+    <value>在 elevenlabs.io 获取 ElevenLabs API 密钥</value>
+  </data>
+  <data name="HintTheVoicesId" xml:space="preserve">
+    <value>语音的 ID</value>
+  </data>
+  <data name="TipAskElevenlabsForYour" xml:space="preserve">
+    <value>重新向 ElevenLabs 获取你的语音——比如在那边添加了新语音之后</value>
+  </data>
+  <data name="HintTheModelsId" xml:space="preserve">
+    <value>模型的 ID</value>
+  </data>
+  <data name="TipAskElevenlabsForIts" xml:space="preserve">
+    <value>重新向 ElevenLabs 获取模型列表</value>
+  </data>
+  <data name="TestThisVoice" xml:space="preserve">
+    <value>测试此语音</value>
+  </data>
+  <data name="TipSpeaksWithThisVoice" xml:space="preserve">
+    <value>保存前按此处的设置用这个语音说话——单独测试，不经过列表</value>
+  </data>
+  <data name="WhenTheVoiceChanges" xml:space="preserve">
+    <value>语音切换时</value>
+  </data>
+  <data name="AnnounceItInTheNew" xml:space="preserve">
+    <value>用新语音宣布切换</value>
+  </data>
+  <data name="SaidByTheVoiceNote" xml:space="preserve">
+    <value>由接替的语音说出，并保留在对话中，让助手知道自己现在是谁。只在名字改变时才会宣布——要让切换被宣布，请给每个语音起各自的名字。应用启动时不会说任何话：你只会听到当前在说话的那一位。{previous} 和 {current} 代表这两个名字。</value>
+  </data>
+  <data name="TakingOver" xml:space="preserve">
+    <value>接替时</value>
+  </data>
+  <data name="MinutesWithoutABreakNote2" xml:space="preserve">
+    <value>分钟后，首选语音才会恢复</value>
+  </data>
+  <data name="AVoiceThatFailsNote" xml:space="preserve">
+    <value>出错的语音会被立即替换——这些设置只控制切回，因此频繁掉线的服务器不会让语音来回切换。切回要等到当前回答结束。</value>
+  </data>
+  <data name="SpeechInputPushToTalk" xml:space="preserve">
+    <value>语音输入（按键通话）</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>提供商</value>
+  </data>
+  <data name="MicrophoneDevice" xml:space="preserve">
+    <value>麦克风设备</value>
+  </data>
+  <data name="HintSystemDefault" xml:space="preserve">
+    <value>（系统默认）</value>
+  </data>
+  <data name="TipRefreshTheListOfInput" xml:space="preserve">
+    <value>刷新输入设备列表</value>
+  </data>
+  <data name="SystemDefaultFollowsWhateverNote" xml:space="preserve">
+    <value>“系统默认”会跟随操作系统当前的输入设备，因此之后插入的耳机无需回到这里设置即可使用。选择某个设备可将其固定。支持 Windows 和 Linux（PortAudio）；如果列表为空，请在音频驱动初始化后点击 ↺ 刷新。</value>
+  </data>
+  <data name="GlobalPushToTalkKey" xml:space="preserve">
+    <value>全局按键通话热键</value>
+  </data>
+  <data name="ApiKey" xml:space="preserve">
+    <value>API 密钥</value>
+  </data>
+  <data name="TheSameOpenaiKeyNote" xml:space="preserve">
+    <value>与“助手”选项卡中的 OpenAI 模型及 OpenAI 语音使用同一个 OpenAI 密钥。</value>
+  </data>
+  <data name="TipAskOpenaiForIts2" xml:space="preserve">
+    <value>重新向 OpenAI 获取转写模型列表</value>
+  </data>
+  <data name="SentToOpenaiToNote" xml:space="preserve">
+    <value>发送给 OpenAI 转写成文字。支持 Windows 和 Linux。</value>
+  </data>
+  <data name="RunsWhisperNetLocallyNote" xml:space="preserve">
+    <value>在这台机器上本地运行 Whisper.net（仅限 Windows）。无需 API 密钥。首次使用前必须下载模型文件。</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="HintEn" xml:space="preserve">
+    <value>en</value>
+  </data>
+  <data name="ATwoLetterCodeNote" xml:space="preserve">
+    <value>两个字母的语言代码，例如 en 或 zh，也可以填 auto 让模型自行判断。对只有两秒的录音，判断常常出错，而且要多处理一遍；请直接填写你说的语言。</value>
+  </data>
+  <data name="DownloadModel" xml:space="preserve">
+    <value>下载模型</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>✔ 已下载</value>
+  </data>
+  <data name="SaveAgentSettings" xml:space="preserve">
+    <value>保存助手设置</value>
+  </data>
+  <data name="SlackIntegration" xml:space="preserve">
+    <value>Slack 集成</value>
+  </data>
+  <data name="PostFromEveConsoleNote" xml:space="preserve">
+    <value>从 EVE Console 直接发布到 Slack。发布使用你自己的用户令牌，因此显示为你本人——而不是机器人。不会自动发布任何内容；何时发送由你决定。</value>
+  </data>
+  <data name="ConnectingOpensSlackInNote" xml:space="preserve">
+    <value>连接时会在浏览器中打开 Slack。选择工作区并批准访问即可——EVE Console 永远看不到你的 Slack 密码，你也可以随时在 Slack 账户设置中撤销授权。</value>
+  </data>
+  <data name="ConnectToSlack" xml:space="preserve">
+    <value>连接 Slack</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="ReloadChannels" xml:space="preserve">
+    <value>重新加载频道</value>
+  </data>
+  <data name="ManualSetup" xml:space="preserve">
+    <value>手动设置</value>
+  </data>
+  <data name="N1OpenApiSlackNote" xml:space="preserve">
+    <value>1.  打开 api.slack.com/apps，选择 Create New App → From scratch。为其命名（例如 EVE Console）并选择你的工作区。</value>
+  </data>
+  <data name="N2GoToOauthNote" xml:space="preserve">
+    <value>2.  前往 OAuth &amp; Permissions，在 User Token Scopes（不是 Bot Token Scopes）下添加以下权限范围：</value>
+  </data>
+  <data name="ChatWriteChannelsReadNote" xml:space="preserve">
+    <value>chat:write     channels:read     groups:read     im:read     mpim:read</value>
+  </data>
+  <data name="N3ClickInstallToNote" xml:space="preserve">
+    <value>3.  点击 Install to Workspace 并批准，然后复制 User OAuth Token（以 xoxp- 开头）。</value>
+  </data>
+  <data name="OpenApiSlackComApps" xml:space="preserve">
+    <value>打开 api.slack.com/apps</value>
+  </data>
+  <data name="UserOauthToken" xml:space="preserve">
+    <value>用户 OAuth 令牌</value>
+  </data>
+  <data name="HintXoxp" xml:space="preserve">
+    <value>xoxp-…</value>
+  </data>
+  <data name="StoredLocallyInYourNote" xml:space="preserve">
+    <value>保存在你本地的 EVE Console 数据库中。请像对待密码一样对待它——它可以用你的身份在你能访问的任何频道中发帖。</value>
+  </data>
+  <data name="SaveTest" xml:space="preserve">
+    <value>保存并测试</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Webhook</value>
+  </data>
+  <data name="ForWorkspacesYouCannotNote" xml:space="preserve">
+    <value>用于你无法以本人身份连接的工作区——通常是联盟的 Slack，它们会提供 Webhook，却绝不会发放令牌。在此为其命名后，它会出现在下方的每个目标列表中。</value>
+  </data>
+  <data name="AWebhookCannotThreadNote" xml:space="preserve">
+    <value>⚠ Webhook 无法使用消息列（thread）。通过它发布的内容不会返回消息 ID，因此销售发布的详细信息会作为第二条消息发出，而不是作为第一条消息下的回复。发布的内容也会显示为 Webhook 自己的应用，而不是你本人。</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="PickWhichChannelEachNote" xml:space="preserve">
+    <value>选择 EVE Console 各部分要发布到的频道。只有设置了频道后，对应部分的发布按钮才会出现。</value>
+  </data>
+  <data name="CorpActivityTop10" xml:space="preserve">
+    <value>军团活动——前十</value>
+  </data>
+  <data name="HintSelectAChannel" xml:space="preserve">
+    <value>选择频道…</value>
+  </data>
+  <data name="CorpActivityMonthlySummary" xml:space="preserve">
+    <value>军团活动——月度摘要</value>
+  </data>
+  <data name="SalePosting" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="PrivateChannelsOnlyAppearNote" xml:space="preserve">
+    <value>私有频道只有在你是其成员时才会出现。如果缺少某个频道，请使用“重新加载频道”。</value>
+  </data>
+  <data name="AlertRules" xml:space="preserve">
+    <value>提醒规则</value>
+  </data>
+  <data name="ConfigureWhichConditionsTriggerNote" xml:space="preserve">
+    <value>配置哪些条件会在“概览”选项卡上触发提醒。每次刷新概览时都会重新评估提醒。</value>
+  </data>
+  <data name="SkillQueue" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="CharacterSkillQueueIsEmpty" xml:space="preserve">
+    <value>角色技能队列为空</value>
+  </data>
+  <data name="CharacterSkillQueueIs" xml:space="preserve">
+    <value>角色技能队列已暂停（有条目但没有技能在训练）</value>
+  </data>
+  <data name="SkillQueueWillBeEmpty" xml:space="preserve">
+    <value>技能队列剩余时间不足</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>天</value>
+  </data>
+  <data name="SaveAlerts" xml:space="preserve">
+    <value>保存提醒</value>
+  </data>
+  <data name="AssetSafety" xml:space="preserve">
+    <value>资产安全</value>
+  </data>
+  <data name="AlertWhenItemsAre" xml:space="preserve">
+    <value>物品被移入资产安全时提醒</value>
+  </data>
+  <data name="TriggersWhenAStructureitemsmovedintosafetyNote" xml:space="preserve">
+    <value>任何已认证角色收到 StructureItemsMovedIntoSafety 通知时触发。该提醒会一直保留，直到你手动关闭。</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="AlertWhenStandingProjects" xml:space="preserve">
+    <value>长期项目当前未激活时提醒</value>
+  </data>
+  <data name="TriggersWhenOneOrNote" xml:space="preserve">
+    <value>当一个或多个长期项目（军团活动 → 项目 → 长期项目）没有对应的已激活 ESI 军团项目时触发。每次刷新概览时重新评估。</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="AlertWhenStandingBuy" xml:space="preserve">
+    <value>长期收购订单需要处理时提醒</value>
+  </data>
+  <data name="TriggersWhenAStandingNote" xml:space="preserve">
+    <value>当某个长期收购订单（市场 / 贸易 → 长期收购订单）没有对应的有效订单、在该空间站被他人出价超过、剩余数量已低于原始数量的 10%，或剩余时长不足 20% 时触发。提醒会说明是哪种情况，因为下单、提价、补量和续期是不同的操作。每次刷新概览时重新评估。</value>
+  </data>
+  <data name="OutbidDetectionComparesAgainstNote" xml:space="preserve">
+    <value>被超价检测会与公开订单簿进行比较，而订单簿只覆盖在“设置 → 市场”中配置为市场来源的空间站和建筑。其他地点会显示短横线，而不是声称没有竞争。</value>
+  </data>
+  <data name="IndustryFacilities" xml:space="preserve">
+    <value>工业设施</value>
+  </data>
+  <data name="AlertWhenRunningJobs" xml:space="preserve">
+    <value>进行中的任务所在设施没有相应改装件时提醒</value>
+  </data>
+  <data name="CountsActiveManufacturingAndNote" xml:space="preserve">
+    <value>统计所在设施没有为该类工作提供加成改装件的进行中制造和反应任务。研究、拷贝和发明不计入——它们使用的改装件不在此项检查的模型范围内。</value>
+  </data>
+  <data name="OnlyFacilitiesLinkedToNote" xml:space="preserve">
+    <value>只有关联到工业园区建筑的设施才能被判断：ESI 无法报告建筑装配了哪些改装件，所以改装件以你在工业园区中描述的为准。在那里将建筑关联到真实的设施即可将其纳入。未关联的设施会被忽略，而不会被报告为未安装改装件。</value>
+  </data>
+  <data name="AlertWhenIndustryJobs" xml:space="preserve">
+    <value>工业任务可交付时提醒</value>
+  </data>
+  <data name="CountsJobsPastTheirNote" xml:space="preserve">
+    <value>统计已过结束时间或已标记为就绪、但还没有人交付的任务——产出在等待领取，栏位会一直被占用，直到有人领取。覆盖本应用轮询任务的所有角色和军团；任务默认每 15 分钟轮询一次（计时器），因此刚完成的任务可能要过这么久才会显示。</value>
+  </data>
+  <data name="AlertAboutOutstandingContracts" xml:space="preserve">
+    <value>有指派给你的待处理合同时提醒</value>
+  </data>
+  <data name="CountsActiveContractsAssignedNote" xml:space="preserve">
+    <value>统计指派给你的某个角色或个人军团的有效合同——也就是在等你处理的合同。提醒会在合同工具中打开它们，最先到期的排在最前面。</value>
+  </data>
+  <data name="AlertAboutContractsAboutTo" xml:space="preserve">
+    <value>有合同即将到期时提醒</value>
+  </data>
+  <data name="CountsActiveContractsYouNote" xml:space="preserve">
+    <value>统计由你发布或指派给你、已进入有效期最后 15% 的有效合同：例如两周期限的合同从第 12 天起。个人军团也算作你本人。</value>
+  </data>
+  <data name="DatabaseType" xml:space="preserve">
+    <value>数据库类型</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型：</value>
+  </data>
+  <data name="ThisIsNotTheNote" xml:space="preserve">
+    <value>这不是当前打开的数据库。请保存此选择并重启 EVE Console 以使其生效。</value>
+  </data>
+  <data name="SaveAndRestart" xml:space="preserve">
+    <value>保存并重启</value>
+  </data>
+  <data name="PostgresPostgresqlAndTheNote" xml:space="preserve">
+    <value>Postgres、PostgreSQL 和 Slonik 徽标是 PostgreSQL Community Association of Canada 的商标或注册商标，经其许可使用。</value>
+  </data>
+  <data name="PostgresqlServer" xml:space="preserve">
+    <value>PostgreSQL 服务器</value>
+  </data>
+  <data name="EveConsoleNeedsToNote" xml:space="preserve">
+    <value>EVE Console 需要连接到此数据库并在其中创建表。最简单的做法是使用归此用户所有的数据库——CREATE DATABASE eveconsole OWNER myuser——这样无需任何额外授权就能获得所需权限。</value>
+  </data>
+  <data name="HostLabel" xml:space="preserve">
+    <value>主机：</value>
+  </data>
+  <data name="PortLabel" xml:space="preserve">
+    <value>端口：</value>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>用户名：</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>密码：</value>
+  </data>
+  <data name="TestConnection" xml:space="preserve">
+    <value>测试连接</value>
+  </data>
+  <data name="BringYourExistingDataAcross" xml:space="preserve">
+    <value>迁移现有数据</value>
+  </data>
+  <data name="ReplaceWhatIsOnThe" xml:space="preserve">
+    <value>替换服务器上已有的数据</value>
+  </data>
+  <data name="CopyDataToPostgresql" xml:space="preserve">
+    <value>复制数据到 PostgreSQL</value>
+  </data>
+  <data name="EraseServerDataAndCopy" xml:space="preserve">
+    <value>清除服务器数据并复制</value>
+  </data>
+  <data name="SqliteDatabase" xml:space="preserve">
+    <value>SQLite 数据库</value>
+  </data>
+  <data name="MovingShrinkingAndBackingNote" xml:space="preserve">
+    <value>移动、压缩和备份都是针对数据库文件本身进行的，因此只适用于 SQLite。PostgreSQL 服务器请使用其自带的工具备份。</value>
+  </data>
+  <data name="PathLabel" xml:space="preserve">
+    <value>路径：</value>
+  </data>
+  <data name="SizeLabel" xml:space="preserve">
+    <value>大小：</value>
+  </data>
+  <data name="MoveRenameDatabase" xml:space="preserve">
+    <value>移动 / 重命名数据库…</value>
+  </data>
+  <data name="TipMoveTheDatabaseTo" xml:space="preserve">
+    <value>将数据库移动到其他文件夹或驱动器，或为其改名。应用会重启以完成此操作。</value>
+  </data>
+  <data name="PointToExistingDb" xml:space="preserve">
+    <value>指向现有数据库…</value>
+  </data>
+  <data name="ShrinkDatabase" xml:space="preserve">
+    <value>压缩数据库…</value>
+  </data>
+  <data name="TipRebuildTheDatabaseFile" xml:space="preserve">
+    <value>重建数据库文件，把已删除数据释放的空间归还给磁盘。会重启应用。</value>
+  </data>
+  <data name="TheseOperationsCopyOrNote" xml:space="preserve">
+    <value>这些操作会复制或移动数据库文件，并重启应用。</value>
+  </data>
+  <data name="AutomaticallyBackUpDatabase" xml:space="preserve">
+    <value>自动备份数据库</value>
+  </data>
+  <data name="IntervalLabel" xml:space="preserve">
+    <value>间隔：</value>
+  </data>
+  <data name="KeepLabel" xml:space="preserve">
+    <value>保留：</value>
+  </data>
+  <data name="LastBackupLabel" xml:space="preserve">
+    <value>上次备份：</value>
+  </data>
+  <data name="BackUpNow" xml:space="preserve">
+    <value>立即备份</value>
+  </data>
+  <data name="PostgresqlBackups" xml:space="preserve">
+    <value>PostgreSQL 备份</value>
+  </data>
+  <data name="AServersDatabaseCannotNote" xml:space="preserve">
+    <value>服务器上的数据库无法通过复制文件来备份——文件归服务器所有，甚至可能不在这台机器上——因此 EVE Console 会运行 pg_dump，向服务器请求一份一致的快照。转储以 custom 格式写入，该格式经过压缩，可以用 pg_restore 整体恢复或逐表恢复。</value>
+  </data>
+  <data name="CheckForPgDump" xml:space="preserve">
+    <value>检查 pg_dump</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>从备份恢复</value>
+  </data>
+  <data name="ReplacesEverythingInTheNote" xml:space="preserve">
+    <value>用 .dump 文件的内容替换数据库中的所有内容。该备份之后轮询到的数据都会丢失。EVE Console 会重启来执行此操作，因为恢复会删除所有表，而应用占用这些表时无法进行。</value>
+  </data>
+  <data name="RestoreFromDump" xml:space="preserve">
+    <value>从转储恢复…</value>
+  </data>
+  <data name="StorageBreakdown" xml:space="preserve">
+    <value>存储明细</value>
+  </data>
+  <data name="WhatTheDatabaseIsNote" xml:space="preserve">
+    <value>数据库的空间都用在了哪里，表数据和索引分开列出。在 SQLite 上，数字根据数据测量并按文件已使用的页数换算，大表采用抽样而不是完整读取。在 PostgreSQL 上，大小是精确的，行数则是服务器的估算值。无论哪种情况，这都是用来决定哪些数据值得保留，而不是逐字节的审计。</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="ColTable" xml:space="preserve">
+    <value>表</value>
+  </data>
+  <data name="ColRows" xml:space="preserve">
+    <value>行数</value>
+  </data>
+  <data name="ColData" xml:space="preserve">
+    <value>数据</value>
+  </data>
+  <data name="ColIndexes" xml:space="preserve">
+    <value>索引</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="ColShare" xml:space="preserve">
+    <value>占比</value>
+  </data>
+  <data name="ColMethod" xml:space="preserve">
+    <value>统计方式</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>错误日志</value>
+  </data>
+  <data name="TheErrorLogIsNote" xml:space="preserve">
+    <value>错误日志是用来查看最近几个小时的，而不是用来保存历史的。放任不管的话，它会增长到十万条以上，到那时就没有人会去看了。它在一个实测 4 GB 的数据库中占比不到 1%，所以此项是为了让日志保持可读，而不是为了回收空间。</value>
+  </data>
+  <data name="PurgeEntriesOlderThan" xml:space="preserve">
+    <value>清除旧条目，仅保留最近</value>
+  </data>
+  <data name="PurgeNow" xml:space="preserve">
+    <value>立即清除</value>
+  </data>
+  <data name="KillMails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="PurgeKillMailsOlderThan" xml:space="preserve">
+    <value>清除旧击毁报告，仅保留最近</value>
+  </data>
+  <data name="PriceHistory" xml:space="preserve">
+    <value>价格历史</value>
+  </data>
+  <data name="RemovesDailyMarketHistoryNote" xml:space="preserve">
+    <value>删除按星域和类型记录的每日市场历史，以及由其生成的按类型价格快照——两者一起删除，因为只保留其一会让历史数据自相矛盾。约占一个实测 4 GB 文件的 15%。ESI 提供大约一年的历史，因此近期的数据可以重新获取。</value>
+  </data>
+  <data name="PurgePriceHistoryOlderThan" xml:space="preserve">
+    <value>清除旧价格历史，仅保留最近</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>游戏日志</value>
+  </data>
+  <data name="RemovesParsedGameLogNote" xml:space="preserve">
+    <value>删除已解析的游戏日志事件——从你的 EVE 客户端日志中读取的刷怪、采矿和工业活动。磁盘上的 .log 文件不受影响，因此只要这些文件还在，这里清除的内容都可以通过“游戏日志 → 导入历史日志”重新导入。</value>
+  </data>
+  <data name="PurgeGameLogEventsOlder" xml:space="preserve">
+    <value>清除旧游戏日志事件，仅保留最近</value>
+  </data>
+  <data name="ChatMessages" xml:space="preserve">
+    <value>聊天消息</value>
+  </data>
+  <data name="RemovesStoredChatMessagesNote" xml:space="preserve">
+    <value>删除已存储的聊天消息。已从中解析出的情报报告会保留——早于现存最早消息的报告会被视为无法重建的历史，启动时的清理和“聊天日志 → 解析已存储的历史”都会这样处理，后者只重建它确实能够重现的时间段。磁盘上的 .log 文件不受影响，因此只要它们还在，就可以重新导入。</value>
+  </data>
+  <data name="PurgeChatMessagesOlderThan" xml:space="preserve">
+    <value>清除旧聊天消息，仅保留最近</value>
+  </data>
+  <data name="AgentActivity" xml:space="preserve">
+    <value>助手活动</value>
+  </data>
+  <data name="RemovesTheRecordOfNote" xml:space="preserve">
+    <value>删除过去与 AI 助手交互的记录——每次请求了什么、使用了哪些工具，以及消耗了多少 token。用量和费用数据正是根据这些记录计算的，因此清除它会缩短这些数据能覆盖的历史。这是应用自身的诊断记录，而不是你的数据，因此与上面各部分不同，此项默认开启；取消勾选即可保留全部记录。</value>
+  </data>
+  <data name="PurgeAgentActivityOlderThan" xml:space="preserve">
+    <value>清除旧助手活动，仅保留最近</value>
+  </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>自动检查更新</value>
+  </data>
+  <data name="ChecksOnStartupAndNote" xml:space="preserve">
+    <value>启动时检查一次，之后每小时检查一次。发现新版本时会提示你；如果你拒绝，在下一个版本推出之前不会再询问。</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>当前版本</value>
+  </data>
+  <data name="LatestVersion" xml:space="preserve">
+    <value>最新版本</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>立即检查</value>
+  </data>
+  <data name="FmtLastAuthenticated" xml:space="preserve">
+    <value>上次认证：{0:g}</value>
+  </data>
+  <data name="FmtLastFullDay" xml:space="preserve">
+    <value>最近完整的一天：{0}</value>
+  </data>
+  <data name="FmtCoveredFrom" xml:space="preserve">
+    <value>覆盖起始：{0}</value>
+  </data>
+  <data name="FmtTheModelRunsOn" xml:space="preserve">
+    <value>模型运行于：{0}</value>
+  </data>
+  <data name="DbConfigProfile" xml:space="preserve">
+    <value>正在以“{0}”配置文件运行：设置、数据库和缓存都位于 {1}，常规安装中的这些内容不受影响。</value>
+  </data>
+  <data name="DbConfigPortable" xml:space="preserve">
+    <value>正在从 {0}（程序旁边）读取设置，而不是从应用数据文件夹读取。</value>
+  </data>
+  <data name="DbConfigAppData" xml:space="preserve">
+    <value>设置保存在应用数据文件夹中。在程序旁边放一个 config.json，即可让此安装使用自己的设置。</value>
+  </data>
+  <data name="DbCopyOfferEmpty" xml:space="preserve">
+    <value>服务器数据库为空。现在可以将 SQLite 数据库中的所有内容复制进去。SQLite 文件只会被读取，绝不会被修改，因此如果出了问题，可以重新执行此操作。</value>
+  </data>
+  <data name="DbCopyOfferErase" xml:space="preserve">
+    <value>服务器数据库中已有 {0:N0} 个表。可以将它们清除，并替换为 SQLite 数据库的内容。SQLite 文件仍然只会被读取，不会被修改——但服务器上现有的所有内容都将被销毁。</value>
+  </data>
+  <data name="BackupHourly" xml:space="preserve">
+    <value>每小时</value>
+  </data>
+  <data name="BackupDaily" xml:space="preserve">
+    <value>每日</value>
+  </data>
+  <data name="BackupWeekly" xml:space="preserve">
+    <value>每周</value>
+  </data>
+  <data name="BackupMonthly" xml:space="preserve">
+    <value>每月</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>从未</value>
+  </data>
+  <data name="DbTestConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="DbTestFieldsRequired" xml:space="preserve">
+    <value>主机、数据库和用户名均为必填项。</value>
+  </data>
+  <data name="DbTestNoPublicSchema" xml:space="preserve">
+    <value>已连接到 PostgreSQL {0}，但该数据库没有“public”模式，因此无处创建表。请运行：CREATE SCHEMA public;</value>
+  </data>
+  <data name="DbTestCannotCreate" xml:space="preserve">
+    <value>已连接到 PostgreSQL {0}，但 {1} 无法在 public 模式中创建表。最简单的解决办法是让此用户成为该数据库的所有者：ALTER DATABASE "{2}" OWNER TO "{3}";</value>
+  </data>
+  <data name="DbTestEmptyCanCopy" xml:space="preserve">
+    <value>已连接到 PostgreSQL {0}。该数据库为空，因此可以把这里已有的数据复制进去。</value>
+  </data>
+  <data name="DbTestEmptyBuiltOnStart" xml:space="preserve">
+    <value>已连接到 PostgreSQL {0}。该数据库为空，将在下次启动时构建。</value>
+  </data>
+  <data name="DbTestHasTables" xml:space="preserve">
+    <value>已连接到 PostgreSQL {0}。该数据库中已有 {1:N0} 个表，因此将按原样使用——除非你先将其清除，否则不会向其中复制任何内容。</value>
+  </data>
+  <data name="DbTestFailed" xml:space="preserve">
+    <value>无法连接：{0}</value>
+  </data>
+  <data name="DbSaveRestartTitle" xml:space="preserve">
+    <value>保存并重启</value>
+  </data>
+  <data name="DbSaveRestartConfirm" xml:space="preserve">
+    <value>要从现在起使用 {0} 吗？
+
+EVE Console 会立即重启，因为数据库只在启动时打开一次，之后不会再重新打开。
+
+此操作不会复制或删除任何内容。它只改变应用打开哪个数据库，并且可以用同样的方式改回来。</value>
+  </data>
+  <data name="DbServiceTitle" xml:space="preserve">
+    <value>后台服务</value>
+  </data>
+  <data name="DbServiceStopWindows" xml:space="preserve">
+    <value>已安装后台服务，而它无法在 SQLite 上运行。
+
+在保存更改之前，它会被停止，并设置为不随 Windows 启动。Windows 会请求管理员批准。
+
+如果让它继续运行，它会一直在你即将不再使用的 PostgreSQL 数据库上工作。
+
+是否继续？</value>
+  </data>
+  <data name="DbServiceStopLinux" xml:space="preserve">
+    <value>已安装后台服务，而它无法在 SQLite 上运行。
+
+在保存更改之前，它会被停止，并设置为登录时不启动。该单元会被保留，因此切换回 PostgreSQL 时只需重新启动它。
+
+如果让它继续运行，它会一直在你即将不再使用的 PostgreSQL 数据库上工作。
+
+是否继续？</value>
+  </data>
+  <data name="DbSaveCancelled" xml:space="preserve">
+    <value>已取消——未做任何更改。</value>
+  </data>
+  <data name="DbServiceStopFailed" xml:space="preserve">
+    <value>无法停止后台服务——{0}。未做任何更改。</value>
+  </data>
+  <data name="DbServiceUpdating" xml:space="preserve">
+    <value>正在更新后台服务…</value>
+  </data>
+  <data name="DbServiceRepointFailed" xml:space="preserve">
+    <value>已保存，但后台服务仍指向旧数据库——{0}。不会重启。请在“轮询”选项卡中更新它，然后再重启。</value>
+  </data>
+  <data name="DbSetRestarting" xml:space="preserve">
+    <value>已设为 {0}。正在重启…</value>
+  </data>
+  <data name="DbEraseTitle" xml:space="preserve">
+    <value>清除服务器数据库并复制</value>
+  </data>
+  <data name="DbEraseConfirm" xml:space="preserve">
+    <value>这将永久销毁 {1} 上数据库“{0}”中的所有内容。
+
+“public”模式中的全部 {2:N0} 个表及其中的每一行都将被删除。此操作无法撤销。只有事先做好的备份才能找回这些数据，而 EVE Console 不会替你备份。
+
+随后会将这里的数据（{3}）复制进去。该 SQLite 文件只会被读取，不会被修改。
+
+继续之前，请务必确认这是正确的数据库。</value>
+  </data>
+  <data name="DbCopyTitle" xml:space="preserve">
+    <value>复制数据到 PostgreSQL</value>
+  </data>
+  <data name="DbCopyConfirm" xml:space="preserve">
+    <value>要将 {0} 中的所有内容复制到 {2} 上的 {1} 吗？
+
+SQLite 数据库只会被读取，不会被修改。大型数据库需要一些时间，在完成之前请不要使用本应用。</value>
+  </data>
+  <data name="DbCopyPreparing" xml:space="preserve">
+    <value>正在准备目标数据库…</value>
+  </data>
+  <data name="DbCopyRows" xml:space="preserve">
+    <value>{0:N0} / {1:N0} 行</value>
+  </data>
+  <data name="DbCopyTable" xml:space="preserve">
+    <value>第 {0:N0} 个表（共 {1:N0} 个）——{2}：{3:N0} 行</value>
+  </data>
+  <data name="DbCopyErasing" xml:space="preserve">
+    <value>正在清除目标数据库…</value>
+  </data>
+  <data name="DbCopyErased" xml:space="preserve">
+    <value>已清除 {0:N0} 个表。正在构建表结构…</value>
+  </data>
+  <data name="DbCopyDone" xml:space="preserve">
+    <value>已复制 {0:N0} 行。SQLite 数据库未被修改。保存此设置并重启即可使用 PostgreSQL。</value>
+  </data>
+  <data name="DbCopyCancelled" xml:space="preserve">
+    <value>复制在完成 {0:N0} 行后已取消。服务器数据库中只有部分副本——请再次测试连接，以清除它并重新开始。</value>
+  </data>
+  <data name="DbCopyFailed" xml:space="preserve">
+    <value>复制失败：{0}</value>
+  </data>
+  <data name="DbStopCopyTitle" xml:space="preserve">
+    <value>停止复制</value>
+  </data>
+  <data name="DbStopCopyConfirm" xml:space="preserve">
+    <value>要停止复制吗？目前已复制 {0:N0} 行，但这些都不会保留：部分副本无法续传，因此重新开始意味着要清除服务器数据库，并从头复制所有内容。
+
+在此问题显示期间，复制仍在进行。</value>
+  </data>
+  <data name="DbRestorePick" xml:space="preserve">
+    <value>选择要恢复的 PostgreSQL 转储文件</value>
+  </data>
+  <data name="DbRestoreTitle" xml:space="preserve">
+    <value>要用此备份替换 {0} 吗？</value>
+  </data>
+  <data name="DbRestoreConfirm" xml:space="preserve">
+    <value>{1} 上 {0} 中的现有内容将全部被删除，并替换为 {2}。
+
+此操作无法撤销，并且自该备份创建以来轮询到的所有数据都会丢失。EVE Console 将重启以执行此操作。</value>
+  </data>
+  <data name="DbRestoreScheduled" xml:space="preserve">
+    <value>已安排恢复：{0}。正在重启…</value>
+  </data>
+  <data name="DbPgDumpLooking" xml:space="preserve">
+    <value>正在查找 pg_dump…</value>
+  </data>
+  <data name="DbPgDumpNoConnection" xml:space="preserve">
+    <value>尚未配置 PostgreSQL 连接。</value>
+  </data>
+  <data name="DbPgDumpCheckFailed" xml:space="preserve">
+    <value>无法检查 pg_dump：{0}</value>
+  </data>
+  <data name="DbBackupRunning" xml:space="preserve">
+    <value>已有备份正在进行——即使关闭“设置”窗口，它也会继续。</value>
+  </data>
+  <data name="DbBackingUp" xml:space="preserve">
+    <value>正在备份…</value>
+  </data>
+  <data name="DbBackupSaved" xml:space="preserve">
+    <value>备份已保存：{0}</value>
+  </data>
+  <data name="DbBackupNoConnection" xml:space="preserve">
+    <value>备份失败——尚未配置 PostgreSQL 连接。</value>
+  </data>
+  <data name="DbBackupNoFile" xml:space="preserve">
+    <value>备份失败——未找到数据库文件。</value>
+  </data>
+  <data name="DbBackupError" xml:space="preserve">
+    <value>备份出错：{0}</value>
+  </data>
+  <data name="DbMovePick" xml:space="preserve">
+    <value>移动或重命名数据库…</value>
+  </data>
+  <data name="DbRenameTitle" xml:space="preserve">
+    <value>重命名数据库</value>
+  </data>
+  <data name="DbMoveTitle" xml:space="preserve">
+    <value>移动数据库</value>
+  </data>
+  <data name="DbRenameTo" xml:space="preserve">
+    <value>将数据库重命名为：
+{0}</value>
+  </data>
+  <data name="DbMoveTo" xml:space="preserve">
+    <value>将数据库移动到：
+{0}</value>
+  </data>
+  <data name="DbMoveRestarts" xml:space="preserve">
+    <value>EVE Console 会重启，并在启动完成之前执行此操作，因为这必须在没有任何程序使用数据库时进行。</value>
+  </data>
+  <data name="DbMoveSpeed" xml:space="preserve">
+    <value>在同一驱动器内，无论数据库多大，此操作都会立即完成。移动到其他驱动器时，会先复制文件，复制成功后再删除原文件；对于大型数据库，这可能需要一些时间。</value>
+  </data>
+  <data name="DbMoveNothingLeft" xml:space="preserve">
+    <value>旧位置不会留下任何内容。</value>
+  </data>
+  <data name="DbRestartingRename" xml:space="preserve">
+    <value>正在重启以重命名数据库…</value>
+  </data>
+  <data name="DbRestartingMove" xml:space="preserve">
+    <value>正在重启以移动数据库…</value>
+  </data>
+  <data name="DbPointPick" xml:space="preserve">
+    <value>选择现有数据库…</value>
+  </data>
+  <data name="DbSwitchTitle" xml:space="preserve">
+    <value>切换数据库</value>
+  </data>
+  <data name="DbSwitchConfirm" xml:space="preserve">
+    <value>将 EVE Console 指向以下位置的现有数据库：
+{0}
+
+应用将重启。</value>
+  </data>
+  <data name="DbDoneRestarting" xml:space="preserve">
+    <value>完成。正在重启…</value>
+  </data>
+  <data name="DbUnknownSize" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="DbShrinkWhy" xml:space="preserve">
+    <value>删除数据并不会让数据库文件变小。SQLite 会保留释放出的页并在以后重复利用，因此文件会一直保持在它曾达到的最大尺寸。压缩会重建文件，并把这些空间归还给磁盘。</value>
+  </data>
+  <data name="DbShrinkSize" xml:space="preserve">
+    <value>数据库当前大小：{0}。</value>
+  </data>
+  <data name="DbShrinkRestarts" xml:space="preserve">
+    <value>EVE Console 会重启，并在启动完成之前压缩数据库，因为重建过程需要独占数据库。对于大型数据库，这可能需要一些时间，完成之前应用将无法使用。</value>
+  </data>
+  <data name="DbShrinkBackup" xml:space="preserve">
+    <value>会先创建一份备份副本，压缩成功后再将其删除。</value>
+  </data>
+  <data name="DbShrinkTitle" xml:space="preserve">
+    <value>压缩数据库</value>
+  </data>
+  <data name="DbRestartingShrink" xml:space="preserve">
+    <value>正在重启以压缩数据库…</value>
+  </data>
+  <data name="DbSizeNotMeasured" xml:space="preserve">
+    <value>尚未测量。</value>
+  </data>
+  <data name="DbSizeSummaryPostgres" xml:space="preserve">
+    <value>数据库共 {0}，分布在 {1:N0} 个表中。大小是精确值，包括索引和 TOAST 存储。行数是服务器自己的估算值，因此自上次 analyze 以来写入量很大的表，行数会显示偏低。</value>
+  </data>
+  <data name="DbSizeSummarySqlite" xml:space="preserve">
+    <value>文件共 {0}，分布在 {1:N0} 个表中。占比按已使用的空间计算。这些数字是测量后按文件大小换算的——适合用来比较各个表，而不是精确的字节数。</value>
+  </data>
+  <data name="DbSizeLoaded" xml:space="preserve">
+    <value>加载于 {0:HH:mm:ss}。</value>
+  </data>
+  <data name="DbSizeFailed" xml:space="preserve">
+    <value>无法测量：{0}</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>未找到文件</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="DbSizeSampled" xml:space="preserve">
+    <value>抽样</value>
+  </data>
+  <data name="DbSizeCounted" xml:space="preserve">
+    <value>精确计数</value>
+  </data>
+  <data name="DbTableTipNoIndexes" xml:space="preserve">
+    <value>{0:N0} 行，无索引。</value>
+  </data>
+  <data name="DbTableTipIndexes" xml:space="preserve">
+    <value>{0:N0} 行，{1} 个索引，占用 {2}。</value>
+  </data>
+  <data name="SvcTitleSystemd" xml:space="preserve">
+    <value>后台服务（systemd）</value>
+  </data>
+  <data name="SvcTitleWindows" xml:space="preserve">
+    <value>后台服务（Windows）</value>
+  </data>
+  <data name="SvcIntroSystemd" xml:space="preserve">
+    <value>在 EVE Console 未打开时运行后台处理——ESI 轮询、定价、合同、警报、计划任务和备份。这项工作始终只由一个客户端执行：如果本应用已打开并已在执行这些工作，该单元会等待，并在你关闭应用时接手。</value>
+  </data>
+  <data name="SvcIntroWindows" xml:space="preserve">
+    <value>在 EVE Console 未打开时运行后台处理——ESI 轮询、定价、合同、警报、计划任务和备份——并随 Windows 自动启动。这项工作始终只由一个客户端执行：如果本应用已打开并已在执行这些工作，该服务会等待，并在你关闭应用时接手。</value>
+  </data>
+  <data name="SvcInstallNoteSystemd" xml:space="preserve">
+    <value>作为 systemd 用户单元安装在 ~/.config/systemd/user 中，因此不需要 root 权限，也不会提示输入密码。它以你的身份在你的登录会话中运行，正因如此，它才能访问你的密钥环以读取已保存的数据库密码——这也是它在你登录时启动、而不是在开机时启动的原因。如果机器需要在无人登录的情况下开机运行，请参阅项目 packaging 目录中的系统单元。</value>
+  </data>
+  <data name="SvcInstallNoteWindows" xml:space="preserve">
+    <value>安装和移除时会请求一次管理员批准；之后的启动和停止则不需要。该服务以 LocalSystem 身份运行，因此会将数据库连接信息的一份副本写入 C:\ProgramData\EveConsole 供其读取——与为你的账户保存的那份不同，这台电脑上运行的任何程序都能解密这份副本。移除服务时会将其删除。</value>
+  </data>
+  <data name="SvcUpdateNoteSystemd" xml:space="preserve">
+    <value>更新会重写该单元，使其运行当前这份程序，然后重启它。</value>
+  </data>
+  <data name="SvcUpdateNoteWindows" xml:space="preserve">
+    <value>更新会同时重写它运行的程序和它连接的数据库，然后重启它。仅在此处更改数据库无法做到这一点——写入服务使用的副本需要管理员批准。</value>
+  </data>
+  <data name="SvcInstallUnit" xml:space="preserve">
+    <value>安装单元</value>
+  </data>
+  <data name="SvcInstallService" xml:space="preserve">
+    <value>安装服务</value>
+  </data>
+  <data name="SvcRemoveUnit" xml:space="preserve">
+    <value>移除单元</value>
+  </data>
+  <data name="SvcRemoveService" xml:space="preserve">
+    <value>移除服务</value>
+  </data>
+  <data name="SvcUpdateUnit" xml:space="preserve">
+    <value>更新单元</value>
+  </data>
+  <data name="SvcUpdateService" xml:space="preserve">
+    <value>更新服务</value>
+  </data>
+  <data name="SvcRunsLabel" xml:space="preserve">
+    <value>运行程序：</value>
+  </data>
+  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
+    <value>显示通知区域图标，并随 Windows 启动</value>
+  </data>
+  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
+    <value>显示通知区域图标，并随桌面会话启动</value>
+  </data>
+  <data name="SvcDatabaseNoteOk" xml:space="preserve">
+    <value>需要 PostgreSQL，此客户端正在使用它——后台工作进程和所有客户端共用同一个服务器。</value>
+  </data>
+  <data name="SvcDatabaseNoteSqlite" xml:space="preserve">
+    <value>不可用：此客户端使用的是 SQLite。数据库文件同一时间只能由一个进程占用，因此后台工作进程会导致本应用根本无法启动。请先在“数据库”选项卡中切换到 PostgreSQL。</value>
+  </data>
+  <data name="SvcUpdateReasonBoth" xml:space="preserve">
+    <value>此服务连接的数据库与此客户端不同，而且运行的是另一份 EVE Console 程序。它正在你看不到的地方执行后台工作。</value>
+  </data>
+  <data name="SvcUpdateReasonDatabase" xml:space="preserve">
+    <value>此服务连接的数据库与此客户端不同。安装它之后，你的数据库设置发生了变化；它仍在旧数据库上工作。</value>
+  </data>
+  <data name="SvcUpdateReasonUnitCopy" xml:space="preserve">
+    <value>此单元启动的是另一份 EVE Console 程序，而不是你现在使用的这份——该文件已被移动、重命名，或被新下载的版本替换。如果那份程序是旧版本，它仍会运行，随后所有客户端针对数据库的版本检查都会失败。</value>
+  </data>
+  <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
+    <value>此服务运行的是另一份 EVE Console 程序，而不是你现在使用的这份。它正在用那份程序的设置执行后台工作。</value>
+  </data>
+  <data name="SvcTrayStartFailed" xml:space="preserve">
+    <value>已设为下次登录时启动，但现在无法启动它——{0}</value>
+  </data>
+  <data name="SvcTrayRunningWindows" xml:space="preserve">
+    <value>正在运行，并将随 Windows 启动。</value>
+  </data>
+  <data name="SvcTrayRunningLinux" xml:space="preserve">
+    <value>正在运行，并将随桌面会话启动。</value>
+  </data>
+  <data name="SvcTrayOffWindows" xml:space="preserve">
+    <value>不会随 Windows 启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
+  </data>
+  <data name="SvcTrayOffLinux" xml:space="preserve">
+    <value>不会随桌面会话启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
+  </data>
+  <data name="SvcTrayChangeFailed" xml:space="preserve">
+    <value>无法更改——{0}</value>
+  </data>
+  <data name="SvcChangingStartup" xml:space="preserve">
+    <value>正在更改启动设置…</value>
+  </data>
+  <data name="SvcChangingStartupApprove" xml:space="preserve">
+    <value>正在更改启动设置——请在 Windows 提示中批准…</value>
+  </data>
+  <data name="SvcChangeStartupFailed" xml:space="preserve">
+    <value>无法更改启动设置——{0}</value>
+  </data>
+  <data name="SvcRepointing" xml:space="preserve">
+    <value>正在重新指向…</value>
+  </data>
+  <data name="SvcRepointingApprove" xml:space="preserve">
+    <value>正在重新指向——请在 Windows 提示中批准…</value>
+  </data>
+  <data name="SvcRepointFailed" xml:space="preserve">
+    <value>重新指向失败——{0}</value>
+  </data>
+  <data name="SvcUnknownPath" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="SvcNotInstalled" xml:space="preserve">
+    <value>未安装</value>
+  </data>
+  <data name="SvcRunning" xml:space="preserve">
+    <value>正在运行</value>
+  </data>
+  <data name="SvcStoppedUntilLogin" xml:space="preserve">
+    <value>已安装，已停止——将在你下次登录时启动</value>
+  </data>
+  <data name="SvcStopped" xml:space="preserve">
+    <value>已安装，已停止</value>
+  </data>
+  <data name="SvcNotConfigured" xml:space="preserve">
+    <value>未配置</value>
+  </data>
+  <data name="SvcStoppedUntilBoot" xml:space="preserve">
+    <value>已安装，已停止——将在下次开机时再次启动</value>
+  </data>
+  <data name="SvcStarting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="SvcStopping" xml:space="preserve">
+    <value>正在停止…</value>
+  </data>
+  <data name="SvcNotInstalledSqlite" xml:space="preserve">
+    <value>未安装——后台服务无法在 SQLite 上运行。</value>
+  </data>
+  <data name="SvcInstalling" xml:space="preserve">
+    <value>正在安装…</value>
+  </data>
+  <data name="SvcInstallingApprove" xml:space="preserve">
+    <value>正在安装——请在 Windows 提示中批准…</value>
+  </data>
+  <data name="SvcInstallFailed" xml:space="preserve">
+    <value>安装失败——{0}</value>
+  </data>
+  <data name="SvcRemoving" xml:space="preserve">
+    <value>正在移除…</value>
+  </data>
+  <data name="SvcRemovingApprove" xml:space="preserve">
+    <value>正在移除——请在 Windows 提示中批准…</value>
+  </data>
+  <data name="SvcRemoveFailed" xml:space="preserve">
+    <value>移除失败——{0}</value>
+  </data>
+  <data name="SvcStartFailed" xml:space="preserve">
+    <value>启动失败——{0}</value>
+  </data>
+  <data name="SvcStopFailed" xml:space="preserve">
+    <value>停止失败——{0}</value>
+  </data>
+  <data name="SvcAccessDenied" xml:space="preserve">
+    <value>Windows 拒绝了操作——此账户未被授予启动或停止它的权限。请移除该服务后重新添加。</value>
+  </data>
+  <data name="StructureCharNone" xml:space="preserve">
+    <value>（不指定——逐个尝试）</value>
+  </data>
+  <data name="ListAskingVoices" xml:space="preserve">
+    <value>正在获取语音列表…</value>
+  </data>
+  <data name="ListAskingModels" xml:space="preserve">
+    <value>正在获取模型列表…</value>
+  </data>
+  <data name="ListNoAnswer" xml:space="preserve">
+    <value>15 秒内没有响应。</value>
+  </data>
+  <data name="ListFailedVoices" xml:space="preserve">
+    <value>无法获取语音列表——{0} {1}</value>
+  </data>
+  <data name="ListFailedModels" xml:space="preserve">
+    <value>无法获取模型列表——{0} {1}</value>
+  </data>
+  <data name="TypeModelNameInstead" xml:space="preserve">
+    <value>请改为直接输入模型名称。</value>
+  </data>
+  <data name="ModelLabelFree" xml:space="preserve">
+    <value>{0}（免费）</value>
+  </data>
+  <data name="ModelLabelPaid" xml:space="preserve">
+    <value>{0}（付费）</value>
+  </data>
+  <data name="ModelServiceLocal" xml:space="preserve">
+    <value>本地服务器——Ollama、LM Studio…（免费）</value>
+  </data>
+  <data name="ModelServiceClaude" xml:space="preserve">
+    <value>Claude——Anthropic（付费）</value>
+  </data>
+  <data name="ModelServiceOpenAi" xml:space="preserve">
+    <value>OpenAI（付费）</value>
+  </data>
+  <data name="ModelHintServerNames" xml:space="preserve">
+    <value>按服务器使用的名称</value>
+  </data>
+  <data name="ModelHintServiceNames" xml:space="preserve">
+    <value>按服务使用的名称</value>
+  </data>
+  <data name="ModelHelpLocal" xml:space="preserve">
+    <value>服务器必须提供 OpenAI 的 /v1/chat/completions 接口，Ollama、LM Studio 和大多数本地运行工具都支持。</value>
+  </data>
+  <data name="ModelNeedClaudeKey" xml:space="preserve">
+    <value>在上方输入 Claude 密钥，即可从 Anthropic 的模型中选择。</value>
+  </data>
+  <data name="ModelNeedOpenAiKey" xml:space="preserve">
+    <value>在上方输入 OpenAI 密钥，即可从 OpenAI 的模型中选择。</value>
+  </data>
+  <data name="ModelNeedServerAddress" xml:space="preserve">
+    <value>输入服务器地址，即可从其模型中选择。</value>
+  </data>
+  <data name="ModelListFoundClaude" xml:space="preserve">
+    <value>你的密钥可使用 {0} 个模型，最新的排在最前。</value>
+  </data>
+  <data name="ModelListFoundOpenAi" xml:space="preserve">
+    <value>{0} 个可用于对话的模型，最新的排在最前。</value>
+  </data>
+  <data name="ModelListFoundLocal" xml:space="preserve">
+    <value>服务器上有 {0} 个模型。</value>
+  </data>
+  <data name="ModelListEmptyLocal" xml:space="preserve">
+    <value>服务器没有列出任何模型：请先拉取一个，例如使用“ollama pull”。</value>
+  </data>
+  <data name="ModelListEmpty" xml:space="preserve">
+    <value>该服务没有为此密钥列出任何模型。</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>正在测试…</value>
+  </data>
+  <data name="VoiceListFoundOpenAiModels" xml:space="preserve">
+    <value>你的密钥可使用 {0} 个语音模型，最新的排在最前。</value>
+  </data>
+  <data name="VoiceListEmptyOpenAiModels" xml:space="preserve">
+    <value>OpenAI 没有为此密钥列出任何语音模型。</value>
+  </data>
+  <data name="VoiceListOpenAiVoices" xml:space="preserve">
+    <value>OpenAI 在文档中为此模型列出的语音——它不提供可查询的列表。</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyVoices" xml:space="preserve">
+    <value>在上方输入 ElevenLabs 密钥，即可从其语音中选择。</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsVoices" xml:space="preserve">
+    <value>你的账户中有 {0} 个语音。</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsVoices" xml:space="preserve">
+    <value>你的账户中还没有语音：请从 ElevenLabs 的 Voice Library 添加一个。</value>
+  </data>
+  <data name="TypeVoiceIdInstead" xml:space="preserve">
+    <value>请改为直接输入语音 ID。</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyModels" xml:space="preserve">
+    <value>在上方输入 ElevenLabs 密钥，即可从其模型中选择。</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsModels" xml:space="preserve">
+    <value>{0} 个可以发声的模型。</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsModels" xml:space="preserve">
+    <value>ElevenLabs 没有为此密钥列出任何语音模型。</value>
+  </data>
+  <data name="TypeModelIdInstead" xml:space="preserve">
+    <value>请改为直接输入模型 ID。</value>
+  </data>
+  <data name="VoiceNameHint" xml:space="preserve">
+    <value>{0}（助手的名字）</value>
+  </data>
+  <data name="VoiceEngineKokoro" xml:space="preserve">
+    <value>Kokoro（本机运行，免费）</value>
+  </data>
+  <data name="VoiceEngineLocalServer" xml:space="preserve">
+    <value>本地服务器——Chatterbox、Orpheus、Kokoro-FastAPI…（免费）</value>
+  </data>
+  <data name="VoiceEnginePiper" xml:space="preserve">
+    <value>Piper（本机运行，免费）</value>
+  </data>
+  <data name="VoiceEngineElevenLabs" xml:space="preserve">
+    <value>ElevenLabs（付费）</value>
+  </data>
+  <data name="VoiceDownloading" xml:space="preserve">
+    <value>正在下载语音“{0}”…</value>
+  </data>
+  <data name="VoiceModelReady" xml:space="preserve">
+    <value>语音模型已就绪。</value>
+  </data>
+  <data name="DownloadFailed" xml:space="preserve">
+    <value>下载失败：{0}</value>
+  </data>
+  <data name="VoiceNeedOpenAiKey" xml:space="preserve">
+    <value>在上方输入 OpenAI 密钥，即可从 OpenAI 的语音模型中选择。</value>
+  </data>
+  <data name="AgentHelpUserName" xml:space="preserve">
+    <value>{0} 对你的称呼。默认：{1}。填入你主号的名字，助手就会用它称呼你。</value>
+  </data>
+  <data name="AgentHelpUserGuidance" xml:space="preserve">
+    <value>每条消息都会附带发给 {0}，并声明优先于其标准指引——你的话是什么意思、某些人是谁、你希望助手如何表现。每行一条指令。你也可以直接告诉助手：“我说‘家’的时候，指的是 Jita 4-4”——助手会自己把它记录到这里。</value>
+  </data>
+  <data name="AgentHelpAgentName" xml:space="preserve">
+    <value>显示在面板标题中、助手提到自己时使用的名字。默认：{0}。</value>
+  </data>
+  <data name="AgentHeaderTitle" xml:space="preserve">
+    <value>{0} 助手</value>
+  </data>
+  <data name="AgentEnableCheckbox" xml:space="preserve">
+    <value>启用 {0} AI 助手</value>
+  </data>
+  <data name="AgentHelpEnable" xml:space="preserve">
+    <value>启用后，可从标题栏打开 {0} 面板。需要在下方设置一个模型——填写它的密钥，或它的服务器地址。</value>
+  </data>
+  <data name="AgentHelpHistory" xml:space="preserve">
+    <value>历史记录会保存到磁盘，并在应用启动时重新加载。可使用 {0} 面板中的 ⌫ 按钮清除。</value>
+  </data>
+  <data name="AgentHelpSummarization" xml:space="preserve">
+    <value>当估算的对话长度超过此值时，{0} 会在后台悄悄地把较早的消息压缩成摘要——通常是在你阅读其上一条回复的时候。较低的值可以降低每条消息的 API 费用，但会丢失较早的上下文。默认：20,000（以 Sonnet 计，在此长度下每条消息约 $0.06）。</value>
+  </data>
+  <data name="AgentHelpTtsVolume" xml:space="preserve">
+    <value>{0} 面板打开时，可直接在面板中调整音量和静音。</value>
+  </data>
+  <data name="AgentHelpMic" xml:space="preserve">
+    <value>配置后，{0} 面板中会出现一个麦克风按钮。按住即可录音，松开即转写。</value>
+  </data>
+  <data name="AgentHelpPtt" xml:space="preserve">
+    <value>按住此键录音——即使游戏窗口处于焦点也有效。F13-F20 很少被游戏占用，推荐用作按键通话键。无论此项如何设置，{0} 面板中的麦克风按钮始终可用。</value>
+  </data>
+  <data name="VerbosityConcise" xml:space="preserve">
+    <value>简洁</value>
+  </data>
+  <data name="VerbosityBalanced" xml:space="preserve">
+    <value>均衡</value>
+  </data>
+  <data name="VerbosityDetailed" xml:space="preserve">
+    <value>详细</value>
+  </data>
+  <data name="RoleNone" xml:space="preserve">
+    <value>无——该职能直接失败</value>
+  </data>
+  <data name="RoleSameAsConversation" xml:space="preserve">
+    <value>与对话相同</value>
+  </data>
+  <data name="RoleFirstModel" xml:space="preserve">
+    <value>第一个模型</value>
+  </data>
+  <data name="RoleSummaryOne" xml:space="preserve">
+    <value>{0} 包揽一切：对话、应用的工具以及所有关于你的数据的问题，并使用完整的提示词。</value>
+  </data>
+  <data name="RoleSummarySplit" xml:space="preserve">
+    <value>{0} 与你对话并操作应用，使用约一半大小的提示词，且无法访问你的数据。每条消息发送前，会先让它用一个词判断该消息是否需要你的数据；如果需要，就改由 {1} 借助数据库和 ESI 来回答。如果有数据问题漏判，对话模型会自行把它转交出去。在消息开头加上 /data 或 /chat，可以无视判断，强制发往其中一方。</value>
+  </data>
+  <data name="AgentTestChooseModel" xml:space="preserve">
+    <value>请先选择一个模型。</value>
+  </data>
+  <data name="AgentTestNeedClaudeKey" xml:space="preserve">
+    <value>需要在上方填写 Claude 密钥。</value>
+  </data>
+  <data name="AgentTestNeedOpenAiKey" xml:space="preserve">
+    <value>需要在上方填写 OpenAI 密钥。</value>
+  </data>
+  <data name="AgentTestNeedAddress" xml:space="preserve">
+    <value>需要填写服务器地址。</value>
+  </data>
+  <data name="AgentTestNoAnswer" xml:space="preserve">
+    <value>它返回了空的回答。</value>
+  </data>
+  <data name="AgentTestAnswered" xml:space="preserve">
+    <value>用时 {0:0.0} 秒，回答：“{1}”</value>
+  </data>
+  <data name="AgentTestTimedOut" xml:space="preserve">
+    <value>90 秒内没有回答。</value>
+  </data>
+  <data name="CacheTtl5Minutes" xml:space="preserve">
+    <value>5 分钟（默认）</value>
+  </data>
+  <data name="CacheTtl1Hour" xml:space="preserve">
+    <value>1 小时</value>
+  </data>
+  <data name="SpeechInputNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="SpeechInputOpenAiWhisper" xml:space="preserve">
+    <value>OpenAI Whisper</value>
+  </data>
+  <data name="SpeechInputLocalWhisper" xml:space="preserve">
+    <value>本地 Whisper</value>
+  </data>
+  <data name="TranscriptionNeedOpenAiKey" xml:space="preserve">
+    <value>在上方输入 OpenAI 密钥，即可从 OpenAI 的转写模型中选择。</value>
+  </data>
+  <data name="MicSystemDefault" xml:space="preserve">
+    <value>系统默认</value>
+  </data>
+  <data name="TranscriptionListFound" xml:space="preserve">
+    <value>你的密钥可使用 {0} 个转写模型，最新的排在最前。</value>
+  </data>
+  <data name="TranscriptionListEmpty" xml:space="preserve">
+    <value>OpenAI 没有为此密钥列出任何转写模型。</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>已保存。</value>
+  </data>
+  <data name="AgentSpeechUnavailable" xml:space="preserve">
+    <value>语音功能不可用。</value>
+  </data>
+  <data name="VoiceTestSentence" xml:space="preserve">
+    <value>{0} 语音测试。你的 AI 助手已准备就绪，克隆飞行员。</value>
+  </data>
+  <data name="KokoroDownloading" xml:space="preserve">
+    <value>正在下载/加载模型（首次运行约 320 MB）…</value>
+  </data>
+  <data name="KokoroReady" xml:space="preserve">
+    <value>Kokoro 模型已就绪。</value>
+  </data>
+  <data name="KokoroLoadFailed" xml:space="preserve">
+    <value>加载失败：{0}</value>
+  </data>
+  <data name="WhisperDownloading" xml:space="preserve">
+    <value>正在下载 {0}…</value>
+  </data>
+  <data name="WhisperDownloaded" xml:space="preserve">
+    <value>已下载 {0:F1} MB…</value>
+  </data>
+  <data name="WhisperModelReady" xml:space="preserve">
+    <value>模型“{0}”已就绪。</value>
+  </data>
+  <data name="MethodRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="MethodPlayerStructure" xml:space="preserve">
+    <value>玩家建筑</value>
+  </data>
+  <data name="MarketRecalculating" xml:space="preserve">
+    <value>正在重新计算…</value>
+  </data>
+  <data name="MarketAllStations" xml:space="preserve">
+    <value>（所有空间站）</value>
+  </data>
+  <data name="MarketLocationFallback" xml:space="preserve">
+    <value>位置 {0}</value>
+  </data>
+  <data name="MarketNewSourceName" xml:space="preserve">
+    <value>新市场</value>
+  </data>
+  <data name="MarketSourceAdded" xml:space="preserve">
+    <value>已添加新来源——请填写详细信息并点击“保存”。</value>
+  </data>
+  <data name="MarketSourceSaved" xml:space="preserve">
+    <value>已保存“{0}”。</value>
+  </data>
+  <data name="MarketSourceRemoved" xml:space="preserve">
+    <value>已移除来源。</value>
+  </data>
+  <data name="MarketRefreshingAll" xml:space="preserve">
+    <value>正在刷新所有来源…</value>
+  </data>
+  <data name="MarketRefreshedAll" xml:space="preserve">
+    <value>所有来源已刷新。</value>
+  </data>
+  <data name="MarketRefreshing" xml:space="preserve">
+    <value>正在刷新 {0}…</value>
+  </data>
+  <data name="MarketRefreshComplete" xml:space="preserve">
+    <value>刷新完成——{0}——{1}</value>
+  </data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>刷新失败：{0}</value>
+  </data>
+  <data name="MarketInvalidId" xml:space="preserve">
+    <value>无效的 ID</value>
+  </data>
+  <data name="MarketResolving" xml:space="preserve">
+    <value>正在解析…</value>
+  </data>
+  <data name="MarketSelectAuthChar" xml:space="preserve">
+    <value>请选择一个授权角色以查询建筑</value>
+  </data>
+  <data name="MarketStructureNotFound" xml:space="preserve">
+    <value>未找到建筑（请检查授权）</value>
+  </data>
+  <data name="MarketStationNotFound" xml:space="preserve">
+    <value>未找到空间站</value>
+  </data>
+  <data name="MarketSearchNeedsChar" xml:space="preserve">
+    <value>请添加一个授权角色后再搜索</value>
+  </data>
+  <data name="MarketSearching" xml:space="preserve">
+    <value>正在搜索…</value>
+  </data>
+  <data name="MarketResultStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="MarketResultStructure" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="MarketStructureFallback" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="MarketNoResults" xml:space="preserve">
+    <value>未找到结果</value>
+  </data>
+  <data name="MarketResultCount" xml:space="preserve">
+    <value>{0} 个结果</value>
+  </data>
+  <data name="MarketLocationApplied" xml:space="preserve">
+    <value>已应用位置——点击“保存”后才会保留。</value>
+  </data>
+  <data name="SdeNotLoaded" xml:space="preserve">
+    <value>SDE 未加载</value>
+  </data>
+  <data name="SdeChecking" xml:space="preserve">
+    <value>正在检查…</value>
+  </data>
+  <data name="SdeNotImportedShort" xml:space="preserve">
+    <value>SDE 未导入</value>
+  </data>
+  <data name="SdeHoboNotImported" xml:space="preserve">
+    <value>未导入</value>
+  </data>
+  <data name="SdeCheckError" xml:space="preserve">
+    <value>错误：{0}</value>
+  </data>
+  <data name="SdeUnavailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="SdeHoboRevision" xml:space="preserve">
+    <value>修订版 {0:N0}</value>
+  </data>
+  <data name="SdeNotImported" xml:space="preserve">
+    <value>未导入</value>
+  </data>
+  <data name="SdeHoboImported" xml:space="preserve">
+    <value>修订版 {0:N0}，导入于 {1:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="SdeHoboImportedNoRevision" xml:space="preserve">
+    <value>上次导入于 {0:yyyy-MM-dd HH:mm}（未记录修订版）</value>
+  </data>
+  <data name="SdeStarting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="SdeImportComplete" xml:space="preserve">
+    <value>SDE 导入完成。</value>
+  </data>
+  <data name="SdeImportCompleteWarnings" xml:space="preserve">
+    <value>SDE 导入完成——有 {0} 个表值得查看，请参阅“错误日志”。</value>
+  </data>
+  <data name="SdeImportNamesByLanguage" xml:space="preserve">
+    <value>已存储游戏其他语言的名称：{0}。</value>
+  </data>
+  <data name="SdeUpdateRequired" xml:space="preserve">
+    <value>⚠ 需要更新应用——{0}</value>
+  </data>
+  <data name="SdeImportRolledBack" xml:space="preserve">
+    <value>⚠ 导入已回滚——{0}</value>
+  </data>
+  <data name="SdeImportError" xml:space="preserve">
+    <value>错误：{0}——已保留你之前的 SDE 数据。</value>
+  </data>
+  <data name="HoboImportComplete" xml:space="preserve">
+    <value>Hoboleaks 导入完成。</value>
+  </data>
+  <data name="HoboImportCompleteWarnings" xml:space="preserve">
+    <value>Hoboleaks 导入完成——有 {0} 个表值得查看，请参阅“错误日志”。</value>
+  </data>
+  <data name="HoboImportError" xml:space="preserve">
+    <value>错误：{0}——已保留你之前的 Hoboleaks 数据。</value>
+  </data>
+  <data name="SdeBuild" xml:space="preserve">
+    <value>版本 {0}（{1:yyyy-MM-dd}）</value>
+  </data>
+  <data name="SlackConnectedTo" xml:space="preserve">
+    <value>已连接到 {0}。</value>
+  </data>
+  <data name="SlackWaitingForBrowser" xml:space="preserve">
+    <value>正在等待你在浏览器中完成 Slack 授权…（如果已关闭浏览器，请点击“取消”）</value>
+  </data>
+  <data name="SlackConnectedAs" xml:space="preserve">
+    <value>已连接——以 {0} 的身份在 {1} 中发布。</value>
+  </data>
+  <data name="SlackFailed" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="SlackConnectionCancelled" xml:space="preserve">
+    <value>已取消连接。</value>
+  </data>
+  <data name="SlackDisconnected" xml:space="preserve">
+    <value>已断开连接。</value>
+  </data>
+  <data name="SlackCheckingToken" xml:space="preserve">
+    <value>正在检查令牌…</value>
+  </data>
+  <data name="SlackTokenCleared" xml:space="preserve">
+    <value>已清除令牌。</value>
+  </data>
+  <data name="SlackWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Webhook 需要一个名称和一个 https:// 网址。</value>
+  </data>
+  <data name="SlackWebhookAdded" xml:space="preserve">
+    <value>已添加“{0}”。</value>
+  </data>
+  <data name="SlackAreaCorpTop10" xml:space="preserve">
+    <value>军团前十</value>
+  </data>
+  <data name="SlackAreaMonthlySummary" xml:space="preserve">
+    <value>月度摘要</value>
+  </data>
+  <data name="SlackWebhookInUse" xml:space="preserve">
+    <value>“{0}”仍用于 {1}。请先把它们改为发布到其他地方。</value>
+  </data>
+  <data name="SlackWebhookRemoved" xml:space="preserve">
+    <value>已移除“{0}”。</value>
+  </data>
+  <data name="SlackWebhookLabel" xml:space="preserve">
+    <value>Webhook：{0}</value>
+  </data>
+  <data name="SlackEnterTokenFirst" xml:space="preserve">
+    <value>请先输入令牌。</value>
+  </data>
+  <data name="SlackChannelsFailed" xml:space="preserve">
+    <value>无法加载频道：{0}</value>
+  </data>
+  <data name="SlackChannelsAvailable" xml:space="preserve">
+    <value>有 {0:N0} 个频道可用。</value>
+  </data>
+  <data name="ChatIntelParsed" xml:space="preserve">
+    <value>已从存储的历史中解析出 {0:N0} 条目击报告。</value>
+  </data>
+  <data name="ChatIntelFailed" xml:space="preserve">
+    <value>情报解析失败——{0}</value>
+  </data>
+  <data name="ChatIntelHelp" xml:space="preserve">
+    <value>勾选频道中的消息会被解析为目击报告：星系、报告的数量，以及提到的飞行员。“clr”会清除该星系中现有的报告。目击报告用于星图上的情报叠加层。</value>
+  </data>
+  <data name="ChatNoChannelsSelected" xml:space="preserve">
+    <value>未选择频道——不会存储任何内容。</value>
+  </data>
+  <data name="ChatChannelsSelected" xml:space="preserve">
+    <value>已选择 {0:N0} / {1:N0} 个频道。</value>
+  </data>
+  <data name="ChatImportAllFiles" xml:space="preserve">
+    <value>将处理所选频道的全部 {0:N0} 个文件。</value>
+  </data>
+  <data name="ChatImportFilesSince" xml:space="preserve">
+    <value>将处理最近 {1:N0} 天内的 {0:N0} 个文件。</value>
+  </data>
+  <data name="LogsCountFailed" xml:space="preserve">
+    <value>无法统计文件——{0}</value>
+  </data>
+  <data name="ChatNoFolder" xml:space="preserve">
+    <value>未找到聊天日志文件夹——请在下方添加一个。</value>
+  </data>
+  <data name="LogsFolderUnreachable" xml:space="preserve">
+    <value>✗ 无法访问——{0}</value>
+  </data>
+  <data name="GameLogImportAllFiles" xml:space="preserve">
+    <value>将处理全部 {0:N0} 个日志文件。</value>
+  </data>
+  <data name="GameLogImportFilesSince" xml:space="preserve">
+    <value>将处理最近 {1:N0} 天内修改过的 {0:N0} 个日志文件。</value>
+  </data>
+  <data name="GameLogNoFolder" xml:space="preserve">
+    <value>未找到游戏日志文件夹——请在下方添加一个。</value>
+  </data>
+  <data name="TimerMinimum" xml:space="preserve">
+    <value>（最小：{0} {1}）</value>
+  </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="TimerForceStarted" xml:space="preserve">
+    <value>已启动</value>
+  </data>
+  <data name="TimerForceDue" xml:space="preserve">
+    <value>将在下一个轮询周期运行</value>
+  </data>
+  <data name="TimerMarketRefresh" xml:space="preserve">
+    <value>市场价格刷新</value>
+  </data>
+  <data name="TimerPriceHistoryCheck" xml:space="preserve">
+    <value>价格历史检查</value>
+  </data>
+  <data name="TimerPublicContracts" xml:space="preserve">
+    <value>公开合同（所有星域）</value>
+  </data>
+  <data name="TimerContractItems" xml:space="preserve">
+    <value>合同物品拉取</value>
+  </data>
+  <data name="TimerLpStoreOffers" xml:space="preserve">
+    <value>LP 商店兑换项（所有 NPC 军团）</value>
+  </data>
+  <data name="TimerContractPricing" xml:space="preserve">
+    <value>合同定价重建</value>
+  </data>
+  <data name="MapStatsBackfilling" xml:space="preserve">
+    <value>正在从 EVE Ref 存档回填…</value>
+  </data>
+  <data name="MapStatsHistoryComplete" xml:space="preserve">
+    <value>历史已完整——正在保持当前小时的数据为最新</value>
+  </data>
+  <data name="MapStatsWaiting" xml:space="preserve">
+    <value>等待开始</value>
+  </data>
+  <data name="MapStatsNothingStored" xml:space="preserve">
+    <value>尚未存储任何数据。</value>
+  </data>
+  <data name="MapStatsCoverageRow" xml:space="preserve">
+    <value>{0,-24} {1,6:N0} 个时段   {2,4:N0} 天   {3} → {4}</value>
+  </data>
+  <data name="Top10TypeCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Top10TypeCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="Top10AddError" xml:space="preserve">
+    <value>添加出错：{0}</value>
+  </data>
+  <data name="Top10RemoveError" xml:space="preserve">
+    <value>移除出错：{0}</value>
+  </data>
+  <data name="Top10SaveError" xml:space="preserve">
+    <value>保存出错：{0}</value>
+  </data>
+  <data name="Top10TitlesSaved" xml:space="preserve">
+    <value>标题已保存。</value>
+  </data>
+  <data name="Top10PickName" xml:space="preserve">
+    <value>请先从列表中选择一个名称。</value>
+  </data>
+  <data name="Top10AlreadyExcluded" xml:space="preserve">
+    <value>{0} 已在排除名单中。</value>
+  </data>
+  <data name="Top10Excluded" xml:space="preserve">
+    <value>已将 {0} 加入排除名单。</value>
+  </data>
+  <data name="Top10Unexcluded" xml:space="preserve">
+    <value>已将 {0} 从排除名单中移除。</value>
+  </data>
+  <data name="RetentionLastPurged" xml:space="preserve">
+    <value>上次清除于 {0:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="RetentionNotRunYet" xml:space="preserve">
+    <value>尚未运行。</value>
+  </data>
+  <data name="RetentionPurging" xml:space="preserve">
+    <value>正在清除…</value>
+  </data>
+  <data name="RetentionNothingOlder" xml:space="preserve">
+    <value>没有早于 {0:N0} 天的数据。</value>
+  </data>
+  <data name="RetentionPurgeFailed" xml:space="preserve">
+    <value>清除失败：{0}</value>
+  </data>
+  <data name="RetentionRemovedErrorLog" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 条记录。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionRemovedKillmails" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 份击毁报告。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>正在清除…已删除 {0:N0} / {1:N0} 份击毁报告</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>此处设置 EVE Console 将可以舍弃的数据保留多久。默认只清除 AI 助手的活动记录，其他规则在你开启之前都处于关闭状态；已启用的规则每天运行一次。清除会删除数据行，但 SQLite 会重复利用释放出的页，而不是把它们归还给磁盘，因此文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。“数据库 → 存储明细”会显示空间实际用在了哪里。</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>删除击毁报告及其关联的全部内容——攻击者、物品、引用和 zKillboard 标记。击毁报告及其索引是典型数据库中占用空间最大的部分（在一个实测 4 GB 的文件中占 61%），因此真正能回收空间的正是这些规则。之所以分成两条规则，是为了让你自己的历史可以比其他所有人的保留得更久；每条规则在你开启之前都处于关闭状态。⚠️ 已删除的击毁报告在本地将不复存在；要找回它们，只能重新从 ESI 或 zKillboard 获取，而 ESI 只提供近期的击毁报告。</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>角色 / 军团</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>你的角色以及你添加的每个军团（不只是标记为个人军团的那些）的击毁和损失。只要其中任何一方是受害者或攻击者之一，该击毁就归入此规则。</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>其他所有人的击毁——例如 zKillboard 数据流带来的击毁、你只是旁观的战斗。在一个实测的数据库中，它们占全部击毁的 98%，因此能回收空间的正是这条规则。</value>
+  </data>
+  <data name="RetentionRemovedPriceHistory" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 行数据。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionRemovedGameLog" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 个事件。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionRemovedChat" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 条消息。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionRemovedAgent" xml:space="preserve">
+    <value>已删除早于 {1:N0} 天的 {0:N0} 轮交互。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="ZkbNeverFull" xml:space="preserve">
+    <value>尚无</value>
+  </data>
+  <data name="ScopesTitleCorporation" xml:space="preserve">
+    <value>添加军团——选择权限范围</value>
+  </data>
+  <data name="ScopesTitleCharacter" xml:space="preserve">
+    <value>添加角色——选择权限范围</value>
+  </data>
+  <data name="ConfirmUpdateTitle" xml:space="preserve">
+    <value>确认更新</value>
+  </data>
+  <data name="FileTypeSqliteDatabase" xml:space="preserve">
+    <value>SQLite 数据库</value>
+  </data>
+  <data name="DbRestartFailed" xml:space="preserve">
+    <value>无法重启（{0}）。请关闭 EVE Console 并重新打开以完成操作。</value>
+  </data>
+  <data name="DbRelocateNotFound" xml:space="preserve">
+    <value>找不到数据库文件。</value>
+  </data>
+  <data name="DbRelocateTargetExists" xml:space="preserve">
+    <value>目标位置已存在文件：{0}。数据库仍留在原处。</value>
+  </data>
+  <data name="DbPreparingDatabase" xml:space="preserve">
+    <value>正在准备数据库…</value>
+  </data>
+  <data name="DbRelocateMoving" xml:space="preserve">
+    <value>正在移动数据库…</value>
+  </data>
+  <data name="DbVerifying" xml:space="preserve">
+    <value>正在验证…</value>
+  </data>
+  <data name="DbRelocateVerifyFailed" xml:space="preserve">
+    <value>移动后的数据库未通过验证（{0}），已放回 {1}。</value>
+  </data>
+  <data name="DbRelocateUpdatingConfig" xml:space="preserve">
+    <value>正在更新配置…</value>
+  </data>
+  <data name="DbRelocateDone" xml:space="preserve">
+    <value>数据库已移动。</value>
+  </data>
+  <data name="DbRelocateMovedTo" xml:space="preserve">
+    <value>数据库已移动到 {0}。</value>
+  </data>
+  <data name="DbRelocateFailed" xml:space="preserve">
+    <value>无法移动数据库——它仍留在 {0}。（{1}）</value>
+  </data>
+  <data name="DbVerifyNoTables" xml:space="preserve">
+    <value>其中没有任何表</value>
+  </data>
+  <data name="DbShrinkFileNotFound" xml:space="preserve">
+    <value>未找到数据库文件。</value>
+  </data>
+  <data name="DbShrinkBackingUp" xml:space="preserve">
+    <value>正在备份数据库…</value>
+  </data>
+  <data name="DbShrinkShrinking" xml:space="preserve">
+    <value>正在压缩数据库——这可能需要一段时间…</value>
+  </data>
+  <data name="DbShrinkVerifyFailed" xml:space="preserve">
+    <value>压缩已完成，但数据库未通过验证：{0}。事先创建的副本位于 {1}。</value>
+  </data>
+  <data name="DbShrinkDone" xml:space="preserve">
+    <value>数据库已压缩。</value>
+  </data>
+  <data name="DbShrinkResult" xml:space="preserve">
+    <value>数据库已从 {0} 压缩到 {1}——释放了 {2}。</value>
+  </data>
+  <data name="DbShrinkFailed" xml:space="preserve">
+    <value>压缩失败——数据库保持不变。事先创建的副本位于 {0}。（{1}）</value>
+  </data>
+  <data name="DbVerifyNoResult" xml:space="preserve">
+    <value>无结果</value>
+  </data>
+  <data name="DbShrinkVerifyNoTables" xml:space="preserve">
+    <value>重建后的文件中没有任何表</value>
+  </data>
+  <data name="PgRestoreSkippedMissing" xml:space="preserve">
+    <value>已跳过恢复：{0} 已不存在。</value>
+  </data>
+  <data name="PgRestoreSkippedNoConnection" xml:space="preserve">
+    <value>已跳过恢复：尚未配置 PostgreSQL 连接。</value>
+  </data>
+  <data name="PgRestoreLooking" xml:space="preserve">
+    <value>正在查找 pg_restore…</value>
+  </data>
+  <data name="PgRestoreFailed" xml:space="preserve">
+    <value>恢复失败：{0}</value>
+  </data>
+  <data name="PgRestoreNotBesideDump" xml:space="preserve">
+    <value>恢复失败：位于 {0} 的 pg_dump 旁边没有找到 pg_restore。</value>
+  </data>
+  <data name="PgRestoreRestoring" xml:space="preserve">
+    <value>正在将 {0} 恢复到 {1}…</value>
+  </data>
+  <data name="PgCouldNotStart" xml:space="preserve">
+    <value>无法启动 {0}。</value>
+  </data>
+  <data name="PgRestoreFinished" xml:space="preserve">
+    <value>恢复完成。</value>
+  </data>
+  <data name="PgExitCode" xml:space="preserve">
+    <value>退出代码 {0}</value>
+  </data>
+  <data name="PgRestoreFailedEmpty" xml:space="preserve">
+    <value>恢复失败，数据库现在为空：{0}</value>
+  </data>
+  <data name="PgDumpNotFound" xml:space="preserve">
+    <value>未找到 pg_dump。它包含在 PostgreSQL 客户端工具中——Debian 或 Ubuntu 上是 postgresql-client，Arch 上是 postgresql，Windows 上则是安装程序中的命令行工具。</value>
+  </data>
+  <data name="PgDumpServerUnreachable" xml:space="preserve">
+    <value>在 {1} 找到了 pg_dump {0}，但无法连接到服务器以检查其版本：{2}</value>
+  </data>
+  <data name="PgDumpTooOld" xml:space="preserve">
+    <value>位于 {1} 的 pg_dump {0} 比服务器（{2}）旧，会拒绝转储它。请安装 {2} 或更新版本的客户端工具。</value>
+  </data>
+  <data name="PgDumpFound" xml:space="preserve">
+    <value>pg_dump {0}，位于 {1}；服务器版本 {2}。</value>
+  </data>
+  <data name="PgDumpRunning" xml:space="preserve">
+    <value>正在运行 pg_dump…</value>
+  </data>
+  <data name="PgDumpFailed" xml:space="preserve">
+    <value>pg_dump 失败：{0}</value>
+  </data>
+  <data name="DbSecretDpapi" xml:space="preserve">
+    <value>密码已由 Windows 针对你在这台电脑上的账户加密。把 config.json 复制到其他地方，不会带上可用的密码。</value>
+  </data>
+  <data name="DbSecretLibSecret" xml:space="preserve">
+    <value>密码保存在你的桌面密钥环中；config.json 中只包含对它的引用。</value>
+  </data>
+  <data name="DbSecretNone" xml:space="preserve">
+    <value>未找到密钥环，因此密码按输入的原样保存在 config.json 中。安装 libsecret-tools（secret-tool）后，即可改为保存在密钥环中。</value>
+  </data>
+  <data name="DbSizeMeasuringTable" xml:space="preserve">
+    <value>正在测量 {0}（第 {1} 个，共 {2} 个）…</value>
+  </data>
+  <data name="DbSizeReadingTables" xml:space="preserve">
+    <value>正在读取各表大小…</value>
+  </data>
+  <data name="DbSizeReadTables" xml:space="preserve">
+    <value>已读取 {0:N0} 个表。</value>
+  </data>
+  <data name="PgRestoreDone" xml:space="preserve">
+    <value>已恢复 {0}——{1:N0} 个表。</value>
+  </data>
+  <data name="PgRestoreDoneWithErrors" xml:space="preserve">
+    <value>已恢复 {0}——{1:N0} 个表，DROP 期间出现 {2:N0} 个可忽略的错误。</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="SvcWindowsOnly" xml:space="preserve">
+    <value>仅限 Windows。</value>
+  </data>
+  <data name="SvcNoAppPath" xml:space="preserve">
+    <value>无法确定本应用的路径。</value>
+  </data>
+  <data name="SvcElevatedNotStarted" xml:space="preserve">
+    <value>以管理员权限运行的步骤未能启动。</value>
+  </data>
+  <data name="SvcElevatedFailed" xml:space="preserve">
+    <value>以管理员权限运行的步骤失败（退出代码 {0}）。请查看错误日志。</value>
+  </data>
+  <data name="SvcDaemonReloadFailed" xml:space="preserve">
+    <value>systemctl daemon-reload 失败：{0}</value>
+  </data>
+  <data name="SvcEnableFailed" xml:space="preserve">
+    <value>systemctl enable 失败：{0}</value>
+  </data>
+  <data name="SvcRepointNotInstalled" xml:space="preserve">
+    <value>未安装。</value>
+  </data>
+  <data name="SvcCouldNotRun" xml:space="preserve">
+    <value>无法运行 {0}</value>
+  </data>
+  <data name="MarketStatusOk" xml:space="preserve">
+    <value>正常</value>
+  </data>
+  <data name="MarketStatusOkOrders" xml:space="preserve">
+    <value>正常（已获取 {0:N0} 个订单）</value>
+  </data>
+  <data name="MarketNoSdeTypes" xml:space="preserve">
+    <value>未加载 SDE 类型数据——请先运行 SDE 导入。</value>
+  </data>
+  <data name="MarketEsiError" xml:space="preserve">
+    <value>ESI 错误 {0}：{1}</value>
+  </data>
+  <data name="MarketNoAuthChar" xml:space="preserve">
+    <value>“玩家建筑”来源未设置授权角色。</value>
+  </data>
+  <data name="BuildCostNotCalculated" xml:space="preserve">
+    <value>制造成本：尚未计算</value>
+  </data>
+  <data name="BuildCostFetching" xml:space="preserve">
+    <value>制造成本：正在获取 ESI 数据…</value>
+  </data>
+  <data name="BuildCostCalculating" xml:space="preserve">
+    <value>制造成本：正在计算…</value>
+  </data>
+  <data name="BuildCostError" xml:space="preserve">
+    <value>制造成本：出错——{0}</value>
+  </data>
+  <data name="BuildCostNoDefaultPark" xml:space="preserve">
+    <value>制造成本：未设置默认园区——请在“工业园区”中将一个园区设为默认</value>
+  </data>
+  <data name="BuildCostCalculatingCycle" xml:space="preserve">
+    <value>制造成本：正在计算…（{0} 个物品处于依赖循环中，将最后核算）</value>
+  </data>
+  <data name="BuildCostUpdated" xml:space="preserve">
+    <value>制造成本：上次更新于 {0:t}（{1:N0} 个物品）</value>
+  </data>
+  <data name="GameLogStatusNotStarted" xml:space="preserve">
+    <value>游戏日志：未启动</value>
+  </data>
+  <data name="GameLogStatusStopped" xml:space="preserve">
+    <value>游戏日志：已停止</value>
+  </data>
+  <data name="GameLogStatusError" xml:space="preserve">
+    <value>游戏日志：出错——{0}</value>
+  </data>
+  <data name="GameLogStatusDisabled" xml:space="preserve">
+    <value>游戏日志：已禁用</value>
+  </data>
+  <data name="GameLogStatusNoFolder" xml:space="preserve">
+    <value>游戏日志：未找到文件夹</value>
+  </data>
+  <data name="GameLogStatusUnreachable" xml:space="preserve">
+    <value>游戏日志：正在监视，{0} 个文件夹无法访问</value>
+  </data>
+  <data name="GameLogStatusNew" xml:space="preserve">
+    <value>游戏日志：新增 {0:N0} 条记录</value>
+  </data>
+  <data name="GameLogStatusWatching" xml:space="preserve">
+    <value>游戏日志：正在监视</value>
+  </data>
+  <data name="GameLogScanningFolders" xml:space="preserve">
+    <value>正在扫描文件夹…</value>
+  </data>
+  <data name="LogImportFileProgress" xml:space="preserve">
+    <value>第 {0:N0} 个文件（共 {1:N0} 个）——{2}</value>
+  </data>
+  <data name="GameLogImportCancelled" xml:space="preserve">
+    <value>游戏日志：导入已取消，此前已处理 {0:N0} 个文件、{1:N0} 行</value>
+  </data>
+  <data name="GameLogImportDone" xml:space="preserve">
+    <value>游戏日志：已从 {1:N0} 个文件导入 {0:N0} 行</value>
+  </data>
+  <data name="GameLogImportFailed" xml:space="preserve">
+    <value>游戏日志：导入失败——{0}</value>
+  </data>
+  <data name="ChatLogStatusDisabled" xml:space="preserve">
+    <value>聊天日志：已禁用</value>
+  </data>
+  <data name="ChatLogStatusStopped" xml:space="preserve">
+    <value>聊天日志：已停止</value>
+  </data>
+  <data name="ChatLogStatusError" xml:space="preserve">
+    <value>聊天日志：出错——{0}</value>
+  </data>
+  <data name="ChatLogScanningFolders" xml:space="preserve">
+    <value>正在扫描聊天日志文件夹…</value>
+  </data>
+  <data name="ChatLogChannelsFound" xml:space="preserve">
+    <value>找到 {0:N0} 个频道。</value>
+  </data>
+  <data name="ChatLogDiscoveryFailed" xml:space="preserve">
+    <value>频道发现失败——{0}</value>
+  </data>
+  <data name="ChatLogStatusNoFolder" xml:space="preserve">
+    <value>聊天日志：未找到文件夹</value>
+  </data>
+  <data name="ChatLogStatusNoChannels" xml:space="preserve">
+    <value>聊天日志：未选择频道</value>
+  </data>
+  <data name="ChatLogStatusNew" xml:space="preserve">
+    <value>聊天日志：新增 {0:N0} 条消息</value>
+  </data>
+  <data name="ChatLogStatusWatching" xml:space="preserve">
+    <value>聊天日志：正在监视 {0} 个频道</value>
+  </data>
+  <data name="ChatLogSelectChannelFirst" xml:space="preserve">
+    <value>聊天日志：请先至少选择一个频道</value>
+  </data>
+  <data name="ChatLogImportCancelled" xml:space="preserve">
+    <value>聊天日志：导入已取消，此前已处理 {0:N0} 个文件、{1:N0} 条消息</value>
+  </data>
+  <data name="ChatLogImportDone" xml:space="preserve">
+    <value>聊天日志：已从 {1:N0} 个文件导入 {0:N0} 条消息</value>
+  </data>
+  <data name="ChatLogImportFailed" xml:space="preserve">
+    <value>聊天日志：导入失败——{0}</value>
+  </data>
+  <data name="MapStatsPollIdle" xml:space="preserve">
+    <value>地图统计：空闲</value>
+  </data>
+  <data name="MapStatsPollStored" xml:space="preserve">
+    <value>地图统计：已于 {1:HH:mm} 存储 {0:N0} 行</value>
+  </data>
+  <data name="MapStatsPollUpToDate" xml:space="preserve">
+    <value>地图统计：截至 {0:HH:mm} 已是最新</value>
+  </data>
+  <data name="MapStatsBackfillCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="MapStatsBackfillComplete" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="MapStatsCompacting" xml:space="preserve">
+    <value>正在精简现有地图数据…</value>
+  </data>
+  <data name="MapStatsReclaiming" xml:space="preserve">
+    <value>正在回收磁盘空间…</value>
+  </data>
+  <data name="MapStatsCompactionComplete" xml:space="preserve">
+    <value>精简完成</value>
+  </data>
+  <data name="SdeIncompatible" xml:space="preserve">
+    <value>EVE Console 需要先更新，才能刷新 SDE。压缩包中找不到以下必需文件（CCP 可能调整了 SDE 的格式）：{0}。你现有的 SDE 数据并未被清除。</value>
+  </data>
+  <data name="ImportStagePreparing" xml:space="preserve">
+    <value>准备中</value>
+  </data>
+  <data name="SdeFetchingBuildInfo" xml:space="preserve">
+    <value>正在获取版本信息…</value>
+  </data>
+  <data name="SdeCreatingSchema" xml:space="preserve">
+    <value>正在创建表结构…</value>
+  </data>
+  <data name="SdeReadingRowCounts" xml:space="preserve">
+    <value>正在读取当前行数…</value>
+  </data>
+  <data name="SdeClearing" xml:space="preserve">
+    <value>正在清除现有 SDE 数据…</value>
+  </data>
+  <data name="ImportStageVerifying" xml:space="preserve">
+    <value>验证中</value>
+  </data>
+  <data name="ImportCheckingRowCounts" xml:space="preserve">
+    <value>正在核对行数…</value>
+  </data>
+  <data name="ImportStageDone" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="SdeOptionalMissing" xml:space="preserve">
+    <value>未找到以下可选文件（将跳过）：{0}</value>
+  </data>
+  <data name="SdeAllFilesPresent" xml:space="preserve">
+    <value>SDE 文件齐全。</value>
+  </data>
+  <data name="SdeFlatFormat" xml:space="preserve">
+    <value>检测到新版扁平 SDE 格式</value>
+  </data>
+  <data name="SdeNestedFormat" xml:space="preserve">
+    <value>旧版嵌套 SDE 格式，前缀：“{0}”</value>
+  </data>
+  <data name="ImportStageWarning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="SdeRootNotDetected" xml:space="preserve">
+    <value>无法检测 ZIP 根目录——按扁平格式处理</value>
+  </data>
+  <data name="ImportStageDownloadingSde" xml:space="preserve">
+    <value>下载 SDE</value>
+  </data>
+  <data name="ImportStageCategories" xml:space="preserve">
+    <value>类别</value>
+  </data>
+  <data name="SdeNotFoundInZip" xml:space="preserve">
+    <value>ZIP 中未找到——已跳过</value>
+  </data>
+  <data name="ImportParsing" xml:space="preserve">
+    <value>正在解析…</value>
+  </data>
+  <data name="ImportStageGroups" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="SdeParsedGroups" xml:space="preserve">
+    <value>已从 YAML 解析 {0:N0} 个分组——正在保存…</value>
+  </data>
+  <data name="ImportStageMarketGroups" xml:space="preserve">
+    <value>市场分组</value>
+  </data>
+  <data name="ImportStageTypes" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="SdeParsedTypes" xml:space="preserve">
+    <value>已从 YAML 解析 {0:N0} 个类型——正在保存…</value>
+  </data>
+  <data name="ImportStageNames" xml:space="preserve">
+    <value>译名</value>
+  </data>
+  <data name="ImportStageDescriptions" xml:space="preserve">
+    <value>描述译文</value>
+  </data>
+  <data name="ImportStageAttrCategories" xml:space="preserve">
+    <value>属性类别</value>
+  </data>
+  <data name="SdeNotFoundSkipped" xml:space="preserve">
+    <value>未找到——已跳过</value>
+  </data>
+  <data name="ImportStageDogmaAttributes" xml:space="preserve">
+    <value>Dogma 属性</value>
+  </data>
+  <data name="ImportStageDogmaEffects" xml:space="preserve">
+    <value>Dogma 效果</value>
+  </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Dogma 效果修正</value>
+  </data>
+  <data name="ImportStageTypeDogma" xml:space="preserve">
+    <value>类型 Dogma</value>
+  </data>
+  <data name="ImportStageTypeDogmaAttributes" xml:space="preserve">
+    <value>类型 Dogma 属性</value>
+  </data>
+  <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
+    <value>类型 Dogma 效果</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>铁骑舰载机技能</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>舰队加成</value>
+  </data>
+  <data name="ImportStageBlueprints" xml:space="preserve">
+    <value>蓝图</value>
+  </data>
+  <data name="ImportStageBlueprintMaterials" xml:space="preserve">
+    <value>蓝图材料</value>
+  </data>
+  <data name="ImportStageBlueprintProducts" xml:space="preserve">
+    <value>蓝图产品</value>
+  </data>
+  <data name="ImportStageBlueprintSkills" xml:space="preserve">
+    <value>蓝图技能</value>
+  </data>
+  <data name="ImportStageUniverse" xml:space="preserve">
+    <value>宇宙</value>
+  </data>
+  <data name="ImportStageRegions" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="ImportStageConstellations" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="ImportStageSolarSystems" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ImportStageStargates" xml:space="preserve">
+    <value>星门</value>
+  </data>
+  <data name="SdeParsingBelts" xml:space="preserve">
+    <value>正在解析小行星带…</value>
+  </data>
+  <data name="ImportStageCelestials" xml:space="preserve">
+    <value>天体</value>
+  </data>
+  <data name="ImportStagePlanetResources" xml:space="preserve">
+    <value>行星资源</value>
+  </data>
+  <data name="ImportStageAgents" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="ImportStageAgentTypes" xml:space="preserve">
+    <value>代理人类型</value>
+  </data>
+  <data name="ImportStageCorpDivisions" xml:space="preserve">
+    <value>军团部门</value>
+  </data>
+  <data name="SdeScanningEntries" xml:space="preserve">
+    <value>正在扫描压缩包条目…</value>
+  </data>
+  <data name="SdeFoundUniverse" xml:space="preserve">
+    <value>找到 {0} 个星域、{1} 个星座、{2} 个星系</value>
+  </data>
+  <data name="ImportStageStations" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="SdeFetchingStationNames" xml:space="preserve">
+    <value>正在从 ESI 获取 {0:N0} 个空间站的名称…</value>
+  </data>
+  <data name="ImportStageFactions" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="ImportStageNpcCorporations" xml:space="preserve">
+    <value>NPC 军团</value>
+  </data>
+  <data name="ImportStageIndustryModifiers" xml:space="preserve">
+    <value>工业修正</value>
+  </data>
+  <data name="ImportStageRaces" xml:space="preserve">
+    <value>种族</value>
+  </data>
+  <data name="ImportStageMetaGroups" xml:space="preserve">
+    <value>衍生分组</value>
+  </data>
+  <data name="ImportStageCertificates" xml:space="preserve">
+    <value>证书</value>
+  </data>
+  <data name="ImportStageTypeMaterials" xml:space="preserve">
+    <value>类型材料</value>
+  </data>
+  <data name="ImportStagePiSchematics" xml:space="preserve">
+    <value>行星开发配方</value>
+  </data>
+  <data name="ImportStagePiSchematicTypes" xml:space="preserve">
+    <value>行星开发配方物品</value>
+  </data>
+  <data name="ImportStageDogmaUnits" xml:space="preserve">
+    <value>Dogma 单位</value>
+  </data>
+  <data name="ImportStageIcons" xml:space="preserve">
+    <value>图标</value>
+  </data>
+  <data name="ImportStageGraphics" xml:space="preserve">
+    <value>图形</value>
+  </data>
+  <data name="ImportStageSkins" xml:space="preserve">
+    <value>涂装</value>
+  </data>
+  <data name="ImportStageSkinTypes" xml:space="preserve">
+    <value>涂装适用类型</value>
+  </data>
+  <data name="ImportStageSkinLicenses" xml:space="preserve">
+    <value>涂装许可证</value>
+  </data>
+  <data name="ImportRowsProgress" xml:space="preserve">
+    <value>{0:N0} 行</value>
+  </data>
+  <data name="ImportRowsSaved" xml:space="preserve">
+    <value>已保存 {0:N0} 行</value>
+  </data>
+  <data name="ImportStageStationServices" xml:space="preserve">
+    <value>空间站服务</value>
+  </data>
+  <data name="SdeServicesCount" xml:space="preserve">
+    <value>{0:N0} 项服务</value>
+  </data>
+  <data name="ImportStageStationOperations" xml:space="preserve">
+    <value>空间站运营类型</value>
+  </data>
+  <data name="SdeOperationsCount" xml:space="preserve">
+    <value>{0:N0} 种运营类型</value>
+  </data>
+  <data name="HoboIncompatible" xml:space="preserve">
+    <value>EVE Console 需要先更新，才能刷新 Hoboleaks 数据。Hoboleaks 清单中已不再发布以下文件：{0}。你现有的 Hoboleaks 数据并未被清除。</value>
+  </data>
+  <data name="HoboCreatingSchema" xml:space="preserve">
+    <value>正在创建 Hoboleaks 表结构…</value>
+  </data>
+  <data name="HoboReadingManifest" xml:space="preserve">
+    <value>正在读取 Hoboleaks 清单…</value>
+  </data>
+  <data name="HoboManifestUnreadable" xml:space="preserve">
+    <value>无法读取 Hoboleaks 清单，因此未尝试导入。你现有的 Hoboleaks 数据并未被更改。</value>
+  </data>
+  <data name="ImportStageDownloading" xml:space="preserve">
+    <value>下载中</value>
+  </data>
+  <data name="HoboClearing" xml:space="preserve">
+    <value>正在清除现有 Hoboleaks 数据…</value>
+  </data>
+  <data name="HoboManifestCurrent" xml:space="preserve">
+    <value>清单修订版 {0:N0}，全部 {1} 个文件均为最新。</value>
+  </data>
+  <data name="HoboManifestFlagged" xml:space="preserve">
+    <value>清单修订版 {0:N0}，{1} 个文件被标记——请参阅“错误日志”。</value>
+  </data>
+  <data name="HoboParsedBlueprints" xml:space="preserve">
+    <value>已解析 {0:N0} 个蓝图——正在保存…</value>
+  </data>
+  <data name="ImportStageBlueprintActivities" xml:space="preserve">
+    <value>蓝图活动</value>
+  </data>
+  <data name="ImportStageRepackagedVolumes" xml:space="preserve">
+    <value>打包体积</value>
+  </data>
+  <data name="ImportStageCompressibleTypes" xml:space="preserve">
+    <value>可压缩类型</value>
+  </data>
+  <data name="ImportParsingFile" xml:space="preserve">
+    <value>正在解析 {0}…</value>
+  </data>
+  <data name="ImportParsingFileLarge" xml:space="preserve">
+    <value>正在解析 {0}（大文件）…</value>
+  </data>
+  <data name="SdeFileNotFoundSkipped" xml:space="preserve">
+    <value>未找到 {0}——已跳过</value>
+  </data>
+  <data name="SdeUniverseDataFile" xml:space="preserve">
+    <value>{0}（宇宙数据）</value>
+  </data>
+  <data name="ModelNoneChosen" xml:space="preserve">
+    <value>未选择模型</value>
+  </data>
+  <data name="ModelDescribeLocalOn" xml:space="preserve">
+    <value>本地——{1} 上的 {0}</value>
+  </data>
+  <data name="ModelDescribeLocal" xml:space="preserve">
+    <value>本地——{0}</value>
+  </data>
+  <data name="PiperVoiceKeyNotFound" xml:space="preserve">
+    <value>在 HuggingFace 模型列表中找不到语音“{0}”。</value>
+  </data>
+  <data name="WhisperModelTiny" xml:space="preserve">
+    <value>Tiny（约 75 MB）</value>
+  </data>
+  <data name="WhisperModelBase" xml:space="preserve">
+    <value>Base（约 142 MB）</value>
+  </data>
+  <data name="WhisperModelSmall" xml:space="preserve">
+    <value>Small（约 466 MB）</value>
+  </data>
+  <data name="WhisperModelMedium" xml:space="preserve">
+    <value>Medium（约 1.5 GB）</value>
+  </data>
+  <data name="WhisperNotLoadedYet" xml:space="preserve">
+    <value>尚未加载</value>
+  </data>
+  <data name="PttKeyDisabled" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="VoiceTestMuted" xml:space="preserve">
+    <value>语音已静音——请在助手面板中取消静音，才能听到测试。</value>
+  </data>
+  <data name="VoiceTestStopped" xml:space="preserve">
+    <value>未播放完就被停止了。</value>
+  </data>
+  <data name="VoiceTestSpokeTook" xml:space="preserve">
+    <value>朗读完成。这句话用了 {0:0.0} 秒生成，然后才开始播放——这就是回答第一句话前的等待时间；后面的每一句都会在前一句播放时生成。</value>
+  </data>
+  <data name="VoiceTestSpoke" xml:space="preserve">
+    <value>朗读完成。</value>
+  </data>
+  <data name="SlackNoteToSelf" xml:space="preserve">
+    <value>给自己的备忘</value>
+  </data>
+  <data name="SlackUnknownError" xml:space="preserve">
+    <value>未知错误</value>
+  </data>
+  <data name="AgentModelFailoverDefault" xml:space="preserve">
+    <value>{user}，{purpose}用的主模型现在不可用了，所以我先改用 {fallback}。</value>
+  </data>
+  <data name="AgentModelReturnDefault" xml:space="preserve">
+    <value>{user}，{purpose}用的主模型恢复了，所以我已经换回 {primary}。</value>
+  </data>
+  <data name="AgentVoiceHandoverDefault" xml:space="preserve">
+    <value>抱歉，{previous} 有事先离开了。我是 {current}，接下来由我继续。</value>
+  </data>
+  <data name="AgentVoiceReturnDefault" xml:space="preserve">
+    <value>我是 {current}，我回来了。谢谢你，{previous}。</value>
+  </data>
+  <data name="VoiceNoneChosen" xml:space="preserve">
+    <value>未选择语音</value>
+  </data>
+  <data name="VoiceDescribeLocalServer" xml:space="preserve">
+    <value>本地服务器——{0}</value>
+  </data>
+  <data name="VoiceDescribeLocalServerVoice" xml:space="preserve">
+    <value>本地服务器——{0}（{1}）</value>
+  </data>
+  <data name="ModelNotInListNow" xml:space="preserve">
+    <value>{0}——现已不在列表中</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemaleDefault" xml:space="preserve">
+    <value>{0}（美式女声，默认）</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemale" xml:space="preserve">
+    <value>{0}（美式女声）</value>
+  </data>
+  <data name="KokoroVoiceAmericanMale" xml:space="preserve">
+    <value>{0}（美式男声）</value>
+  </data>
+  <data name="KokoroVoiceBritishFemale" xml:space="preserve">
+    <value>{0}（英式女声）</value>
+  </data>
+  <data name="KokoroVoiceBritishMale" xml:space="preserve">
+    <value>{0}（英式男声）</value>
+  </data>
+  <data name="PiperVoiceLabel" xml:space="preserve">
+    <value>{0}——{1}，{2}</value>
+  </data>
+  <data name="PiperKindUs" xml:space="preserve">
+    <value>美式英语</value>
+  </data>
+  <data name="PiperKindUsMale" xml:space="preserve">
+    <value>美式男声</value>
+  </data>
+  <data name="PiperKindUsFemale" xml:space="preserve">
+    <value>美式女声</value>
+  </data>
+  <data name="PiperKindGbMale" xml:space="preserve">
+    <value>英式男声</value>
+  </data>
+  <data name="PiperKindGbFemale" xml:space="preserve">
+    <value>英式女声</value>
+  </data>
+  <data name="PiperQualityMedium" xml:space="preserve">
+    <value>中等音质</value>
+  </data>
+  <data name="PiperQualityHigh" xml:space="preserve">
+    <value>高音质</value>
+  </data>
+  <data name="PiperQualityMediumCompact" xml:space="preserve">
+    <value>中等音质（精简版）</value>
+  </data>
+  <data name="KokoroVoicesMissing" xml:space="preserve">
+    <value>{0} 中缺少 Kokoro 的语音文件</value>
+  </data>
+  <data name="KokoroCouldNotLoad" xml:space="preserve">
+    <value>Kokoro 语音无法加载：{0}</value>
+  </data>
+  <data name="KokoroStillLoading" xml:space="preserve">
+    <value>Kokoro 语音仍在下载或加载其模型。</value>
+  </data>
+  <data name="PiperNoVlc" xml:space="preserve">
+    <value>音频播放（VLC）不可用。</value>
+  </data>
+  <data name="PiperVoiceNotLoaded" xml:space="preserve">
+    <value>Piper 语音“{0}”尚未下载或无法加载。</value>
+  </data>
+  <data name="PiperNoAudio" xml:space="preserve">
+    <value>Piper 没有生成任何音频。</value>
+  </data>
+  <data name="PiperPlaybackFailed" xml:space="preserve">
+    <value>无法播放音频。</value>
+  </data>
+  <data name="WhisperModelNotDownloaded" xml:space="preserve">
+    <value>本地语音模型“{0}”尚未下载。请在“设置 → AI 助手 → 语音输入”中点击“下载模型”。</value>
+  </data>
+  <data name="ImportStageRestoring" xml:space="preserve">
+    <value>恢复中</value>
+  </data>
+  <data name="ImportCopyingAside" xml:space="preserve">
+    <value>正在备份当前数据… {0}/{1}</value>
+  </data>
+  <data name="ImportPuttingBack" xml:space="preserve">
+    <value>正在恢复之前的数据… {0}/{1}</value>
+  </data>
+  <data name="ImportLostTablesOther" xml:space="preserve">
+    <value>{1} 数据读取无误，但有 {0} 个此前有数据的表变为空——这正是文件格式改变的迹象：{2} 导入已回滚，你现有的 {1} 数据未被更改。</value>
+  </data>
+  <data name="PurposeDataAccess" xml:space="preserve">
+    <value>数据查询</value>
+  </data>
+  <data name="PurposeConversation" xml:space="preserve">
+    <value>我们的对话</value>
+  </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord 集成</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>通过 Webhook 从 EVE Console 向 Discord 频道发布内容——无需机器人，也无需登录。只有在你点击“发布到 Discord”按钮或设置了计划任务后才会发布，而且应用的某个部分只有在下方为其设置了 Webhook 后才会显示该按钮。</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>服务器管理员可在 Discord 的“编辑频道 → 整合 → Webhook”中创建 Webhook，并复制其网址。在此为其命名后，即可在下方和计划任务中选用。</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ Webhook 网址相当于密码：任何拿到它的人都可以向该频道发布内容。EVE Console 绝不会完整显示它，也不会将其写入日志。如果泄露，请在 Discord 中删除该 Webhook，然后在此添加新的。</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>测试</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Webhook 需要一个名称和一个网址。</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>这不是 Discord Webhook 网址。它应以 https://discord.com/api/webhooks/ 开头。</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>这是 Slack Webhook。请改到 Slack 选项卡中添加。</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>（无）</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>正在测试“{0}”…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord 已接受“{0}”的测试消息——请查看该频道。</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>测试“{0}”失败：{1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>来自 EVE Console 的测试消息：此 Webhook 可用。</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>各部分的发布位置</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>选择 EVE Console 各部分要发布到哪个 Webhook。只有设置后，其“发布到 Discord”按钮才会出现。Slack 在其自己的选项卡中设置，其按钮单独显示。</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>尚未为此设置 Discord Webhook。</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>该 Discord Webhook 已从设置中移除。</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>没有可发布的内容。</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>已保存的链接不是 Discord Webhook 网址——请在“设置 → Discord”中粘贴新的网址。</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord 不再接受此 Webhook——它可能已被删除；请在“设置 → Discord”中粘贴新的链接。</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>无法连接到 Discord。</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord 一再要求放慢速度——请一分钟后再试。</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord 拒绝了请求（HTTP {0}）：{1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera 与 Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Thera 和 Turnur 的虫洞连接每五分钟从 EVE-Scout 读取一次，供地图和路线规划器使用；超限风暴每小时读取一次。关闭后会删除已保存的数据：虫洞会在几小时内关闭，风暴会移动，旧列表会误导。</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>从 EVE-Scout 读取 Thera/Turnur 连接和风暴</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} 个连接，读取于 {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout 返回 {0}；在下次读取前保留上一份列表。</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}（此计算机）</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>可选。此情报频道所报告的星域，用逗号分隔。它们决定像“QZ-X”这样的缩写名指哪个星系。留空时，星域会从该频道报告过的星系中学习。</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>已学习：{0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>已学习：暂无</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>不是星域：{0}</value>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>角色进行行星开发。取消勾选后，该角色不会出现在行星开发工具中，不会收到行星开发提醒或工作项，也不会读取其殖民地。</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>行星开发税</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>从行星运出或向行星运入货物时该行星收取的税率，在该行星发生过出口或进口、并从钱包日志中获知其自身税率之前使用。海关办公室位于高安、低安、虫洞和 NPC 00 区；主权 00 区则使用天钩。运入货物的费用是运出的一半。</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>海关办公室税率</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>天钩税率</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>行星开发提醒与工作项</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警、殖民地数据多旧就不再可信，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>采集器即将停止</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>工厂原料即将耗尽</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>小时前预警（精确）</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>小时前预警（预计）</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>殖民地数据过旧阈值</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>一趟原料运送带来</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>天的运转量</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>采集器已停止或即将停止</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满或即将装满（预计）</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>工厂行星的原料已耗尽或即将耗尽（预计）</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>行星开发角色有未使用的殖民地栏位</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>殖民地太久未在游戏中打开，其预计数据已不可信</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久、多旧算过旧，均在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
+  </data>
+</root>

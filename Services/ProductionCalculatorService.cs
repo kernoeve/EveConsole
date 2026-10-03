@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -540,7 +541,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // on the group name alone. See IndyRigMatching.
                 _ when tg.GroupId == 536                                   => "structure_ammo",
                 _ when gc.Name.Contains("Component")                       => "adv_components",
-                _ when gc.CategoryId is 22 or 65                          => "structure_ammo",
+                // Personal deployables take the equipment rig, Upwell structures the structure
+                // one. See IndyRigMatching.
+                _ when gc.CategoryId == 22                                => "modules_equipment",
+                _ when gc.CategoryId == 65                                => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
                 _ when gc.CategoryId == 17 && gc.Name is "Tool" or "Data Interfaces" => "modules_equipment",
                 _ => ""
@@ -578,11 +582,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var finalMeLevels = requests.ToDictionary(r => r.TypeId, r => r.MeLevel);
 
         // Tracks items whose category could not be determined or is not assigned in this park.
-        var unmappedItems = new SortedSet<string>();
+        // Keyed by the sentence with its English name, which sorts and de-duplicates them as the
+        // sentences themselves always were.
+        var unmappedItems = new SortedDictionary<string, PlanItemNote>();
 
         // Blueprint copies the plan could not price, or could only price from an ended contract.
         // Sorted and de-duplicated the same way, since one BPC can be reached many times.
-        var bpcPriceNotes = new SortedSet<string>();
+        var bpcPriceNotes = new SortedDictionary<string, PlanItemNote>();
+
+        static void Note(SortedDictionary<string, PlanItemNote> notes, PlanItemNote note) =>
+            notes.TryAdd(note.Text, note);
 
         // Items currently being expanded — the ancestor chain, not a visited set. See the guard
         // inside ExpandItem for why the distinction matters.
@@ -638,19 +647,23 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // Item-level overrides satisfy the requirement regardless of category status.
             if (!itemOverrides.ContainsKey(typeId))
             {
-                var whereItWent = ctx.DefaultStructure is { } fb
-                    ? $"planned in {fb.DisplayName} with no rig bonus"
-                    : "planned with no structure and no bonuses — set a catch-all facility on this park";
+                // Where the item was planned instead is part of each sentence, so each case is
+                // a whole sentence of its own.
+                var fb = ctx.DefaultStructure;
 
                 if (string.IsNullOrEmpty(catKey))
                 {
-                    var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (unrecognized type — update ItemCategoryKey; {whereItWent})");
+                    var name = typeNames.GetValueOrDefault(typeId, string.Format(IndustryText.TypeIdNumbered, typeId));
+                    Note(unmappedItems, fb is not null
+                        ? new PlanItemNote(IndustryText.WarnUnrecognizedPlannedIn, typeId, name, fb.DisplayName)
+                        : new PlanItemNote(IndustryText.WarnUnrecognizedUnplanned, typeId, name));
                 }
                 else if (!structByCategory.ContainsKey(catKey))
                 {
-                    var name = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
-                    unmappedItems.Add($"{name} (category '{catKey}' not assigned in this park; {whereItWent})");
+                    var name = typeNames.GetValueOrDefault(typeId, string.Format(IndustryText.TypeIdNumbered, typeId));
+                    Note(unmappedItems, fb is not null
+                        ? new PlanItemNote(IndustryText.WarnUnassignedPlannedIn, typeId, name, catKey, fb.DisplayName)
+                        : new PlanItemNote(IndustryText.WarnUnassignedUnplanned, typeId, name, catKey));
                 }
             }
 
@@ -698,7 +711,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         {
                             existingMat.TotalQty = newTotal;
                             existingMat.FormulaDisplay =
-                                $"ceil({mat.Quantity:N0} × {meFactor:F4} × {newRuns:N0} runs) → {newTotal:N0}";
+                                string.Format(IndustryText.FormulaRecalc, mat.Quantity, meFactor, newRuns, newTotal);
                         }
                         if (delta > 0) ExpandItem(mat.MaterialTypeId, delta, false);
                     }
@@ -718,13 +731,15 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 var job  = new PlanJob
                 {
                     OutputTypeId   = typeId,
-                    OutputTypeName = typeNames.GetValueOrDefault(typeId, $"Type {typeId}"),
+                    OutputTypeName = typeNames.GetValueOrDefault(typeId, string.Format(CommonText.TypeNumbered, typeId)),
                     IsReaction     = isReaction,
                     MeLevel        = meLevel,
                     QuantityNeeded = qty,
                     QuantityPerRun = bpProd.Quantity,
                     Runs           = runs,
                     IsFinalProduct = isFinal,
+                    // English, as the park stores it: the Worklist reads the plan. The Jobs tab
+                    // words it through JobTreeNode.StructureDisplayName.
                     StructureName  = structure?.DisplayName ?? "",
                     SystemName     = structure?.SystemName  ?? "",
                     // Only set when the park structure has been linked to a real facility.
@@ -749,14 +764,14 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = mat.MaterialTypeId,
-                        TypeName       = typeNames.GetValueOrDefault(mat.MaterialTypeId, $"Type {mat.MaterialTypeId}"),
+                        TypeName       = typeNames.GetValueOrDefault(mat.MaterialTypeId, string.Format(CommonText.TypeNumbered, mat.MaterialTypeId)),
                         BaseQtyPerRun  = basePerRun,
                         EffQtyPerRun   = (int)Math.Ceiling(perRunAdj),
                         TotalQty       = totalQty,
                         IsBought       = !blueprintByProduct.ContainsKey(mat.MaterialTypeId)
                                           || boughtSet.Contains(mat.MaterialTypeId)
                                           || pinnedBuild.Contains(mat.MaterialTypeId),
-                        FormulaDisplay = $"ceil({basePerRun:N0} × {meFactor:F4} × {runs:N0} runs) = ceil({perRunAdj:N2} × {runs:N0}) → {totalQty:N0}",
+                        FormulaDisplay = string.Format(IndustryText.FormulaMaterial, basePerRun, meFactor, runs, perRunAdj, totalQty),
                     });
                     ExpandItem(mat.MaterialTypeId, totalQty, false);
                 }
@@ -782,23 +797,23 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     // so an unpriced blueprint must not abort it — but zero for a titan BPC is
                     // most of the build missing, and the total would otherwise read as authorita-
                     // tive. Say which figure is soft rather than leaving the user to notice.
-                    var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}");
+                    var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId));
                     if (bpcPerRunPrice <= 0m)
-                        bpcPriceNotes.Add($"{bpcName} — never seen on contract; counted as 0 ISK");
+                        Note(bpcPriceNotes, new PlanItemNote(IndustryText.BpcPriceNeverSeen, bpProd.TypeId, bpcName));
                     else if (ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
-                        bpcPriceNotes.Add(
-                            $"{bpcName} — {bpcPerRunPrice:N0} ISK per run, from a contract that ended "
-                            + (lastSeen is { } ls ? $"{ls.UtcDateTime:yyyy-MM-dd}" : "some time ago")
-                            + "; none listed since");
+                        Note(bpcPriceNotes, lastSeen is { } ls
+                            ? new PlanItemNote(IndustryText.BpcPriceStale, bpProd.TypeId, bpcName, bpcPerRunPrice, ls.UtcDateTime)
+                            : new PlanItemNote(IndustryText.BpcPriceStaleUndated, bpProd.TypeId, bpcName, bpcPerRunPrice));
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
-                        TypeName       = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}") + " (BPC)",
+                        TypeName       = string.Format(IndustryText.BpcTypeName, bpcName),
+                        BlueprintName  = bpcName,
                         BaseQtyPerRun  = 1,
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
                         IsBought       = true,
-                        FormulaDisplay = $"1 BPC per run @ ME{meLevel} contract price",
+                        FormulaDisplay = string.Format(IndustryText.FormulaBpc, meLevel),
                     });
                     ExpandItem(bpProd.TypeId, runs, false);   // also a raw-material line (per-run priced)
                 }
@@ -815,7 +830,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // not a reason to refuse the other several hundred jobs in the plan — and throwing
         // is what left BuildCostService falling back to stale estimates for 446 types.
         // These jobs were planned against the park's catch-all facility with no rig bonus.
-        var planWarnings = unmappedItems.ToList();
+        var planWarnings = unmappedItems.Values.ToList();
 
         // ── Wire parent/child relationships ────────────────────────────────
         foreach (var job in jobPool.Values)
@@ -866,7 +881,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .Select(kvp => new PlanRawMaterial
             {
                 TypeId    = kvp.Key,
-                TypeName  = typeNames.GetValueOrDefault(kvp.Key, $"Type {kvp.Key}"),
+                TypeName  = typeNames.GetValueOrDefault(kvp.Key, string.Format(CommonText.TypeNumbered, kvp.Key)),
                 Quantity  = kvp.Value,
                 UnitPrice = PriceOf(kvp.Key),
                 TotalCost = kvp.Value * PriceOf(kvp.Key),
@@ -936,7 +951,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             return new PlanFinalProduct
             {
                 TypeId            = req.TypeId,
-                TypeName          = typeNames.GetValueOrDefault(req.TypeId, $"Type {req.TypeId}"),
+                TypeName          = typeNames.GetValueOrDefault(req.TypeId, string.Format(CommonText.TypeNumbered, req.TypeId)),
                 QuantityRequested = req.Quantity,
                 QuantityProduced  = produced,
                 MeLevel           = req.MeLevel,
@@ -960,7 +975,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 Quantity   = interm.Leftover,
                 UnitPrice  = interm.MarketUnitPrice, // already set to build cost above
                 TotalValue = interm.LeftoverValue,
-                Source     = "Intermediate",
+                Source     = IndustryText.SourceIntermediate,
             });
         foreach (var fp in finalProducts.Where(f => f.QuantityProduced > f.QuantityRequested))
         {
@@ -973,7 +988,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 Quantity   = overrun,
                 UnitPrice  = uCost,
                 TotalValue = uCost * overrun,
-                Source     = "Final Product",
+                Source     = IndustryText.SourceFinalProduct,
             });
         }
         leftovers = [.. leftovers.OrderByDescending(l => l.TotalValue)];
@@ -1004,7 +1019,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
             Warnings             = planWarnings,
-            PricingWarnings      = bpcPriceNotes.ToList(),
+            PricingWarnings      = bpcPriceNotes.Values.ToList(),
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,
@@ -1101,7 +1116,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         foreach (var m in mats)
         {
             long qty = Math.Max(runs, (long)Math.Ceiling(m.Quantity * meFactor * (double)runs));
-            result[m.MaterialTypeId] = (qty, names.GetValueOrDefault(m.MaterialTypeId, $"Type {m.MaterialTypeId}"));
+            result[m.MaterialTypeId] = (qty, names.GetValueOrDefault(m.MaterialTypeId, string.Format(CommonText.TypeNumbered, m.MaterialTypeId)));
         }
         return result;
     }
@@ -1176,7 +1191,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         return rawPool.ToDictionary(
             kv => kv.Key,
-            kv => (kv.Value, names.GetValueOrDefault(kv.Key, $"Type {kv.Key}")));
+            kv => (kv.Value, names.GetValueOrDefault(kv.Key, string.Format(CommonText.TypeNumbered, kv.Key))));
     }
 
     // ── Stock availability ────────────────────────────────────────────────────

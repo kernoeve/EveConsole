@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>해제</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>확인 — 소리 끄기</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>사운드</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>볼륨</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ 미리 듣기</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>사운드 추가…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>확인하거나 상황이 저절로 끝날 때까지 반복</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>읽을 문구 (선택 사항)</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>비워 두면 검사가 작성한 문구를 읽습니다</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>AI 도우미를 거치지 않고 음성 합성(TTS)으로 즉시 읽습니다 — 설정 → AI 도우미에서 모델이 아니라 음성을 설정해 두어야 하며, AI 도우미를 꺼 두어도 작동합니다. AI 도우미 창에는 애플리케이션 자체의 메시지로 표시됩니다. 자리 표시자: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>AI 도우미에게 줄 추가 지시 (선택 사항)</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>예: 어느 항성계인지 언급하고 짧게 말할 것</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>AI 도우미에게 무엇이 발생했는지 알려 주면 AI 도우미가 직접 문장을 만듭니다. 음성 합성(TTS)이 설정되어 있으면 소리 내어 말하며, AI 도우미가 설정되어 있지 않으면 대신 경보로 기록됩니다.</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>이 검사의 기본 문구 사용</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>제목</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>메시지</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>자리 표시자: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>새 알람</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>이 컴퓨터의 사운드, 대화 상자, AI 도우미 알림에만 적용됩니다. 경보는 어느 경우든 계속 기록되며, 다른 클라이언트에는 영향이 없습니다.</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>초기 개발 단계 — 이 도구는 아직 만들어지는 중이며, 동작, 레이아웃, 저장된 설정이 모두 바뀔 수 있습니다.</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>AI 도우미</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>활성 경보</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>이 알람의 용도는 무엇입니까?</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>활성화</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>활성 시작</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>항상</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>활성 종료</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>이 컴퓨터 시계 기준의 시각입니다 (예: 18:00부터 02:00까지). 비워 두면 항상 활성입니다. 이 시간 밖에서는 알람을 전혀 검사하지 않습니다.</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>조건</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>검사</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>아이템 이름 입력…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>이름을 입력한 뒤 추가…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>발생 후</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>검사 간격 (초)</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>쿨다운 (초)</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>알람은 이전에 알리지 않은 것만 알리므로, 조건이 계속 참이어도 반복되지 않습니다. '계속 유지'는 직접 끌 때까지 활성 상태로 남고, '1회만'은 한 번 발생한 뒤 스스로 꺼집니다. 쿨다운은 여기에 최소 간격을 더합니다.</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>실행</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>동작 추가</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>경과</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>이 단계에는 동작이 없습니다 — 동작을 추가하거나, 이 단계를 선택 해제한 채로 두십시오.</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>알람을 선택하거나 새로 만드십시오.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>사운드 테스트</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>최근 발생 기록 (EVE 시간)</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>새 예약 작업</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>시각은 EVE 시간 기준입니다</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>예약 작업을 선택하거나 새로 만드십시오.</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>이 예약 작업은 무엇을 합니까?</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>작업 유형</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>반복</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>간격</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>요일</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>날짜 (매월)</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>월</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>시각 (HH:MM EVE)</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>그날 앱이 닫혀 있었으면 건너뛰기</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>게시 대상</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Slack 설정에서 정의한 워크스페이스 채널과 웹후크가 한 목록에 표시됩니다.</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>동적 섹션이 비어 있으면 게시하지 않음</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>끄면 데이터와 관계없이 메시지를 게시합니다. 켜면 데이터를 읽는 섹션(텍스트 섹션을 제외한 모든 섹션) 중 적어도 하나에 실제로 내용이 있을 때만 게시합니다.</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>섹션 추가</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>미리 보기</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>게시하지 않고, 게시될 모습 그대로 섹션을 표시합니다.</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>아직 게시할 내용이 없습니다. 섹션 유형을 골라 추가하십시오 — 섹션은 이 순서대로 하나의 메시지로 게시됩니다.</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>게시할 내용. 여기서는 Slack 마크업을 사용할 수 있습니다.</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>포함할 목록</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>ISK 대신 전체 대비 비율만 표시</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>각 목록에는 금액과 비율이 표시됩니다. 선택하면 금액이 빠집니다 — 단, 킬은 값이 아니라 횟수이므로 그대로 표시됩니다.</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>12개월간의 추세를 이미지로 그려 메시지 아래에 업로드합니다.</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>이 섹션은 게시되지 않습니다. 예약 작업의 대상이 웹후크인데, 웹후크로는 이미지를 보낼 수 없습니다 — 위에서 워크스페이스 채널을 선택하지 않으면 예약 작업을 실행할 때 이 섹션을 건너뜁니다.</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>게시물</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>판매 게시 도구에 표시되는 그대로 가격과 수량을 계산합니다. 그 게시 블록들이 순서대로 합쳐져 이 섹션 하나가 됩니다.</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>프로젝트 유형</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>보고 대상</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>'누락'은 활성 프로젝트가 담당하지 않는 모든 항목이며, 앱이 확인하지 못한 항목도 포함됩니다. '부족'은 남은 양이 10% 미만이라 곧 교체가 필요한 항목을 더합니다.</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>섹션 제목</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>제목 없음</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>열 머리글</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>남은 ISK 열</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>마지막 완료 열</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>포함할 프로젝트</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>모두 선택</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>선택 해제</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>정의된 프로젝트마다 한 행입니다. 지역이나 성좌 범위의 프로젝트는 여기에 한 번만 표시되고, 게시할 때 조건에 맞는 항성계마다 한 행으로 펼쳐집니다. 저장할 때 선택되어 있는 것이 게시됩니다 — 나중에 정의한 프로젝트는 저절로 추가되지 않습니다.</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>미리 보기</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>미리 보기를 누르면 게시될 모습 그대로 섹션을 표시합니다.</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>경보</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>제목</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>비워 두면 예약 작업의 이름을 사용합니다.</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>경보에 표시할 내용.</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>알람 자체의 경보와 마찬가지로, 해제할 때까지 개요와 알람 도구에 표시됩니다.</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>변경 사항 취소</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>편집 내용을 저장된 상태로 되돌립니다.</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>화면에 있는 내용을 실제로 실행하며, 예약된 실행으로 간주됩니다.</value>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>이번 달</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>지난달</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>아이템 납품</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>NPC 파괴</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>누락된 프로젝트</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>누락 및 부족 프로젝트</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>모든 프로젝트</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>상위 10 목록</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>코퍼레이션 월간 요약</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>판매 게시</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>상시 프로젝트</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>코퍼레이션 ISK 추세 차트</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>코퍼레이션 활동 추세 차트</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>코퍼레이션 킬 / 손실 차트</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>코퍼레이션 채굴 차트</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>진행 중 — {0:yyyy년 M월} 현재 기준.</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:yyyy년 M월} 현재 기준.</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>프로젝트를 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>이 코퍼레이션에 정의된 아이템 납품 프로젝트가 없습니다.</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>이 코퍼레이션에 정의된 NPC 파괴 프로젝트가 없습니다.</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>실패: {0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>다른 예약 작업으로 이동하고 변경 사항을 버리시겠습니까?</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Slack에 게시</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>경보 발생</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>코퍼레이션 상위 10</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>코퍼레이션 월간 요약</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>판매 게시</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>상시 프로젝트</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>코퍼레이션 ISK 추세 차트</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>코퍼레이션 활동 추세 차트</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>코퍼레이션 킬 / 손실 차트</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>코퍼레이션 채굴 차트</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>일정 간격마다</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>요일 지정</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>매월 한 번</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>매년 한 번</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>월</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>화</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>수</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>목</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>금</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>토</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>1월</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>2월</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>3월</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>4월</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>5월</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>6월</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>7월</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>8월</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>9월</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>10월</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>11월</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>12월</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>마지막 실행 시점부터 잽니다. 앱이 간격보다 오래 닫혀 있었다면, 놓친 주기마다가 아니라 열릴 때 한 번 실행합니다.</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>선택한 요일마다 하루 한 번 실행하는 작업입니다. 앱이 닫혀 있는 동안 지나간 날은 나중에 보충하지 않으므로, 자정 직전보다 자정 직후가 낫습니다.</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>매월 그 날짜와 시각 이후에 한 번 실행합니다. 짧은 달의 마지막 날을 넘는 날짜는 그 달의 마지막 날에 실행되므로, 31일로 지정해도 2월에 실행됩니다.</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>매년 그 날짜와 시각 이후에 한 번 실행합니다. 2월 29일은 그날이 없는 4년 중 3년 동안 28일로 대신합니다.</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>새로고침하고 변경 사항을 버리시겠습니까?</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>(이름 없음)</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>실행한 적 없음</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>마지막 실행 {0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>예약 작업 {0}개.</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>웹후크: {0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>새 예약 작업을 시작하고 변경 사항을 버리시겠습니까?</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>새 예약 작업.</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>이 예약 작업</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>"{0}"에 저장하지 않은 변경 사항이 있습니다.</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>예약 작업의 이름을 입력하십시오.</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>시각은 EVE 시간 기준 HH:mm 형식이어야 합니다.</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>요일을 하나 이상 선택하십시오.</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>아직 채널이나 웹후크가 없습니다 — 설정의 Slack에서 추가하십시오.</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>게시할 곳을 선택하십시오.</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>게시할 내용을 추가하십시오.</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>경보에 표시할 내용을 입력하십시오.</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>섹션 {0} ({1})에는 코퍼레이션이 필요합니다.</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>섹션 {0} ({1})에는 게시물이 필요합니다.</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>섹션 {0} ({1})에는 목록이 하나 이상 필요합니다.</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>섹션 {0} ({1})의 내용이 비어 있습니다.</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>섹션 {0} ({1})에서 프로젝트를 하나 이상 선택해야 합니다.</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>저장했습니다.</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>취소할 변경 사항이 없습니다.</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>변경 사항을 취소했습니다.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>삭제했습니다.</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>표시할 내용이 없습니다: 이 예약 작업에는 블록이 없습니다.</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>렌더링 중…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — 건너뜀: 대상이 웹후크입니다]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — 이미지로 업로드됨]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>(섹션의 렌더링 결과가 비어 있음)</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>렌더링했지만 내용이 있는 동적 섹션이 없습니다 — 이 상태로는 게시되지 않습니다.</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>글자 수: {0:N0}.</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>미리 보기 실패: {0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>실행 중…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>지금 실행</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0}개월 전</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>비활성화됨</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>활성 · {0}회 발생</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>활성</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE 시간</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>현지 시간</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= 현지 시간 {0:M월 d일 (ddd) HH:mm}</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= EVE 시간 {0:M월 d일 (ddd) HH:mm}</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>"{0}"은(는) 앱이 알고 있는 이름이 아닙니다 — 목록에서 고르십시오.</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>지원하지 않는 파일 형식입니다.</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>{0}단계</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>계속 유지</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>1회만</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>알람 {0}개 · 활성 경보 {1}개</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>새 알람</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…여기에 일치한 세부 내용이 표시됩니다</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>이 알람</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>검사에서 문구를 제공합니다.</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>예: "{0}", 그 아래에 일치 항목이 표시됩니다.</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>먼저 검사를 선택하십시오.</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>알람의 이름을 입력하십시오.</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>"{0}"은(는) 아이템이 아닙니다 — 목록에서 고르십시오.</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>{0}에 항목을 하나 이상 추가하십시오.</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>활성 시작에는 18:00 같은 시각이 필요합니다.</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>활성 종료에는 18:00 같은 시각이 필요합니다.</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>알람을 만들었습니다.</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>알람을 저장했습니다.</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>알람을 삭제했습니다.</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>알람의 사운드를 재생했습니다. 다른 동작을 테스트하려면 먼저 저장하십시오.</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>알람 울림 — {0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>확인할 때까지 소리가 반복됩니다.</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>알람 사운드 선택</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>오디오</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>알람</value>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>날짜 / 시각</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>지정한 날짜와 시각에 발생하며, 이후 일정한 간격으로 반복할 수도 있습니다. 미리 알림이나 예정된 일에 사용하십시오. 앱이 닫혀 있는 동안 도래한 발생은 건너뛰지 않고 다음 시작 때 발생합니다.</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>인텔 보고</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>감시 대상 주변에서 누군가 파일럿을 보고하면 발생합니다. 대상은 도킹 해제 중인 내 캐릭터, 위치와 관계없는 내 캐릭터, 또는 항성계 목록이며, 각각 점프 범위를 지정합니다. 설정 → 채팅 로그에서 이미 분석 중인 인텔 채널을 읽습니다.</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>공격자 중에 적 파일럿이 있는 킬도 포함됩니다. 킬은 공격자가 그 항성계에 있었음을 알려 줍니다.</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>함선 도킹 해제</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>내 캐릭터 중 하나가 도킹 해제하면 발생합니다. 선택적으로 지정한 정거장, 구조물, 항성계 또는 지역에서의 도킹 해제만, 지정한 선체나 함급만, 그리고 특정 상태(피팅 여부, 점프 연료가 기준 미만인지 여부, 탄약이 기준 미만인지 여부)일 때만으로 제한할 수 있습니다. 모든 필터는 범위를 좁히므로, 두 알람이 같은 도킹 해제를 두 번 다루지 않고 서로 다른 도킹 해제를 다루도록 설정할 수 있습니다. 도킹 해제는 위치 폴링으로 약 10초 안에 감지되며, 함선에 실린 것은 ESI가 매시간 갱신하는 마지막 자산 스냅샷으로 판단하고, 일치할 때마다 그 스냅샷이 얼마나 오래되었는지 알려 줍니다.</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>장시간 도킹 해제 (깨우기 알림)</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>잠든 사용자를 깨웁니다. 지정한 선체나 함급에 탄 내 캐릭터 중 하나가 도킹 해제한 뒤 지정한 시간(초)이 지나도 같은 항성계에 그대로 있으면 최대 3단계로 발생합니다 — 파일럿이 조는 사이 테더링 중인 프레이터나 점프 프레이터 같은 경우입니다. 또는 점프 도착 기준을 선택하면, 점프 가능한 선체가 점프 드라이브나 브릿지로 도착한 뒤 계속 우주에 있을 때 발생합니다 — 점프 직후의 30초가 그런 경우입니다. 도킹하거나, 항성계를 떠나거나, 로그아웃하면 끝납니다. 대화 상자의 버튼을 누르거나 AI 도우미에게 무엇이든 답하면 한동안 조용해지며, 그 시간이 지나도 함선이 그대로 있으면 단계가 처음부터 다시 시작됩니다. 단계마다 고유한 동작이 있습니다 — 단계의 문구를 말하는 TTS 직접 또는 AI 도우미, 대화 상자, 확인할 때까지 반복되는 사운드. 반복과 쿨다운은 적용되지 않습니다.</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>상점 주문 이벤트</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>EVE 메일 상점 주문에 변화가 생기면 발생합니다: 새 주문 접수(상점, 구매자, 아이템, 가격, 재고가 있는지 또는 제조해야 하는지와 함께), 재고로 새로 처리할 수 있게 되었거나 새로 제조에 들어간 주문, 주문에 대한 계약 발행, 계약 수락(주문 완료), 주문 취소. 원하는 종류를 선택하십시오. 주문 추적에서 직접 추가한 주문은 보고하지 않습니다. 상점이 주문을 등록하거나 갱신하는 즉시 실행됩니다.</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>거래소 / 계약 가격</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>아이템이 지정한 가격 이하로 등록되면 발생합니다 — 거래소, 공개 계약, 또는 둘 다. 설정 → 거래소에서 설정한 거래소와 이미 수집 중인 공개 계약을 읽으므로, 그 범위 안의 것만 봅니다.</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>데이터베이스 쿼리</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>로컬 EVE Console 데이터베이스에 대해 일정 간격으로 SELECT를 실행하고, 반환된 행이 있을 때 또는 행이 없을 때 발생합니다. 목적에 맞는 전용 검사가 없을 때 사용하십시오. SELECT만 허용됩니다.</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>시각</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>발생 시각 (ISO 8601). 오프셋(예: 2026-08-04T18:00:00-05:00)이나 UTC를 뜻하는 끝의 Z를 포함하십시오. 오프셋이 없는 시각은 이 컴퓨터의 현지 시간으로 해석합니다.</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>반복 간격 (초)</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>선택 사항. 첫 발생 후 이 간격으로 반복합니다. 한 번만 울리는 타이머는 비워 두거나 0을 입력하십시오.</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>감시할 항성계입니다 (예: {0}, {1}). 하나씩 추가합니다. 점프 수가 0이면 이 항성계만 감시합니다.</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>점프 수</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>각 캐릭터 또는 항성계에서 게이트 점프 몇 번 범위까지 감시할지 정합니다. 0이면 그 항성계만 감시합니다. 최대 15 — 그 이상은 더 이상 주변이라고 할 수 없습니다.</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>최소 플레이어 수</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>보고된 파일럿이 이 수 이상일 때만 발생합니다. 기본값 1.</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>미확인(NV) 보고 무시</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>NV(no visual, 미확인)로 표시된 보고를 건너뜁니다 — 실제로는 보이지 않는 대상을 누군가 전달하는 경우입니다.</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>도킹 해제 위치</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>선택 사항. 정거장, 구조물, 항성계 또는 지역 이름을 섞어서 입력할 수 있습니다. 이 중 어디에서든 도킹 해제하면 일치하며, 비워 두면 모든 곳이 대상입니다.</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>탑승 함선</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>선택 사항. 선체 이름("{0}"), 함급("{1}", "{2}") 또는 "Pod"를 섞어서 입력할 수 있습니다. 이 중 하나와 일치하면 되며, 비워 두면 모든 함선이 대상입니다.</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>"피팅 없음": 어느 슬롯에도 아무것도 없음. "피팅됨": 무언가 장착되어 있음. 캡슐이나 셔틀은 슬롯이 없어 어느 쪽에도 해당하지 않습니다. ESI가 매시간만 갱신하는 마지막 자산 스냅샷으로 판단하므로, 지금 실제로 실린 것보다 최대 1시간 늦을 수 있습니다.</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>점프 연료</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>점프 가능한 선체만 해당하며, 다른 선체는 어느 쪽에도 해당하지 않습니다. 단위는 선체의 점프 드라이브가 소모하는 동위원소이며, 연료실과 화물실을 합칩니다 — ESI가 매시간만 갱신하는 마지막 자산 스냅샷 기준이므로, 최근 1시간 안에 실은 연료는 아직 집계되지 않을 수 있습니다.</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>탄약</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>장착된 터렛이나 런처마다: 장전할 수 있는 탄약 중 함선에 있는 양(장전된 것과 화물 포함, 호환되는 모든 종류 합계). "다음 값 미만": 부족한 무기가 하나라도 있음. "다음 값 이상": 무기가 장착되어 있고 부족한 무기가 없음. 에너지 터렛은 크리스탈 하나만 있으면 됩니다. 무기가 없는 함선은 어느 쪽에도 해당하지 않습니다. ESI가 매시간만 갱신하는 마지막 자산 스냅샷 기준이므로, 최근 1시간 안에 실은 탄약은 아직 집계되지 않을 수 있습니다.</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>개</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>모두</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>피팅 없음</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>피팅됨</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>다음 값 미만</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>다음 값 이상</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>도킹 해제 대신 점프 도착 기준</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>선택하면: 점프 가능한 선체가 이전 위치에서 스타게이트로 이어지지 않는 항성계에 도착하고(점프 드라이브 또는 브릿지) 계속 우주에 있을 때 시간을 재기 시작합니다. 점프 드라이브가 있는 선체만 감시하며, 탑승 함선 목록이 비어 있으면 그런 선체 전체가 대상입니다. 선택 해제하면: 모든 선체에 대해 도킹 해제 시점부터 시간을 재며, 탑승 함선 목록에 감시할 대상을 지정해야 합니다.</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>선체 이름("{0}")이나 함급("{1}", "{2}", "{3}")을 섞어서 입력할 수 있습니다. 여기에 지정한 것만 감시합니다 — 점프 도착 기준이라면 비워 두어 점프 가능한 모든 선체를 감시할 수 있습니다.</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>{0}단계: 경과</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>첫 번째, 더 부드러운 단계입니다. 건너뛰려면 선택 해제하십시오.</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>건너뛰려면 선택 해제하십시오.</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>최후의 수단입니다 — 확인할 때까지 반복하도록 설정한 사운드 동작과 함께 사용하십시오. 건너뛰려면 선택 해제하십시오.</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>초 (도킹 해제 후)</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>확인 후 조용히 할 시간</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>함선이 도킹 해제 상태로 있는 동안, 답변하거나 대화 상자 버튼을 누른 뒤 이 알람이 조용히 있는 시간입니다 — 타이탄 브릿지를 기다릴 수 있을 만큼 길게 두십시오. 그 후 단계가 처음부터 다시 시작됩니다.</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>새 주문 접수</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>상점, 구매자, 아이템, 가격, 접수 시 상태와 함께 알립니다.</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>재고로 새로 처리 가능</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>처리 과정에서 이제 재고가 확인된 주문입니다 — 계약을 발행하십시오.</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>새로 제조 중</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>이 주문에 산업 작업이 새로 배정되었습니다.</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>계약 발행됨</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>주문 내용을 담아 구매자에게 발행한 계약으로, 수락을 기다리는 중입니다.</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>계약 수락됨 — 주문 완료</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>주문 취소됨</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>구매자의 메일, 거절된 계약, 또는 직접 취소한 경우.</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>상점</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>선택 사항: 이름으로 지정한 이 상점만 해당합니다. 비워 두면 모든 상점이 대상입니다.</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>정확한 아이템 이름 (예: "{0}" 또는 "{1}"). 종류 이름과 정확히 일치해야 하며, 확인되지 않는 이름은 아무것과도 일치하지 않습니다.</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>최대 개당 가격</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>개당 가격이 이 값(ISK) 이하일 때 발생합니다.</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>최소 수량</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>한 매물에 최소 이 수량이 있을 때만 발생합니다. 기본값 1.</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>찾아볼 곳입니다. 기본값은 '둘 다'입니다.</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>거래소</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>선택 사항. 거래소 쪽을 설정된 거래소 하나로 이름을 지정하여 제한합니다 (예: "Jita"). 비워 두면 모두 감시합니다.</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>묶음 계약</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>이 아이템 외의 다른 아이템도 담긴 계약을 포함합니다. 기본값은 꺼짐입니다. 그런 계약의 요청 가격에는 다른 내용물도 포함되므로 계산된 개당 가격이 실제 가격이 아니기 때문입니다.</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>둘 다</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>거래소</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>실행할 SELECT입니다. SELECT(또는 WITH…SELECT)만 허용됩니다. 검사할 때마다 실행되므로 작게 유지하고 LIMIT를 추가하십시오. 안정적인 식별 열을 포함하고 그 이름을 key_column에 지정하십시오.</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>키 열</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>각 행의 안정적이고 고유한 식별자를 담은 열입니다 — Id 같은 열. 같은 행이 두 번 알려지지 않게 하는 것이 이 열입니다. 실행할 때마다 바뀌는 값은 절대 지정하지 마십시오. 그러면 알람이 검사할 때마다 발생합니다. 쿼리에 Id라는 열이 있으면 그 열이 기본값이며, 없으면 행 전체를 키로 사용합니다.</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>라벨 열</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>경보 텍스트로 사용할 열입니다 (선택 사항). 기본값은 행 전체입니다.</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>모드</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>'있음'(기본값)은 반환된 행이 있을 때 발생합니다. '없음'은 쿼리가 아무것도 반환하지 않을 때 발생하고, 행이 다시 나타나면 다시 활성화됩니다 — 예상되던 일이 멈췄는지 감시할 때 사용합니다.</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>있음</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…외 {0}건</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>적 보고</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>적 보고 {0}건</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>{1}에서 적 {0}명이 보고되었습니다.</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>{1}, {2}에서 적 {0}명이 보고되었습니다.</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>바로 이곳</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>점프 {0}회 거리</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>탑승 함선은 {0}입니다.</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0} 외 {1}명.</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>킬에서 확인됨</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>알 수 없는 항성계</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>캡슐</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} 및 {1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} 등</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>그 외 {0}건이 더 있습니다.</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0}, {1} 타고 도킹 해제</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>도킹 해제 {0}건</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0}이(가) {1}에서 {2}을(를) 타고 도킹 해제했습니다.</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0}이(가) {1}에서 {2}을(를) 타고 도킹 해제했습니다 — {3}.</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>피팅 없음</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>연료 없음</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>연료 부족</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>탄약 없음</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>탄약 부족</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>일어나십시오, {0}님</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>{0}의 {1}이(가) {3} 전에 {2}에 도착한 뒤 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '깨어 있습니다'를 누르십시오.</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>{0}의 {1}이(가) {2}에서 도킹 해제한 지 {3}째이며 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '깨어 있습니다'를 누르십시오.</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}님, {1}의 {2}이(가) {4} 전에 {3}에 도착했는데 아직 도킹하지 않았습니다. 괜찮으십니까?</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>일어나십시오, {0}님. {1}의 {2}이(가) 도착 후 {4}째 {3}의 우주 공간에 머물러 있습니다. 지금 도킹하십시오.</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}님! {1}의 {2}이(가) 도착 후 {4}째 {3}에 머물러 있습니다. 당장 도킹하십시오!</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}님, {1}의 {2}이(가) {3}에서 도킹 해제한 지 {4}째입니다. 괜찮으십니까?</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>일어나십시오, {0}님. {1}의 {2}이(가) {4} 전에 {3}에서 도킹 해제했는데 아직 도킹하지 않았습니다. 도킹하시거나 대답해 주십시오.</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}님! {1}의 {2}이(가) {4}째 {3}에서 도킹 해제 상태입니다. 일어나서 당장 도킹하십시오.</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>캡슐</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>캡슐리어</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>상점 주문 이벤트 {0}건</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>새 주문: {0}, 구매자 {1}</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>주문 {0}: 이제 재고로 처리할 수 있음</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>주문 {0}: 이제 제조 중</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>주문 {0} 계약 발행됨</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>주문 {0}: {2:N0}개 중 {1:N0}개 전달됨</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>주문 {0} 완료</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>주문 {0} 취소됨</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>{0}에 새 주문이 들어왔습니다: {1}, 구매자 {2}, {3}. 재고가 있습니다 — 계약을 발행하십시오.</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>{0}에 새 주문이 들어왔습니다: {1}, 구매자 {2}, {3}. 제조 중입니다.</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>{0}에 새 주문이 들어왔습니다: {1}, 구매자 {2}, {3}. 이미 계약이 발행되었습니다.</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>{0}에 새 주문이 들어왔습니다: {1}, 구매자 {2}, {3}. 재고도 없고 제조 중도 아닙니다 — 새로 제조해야 합니다.</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>{1}의 {0} 주문을 이제 재고로 처리할 수 있습니다.</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>{1}의 {0} 주문이 이제 제조 중입니다.</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>{1}의 {0} 주문: 계약이 발행되어 수락을 기다리는 중입니다.</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>{1}의 {0} 주문: {3:N0}개 중 {2:N0}개에 계약이 발행되어 수락을 기다리는 중입니다.</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0}이(가) {1} 중 일부에 대한 계약을 수락했습니다: {3:N0}개 중 {2:N0}개 전달됨.</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0}이(가) {1}에 대한 계약을 수락했습니다. 주문이 완료되었습니다.</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>{1}의 {0} 주문이 취소되었습니다.</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##}십억 ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##}백만 ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##}천 ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0} {1:N0} ISK부터</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} 구매 가능</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>알람 음소거</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>알람 음소거 해제</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>오디오를 사용할 수 없습니다: libvlc를 불러올 수 없습니다. VLC와 플러그인을 설치한 뒤 (Arch와 Fedora에서는 "vlc" 패키지, Debian과 Ubuntu에서는 "vlc" 또는 "libvlc-dev") 다시 시작하십시오. [{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>오디오를 사용할 수 없습니다: {0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>차임 — 부드러움</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>차임 — 3화음</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>핑 — 유리</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>벨 — 황동</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>벨 — 깊은 소리</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>징 — 낮은 소리</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>경보음 — 2회</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>알람 — 긴급</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>경고 — 2음</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>경고 — 클랙슨</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>경고 — 버저</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>경고 — 사이렌</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>경고 — 경적</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>선택한 사운드가 없습니다.</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>사용자 지정 사운드 파일을 찾을 수 없습니다: {0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>기본 제공 사운드가 없습니다: {0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>{0}을(를) {1}에 풀 수 없습니다: {2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC가 {0}을(를) 재생할 수 없습니다. Linux에서는 대개 플러그인 패키지가 없거나 오디오 출력이 없기 때문입니다 (다른 애플리케이션에서 소리가 나는지 확인하십시오).</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>재생 실패: {0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>깨어 있습니다</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>(AI 도우미가 설정되어 있지 않아 경보로 기록했습니다.)</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>{0}시간마다</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>{0}분마다</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>매월 {0}일 {1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>매년 {0} {1}일 {2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>매일</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>요일 없음</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>알 수 없는 작업 유형 "{0}".</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>실패: {0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>게시할 내용 없음: 설정된 섹션이 없습니다.</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>게시할 내용 없음: 섹션의 렌더링 결과가 비어 있습니다.</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>게시할 내용 없음: 내용이 있는 동적 섹션이 없습니다.</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>게시했습니다.</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack이 거부했습니다: {0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>메시지 {1}개 중 {0}개를 게시했지만({2:N0}자) Slack이 다음 메시지를 거부했습니다: {3}.</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>{0:N0}자를 메시지 {1}개로 게시했습니다.</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>{0:N0}자를 게시했습니다.</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>차트 {0}개를 업로드했습니다.</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>차트 {0}개 실패: {1}.</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>차트 섹션 {0}개를 건너뛰었습니다: 웹후크로는 이미지를 보낼 수 없습니다.</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>발생시킬 경보 없음: 경보에 텍스트가 없습니다.</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>예약된 경보</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>경보를 발생시켰습니다.</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>선택한 웹후크가 없습니다.</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>그 웹후크는 삭제되었습니다.</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##}억 ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##}만 ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Slack 또는 Discord에 게시</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>아직 채널이나 웹후크가 없습니다 — 설정의 Slack 또는 Discord에서 추가하십시오.</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>설정에 지정된 Slack 채널과 웹후크, 이어서 Discord 웹후크가 하나의 목록에 표시됩니다.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord가 거부했습니다: {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>메시지 {1}개 중 {0}개를 게시했지만({2:N0}자) Discord가 다음 메시지를 거부했습니다: {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>감시 기준</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>도킹 해제된 캐릭터: 접속 중인 캐릭터가 우주에 있는 곳. 도킹 중인 캐릭터는 감시하지 않습니다. 캐릭터: 접속 중인 동안 도킹 여부와 관계없이 캐릭터가 있는 곳. 항성계: 아래에 나열한 항성계.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>도킹 해제된 캐릭터</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>선택 사항. 주변을 감시할 내 캐릭터입니다. 비워 두면 모든 캐릭터가 대상입니다. 접속 중인 캐릭터만 해당됩니다.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>{0}이(가) 있는 곳</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{1}에게서 점프 {0}회 거리</value>
+  </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>함선을 정지하면 종료</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>체크: 출항 후 함선을 정지하면 그 출항의 알람이 끝납니다. 정지한 함선은 출항 지점에서 떠내려가지 않고, 누군가 정지를 눌렀다는 뜻입니다. 게임 로그에서 읽으므로 해당 클라이언트의 게임 로그 폴더를 읽고 있어야 합니다(설정 → 게임 로그). 그렇지 않으면 단계가 이전처럼 진행됩니다.</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>게임 로그 이벤트</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>캐릭터의 게임 로그에 근처의 무언가 때문에 클로킹이 해제되었거나, 워프 스크램블이나 워프 디스럽션을 당했거나, 공격받고 있다고 기록되면 발동합니다. 원하는 대로 조합해 체크하세요. 스크램블이나 공격은 전투마다 한 번 발동합니다. 간격이 2분 이내인 줄은 같은 전투입니다. 해당 클라이언트의 게임 로그 폴더를 읽고 있어야 합니다(설정 → 게임 로그). 몇 초 안에 감지합니다.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>클로킹 해제</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>스타게이트, 구조물 등 클로킹을 해제시키는 것 근처에서 클로킹이 풀렸습니다.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>워프 스크램블</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>워프 스크램블러나 워프 디스럽터에 걸렸습니다.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>공격받는 중</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>피해를 입고 있습니다.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>플레이어만</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>체크: 스크램블이나 공격은 NPC가 아닌 플레이어에게서 온 것만 셉니다. 그렇지 않으면 래팅하는 내내 울립니다.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>선택 사항. 지켜볼 내 캐릭터입니다. 비워 두면 모든 캐릭터가 대상입니다.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>게임 로그 이벤트: {0}건</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0}의 클로킹이 {1} 근처에서 해제되었습니다.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}이(가) {1}에게 워프 스크램블당했습니다.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0}이(가) {1}에게 공격받고 있습니다.</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>행성 개발을 하는 캐릭터의 콜로니에서 발생합니다: 추출 프로그램이 끝났거나 끝나 갈 때(정확), 저장시설이나 발사시설이 가득 찼을 때, 제조 행성의 투입 자원이 떨어져 갈 때(이 둘은 게임에서 콜로니를 마지막으로 열었던 시점을 기준으로 추정). 각 콜로니의 이벤트는 한 번만 발생하며, 추출기를 다시 가동하거나 콜로니를 다시 열면 새 소식으로 다시 다룹니다.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>감시 대상</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>세 가지 중 어떤 경우에 발생할지 정합니다.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>사전 알림</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>일이 일어나기 이 시간만큼 전에 발생합니다. 0이면 일이 일어날 때 발생합니다.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>세 가지 모두</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>추출기 정지</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>저장고 가득 참</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>투입 자원 고갈</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>주의가 필요한 행성 개발 콜로니 {0}개</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>광년</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>선택 사항. 게이트가 몇 개든 이 광년 안의 모든 성계도 지켜봅니다. 점프 드라이브나 사이노로 닿는 범위입니다. 어느 범위에든 걸린 보고가 있으면 발동합니다. 최대 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{1}에서 {0}광년</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0}광년 거리</value>
+  </data>
+</root>

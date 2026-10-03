@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              x:Class="EveConsole.Views.ErrorLogView"
@@ -23,6 +24,10 @@
       <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
     </Style>
+    <!-- Errors red, warnings amber, notes in the plain text colour: a note is not a fault. -->
+    <Style Selector="TextBlock.error, SelectableTextBlock.error"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="TextBlock.warning, SelectableTextBlock.warning"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="TextBlock.note, SelectableTextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,2*,4,1*">
@@ -31,19 +36,21 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Error Log" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+          <TextBlock Text="{x:Static loc:DataText.ErrorLog}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" />
         </Grid>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Classes="fl" Text="From" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.From}" />
           <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd HH:mm" Width="140" />
-          <TextBlock Classes="fl" Text="Thru" />
-          <TextBox Text="{Binding DateThru}" Watermark="(now)" Width="140" />
-          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Thru}" />
+          <TextBox Text="{Binding DateThru}" Watermark="{x:Static loc:DataText.HintNow}" Width="140" />
+          <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:DataText.Refresh}" FontSize="10" Padding="8 2"
                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   VerticalAlignment="Center" />
+          <CheckBox IsChecked="{Binding ErrorsOnly}" Content="{x:Static loc:DataText.ErrorsOnly}" FontSize="11"
+                    VerticalAlignment="Center" Margin="8 0 0 0" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -54,12 +61,20 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Time"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
-        <DataGridTextColumn Header="Client"  Binding="{Binding Client}"   Width="150" />
-        <DataGridTextColumn Header="Source"  Binding="{Binding Source}"   Width="180" />
-        <DataGridTextColumn Header="Context" Binding="{Binding Context}"  Width="180" />
-        <DataGridTextColumn Header="Message" Binding="{Binding Message}"  Width="*" />
-        <DataGridTextColumn Header="Inner"   Binding="{Binding Inner}"    Width="280" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColTime}"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
+        <DataGridTemplateColumn Header="{x:Static loc:DataText.ColLevel}" SortMemberPath="Severity" Width="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:ErrorLogRowVm">
+              <TextBlock Text="{Binding SeverityText}" VerticalAlignment="Center" Margin="6 0"
+                         Classes.error="{Binding IsError}" Classes.warning="{Binding IsWarning}" Classes.note="{Binding IsNote}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColClient}"  Binding="{Binding Client}"   Width="150" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColSource}"  Binding="{Binding Source}"   Width="180" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColContext}" Binding="{Binding Context}"  Width="180" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColMessage}" Binding="{Binding Message}"  Width="*" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColInner}"   Binding="{Binding Inner}"    Width="280" />
       </DataGrid.Columns>
     </DataGrid>
 
@@ -78,11 +93,12 @@
               <Run Text="{Binding Source}" /><Run Text="  —  " /><Run Text="{Binding Context}" />
             </TextBlock>
             <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
-            <SelectableTextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource BadBrush}"
+            <SelectableTextBlock Text="{Binding Detail}" FontSize="12"
+                                 Classes.error="{Binding IsError}" Classes.warning="{Binding IsWarning}" Classes.note="{Binding IsNote}"
                                  FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>
-        <TextBlock Text="Select an error to view its details."
+        <TextBlock Text="{x:Static loc:DataText.SelectAnErrorToNote}"
                    IsVisible="{Binding Selected, Converter={x:Static conv:ObjectConverters.IsNull}}"
                    FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />

@@ -2,6 +2,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -41,6 +42,11 @@ public class WorklistService(
         // the industry characters — is fetched once for the whole build rather than once per
         // generator. See BuildCache; it flows into the fan-out below and closes with it.
         using var _ = BuildCache.Begin();
+
+        // The generators write each row's title and reasons as they go, with the SDE names in them
+        // in the interface language — so the names have to be in before the first one runs, or a
+        // list built right after start reads English until the next refresh. At once in English.
+        await SdeNames.EnsureLoadedAsync(ct);
 
         // Newly authorised characters join the industry list here, once, before the fan-out below.
         // Inside a generator it would run once per generator in parallel, and they would race to
@@ -186,13 +192,16 @@ public class WorklistService(
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
                             Unblocked:   outstanding.Count == 0,
+                            // Deduped on the English, then named as the screen shows them: this
+                            // list is only ever read out in the row's tooltip.
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
-                                                         .Select(s => s.TypeName).Distinct()],
+                                                         .DistinctBy(s => s.TypeName)
+                                                         .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
                             QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
@@ -218,13 +227,10 @@ public class WorklistService(
 
                     Detail = haul.Detail
                            + (freed.Count > 0
-                                ? $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
                                 : "")
                            + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
-                                + "cargo but will not start on this load."
+                                ? " " + string.Format(WorklistText.HaulOthersWantPart, waiting.Count - freed.Count)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or
@@ -232,12 +238,24 @@ public class WorklistService(
                            // named while the prose said one. They are not jobs — nothing has been
                            // written down for them yet — so they are counted as what they are.
                            + (also.Count > 0
-                                ? $" {also.Count:N0} more item(s) here are wanted by planned work "
-                                + "that has no stopped job of its own."
+                                ? " " + string.Format(WorklistText.HaulPlannedWantIt, also.Count)
                                 : ""),
                 };
             }
         }
+    }
+
+    /// <summary>
+    /// A count of stopped jobs and the first three of them by name, as one sentence:
+    /// <paramref name="upToThree"/> when those are all of them, <paramref name="withMore"/> when
+    /// more follow. In both, {0} is the count and {1} the names; {2} is how many more.
+    /// </summary>
+    private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
+    {
+        var names = string.Join(CommonText.ListSeparator, jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
+        return jobs.Count > 3
+            ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
+            : string.Format(upToThree, jobs.Count, names);
     }
 
 
@@ -324,7 +342,7 @@ public class WorklistService(
         // claimed by an earlier job — so a purchase can be raised for a job whose shortage is not
         // MustBuy at all. The buy for Gel-Matrix Biopaste said "for Programmable Purification
         // Membrane" in its reason and then listed nothing underneath, because 23,229 sit in
-        // Tenerifis already spoken for. The reader still needs to see whose work it is for.
+        // the scope already spoken for. The reader still needs to see whose work it is for.
         var shortOf = all
             .SelectMany(x => x.Shortages.Select(h => (Job: x, h.TypeId)))
             .GroupBy(x => x.TypeId)
@@ -361,10 +379,12 @@ public class WorklistService(
                 var waiting = touched
                     .Select(j =>
                     {
+                        // Deduped on the English, then named as the screen shows them — the list
+                        // is only read out in the row's tooltip.
                         var outstanding = j.Shortages
                             .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
-                            .Select(s => s.TypeName)
-                            .Distinct()
+                            .DistinctBy(s => s.TypeName)
+                            .Select(s => SdeNames.Type(s.TypeId, s.TypeName))
                             .ToList();
 
                         return new WorklistWaitingJob(
@@ -374,7 +394,7 @@ public class WorklistService(
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
@@ -397,16 +417,22 @@ public class WorklistService(
                         ? Math.Max(buy.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
                         : buy.Priority,
 
-                    Detail = buy.Detail
-                           + (freed.Count > 0
-                                ? $" Releases {freed.Count:N0} stopped job(s): "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
-                                : "")
-                           + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} more job(s) want this but are "
-                                + "short of other things too."
-                                : ""),
+                    Detail = Sentences.Join(
+                             Sentences.Join(buy.Detail,
+                                 freed.Count > 0
+                                     ? Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
+                                     : ""),
+                             // ⚠️ "More" only after a count of released jobs. Alone it read as a
+                             // further demand on top of the ones the reason lists, when the job it
+                             // meant was one of them — stopped by other shortages as well. And not
+                             // "short of other things": a job whose material is merely at another
+                             // station waits on a haul, not on anything missing.
+                             waiting.Count > freed.Count
+                                 ? Plurals.Format(WorklistText.ResourceManager,
+                                       freed.Count > 0 ? nameof(WorklistText.BuyOthersWaitingMoreOther)
+                                                       : nameof(WorklistText.BuyOthersWaitingOther),
+                                       waiting.Count - freed.Count)
+                                 : ""),
                 };
             }
         }
@@ -508,6 +534,16 @@ public class WorklistService(
             // market window for something that is not on it.
             var tag = parts.Select(p => p.Item.TitleTag).FirstOrDefault(t => t is not null);
 
+            // ⚠️ The tag is a key — the grid picks the blueprint icon by it — so the words shown
+            // for it are looked up, and the tag itself is carried on unchanged.
+            var tagText = tag == "BPO/BPC" ? WorklistText.TitleTagBpoBpc : tag;
+
+            // The title is screen text; the English TypeName goes on unchanged below it.
+            var shown = SdeNames.Type(lead.Item.TypeId, lead.Item.TypeName);
+
+            // Each contributor's demand, written as the sum the detail spells out: "87 + 66".
+            string Terms() => string.Join(" + ", parts.Select(p => p.Item.GrossDemand!.Value.ToString("N0")));
+
             var merged = lead.Item with
             {
                 // Keyed off the merge key, so the combined task keeps one identity across
@@ -518,19 +554,23 @@ public class WorklistService(
                 // carries no count by design — naming a number there would invent one.
                 Title     = (tag, total) switch
                 {
-                    (null, _) => $"{lead.Item.TypeName} × {total:N0}",
-                    (_,    0) => $"{lead.Item.TypeName} — {tag}",
-                    _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
+                    (null, _) => $"{shown} × {total:N0}",
+                    (_,    0) => $"{shown} — {tagText}",
+                    _         => $"{shown} — {tagText} × {total:N0}",
                 },
                 Quantity  = total,
                 // ⚠️ The contributors' own figures do not add up to this, and saying so is the
                 // point. Each was computed against the whole of the shared stock, so a reader
                 // adding the "short" numbers gets a figure that credits that stock once per
-                // demand — which is what this row used to print. The sum is spelled out instead.
-                Detail    = pooled
-                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
-                      $"already on hand, on order or recoverable, counted once. {reasons}"
-                    : $"{total:N0} in total. {reasons}",
+                // demand — which is what this row used to print. The sum is spelled out instead,
+                // term by term: "153 wanted between them" alone still sent a reader adding the
+                // two shortfalls (58 + 37 = 95) against a total of 124, since nothing on the row
+                // said the 153 was the job's 87 and the rule's 66.
+                Detail    = !pooled
+                    ? string.Format(WorklistText.MergedDetail, total, reasons)
+                    : supply > 0
+                        ? string.Format(WorklistText.MergedDetailSumPooled, total, Terms(), demand, supply, reasons)
+                        : string.Format(WorklistText.MergedDetailSum, total, Terms(), demand, reasons),
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",
@@ -575,47 +615,9 @@ public class WorklistService(
 
         // Priced here too, off the same one lookup and at whatever the asset valuation is set to
         // use — so what a task is worth and what the hangar it comes from is worth are the same
-        // number, and a summary can add them up without a second opinion about prices.
-        var prices = new Dictionary<int, double>();
-        var market = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
-        if (market?.AssetValueConfigId is int configId)
-            prices = (await db.MarketItemPrices.AsNoTracking()
-                    .Where(p => p.ConfigId == configId && typeIds.Contains(p.TypeId))
-                    .ToListAsync(ct))
-                .ToDictionary(p => p.TypeId, p => market.AssetValuePriceType switch
-                {
-                    MarketPriceType.Buy  => p.BuyPrice,
-                    MarketPriceType.Sell => p.SellPrice,
-                    _                    => p.Midpoint,
-                });
-
-        // ⚠️ Contracts fill the gaps the market cannot. A blueprint has no market price at all —
-        // it is bought and sold on contracts — so a buy task for one valued at nothing, and the
-        // ISK column on those rows sat blank while the task itself was worth billions. Applied
-        // only where the market had no price rather than in preference to it: the market is the
-        // better number when it exists, and mixing the two per type would make the total depend on
-        // which source happened to answer.
-        var unpriced = typeIds.Where(id => !prices.ContainsKey(id) || prices[id] <= 0).ToList();
-        if (unpriced.Count > 0)
-            foreach (var cp in await db.ContractPrices.AsNoTracking()
-                         .Where(c => unpriced.Contains(c.TypeId)).ToListAsync(ct))
-                if (ContractPricing.EffectivePrice(cp) is { } effective && effective > 0)
-                    prices[cp.TypeId] = (double)effective;
-
-        // ⚠️ A blueprint is priced as a copy, and this overrides both sources above rather than
-        // filling a gap they left. ContractPrices holds the whole-item price, which for a
-        // blueprint type is the original — and an Avatar BPO is tens of billions against a copy
-        // at a small fraction of that. Nobody with a task to acquire a titan print is buying the
-        // original; they are buying a copy, which is what the task's own note already quotes.
-        // Valuing the row off the BPO put a number on the list that no part of the plan matched.
-        //
-        // A type with no BPC contract price keeps whatever it had. That is deliberate: the
-        // fallback would be the BPO price, which is the figure being corrected here.
-        var bpTypeIds = await KillmailValuation.BlueprintTypeIdsAsync(db, typeIds, ct);
-        if (bpTypeIds.Count > 0)
-            foreach (var (typeId, perRun) in
-                     await KillmailValuation.CheapestBpcPerRunAsync(db, bpTypeIds, ct))
-                if (perRun > 0) prices[typeId] = perRun;
+        // number, and a summary can add them up without a second opinion about prices. Market,
+        // then contracts, then blueprints as copies: see TypeValuation.
+        var prices = await TypeValuation.PricesAsync(db, typeIds, ct);
 
         foreach (var section in sections)
         {

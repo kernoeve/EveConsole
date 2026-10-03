@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -28,6 +29,12 @@ public sealed record Decryptor(
 /// the split is not exactly the one the words suggest.</param>
 /// <param name="MaxCopyRuns">Licensed runs a single copy of the source blueprint can carry. This
 /// one <i>is</i> a real ceiling, unlike the manufacturing run limit of the same name.</param>
+/// <param name="ManufacturedTypeId">What the invented blueprint builds — the same as
+/// <paramref name="ProductTypeId"/> when the demand is for that item; the hull or module when the
+/// demand is for the blueprint itself (<paramref name="BlueprintTarget"/>). Decides the decryptor.</param>
+/// <param name="BlueprintTarget">The demand is for the T2 blueprint itself — an inventory level
+/// of BPCs — rather than for the item it builds: <paramref name="ProductTypeId"/> is then the
+/// blueprint, and the shortfall is counted in copy RUNS, as every blueprint level is.</param>
 public sealed record InventionRecipe(
     int    SourceBlueprintTypeId,
     string SourceBlueprintName,
@@ -38,7 +45,9 @@ public sealed record InventionRecipe(
     IReadOnlyList<(int TypeId, long Quantity)> Datacores,
     int    EncryptionSkillId,
     IReadOnlyList<int> ScienceSkillIds,
-    int    MaxCopyRuns);
+    int    MaxCopyRuns,
+    int    ManufacturedTypeId = 0,
+    bool   BlueprintTarget    = false);
 
 /// <summary>What a given amount of T2 production actually costs in invention.</summary>
 /// <param name="Attempts">Invention runs to expect to need. An expectation, not a guarantee — see
@@ -161,9 +170,24 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
             .Where(p => p.Activity == "manufacturing" && productTypeIds.Contains(p.ProductTypeId))
             .Select(p => new { p.TypeId, p.ProductTypeId })
             .ToListAsync(ct);
-        if (mfg.Count == 0) return [];
 
-        var t2BpIds = mfg.Select(p => p.TypeId).Distinct().ToList();
+        // ⚠️ A key can also be the T2 blueprint itself — an inventory level of BPCs ("five Gaia
+        // Blueprints on the shelf"). Nothing manufactures a blueprint, so the product hop above
+        // finds nothing for it, and such a level used to raise no science at all. It is invented
+        // directly: the key is its own invented blueprint, and what it builds picks the decryptor.
+        var asBlueprint = await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == InventionActivity && productTypeIds.Contains(p.ProductTypeId))
+            .Select(p => p.ProductTypeId)
+            .Distinct()
+            .ToListAsync(ct);
+        var builds = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => p.Activity == "manufacturing" && asBlueprint.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.ProductTypeId })
+                .ToListAsync(ct))
+            .GroupBy(p => p.TypeId).ToDictionary(g => g.Key, g => g.First().ProductTypeId);
+        if (mfg.Count == 0 && asBlueprint.Count == 0) return [];
+
+        var t2BpIds = mfg.Select(p => p.TypeId).Concat(asBlueprint).Distinct().ToList();
 
         var invention = await db.SdeBlueprintProducts.AsNoTracking()
             .Where(p => p.Activity == InventionActivity && t2BpIds.Contains(p.ProductTypeId))
@@ -215,21 +239,26 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        var inventionByT2Bp = invention.ToDictionary(i => i.InventedBp, i => i);
+        var inventionByT2Bp = invention.GroupBy(i => i.InventedBp).ToDictionary(g => g.Key, g => g.First());
 
         var result = new Dictionary<int, InventionRecipe>();
 
-        foreach (var m in mfg)
+        // The item demands, then the blueprint ones: one shape, keyed by what was asked for.
+        var wanted = mfg.Select(m => (Key: m.ProductTypeId, Bp: m.TypeId, Makes: m.ProductTypeId, Direct: false))
+            .Concat(asBlueprint.Select(bp => (Key: bp, Bp: bp, Makes: builds.GetValueOrDefault(bp), Direct: true)));
+
+        foreach (var m in wanted)
         {
-            if (!inventionByT2Bp.TryGetValue(m.TypeId, out var inv)) continue;
+            if (!inventionByT2Bp.TryGetValue(m.Bp, out var inv)) continue;
 
             var skills = skillsBySource.GetValueOrDefault(inv.SourceBp);
 
-            result[m.ProductTypeId] = new InventionRecipe(
+            result[m.Key] = new InventionRecipe(
                 SourceBlueprintTypeId:   inv.SourceBp,
-                SourceBlueprintName:     sourceNames.GetValueOrDefault(inv.SourceBp, $"Type {inv.SourceBp}"),
-                InventedBlueprintTypeId: m.TypeId,
-                ProductTypeId:           m.ProductTypeId,
+                SourceBlueprintName:     sourceNames.GetValueOrDefault(
+                                             inv.SourceBp, string.Format(WorklistText.TypeWithId, inv.SourceBp)),
+                InventedBlueprintTypeId: m.Bp,
+                ProductTypeId:           m.Key,
                 BaseChance:              inv.Probability,
                 BaseRunsPerSuccess:      Math.Max(1, inv.Quantity),
                 Datacores:               datacores.GetValueOrDefault(inv.SourceBp, []),
@@ -237,14 +266,17 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
                 ScienceSkillIds:         skills.Science ?? [],
                 // Twenty is the near-universal value, but a few blueprints differ and a wrong
                 // ceiling here silently sizes the copy job wrong.
-                MaxCopyRuns:             Math.Max(1, maxRuns.GetValueOrDefault(inv.SourceBp, 1)));
+                MaxCopyRuns:             Math.Max(1, maxRuns.GetValueOrDefault(inv.SourceBp, 1)),
+                ManufacturedTypeId:      m.Makes,
+                BlueprintTarget:         m.Direct);
         }
 
         return result;
     }
 
     /// <summary>Where a science job runs: the real facility, its name, and the park row whose
-    /// rigs and security class decide how long the job takes.</summary>
+    /// rigs and security class decide how long the job takes. The name is for the tasks' text
+    /// only — an NPC station's as the screen names it — and nothing matches on it.</summary>
     public readonly record struct Lab(long Site, string Name, IndyStructure? Structure);
 
     private const int ShipCategoryId = 6;
@@ -308,8 +340,10 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
         var id = s.RealStructureId!.Value;
 
+        // The linked facility's saved English, as the screen names it. The park's label for the
+        // structure, the last resort, is the user's own words.
         var name = s.RealStructureName is { Length: > 0 } rn
-            ? rn
+            ? SdeNames.Location(id, rn)
             : await db.EsiCorpStructures.AsNoTracking()
                       .Where(c => c.StructureId == id).Select(c => c.Name).FirstOrDefaultAsync(ct)
               ?? s.DisplayName;
@@ -398,6 +432,20 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         foreach (var d in demand.Values.OrderByDescending(x => x.Priority).ThenBy(x => x.TypeId))
         {
             if (!recipes.TryGetValue(d.TypeId, out var recipe)) continue;
+
+            // A level of the blueprint itself. ⚠️ Written in RUNS, like every blueprint level
+            // (InvLevelService counts a copy by the runs it carries), and already netted against
+            // the runs on the shelf — so it is T2 runs exactly as a product's shortfall is, and
+            // three runs short is one success when a success yields four, not three successes.
+            if (recipe.BlueprintTarget)
+            {
+                var bpDecryptor = decryptorFor(recipe.ManufacturedTypeId);
+                var bpSkills    = scientistSkills.OrderByDescending(s => Chance(recipe, bpDecryptor, s)).First();
+                var bpPlan      = Plan(recipe, bpDecryptor, d.Units, bpSkills);
+                if (bpPlan.Attempts > 0) needs.Add(new InventionNeed(d, recipe, bpPlan, d.Units));
+                continue;
+            }
+
             if (!blueprintByProduct.TryGetValue(d.TypeId, out var product)) continue;
 
             var t2Runs = IndustryJobSplit.RunsFor(d.Units, Math.Max(1, product.Quantity));

@@ -1,7 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -25,15 +27,18 @@ public class TimerRowVm : ReactiveObject
     public string DisplayName { get; }
 
     /// <summary>
-    /// "s" for an endpoint polled on the scale of seconds, "min" otherwise. The location and
+    /// Seconds for an endpoint polled on the scale of seconds, minutes otherwise. The location and
     /// ship polls run every ten seconds against a five-second cache; shown in minutes they read
     /// "1 min (min: 1 min)", and saving that quietly made them a minute.
     /// </summary>
-    public string Unit    { get; }
-    public int    Min     { get; }
-    public string MinText => $"(min: {Min} {Unit})";
+    private readonly bool _inSeconds;
 
-    private int UnitSeconds => Unit == "s" ? 1 : 60;
+    /// <summary>The unit's symbol as the interface writes it: "s" or "min" in English.</summary>
+    public string Unit    => _inSeconds ? SettingsText.TimerUnitSeconds : SettingsText.TimerUnitMinutes;
+    public int    Min     { get; }
+    public string MinText => string.Format(SettingsText.TimerMinimum, Min, Unit);
+
+    private int UnitSeconds => _inSeconds ? 1 : 60;
 
     /// <summary>The interval in <see cref="Unit"/>s.</summary>
     public int Interval
@@ -52,7 +57,7 @@ public class TimerRowVm : ReactiveObject
         _force           = force;
         Key              = info.Key;
         DisplayName      = info.DisplayName;
-        Unit             = info.MinSeconds < 60 || info.DefaultSeconds < 60 ? "s" : "min";
+        _inSeconds       = info.MinSeconds < 60 || info.DefaultSeconds < 60;
         Min              = (int)Math.Ceiling(info.MinSeconds / (double)UnitSeconds);
         _interval        = (int)Math.Round(svc.GetInterval(info.Key, info.DefaultSeconds) / (double)UnitSeconds);
         if (_interval < Min) _interval = Min;
@@ -71,16 +76,20 @@ public class TimerRowVm : ReactiveObject
     {
         if (_force is not null && _force.TryForce(Key))
         {
-            ForceStatus = "started";
+            ForceStatus = SettingsText.TimerForceStarted;
             return;
         }
 
         _polling.ResetCallTime(Key);
-        ForceStatus = "due on the next cycle";
+        ForceStatus = SettingsText.TimerForceDue;
     }
 
-    public async Task SaveAsync() =>
-        await _svc.SetIntervalAsync(Key, Interval * UnitSeconds);
+    /// <summary>Writes the interval: read here, on the UI thread, and written off it.</summary>
+    public Task SaveAsync()
+    {
+        var seconds = Interval * UnitSeconds;
+        return Task.Run(() => _svc.SetIntervalAsync(Key, seconds));
+    }
 }
 
 public class TimerSettingsViewModel : ReactiveObject
@@ -89,8 +98,6 @@ public class TimerSettingsViewModel : ReactiveObject
     public ObservableCollection<TimerRowVm> CorpRows  { get; } = [];
     public ObservableCollection<TimerRowVm> OtherRows { get; } = [];
 
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-
     private string _saveStatus = "";
     public string SaveStatus
     {
@@ -98,9 +105,16 @@ public class TimerSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _saveStatus, value);
     }
 
+    /// <summary>The rows changed since the last save: only those are written.</summary>
+    private readonly HashSet<TimerRowVm> _changed = [];
+    private readonly AutoSave            _autoSave;
+
     public TimerSettingsViewModel(EsiPollingService pollingService, TimerSettingsService timerSettings,
                                   TimerForceService? force = null)
     {
+        _autoSave = new AutoSave(SaveChangedAsync,
+            ex => SaveStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
+
         foreach (var ep in pollingService.CharacterEndpointInfos)
             CharRows.Add(new TimerRowVm(ep, timerSettings, pollingService, force));
 
@@ -108,45 +122,64 @@ public class TimerSettingsViewModel : ReactiveObject
             CorpRows.Add(new TimerRowVm(ep, timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.refresh", "Market Price Refresh", 600, 3600),
+            new EndpointInfo("market.refresh", SettingsText.TimerMarketRefresh, 600, 3600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.history", "Price History Check", 120, 600),
+            new EndpointInfo("market.history", SettingsText.TimerPriceHistoryCheck, 120, 600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.public", "Public Contracts (all regions)", 900, 3600),
+            new EndpointInfo("contract.public", SettingsText.TimerPublicContracts, 900, 3600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.items", "Contract Items Pull", 120, 600),
+            new EndpointInfo("contract.items", SettingsText.TimerContractItems, 120, 600),
             timerSettings, pollingService, force));
 
         // One public call per NPC corporation. Catalogues only change on patch boundaries,
         // so a day between sweeps is already generous.
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("lpstore.offers", "LP Store Offers (all NPC corps)", 3600, 86400),
+            new EndpointInfo("lpstore.offers", SettingsText.TimerLpStoreOffers, 3600, 86400),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.pricing", "Contract Pricing Rebuild", 300, 1800),
+            new EndpointInfo("contract.pricing", SettingsText.TimerContractPricing, 300, 1800),
             timerSettings, pollingService, force));
 
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
+        // Watched once every row holds its stored interval, so building the rows saves nothing.
+        // An interval is typed, so it is saved once typing pauses; one that does not read as a
+        // number never reaches Interval (the box shows the error) and so is never saved.
+        foreach (var row in CharRows.Concat(CorpRows).Concat(OtherRows))
+            row.WhenAnyValue(r => r.Interval).Skip(1).Subscribe(_ =>
+            {
+                _changed.Add(row);
+                _autoSave.Typed();
+            });
     }
 
-    private async Task SaveAllAsync()
-    {
-        foreach (var row in CharRows)
-            await row.SaveAsync();
-        foreach (var row in CorpRows)
-            await row.SaveAsync();
-        foreach (var row in OtherRows)
-            await row.SaveAsync();
+    /// <summary>Saves a change still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => _autoSave.FlushAsync();
 
-        SaveStatus = "Saved.";
-        await Task.Delay(2000);
-        SaveStatus = "";
+    /// <summary>
+    /// Writes the changed rows. Nothing restarts: the polling loop reads an interval from the
+    /// service's cache as it schedules each call, and the cache takes the new one at once.
+    /// </summary>
+    private async Task SaveChangedAsync()
+    {
+        var rows = _changed.ToList();
+        _changed.Clear();   // a change made while these are written is saved by the next save
+        try
+        {
+            foreach (var row in rows)
+                await row.SaveAsync();
+        }
+        catch
+        {
+            _changed.UnionWith(rows);   // tried again with the next change
+            throw;
+        }
+
+        _autoSave.Flash(s => SaveStatus = s, SettingsText.Saved);
     }
 }

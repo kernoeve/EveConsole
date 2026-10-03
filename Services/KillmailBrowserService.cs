@@ -2,9 +2,12 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
+/// <summary>One kill in a list. The names are English, as the SDE and the name cache hold them;
+/// KillmailListRowVm words them for the screen from the ids beside them.</summary>
 public sealed record KillmailListRow(
     int KillMailId, DateTimeOffset KillMailTime,
     int VictimShipTypeId, string ShipName,
@@ -13,8 +16,16 @@ public sealed record KillmailListRow(
     long VictimCharId, long VictimCorpId, long VictimAllianceId,
     string VictimName, string VictimCorp, string VictimAlliance,
     long FbCharId, long FbCorpId, long FbAllianceId,
-    string FbName, string FbCorp, string FbAlliance);
+    string FbName, string FbCorp, string FbAlliance,
+    int ConstellationId = 0);
 
+/// <summary>
+/// One kill in full, for the detail pane.
+///
+/// <para>The item sections are worded for the screen already — grouped and ordered by what they
+/// show, in the interface language. The names above them are English, and KillmailDetailVm and
+/// KillmailAttackerVm word those from the ids beside them.</para>
+/// </summary>
 public sealed record KillmailDetailData(
     int KillMailId, DateTimeOffset KillMailTime,
     string ShipName, int SystemId, string SystemName, string RegionName, string LocationText,
@@ -23,7 +34,8 @@ public sealed record KillmailDetailData(
     int VictimDamageTaken,
     List<KillmailSlotGroupRow> SlotGroups,
     List<KillmailAttackerRow> Attackers,
-    double DestroyedIsk, double DroppedIsk);
+    double DestroyedIsk, double DroppedIsk,
+    int RegionId = 0);
 
 /// <summary>A slot section (High Slots, Cargo Hold, ...). Every group has at least one
 /// sub-group — for anything but Cargo Hold there's exactly one with an empty
@@ -49,7 +61,9 @@ public sealed record KillmailListPage(List<KillmailListRow> Rows, bool HasMore);
 public class KillmailBrowserService(
     IDbContextFactory<AppDbContext> dbFactory,
     CorpActivityService corpActivityService,
-    EsiClient esi)
+    EsiClient esi,
+    ZkillboardApiClient zkb,
+    ZkillboardKillImportService zkbImport)
 {
     public const int PageSize = 500;
 
@@ -92,13 +106,23 @@ public class KillmailBrowserService(
     /// by id in SQL. Both match victim OR the final-blow attacker only, mirroring the
     /// only two identity columns the list actually displays.
     /// </summary>
+    /// <param name="matchShownNames">The Killmail tool's own filter boxes: the ship, system and
+    /// region filters also find what was typed in the interface language, and the corporation
+    /// filter an NPC corporation by the name the rows show it under — as well as the English,
+    /// which capsuleers paste from killboards. Off for a caller that passes a name of its own.</param>
+    /// <param name="solarSystemId">One system's kills, by its id — the system page's. Not
+    /// <paramref name="systemFilter"/>, which is a text search over system AND region names and so
+    /// also finds every system and region whose name contains the one asked for.</param>
     public async Task<KillmailListPage> GetListAsync(
         int offset, int limit,
         DateOnly? fromDate = null, DateOnly? thruDate = null,
         string? characterFilter = null, string? corporationFilter = null,
         string? shipFilter = null, string? systemFilter = null,
+        int solarSystemId = 0,
         EntityKind? entityKind = null, long entityId = 0,
-        CancellationToken ct = default)
+        bool matchShownNames = false,
+        CancellationToken ct = default,
+        DateTimeOffset? since = null, DateTimeOffset? before = null)
     {
         using var db = dbFactory.CreateDbContext();
 
@@ -113,11 +137,27 @@ public class KillmailBrowserService(
         if (!string.IsNullOrWhiteSpace(corporationFilter))
         {
             corporationIds = await ResolveCorporationIdsAsync(db, corporationFilter, ct);
+
+            // NPC corporations — a rat's, a starter corporation — by the name the rows show.
+            if (matchShownNames)
+                corporationIds = [.. corporationIds.Union(
+                    SdeNames.Find(SdeNameKind.NpcCorporation, corporationFilter.Trim()))];
+
             if (corporationIds.Count == 0) return new KillmailListPage([], false);
         }
 
         var args = new List<object>();
         string P(object value) { args.Add(value); return $"@p{args.Count - 1}"; }
+
+        // " OR column IN (…)" for the ids whose name in the interface language contains the
+        // text, or nothing. The ids are the SDE's own numbers, not user text, so they are
+        // inlined like the id lists below.
+        string OrShown(string column, SdeNameKind kind, string text)
+        {
+            if (!matchShownNames) return "";
+            var ids = SdeNames.Find(kind, text);
+            return ids.Count == 0 ? "" : $" OR {column} IN ({string.Join(",", ids)})";
+        }
 
         var conditions = new List<string>();
         // ⚠️ Passed as values. KillMailTime is a timestamptz on a server, and a string
@@ -127,14 +167,30 @@ public class KillmailBrowserService(
             conditions.Add($"""d."KillMailTime" >= {P(new DateTimeOffset(fd.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero))}""");
         if (thruDate is { } td)
             conditions.Add($"""d."KillMailTime" <= {P(new DateTimeOffset(td.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero))}""");
+        // Exact instants rather than whole days, for the entity viewer's zKillboard pages: a page
+        // ends at a kill, not at midnight.
+        if (since is { } from)
+            conditions.Add($"""d."KillMailTime" >= {P(from.ToUniversalTime())}""");
+        if (before is { } until)
+            conditions.Add($"""d."KillMailTime" < {P(until.ToUniversalTime())}""");
         if (!string.IsNullOrWhiteSpace(shipFilter))
-            conditions.Add($"""st."Name" LIKE {P($"%{shipFilter.Trim()}%")}""");
+        {
+            var ship     = shipFilter.Trim();
+            var shipArg  = P($"%{ship}%");
+            var shipAlso = OrShown("d.\"VictimShipTypeId\"", SdeNameKind.Type, ship);
+            conditions.Add($"""(st."Name" LIKE {shipArg}{shipAlso})""");
+        }
         if (!string.IsNullOrWhiteSpace(systemFilter))
         {
-            var sysArg = P($"%{systemFilter.Trim()}%");
-            var regionArg = P($"%{systemFilter.Trim()}%");
-            conditions.Add($"""(ss."Name" LIKE {sysArg} OR sr."Name" LIKE {regionArg})""");
+            var place      = systemFilter.Trim();
+            var sysArg     = P($"%{place}%");
+            var regionArg  = P($"%{place}%");
+            var systemAlso = OrShown("d.\"SolarSystemId\"", SdeNameKind.SolarSystem, place)
+                           + OrShown("ss.\"RegionId\"",     SdeNameKind.Region,      place);
+            conditions.Add($"""(ss."Name" LIKE {sysArg} OR sr."Name" LIKE {regionArg}{systemAlso})""");
         }
+        if (solarSystemId > 0)
+            conditions.Add($"""d."SolarSystemId" = {P(solarSystemId)}""");
         if (characterIds is { Count: > 0 })
         {
             // Ids resolved above (our own tracked characters, or an ESI search result) —
@@ -270,10 +326,99 @@ public class KillmailBrowserService(
                 fb?.CharacterId ?? 0L, fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 fb is not null ? Res(fb.CharacterId) : "",
                 fb is not null ? Res(fb.CorporationId) : "",
-                fb is not null ? Res(fb.AllianceId) : "");
+                fb is not null ? Res(fb.AllianceId) : "",
+                sys?.ConstellationId ?? 0);
         }).ToList();
 
         return new KillmailListPage(rows, hasMore);
+    }
+
+    /// <summary>zKillboard's name for an entity kind, or null for one it is not asked about.</summary>
+    private static string? ZkbType(EntityKind kind) => kind switch
+    {
+        EntityKind.Pilot      => "character",
+        EntityKind.PlayerCorp => "corporation",
+        EntityKind.Alliance   => "alliance",
+        _                     => null,
+    };
+
+    /// <summary>Stats answered in the last few minutes, so going back and forth between two
+    /// entities asks once. Failures are not kept: the next look asks again.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(string, long), (DateTimeOffset At, ZkillboardApiClient.EntityStats Stats)>
+        _statsCache = new();
+    private static readonly TimeSpan StatsKeep = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// The summary zKillboard shows above an entity's kill list — see
+    /// <see cref="ZkillboardApiClient.GetEntityStatsAsync"/>. For the entity viewer's header,
+    /// which cannot count kills itself: the database holds only a sample of anyone else's.
+    /// </summary>
+    public async Task<ZkillboardApiClient.EntityStats> ZkbStatsAsync(EntityKind kind, long entityId, CancellationToken ct = default)
+    {
+        if (ZkbType(kind) is not { } type || entityId <= 0) return new ZkillboardApiClient.EntityStats(null, null);
+
+        if (_statsCache.TryGetValue((type, entityId), out var hit) && DateTimeOffset.UtcNow - hit.At < StatsKeep)
+            return hit.Stats;
+
+        var stats = await zkb.GetEntityStatsAsync(type, entityId, ct);
+        if (stats.Problem is null) _statsCache[(type, entityId)] = (DateTimeOffset.UtcNow, stats);
+        return stats;
+    }
+
+    /// <summary>What one zKillboard page for an entity brought in.</summary>
+    /// <param name="Kills">Kills on the page; zero means it was past the end.</param>
+    /// <param name="Stored">How many of them were not in the database until now.</param>
+    /// <param name="Oldest">The oldest kill on the page — everything since is now complete.</param>
+    /// <param name="Reached">False when zKillboard could not be reached, or answered with an error.</param>
+    /// <param name="Problem">Why not, in words, when it was not reached.</param>
+    public sealed record ZkbEntityPage(int Kills, int Stored, DateTimeOffset? Oldest, bool Reached, string? Problem = null);
+
+    /// <summary>
+    /// Pulls page <paramref name="page"/> of an entity's kills and losses from zKillboard,
+    /// newest first, and stores whichever of them the database does not hold yet.
+    ///
+    /// <para>For the entity viewer. The database only holds the kills something brought in — our
+    /// own, a feed, a backfill — so for anyone else it is a sample; zKillboard has them all. A
+    /// page at a time, on request, rather than an entity's whole history: a large alliance runs
+    /// to millions.</para>
+    ///
+    /// <para>⚠️ Stored, not just shown: a row opens its killmail from the database. Added the way
+    /// every zKillboard import adds — never updating a kill already held, references only for our
+    /// own characters and corporations — so what is fetched here is an ordinary kill of someone
+    /// else's, and the Others retention rule trims it like any other.</para>
+    /// </summary>
+    public async Task<ZkbEntityPage> PullEntityPageAsync(
+        EntityKind kind, long entityId, int page, CancellationToken ct = default)
+    {
+        var type = ZkbType(kind);
+        if (type is null || entityId <= 0) return new ZkbEntityPage(0, 0, null, Reached: false);
+
+        var answer = await zkb.GetEntityPageAsync(type, entityId, page, ct);
+        if (answer.Kills is not { } kills) return new ZkbEntityPage(0, 0, null, Reached: false, answer.Problem);
+        if (kills.Count == 0)              return new ZkbEntityPage(0, 0, null, Reached: true);
+
+        var ids = kills.Select(k => k.Kill.KillMailId).ToList();
+
+        // ⚠️ Once more on a conflict. The firehose and the pollers store kills in the background,
+        // and one of them can land a kill from this page between the check and the save — which
+        // fails the whole save on its key. The second pass sees it and skips it.
+        for (var attempt = 1; ; attempt++)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var known = await ZkillboardKillImportService.KnownIds.LoadForAsync(db, ids, ct);
+            var (chars, corps) = await ZkillboardKillImportService.GetTrackedIdsAsync(db, ct);
+
+            var stored = 0;
+            foreach (var k in kills)
+                if (await zkbImport.ImportAsync(db, k.Kill, k.Hash, chars, corps, ct, known)) stored++;
+
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return new ZkbEntityPage(kills.Count, stored, kills.Min(k => k.Kill.KillMailTime), Reached: true);
+            }
+            catch (DbUpdateException) when (attempt < 2) { }
+        }
     }
 
     /// <summary>Character-name fragment → matching character ids, same pattern as
@@ -416,7 +561,7 @@ public class KillmailBrowserService(
         // Ship name
         string shipName = typeNames.TryGetValue(detail.VictimShipTypeId, out var vsn) ? vsn : detail.VictimShipTypeId.ToString();
 
-        // Nearest celestial + distance, e.g. "Stargate (6-IAFR) (3599.69 km)" — matches
+        // Nearest celestial + distance, e.g. "Stargate (Jita) (3599.69 km)" — matches
         // what zKillboard shows. Positions are raw ESI meters on both sides, so directly
         // comparable; skipped entirely when the killmail has no recorded position.
         var locationText = "";
@@ -443,8 +588,9 @@ public class KillmailBrowserService(
         var grouped = GroupItemsBySlot(items, typeNames, prices, marketGroupNames, blueprintIds, bpcPerRun, ref destroyedIsk, ref droppedIsk);
         var shipPrice = prices.TryGetValue(detail.VictimShipTypeId, out var sp) ? sp : 0;
         destroyedIsk += shipPrice;
-        grouped.Add(new KillmailSlotGroupRow("Ship",
-            [new KillmailSubGroupRow("", [new KillmailItemRow(detail.VictimShipTypeId, shipName, 1, 0, shipPrice, false, false)])]));
+        grouped.Add(new KillmailSlotGroupRow(CorpText.SlotShip,
+            [new KillmailSubGroupRow("", [new KillmailItemRow(detail.VictimShipTypeId,
+                SdeNames.Type(detail.VictimShipTypeId, shipName), 1, 0, shipPrice, false, false)])]));
 
         // Attackers
         var attackerRows = attackers.Select(a => new KillmailAttackerRow(
@@ -475,7 +621,8 @@ public class KillmailBrowserService(
             Res(detail.VictimAllianceId),
             detail.VictimDamageTaken,
             grouped, attackerRows,
-            destroyedIsk, droppedIsk);
+            destroyedIsk, droppedIsk,
+            system?.RegionId ?? 0);
     }
 
     /// <summary>Market group per item type id, for Cargo Hold sub-grouping — deep enough
@@ -485,8 +632,10 @@ public class KillmailBrowserService(
     /// collapse ALL blueprints into one bucket regardless of what they're blueprints
     /// for — same EVE type id for a BPO or BPC, so this is naturally shared already) and
     /// <c>Display</c> ("TopLevel &gt; SecondLevel", or just "TopLevel" when the type's
-    /// own group already IS top-level). "Other" for a type with no market group.</summary>
-    private static async Task<Dictionary<int, (string TopLevel, string Display)>> GetMarketGroupNamesAsync(
+    /// own group already IS top-level). "Other" for a type with no market group.
+    /// <c>Shown</c> is Display in the interface language, for the sub-header alone: ⚠️ the
+    /// items are grouped on Display, which stays English.</summary>
+    private static async Task<Dictionary<int, (string TopLevel, string Display, string Shown)>> GetMarketGroupNamesAsync(
         AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
     {
         if (typeIds.Count == 0) return [];
@@ -501,8 +650,10 @@ public class KillmailBrowserService(
         var allGroups = await db.SdeMarketGroups.AsNoTracking().ToListAsync(ct);
         var groupById = allGroups.ToDictionary(g => g.MarketGroupId);
 
-        var chainCache = new Dictionary<int, (string TopLevel, string Display)>();
-        (string TopLevel, string Display) ResolveChain(int marketGroupId)
+        static string Shown(SdeMarketGroup g) => SdeNames.MarketGroup(g.MarketGroupId, g.Name);
+
+        var chainCache = new Dictionary<int, (string TopLevel, string Display, string Shown)>();
+        (string TopLevel, string Display, string Shown) ResolveChain(int marketGroupId)
         {
             if (chainCache.TryGetValue(marketGroupId, out var cached)) return cached;
 
@@ -517,9 +668,9 @@ public class KillmailBrowserService(
 
             var result = chain.Count switch
             {
-                0 => ("Other", "Other"),
-                1 => (chain[0].Name, chain[0].Name),
-                _ => (chain[0].Name, $"{chain[0].Name} > {chain[1].Name}"),
+                0 => (NoMarketGroup, NoMarketGroup, NoMarketGroup),
+                1 => (chain[0].Name, chain[0].Name, Shown(chain[0])),
+                _ => (chain[0].Name, $"{chain[0].Name} > {chain[1].Name}", $"{Shown(chain[0])} > {Shown(chain[1])}"),
             };
             chainCache[marketGroupId] = result;
             return result;
@@ -527,14 +678,21 @@ public class KillmailBrowserService(
 
         return typeGroups.ToDictionary(
             t => t.TypeId,
-            t => t.MarketGroupId.HasValue ? ResolveChain(t.MarketGroupId.Value) : ("Other", "Other"));
+            t => t.MarketGroupId.HasValue ? ResolveChain(t.MarketGroupId.Value) : (NoMarketGroup, NoMarketGroup, NoMarketGroup));
     }
 
+    /// <summary>
+    /// The items as the detail pane lists them, section by section.
+    ///
+    /// <para>Worded for the screen and nothing else: the item names and the Cargo Hold's market
+    /// group headers are in the interface language, and each list is ordered by what it shows.
+    /// The slot and market group KEYS they are grouped under stay English.</para>
+    /// </summary>
     private static List<KillmailSlotGroupRow> GroupItemsBySlot(
         List<KillMailItem> items,
         Dictionary<int, string> typeNames,
         Dictionary<int, double> prices,
-        Dictionary<int, (string TopLevel, string Display)> marketGroupNames,
+        Dictionary<int, (string TopLevel, string Display, string Shown)> marketGroupNames,
         HashSet<int> blueprintIds,
         Dictionary<int, double> bpcPerRun,
         ref double destroyedIsk, ref double droppedIsk)
@@ -546,11 +704,13 @@ public class KillmailBrowserService(
             var group = FlagToSlotGroup(item.Flag);
             if (!groups.TryGetValue(group, out var groupItems)) { groupItems = []; groups[group] = groupItems; }
 
-            var name = typeNames.TryGetValue(item.ItemTypeId, out var n) ? n : item.ItemTypeId.ToString();
+            // The link to the Item Browser goes by TypeId, so nothing reads this name back.
+            var name = SdeNames.Type(item.ItemTypeId,
+                typeNames.TryGetValue(item.ItemTypeId, out var n) ? n : item.ItemTypeId.ToString());
             var isBlueprint = blueprintIds.Contains(item.ItemTypeId);
             var isBpc = item.Singleton == 2 && isBlueprint;
             var isBpo = isBlueprint && !isBpc;
-            if (isBpc) name += " (Copy)"; // the one visual cue this was missing entirely
+            if (isBpc) name = string.Format(CorpText.KillmailItemCopy, name); // the one visual cue this was missing entirely
 
             var unitPrc  = isBpc
                 ? bpcPerRun.GetValueOrDefault(item.ItemTypeId)
@@ -593,25 +753,34 @@ public class KillmailBrowserService(
                 string SubGroupKey(KillmailItemRow i)
                 {
                     if (i.IsBpo || i.IsBpc) return BlueprintsGroupName;
-                    var (_, display) = marketGroupNames.GetValueOrDefault(i.TypeId, ("Other", "Other"));
-                    return display;
+                    return marketGroupNames.TryGetValue(i.TypeId, out var mg) ? mg.Display : NoMarketGroup;
                 }
+
+                // The header a key reads as. Every item under a key shares its market group
+                // chain, so the first one's shown chain speaks for the group.
+                string SubGroupHeader(IGrouping<string, KillmailItemRow> g) =>
+                    g.Key == NoMarketGroup       ? CorpText.KillmailGroupOther
+                  : g.Key == BlueprintsGroupName ? SdeNames.MarketGroup(BlueprintsMarketGroupId, BlueprintsGroupName)
+                  : marketGroupNames.TryGetValue(g.First().TypeId, out var mg) ? mg.Shown
+                  : g.Key;
 
                 subGroups = groupItems
                     .GroupBy(SubGroupKey)
-                    .OrderBy(g => g.Key == "Other" ? 1 : 0)
-                    .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
-                    .Select(g => new KillmailSubGroupRow(
-                        g.Key, g.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList()))
+                    .Select(g => (Header: SubGroupHeader(g), Items: g))
+                    .OrderBy(s => s.Items.Key == NoMarketGroup ? 1 : 0)
+                    .ThenBy(s => s.Header, StringComparer.CurrentCulture)
+                    .Select(s => new KillmailSubGroupRow(
+                        s.Header,
+                        s.Items.OrderBy(i => i.TypeName, StringComparer.CurrentCulture).ToList()))
                     .ToList();
             }
             else
             {
                 subGroups = [new KillmailSubGroupRow("",
-                    groupItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList())];
+                    groupItems.OrderBy(i => i.TypeName, StringComparer.CurrentCulture).ToList())];
             }
 
-            result.Add(new KillmailSlotGroupRow(groupName, subGroups));
+            result.Add(new KillmailSlotGroupRow(SlotLabel(groupName), subGroups));
         }
 
         return result;
@@ -620,8 +789,13 @@ public class KillmailBrowserService(
     // The real top-level SDE market group name (MarketGroupId 2, confirmed via a direct
     // query — "SELECT Name FROM SdeMarketGroups WHERE MarketGroupId = 2"), used as a
     // fixed bucket for every blueprint item rather than resolved per-item (see
-    // SubGroupKey above for why).
-    private const string BlueprintsGroupName = "Blueprints & Reactions";
+    // SubGroupKey above for why). ⚠️ A key; the header reads it through its id.
+    private const string BlueprintsGroupName    = "Blueprints & Reactions";
+    private const int    BlueprintsMarketGroupId = 2;
+
+    /// <summary>The Cargo Hold sub-group of items with no market group. ⚠️ A key, compared and
+    /// sorted on; shown as <see cref="CorpText.KillmailGroupOther"/>.</summary>
+    private const string NoMarketGroup = "Other";
 
     // Slot display order. Corrected against CCP's authoritative flag list
     // (esi/eve-glue location_flag.py) after finding two real mismatches: LoSlot0-7 are
@@ -667,5 +841,42 @@ public class KillmailBrowserService(
         181               => "Ice Hold",
         182               => "Asteroid Hold",
         _                 => "Other",
+    };
+
+    /// <summary>
+    /// What a slot group is called on screen.
+    ///
+    /// <para>⚠️ The names above are KEYS, not display text: items are grouped under them, the
+    /// groups are ordered by them and Cargo Hold is picked out by one. They become words only
+    /// here, on the way out, so none of that depends on the interface language.</para>
+    /// </summary>
+    private static string SlotLabel(string group) => group switch
+    {
+        "High Slots"           => CorpText.SlotHigh,
+        "Mid Slots"            => CorpText.SlotMid,
+        "Low Slots"            => CorpText.SlotLow,
+        "Rig Slots"            => CorpText.SlotRig,
+        "Subsystem Slots"      => CorpText.SlotSubsystem,
+        "Drone Bay"            => CorpText.SlotDroneBay,
+        "Fighter Bay"          => CorpText.SlotFighterBay,
+        "Fighter Tubes"        => CorpText.SlotFighterTubes,
+        "Ship Hangar"          => CorpText.SlotShipHangar,
+        "Fleet Hangar"         => CorpText.SlotFleetHangar,
+        "Fuel Bay"             => CorpText.SlotFuelBay,
+        "Ore Hold"             => CorpText.SlotOreHold,
+        "Ice Hold"             => CorpText.SlotIceHold,
+        "Asteroid Hold"        => CorpText.SlotAsteroidHold,
+        "Gas Hold"             => CorpText.SlotGasHold,
+        "Mineral Hold"         => CorpText.SlotMineralHold,
+        "Salvage Hold"         => CorpText.SlotSalvageHold,
+        "Ship Hold"            => CorpText.SlotShipHold,
+        "Small Ship Hold"      => CorpText.SlotSmallShipHold,
+        "Medium Ship Hold"     => CorpText.SlotMediumShipHold,
+        "Large Ship Hold"      => CorpText.SlotLargeShipHold,
+        "Industrial Ship Hold" => CorpText.SlotIndustrialShipHold,
+        "Ammo Hold"            => CorpText.SlotAmmoHold,
+        "Cargo Hold"           => CorpText.SlotCargoHold,
+        "Other"                => CorpText.KillmailGroupOther,
+        _                      => group,
     };
 }

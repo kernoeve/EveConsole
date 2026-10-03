@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -63,7 +64,7 @@ public class WalletJournalRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateRaw      = e.Date;
-        DateText     = e.Date.ToLocalTime().ToString("MMM d, HH:mm");
+        DateText     = e.Date.ToLocalTime().ToString(CommonText.DateMonthDayTime);
         RefTypeText  = FormatRefType(e.RefType);
         Description  = e.Description ?? e.Reason ?? "";
         AmountRaw    = e.Amount;
@@ -76,13 +77,11 @@ public class WalletJournalRowVm
         _ownerType   = e.OwnerType;
         DivisionText = e.Division is > 0
             ? (divisionNames.TryGetValue((e.OwnerId, e.Division.Value), out var dn) ? dn
-               : e.Division.Value == 1 ? "Master Wallet" : $"Div {e.Division}")
+               : e.Division.Value == 1 ? FinanceText.MasterWallet : string.Format(FinanceText.DivisionShort, e.Division))
             : "";
     }
 
-    private static string FormatRefType(string s) =>
-        string.Join(" ", s.Split('_')
-            .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w));
+    private static string FormatRefType(string s) => RefTypes.Label(s);
 
     private static string FormatAmount(decimal v)
     {
@@ -152,8 +151,9 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<long, string>        locationNames,
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
-        DateText     = t.Date.ToLocalTime().ToString("MMM d, HH:mm");
-        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"\"Type\" {t.TypeId}";
+        DateText     = t.Date.ToLocalTime().ToString(CommonText.DateMonthDayTime);
+        // In the interface language: the grid is all that reads it, and the filter matches both.
+        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? SdeNames.Type(t.TypeId, n) : string.Format(CommonText.TypeNumbered, t.TypeId);
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");
         UnitPriceRaw = t.UnitPrice;
@@ -162,13 +162,15 @@ public class WalletTransactionRowVm
         TotalRaw     = t.IsBuy ? -gross : gross;
         Total        = FormatIsk(gross);
         TotalColor   = t.IsBuy ? Palette.Bad : Palette.Good;
-        Direction    = t.IsBuy ? "Buy" : "Sell";
+        Direction    = t.IsBuy ? FinanceText.DirBuy : FinanceText.DirSell;
         OwnerText    = ownerNames.TryGetValue(t.OwnerId, out var on) ? on : "";
         DivisionText = t.Division is > 0
             ? (divisionNames.TryGetValue((t.OwnerId, t.Division.Value), out var dn) ? dn
-               : t.Division.Value == 1 ? "Master Wallet" : $"Div {t.Division}")
+               : t.Division.Value == 1 ? FinanceText.MasterWallet : string.Format(FinanceText.DivisionShort, t.Division))
             : "";
-        LocationName = locationNames.TryGetValue(t.LocationId, out var ln) ? ln : "";
+        // An NPC station in the interface language, a structure as named: the grid is all that
+        // reads it, and the filter matches both.
+        LocationName = locationNames.TryGetValue(t.LocationId, out var ln) ? SdeNames.Location(t.LocationId, ln) : "";
         _typeId      = t.TypeId;
         _locationId  = t.LocationId;
         _ownerId     = t.OwnerId;
@@ -314,11 +316,11 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> JournalSortOptions { get; } =
     [
-        new("Date: newest first",   "\"Date\" DESC"),
-        new("Date: oldest first",   "\"Date\" ASC"),
-        new("Amount: high → low",   "CAST(\"Amount\" AS DOUBLE PRECISION) DESC"),
-        new("Amount: low → high",   "CAST(\"Amount\" AS DOUBLE PRECISION) ASC"),
-        new("Balance: high → low",  "CAST(\"Balance\" AS DOUBLE PRECISION) DESC"),
+        new(FinanceText.SortDateNewest,   "\"Date\" DESC"),
+        new(FinanceText.SortDateOldest,   "\"Date\" ASC"),
+        new(FinanceText.SortAmountHighLow,   "CAST(\"Amount\" AS DOUBLE PRECISION) DESC"),
+        new(FinanceText.SortAmountLowHigh,   "CAST(\"Amount\" AS DOUBLE PRECISION) ASC"),
+        new(FinanceText.SortBalanceHighLow,  "CAST(\"Balance\" AS DOUBLE PRECISION) DESC"),
     ];
     private GridSortOption _selectedJournalSort;
     public GridSortOption SelectedJournalSort
@@ -329,12 +331,12 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> TxnSortOptions { get; } =
     [
-        new("Date: newest first",     "\"Date\" DESC"),
-        new("Date: oldest first",     "\"Date\" ASC"),
-        new("Total: high → low",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) DESC"),
-        new("Total: low → high",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) ASC"),
-        new("Unit price: high → low", "CAST(\"UnitPrice\" AS DOUBLE PRECISION) DESC"),
-        new("Quantity: high → low",   "\"Quantity\" DESC"),
+        new(FinanceText.SortDateNewest,     "\"Date\" DESC"),
+        new(FinanceText.SortDateOldest,     "\"Date\" ASC"),
+        new(FinanceText.SortTotalHighLow,      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) DESC"),
+        new(FinanceText.SortTotalLowHigh,      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) ASC"),
+        new(FinanceText.SortUnitPriceHighLow, "CAST(\"UnitPrice\" AS DOUBLE PRECISION) DESC"),
+        new(FinanceText.SortQuantityHighLow,   "\"Quantity\" DESC"),
     ];
     private GridSortOption _selectedTxnSort;
     public GridSortOption SelectedTxnSort
@@ -387,17 +389,28 @@ public class WalletViewModel : ReactiveObject
     private string _txnOwnerFilter    = "";
     private string _txnDivFilter      = "";
 
-    public IReadOnlyList<string> DirectionOptions { get; } = ["All", "Buy", "Sell"];
+    public IReadOnlyList<Choice<string>> DirectionOptions { get; } =
+    [
+        new("All",  FinanceText.DirAll),
+        new("Buy",  FinanceText.DirBuy),
+        new("Sell", FinanceText.DirSell),
+    ];
 
     public string TxnItemFilter
     {
         get => _txnItemFilter;
         set { this.RaiseAndSetIfChanged(ref _txnItemFilter, value); DebounceTxn(); }
     }
-    public string TxnDirectionFilter
+    public Choice<string> TxnDirectionFilter
     {
-        get => _txnDirectionFilter;
-        set { this.RaiseAndSetIfChanged(ref _txnDirectionFilter, value ?? "All"); ReloadTxn(); }
+        get => DirectionOptions.FirstOrDefault(o => o.Value == _txnDirectionFilter) ?? DirectionOptions[0];
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _txnDirectionFilter = value.Value;
+            this.RaisePropertyChanged();
+            ReloadTxn();
+        }
     }
     public string TxnLocationFilter
     {
@@ -466,10 +479,10 @@ public class WalletViewModel : ReactiveObject
 
         Periods =
         [
-            new("Last 24 \"Hours\"",  24),
-            new("Last 7 Days",    168),
-            new("Last 30 Days",   720),
-            new("Last 90 Days",   2160),
+            new(FinanceText.Last24Hours,  24),
+            new(FinanceText.Last7Days,    168),
+            new(FinanceText.Last30Days,   720),
+            new(FinanceText.Last90Days,   2160),
         ];
         _selectedPeriod = Periods[2];
 
@@ -512,7 +525,7 @@ public class WalletViewModel : ReactiveObject
 
             var options = new List<WalletOwnerOption>
             {
-                new("All Characters & Personal Corps", null, null, false)
+                new(FinanceText.OwnerAllCharsCorps, null, null, false)
             };
             foreach (var c in chars)
                 options.Add(new WalletOwnerOption(c.Name, c.Id, "character", false));
@@ -546,15 +559,15 @@ public class WalletViewModel : ReactiveObject
             var cutoff = DateTimeOffset.UtcNow.AddHours(-_selectedPeriod.Hours);
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            StatusText = "Loading balances...";
+            StatusText = FinanceText.LoadingBalances;
             await LoadBalanceAsync(db, owner);
 
-            StatusText = "Building charts...";
+            StatusText = FinanceText.BuildingCharts;
             await BuildChartsAsync(db, owner, cutoff);
 
             if (owner?.IsCorp == true)
             {
-                StatusText = "Loading divisions...";
+                StatusText = FinanceText.LoadingDivisions;
                 await LoadDivisionsAsync(db, owner);
             }
             else
@@ -767,6 +780,10 @@ public class WalletViewModel : ReactiveObject
             var locationNames = await BuildLocationNamesAsync(db, rows.Select(r => r.LocationId));
             var divMap        = await BuildDivisionMapAsync(db, owner);
 
+            // Item names in the interface language before the rows are built: at once in English,
+            // and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync();
+
             TransactionRows.Clear();
             foreach (var r in rows)
                 TransactionRows.Add(new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap));
@@ -815,8 +832,13 @@ public class WalletViewModel : ReactiveObject
         var itemF = _txnItemFilter.Trim();
         if (itemF.Length > 0)
         {
+            // The English name, or the name the grid shows: the types whose name in the interface
+            // language holds the text are added by id, as integer literals.
+            var shownIds = SdeNames.Find(SdeNameKind.Type, itemF);
+            var orShown  = shownIds.Count == 0 ? ""
+                : $" OR x.\"TypeId\" IN ({string.Join(",", shownIds.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)))})";
             int i = ps.Count; ps.Add("%" + itemF + "%");
-            parts.Add($"x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}})");
+            parts.Add($"(x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}}){orShown})");
         }
 
         if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = TRUE");
@@ -825,10 +847,15 @@ public class WalletViewModel : ReactiveObject
         var locF = _txnLocationFilter.Trim();
         if (locF.Length > 0)
         {
+            // The English name, or the name the grid shows: the NPC stations whose name in the
+            // interface language holds the text are added by id, as integer literals.
+            var shownIds = SdeNames.Find(SdeNameKind.Station, locF);
+            var orShown  = shownIds.Count == 0 ? ""
+                : $" OR x.\"LocationId\" IN ({string.Join(",", shownIds.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)))})";
             int i = ps.Count; ps.Add("%" + locF + "%");
             int j = ps.Count; ps.Add("%" + locF + "%");
-            parts.Add($"x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
-                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}})");
+            parts.Add($"(x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}}){orShown})");
         }
 
         var ownerF = _txnOwnerFilter.Trim();
@@ -966,18 +993,18 @@ public class WalletViewModel : ReactiveObject
             };
 
         var incSlices = new List<ISeries>();
-        if (mktSell     > 0) incSlices.Add(Slice("Market Sales",      mktSell,     new SKColor(200, 168,  75)));
-        if (npcBounty   > 0) incSlices.Add(Slice("NPC Bounties",      npcBounty,   new SKColor(110, 190, 100)));
-        if (contractInc > 0) incSlices.Add(Slice("Contract Sales",    contractInc, new SKColor( 91, 155, 213)));
-        if (otherIncome > 0) incSlices.Add(Slice("Other Income",      otherIncome, new SKColor(155, 120, 200)));
+        if (mktSell     > 0) incSlices.Add(Slice(FinanceText.SliceMarketSales,      mktSell,     new SKColor(200, 168,  75)));
+        if (npcBounty   > 0) incSlices.Add(Slice(FinanceText.SliceNpcBounties,      npcBounty,   new SKColor(110, 190, 100)));
+        if (contractInc > 0) incSlices.Add(Slice(FinanceText.SliceContractSales,    contractInc, new SKColor( 91, 155, 213)));
+        if (otherIncome > 0) incSlices.Add(Slice(FinanceText.SliceOtherIncome,      otherIncome, new SKColor(155, 120, 200)));
 
         var expSlices = new List<ISeries>();
-        if (mktBuy      > 0) expSlices.Add(Slice("Market Purchases",   mktBuy,       new SKColor(200,  90,  90)));
-        if (contractExp > 0) expSlices.Add(Slice("Contract Purchases", contractExp,  new SKColor(200, 120, 160)));
-        if (brokerFee   > 0) expSlices.Add(Slice("Broker Fees",        brokerFee,    new SKColor(220, 150,  60)));
-        if (txnTax      > 0) expSlices.Add(Slice("Transaction \"Tax\"",    txnTax,       new SKColor(180, 180,  60)));
-        if (indyTax     > 0) expSlices.Add(Slice("Industry \"Tax\"",       indyTax,      new SKColor(100, 170, 200)));
-        if (otherExpense > 0) expSlices.Add(Slice("Other Expenses",    otherExpense, new SKColor(160, 100, 120)));
+        if (mktBuy      > 0) expSlices.Add(Slice(FinanceText.SliceMarketPurchases,   mktBuy,       new SKColor(200,  90,  90)));
+        if (contractExp > 0) expSlices.Add(Slice(FinanceText.SliceContractPurchases, contractExp,  new SKColor(200, 120, 160)));
+        if (brokerFee   > 0) expSlices.Add(Slice(FinanceText.SliceBrokerFees,        brokerFee,    new SKColor(220, 150,  60)));
+        if (txnTax      > 0) expSlices.Add(Slice(FinanceText.SliceTransactionTax,    txnTax,       new SKColor(180, 180,  60)));
+        if (indyTax     > 0) expSlices.Add(Slice(FinanceText.SliceIndustryTax,       indyTax,      new SKColor(100, 170, 200)));
+        if (otherExpense > 0) expSlices.Add(Slice(FinanceText.SliceOtherExpenses,    otherExpense, new SKColor(160, 100, 120)));
 
         IncomeSeries   = incSlices.Count > 0 ? incSlices : [];
         ExpenseSeries  = expSlices.Count > 0 ? expSlices : [];
@@ -1008,7 +1035,7 @@ public class WalletViewModel : ReactiveObject
             if (!balances.ContainsKey(i) && !divNames.ContainsKey(i)) continue;
             divNames.TryGetValue(i, out var rawName);
             var name = string.IsNullOrWhiteSpace(rawName)
-                ? (i == 1 ? "Master Wallet" : $"\"Division\" {i}")
+                ? (i == 1 ? FinanceText.MasterWallet : string.Format(FinanceText.DivisionNumbered, i))
                 : rawName;
             var balance = balances.TryGetValue(i, out var b) ? b : 0m;
             DivisionRows.Add(new WalletDivisionRowVm(i, name, balance));

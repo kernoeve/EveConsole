@@ -9,7 +9,7 @@
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.15</Version>
+    <Version>0.9.16</Version>
   </PropertyGroup>
 
   <!--
@@ -146,6 +146,26 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <!-- ═══ Interface text, one class per file ════════════════════════════════
+       Localization/ShellText.resx is the English, and becomes the class ShellText: one property
+       per string, so XAML reads {x:Static loc:ShellText.NavOverview} and code ShellText.NavOverview,
+       and a mistyped name is a BUILD error rather than a blank label. Generated at build time
+       by MSBuild itself, into obj/ — no IDE step, nothing generated to commit.
+       ⚠️ Only the English files, which end in "Text.resx". A translation (ShellText.zh-Hans.resx)
+       is not a class; it becomes the zh-Hans/EveConsole.resources.dll the build puts beside the
+       app, and ShellText reads it when the interface language is Chinese.
+       ⚠️ Public: Avalonia's XAML compiler resolves x:Static only against public members, and an
+       internal class fails every label with AVLN2000 "Unable to resolve … as static field". -->
+  <ItemGroup>
+    <EmbeddedResource Update="Localization\*Text.resx">
+      <StronglyTypedFileName>$(IntermediateOutputPath)%(Filename).g.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>EveConsole.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>%(Filename)</StronglyTypedClassName>
+      <PublicClass>true</PublicClass>
+    </EmbeddedResource>
   </ItemGroup>
 
   <!-- ═══ Kokoro's voices and espeak data — in the PUBLISHED app too ════════

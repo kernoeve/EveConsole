@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.AddEditInvGroupDialog"
-        Title="Group"
+        Title="{x:Static loc:AssetsText.TitleGroup}"
         Width="460" Height="580"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -14,7 +15,7 @@
 
         <!-- Group Name -->
         <StackPanel Spacing="5">
-          <TextBlock Text="GROUP NAME" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:AssetsText.GroupNameLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <TextBox x:Name="NameBox"
                    Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -24,7 +25,7 @@
 
         <!-- Collection -->
         <StackPanel Spacing="5">
-          <TextBlock Text="COLLECTION" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:AssetsText.CollectionLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <ComboBox x:Name="CollectionBox"
                     Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -33,16 +34,16 @@
 
         <!-- Scope -->
         <StackPanel Spacing="5">
-          <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:AssetsText.ScopeLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <WrapPanel>
-            <RadioButton x:Name="ScopeStation"    Content="Station"    GroupName="Scope"
+            <RadioButton x:Name="ScopeStation"    Content="{x:Static loc:AssetsText.Station}"    GroupName="Scope"
                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-            <RadioButton x:Name="ScopeSystem"     Content="System"     GroupName="Scope"
+            <RadioButton x:Name="ScopeSystem"     Content="{x:Static loc:AssetsText.System}"     GroupName="Scope"
                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-            <RadioButton x:Name="ScopeRegion"     Content="Region"     GroupName="Scope"
+            <RadioButton x:Name="ScopeRegion"     Content="{x:Static loc:AssetsText.Region}"     GroupName="Scope"
                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-            <RadioButton x:Name="ScopeEverywhere" Content="Everywhere" GroupName="Scope"
+            <RadioButton x:Name="ScopeEverywhere" Content="{x:Static loc:AssetsText.Everywhere}" GroupName="Scope"
                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" IsChecked="True" />
           </WrapPanel>
         </StackPanel>
@@ -50,10 +51,10 @@
         <!-- Location picker (hidden for Everywhere) -->
         <StackPanel x:Name="LocationPanel" Spacing="5" IsVisible="False">
           <TextBlock x:Name="LocationLabel"
-                     Text="LOCATION" FontSize="10" FontWeight="SemiBold"
+                     Text="{x:Static loc:AssetsText.LocationLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <TextBox x:Name="LocationSearchBox"
-                   Watermark="Type to search…"
+                   Watermark="{x:Static loc:AssetsText.HintTypeToSearch}"
                    Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                    CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                    FontSize="12" Padding="8 5" />
@@ -62,7 +63,18 @@
                   CornerRadius="3" MaxHeight="120" IsVisible="False">
             <ListBox x:Name="LocationListBox"
                      Background="Transparent" BorderThickness="0"
-                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <!-- A system's region beside it, as every system picker shows it. -->
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Region}" FontSize="10" Margin="10 0 0 0"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </Border>
           <TextBlock x:Name="SelectedLocationText"
                      FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
@@ -70,31 +82,31 @@
 
         <!-- Include -->
         <StackPanel Spacing="5">
-          <TextBlock Text="INCLUDE" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:AssetsText.IncludeLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <CheckBox x:Name="IncludeAssetsBox"
-                    Content="Assets" IsChecked="True"
+                    Content="{x:Static loc:AssetsText.Assets}" IsChecked="True"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="IncludeJobsBox"
-                    Content="Industry Jobs (products)"
+                    Content="{x:Static loc:AssetsText.IndustryJobsProducts}"
                     IsChecked="True"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="IncludeBuyOrdersBox"
-                    Content="Market Buy Orders"
+                    Content="{x:Static loc:AssetsText.MarketBuyOrders}"
                     IsChecked="True"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="IncludeContractsBox"
-                    Content="Contracts Buying"
+                    Content="{x:Static loc:AssetsText.ContractsBuying}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="PackagedOnlyBox"
-                    Content="Only count packaged items (skip assembled / fitted hulls)"
-                    ToolTip.Tip="Blueprints are never filtered by this: a copy is non-stacking rather than assembled."
+                    Content="{x:Static loc:AssetsText.OnlyCountPackagedItems}"
+                    ToolTip.Tip="{x:Static loc:AssetsText.TipBlueprintsAreNeverFiltered}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
         </StackPanel>
 
         <!-- Multiplier -->
         <StackPanel Spacing="5">
-          <TextBlock Text="MULTIPLIER" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:AssetsText.MultiplierLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <StackPanel Orientation="Horizontal" Spacing="8">
             <NumericUpDown x:Name="MultiplierBox"
@@ -103,7 +115,7 @@
                            Width="120" FontSize="12"
                            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                            Foreground="{DynamicResource TextPrimaryBrush}" />
-            <TextBlock Text="× target quantities for all items"
+            <TextBlock Text="{x:Static loc:AssetsText.TargetQuantitiesForAllItems}"
                        FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
           </StackPanel>
         </StackPanel>
@@ -116,12 +128,12 @@
       <TextBlock Grid.Column="0" x:Name="ErrorText"
                  Foreground="{DynamicResource BadBrush}" FontSize="11"
                  VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="Cancel"
+      <Button Grid.Column="1" Content="{x:Static loc:AssetsText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
-      <Button Grid.Column="2" Content="OK"
+      <Button Grid.Column="2" Content="{x:Static loc:AssetsText.Ok}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6"

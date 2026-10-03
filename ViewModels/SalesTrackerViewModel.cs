@@ -13,6 +13,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -34,6 +35,12 @@ internal static class ProfitBrushes
 // ReactiveObject so the main grid's Profit columns refresh live when the cost basis changes.
 public class SaleRowVm : ReactiveObject
 {
+    /// <summary>A sale of several items: the first item's name and how many more there are, so
+    /// a screen can make the name a link and the rest plain. ⚠️ Not found by splitting Items: its
+    /// words and their order are the translation's.</summary>
+    public string ItemHead { get; init; } = "";
+    public int    ItemMore { get; init; }
+
     private Bitmap? _icon;
     /// <summary>The named item's picture, once the batch that fetches them has it.</summary>
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
@@ -186,7 +193,7 @@ public class SaleRowVm : ReactiveObject
         // Same shape as the Order Tracker's contract cell, so one contract reads the same
         // wherever it appears: its own description when it has one, its id when it does not.
         Contract = kind == "Contract" && saleId > 0
-            ? (contractTitle.Length > 0 ? $"{contractTitle} ({saleId})" : $"Contract {saleId}")
+            ? (contractTitle.Length > 0 ? $"{contractTitle} ({saleId})" : string.Format(SalesText.ContractNumbered, saleId))
             : "";
         TypeId      = typeId;
         MarketGroup = marketGroup;
@@ -333,9 +340,9 @@ public class SalesTrackerViewModel : ReactiveObject
 
     public IReadOnlyList<SalesGrain> Grains { get; } =
     [
-        new("Daily",   "d"),
-        new("Weekly",  "w"),
-        new("Monthly", "m"),
+        new(SalesText.GrainDaily,   "d"),
+        new(SalesText.GrainWeekly,  "w"),
+        new(SalesText.GrainMonthly, "m"),
     ];
 
     private SalesGrain _grain;
@@ -356,7 +363,7 @@ public class SalesTrackerViewModel : ReactiveObject
     /// quietly disagreeing with the grid.</summary>
     public int Uncosted { get; private set; }
     public string UncostedNote => Uncosted > 0
-        ? $"{Uncosted:N0} sale(s) have no cost on either basis and are not charted."
+        ? string.Format(SalesText.UncostedNote, Uncosted)
         : "";
 
     public Axis[] ChartXAxes { get; } =
@@ -367,7 +374,7 @@ public class SalesTrackerViewModel : ReactiveObject
             {
                 var t = (long)v;
                 return t < DateTime.MinValue.Ticks || t > DateTime.MaxValue.Ticks
-                    ? "" : new DateTime(t).ToString("MMM d");
+                    ? "" : new DateTime(t).ToString(CommonText.DateMonthDay);
             },
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,
@@ -422,8 +429,8 @@ public class SalesTrackerViewModel : ReactiveObject
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [
-        new("All",                             OwnerScope.All),
-        new("All Characters and Personal Corps", OwnerScope.CharsAndPersonalCorps),
+        new(SalesText.OwnerAll,                              OwnerScope.All),
+        new(SalesText.OwnerCharsAndPersonalCorps, OwnerScope.CharsAndPersonalCorps),
     ];
     private SalesOwnerOption _selectedOwner;
     public SalesOwnerOption SelectedOwner
@@ -444,9 +451,9 @@ public class SalesTrackerViewModel : ReactiveObject
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
     [
-        new("All types", null),
-        new("Market",    "Market"),
-        new("Contract",  "Contract"),
+        new(SalesText.TypeAll, null),
+        new(SalesText.SaleTypeMarket,    "Market"),
+        new(SalesText.SaleTypeContract,  "Contract"),
     ];
     private SalesTypeOption _selectedType;
     public SalesTypeOption SelectedType
@@ -462,15 +469,15 @@ public class SalesTrackerViewModel : ReactiveObject
     }
 
     // Cost basis the profit columns / rollups are measured against.
-    public IReadOnlyList<string> ProfitBasisOptions { get; } = ["Build", "Market"];
-    private string _selectedProfitBasis = "Build";
+    public IReadOnlyList<string> ProfitBasisOptions { get; } = [SalesText.BasisBuild, SalesText.BasisMarket];
+    private string _selectedProfitBasis = SalesText.BasisBuild;
     public string SelectedProfitBasis
     {
         get => _selectedProfitBasis;
-        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? "Build"); ApplyProfitBasis(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? SalesText.BasisBuild); ApplyProfitBasis(); }
     }
     private SaleCostBasis CurrentBasis =>
-        _selectedProfitBasis == "Market" ? SaleCostBasis.MarketValue : SaleCostBasis.BuildCost;
+        _selectedProfitBasis == SalesText.BasisMarket ? SaleCostBasis.MarketValue : SaleCostBasis.BuildCost;
 
     private void ApplyProfitBasis()
     {
@@ -604,12 +611,12 @@ public class SalesTrackerViewModel : ReactiveObject
         _ = Task.WhenAll(list.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
 
         StatusText = list.Count == 0
-            ? "No sales match the filters."
-            : $"{list.Count:N0} sale(s)" +
+            ? SalesText.NoSalesMatch
+            : Plurals.Format(SalesText.ResourceManager, nameof(SalesText.SalesCountOther), list.Count) +
               (excluded > 0
                   ? ShowNotForProfit
-                      ? $" · {excluded:N0} not for profit, shown but not counted"
-                      : $" · {excluded:N0} not for profit, hidden"
+                      ? string.Format(SalesText.ExcludedShown, excluded)
+                      : string.Format(SalesText.ExcludedHidden, excluded)
                   : "");
 
         // Buyers and items link the same way their columns in the grid below do. Market group is
@@ -708,12 +715,12 @@ public class SalesTrackerViewModel : ReactiveObject
 
         IskSeries =
         [
-            Line("Gross costs", costs,  new SKColor(0xaa, 0x44, 0x44)),
-            Line("Gross sales", sales,  new SKColor(0x55, 0x99, 0xaa)),
-            Line("Net profit",  profit, new SKColor(0x4a, 0x8a, 0x5a)),
+            Line(SalesText.SeriesGrossCosts, costs,  new SKColor(0xaa, 0x44, 0x44)),
+            Line(SalesText.SeriesGrossSales, sales,  new SKColor(0x55, 0x99, 0xaa)),
+            Line(SalesText.SeriesNetProfit,  profit, new SKColor(0x4a, 0x8a, 0x5a)),
         ];
 
-        MarginSeries = [Line("Margin", margin, new SKColor(0xc8, 0xa8, 0x4b))];
+        MarginSeries = [Line(SalesText.SeriesMargin, margin, new SKColor(0xc8, 0xa8, 0x4b))];
     }
 
     /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
@@ -791,7 +798,7 @@ public class SalesTrackerViewModel : ReactiveObject
         var ordered = items.Where(i => i.Value > 0 && i.Value != double.MinValue).OrderByDescending(i => i.Value).ToList();
         var slices  = ordered.Take(10).ToList();
         var rest    = ordered.Skip(10).Sum(i => i.Value);
-        if (rest > 0) slices.Add(("Other", rest));
+        if (rest > 0) slices.Add((SalesText.PieOther, rest));
 
         var series = new List<ISeries>(slices.Count);
         for (var i = 0; i < slices.Count; i++)
@@ -801,7 +808,7 @@ public class SalesTrackerViewModel : ReactiveObject
             {
                 Name                  = label,
                 Values                = [value],
-                Fill                  = new SolidColorPaint(label == "Other" ? ChartPalette.Other : ChartPalette.Pie[i % ChartPalette.Pie.Length]),
+                Fill                  = new SolidColorPaint(label == SalesText.PieOther ? ChartPalette.Other : ChartPalette.Pie[i % ChartPalette.Pie.Length]),
                 Stroke                = null,
                 DataLabelsPaint       = null,
                 AnimationsSpeed       = TimeSpan.Zero,
@@ -839,12 +846,12 @@ public class SalesTrackerViewModel : ReactiveObject
         {
             await _labels.AddToSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
             await LoadAsync();
-            StatusText = $"Labelled {rows.Count:N0} sale(s) \"{clean}\".";
+            StatusText = string.Format(SalesText.StatusLabelledSales, rows.Count, clean);
         }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(AddLabelToAsync), ex);
-            StatusText = $"Could not label: {ex.Message}";
+            StatusText = string.Format(SalesText.StatusLabelFailed, ex.Message);
         }
     }
 
@@ -858,12 +865,12 @@ public class SalesTrackerViewModel : ReactiveObject
         {
             await _labels.RemoveFromSalesAsync(rows.Select(r => (r.Kind, r.SaleId)).ToList(), clean);
             await LoadAsync();
-            StatusText = $"Removed \"{clean}\" from {rows.Count:N0} sale(s).";
+            StatusText = string.Format(SalesText.StatusLabelRemovedSales, clean, rows.Count);
         }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(SalesTrackerViewModel), nameof(RemoveLabelFromAsync), ex);
-            StatusText = $"Could not remove label: {ex.Message}";
+            StatusText = string.Format(SalesText.StatusLabelRemoveFailed, ex.Message);
         }
     }
 
@@ -871,7 +878,7 @@ public class SalesTrackerViewModel : ReactiveObject
     {
         if (IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             // ⚠️ Before the labels are read, not after. A contract linked since the last look is

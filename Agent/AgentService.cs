@@ -142,6 +142,20 @@ public sealed class AgentService : ReactiveObject
                 $"Never pad — stop when the answer is complete.",
         };
 
+        // ── The interface language ───────────────────────────────────────────
+        //
+        // Empty in English, so the English prompt — and the cached prefix built on it — is
+        // exactly what it was. ⚠️ Names stay as the database's Name columns have them, which is
+        // English: the game's own translations (SdeNames) are for the screens, and every tool
+        // matches on the English. A name the model translated itself would be its guess at what
+        // the game's own translation says, not the name the capsuleer sees in game.
+        var language = EveConsole.Localization.Languages.Active is { Code: not "en" } lang
+            ? "\n\n## Language\n" +
+              $"The capsuleer's EVE Console is in {lang.EnglishName} ({lang.NativeName}). Reply in that " +
+              "language unless they write to you in another. Item, ship, structure and place names come " +
+              "from the database in English: give them as they are rather than translating them."
+            : "";
+
         // ── The parts only the model that reads the data is told ─────────────
         //
         // ⚠️ The conversation model, when data questions go to a model of their own, gets
@@ -293,7 +307,7 @@ public sealed class AgentService : ReactiveObject
             ## When an alarm fires
             You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
 
-            {verbosityInstruction}
+            {verbosityInstruction}{language}
 
             ## Tone and format
             You are displayed in a narrow side panel. Prefer plain text over markdown.
@@ -315,8 +329,8 @@ public sealed class AgentService : ReactiveObject
             out in front of it, which is the worst of the two.
 
             ## System names
-            Write null-security system names exactly as they appear — C-FD0D, Y-ORBJ, 6-IAFR. Do not spell them out in your reply; when spoken aloud they are expanded for you.
-            They are said character by character, with the hyphen pronounced "tac": C-FD0D is "C tac F D zero D", 6-IAFR is "six tac I A F R". Use that form only if the capsuleer asks how a name is pronounced, or if you are spelling one out on purpose.
+            Write null-security system names — letters and digits either side of a hyphen — exactly as they appear. Do not spell them out in your reply; when spoken aloud they are expanded for you.
+            They are said character by character: each letter on its own, digits as words, and the hyphen as "tac". Use that form only if the capsuleer asks how a name is pronounced, or if you are spelling one out on purpose.
 
             Speak as {name}: calm, knowledgeable, slightly formal, with subtle warmth. You may address the capsuleer respectfully. Occasionally reference the broader state of New Eden to add colour, but keep the focus on what is useful to the capsuleer right now.
 
@@ -678,29 +692,39 @@ public sealed class AgentService : ReactiveObject
     /// written synchronously first, so nothing is lost if the process ends before this lands, and
     /// the preferences cache is updated before the write, so a read that follows sees the new
     /// value at once.
+    ///
+    /// <para>⚠️ One write at a time, of the latest settings. Settings save as they are typed, so
+    /// two of these can be in flight a second apart, and unordered tasks could land the older one
+    /// last — the database then holding a name the file and the screen no longer do. Each write
+    /// waits its turn and then writes whatever is current, so the last to land is the newest.</para>
     /// </summary>
-    private void SaveShared(AgentSettings s)
+    private void SaveShared()
     {
         if (Preferences is not { } prefs) return;
         _ = Task.Run(async () =>
         {
+            await _sharedWrite.WaitAsync().ConfigureAwait(false);
             try
             {
-                await prefs.SetAsync(SharedKeys.AgentName,    s.AgentName);
-                await prefs.SetAsync(SharedKeys.Verbosity,    s.Verbosity.ToString());
-                await prefs.SetAsync(SharedKeys.UserName,     s.UserName);
-                await prefs.SetAsync(SharedKeys.UserGuidance, s.UserGuidance);
+                var s = _settings;
+                await prefs.SetAsync(SharedKeys.AgentName,    s.AgentName).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.Verbosity,    s.Verbosity.ToString()).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.UserName,     s.UserName).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.UserGuidance, s.UserGuidance).ConfigureAwait(false);
             }
             catch { /* the file has it; the next start seeds what the database lacks */ }
+            finally { _sharedWrite.Release(); }
         });
     }
+
+    private readonly SemaphoreSlim _sharedWrite = new(1, 1);
 
     public void Configure(AgentSettings settings)
     {
         _settings = settings;
         ConfigureRoles();
         Save();
-        SaveShared(settings);
+        SaveShared();
         this.RaisePropertyChanged(nameof(Settings));
     }
 
@@ -718,7 +742,7 @@ public sealed class AgentService : ReactiveObject
         next.UserGuidance = guidance;
         _settings = next;
         Save();
-        SaveShared(next);
+        SaveShared();
         this.RaisePropertyChanged(nameof(Settings));
     }
 

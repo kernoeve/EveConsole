@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -28,7 +29,7 @@ namespace EveConsole.Services.Worklist;
 public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IWorklistGenerator
 {
     public string Id          => "skill_queue";
-    public string DisplayName => "Skill Queues";
+    public string DisplayName => WorklistText.SourceSkillQueues;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -87,8 +88,8 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
             {
                 if (alerts.SkillQueueEmpty)
                     items.Add(Row(ch.Id, ch.Name, "empty",
-                        "Skill queue is empty",
-                        "Nothing is training. Every minute is skill points not earned.",
+                        WorklistText.SkillQueueEmpty,
+                        WorklistText.SkillQueueEmptyDetail,
                         WorklistPriority.Missing));
                 continue;
             }
@@ -96,8 +97,8 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
             if (alerts.SkillQueuePaused && !queue.Any(f => f is { } d && d > now))
             {
                 items.Add(Row(ch.Id, ch.Name, "paused",
-                    "Skill queue is paused",
-                    "The queue has skills in it but none is training.",
+                    WorklistText.SkillQueuePaused,
+                    WorklistText.SkillQueuePausedDetail,
                     WorklistPriority.Missing));
                 continue;
             }
@@ -110,12 +111,12 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
 
             var left = ends - now;
             var when = left.TotalDays >= 1
-                ? $"{(int)left.TotalDays}d {left.Hours}h"
-                : $"{left.Hours}h {left.Minutes}m";
+                ? string.Format(WorklistText.DurationDaysHours, (int)left.TotalDays, left.Hours)
+                : string.Format(CommonText.DurationHoursMinutes, left.Hours, left.Minutes);
 
             items.Add(Row(ch.Id, ch.Name, "ending",
-                $"Skill queue ends in {when}",
-                $"Runs dry {ends.ToLocalTime():d MMM HH:mm}, inside the {warnDays}-day warning.",
+                string.Format(WorklistText.SkillQueueEndsIn, when),
+                string.Format(WorklistText.SkillQueueEndsDetail, ends.ToLocalTime(), warnDays),
                 // Housekeeping rather than Missing: the queue is still training, and a week's
                 // notice is not the same kind of problem as one that has already stopped.
                 WorklistPriority.Housekeeping));
@@ -144,5 +145,6 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
             CharacterId   = charId,
             CharacterName = charName,
             Priority      = priority,
+            IconUrl       = WorklistIcons.Portrait(charId),
         };
 }

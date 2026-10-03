@@ -1,5 +1,6 @@
 using System.Reactive;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -48,8 +49,8 @@ public class GridPager : ReactiveObject
     public bool CanPrev    => CurrentPage > 1;
     public bool CanNext    => CurrentPage < TotalPages;
     public string PageInfo => TotalCount == 0
-        ? "No results"
-        : $"Page {CurrentPage:N0} of {TotalPages:N0}  ·  {TotalCount:N0}";
+        ? CommonText.PagerNoResults
+        : string.Format(CommonText.PagerPageOf, CurrentPage, TotalPages, TotalCount);
 
     public ReactiveCommand<Unit, Unit> FirstPageCommand { get; }
     public ReactiveCommand<Unit, Unit> PrevPageCommand  { get; }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 
@@ -27,8 +28,14 @@ internal sealed record PostingItemView(
     int? InBuildOverride,
     int? ReservedOverride,
     double? SalePrice,
-    DateTimeOffset? EarliestJobEnd)
+    DateTimeOffset? EarliestJobEnd,
+    string? ShownName = null)
 {
+    /// <summary>The item's name in the language the post is written in, which a line prints
+    /// unless the owner gave the item a name of their own. <see cref="TypeName"/> stays English,
+    /// for matching what buyers write back.</summary>
+    public string Shown => ShownName ?? TypeName;
+
     public long EffectiveInStock  => InStockOverride  ?? InStock;
     public long EffectiveInBuild  => InBuildOverride  ?? InBuild;
     public long EffectiveReserved => ReservedOverride ?? Reserved;
@@ -177,7 +184,7 @@ internal static class SalePostingRenderer
         // practice — and wrapping it would make the clickable region include a token that is not
         // part of the item's name. The override is linked, though: it is still this type, just
         // called something the seller prefers.
-        var shown = string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride;
+        var shown = string.IsNullOrWhiteSpace(it.NameOverride) ? it.Shown : it.NameOverride;
         var name  = Pfx(it.NamePrefix) + fmt.ItemLink(it.TypeId, shown);
 
         // Just the numbers for the enabled columns, e.g. (9,2,0).
@@ -194,8 +201,9 @@ internal static class SalePostingRenderer
         if (done.Length > 0) sb.Append(" - ").Append(done);
 
         // A row this reader may not order any more: dimmed and said, whatever colour its state
-        // would give it. The site greys such a row out; a mail can only tell.
-        if (blocked) return fmt.Color(BlockedColor, sb.Append(" - limit reached").ToString());
+        // would give it. The site greys such a row out; a mail can only tell — in the store's
+        // language, since only a store's mail to one buyer marks rows.
+        if (blocked) return fmt.Color(BlockedColor, sb.Append(" - ").Append(StoreText.PriceListLimitReached).ToString());
 
         // The whole line, so the price and counts carry the colour too — a coloured name beside
         // uncoloured numbers reads as a link rather than as a state.

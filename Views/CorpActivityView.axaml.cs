@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using EveConsole.Models;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -44,6 +45,18 @@ public partial class CorpActivityView : UserControl
             _ = vm.PostMonthlySummaryToSlackAsync();
         };
 
+        PostTop10DiscordButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostTop10ToDiscordAsync(includeIsk: false);
+        };
+
+        PostSummaryDiscordButton.Click += (_, _) =>
+        {
+            if (DataContext is not CorpActivityViewModel vm) return;
+            _ = vm.PostMonthlySummaryToDiscordAsync();
+        };
+
         Kill24hList.DoubleTapped += OnKill24hDoubleTapped;
         DataContextChanged += OnDataContextChanged;
     }
@@ -73,7 +86,7 @@ public partial class CorpActivityView : UserControl
 
         vm.ConfirmDelete = async () =>
         {
-            var dlg = new ConfirmDialog("Are you sure you want to delete this standing project?");
+            var dlg = new ConfirmDialog(CorpText.ConfirmDeleteStandingProject);
             return await dlg.ShowDialog<bool>(GetWindow());
         };
     }

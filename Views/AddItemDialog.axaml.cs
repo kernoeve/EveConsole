@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -12,6 +13,15 @@ public partial class AddItemDialog : Window
 {
     private readonly Func<string, Task<List<TypeResultVm>>> _searchFunc;
     private CancellationTokenSource? _cts;
+
+    /// <summary>
+    /// A result as the list shows it: the name in the interface language, which the item template
+    /// binds, over the result itself.
+    ///
+    /// <para>⚠️ The result keeps the English, and that is what the dialog hands back — callers
+    /// store it, and a sale posting prints it.</para>
+    /// </summary>
+    private sealed record Shown(TypeResultVm Result, string Name);
 
     // showQuantity: Inventory Levels needs a per-item target quantity; Sale Posting does not,
     // so it passes false to hide the field.
@@ -43,9 +53,16 @@ public partial class AddItemDialog : Window
         try
         {
             await Task.Delay(200, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             var results = await _searchFunc(text);
             if (ct.IsCancellationRequested) return;
-            ResultsList.ItemsSource = results;
+
+            // Named, and listed, as the screen shows them — the order the search gave was the
+            // English one.
+            ResultsList.ItemsSource = results
+                .Select(r => new Shown(r, SdeNames.Type(r.TypeId, r.Name)))
+                .OrderBy(s => s.Name, StringComparer.CurrentCulture)
+                .ToList();
             OkButton.IsEnabled = false;
         }
         catch (OperationCanceledException) { }
@@ -53,7 +70,7 @@ public partial class AddItemDialog : Window
 
     private void OnResultSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ResultsList.SelectedItem is not TypeResultVm picked)
+        if (ResultsList.SelectedItem is not Shown { Result: var picked } shown)
         {
             OkButton.IsEnabled = false;
             HintText.IsVisible = true;
@@ -66,7 +83,7 @@ public partial class AddItemDialog : Window
         // Fold the list away and say what was chosen. The quantity field is the next thing the
         // reader wants, and it was previously below two hundred pixels of finished-with list.
         _selected             = picked;
-        SelectedText.Text     = picked.Name;
+        SelectedText.Text     = shown.Name;
         SelectedPanel.IsVisible = true;
         ResultsPanel.IsVisible  = false;
         QtyBox.Focus();

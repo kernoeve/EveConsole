@@ -1,0 +1,956 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>메일 작성</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>보낸 사람</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>받는 사람  (이름을 검색하고 Enter 키를 눌러 추가)</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>캐릭터 이름…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>제목</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>본문</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>보내기</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>답장</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>전달</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ 작성</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>발신:</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>시작일:</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>개체 브라우저에서 열기</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>수신:</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>날짜:</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>읽을 메시지를 선택하십시오.</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>EVE 메일</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>캐릭터:</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>유형:</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>보낸 사람:</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>종료일:</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>정렬:</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>읽지 않은 알림만</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>날짜</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>보낸 사람</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>보낸 사람 유형</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>읽음</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>보낸 사람</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>날짜</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>읽음</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>추가 세부 정보가 없습니다.</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>원문 보기</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>세부 정보를 볼 알림을 선택하십시오.</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 처음</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 이전</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>다음 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>마지막 ⏭</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>모든 캐릭터</value>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>전체 메일</value>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>받은 메일함</value>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>보낸 메일함</value>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>메시지 {0:N0}개</value>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>(본문 불러오기 오류: {0})</value>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>메일을 작성할 수 있는 캐릭터가 없습니다.</value>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>이 메일을 받은 캐릭터로는 더 이상 메일을 보낼 수 없습니다.</value>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{1}, {0}님이 작성:
+
+</value>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>보내는 중…</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>메일을 보냈습니다.</value>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>보내기 실패: {0}</value>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>읽음</value>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>읽지 않음</value>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>개체 브라우저에서 열기</value>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>모든 유형</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>날짜: 최신순</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>날짜: 오래된 순</value>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>유형 (오름차순)</value>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>모든 캐릭터</value>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>이 필터와 일치하는 알림이 없습니다.</value>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>검색 중…</value>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>"{0}"에 해당하는 캐릭터가 없습니다.</value>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>제목을 입력해야 합니다.</value>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>본문을 입력해야 합니다.</value>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>받는 사람을 한 명 이상 추가하십시오.</value>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>새 코퍼레이션 가입 신청</value>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>코퍼레이션 초대</value>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>코퍼레이션 가입 신청 수락됨</value>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>가입 신청 수락됨</value>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>가입 신청 거절됨</value>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>가입 신청 철회됨</value>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>멤버가 코퍼레이션을 탈퇴함</value>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>코퍼레이션 세율 변경</value>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>코퍼레이션 청구서</value>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>보험금 지급</value>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>NPC 평판 변경</value>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>NPC 평판 변경</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>코퍼레이션 프로젝트 생성됨</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>코퍼레이션 프로젝트 완료됨</value>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>코퍼레이션 프로젝트 종료됨</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>프리랜서 임무 생성됨</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>프리랜서 임무 완료됨</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>프리랜서 임무 만료됨</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>프리랜서 임무 접근 목록 삭제됨</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>위성 파편 분리 시작</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>위성 파편 분리 완료</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>위성 파편 분리 취소</value>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>위성 파편 자동 폭파</value>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>위성 드릴 발사</value>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>구조물 위치 고정 중</value>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>구조물 위치 고정 해제 중</value>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>구조물 온라인</value>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>구조물 최대 전력 모드 전환</value>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>구조물 저전력 모드 전환</value>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>구조물 공격받는 중</value>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>구조물 실드 소실</value>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>구조물 장갑 소실</value>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>구조물 파괴됨</value>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>구조물 연료 부족</value>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>구조물 촉매 부족</value>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>구조물 촉매 소진</value>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>구조물 서비스 오프라인</value>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>아이템이 자산 보호로 옮겨짐</value>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>구조물로 아이템 배송됨</value>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>구조물 버려짐 임박 — 자산 위험</value>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>구조물 도색 구매</value>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>구조물 소유권 이전</value>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>엔토시스 점령 시작</value>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>스타베이스 공격받는 중</value>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>스타베이스 연료 부족</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>클론 활성화</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>클론 활성화</value>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>클론 해지됨</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>점프 클론 파괴됨</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>점프 클론 파괴됨</value>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>함선 손실</value>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>결정타</value>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>사살권 획득</value>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>전쟁 선포</value>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>전쟁 상속</value>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>동맹관계 상속</value>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>전쟁 무효화</value>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>CONCORD에 의해 철회된 전쟁</value>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>전쟁 본부가 우주에서 제거됨</value>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>협정 전쟁 제안 보냄</value>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>동맹으로 전쟁 참가 제안받음</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>동맹이 수비 측에 합류</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>동맹이 전쟁에 합류</value>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>코퍼레이션이 전쟁 자격 획득</value>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>코퍼레이션이 전쟁 자격을 상실함</value>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>얼라이언스 본부 변경</value>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>전문가 시스템 만료</value>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>게임 시간 추가됨</value>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>구조물 종류</value>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>이동 위치</value>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>클론 위치</value>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>위성</value>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>생성자</value>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>종료자</value>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>초대자</value>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>개시자</value>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>발사자</value>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>취소자</value>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>구매자</value>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>파괴자</value>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>캡슐 파괴자</value>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>새 소유자</value>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>이전 소유자</value>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>위치 소유자</value>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>현상금 등록자</value>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>선포자</value>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>대상</value>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>공격 측</value>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>공격 측 코퍼레이션</value>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>공격 측 얼라이언스</value>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>수비 측</value>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>동맹</value>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>적</value>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>상대</value>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>전쟁 이탈</value>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>전쟁 본부</value>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>수수료</value>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>시작까지</value>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>현재 교전 가능</value>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>필요 아이템</value>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>서비스</value>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>광물</value>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>필요 물품</value>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>금액</value>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>현상금</value>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>로열티 포인트</value>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>프로젝트</value>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>실드</value>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>장갑</value>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>선체</value>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>코퍼레이션 소유</value>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>버려짐</value>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>버려짐까지 남은 일수</value>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>시큐리티 상태</value>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>새 세율</value>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>이전 세율</value>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>시각</value>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>시작 예정</value>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>선포 시각</value>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>종료</value>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>만료</value>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>취약 시간대</value>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>준비 완료</value>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>자동 폭파</value>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>마지막 클론 활성화</value>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>구매 시각</value>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>지속 시간</value>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>배송 가능 시각</value>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>자동 배송</value>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>발행</value>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>기한</value>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>신청서</value>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>신청자</value>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>초대 대상</value>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>멤버</value>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>해지한 코퍼레이션</value>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>이전 위치</value>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>잃은 임플란트</value>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>클론 소유자</value>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>지급액</value>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>자산 보호 정거장</value>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>남은 연료</value>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>배송됨</value>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>수령인</value>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>오프라인 서비스</value>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>타워</value>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>공격자</value>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>공격자 코퍼레이션</value>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>공격자 얼라이언스</value>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>이전한 캐릭터</value>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>전문가 시스템</value>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>새 본부</value>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>도색한 구조물</value>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>제안자</value>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>사살권 대상</value>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>강화 종료 시각</value>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>교전 시작</value>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>소속 코퍼레이션이 이제 전쟁 선포 대상이 될 수 있습니다.</value>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>소속 코퍼레이션이 더 이상 전쟁 선포 대상이 될 수 없습니다.</value>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>계정에 게임 시간이 추가되었습니다.</value>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>정제 가치</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>아직 정제 가치가 없습니다. 이 광석의 정제 산출물 가격을 아직 읽지 않았습니다.</value>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>킬 메일 열기</value>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>예</value>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>아니오</value>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>평판 변동</value>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>대상</value>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>변동</value>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>현재 평판</value>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>청구서 유형 {0}</value>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>거래소 벌금</value>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>사무실 임대료</value>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>중개 수수료</value>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>전쟁 비용</value>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>얼라이언스 유지비</value>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>소버린티 유지비</value>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>외 {0}개</value>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#}시간</value>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0}일</value>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}: {1}.</value>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{1}의 {0}: {2}.</value>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}: {1}, 기한 {2}.</value>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{1}의 {0}: {2}, 기한 {3}.</value>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>청구서</value>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>청구 대상</value>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>수취인</value>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>임대 항목</value>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>대상 얼라이언스</value>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>참조</value>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>두 번째 참조</value>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>항성계 {0}</value>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+지도에서 열기</value>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>지도에서 열기</value>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>위성 {0}</value>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>정거장 {0}</value>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>NPC 개체에서 열기</value>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0} (이름 알 수 없음)</value>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>구조물 (이름 알 수 없음)</value>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>구조물 {0}
+구조물 브라우저에서 열기</value>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>구조물 브라우저에서 열기</value>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>외 {0}건</value>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0}의 나에 대한 평판이 {1} 상승했습니다.</value>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0}의 나에 대한 평판이 {1} 상승했습니다 (현재 {2}).</value>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0}의 나에 대한 평판이 {1} 하락했습니다.</value>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0}의 나에 대한 평판이 {1} 하락했습니다 (현재 {2}).</value>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value> 다른 평판 {0}건도 함께 변동되었습니다.</value>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>모든 보낸 사람</value>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0} 전</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0}일</value>
+  </data>
+</root>

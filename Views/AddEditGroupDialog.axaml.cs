@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -21,7 +22,9 @@ public partial class AddEditGroupDialog : Window
     {
         InitializeComponent();
 
-        StationBox.ItemsSource    = stations;
+        // Listed by the name shown (MarketLevelStation.DisplayName, which the item template binds);
+        // the station picked keeps the English, and that is what the group saves.
+        StationBox.ItemsSource    = stations.OrderBy(s => s.DisplayName, StringComparer.CurrentCulture).ToList();
         SourceBox.ItemsSource     = sources;
         CollectionBox.ItemsSource = collections;
 
@@ -50,7 +53,7 @@ public partial class AddEditGroupDialog : Window
                 { collIdx = i; break; }
         CollectionBox.SelectedIndex = collIdx;
 
-        Title = existingName == null ? "Add Group" : "Edit Group";
+        Title = existingName == null ? MarketText.TitleAddGroup : MarketText.TitleEditGroup;
     }
 
     private void OnOkClick(object? sender, RoutedEventArgs e)
@@ -58,7 +61,7 @@ public partial class AddEditGroupDialog : Window
         var name = NameBox.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(name))
         {
-            ErrorText.Text = "Group name is required.";
+            ErrorText.Text = MarketText.ErrGroupNameRequired;
             return;
         }
 

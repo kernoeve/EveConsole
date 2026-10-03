@@ -3,6 +3,7 @@
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:services="clr-namespace:EveConsole.Services"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.MainWindow"
         services:UiScaleService.ScalesSize="False"
         x:DataType="vm:MainWindowViewModel"
@@ -20,6 +21,20 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <!-- Shows or hides the navigation on the left, for the width. -->
+          <Button Command="{Binding ToggleNavCommand}" Content="☰" FontSize="16"
+                  Background="Transparent" BorderThickness="0" Padding="4 0 4 2" Margin="-6 0 0 0"
+                  Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand" VerticalAlignment="Center"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipToggleNav}">
+            <Button.Styles>
+              <Style Selector="Button:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+              </Style>
+              <Style Selector="Button:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </Button.Styles>
+          </Button>
           <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
                wordmark composited into its bottom eighth, which at 30px is under
                four pixels tall — illegible, and redundant beside the text label
@@ -42,7 +57,7 @@
           <TextBlock Text="{Binding UpdateVm.CurrentVersionText}"
                      FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                      VerticalAlignment="Center"
-                     ToolTip.Tip="The version you are running." />
+                     ToolTip.Tip="{x:Static loc:ShellText.TipVersion}" />
 
           <Button x:Name="ReleaseLinkButton"
                   IsVisible="{Binding UpdateVm.HasUpdateBadge}"
@@ -51,7 +66,7 @@
                   FontSize="11" Foreground="{DynamicResource InfoBrush}"
                   VerticalAlignment="Center"
                   Cursor="Hand"
-                  ToolTip.Tip="Open the release page on GitHub"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipReleasePage}"
                   Click="OnReleaseLinkClick" />
 
           <!-- Which SDE is loaded, and a way to act on it when a newer one exists. The link
@@ -61,26 +76,26 @@
           <TextBlock Text="{Binding SdeVm.SdeShortText}"
                      FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                      VerticalAlignment="Center" Margin="10 0 0 0"
-                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
+                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat={x:Static loc:ShellText.FmtStaticDataExport}}" />
 
           <!-- ⚠️ Bound to SdeUpToDate, not to the absence of an update. If CCP's feed cannot be
                reached the comparison never runs and UpdateAvailable stays false, so keying off
                that would say "up to date" about a build nobody checked. When the check did not
                complete the bar shows neither state. -->
-          <TextBlock Text="up to date"
+          <TextBlock Text="{x:Static loc:ShellText.UpToDate}"
                      IsVisible="{Binding SdeVm.SdeUpToDate}"
                      FontSize="11" Foreground="{DynamicResource GoodBrush}"
                      VerticalAlignment="Center" Margin="6 0 0 0"
-                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
+                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestFromCcpIs}}" />
 
           <Button x:Name="SdeUpdateLinkButton"
                   IsVisible="{Binding SdeVm.UpdateAvailable}"
-                  Content="update available"
+                  Content="{x:Static loc:ShellText.UpdateAvailable}"
                   Background="Transparent" BorderThickness="0" Padding="6 1"
                   FontSize="11" Foreground="{DynamicResource InfoBrush}"
                   VerticalAlignment="Center"
                   Cursor="Hand"
-                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest is {0} — open the SDE settings'}"
+                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestIsOpenTheSde}}"
                   Click="OnSdeUpdateLinkClick" />
 
           <!-- Which database this window is talking to. The icon carries it before the word is
@@ -144,7 +159,7 @@
           <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                       Margin="10 0 0 0" Background="Transparent"
                       ToolTip.Tip="{Binding WorkerTip}">
-            <TextBlock Text="Background:" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+            <TextBlock Text="{x:Static loc:ShellText.BackgroundLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                        VerticalAlignment="Center" />
             <TextBlock Text="{Binding WorkerOwner}" FontSize="11"
                        VerticalAlignment="Center"
@@ -176,7 +191,7 @@
                    clipped the ship column clean off. -->
               <ToolTip MaxWidth="1400">
               <StackPanel Spacing="2" Margin="2">
-                <TextBlock Text="None of your characters are online." FontSize="11"
+                <TextBlock Text="{x:Static loc:ShellText.NoneOfYourCharactersAre}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}"
                            IsVisible="{Binding !HasOnlineCharacters}" />
                 <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
@@ -236,6 +251,15 @@
             <TextBlock Text="{Binding ServerPlayersText}"
                        FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
           </StackPanel>
+
+          <!-- While the ESI governor holds background work back; opens the ESI limits tab. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="10 0 0 0" Cursor="Hand"
+                      Background="Transparent" IsVisible="{Binding EsiThrottled}"
+                      ToolTip.Tip="{Binding EsiThrottleTip}" PointerPressed="OnEsiThrottleClick">
+            <TextBlock Text="▲" FontSize="9" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="{x:Static loc:ShellText.EsiThrottled}" FontSize="10" VerticalAlignment="Center"
+                       Foreground="{DynamicResource WarnBrush}" />
+          </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
@@ -261,7 +285,7 @@
           <Button Content="{Binding AgentVm.AgentName, StringFormat='✦ {0}'}" FontSize="11"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentSurfaceBrush}"
                   Foreground="{DynamicResource AccentBrush}" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
+                  ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat={x:Static loc:ShellText.FmtToggleAiCompanion}}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnAgentToggleClick" />
 
@@ -340,7 +364,7 @@
           <Button x:Name="SchedulerButton"
                   Background="Transparent" BorderThickness="0"
                   Padding="6 4" VerticalAlignment="Center"
-                  ToolTip.Tip="Scheduler"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipScheduler}"
                   Click="OnSchedulerClick">
             <Canvas Width="18" Height="18">
               <Ellipse Canvas.Left="1" Canvas.Top="1" Width="16" Height="16"
@@ -355,13 +379,13 @@
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
                   Foreground="{DynamicResource TextMutedBrush}" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="Settings"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipSettings}"
                   Click="OnGearClick" />
 
           <Button Content="ⓘ" FontSize="16"
                   Background="Transparent" BorderThickness="0"
                   Foreground="{DynamicResource TextFaintBrush}" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="About EVE Console"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipAbout}"
                   Click="OnAboutClick" />
 
         </StackPanel>
@@ -444,26 +468,51 @@
     </Border>
 
     <!-- ── Body: sidebar + content + agent panel ───────────────────────── -->
-    <Grid ColumnDefinitions="190,1,*">
+    <Grid ColumnDefinitions="Auto,Auto,*">
 
-      <!-- Left navigation sidebar -->
-      <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}">
+      <!-- Left navigation sidebar — hidden by the title bar's ☰, for the width. -->
+      <Border Grid.Column="0" Width="190" Background="{DynamicResource SurfaceBaseBrush}" IsVisible="{Binding IsNavVisible}">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
           <ItemsControl x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
                         Margin="0 10 0 10">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <StackPanel Margin="0 0 0 14">
+                <StackPanel Margin="0 0 0 8">
 
-                  <!-- Group label -->
-                  <TextBlock Text="{Binding Title}"
-                             FontSize="9" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.5"
-                             Margin="14 0 14 3" />
+                  <!-- Group label: click to fold the section away or open it again. Remembered
+                       on this machine. Folded, a dot says one of its tools is open. -->
+                  <Button x:CompileBindings="False" Command="{Binding ToggleCommand}"
+                          Background="Transparent" BorderThickness="0" Cursor="Hand"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                          Padding="14 3 14 3" Margin="0 0 0 1">
+                    <Button.Styles>
+                      <Style Selector="Button:pointerover /template/ ContentPresenter">
+                        <Setter Property="Background" Value="Transparent" />
+                      </Style>
+                      <Style Selector="Button:pointerover TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+                      </Style>
+                    </Button.Styles>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <!-- Drawn, not a ▸/▾ character: not every font has those. -->
+                      <Panel Width="8" Height="8" VerticalAlignment="Center">
+                        <Path Data="M 1 0 L 6 4 L 1 8 Z" Fill="{DynamicResource TextFaintBrush}"
+                              IsVisible="{Binding !IsExpanded}" />
+                        <Path Data="M 0 2 L 8 2 L 4 7 Z" Fill="{DynamicResource TextFaintBrush}"
+                              IsVisible="{Binding IsExpanded}" />
+                      </Panel>
+                      <TextBlock Text="{Binding Title}"
+                                 FontSize="9" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.5"
+                                 VerticalAlignment="Center" />
+                      <Ellipse Width="5" Height="5" Fill="{DynamicResource AccentBrush}"
+                               VerticalAlignment="Center" IsVisible="{Binding ShowsOpenMark}" />
+                    </StackPanel>
+                  </Button>
 
                   <!-- Tool entries -->
-                  <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Items}">
+                  <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Items}" IsVisible="{Binding IsExpanded}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Button x:CompileBindings="False"
@@ -502,249 +551,13 @@
       </Border>
 
       <!-- Sidebar divider -->
-      <Rectangle Grid.Column="1" Fill="{DynamicResource SurfaceHoverBrush}" />
+      <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource SurfaceHoverBrush}" IsVisible="{Binding IsNavVisible}" />
 
       <!-- Content area + agent panel -->
       <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
 
-        <!-- Main content: tab strip + view -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,1,*">
-
-          <!-- Tab strip -->
-          <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}">
-            <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
-                 work rather than merely permitting it: a WrapPanel inside a scroller that offers
-                 horizontal scrolling is measured with infinite width, so it never meets an edge to
-                 wrap at and lays every tab out on one line regardless. -->
-            <ListBox x:Name="TabStrip"
-                     ItemsSource="{Binding OpenTabs}"
-                     SelectedItem="{Binding SelectedTab}"
-                     Background="Transparent" BorderThickness="0" Padding="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled">
-              <ListBox.Styles>
-                <!-- Descendant selectors must be outside ControlTheme -->
-                <Style Selector="ListBoxItem:selected TextBlock">
-                  <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-                </Style>
-                <Style Selector="ListBoxItem:pointerover TextBlock">
-                  <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
-                </Style>
-              </ListBox.Styles>
-              <ListBox.ItemContainerTheme>
-                <ControlTheme TargetType="ListBoxItem">
-                  <Setter Property="Padding"         Value="0" />
-                  <Setter Property="Margin"          Value="0" />
-                  <Setter Property="Background"      Value="Transparent" />
-                  <Setter Property="BorderThickness" Value="0 0 0 2" />
-                  <Setter Property="BorderBrush"     Value="Transparent" />
-                  <Setter Property="CornerRadius"    Value="0" />
-                  <Setter Property="Template">
-                    <ControlTemplate>
-                      <Border Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}"
-                              CornerRadius="{TemplateBinding CornerRadius}">
-                        <ContentPresenter Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
-                      </Border>
-                    </ControlTemplate>
-                  </Setter>
-                  <Style Selector="^:selected">
-                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                  </Style>
-                </ControlTheme>
-              </ListBox.ItemContainerTheme>
-<!-- Tabs wrap onto a second row rather than scrolling. The strip was a horizontal
-                   StackPanel in a scroller, so opening more tabs than fit put a scrollbar across
-                   the bottom of them — which covers the tabs it exists to reach. The row is Auto
-                   height, so the strip grows and the content below simply starts lower. -->
-              <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-              </ListBox.ItemsPanel>
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:ToolTab" x:CompileBindings="False">
-                  <StackPanel Orientation="Horizontal" Spacing="0"
-                              PointerPressed="OnTabPointerPressed"
-                              PointerMoved="OnTabPointerMoved"
-                              PointerReleased="OnTabPointerReleased">
-                    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
-                               Padding="14 8 4 8" VerticalAlignment="Center" />
-                    <Button IsVisible="{Binding CanClose}"
-                            x:CompileBindings="False"
-                            Command="{Binding $parent[Window].DataContext.CloseTabCommand}"
-                            CommandParameter="{Binding}"
-                            Content="×" FontSize="13"
-                            Background="Transparent" BorderThickness="0"
-                            Foreground="{DynamicResource BorderStrongBrush}" Padding="2 6 8 6"
-                            VerticalAlignment="Center" Cursor="Hand">
-                      <Button.Styles>
-                        <Style Selector="Button:pointerover /template/ ContentPresenter">
-                          <Setter Property="Background" Value="Transparent" />
-                        </Style>
-                        <Style Selector="Button:pointerover">
-                          <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
-                        </Style>
-                      </Button.Styles>
-                    </Button>
-                  </StackPanel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </Border>
-
-          <!-- Tab strip / content divider -->
-          <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
-
-          <!-- Active tool content -->
-          <ContentControl x:Name="MainContent"
-                          Grid.Row="2"
-                          Content="{Binding SelectedTab.ViewModel}">
-            <ContentControl.DataTemplates>
-              <DataTemplate DataType="vm:OverviewViewModel">
-                <views:CharacterView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:CharacterViewModel">
-                <views:CharacterView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:CharacterViewerViewModel">
-                <views:CharacterViewerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:AssetBrowserViewModel">
-                <views:AssetBrowserView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ItemBrowserViewModel">
-                <views:ItemBrowserView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:IndustryBrowserViewModel">
-                <views:IndustryBrowserView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:IndyParksViewModel">
-                <views:IndyParksView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ProductionCalculatorViewModel">
-                <views:ProductionCalculatorView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:PriceOverrideViewModel">
-                <views:PriceOverrideView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:StructureBrowserViewModel">
-                <views:StructureBrowserView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:UniverseViewModel">
-                <views:UniverseView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:AlarmsViewModel">
-                <views:AlarmsView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:SchedulerViewModel">
-                <views:SchedulerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:JumpPlannerViewModel">
-                <views:JumpPlannerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:MarketLevelViewModel">
-                <views:MarketLevelView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:InvLevelViewModel">
-                <views:InvLevelView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:SalePostingViewModel">
-                <views:SalePostingView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:StoresViewModel">
-                <views:StoresView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
-                <views:TradeOpportunitiesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:IndustryOpportunitiesViewModel">
-                <views:IndustryOpportunitiesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:NetWorthViewModel">
-                <views:NetWorthView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:IncomeExpenseViewModel">
-                <views:IncomeExpenseView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:WalletViewModel">
-                <views:WalletView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ContractsViewModel">
-                <views:ContractsView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:MarketViewerViewModel">
-                <views:MarketViewerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:SalesTrackerViewModel">
-                <views:SalesTrackerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:SaleListingViewModel">
-                <views:SaleListingView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:OrderTrackerViewModel">
-                <views:OrderTrackerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:CorpActivityViewModel">
-                <views:CorpActivityView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:KillmailBrowserViewModel">
-                <views:KillmailBrowserView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:EveMailViewModel">
-                <views:EveMailView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:NotificationsViewModel">
-                <views:NotificationsView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:EsiExplorerViewModel">
-                <views:EsiExplorerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ErrorLogViewModel">
-                <views:ErrorLogView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:AgentUsageViewModel">
-                <views:AgentUsageView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:AgentGridViewModel">
-                <views:AgentGridView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:AgentDocumentViewModel">
-                <views:AgentDocumentView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
-                <views:StandingBuyOrdersView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:WorklistViewModel">
-                <views:WorklistView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:LpMarketValuesViewModel">
-                <views:LpMarketValuesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ApiActivityViewModel">
-                <views:BackgroundProcessesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ItemValuationViewModel">
-                <views:ItemValuationView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:PlayerEntitiesViewModel">
-                <views:PlayerEntitiesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:NpcEntitiesViewModel">
-                <views:NpcEntitiesView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:GameLogViewerViewModel">
-                <views:GameLogViewerView />
-              </DataTemplate>
-              <DataTemplate DataType="vm:ChatLogViewerViewModel">
-                <views:ChatLogViewerView />
-              </DataTemplate>
-            </ContentControl.DataTemplates>
-          </ContentControl>
-
-        </Grid>
+        <!-- The main window's tabs: one side, or two halves (see WorkspaceView). -->
+        <views:WorkspaceView Grid.Column="0" x:Name="MainTabs" DataContext="{Binding Main}" />
 
         <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
              owns the width (the panel itself has none), so hiding it collapses the column to

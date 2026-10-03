@@ -8,6 +8,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -145,7 +146,7 @@ public class EveMailCharacterOption
 
     public EveMailCharacterOption(Character c) { Id = c.Id; Name = c.Name; }
 
-    private EveMailCharacterOption() { Id = 0; Name = "All Characters"; }
+    private EveMailCharacterOption() { Id = 0; Name = CommsText.AllCharacters; }
     public static readonly EveMailCharacterOption All = new();
 
     public override string ToString() => Name;
@@ -268,11 +269,11 @@ public class EveMailViewModel : ReactiveObject
         _sourceChars = characters;
 
         // Static folders — always present
-        Folders.Add(new EveMailFolderVm("All Mail",  null));
-        Folders.Add(new EveMailFolderVm("Inbox",     1));
-        Folders.Add(new EveMailFolderVm("Sent",      2));
-        Folders.Add(new EveMailFolderVm("Corp",      4));
-        Folders.Add(new EveMailFolderVm("Alliance",  8));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderAll,  null));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderInbox,     1));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderSent,      2));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderCorp,      4));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderAlliance,  8));
 
         ComposeCommand = ReactiveCommand.CreateFromTask(OpenComposeAsync);
         ReplyCommand   = ReactiveCommand.CreateFromTask(OpenReplyAsync,
@@ -332,7 +333,7 @@ public class EveMailViewModel : ReactiveObject
     public async Task LoadMailsAsync(CancellationToken ct = default, bool quiet = false)
     {
         if (_selectedChar is null) return;
-        if (!quiet) { IsLoading = true; StatusText = "Loading…"; }
+        if (!quiet) { IsLoading = true; StatusText = CommonText.Loading; }
         try
         {
             List<long>? charIds = _selectedChar.IsAllCharacters
@@ -375,11 +376,11 @@ public class EveMailViewModel : ReactiveObject
                 : new List<EveMailLabelOption>();
             RebuildFolders(customLabels);
 
-            StatusText = $"{Mails.Count} messages";
+            StatusText = Plurals.Format(CommsText.ResourceManager, nameof(CommsText.MailCountOther), Mails.Count);
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {
@@ -491,7 +492,7 @@ public class EveMailViewModel : ReactiveObject
 
         if (mail is null) { BodyMarkup = ""; return; }
         IsLoading = true;
-        BodyMarkup = "Loading…";
+        BodyMarkup = CommonText.Loading;
         try
         {
             var body = await _svc.GetRawBodyAsync(mail.CharId, mail.MailId, ct);
@@ -510,7 +511,7 @@ public class EveMailViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            if (!ct.IsCancellationRequested) BodyMarkup = $"(Error loading body: {ex.Message})";
+            if (!ct.IsCancellationRequested) BodyMarkup = string.Format(CommsText.MailBodyLoadError, ex.Message);
         }
         finally
         {
@@ -523,7 +524,7 @@ public class EveMailViewModel : ReactiveObject
     {
         if (ShowComposeDialog is null) return;
 
-        if (_sourceChars.Count == 0) { StatusText = "No characters available to compose mail."; return; }
+        if (_sourceChars.Count == 0) { StatusText = CommsText.MailNoCharacters; return; }
 
         var defaultFrom = _selectedChar?.IsAllCharacters == false
             ? _selectedChar.Id
@@ -572,7 +573,7 @@ public class EveMailViewModel : ReactiveObject
         // mailbox owner, not whichever character the list happens to be filtered on.
         if (_sourceChars.All(c => c.Id != mail.CharId))
         {
-            StatusText = "The character this mail was sent to is no longer available to send from.";
+            StatusText = CommsText.MailCharacterGone;
             return;
         }
 
@@ -581,7 +582,7 @@ public class EveMailViewModel : ReactiveObject
 
         var quote = "\n\n\n"
                   + "--------------------------------\n"
-                  + $"{mail.FromText} wrote on {mail.TimeText}:\n\n"
+                  + string.Format(CommsText.MailQuoteHeader, mail.FromText, mail.TimeText)
                   + original;
 
         await ComposeAndSendAsync(new ComposeMailArgs
@@ -605,16 +606,16 @@ public class EveMailViewModel : ReactiveObject
         if (result is null) return;
 
         IsLoading  = true;
-        StatusText = "Sending…";
+        StatusText = CommsText.MailSending;
         try
         {
             var (ok, err) = await _svc.SendMailAsync(result.FromCharId, result.Subject, result.Body, result.Recipients);
-            StatusText = ok ? "Mail sent." : $"Send failed: {err}";
+            StatusText = ok ? CommsText.MailSent : string.Format(CommsText.MailSendFailed, err);
             if (ok) _ = LoadMailsAsync(quiet: true);   // the same list, with the sent mail in it
         }
         catch (Exception ex)
         {
-            StatusText = $"Send failed: {ex.Message}";
+            StatusText = string.Format(CommsText.MailSendFailed, ex.Message);
         }
         finally
         {

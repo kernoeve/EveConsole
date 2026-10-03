@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>Acceleration Gate Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "acceleration_gate_fee".</comment>
+  </data>
+  <data name="AchievementCategoryMilestoneReward" xml:space="preserve">
+    <value>Achievement Category Milestone Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "achievement_category_milestone_reward".</comment>
+  </data>
+  <data name="AchievementMilestoneReward" xml:space="preserve">
+    <value>Achievement Milestone Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "achievement_milestone_reward".</comment>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>Advertisement Listing Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "advertisement_listing_fee".</comment>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>Agent Donation</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_donation".</comment>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>Agent Location Services</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_location_services".</comment>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>Agent Miscellaneous</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_miscellaneous".</comment>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>Agent Mission Collateral Paid</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_collateral_paid".</comment>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>Agent Mission Collateral Refunded</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_collateral_refunded".</comment>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>Agent Mission Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_reward".</comment>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>Agent Mission Reward Corporation Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_reward_corporation_tax".</comment>
+  </data>
+  <data name="AgentMissionSecurityTax" xml:space="preserve">
+    <value>Agent Mission Security Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_security_tax".</comment>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>Agent Mission Time Bonus Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_time_bonus_reward".</comment>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>Agent Mission Time Bonus Reward Corporation Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_mission_time_bonus_reward_corporation_tax".</comment>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>Agent Security Services</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_security_services".</comment>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>Agent Services Rendered</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agent_services_rendered".</comment>
+  </data>
+  <data name="AgentsPreward" xml:space="preserve">
+    <value>Agents Pre-reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "agents_preward".</comment>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>AIR Career Program Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "air_career_program_reward".</comment>
+  </data>
+  <data name="AllianceMaintainanceFee" xml:space="preserve">
+    <value>Alliance Maintenance Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "alliance_maintainance_fee".</comment>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>Alliance Registration Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "alliance_registration_fee".</comment>
+  </data>
+  <data name="AllignmentBasedGateToll" xml:space="preserve">
+    <value>Alignment-Based Gate Toll</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "allignment_based_gate_toll".</comment>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>Asset Safety Recovery Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "asset_safety_recovery_tax".</comment>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>Bounty</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty".</comment>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>Bounty Prizes</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty_prize".</comment>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>Bounty Prize Corporation Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty_prize_corporation_tax".</comment>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>Bounty Prizes</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty_prizes".</comment>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>Bounty Reimbursement</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty_reimbursement".</comment>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>Bounty Surcharge</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "bounty_surcharge".</comment>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>Brokers Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "brokers_fee".</comment>
+  </data>
+  <data name="CampaignObjectiveIskReward" xml:space="preserve">
+    <value>Campaign Objective ISK Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "campaign_objective_isk_reward".</comment>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>Clone Activation</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "clone_activation".</comment>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>Clone Transfer</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "clone_transfer".</comment>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>Contraband Fine</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contraband_fine".</comment>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>Contract Auction Bid</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_auction_bid".</comment>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>Contract Auction Bid Corp</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_auction_bid_corp".</comment>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>Contract Auction Bid Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_auction_bid_refund".</comment>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>Contract Auction Sold</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_auction_sold".</comment>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>Contract Brokers Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_brokers_fee".</comment>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>Contract Brokers Fee Corp</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_brokers_fee_corp".</comment>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>Contract Collateral</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_collateral".</comment>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>Contract Collateral Deposited Corp</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_collateral_deposited_corp".</comment>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>Contract Collateral Payout</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_collateral_payout".</comment>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>Contract Collateral Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_collateral_refund".</comment>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>Contract Deposit</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_deposit".</comment>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>Contract Deposit Corp</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_deposit_corp".</comment>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>Contract Deposit Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_deposit_refund".</comment>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>Contract Deposit Sales Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_deposit_sales_tax".</comment>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>Contract Price</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_price".</comment>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>Contract Price Payment (Corp)</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_price_payment_corp".</comment>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>Contract Reversal</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_reversal".</comment>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>Contract Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_reward".</comment>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>Contract Reward Deposited</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_reward_deposited".</comment>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>Contract Reward Deposited Corp</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_reward_deposited_corp".</comment>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>Contract Reward Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_reward_refund".</comment>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>Contract Sales Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "contract_sales_tax".</comment>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "copying".</comment>
+  </data>
+  <data name="CorporateRewardPayout" xml:space="preserve">
+    <value>Corp Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporate_reward_payout".</comment>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>Corporate Reward Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporate_reward_tax".</comment>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>Corporation Account Withdrawal</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_account_withdrawal".</comment>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>Corporation Bulk Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_bulk_payment".</comment>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>Corporation Dividend Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_dividend_payment".</comment>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>Corporation Liquidation</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_liquidation".</comment>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>Corporation Logo Change Cost</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_logo_change_cost".</comment>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>Corporation Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_payment".</comment>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>Corporation Registration Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "corporation_registration_fee".</comment>
+  </data>
+  <data name="CosmeticMarketComponentItemPurchase" xml:space="preserve">
+    <value>Cosmetic Market Component Item Purchase</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_component_item_purchase".</comment>
+  </data>
+  <data name="CosmeticMarketSkinPurchase" xml:space="preserve">
+    <value>Cosmetic Market Skin Purchase</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_skin_purchase".</comment>
+  </data>
+  <data name="CosmeticMarketSkinSale" xml:space="preserve">
+    <value>Cosmetic Market Skin Sale</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_skin_sale".</comment>
+  </data>
+  <data name="CosmeticMarketSkinSaleBrokerFee" xml:space="preserve">
+    <value>Cosmetic Market Skin Sale Broker Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_skin_sale_broker_fee".</comment>
+  </data>
+  <data name="CosmeticMarketSkinSaleTax" xml:space="preserve">
+    <value>Cosmetic Market Skin Sale Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_skin_sale_tax".</comment>
+  </data>
+  <data name="CosmeticMarketSkinTransaction" xml:space="preserve">
+    <value>Cosmetic Market Skin Transaction</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cosmetic_market_skin_transaction".</comment>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>Courier Mission Escrow</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "courier_mission_escrow".</comment>
+  </data>
+  <data name="Cspa" xml:space="preserve">
+    <value>CSPA Charge</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cspa".</comment>
+  </data>
+  <data name="Cspaofflinerefund" xml:space="preserve">
+    <value>CSPA Offline Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "cspaofflinerefund".</comment>
+  </data>
+  <data name="DailyChallengeReward" xml:space="preserve">
+    <value>Daily Challenge Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "daily_challenge_reward".</comment>
+  </data>
+  <data name="DailyGoalPayouts" xml:space="preserve">
+    <value>Daily Goal Payout</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "daily_goal_payouts".</comment>
+  </data>
+  <data name="DailyGoalPayoutsTax" xml:space="preserve">
+    <value>Daily Goal Payouts Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "daily_goal_payouts_tax".</comment>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>Datacore Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "datacore_fee".</comment>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>DNA Modification Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "dna_modification_fee".</comment>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>Docking Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "docking_fee".</comment>
+  </data>
+  <data name="DuelWagerEscrow" xml:space="preserve">
+    <value>Duel Wager Escrow</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "duel_wager_escrow".</comment>
+  </data>
+  <data name="DuelWagerPayment" xml:space="preserve">
+    <value>Duel Wager Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "duel_wager_payment".</comment>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>Duel Wager Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "duel_wager_refund".</comment>
+  </data>
+  <data name="EssEscrowTransfer" xml:space="preserve">
+    <value>ESS Transfer</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "ess_escrow_transfer".</comment>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>External Trade Delivery</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "external_trade_delivery".</comment>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>External Trade Freeze</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "external_trade_freeze".</comment>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>External Trade Thaw</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "external_trade_thaw".</comment>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>Factory Slot Rental Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "factory_slot_rental_fee".</comment>
+  </data>
+  <data name="FluxPayout" xml:space="preserve">
+    <value>Flux Payout</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "flux_payout".</comment>
+  </data>
+  <data name="FluxTax" xml:space="preserve">
+    <value>Flux Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "flux_tax".</comment>
+  </data>
+  <data name="FluxTicketRepayment" xml:space="preserve">
+    <value>Flux Ticket Repayment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "flux_ticket_repayment".</comment>
+  </data>
+  <data name="FluxTicketSale" xml:space="preserve">
+    <value>Flux Ticket Sale</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "flux_ticket_sale".</comment>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>Freelance Jobs Broadcasting Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_broadcasting_fee".</comment>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>Freelance Jobs Duration Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_duration_fee".</comment>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>Freelance Jobs Escrow Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_escrow_refund".</comment>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>Freelance Jobs Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_reward".</comment>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>Freelance Jobs Reward Corporation Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_reward_corporation_tax".</comment>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>Freelance Jobs Reward Escrow</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "freelance_jobs_reward_escrow".</comment>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>GM Cash Transfer</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "gm_cash_transfer".</comment>
+  </data>
+  <data name="GmPlexFeeRefund" xml:space="preserve">
+    <value>GM PLEX Fee Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "gm_plex_fee_refund".</comment>
+  </data>
+  <data name="IndustryJobTax" xml:space="preserve">
+    <value>Industry Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "industry_job_tax".</comment>
+  </data>
+  <data name="IndustrySecurityTax" xml:space="preserve">
+    <value>Industry Security Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "industry_security_tax".</comment>
+  </data>
+  <data name="InfrastructureHubMaintenance" xml:space="preserve">
+    <value>Infrastructure Hub Maintenance</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "infrastructure_hub_maintenance".</comment>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>Inheritance</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "inheritance".</comment>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>Insurance</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "insurance".</comment>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>Insurgency Corruption Contribution Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "insurgency_corruption_contribution_reward".</comment>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>Insurgency Suppression Contribution Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "insurgency_suppression_contribution_reward".</comment>
+  </data>
+  <data name="ItemTraderPayment" xml:space="preserve">
+    <value>Item Trader Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "item_trader_payment".</comment>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>Jump Clone Activation Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "jump_clone_activation_fee".</comment>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>Jump Clone Installation Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "jump_clone_installation_fee".</comment>
+  </data>
+  <data name="KillRightFee" xml:space="preserve">
+    <value>Kill Right Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "kill_right_fee".</comment>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>LP Store</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "lp_store".</comment>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "manufacturing".</comment>
+  </data>
+  <data name="ManufacturingTax" xml:space="preserve">
+    <value>Manufacturing Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "manufacturing_tax".</comment>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>Market Escrow</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "market_escrow".</comment>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>Market Fine Paid</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "market_fine_paid".</comment>
+  </data>
+  <data name="MarketProviderTax" xml:space="preserve">
+    <value>Market Provider Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "market_provider_tax".</comment>
+  </data>
+  <data name="MarketSecurityTax" xml:space="preserve">
+    <value>Market Security Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "market_security_tax".</comment>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>Market Transaction</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "market_transaction".</comment>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>Medal Creation</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "medal_creation".</comment>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>Medal Issued</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "medal_issued".</comment>
+  </data>
+  <data name="MilestoneRewardPayment" xml:space="preserve">
+    <value>Milestone Reward Payment</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "milestone_reward_payment".</comment>
+  </data>
+  <data name="MiningTax" xml:space="preserve">
+    <value>Mining Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "mining_tax".</comment>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>Mission Completion</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "mission_completion".</comment>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>Mission Cost</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "mission_cost".</comment>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>Mission Expiration</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "mission_expiration".</comment>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>Mission Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "mission_reward".</comment>
+  </data>
+  <data name="NpcBountySecurityTax" xml:space="preserve">
+    <value>NPC Bounty Security Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "npc_bounty_security_tax".</comment>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>Office Rental Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "office_rental_fee".</comment>
+  </data>
+  <data name="OperationBonus" xml:space="preserve">
+    <value>Operation Bonus</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "operation_bonus".</comment>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>Opportunity Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "opportunity_reward".</comment>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>Planetary Construction</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "planetary_construction".</comment>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>Planetary Export Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "planetary_export_tax".</comment>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>Planetary Import Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "planetary_import_tax".</comment>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>Player Donation</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "player_donation".</comment>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>Player Trading</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "player_trading".</comment>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>Project Discovery Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "project_discovery_reward".</comment>
+  </data>
+  <data name="ProjectDiscoveryTax" xml:space="preserve">
+    <value>Project Discovery Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "project_discovery_tax".</comment>
+  </data>
+  <data name="ProjectPayouts" xml:space="preserve">
+    <value>Project Payouts</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "project_payouts".</comment>
+  </data>
+  <data name="Reaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "reaction".</comment>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>Redeemed ISK Token</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "redeemed_isk_token".</comment>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>Release Of Impounded Property</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "release_of_impounded_property".</comment>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>Repair Bill</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "repair_bill".</comment>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>Reprocessing Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "reprocessing_tax".</comment>
+  </data>
+  <data name="ResearchingMaterialProductivity" xml:space="preserve">
+    <value>Researching Material Productivity</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "researching_material_productivity".</comment>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>Researching Technology</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "researching_technology".</comment>
+  </data>
+  <data name="ResearchingTimeProductivity" xml:space="preserve">
+    <value>Researching Time Productivity</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "researching_time_productivity".</comment>
+  </data>
+  <data name="ResourceWarsReward" xml:space="preserve">
+    <value>Resource Wars Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "resource_wars_reward".</comment>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>Reverse Engineering</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "reverse_engineering".</comment>
+  </data>
+  <data name="SeasonChallengeReward" xml:space="preserve">
+    <value>Season Challenge Reward</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "season_challenge_reward".</comment>
+  </data>
+  <data name="SecurityProcessingFee" xml:space="preserve">
+    <value>Security Processing Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "security_processing_fee".</comment>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>Shares</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "shares".</comment>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>Skill Purchase</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "skill_purchase".</comment>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>Skyhook Claim Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "skyhook_claim_fee".</comment>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>Sovereignty Bill</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "sovereignity_bill".</comment>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>Store Purchase</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "store_purchase".</comment>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>Store Purchase Refund</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "store_purchase_refund".</comment>
+  </data>
+  <data name="StructureGateJump" xml:space="preserve">
+    <value>Structure Gate Jump</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "structure_gate_jump".</comment>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>Transaction Tax</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "transaction_tax".</comment>
+  </data>
+  <data name="UnderConstruction" xml:space="preserve">
+    <value>Under Construction</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "under_construction".</comment>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>Upkeep Adjustment Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "upkeep_adjustment_fee".</comment>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>War Ally Contract</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "war_ally_contract".</comment>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>War Fee</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "war_fee".</comment>
+  </data>
+  <data name="WarFeeSurrender" xml:space="preserve">
+    <value>War Fee Surrender</value>
+    <comment>A wallet journal entry's type: ESI's ref_type "war_fee_surrender".</comment>
+  </data>
+</root>

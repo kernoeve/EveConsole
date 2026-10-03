@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.AlarmDialogWindow"
         Width="460"
         MinWidth="360"
@@ -36,7 +37,7 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Right"
                   Spacing="10">
-        <Button x:Name="DismissButton" Content="Dismiss" Click="OnDismiss" Padding="24 5" IsDefault="True" />
+        <Button x:Name="DismissButton" Content="{x:Static loc:AlarmsText.Dismiss}" Click="OnDismiss" Padding="24 5" IsDefault="True" />
       </StackPanel>
     </Border>
 

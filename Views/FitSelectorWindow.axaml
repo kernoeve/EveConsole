@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.FitSelectorWindow"
         x:CompileBindings="False"
-        Title="Add Items From Fit"
+        Title="{Binding WindowTitle}"
         Width="800" Height="600"
         MinWidth="600" MinHeight="440"
         CanResize="True"
@@ -46,9 +47,9 @@
   <Grid RowDefinitions="Auto,*,Auto" Margin="14">
 
     <!-- ── Group selector ───────────────────────────────────────────────── -->
-    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0 0 0 10">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0 0 0 10" IsVisible="{Binding ChooseGroup}">
       <TextBlock Grid.Column="0"
-                 Text="ADD TO GROUP:" FontSize="10" FontWeight="SemiBold"
+                 Text="{x:Static loc:CommonText.AddToGroupLabel}" FontSize="10" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"
                  VerticalAlignment="Center" Margin="0 0 10 0" />
       <ComboBox Grid.Column="1"
@@ -71,12 +72,26 @@
       <Border Grid.Column="0"
               Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1"
               CornerRadius="3">
-        <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0"
-                     Text="FITS" FontSize="10" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="8 8 8 4" />
+        <Grid RowDefinitions="Auto,Auto,*">
+          <!-- Heading, what the dots mean, and whose fittings to list. -->
+          <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="8 6 6 4">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:CommonText.FitsLabel}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 14 0" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+              <Ellipse Width="8" Height="8" Fill="#c8a84b" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:FittingText.LegendCharacter}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
+              <Ellipse Width="8" Height="8" Fill="#6fbf73" VerticalAlignment="Center" IsVisible="{Binding AllowsDelete}" />
+              <TextBlock Text="EVE Console" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding AllowsDelete}" />
+            </StackPanel>
+            <ComboBox Grid.Column="2" ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}"
+                      MinWidth="180" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipOwnerFilter}" />
+          </Grid>
 
-          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
+          <!-- Narrows the tree to fits whose name, or whose hull's name, has every word typed. -->
+          <TextBox Grid.Row="1" Text="{Binding SearchText}" Watermark="{x:Static loc:FittingText.FitSearchWatermark}"
+                   FontSize="12" Margin="8 0 8 6" />
+
+          <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto">
             <TreeView ItemsSource="{Binding RootNodes}"
                       SelectedItem="{Binding SelectedNode}">
               <TreeView.ItemTemplate>
@@ -91,6 +106,9 @@
                     <TextBlock Text="{Binding Name}"
                                FontSize="12" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding OwnerLabel}" IsVisible="{Binding IsFit}"
+                               FontSize="10" VerticalAlignment="Center" Margin="4 0 0 0"
+                               Foreground="{DynamicResource TextFaintBrush}" />
                   </StackPanel>
                 </TreeDataTemplate>
               </TreeView.ItemTemplate>
@@ -112,7 +130,7 @@
         <Grid RowDefinitions="Auto,Auto,*">
 
           <TextBlock Grid.Row="0"
-                     Text="FIT CONTENTS" FontSize="10" FontWeight="SemiBold"
+                     Text="{x:Static loc:CommonText.FitContentsLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="8 8 8 2" />
 
           <!-- Source badge row when a fit is selected -->
@@ -147,18 +165,26 @@
     </Grid>
 
     <!-- ── Bottom bar: status + buttons ────────────────────────────────── -->
-    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0 10 0 0">
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 10 0 0">
       <TextBlock Grid.Column="0"
                  Text="{Binding StatusText}"
                  FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                  VerticalAlignment="Center" TextWrapping="Wrap" />
+      <!-- Only fits saved in EVE Console can be deleted from here. -->
       <Button Grid.Column="1"
-              Content="Cancel" Click="OnCancelClick"
-              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              Content="{x:Static loc:FittingText.DeleteSaved}" Click="OnDeleteClick"
+              IsVisible="{Binding AllowsDelete}" IsEnabled="{Binding CanDeleteSelected}"
+              ToolTip.Tip="{x:Static loc:FittingText.TipDeleteSaved}"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource BadBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0" />
       <Button Grid.Column="2"
-              Content="Add Items" Click="OnConfirmClick"
+              Content="{x:Static loc:CommonText.Cancel}" Click="OnCancelClick"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0" />
+      <Button Grid.Column="3"
+              Content="{Binding ConfirmText}" Click="OnConfirmClick"
               IsEnabled="{Binding CanConfirm}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"

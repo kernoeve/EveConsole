@@ -1,5 +1,7 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -23,7 +25,21 @@ public sealed record MapNode(
     /// <summary>Which zoom tier this node belongs to on a continuous map: 0 draws when zoomed
     /// out, 1 when zoomed in. Both tiers live in one graph so zooming reveals detail rather
     /// than navigating to a different map.</summary>
-    int    Tier = 0);
+    int    Tier = 0,
+    /// <summary>The region a system belongs to — the one <see cref="RegionName"/> names — and a
+    /// region node's own id.</summary>
+    int    RegionId = 0)
+{
+    /// <summary>A region rather than a system: the universe map's nodes, and the zoomed-out tier
+    /// of the continuous one.</summary>
+    public bool IsRegion => Id == RegionId;
+
+    // ⚠️ What the map draws, in the interface language, and nothing else. Name, RegionName and
+    // ConstellationName stay English: the map view model finds regions and constellations by them.
+    public string Label              => IsRegion ? SdeNames.Region(Id, Name) : SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel        => SdeNames.Region(RegionId, RegionName);
+    public string ConstellationLabel => SdeNames.Constellation(ConstellationId, ConstellationName);
+}
 
 /// <summary>
 /// The largest hull that can dock somewhere in a system.
@@ -96,9 +112,19 @@ public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdg
 
 /// <summary>A searchable place: a region or a system, with what is needed to navigate to it.
 /// SystemId is 0 for a region.</summary>
-public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId)
+public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId, int ConstellationId = 0)
 {
-    public override string ToString() => Name;
+    /// <summary>The name in the interface language, for the jump box. <see cref="Name"/> stays
+    /// English: the AI agent names places by it (open_map).</summary>
+    public string Label => SystemId > 0        ? SdeNames.SolarSystem(SystemId, Name)
+                         : ConstellationId > 0 ? SdeNames.Constellation(ConstellationId, Name)
+                         :                       SdeNames.Region(RegionId, Name);
+
+    public bool IsSystem        => SystemId > 0;
+    public bool IsConstellation => SystemId == 0 && ConstellationId > 0;
+    public bool IsRegion        => SystemId == 0 && ConstellationId == 0;
+
+    public override string ToString() => Label;
 }
 
 public sealed record RegionSummary(
@@ -227,12 +253,28 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>
-    /// Regions and systems in one list for the jump box. Systems carry their security and
-    /// region so near-identical names can be told apart, and matches that start with the typed
-    /// text rank above ones that merely contain it.
+    /// Regions and systems in one list, matched and ranked on the English — the AI agent's
+    /// open_map, which opens the first match. Systems carry their security and region so
+    /// near-identical names can be told apart, and matches that start with the typed text rank
+    /// above ones that merely contain it.
     /// </summary>
+    public Task<List<PlaceMatch>> SearchPlacesAsync(
+        string text, int limit = 30, CancellationToken ct = default) =>
+        SearchPlacesAsync(text, shownNames: false, limit, ct);
+
+    /// <summary>
+    /// The same search. With <paramref name="shownNames"/>, for the map's jump box: it also finds
+    /// a place by the name the interface shows for it, and ranks by that name.
+    ///
+    /// <para>⚠️ Never for the agent. It opens the FIRST match, so what it finds and in which order
+    /// must not move with the interface language.</para>
+    /// </summary>
+    /// <param name="constellations">Constellations too, between the regions and the systems —
+    /// the map tool's search opens any of the three. Off for the agent, whose open_map takes the
+    /// first match and has no constellation to open.</param>
     public async Task<List<PlaceMatch>> SearchPlacesAsync(
-        string text, int limit = 30, CancellationToken ct = default)
+        string text, bool shownNames, int limit = 30, CancellationToken ct = default,
+        bool constellations = false)
     {
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         var q = text.Trim();
@@ -242,29 +284,76 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // so the % and _ wildcards are never exposed to what the user typed.
         var needle = q.ToLowerInvariant();
 
+        // Places whose shown name holds the text, by id — the SQL can only see the English.
+        // Always empty in English.
+        List<int> regionIds = [], systemIds = [], constellationIds = [];
+        if (shownNames)
+        {
+            await SdeNames.EnsureLoadedAsync(ct);
+            regionIds        = [.. SdeNames.Find(SdeNameKind.Region, q).Select(id => (int)id)];
+            systemIds        = [.. SdeNames.Find(SdeNameKind.SolarSystem, q).Select(id => (int)id)];
+            constellationIds = [.. SdeNames.Find(SdeNameKind.Constellation, q).Select(id => (int)id)];
+        }
+
         using var db = dbFactory.CreateDbContext();
 
-        var regions = await db.SdeRegions.AsNoTracking()
-            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.ToLower().Contains(needle))
+        var regionQuery = db.SdeRegions.AsNoTracking().Where(r => r.RegionId < MaxKnownSpaceRegionId);
+        regionQuery = regionIds.Count == 0
+            ? regionQuery.Where(r => r.Name.ToLower().Contains(needle))
+            : regionQuery.Where(r => r.Name.ToLower().Contains(needle) || regionIds.Contains(r.RegionId));
+
+        var regions = await regionQuery
             .Select(r => new { r.Name, r.RegionId })
             .Take(limit)
             .ToListAsync(ct);
 
-        var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => s.Name.ToLower().Contains(needle))
+        var systemQuery = systemIds.Count == 0
+            ? db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToLower().Contains(needle))
+            : db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(needle) || systemIds.Contains(s.SolarSystemId));
+
+        var systems = await systemQuery
             .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
                   (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
             .Take(limit * 2)
             .ToListAsync(ct);
 
+        var constellationMatches = new List<PlaceMatch>();
+        if (constellations)
+        {
+            // Known space only, like the regions: a wormhole constellation has nowhere on the map.
+            var cq = db.SdeConstellations.AsNoTracking().Where(c => c.RegionId < MaxKnownSpaceRegionId);
+            cq = constellationIds.Count == 0
+                ? cq.Where(c => c.Name.ToLower().Contains(needle))
+                : cq.Where(c => c.Name.ToLower().Contains(needle) || constellationIds.Contains(c.ConstellationId));
+
+            var rows = await cq
+                .Join(db.SdeRegions.AsNoTracking(), c => c.RegionId, r => r.RegionId,
+                      (c, r) => new { c.Name, c.ConstellationId, c.RegionId, Region = r.Name })
+                .Take(limit)
+                .ToListAsync(ct);
+
+            constellationMatches = rows.Select(c => new PlaceMatch(
+                c.Name, string.Format(MapText.SearchConstellationIn, SdeNames.Region(c.RegionId, c.Region)),
+                c.RegionId, 0, c.ConstellationId)).ToList();
+        }
+
+        // The jump box ranks by the name it shows, the agent by the English it asked in.
+        string Ranked(PlaceMatch p) => shownNames ? p.Label : p.Name;
+        var byName = shownNames ? StringComparer.CurrentCulture : StringComparer.OrdinalIgnoreCase;
+
         return regions
-            .Select(r => new PlaceMatch(r.Name, "Region", r.RegionId, 0))
+            .Select(r => new PlaceMatch(r.Name, MapText.GoToRegion, r.RegionId, 0))
+            .Concat(constellationMatches)
             .Concat(systems.Select(s => new PlaceMatch(
-                s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
-            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))
-            .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
-            .ThenBy(p => p.Name.Length)
-            .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {SdeNames.Region(s.RegionId, s.Region)}",
+                s.RegionId, s.SolarSystemId)))
+            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase)
+                                 || Ranked(p).StartsWith(q, StringComparison.OrdinalIgnoreCase))
+            // Regions, then constellations, then systems at equal rank.
+            .ThenBy(p => p.IsRegion ? 0 : p.IsConstellation ? 1 : 2)
+            .ThenBy(p => Ranked(p).Length)
+            .ThenBy(p => Ranked(p), byName)
             .Take(limit)
             .ToList();
     }
@@ -316,7 +405,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // Z is what puts galactic north at the top of the screen, since screen Y grows downward.
         var nodes = regions.Select(r => new MapNode(
             r.RegionId, r.Name, r.X, -r.Z,
-            systemSecurity.GetValueOrDefault(r.RegionId), r.IsWormhole, r.FactionId)).ToList();
+            systemSecurity.GetValueOrDefault(r.RegionId), r.IsWormhole, r.FactionId,
+            RegionId: r.RegionId)).ToList();
 
         var known = nodes.Select(n => n.Id).ToHashSet();
 
@@ -358,8 +448,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>⚠️ By hull, and there is no attribute for it. An earlier version read the hull's
     /// <c>rigSize</c> on the reasoning that the three Upwell sizes are the docking classes. They
     /// are not: rigSize governs which RIGS fit, and a Sotiyo is size 4 while taking neither
-    /// capitals nor supers. That version told the map RH0-EG could dock titans when all it holds
-    /// is a Sotiyo.</para>
+    /// capitals nor supers. That version told the map a system could dock titans when all it
+    /// holds is a Sotiyo.</para>
     ///
     /// <para>Only a Keepstar takes supers and titans; only a Fortizar and an NPC station take
     /// capitals; every other dockable hull is subcapital. Matching on the name covers the faction
@@ -546,7 +636,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             s.SecurityClass, IsOutsideRegion: false, RegionName: s.RegionName,
             ConstellationId: s.ConstellationId,
             ConstellationName: constellationNames.GetValueOrDefault(s.ConstellationId, ""),
-            Tier: 1)).ToList();
+            Tier: 1, RegionId: s.RegionId)).ToList();
 
         var regionMeta = await db.SdeRegions.AsNoTracking()
             .Where(r => r.RegionId < MaxKnownSpaceRegionId)
@@ -563,7 +653,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                     r.RegionId, r.Name,
                     members.Average(s => s.X), -members.Average(s => s.Y),
                     members.Average(s => s.Security), r.IsWormhole, r.FactionId,
-                    Tier: 0);
+                    Tier: 0, RegionId: r.RegionId);
             })
             .OfType<MapNode>()
             .ToList();
@@ -624,7 +714,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             IsOutsideRegion: x.S.RegionId != regionId,
             RegionName: x.RegionName,
             ConstellationId: x.S.ConstellationId,
-            ConstellationName: constellationNames.GetValueOrDefault(x.S.ConstellationId, ""))).ToList();
+            ConstellationName: constellationNames.GetValueOrDefault(x.S.ConstellationId, ""),
+            RegionId: x.S.RegionId)).ToList();
 
         var present = nodes.Select(n => n.Id).ToHashSet();
         var edges = all
@@ -799,7 +890,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     ///
     /// This is the accurate source for ship and pod kills, and CCP's system_kills counter is
     /// not. That endpoint is documented as "the last hour ending at Last-Modified", but it
-    /// demonstrably re-reports the same kills across consecutive hourly snapshots — C-FD0D on
+    /// demonstrably re-reports the same kills across consecutive hourly snapshots — one system on
     /// 2026-08-03 had one burst of 14 ship kills inside hour 15, reported as 12 at 15:44 and a
     /// further 15 at 16:44, summing to 31 for a day zKillboard and our own killmails both put
     /// at 18. Any multi-hour total built from those snapshots is therefore inflated, roughly
@@ -954,8 +1045,11 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// including the retired ones, which traces the path a gang took as it was called through
     /// system after system.
     ///
-    /// Counts sum PlayerCount rather than counting reports, so a single "+8" call carries the
-    /// weight it should.
+    /// <para>A count is of people, not of reports: every hostile pilot named in the window once,
+    /// however many reports named them, and of the pilots counted but not named, the most any one
+    /// report gave — the same "+5" reposted by three scouts is five, not fifteen. A region counts
+    /// its named pilots once across all its systems. Friendlies — the user's own characters,
+    /// corporations and alliances, and anyone set to positive standing — are not counted.</para>
     /// </summary>
     public async Task<Dictionary<int, int>> GetIntelCountsAsync(
         int minutes, bool includeObsolete, bool byRegion, CancellationToken ct = default)
@@ -972,17 +1066,47 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (!includeObsolete) q = q.Where(r => !r.Obsolete);
 
-        if (!byRegion)
-            return await q.GroupBy(r => r.SystemId)
-                          .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
-                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+        var reports = await q.Select(r => new { r.Id, r.SystemId, r.PlayerCount }).ToListAsync(ct);
+        if (reports.Count == 0) return [];
+        var named = await q.Join(db.IntelReportCharacters.AsNoTracking(), r => r.Id, c => c.IntelReportId,
+                                 (r, c) => new { c.IntelReportId, c.CharacterId })
+                           .ToListAsync(ct);
 
-        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
-                            r => r.SystemId, s => s.SolarSystemId,
-                            (r, s) => new { s.RegionId, r.PlayerCount })
-                      .GroupBy(x => x.RegionId)
-                      .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
-                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+        // Friendlies, by character and by what they fly for.
+        var friends  = await LiveIntelService.FriendlyAsync(db, ct);
+        var pilotIds = named.Select(n => n.CharacterId).Distinct().ToList();
+        var flyFor   = pilotIds.Count == 0 ? [] : await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => pilotIds.Contains(a.CharacterId))
+            .ToDictionaryAsync(a => a.CharacterId, a => (a.CorporationId, a.AllianceId), ct);
+        bool Friendly(long id) =>
+            friends.Characters.Contains(id)
+            || (flyFor.TryGetValue(id, out var a)
+                && ((a.CorporationId > 0 && friends.Corporations.Contains(a.CorporationId))
+                    || (a.AllianceId > 0 && friends.Alliances.Contains(a.AllianceId))));
+
+        var namedIn = named.GroupBy(n => n.IntelReportId).ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).ToList());
+        var region  = byRegion
+            ? await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => reports.Select(r => r.SystemId).Distinct().Contains(s.SolarSystemId))
+                .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct)
+            : null;
+
+        // Per system: the most unnamed any one report gave. Per place (system or region): the
+        // distinct hostile pilots named, plus those.
+        var unnamed = reports.GroupBy(r => r.SystemId).ToDictionary(
+            g => g.Key,
+            g => g.Max(r => Math.Max(0, r.PlayerCount - (namedIn.GetValueOrDefault(r.Id)?.Count ?? 0))));
+        int PlaceOf(int systemId) => region is null ? systemId : region.GetValueOrDefault(systemId);
+
+        var result = new Dictionary<int, int>();
+        foreach (var place in reports.GroupBy(r => PlaceOf(r.SystemId)))
+        {
+            if (place.Key == 0) continue;
+            var pilots = place.SelectMany(r => namedIn.GetValueOrDefault(r.Id) ?? []).Distinct().Count(id => !Friendly(id));
+            var extra  = place.Select(r => r.SystemId).Distinct().Sum(s => unnamed[s]);
+            if (pilots + extra > 0) result[place.Key] = pilots + extra;
+        }
+        return result;
     }
 
     /// <summary>
@@ -1030,7 +1154,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         int    Gates,
         int    Stations,
         int    Planets,
-        int    Moons);
+        int    Moons,
+        int    ConstellationId = 0);
 
     public async Task<SystemDetail?> GetSystemDetailAsync(int systemId, CancellationToken ct = default)
     {
@@ -1060,7 +1185,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         return new SystemDetail(
             s.SolarSystemId, s.Name, s.Security, s.SecurityClass,
             constellation, region, s.RegionId, gates, stations,
-            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1));
+            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1),
+            ConstellationId: s.ConstellationId);
     }
 
     // ── System view ──────────────────────────────────────────────────────────

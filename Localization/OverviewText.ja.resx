@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>期間：</value>
+  </data>
+  <data name="CustomizeLayout" xml:space="preserve">
+    <value>⚙ レイアウトをカスタマイズ</value>
+  </data>
+  <data name="ActivitySummary" xml:space="preserve">
+    <value>活動の概要</value>
+  </data>
+  <data name="InPeriod" xml:space="preserve">
+    <value>期間内</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>件数</value>
+  </data>
+  <data name="MarketSales" xml:space="preserve">
+    <value>マーケットでの売却</value>
+  </data>
+  <data name="MarketPurchases" xml:space="preserve">
+    <value>マーケットでの購入</value>
+  </data>
+  <data name="CompletedJobs" xml:space="preserve">
+    <value>完了したジョブ</value>
+  </data>
+  <data name="PlayerShipKills" xml:space="preserve">
+    <value>プレイヤー艦船のキル</value>
+  </data>
+  <data name="TipRequiresFullKillMail" xml:space="preserve">
+    <value>キルとロスを区別するには、キルレポートを完全に取得する必要があります</value>
+  </data>
+  <data name="ShipsLost" xml:space="preserve">
+    <value>失った艦船</value>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>現在の状態</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="OutstandingSellOrders" xml:space="preserve">
+    <value>有効な売り注文</value>
+  </data>
+  <data name="OutstandingBuyOrders" xml:space="preserve">
+    <value>有効な買い注文</value>
+  </data>
+  <data name="OutstandingContracts" xml:space="preserve">
+    <value>未締結の契約</value>
+  </data>
+  <data name="ActiveIndyJobs" xml:space="preserve">
+    <value>実行中の生産ジョブ</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>アラート</value>
+  </data>
+  <data name="AlertSettings" xml:space="preserve">
+    <value>アラートの設定 →</value>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>発生中のアラートはありません。</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="EveOnlineNews" xml:space="preserve">
+    <value>EVE Onlineのニュース</value>
+  </data>
+  <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
+    <value>ニュースを取得できません — 次回の更新時に再試行します。</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="Notifications2" xml:space="preserve">
+    <value>通知 →</value>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>最近の通知はありません。</value>
+  </data>
+  <data name="PersonalKillmails" xml:space="preserve">
+    <value>個人のキルレポート</value>
+  </data>
+  <data name="Killmails" xml:space="preserve">
+    <value>キルレポート →</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="LossesLabel" xml:space="preserve">
+    <value>ロス</value>
+  </data>
+  <data name="NoKillmailsInThisPeriod" xml:space="preserve">
+    <value>この期間のキルレポートはありません。</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>この期間の収入データはありません。</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>この期間の支出データはありません。</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>注文</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>注文管理 →</value>
+  </data>
+  <data name="NoActiveOrders" xml:space="preserve">
+    <value>進行中の注文はありません。</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>作成日</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>予定日</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>調達元</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="StandingBuyOrders2" xml:space="preserve">
+    <value>常設の買い注文 →</value>
+  </data>
+  <data name="NoStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文はありません。</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>自分の買値</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="WorklistAll" xml:space="preserve">
+    <value>ワークリスト（すべて）</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>ワークリスト →</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>タスク</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="WorklistBuy" xml:space="preserve">
+    <value>ワークリスト（購入）</value>
+  </data>
+  <data name="WorklistHaul" xml:space="preserve">
+    <value>ワークリスト（運搬）</value>
+  </data>
+  <data name="WorklistJobs" xml:space="preserve">
+    <value>ワークリスト（ジョブ）</value>
+  </data>
+  <data name="WorklistStationNeeds" xml:space="preserve">
+    <value>ワークリスト（ステーションの必要量）</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>ステーションの必要量 →</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>不足</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>所持数</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>注文のジョブ</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="ColInvLevels" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="ColStnLevels" xml:space="preserve">
+    <value>ステーション在庫レベル</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>不足分の金額</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>不足分の体積</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="CorpActivity" xml:space="preserve">
+    <value>コーポの活動 →</value>
+  </data>
+  <data name="NoStandingProjects" xml:space="preserve">
+    <value>常設プロジェクトはありません。</value>
+  </data>
+  <data name="ColProject" xml:space="preserve">
+    <value>プロジェクト</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>プロジェクトのステータス</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ColRem2" xml:space="preserve">
+    <value>残り%</value>
+  </data>
+  <data name="OverviewDataReflectsCharactersNote" xml:space="preserve">
+    <value>概要のデータは、キャラクターと個人コーポレーションのみを対象としています。</value>
+  </data>
+  <data name="TipOpenInNotifications" xml:space="preserve">
+    <value>「通知」で開きます</value>
+  </data>
+  <data name="TitleCustomizeOverview" xml:space="preserve">
+    <value>概要のカスタマイズ</value>
+  </data>
+  <data name="OverviewLayout" xml:space="preserve">
+    <value>概要のレイアウト</value>
+  </data>
+  <data name="GridSize" xml:space="preserve">
+    <value>グリッドのサイズ —</value>
+  </data>
+  <data name="Rows" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="Columns" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="Sections" xml:space="preserve">
+    <value>セクション</value>
+  </data>
+  <data name="DragASectionOntoNote" xml:space="preserve">
+    <value>セクションをグリッドにドラッグすると追加されます。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>適用</value>
+  </data>
+  <data name="BriefCharToCorp" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="BriefBy" xml:space="preserve">
+    <value>{0}による</value>
+  </data>
+  <data name="BriefCharLeftCorp" xml:space="preserve">
+    <value>{0}が{1}を脱退</value>
+  </data>
+  <data name="BriefBillAt" xml:space="preserve">
+    <value>{1}の{0}</value>
+  </data>
+  <data name="BriefBillFor" xml:space="preserve">
+    <value>{1}の{0}</value>
+  </data>
+  <data name="BriefAmountDue" xml:space="preserve">
+    <value>{0} · 支払期限{1}</value>
+  </data>
+  <data name="BriefStandingFor" xml:space="preserve">
+    <value>{0} {1}（{2}）</value>
+  </data>
+  <data name="BriefReady" xml:space="preserve">
+    <value>準備完了：{0}</value>
+  </data>
+  <data name="BriefFractures" xml:space="preserve">
+    <value>自動粉砕：{0}</value>
+  </data>
+  <data name="BriefOfOre" xml:space="preserve">
+    <value>鉱石{0}</value>
+  </data>
+  <data name="BriefByAttacker" xml:space="preserve">
+    <value>攻撃者：{0} {1}</value>
+  </data>
+  <data name="BriefShieldArmorHull" xml:space="preserve">
+    <value>シールド{0} · アーマー{1} · 船体{2}</value>
+  </data>
+  <data name="BriefReinforcedUntil" xml:space="preserve">
+    <value>強化終了：{0}</value>
+  </data>
+  <data name="BriefQuantityLeft" xml:space="preserve">
+    <value>残り{0}</value>
+  </data>
+  <data name="BriefTimeLeft" xml:space="preserve">
+    <value>残り{0}</value>
+  </data>
+  <data name="BriefMovedTo" xml:space="preserve">
+    <value>移動先：{0}</value>
+  </data>
+  <data name="BriefDeliveredFor" xml:space="preserve">
+    <value>{0}（{1}宛て）</value>
+  </data>
+  <data name="BriefDaysLeftOther" xml:space="preserve">
+    <value>残り{0}日</value>
+  </data>
+  <data name="BriefStructuresByOther" xml:space="preserve">
+    <value>{1}によるストラクチャ{0}基</value>
+  </data>
+  <data name="BriefTransferredTo" xml:space="preserve">
+    <value>移転先：{0}</value>
+  </data>
+  <data name="BriefStructureIn" xml:space="preserve">
+    <value>{1}の{0}</value>
+  </data>
+  <data name="BriefTowerAt" xml:space="preserve">
+    <value>{1}の{0}</value>
+  </data>
+  <data name="BriefKillRightOn" xml:space="preserve">
+    <value>対象：{0}</value>
+  </data>
+  <data name="BriefVersus" xml:space="preserve">
+    <value>{0} vs {1}</value>
+  </data>
+  <data name="BriefFightingStarts" xml:space="preserve">
+    <value>戦闘開始：{0}</value>
+  </data>
+  <data name="BriefEnds" xml:space="preserve">
+    <value>終了：{0}</value>
+  </data>
+  <data name="BriefJoins" xml:space="preserve">
+    <value>{0}が{1}に参加</value>
+  </data>
+  <data name="BriefAgainst" xml:space="preserve">
+    <value>対{0}</value>
+  </data>
+  <data name="BriefNewCapital" xml:space="preserve">
+    <value>新しい首都：{0}</value>
+  </data>
+  <data name="NewsLess" xml:space="preserve">
+    <value>▲ 折りたたむ</value>
+  </data>
+  <data name="NewsMore" xml:space="preserve">
+    <value>▼ もっと見る</value>
+  </data>
+  <data name="PeriodLast24Hours" xml:space="preserve">
+    <value>過去24時間</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>過去90日間</value>
+  </data>
+  <data name="StepQueryingScope" xml:space="preserve">
+    <value>対象を確認中</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>キャラクターが見つかりません。</value>
+  </data>
+  <data name="StepMarketTransactions" xml:space="preserve">
+    <value>マーケットの取引記録を読み込み中</value>
+  </data>
+  <data name="StepMarketOrders" xml:space="preserve">
+    <value>マーケット注文を読み込み中</value>
+  </data>
+  <data name="StepContracts" xml:space="preserve">
+    <value>契約を読み込み中</value>
+  </data>
+  <data name="StepIndustryJobs" xml:space="preserve">
+    <value>生産ジョブを読み込み中</value>
+  </data>
+  <data name="StepKillsLosses" xml:space="preserve">
+    <value>キルとロスを集計中</value>
+  </data>
+  <data name="StepPersonalKillmails" xml:space="preserve">
+    <value>個人のキルレポート</value>
+  </data>
+  <data name="StepStandingProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="StepWorklist" xml:space="preserve">
+    <value>ワークリスト</value>
+  </data>
+  <data name="StepStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="StepOrders" xml:space="preserve">
+    <value>注文</value>
+  </data>
+  <data name="StepJournal" xml:space="preserve">
+    <value>ジャーナルのデータを読み込み中</value>
+  </data>
+  <data name="StepCharts" xml:space="preserve">
+    <value>グラフを作成中</value>
+  </data>
+  <data name="StepAlerts" xml:space="preserve">
+    <value>アラートを評価中</value>
+  </data>
+  <data name="StepNews" xml:space="preserve">
+    <value>ニュースを読み込み中</value>
+  </data>
+  <data name="StepNotifications" xml:space="preserve">
+    <value>通知を読み込み中</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>{0:N0} msで読み込みました — 所有者：{1}、期間：{2}</value>
+  </data>
+  <data name="CharacterIdNumbered" xml:space="preserve">
+    <value>ID {0}</value>
+  </data>
+  <data name="AlertSkillQueueEmpty" xml:space="preserve">
+    <value>{0}：スキルキューが空です。</value>
+  </data>
+  <data name="AlertSkillQueuePaused" xml:space="preserve">
+    <value>{0}：スキルキューが一時停止しています。</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}日{1}時間</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="AlertSkillQueueEnds" xml:space="preserve">
+    <value>{0}：スキルキューはあと{1}で終了します（しきい値の{2}日以内）。</value>
+  </data>
+  <data name="AlertAssetSafetyDeadline" xml:space="preserve">
+    <value>{0}：{1}にアイテムがアセットセーフティに移されました — {2:M月d日 HH:mm}（残り{3}日）までに移動先を選択してください。選択しない場合はゲームが選びます。</value>
+  </data>
+  <data name="AlertAssetSafety" xml:space="preserve">
+    <value>{0}：{1}にアイテムがアセットセーフティに移されました。</value>
+  </data>
+  <data name="StatusPanelsFailed" xml:space="preserve">
+    <value>{0}の読み込みに失敗しました（詳細はエラーログを参照）</value>
+  </data>
+  <data name="AlertInactiveProjectsOther" xml:space="preserve">
+    <value>現在有効でない常設プロジェクトが{0}件あります。</value>
+  </data>
+  <data name="AlertStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文：{0}。</value>
+  </data>
+  <data name="SboMissingOther" xml:space="preserve">
+    <value>{0}件は有効な注文がありません</value>
+  </data>
+  <data name="SboOutbidOther" xml:space="preserve">
+    <value>{0}件は価格で上回られています</value>
+  </data>
+  <data name="SboNearlyBoughtOutOther" xml:space="preserve">
+    <value>{0}件は残りの数量がわずかです</value>
+  </data>
+  <data name="SboCloseToExpiryOther" xml:space="preserve">
+    <value>{0}件はまもなく期限切れです</value>
+  </data>
+  <data name="AlertUnriggedJobsOther" xml:space="preserve">
+    <value>実行中のジョブ{0}件が、対応するリグのない施設を使用しています。</value>
+  </data>
+  <data name="AlertJobsReadyOther" xml:space="preserve">
+    <value>配送可能な生産ジョブが{0}件あります。</value>
+  </data>
+  <data name="AlertContractsToYouOther" xml:space="preserve">
+    <value>自分宛ての未締結の契約が{0}件あります。</value>
+  </data>
+  <data name="AlertContractsExpiringOther" xml:space="preserve">
+    <value>期限切れ間近の契約が{0}件あります。</value>
+  </data>
+  <data name="TokensStatusStart" xml:space="preserve">
+    <value>キャラクターを追加して開始してください。</value>
+  </data>
+  <data name="TokensLoaded" xml:space="preserve">
+    <value>キャラクター{0}人、コーポレーション{1}社を読み込みました。</value>
+  </data>
+  <data name="TokensStartupError" xml:space="preserve">
+    <value>起動時の読み込みエラー：{0}</value>
+  </data>
+  <data name="TokensOpeningLogin" xml:space="preserve">
+    <value>キャラクターのログインのためにブラウザを開いています…</value>
+  </data>
+  <data name="TokensLoginCancelled" xml:space="preserve">
+    <value>ログインがキャンセルされました。</value>
+  </data>
+  <data name="TokensOpeningUpdate" xml:space="preserve">
+    <value>「{0}」を更新するためにブラウザを開いています…</value>
+  </data>
+  <data name="TokensUpdateCancelled" xml:space="preserve">
+    <value>更新がキャンセルされました。</value>
+  </data>
+  <data name="TokensOpeningCorpLogin" xml:space="preserve">
+    <value>ブラウザを開いています — ディレクターまたは会計担当者の役職を持つキャラクターでログインしてください</value>
+  </data>
+  <data name="TokensLoadingSkills" xml:space="preserve">
+    <value>{0}のスキルを読み込み中…</value>
+  </data>
+  <data name="TokensUnknownSkill" xml:space="preserve">
+    <value>不明なスキル（{0}）</value>
+  </data>
+  <data name="TokensExpired" xml:space="preserve">
+    <value>トークンの期限切れ — 再認証してください</value>
+  </data>
+  <data name="TokensNotAuthenticated" xml:space="preserve">
+    <value>未認証</value>
+  </data>
+  <data name="TokensAllScopes" xml:space="preserve">
+    <value>すべてのスコープを許可済み</value>
+  </data>
+  <data name="TokensNoScopesStored" xml:space="preserve">
+    <value>保存されたスコープなし</value>
+  </data>
+  <data name="TokensCharacterRemoved" xml:space="preserve">
+    <value>キャラクター「{0}」を削除しました。</value>
+  </data>
+  <data name="TokensCorpRemoved" xml:space="preserve">
+    <value>コーポレーション「{0}」を削除しました。</value>
+  </data>
+  <data name="TokensCharacterAdded" xml:space="preserve">
+    <value>キャラクター「{0}」を追加しました。</value>
+  </data>
+  <data name="TokensCharacterUpdated" xml:space="preserve">
+    <value>キャラクター「{0}」を更新しました。</value>
+  </data>
+  <data name="TokensCorpAdded" xml:space="preserve">
+    <value>コーポレーション[{0}] {1}を追加しました（{2}で認証）。</value>
+  </data>
+  <data name="TokensCorpUpdated" xml:space="preserve">
+    <value>コーポレーション[{0}] {1}を更新しました（{2}で認証）。</value>
+  </data>
+  <data name="TokensScopeShortfall" xml:space="preserve">
+    <value>EVEは、要求したスコープのうち{0}個を許可しませんでした：{1}。許可するには、キャラクターを追加し直し、EVEの同意画面で承認してください。</value>
+  </data>
+  <data name="TokensConfirmReplaceCharacter" xml:space="preserve">
+    <value>「{0}」として認証しましたが、更新対象として選択されていたのは「{1}」です。
+
+「{1}」を「{0}」に置き換えますか？</value>
+  </data>
+  <data name="TokensConfirmReplaceCorp" xml:space="preserve">
+    <value>認証したキャラクターは「{0}」に所属していますが、更新対象として選択されていたのは「{1}」です。
+
+「{1}」を「{0}」に置き換えますか？</value>
+  </data>
+  <data name="TokensScopesMissingOther" xml:space="preserve">
+    <value>{0}個のスコープが未許可</value>
+  </data>
+  <data name="TokensScopesGrantedOther" xml:space="preserve">
+    <value>{0}個中{1}個のスコープを許可済み</value>
+  </data>
+  <data name="SectionIncomePie" xml:space="preserve">
+    <value>収入（円グラフ）</value>
+  </data>
+  <data name="SectionExpensePie" xml:space="preserve">
+    <value>支出（円グラフ）</value>
+  </data>
+  <data name="ScopeReadLists" xml:space="preserve">
+    <value>リストの読み取り</value>
+  </data>
+  <data name="ScopeReadCharacter" xml:space="preserve">
+    <value>キャラクターの読み取り</value>
+  </data>
+  <data name="ScopeReadContacts" xml:space="preserve">
+    <value>連絡員の読み取り</value>
+  </data>
+  <data name="ScopeReadAssets" xml:space="preserve">
+    <value>資産の読み取り</value>
+  </data>
+  <data name="ScopeReadCalendarEvents" xml:space="preserve">
+    <value>カレンダーイベントの読み取り</value>
+  </data>
+  <data name="ScopeRespondCalendarEvents" xml:space="preserve">
+    <value>カレンダーイベントへの返答</value>
+  </data>
+  <data name="ScopeReadAgentsResearch" xml:space="preserve">
+    <value>エージェント研究の読み取り</value>
+  </data>
+  <data name="ScopeReadBlueprints" xml:space="preserve">
+    <value>ブループリントの読み取り</value>
+  </data>
+  <data name="ScopeReadChatChannels" xml:space="preserve">
+    <value>チャットチャンネルの読み取り</value>
+  </data>
+  <data name="ScopeReadCorporationRoles" xml:space="preserve">
+    <value>コーポレーションの役職の読み取り</value>
+  </data>
+  <data name="ScopeReadFatigue" xml:space="preserve">
+    <value>ジャンプ疲労の読み取り</value>
+  </data>
+  <data name="ScopeReadFreelanceJobs" xml:space="preserve">
+    <value>フリーランスジョブの読み取り</value>
+  </data>
+  <data name="ScopeReadFwStats" xml:space="preserve">
+    <value>国家間戦争の統計の読み取り</value>
+  </data>
+  <data name="ScopeReadLoyalty" xml:space="preserve">
+    <value>ロイヤルティポイントの読み取り</value>
+  </data>
+  <data name="ScopeReadMedals" xml:space="preserve">
+    <value>メダルの読み取り</value>
+  </data>
+  <data name="ScopeReadNotifications" xml:space="preserve">
+    <value>通知の読み取り</value>
+  </data>
+  <data name="ScopeReadStandings" xml:space="preserve">
+    <value>スタンディングの読み取り</value>
+  </data>
+  <data name="ScopeReadTitles" xml:space="preserve">
+    <value>タイトルの読み取り</value>
+  </data>
+  <data name="ScopeWriteContacts" xml:space="preserve">
+    <value>連絡員の書き込み</value>
+  </data>
+  <data name="ScopeReadClones" xml:space="preserve">
+    <value>クローンの読み取り</value>
+  </data>
+  <data name="ScopeReadImplants" xml:space="preserve">
+    <value>インプラントの読み取り</value>
+  </data>
+  <data name="ScopeReadCharacterContracts" xml:space="preserve">
+    <value>キャラクターの契約の読み取り</value>
+  </data>
+  <data name="ScopeReadFittings" xml:space="preserve">
+    <value>装備の読み取り</value>
+  </data>
+  <data name="ScopeWriteFittings" xml:space="preserve">
+    <value>装備の書き込み</value>
+  </data>
+  <data name="ScopeReadFleet" xml:space="preserve">
+    <value>フリートの読み取り</value>
+  </data>
+  <data name="ScopeWriteFleet" xml:space="preserve">
+    <value>フリートの書き込み</value>
+  </data>
+  <data name="ScopeReadCharacterJobs" xml:space="preserve">
+    <value>キャラクターのジョブの読み取り</value>
+  </data>
+  <data name="ScopeReadCharacterMining" xml:space="preserve">
+    <value>キャラクターの採掘の読み取り</value>
+  </data>
+  <data name="ScopeReadKillmails" xml:space="preserve">
+    <value>キルレポートの読み取り</value>
+  </data>
+  <data name="ScopeReadLocation" xml:space="preserve">
+    <value>位置の読み取り</value>
+  </data>
+  <data name="ScopeReadOnline" xml:space="preserve">
+    <value>オンライン状態の読み取り</value>
+  </data>
+  <data name="ScopeReadShipType" xml:space="preserve">
+    <value>艦船のタイプの読み取り</value>
+  </data>
+  <data name="ScopeOrganizeMail" xml:space="preserve">
+    <value>メールの整理</value>
+  </data>
+  <data name="ScopeReadMail" xml:space="preserve">
+    <value>メールの読み取り</value>
+  </data>
+  <data name="ScopeSendMail" xml:space="preserve">
+    <value>メールの送信</value>
+  </data>
+  <data name="ScopeReadCharacterOrders" xml:space="preserve">
+    <value>キャラクターの注文の読み取り</value>
+  </data>
+  <data name="ScopeStructureMarkets" xml:space="preserve">
+    <value>ストラクチャのマーケット</value>
+  </data>
+  <data name="ScopeManagePlanets" xml:space="preserve">
+    <value>惑星の管理</value>
+  </data>
+  <data name="ScopeReadCustomsOffices" xml:space="preserve">
+    <value>税関の読み取り</value>
+  </data>
+  <data name="ScopeSearchStructures" xml:space="preserve">
+    <value>ストラクチャの検索</value>
+  </data>
+  <data name="ScopeReadSkills" xml:space="preserve">
+    <value>スキルの読み取り</value>
+  </data>
+  <data name="ScopeReadSkillQueue" xml:space="preserve">
+    <value>スキルキューの読み取り</value>
+  </data>
+  <data name="ScopeOpenWindow" xml:space="preserve">
+    <value>ウィンドウを開く</value>
+  </data>
+  <data name="ScopeWriteWaypoint" xml:space="preserve">
+    <value>経由地点の書き込み</value>
+  </data>
+  <data name="ScopeReadStructures" xml:space="preserve">
+    <value>ストラクチャの読み取り</value>
+  </data>
+  <data name="ScopeReadCharacterWallet" xml:space="preserve">
+    <value>キャラクターのウォレットの読み取り</value>
+  </data>
+  <data name="ScopeReadContracts" xml:space="preserve">
+    <value>契約の読み取り</value>
+  </data>
+  <data name="ScopeReadContainerLogs" xml:space="preserve">
+    <value>コンテナログの読み取り</value>
+  </data>
+  <data name="ScopeReadMembership" xml:space="preserve">
+    <value>メンバーの読み取り</value>
+  </data>
+  <data name="ScopeReadDivisions" xml:space="preserve">
+    <value>部門の読み取り</value>
+  </data>
+  <data name="ScopeReadFacilities" xml:space="preserve">
+    <value>施設の読み取り</value>
+  </data>
+  <data name="ScopeReadProjects" xml:space="preserve">
+    <value>プロジェクトの読み取り</value>
+  </data>
+  <data name="ScopeReadStarbases" xml:space="preserve">
+    <value>スターベースの読み取り</value>
+  </data>
+  <data name="ScopeTrackMembers" xml:space="preserve">
+    <value>メンバーの追跡</value>
+  </data>
+  <data name="ScopeReadJobs" xml:space="preserve">
+    <value>ジョブの読み取り</value>
+  </data>
+  <data name="ScopeReadMining" xml:space="preserve">
+    <value>採掘の読み取り</value>
+  </data>
+  <data name="ScopeReadOrders" xml:space="preserve">
+    <value>注文の読み取り</value>
+  </data>
+  <data name="ScopeReadCorpStructures" xml:space="preserve">
+    <value>読み取り</value>
+  </data>
+  <data name="ScopeReadWallet" xml:space="preserve">
+    <value>ウォレットの読み取り</value>
+  </data>
+  <data name="ScopeReadWallets" xml:space="preserve">
+    <value>ウォレット部門の読み取り</value>
+  </data>
+  <data name="ScopeGroupAccess" xml:space="preserve">
+    <value>アクセス</value>
+  </data>
+  <data name="ScopeGroupActivities" xml:space="preserve">
+    <value>アクティビティ</value>
+  </data>
+  <data name="ScopeGroupAlliances" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="ScopeGroupAssets" xml:space="preserve">
+    <value>資産</value>
+  </data>
+  <data name="ScopeGroupCalendar" xml:space="preserve">
+    <value>カレンダー</value>
+  </data>
+  <data name="ScopeGroupCharacters" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="ScopeGroupClones" xml:space="preserve">
+    <value>クローン</value>
+  </data>
+  <data name="ScopeGroupContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="ScopeGroupFittings" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="ScopeGroupFleets" xml:space="preserve">
+    <value>フリート</value>
+  </data>
+  <data name="ScopeGroupIndustry" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="ScopeGroupKillmails" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="ScopeGroupLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="ScopeGroupMail" xml:space="preserve">
+    <value>メール</value>
+  </data>
+  <data name="ScopeGroupMarkets" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="ScopeGroupPlanets" xml:space="preserve">
+    <value>惑星</value>
+  </data>
+  <data name="ScopeGroupSearch" xml:space="preserve">
+    <value>検索</value>
+  </data>
+  <data name="ScopeGroupSkills" xml:space="preserve">
+    <value>スキル</value>
+  </data>
+  <data name="ScopeGroupStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="ScopeGroupUi" xml:space="preserve">
+    <value>UI</value>
+  </data>
+  <data name="ScopeGroupUniverse" xml:space="preserve">
+    <value>宇宙</value>
+  </data>
+  <data name="ScopeGroupWallet" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="ScopeGroupCorp" xml:space="preserve">
+    <value>コーポ</value>
+  </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}：{1}のエクストラクターが停止しました。</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}：{1}のエクストラクターはあと{2}で停止します。</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>コロニー{0}か所でエクストラクターが停止した、または停止しようとしています。</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}：{1}の保管施設が満杯です（推定）。</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}：{1}の保管施設はあと{2}で満杯になります（推定）。</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>コロニー{0}か所で保管施設が満杯、または満杯になりつつあります（推定）。</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}：{1}の工場の投入資源が枯渇しました（推定）。</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}：{1}の投入資源はあと{2}で枯渇します（推定）。</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>工場惑星{0}個で投入資源が枯渇した、または枯渇しつつあります（推定）。</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}：{1}は{2}の間ゲーム内で開かれていないため、推定値はもう信頼できません。</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>コロニー{0}か所がしばらくゲーム内で開かれていないため、推定値はもう信頼できません。</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1}に未使用のコロニースロットが{0}個あります。</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>未使用のコロニースロットがあるPIキャラクターが{0}人います。</value>
+  </data>
+</root>

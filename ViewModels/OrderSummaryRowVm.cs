@@ -2,6 +2,7 @@ using Avalonia.Media.Imaging;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -33,7 +34,8 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
     /// <summary>What the buyer quotes back. Empty on an order entered by hand.</summary>
     public string Ref      => o.OrderRef;
 
-    public string Item     => itemName.Length > 0 ? itemName : $"Type {o.TypeId}";
+    /// <summary>The item as the screen names it. Only ever shown.</summary>
+    public string Item     => itemName.Length > 0 ? SdeNames.Type(o.TypeId, itemName) : string.Format(SalesText.TypeNumbered, o.TypeId);
     public int    Units    => o.Units;
     public string UnitsText => o.Units.ToString("N0");
     public string Buyer    => o.Buyer.Length > 0 ? o.Buyer : "";
@@ -42,18 +44,25 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
     /// order with no date is one the buyer has been told nothing about.</summary>
     public string EstDate  => o.EstimatedDate is { Length: > 0 } d ? d : "";
 
-    public string Status   => o.Status.Length > 0
-                            ? char.ToUpper(o.Status[0]) + o.Status[1..]
-                            : o.Status;
+    /// <summary>The name of the stored status (pending, completed, canceled), as the order dialog
+    /// lists it; anything else as stored, capitalised.</summary>
+    public string Status   => o.Status switch
+    {
+        "pending"          => SalesText.OrderStatusPending,
+        "completed"        => SalesText.OrderStatusCompleted,
+        "canceled"         => SalesText.OrderStatusCanceled,
+        { Length: > 0 } s  => char.ToUpper(s[0]) + s[1..],
+        _                  => o.Status,
+    };
 
     /// <summary>Where the units are expected to come from. The column that actually moves while
     /// an order is open — Status reads "Pending" on every row of an active-only list.</summary>
     public string Source   => o.FulfilmentSource switch
     {
-        OrderFulfilmentService.SourceStock    => "Stock",
-        OrderFulfilmentService.SourceJob      => "In production",
-        OrderFulfilmentService.SourceContract => "Contracted",
-        _                                     => "Unsourced",
+        OrderFulfilmentService.SourceStock    => SalesText.SourceStock,
+        OrderFulfilmentService.SourceJob      => SalesText.SourceInProduction,
+        OrderFulfilmentService.SourceContract => SalesText.SourceContracted,
+        _                                     => SalesText.SourceUnsourced,
     };
 
     /// <summary>An open order with nothing behind it: the row to look at.</summary>

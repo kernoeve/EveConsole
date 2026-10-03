@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>所有角色</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>双击某一行，即可在“详情”标签页中打开。</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>太空舱价值</value>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>基地空间站</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>队列中的条目数，以及距最后一项完成还有多长时间。</value>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>总技能点</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>制造任务栏位：空闲数 / 总数</value>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>反应任务栏位：空闲数 / 总数</value>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>科研</value>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>科研任务栏位：空闲数 / 总数（拷贝、研究和发明）</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>角色：</value>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>总技能点：</value>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>未分配：</value>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>安全等级：</value>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>技能</value>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>技能分组</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>属性</value>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>角色属性</value>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>智力</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>记忆</value>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>魅力</value>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>感知</value>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>毅力</value>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>没有可用的属性数据。角色属性会在 ESI 轮询时加载。</value>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>神经再造</value>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>上次重置：</value>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>克隆</value>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>当前克隆的植入体</value>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>当前克隆没有安装植入体。</value>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>远距克隆</value>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>没有远距克隆。</value>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>奖章</value>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>头衔</value>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>此角色没有任何头衔。</value>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>声望</value>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>没有可用的声望数据。</value>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>更新时间：{0:dd MMM yyyy HH:mm}</value>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>角色查看器</value>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="StatusOffline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="QueueEmptyShort" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="QueuePausedShort" xml:space="preserve">
+    <value>{0} · 已暂停</value>
+  </data>
+  <data name="SpanDone" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0:F0} 天</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0:F0} 小时</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0:F0} 分钟</value>
+  </data>
+  <data name="SpMillions" xml:space="preserve">
+    <value>{0:F2}M 技能点</value>
+  </data>
+  <data name="SpThousands" xml:space="preserve">
+    <value>{0:F0}k 技能点</value>
+  </data>
+  <data name="SpPlain" xml:space="preserve">
+    <value>{0} 技能点</value>
+  </data>
+  <data name="QueuePaused" xml:space="preserve">
+    <value>已暂停</value>
+  </data>
+  <data name="QueueComplete" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="StandingTypeFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="StandingTypeCorp" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="StandingTypeAgent" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>共 {0} 个角色。数据来自轮询——“详情”标签页中的“刷新”只更新一个角色，轮询会更新所有角色。</value>
+  </data>
+  <data name="SummaryLoadFailed" xml:space="preserve">
+    <value>无法加载摘要：{0}</value>
+  </data>
+  <data name="NoMedalsOnRecord" xml:space="preserve">
+    <value>此角色没有奖章记录。</value>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>{0} 枚奖章</value>
+  </data>
+  <data name="StatusSelectCharacterToView" xml:space="preserve">
+    <value>选择一个角色以查看其数据。</value>
+  </data>
+  <data name="StatusLoadingCharacter" xml:space="preserve">
+    <value>正在加载 {0}…</value>
+  </data>
+  <data name="StatusCharacterSp" xml:space="preserve">
+    <value>{0}——{1:N0} 技能点</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>加载 {0} 时出错：{1}</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>军团 #{0}</value>
+  </data>
+  <data name="SkillGroupUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="SkillNumbered" xml:space="preserve">
+    <value>技能 #{0}</value>
+  </data>
+  <data name="AllSkills" xml:space="preserve">
+    <value>所有技能</value>
+  </data>
+  <data name="QueueEmpty" xml:space="preserve">
+    <value>队列为空</value>
+  </data>
+  <data name="RemapNoData" xml:space="preserve">
+    <value>没有可用的属性数据</value>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>有 {0} 次额外重置可用</value>
+  </data>
+  <data name="RemapAvailableOn" xml:space="preserve">
+    <value>下次可重置：{0:yyyy-MM-dd}</value>
+  </data>
+  <data name="RemapLastAvailableNow" xml:space="preserve">
+    <value>上次重置：{0:yyyy-MM-dd}——现在可以重置</value>
+  </data>
+  <data name="RemapAvailable" xml:space="preserve">
+    <value>现在可以重置</value>
+  </data>
+  <data name="ImplantNumbered" xml:space="preserve">
+    <value>植入体 #{0}</value>
+  </data>
+  <data name="CloneLocation" xml:space="preserve">
+    <value>位置 {0}（{1}）</value>
+  </data>
+  <data name="MedalNumbered" xml:space="preserve">
+    <value>奖章 #{0}</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>势力 #{0}</value>
+  </data>
+  <data name="AgentNumbered" xml:space="preserve">
+    <value>代理人 #{0}</value>
+  </data>
+  <data name="EntityNumbered" xml:space="preserve">
+    <value>实体 #{0}</value>
+  </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0}（太空中）</value>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>空间站 {0}</value>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>星系 {0}</value>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>位置 {0}</value>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
+  <data name="StatusSelectCharacter" xml:space="preserve">
+    <value>请选择一个角色。</value>
+  </data>
+  <data name="DurationDaysOther" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="DurationHoursOther" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="DurationMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="QueueSkillsFinishOther" xml:space="preserve">
+    <value>{0} 个技能——将于 {1:yyyy-MM-dd} 完成</value>
+  </data>
+  <data name="QueueSkillsPausedOther" xml:space="preserve">
+    <value>{0} 个技能（已暂停）</value>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value> </value>
+  </data>
+</root>

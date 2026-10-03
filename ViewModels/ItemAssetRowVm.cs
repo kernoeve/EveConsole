@@ -7,11 +7,22 @@ namespace EveConsole.ViewModels;
 ///
 /// <para>Read from the Asset Browser's own Base query, filtered to the one type, so the two tools
 /// cannot disagree about where something is, what it is worth or what counts as an asset — that
-/// includes the item a running industry job will deliver, which carries the flag "Industry Job".</para>
+/// includes the item a running industry job will deliver, which carries the job flag
+/// (<see cref="AssetBrowserViewModel.IndustryJobFlag"/>).</para>
+///
+/// <para>Location, Container and Flag are given as Base wrote them, its markers included. Each
+/// keeps its label, as the Asset Browser shows it; the job check reads the flag as it came.</para>
 /// </summary>
 public sealed class ItemAssetRowVm
 {
-    public string  Location           { get; init; } = "";
+    private readonly string _location = "", _container = "", _flag = "";
+    private readonly bool   _inJob;
+
+    public string  Location
+    {
+        get => _location;
+        init => _location = AssetBrowserViewModel.LocationLabel(value);
+    }
     /// <summary>The root location: the station, structure or system the stack is in, however
     /// deep in containers it sits.</summary>
     public long    LocationId         { get; init; }
@@ -23,8 +34,21 @@ public sealed class ItemAssetRowVm
 
     /// <summary>The containers between the location and the stack, outermost first, with the
     /// corporation hangar division where there is one. Empty for a stack on the hangar floor.</summary>
-    public string  Container          { get; init; } = "";
-    public string  Flag               { get; init; } = "";
+    public string  Container
+    {
+        get => _container;
+        init => _container = AssetBrowserViewModel.ContainerLabel(value);
+    }
+
+    public string  Flag
+    {
+        get => _flag;
+        init
+        {
+            _flag  = AssetBrowserViewModel.FlagLabel(value);
+            _inJob = value == AssetBrowserViewModel.IndustryJobFlag;
+        }
+    }
 
     public long    Quantity           { get; init; }
     public string  QuantityText       => Quantity.ToString("N0");
@@ -38,8 +62,9 @@ public sealed class ItemAssetRowVm
     public double  Value              { get; init; }
     public string  ValueText          => Value > 0 ? MarketFmt.Isk(Value) : "—";
 
-    /// <summary>Not in a hangar yet: the product of a running job, or the blueprint in one.</summary>
-    public bool    IsInJob            => Flag == "Industry Job";
+    /// <summary>Not in a hangar yet: the product of a running job, or the blueprint in one. Told by
+    /// the query's own flag, never by the label shown.</summary>
+    public bool    IsInJob            => _inJob;
 
     public bool HasLocationLink => LocationId > 0 && Location.Length > 0;
     public bool HasOwnerLink    => OwnerId > 0;

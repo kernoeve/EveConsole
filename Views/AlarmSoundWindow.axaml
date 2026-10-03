@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.AlarmSoundWindow"
         Width="420"
         MinWidth="320"
@@ -32,7 +33,7 @@
 
     <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
       <Button x:Name="AcknowledgeButton"
-              Content="Acknowledge — stop the sound"
+              Content="{x:Static loc:AlarmsText.AcknowledgeStopTheSound}"
               Click="OnAcknowledge"
               HorizontalAlignment="Stretch"
               HorizontalContentAlignment="Center"

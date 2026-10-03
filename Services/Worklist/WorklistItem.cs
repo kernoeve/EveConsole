@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -34,7 +36,7 @@ public enum WorklistReadiness
 /// they are the same sort of errand — material you already own, in the wrong form rather than the
 /// wrong place.
 /// </summary>
-public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue }
+public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
 
 /// <summary>
 /// One item on a task that moves or acquires several things at once.
@@ -86,11 +88,11 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? "starts on arrival"
-        : IsPlanned               ? $"wants {WantsUnits:N0}"
-        : StillShortOf.Count == 0 ? "queued behind another job"
-        : StillShortOf.Count == 1 ? "also short of 1 item"
-                                  : $"also short of {StillShortOf.Count:N0} items";
+        Unblocked                 ? WorklistText.WaitStartsOnArrival
+        : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
+        : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
+        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
+                         StillShortOf.Count);
 
     /// <summary>
     /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the
@@ -101,15 +103,14 @@ public sealed record WorklistWaitingJob(
     public bool IsPlanned => Key.Length == 0;
 
     public string StatusTip =>
-        IsPlanned ? "A build this delivery is for. It is what the planner raised the trip for, and "
-                  + "has not been broken out into a task of its own yet."
-        : Unblocked ? "This haul carries everything the job is short of, so it starts when the cargo lands."
-        : StillShortOf.Count == 0
-            ? "The job wants something on this manifest, but an earlier job has already claimed "
-            + "that stock — this load will not reach it."
-            : "Still short of " + string.Join(", ", StillShortOf.Take(6))
-            + (StillShortOf.Count > 6 ? $", and {StillShortOf.Count - 6:N0} more." : ".")
-            + (QueuedBehind ? " It is also behind another job for something on this manifest." : "");
+        IsPlanned ? WorklistText.WaitTipPlanned
+        : Unblocked ? WorklistText.WaitTipStarts
+        : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
+        : (StillShortOf.Count > 6
+              ? string.Format(WorklistText.WaitTipStillShortMore,
+                              string.Join(CommonText.ListSeparator, StillShortOf.Take(6)), StillShortOf.Count - 6)
+              : string.Format(WorklistText.WaitTipStillShort, string.Join(CommonText.ListSeparator, StillShortOf)))
+          + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
 
     public Avalonia.Media.IBrush StatusColor =>
         Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;
@@ -382,6 +383,23 @@ public sealed record WorklistItem
     /// Null everywhere else.</para>
     /// </summary>
     public string? TitleTag { get; init; }
+
+    /// <summary>
+    /// The row's icon when the task has no item type of its own to show — a character's portrait
+    /// for a skill queue or a free colony slot, the planet for an extractor restart, the station
+    /// for asset safety, the ore for a refine. An image server URL (see <see cref="WorklistIcons"/>).
+    /// A task with a <see cref="TypeId"/> shows that type instead: what it moves or makes.
+    /// </summary>
+    public string? IconUrl { get; init; }
+}
+
+/// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>
+public static class WorklistIcons
+{
+    public static string Type(int typeId)            => $"https://images.evetech.net/types/{typeId}/icon?size=32";
+    /// <summary>A station or structure type's picture: the render, not the generic station glyph.</summary>
+    public static string Render(int typeId)          => $"https://images.evetech.net/types/{typeId}/render?size=32";
+    public static string Portrait(long characterId)  => $"https://images.evetech.net/characters/{characterId}/portrait?size=32";
 }
 
 /// <summary>

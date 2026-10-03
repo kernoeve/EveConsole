@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -28,21 +29,41 @@ public enum HaulReason { Unblocking, Restock, Refine, Surplus }
 /// A row saying "Nidhoggur ×2 needs 1,200,000 Tritanium" answers the question people actually ask
 /// of a need, which is not "how much" but "what for".</para>
 /// </summary>
-/// <param name="Kind">What sort of demand: a build, an invention, a blueprint the job needs
+/// <param name="DriverKind">What sort of demand: a build, an invention, a blueprint the job needs
 /// present, or a station level that asks for stock regardless of any job.</param>
 public sealed record NeedDriver(
-    int    DriverTypeId,
-    string DriverName,
-    string Kind,
-    long   Units,
-    long   Qty)
+    int            DriverTypeId,
+    string         DriverName,
+    NeedDriverKind DriverKind,
+    long           Units,
+    long           Qty)
 {
+    /// <summary>The sort of demand, as shown.</summary>
+    public string Kind => DriverKind switch
+    {
+        NeedDriverKind.Build              => WorklistText.DriverBuild,
+        NeedDriverKind.BlueprintFor       => WorklistText.DriverBlueprintFor,
+        NeedDriverKind.Invention          => WorklistText.DriverInvention,
+        NeedDriverKind.CopiesForInvention => WorklistText.DriverCopiesForInvention,
+        _                                 => WorklistText.DriverStationLevel,
+    };
+
     /// <summary>What to show: the product and how many of it, or the plain reason when there is
-    /// no product behind it.</summary>
+    /// no product behind it. The product as the screen names it; DriverName stays English.</summary>
     public string Label => DriverTypeId <= 0
         ? Kind
-        : Units > 1 ? $"{DriverName} ×{Units:N0}" : DriverName;
+        : Units > 1 ? $"{SdeNames.Type(DriverTypeId, DriverName)} ×{Units:N0}"
+                    : SdeNames.Type(DriverTypeId, DriverName);
 }
+
+/// <summary>
+/// What sort of demand a <see cref="NeedDriver"/> is.
+///
+/// <para>⚠️ The key drivers are merged on, not the words shown. Those come from
+/// <see cref="NeedDriver.Kind"/>, and two kinds that happen to read alike in some language must
+/// still be counted apart.</para>
+/// </summary>
+public enum NeedDriverKind { Build, BlueprintFor, Invention, CopiesForInvention, StationLevel }
 
 public sealed record StationNeed(
     long   StationId,
@@ -96,8 +117,8 @@ public sealed record StationNeed(
 /// <para>The other generators end at "this job cannot start, its inputs are elsewhere". That is a
 /// diagnosis, not work. This turns it into the trip that fixes it.</para>
 ///
-/// <para><b>One task per pair of stations.</b> A hauler flying from Jita to ZD1-Z2 carries
-/// everything ZD1-Z2 needs from Jita, so the task lists items rather than being one task each —
+/// <para><b>One task per pair of stations.</b> A hauler flying from Jita to a staging system carries
+/// everything that system needs from Jita, so the task lists items rather than being one task each —
 /// twenty rows for one round trip would be twenty times the reading for the same flying. Volume
 /// is deliberately ignored: how many trips it takes is the hauler's problem, and splitting by
 /// capacity would guess at ships and rigs the tool knows nothing about.</para>
@@ -120,7 +141,7 @@ public class LogisticsGenerator(
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "logistics";
-    public string DisplayName => "Logistics";
+    public string DisplayName => WorklistText.SourceLogistics;
 
     /// <param name="Priority">Inherited from whatever asked for it. A haul feeding an urgent
     /// order has to outrank one feeding a routine top-up, and the reason alone cannot say that:
@@ -143,7 +164,7 @@ public class LogisticsGenerator(
                                  int priority = 0, long level = 0,
                                  long orderJobs = 0, long jobs = 0, long ruleJobs = 0,
                                  int driverTypeId = 0, long driverUnits = 0,
-                                 string driverKind = "");
+                                 NeedDriverKind? driverKind = null);
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -250,6 +271,16 @@ public class LogisticsGenerator(
             stock[(d.Site, d.TypeId)] = stock.GetValueOrDefault((d.Site, d.TypeId)) + d.Units;
         }
 
+        // And what contracts have moved since: nothing is hauled from a station for goods already
+        // on a contract, and goods a courier has just delivered are not hauled there again. Never
+        // below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            stock[(m.Site, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((m.Site, m.TypeId)) + m.Units);
+        }
+
         // The same view of stock the demand service nets against — running jobs included, so a
         // sub-assembly already in a machine has nothing hauled for it — and the same loader the
         // job and purchase generators use, so all three agree on what exists.
@@ -260,7 +291,7 @@ public class LogisticsGenerator(
 
         void Need(long station, int typeId, long qty, HaulReason why, int priority = 0, long level = 0,
                   long orderJobs = 0, long jobs = 0, long ruleJobs = 0,
-                  int driverTypeId = 0, long driverUnits = 0, string driverKind = "")
+                  int driverTypeId = 0, long driverUnits = 0, NeedDriverKind? driverKind = null)
         {
             if (station <= 0 || qty <= 0) return;
             var key = (station, typeId);
@@ -269,13 +300,13 @@ public class LogisticsGenerator(
             // want is a number the job that asked for it is gone — the totals are what the
             // hauling plan plans from, and a total cannot say who wanted it. Recorded here, at
             // the one place every demand passes through, or not at all.
-            if (driverKind.Length > 0)
+            if (driverKind is { } kind)
             {
                 if (!drivers.TryGetValue(key, out var list)) drivers[key] = list = [];
-                var at = list.FindIndex(d => d.DriverTypeId == driverTypeId && d.Kind == driverKind);
+                var at = list.FindIndex(d => d.DriverTypeId == driverTypeId && d.DriverKind == kind);
                 if (at >= 0) list[at] = list[at] with { Qty = list[at].Qty + qty,
                                                         Units = Math.Max(list[at].Units, driverUnits) };
-                else list.Add(new NeedDriver(driverTypeId, "", driverKind, driverUnits, qty));
+                else list.Add(new NeedDriver(driverTypeId, "", kind, driverUnits, qty));
             }
             var had = want.GetValueOrDefault(key);
             want[key] = new Want(
@@ -398,9 +429,9 @@ public class LogisticsGenerator(
             return want
                 .Select(kv => new StationNeed(
                     kv.Key.Station,
-                    places.GetValueOrDefault(kv.Key.Station, $"Location {kv.Key.Station}"),
+                    places.GetValueOrDefault(kv.Key.Station, string.Format(WorklistText.LocationWithId, kv.Key.Station)),
                     kv.Key.TypeId,
-                    names.GetValueOrDefault(kv.Key.TypeId, $"Type {kv.Key.TypeId}"),
+                    names.GetValueOrDefault(kv.Key.TypeId, string.Format(WorklistText.TypeWithId, kv.Key.TypeId)),
                     stock.GetValueOrDefault(kv.Key),
                     kv.Value.OrderJobs,
                     kv.Value.Jobs,
@@ -412,7 +443,8 @@ public class LogisticsGenerator(
                         .Select(d => d with
                         {
                             DriverName = d.DriverTypeId > 0
-                                ? names.GetValueOrDefault(d.DriverTypeId, $"Type {d.DriverTypeId}")
+                                ? names.GetValueOrDefault(d.DriverTypeId,
+                                                          string.Format(WorklistText.TypeWithId, d.DriverTypeId))
                                 : "",
                         })
                         .OrderByDescending(d => d.Qty)
@@ -534,7 +566,7 @@ public class LogisticsGenerator(
                 var (order, rule, parent) = d.SplitOf(m.TotalQty);
                 need(site, m.MaterialTypeId, m.TotalQty, HaulReason.Unblocking, d.Priority, 0,
                      orderJobs: order, jobs: parent, ruleJobs: rule,
-                     driverTypeId: typeId, driverUnits: d.Units, driverKind: "build");
+                     driverTypeId: typeId, driverUnits: d.Units, driverKind: NeedDriverKind.Build);
             }
 
             // The print is a precondition exactly as the materials are, so it is wanted here on
@@ -551,7 +583,7 @@ public class LogisticsGenerator(
                 var (bpOrder, bpRule, bpParent) = d.SplitOf(prints);
                 need(site, bpProd.TypeId, prints, HaulReason.Unblocking, d.Priority,
                      orderJobs: bpOrder, jobs: bpParent, ruleJobs: bpRule,
-                     driverTypeId: typeId, driverUnits: d.Units, driverKind: "blueprint for");
+                     driverTypeId: typeId, driverUnits: d.Units, driverKind: NeedDriverKind.BlueprintFor);
             }
         }
     }
@@ -578,16 +610,20 @@ public class LogisticsGenerator(
             .Where(c => c.Runs(IndustryPool.Science)).ToList();
         if (candidates.Count == 0) return;
 
-        var lab = await InventionService.LabAsync(
-            db, await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct),
-            InventionService.InventionCategory, ct);
+        var (lab, copyLab) = await InventionService.LabsAsync(
+            db, await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct), ct);
         if (lab is null) return;
 
         var decryptors = await invention.DecryptorsAsync(ct);
         var printsByType = allPrints.GroupBy(p => p.TypeId).ToDictionary(g => g.Key, g => g.ToList());
 
+        // The same blueprint levels the invention generator plans from, so their datacores are
+        // hauled too — added to a copy: the manufacturing hauls below must not see them.
+        var forInvention = new Dictionary<int, BuildDemand>(demand);
+        foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) forInvention.TryAdd(typeId, d);
+
         var needs = await invention.PlanDemandAsync(
-            demand, ctx.BlueprintByProduct, printsByType, owned,
+            forInvention, ctx.BlueprintByProduct, printsByType, owned,
             typeId => InventionService.DecryptorFor(
                           typeId, ctx, decryptors, settings.ShipDecryptor, settings.OtherDecryptor),
             candidates.Select(c => (IReadOnlyDictionary<int, int>)c.Skills).ToList(), ct);
@@ -603,29 +639,37 @@ public class LogisticsGenerator(
                 need(lab.Value.Site, m.TypeId, m.Quantity, HaulReason.Unblocking, n.Demand.Priority,
                      0, orderJobs: order, jobs: parent, ruleJobs: rule,
                      driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
-                     driverKind: "invention");
+                     driverKind: NeedDriverKind.Invention);
             }
 
             // Source copies are wanted at the lab in their own right. One per concurrent job,
             // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
-            var copies = PrintsWanted(allPrints, owned, printsInAssets,
-                new SdeBlueprintProduct
-                {
-                    TypeId        = n.Recipe.SourceBlueprintTypeId,
-                    Activity      = "manufacturing",
-                    ProductTypeId = n.Recipe.ProductTypeId,
-                    Quantity      = 1,
-                },
-                n.Plan.CopyRunsNeeded);
+            var source = n.Recipe.SourceBlueprintTypeId;
+            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded);
 
             if (copies > 0)
             {
                 var (cOrder, cRule, cParent) = n.Demand.SplitOf(copies);
-                need(lab.Value.Site, n.Recipe.SourceBlueprintTypeId, copies, HaulReason.Unblocking,
+                need(lab.Value.Site, source, copies, HaulReason.Unblocking,
                      n.Demand.Priority, 0, orderJobs: cOrder, jobs: cParent, ruleJobs: cRule,
                      driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
-                     driverKind: "copies for invention");
+                     driverKind: NeedDriverKind.CopiesForInvention);
+            }
+
+            // And an original where the park copies, when the copies owned fall short and a copy
+            // job has to be run — the invention generator copies only from an original standing
+            // at the copy lab, so one anywhere else needs this trip first.
+            var mine = allPrints.Where(p => p.TypeId == source && owned.Owns(p)).ToList();
+            if (copyLab is { } cl
+                && mine.Any(p => p.IsOriginal)
+                && mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs) < n.Plan.CopyRunsNeeded)
+            {
+                var (oOrder, oRule, oParent) = n.Demand.SplitOf(1);
+                need(cl.Site, source, 1, HaulReason.Unblocking,
+                     n.Demand.Priority, 0, orderJobs: oOrder, jobs: oParent, ruleJobs: oRule,
+                     driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
+                     driverKind: NeedDriverKind.BlueprintFor);
             }
         }
     }
@@ -665,6 +709,39 @@ public class LogisticsGenerator(
         // count here is the count it will actually use.
         long wanted = 0, covered = 0;
         foreach (var copy in mine.OrderByDescending(p => p.Me).ThenByDescending(p => p.Runs))
+        {
+            if (covered >= runsNeeded) break;
+            covered += copy.Runs;
+            wanted++;
+        }
+        return wanted;
+    }
+
+    /// <summary>
+    /// How many copies of an invention source blueprint the lab needs to have.
+    ///
+    /// <para>⚠️ Copies ONLY. <see cref="PrintsWanted"/> answers one for any owned original, which
+    /// is right for a build and wrong here: nothing can be invented from an original, so asking
+    /// the lab for "one print" let the original stand in for the copies, and the copies stayed
+    /// where they were. The original is wanted at the copy lab instead, by the caller.</para>
+    ///
+    /// <para>Zero when only originals are owned — the copies have to be made first.</para>
+    /// </summary>
+    private static long SourceCopiesWanted(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
+        Dictionary<int, int> printsInAssets, int sourceTypeId, long runsNeeded)
+    {
+        var mine = allPrints.Where(p => p.TypeId == sourceTypeId && owned.Owns(p)).ToList();
+
+        // The same fallback as PrintsWanted: no blueprint rows at all, prints only in assets.
+        if (mine.Count == 0)
+        {
+            var inAssets = printsInAssets.GetValueOrDefault(sourceTypeId);
+            return inAssets == 0 ? 0 : Math.Min(inAssets, Math.Max(1, runsNeeded));
+        }
+
+        long wanted = 0, covered = 0;
+        foreach (var copy in mine.Where(p => !p.IsOriginal).OrderByDescending(p => p.Runs))
         {
             if (covered >= runsNeeded) break;
             covered += copy.Runs;
@@ -715,7 +792,7 @@ public class LogisticsGenerator(
             {
                 var qty = (long)i.TargetQuantity * mult;
                 need(level.LocationId, i.TypeId, qty, HaulReason.Restock, level: qty,
-                     driverKind: "station level");
+                     driverKind: NeedDriverKind.StationLevel);
             }
         }
     }
@@ -992,8 +1069,8 @@ public class LogisticsGenerator(
                             .ToList();
             var reason = run.Min(m => m.Reason);   // the best cargo sets the worth of the run
 
-            var from = places.GetValueOrDefault(run.Key.From, $"Location {run.Key.From}");
-            var to   = places.GetValueOrDefault(run.Key.To,   $"Location {run.Key.To}");
+            var from = places.GetValueOrDefault(run.Key.From, string.Format(WorklistText.LocationWithId, run.Key.From));
+            var to   = places.GetValueOrDefault(run.Key.To,   string.Format(WorklistText.LocationWithId, run.Key.To));
 
             // What asked for this cargo at the destination. The planner recorded it when the need
             // was raised — see the note on Need — because by the time a want is a number the build
@@ -1009,9 +1086,9 @@ public class LogisticsGenerator(
                 .GroupBy(d => d.DriverTypeId)
                 .Select(g => new WorklistWaitingJob(
                     Key:   "",
-                    Title: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
                     TypeId:   g.Key,
-                    TypeName: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
                     Unblocked:    false,
                     StillShortOf: [],
                     WantsUnits:   g.Sum(d => d.Qty)))
@@ -1025,7 +1102,7 @@ public class LogisticsGenerator(
                 Key          = $"haul:{run.Key.From}:{run.Key.To}",
                 Source       = Id,
                 Kind         = WorklistKind.Haul,
-                Title        = $"{cargo.Count} item(s)",
+                Title        = string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
                 Detail       = Because(reason),
@@ -1036,7 +1113,9 @@ public class LogisticsGenerator(
                 DestinationName = to,
                 Lines        = cargo
                     .Select(c => new WorklistLine(
-                        c.TypeId, names.GetValueOrDefault(c.TypeId, $"Type {c.TypeId}"), c.Qty))
+                        c.TypeId,
+                        names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
+                        c.Qty))
                     .ToList(),
                 WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
@@ -1061,10 +1140,10 @@ public class LogisticsGenerator(
 
     private static string Because(HaulReason r) => r switch
     {
-        HaulReason.Unblocking => "Jobs are waiting on this.",
-        HaulReason.Restock    => "Tops the station up to its level.",
-        HaulReason.Refine     => "For refining or decompression.",
-        _                     => "Spare stock going to where its group lives.",
+        HaulReason.Unblocking => WorklistText.HaulWhyUnblocking,
+        HaulReason.Restock    => WorklistText.HaulWhyRestock,
+        HaulReason.Refine     => WorklistText.HaulWhyRefine,
+        _                     => WorklistText.HaulWhySurplus,
     };
 
     /// <summary>Structure names carry their system already; the title only needs the tail.</summary>
@@ -1127,12 +1206,15 @@ public class LogisticsGenerator(
         return map;
     }
 
+    /// <summary>Places as the screen names them. Only ever text — a haul's two ends and a need's
+    /// station, with Station Needs grouping and sorting on what it shows; trips and needs are
+    /// keyed on the ids.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, CancellationToken ct)
     {
         var map = (await db.SdeStations.AsNoTracking()
                 .Select(s => new { Id = (long)s.StationId, s.Name }).ToListAsync(ct))
-            .ToDictionary(s => s.Id, s => s.Name);
+            .ToDictionary(s => s.Id, s => SdeNames.Station(s.Id, s.Name));
 
         foreach (var s in await db.EsiStructureNames.AsNoTracking()
                      .Where(s => s.Name != "")
@@ -1141,10 +1223,11 @@ public class LogisticsGenerator(
 
         // Anything in space — an anchored container, a ship left on grid — roots to the system
         // rather than a station. Saying "in space" beats printing a bare id, and it tells the
-        // reader why the pickup has no station name.
+        // reader why the pickup has no station name. Already a sentence in the interface
+        // language, so the system is named in it too.
         foreach (var s in await db.SdeSolarSystems.AsNoTracking()
                      .Select(s => new { s.SolarSystemId, s.Name }).ToListAsync(ct))
-            map.TryAdd(s.SolarSystemId, $"{s.Name} (in space)");
+            map.TryAdd(s.SolarSystemId, string.Format(WorklistText.PlaceInSpace, SdeNames.SolarSystem(s.SolarSystemId, s.Name)));
 
         return map;
     }

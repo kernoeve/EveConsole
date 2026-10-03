@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -163,7 +164,7 @@ public sealed record ItemShortage(
     /// </summary>
     private string NothingMadeNote =>
         MadePerDay <= 0 && UsedPerDay > 0
-            ? $" Not one has been made in the last {WindowDays} days, which is what drained it."
+            ? " " + string.Format(WorklistText.AdviceNothingMade, WindowDays)
             : "";
 
     public string Verdict =>
@@ -199,8 +200,8 @@ public sealed record ItemShortage(
     /// </summary>
     private string StoppedText =>
         StalledTasks > BlockedTasks
-            ? $"{StalledTasks:N0} task(s) stopped, {BlockedTasks:N0} of them directly short of it"
-            : $"{BlockedTasks:N0} task(s) stopped";
+            ? string.Format(WorklistText.AdviceStoppedChain, StalledTasks, BlockedTasks)
+            : string.Format(WorklistText.AdviceStopped, BlockedTasks);
 
     /// <summary>
     /// Whether anything is actually refilling it, said rather than left to be looked up.
@@ -208,104 +209,76 @@ public sealed record ItemShortage(
     /// <para>⚠️ Advice that ends "check whether it is being made" is advice to go and do the
     /// lookup this row already did. The counts are on the row; the sentence should use them.</para>
     /// </summary>
-    private string MakingNote =>
-        MakingRunning > 0
-            ? $" {MakingRunning:N0} job(s) making it are running now."
-      : MakingReady > 0
-            ? $" {MakingReady:N0} task(s) to make it are ready to start — starting them is the fix."
-      : MakingWaiting > 0
-            ? $" {MakingWaiting:N0} task(s) to make it are waiting on a free slot."
-      : MakingBlocked > 0
-            ? $" Nothing is refilling it: all {MakingBlocked:N0} task(s) to make it are blocked too."
-            : " Nothing on the list is making it at all.";
+    private string MakingNote => " " + (
+        MakingRunning > 0 ? string.Format(WorklistText.AdviceMakingRunning, MakingRunning)
+      : MakingReady   > 0 ? string.Format(WorklistText.AdviceMakingReady, MakingReady)
+      : MakingWaiting > 0 ? string.Format(WorklistText.AdviceMakingWaiting, MakingWaiting)
+      : MakingBlocked > 0 ? string.Format(WorklistText.AdviceMakingBlocked, MakingBlocked)
+      :                     WorklistText.AdviceMakingNone);
 
     public string Advice =>
         BlockedTasks > 0 ? AdviceCore + MakingNote : AdviceCore;
 
+    /// <summary>
+    /// The suggestion for the row's verdict. ⚠️ Switched on the verdict KEY, which stays English;
+    /// only the sentences come from the resources. Each case is whole sentences, with the stopped
+    /// count (<see cref="StoppedText"/>) as the one clause dropped into them.
+    /// </summary>
     private string AdviceCore => Verdict switch
     {
-        "On order" =>
-            $"{StoppedText}, and nothing here makes it — but {OnOrder:N0} unit(s) are already "
-          + $"bid for on the market against a shortfall of {TotalShort:N0}. Nothing further to "
-          + "raise; the jobs start when the buy order fills.",
+        "On order" => string.Format(WorklistText.AdviceOnOrder, StoppedText, OnOrder, TotalShort),
 
         "Buy now" =>
-            $"{StoppedText}, and nothing here makes it. "
-          + (OnOrder > 0
-              ? $"{OnOrder:N0} unit(s) are on order against a shortfall of {TotalShort:N0}, so "
-              + "the bid needs raising rather than placing. "
-              : "")
-          + $"Drawn on at {UsedPerDay:N1}/day"
-          + (Level > 0 ? $" against a level of {Level:N0}." : " with no level set to hold any.")
-          + " Buying is the only thing that starts them.",
+            string.Format(WorklistText.AdviceBuyNow, StoppedText) + " "
+          + (OnOrder > 0 ? string.Format(WorklistText.AdviceBuyNowOnOrder, OnOrder, TotalShort) + " " : "")
+          + (Level > 0
+              ? string.Format(WorklistText.AdviceBuyNowLevel, UsedPerDay, Level)
+              : string.Format(WorklistText.AdviceBuyNowNoLevel, UsedPerDay)),
 
         // ⚠️ The buffer did its job and was not big enough. Saying "make more" here would be
         // advice for the wrong problem: production has not changed, demand has, and absorbing
         // exactly this is what a buffer is FOR.
         "Buffer spent" =>
-            $"{StoppedText} with {OnHand:N0} left. Demand is running "
-          + $"{Surge:N1}× its {WindowDays}-day average and the level of "
-          + $"{Level:N0} covered {DaysOfCover:N0} day(s) of ordinary draw but not this. "
-          + "A larger level absorbs the next wave; if waves like this are routine, the durable "
-          + "fix is making more of it, since no level survives a rate it cannot refill at."
+            string.Format(WorklistText.AdviceBufferSpent,
+                          StoppedText, OnHand, Surge, WindowDays, Level, DaysOfCover)
           + NothingMadeNote,
 
         // ⚠️ The level is met and the work still wants more than is here. Nothing has failed —
         // the level was sized for ordinary draw, and the demand on the list is not that.
         "Level too low" =>
-            $"{StoppedText}. The work on the list needs {Need:N0} and "
-          + $"{OnHand:N0} are on hand — the level of {Level:N0} is met, so this is not a buffer "
-          + $"that ran out but one sized for {DaysOfCover:N0} day(s) of ordinary draw when the "
-          + $"work in front of it wants {TotalShort:N0} more than exists"
-          + (IsWave ? $", with demand running {Surge:N1}× its {WindowDays}-day average." : ".")
-          + $" Raising the level, or making more, is what closes that gap.{NothingMadeNote}",
+            (IsWave
+                ? string.Format(WorklistText.AdviceLevelTooLowWave,
+                                StoppedText, Need, OnHand, Level, DaysOfCover, TotalShort, Surge, WindowDays)
+                : string.Format(WorklistText.AdviceLevelTooLow,
+                                StoppedText, Need, OnHand, Level, DaysOfCover, TotalShort))
+          + NothingMadeNote,
 
         // ⚠️ No level at all. Not a small buffer — none, so there is nothing to absorb anything.
         "No buffer" =>
-            $"{StoppedText} and nothing sets a level for this at all, though it "
-          + $"is drawn on at {UsedPerDay:N1}/day. There is no cushion by construction: every "
-          + $"unit has to be made or bought exactly when it is wanted. Short {TotalShort:N0} "
-          + $"against what the list needs.{NothingMadeNote}",
+            string.Format(WorklistText.AdviceNoBuffer, StoppedText, UsedPerDay, TotalShort) + NothingMadeNote,
 
         // Everything the list wants is here, and the jobs still cannot start. Whatever stopped
         // them is not this material.
-        "Not the shelf" =>
-            $"{StoppedText}, but {OnHand:N0} are on hand and the work needs "
-          + $"{Need:N0} — this material is not what stopped them. Something else on those jobs is "
-          + "short, or they are waiting on a slot, a blueprint, or stock sitting at another station.",
+        "Not the shelf" => string.Format(WorklistText.AdviceNotTheShelf, StoppedText, OnHand, Need),
 
         "Blocked" =>
-            $"{StoppedText} with {OnHand:N0} left against a level of {Level:N0} "
-          + $"— about {DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, and it ran out. "
-          + "Either the level is too low for how fast this moves, or it is not being refilled in "
-          + "time." + NothingMadeNote,
+            string.Format(WorklistText.AdviceBlocked, StoppedText, OnHand, Level, DaysOfCover, UsedPerDay)
+          + NothingMadeNote,
 
-        "Buy" =>
-            $"None owned and nothing here makes it, drawn on at {UsedPerDay:N1}/day. Nothing is "
-          + "stopped yet.",
+        "Buy" => string.Format(WorklistText.AdviceBuy, UsedPerDay),
 
         // Only reached when the deficit holds across both windows — not a spike.
-        "Making too few" =>
-            $"Consumed {UsedPerDay:N1}/day against {MadePerDay:N1}/day made, and demand is flat. "
-          + (double.IsInfinity(DaysToEmpty) ? "" : $"Empty in about {DaysToEmpty:N0} day(s) at this rate. ")
-          + "More production, not a larger buffer.",
+        "Making too few" => double.IsInfinity(DaysToEmpty)
+            ? string.Format(WorklistText.AdviceMakingTooFew, UsedPerDay, MadePerDay)
+            : string.Format(WorklistText.AdviceMakingTooFewEmpty, UsedPerDay, MadePerDay, DaysToEmpty),
 
-        "Wave" =>
-            $"Being drawn on {Surge:N1}× harder than usual — a build wave passing through. "
-          + $"{OnHand:N0} left, roughly {DaysToEmpty:N0} day(s) at the current draw. Nothing is "
-          + "stopped yet; worth watching rather than acting on.",
+        "Wave" => string.Format(WorklistText.AdviceWave, Surge, OnHand, DaysToEmpty),
 
-        "No level set" =>
-            $"Consumed {UsedPerDay:N1}/day with nothing asking to keep any on the shelf, so there "
-          + "is no cushion at all when demand rises.",
+        "No level set" => string.Format(WorklistText.AdviceNoLevelSet, UsedPerDay),
 
-        "Buffer thin" =>
-            $"The level of {Level:N0} is {DaysOfCover:N0} day(s) at {UsedPerDay:N1}/day. Anything "
-          + "taking longer than that to replace will block before it arrives.",
+        "Buffer thin" => string.Format(WorklistText.AdviceBufferThin, Level, DaysOfCover, UsedPerDay),
 
-        _ =>
-            $"{DaysOfCover:N0} day(s) of cover at {UsedPerDay:N1}/day, replaced at "
-          + $"{MadePerDay:N1}/day.",
+        _ => string.Format(WorklistText.AdviceHolding, DaysOfCover, UsedPerDay, MadePerDay),
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -453,7 +426,7 @@ public class ItemContentionService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Making", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install", i.TypeId)).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId)).ToList());
 
         var makes = items
             .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)
@@ -474,8 +447,8 @@ public class ItemContentionService(
             .ToDictionary(g => g.Key, g => g
                 .OrderBy(j => j.EndDate)
                 .Select(j => new ShortageTask(
-                    "Making", -1, "", $"{j.Runs:N0} run(s) installed",
-                    "Running", $"lands {j.EndDate.LocalDateTime:d MMM HH:mm}"))
+                    "Making", -1, "", string.Format(WorklistText.RunsInstalled, j.Runs),
+                    "Running", string.Format(WorklistText.JobLands, j.EndDate.LocalDateTime)))
                 .ToList());
 
         var running = runningJobs.ToDictionary(kv => kv.Key, kv => kv.Value.Count);

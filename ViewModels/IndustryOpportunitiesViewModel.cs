@@ -7,6 +7,7 @@ using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -86,8 +87,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     public List<IndustryModeOption> ModeOptions { get; } =
     [
-        new("Build & Sell Order",         IndustryMode.BuildAndSellOrder),
-        new("Build & Sell to Buy Order",  IndustryMode.BuildAndSellToBuyOrder),
+        new(IndustryText.ModeBuildSellOrder,      IndustryMode.BuildAndSellOrder),
+        new(IndustryText.ModeBuildSellToBuyOrder, IndustryMode.BuildAndSellToBuyOrder),
     ];
 
     // ⚠️ Every choice on this screen is kept here and remembered in UiState, never left to its
@@ -171,6 +172,12 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         }
     }
 
+    // ── Name filter ───────────────────────────────────────────────────────────
+
+    /// <summary>Narrows the results to the items whose name contains what was typed, as it is
+    /// typed. See <see cref="ItemNameFilter{T}"/>.</summary>
+    public ItemNameFilter<IndustryRow> NameFilter { get; }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -189,7 +196,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         if (pick is null) return;
         if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
 
-        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
+            SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
         await SaveExcludedGroupsAsync();
     }
 
@@ -201,6 +209,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
+        // The names are shown once and kept, so they wait for the interface language's first.
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
@@ -222,7 +233,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         ExcludedMarketGroups.Clear();
         foreach (var id in ids)
             if (names.TryGetValue(id, out var name))
-                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
     }
 
     private async Task SaveExcludedGroupsAsync()
@@ -285,7 +296,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 $"{sort.PropertyPath}:{(sort.Direction == ListSortDirection.Ascending ? "asc" : "desc")}");
     }
 
-    private string _statusText = "Select a market config, then click Calculate.";
+    private string _statusText = IndustryText.OppsStatusStart;
     public string StatusText
     {
         get => _statusText;
@@ -310,6 +321,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                        ?? ModeOptions[0];
 
         ResultsView = new DataGridCollectionView(Results);
+        NameFilter  = new ItemNameFilter<IndustryRow>(ResultsView, Results, r => r.TypeName);
+        Results.CollectionChanged += (_, _) => NameFilter.Update();
         RestoreSort();
         ResultsView.SortDescriptions.CollectionChanged += (_, _) => SaveSort();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
@@ -369,7 +382,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         if (SelectedConfig is null)
         {
-            StatusText = "Please select a market config for pricing.";
+            StatusText = IndustryText.OppsErrNoConfig;
             return;
         }
 
@@ -378,7 +391,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinIskVolume, out var mv) || mv < 0)
             {
-                StatusText = "Please enter a valid minimum ISK volume (or leave blank for no filter).";
+                StatusText = IndustryText.OppsErrMinIskVolume;
                 return;
             }
             minIskVol = mv;
@@ -389,7 +402,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
             {
-                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                StatusText = IndustryText.OppsErrMinUnitVolume;
                 return;
             }
             minUnitVol = uv;
@@ -400,22 +413,22 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
 
         Results.Clear();
-        StatusText = "Calculating…";
+        StatusText = IndustryText.OppsStatusCalculating;
         IsCalculating = true;
 
         try
         {
+            await SdeNames.EnsureLoadedAsync();   // the rows and the status line carry the names shown
             var candidates = await FetchCandidatesAsync(SelectedConfig.ConfigId);
 
             // Region is needed for the volume filters AND to price items that have no
             // sell orders off their 30-day history average. Resolve it best-effort.
             int?   regionId   = await ResolveRegionAsync(SelectedConfig);
-            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : "unresolved";
+            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : IndustryText.OppsRegionUnresolved;
             bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue;
             if (needsVolume && !regionId.HasValue)
             {
-                StatusText = "Could not resolve this market config's region — " +
-                             "the 30-day volume filters need a region to look up market history.";
+                StatusText = IndustryText.OppsErrNoRegion;
                 return;
             }
 
@@ -430,16 +443,17 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 Results.Add(r);
 
             int noSell = rows.Count(r => !r.HasSellOrders);
-            var note   = noSell > 0 ? $"  ·  * {noSell} priced from 30-day avg (no sell orders)" : "";
+            var note   = noSell > 0 ? "  ·  " + string.Format(IndustryText.OppsNoteHistoryPriced, noSell) : "";
             // Show the volume region so it's clear the 30-day filters use the Price At region.
-            var volNote = needsVolume ? $" · 30d volume region: {regionName}" : "";
+            var volNote = needsVolume ? " · " + string.Format(IndustryText.OppsNoteVolumeRegion, regionName) : "";
             StatusText = rows.Count > 0
-                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}{volNote}{note}"
-                : "No profitable build opportunities found for this market config.";
+                ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.OppsStatusProfitableOther),
+                                 rows.Count, SelectedConfig.Name) + volNote + note
+                : IndustryText.OppsStatusNone;
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {
@@ -609,7 +623,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             result.Add(new IndustryRow
             {
                 TypeId           = c.TypeId,
-                TypeName         = c.TypeName,
+                TypeName         = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
                 BuildCost        = c.BuildCost,
                 SellPrice        = sellInto,
                 HasSellOrders    = hasSellOrders,
@@ -626,13 +640,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         return result;
     }
 
+    /// <summary>The region as the status line shows it, in the interface language.</summary>
     private async Task<string> GetRegionNameAsync(int regionId)
     {
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""");
         cmd.AddWithValue("@id", regionId);
-        return (await cmd.ExecuteScalarAsync()) as string ?? $"Region {regionId}";
+        return (await cmd.ExecuteScalarAsync()) is string name
+            ? SdeNames.Region(regionId, name)
+            : string.Format(IndustryText.OppsRegionNumbered, regionId);
     }
 
     // Resolves the region id used for the 30-day volume lookups from a market config.

@@ -32,12 +32,16 @@ namespace EveConsole.Monitoring;
 ///
 /// Confirmed NOT PRESENT in game logs, so don't go looking:
 ///   • Mining yield — no (mining) channel, no ore lines anywhere. ESI ledger only.
-///   • Docking — undocking IS logged, docking is not. ESI /location/ only.
+///   • Docking — undocking IS logged, docking is not. ESI /location/ only. And only an
+///     undock from an NPC station is: leaving a player structure writes no line at all.
 ///   • Kill confirmations — no destroyed/wreck lines. Damage only.
 ///   • Login/logout — ESI /online/ only.
+///
+/// The client writes the log in its own language. The English rules are here; the other
+/// seven languages' versions of the lines the alarms read are in GameLogRules.Languages.cs.
 /// ─────────────────────────────────────────────────────────────────────────────
 /// </summary>
-public static class GameLogRules
+public static partial class GameLogRules
 {
     private const RegexOptions Opts =
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture;
@@ -54,6 +58,8 @@ public static class GameLogRules
     public const string KindUnitsMined       = "industry.units_mined";
     public const string KindJumped           = "movement.jumped";
     public const string KindUndocked         = "movement.undocked";
+    public const string KindShipStopped      = "movement.ship_stopped";
+    public const string KindDecloaked        = "movement.decloaked";
     public const string KindUnmatched        = "unmatched";
 
     /// <summary>[ 2024.11.13 01:30:53 ] (channel) rest</summary>
@@ -61,7 +67,14 @@ public static class GameLogRules
         @"^\[\s*(?<ts>\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})\s*\]\s*\((?<ch>[^)]*)\)\s*(?<body>.*)$",
         Opts);
 
-    private static readonly Regex ListenerRx = new(@"^\s*Listener:\s*(?<name>.+?)\s*$", Opts);
+    /// <summary>"Listener: Some Pilot" — the word is the client's language ("Empfänger", "收听者").</summary>
+    private static readonly Regex ListenerRx = new(
+        @"^\s*(?:Listener|Empfänger|Oyente|Auditeur|傍聴者|청취자|Слушатель|收听者)\s*[:：]\s*(?<name>.+?)\s*$", Opts);
+
+    /// <summary>The colour the line opens with, before the markup is stripped. The game paints a
+    /// damage figure cyan when it is dealt and red when it is taken — in every language, which
+    /// matters where the words do not say (the Japanese client writes から both ways).</summary>
+    private static readonly Regex LeadColorRx = new(@"^<color=(?<c>0x[0-9A-Fa-f]{8})>", Opts);
 
     /// <summary>Colour/font markup the client embeds. Stripped before matching.</summary>
     private static readonly Regex TagRx = new(@"<[^>]*>", Opts);
@@ -115,9 +128,24 @@ public static class GameLogRules
         @"^(?<amount>\d+)\s+remote\s+(?<what>shield|armor|armour|hull|capacitor)\s+(?<verb>boosted|repaired|transmitted)\s+(?:by|to)\s+(?<entity>.+?)\s+-\s+(?<module>.+?)\s*$",
         Opts);
 
-    /// <summary>"Jumping from D-PNP9 to 1DQ1-A"</summary>
+    /// <summary>"Jumping from QZ-X77 to XQ1-Z2"</summary>
     private static readonly Regex JumpRx = new(
         @"^Jumping\s+from\s+(?<from>.+?)\s+to\s+(?<to>.+?)\s*$", Opts);
+
+    /// <summary>
+    /// "Ship stopping" — the pilot pressed stop. Never written on its own: of 335 logged undocks,
+    /// 258 had no stop at all, and where one followed it was 7 s or more later (the undock
+    /// squeeze is about 10 s, and a stop pressed during it says "Can't do that while undocking"
+    /// instead). What the wake-up alarm takes as proof somebody is at the keyboard.
+    /// </summary>
+    private static readonly Regex ShipStoppingRx = new(
+        @"^(?:Ship\s+stopping|Schiff\s+hält\s+an|Nave\s+deteniéndose|Arrêt\s+du\s+vaisseau|船を停止中|함선\s*정지\s*중|Корабль\s+останавливается|舰船正在停止)[.。]?\s*$",
+        Opts);
+
+    /// <summary>"Your cloak deactivates due to proximity to a nearby Stargate (Jita)." — or a
+    /// Keepstar, an Ansiblex, any structure. What dropped it goes in LocationName.</summary>
+    private static readonly Regex DecloakRx = new(
+        @"^Your\s+cloak\s+deactivates\s+due\s+to\s+proximity\s+to\s+a\s+nearby\s+(?<what>.+?)\.?\s*$", Opts);
 
     /// <summary>"Undocking from Jita IV - Moon 4 - Caldari Navy Assembly Plant to Jita solar system."</summary>
     private static readonly Regex UndockRx = new(
@@ -135,7 +163,8 @@ public static class GameLogRules
     private static readonly Regex EntityLegacyRx = new(
         @"^(?<name>.+?)\[(?<corp>[^\]]+)\]\((?<ship>[^)]+)\)\s*$", Opts);
 
-    public sealed record ParsedLine(DateTimeOffset? Timestamp, string Channel, string Body);
+    /// <param name="LeadColor">The colour tag the body opened with, lower case ("0xffcc0000"); null for none.</param>
+    public sealed record ParsedLine(DateTimeOffset? Timestamp, string Channel, string Body, string? LeadColor = null);
 
     /// <summary>A combat participant. Ship type is present only for players, and only
     /// because being in combat with them means you are on grid — which is exactly what
@@ -162,7 +191,9 @@ public static class GameLogRules
             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed)
             ? parsed : null;
 
-        return new ParsedLine(ts, m.Groups["ch"].Value, StripMarkup(m.Groups["body"].Value));
+        var body = m.Groups["body"].Value;
+        var lead = LeadColorRx.Match(body) is { Success: true } c ? c.Groups["c"].Value.ToLowerInvariant() : null;
+        return new ParsedLine(ts, m.Groups["ch"].Value, StripMarkup(body), lead);
     }
 
     /// <summary>Parse a participant, tolerating both known entity formats. Falls back
@@ -206,7 +237,7 @@ public static class GameLogRules
         };
 
         // ── (None): movement ─────────────────────────────────────────────────
-        if (JumpRx.Match(body) is { Success: true } jump)
+        if (First(body, JumpRx, OtherJumpRx) is { } jump)
         {
             var r = Row(KindJumped);
             r.FromSystem = jump.Groups["from"].Value.Trim();
@@ -214,11 +245,22 @@ public static class GameLogRules
             return r;
         }
 
-        if (UndockRx.Match(body) is { Success: true } undock)
+        if (First(body, UndockRx, OtherUndockRx) is { } undock)
         {
             var r = Row(KindUndocked);
             r.LocationName = undock.Groups["loc"].Value.Trim();
             r.ToSystem     = undock.Groups["sys"].Value.Trim();
+            return r;
+        }
+
+        if (ShipStoppingRx.IsMatch(body))
+            return Row(KindShipStopped);
+
+        if (First(body, DecloakRx, OtherDecloakRx) is { } decloak)
+        {
+            var r = Row(KindDecloaked);
+            // Russian names nothing for a nearby object: "вы подлетели к объекту."
+            r.LocationName = decloak.Groups["what"].Success ? decloak.Groups["what"].Value.Trim() : null;
             return r;
         }
 
@@ -239,7 +281,18 @@ public static class GameLogRules
                 return r;
             }
 
-            if (MissDealtRx.Match(body) is { Success: true } missOut)
+            if (OtherDamage(line) is { } other)
+            {
+                var r = Row(other.Inbound ? KindDamageTaken : KindDamageDealt);
+                r.Amount  = other.Amount;
+                r.Weapon  = other.Weapon;
+                r.Quality = other.Quality;
+                var e = ParseEntity(other.Entity);
+                if (other.Inbound) SetSource(r, e); else SetTarget(r, e);
+                return r;
+            }
+
+            if (First(body, MissDealtRx, OtherMissDealtRx) is { } missOut)
             {
                 var r = Row(KindMissDealt);
                 r.Amount     = 0;
@@ -249,7 +302,7 @@ public static class GameLogRules
                 return r;
             }
 
-            if (MissTakenRx.Match(body) is { Success: true } missIn)
+            if (First(body, MissTakenRx, OtherMissTakenRx) is { } missIn)
             {
                 var r = Row(KindMissTaken);
                 r.Amount = 0;
@@ -297,6 +350,15 @@ public static class GameLogRules
                 r.Quality = ewar.Groups["kind"].Value.Trim();
                 SetSource(r, ParseEntity(ewar.Groups["src"].Value));
                 SetTarget(r, ParseEntity(ewar.Groups["dst"].Value));
+                return r;
+            }
+
+            if (OtherEwarOnYou(body) is { } onYou)
+            {
+                var r = Row(KindEwar);
+                r.Quality = onYou.Quality;
+                SetSource(r, ParseEntity(onYou.Source));
+                r.TargetName = YouTarget;
                 return r;
             }
         }

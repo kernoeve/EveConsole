@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.SdeUpdateDialog"
         x:DataType="vm:SdeViewModel"
-        Title="Eve Static Data Update"
+        Title="{x:Static loc:SettingsText.TitleEveStaticDataUpdate}"
         Width="480" Height="370"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -14,23 +15,23 @@
     <!-- ── Phase 1: Prompt (hidden once import starts) ── -->
     <StackPanel x:Name="PromptPanel" Spacing="14">
 
-      <TextBlock Text="A newer Eve static data build is available."
+      <TextBlock Text="{x:Static loc:SettingsText.ANewerEveStaticNote}"
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:"
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.LoadedLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LoadedBuild}"
                    Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SettingsText.LatestLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestBuild}"
                    Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
       </Grid>
 
       <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-        <Button Content="Update Now" Click="OnUpdateNow" Padding="16 5" />
-        <Button Content="Later"      Click="OnLater"     Padding="16 5" />
+        <Button Content="{x:Static loc:SettingsText.UpdateNow}" Click="OnUpdateNow" Padding="16 5" />
+        <Button Content="{x:Static loc:SettingsText.Later}"      Click="OnLater"     Padding="16 5" />
       </StackPanel>
 
     </StackPanel>
@@ -38,7 +39,7 @@
     <!-- ── Phase 2: Running (shown while IsBusy) ── -->
     <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
 
-      <TextBlock Text="Updating Eve static data…"
+      <TextBlock Text="{x:Static loc:SettingsText.UpdatingEveStaticData}"
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <ProgressBar Value="{Binding Fraction}"
@@ -54,13 +55,14 @@
     <!-- ── Phase 3: Done ── -->
     <StackPanel x:Name="DonePanel" IsVisible="False" Spacing="10">
 
-      <TextBlock Text="SDE update complete."
+      <TextBlock Text="{x:Static loc:SettingsText.SdeUpdateComplete}"
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <TextBlock Text="{Binding StatusText}"
-                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                 TextWrapping="Wrap" />
 
-      <Button Content="Close" Click="OnClose"
+      <Button Content="{x:Static loc:SettingsText.Close}" Click="OnClose"
               HorizontalAlignment="Right" Padding="16 5" />
 
     </StackPanel>
@@ -71,18 +73,18 @@
     <!-- ── Hoboleaks section ── -->
     <StackPanel Spacing="10">
 
-      <TextBlock Text="Hoboleaks Complement"
+      <TextBlock Text="{x:Static loc:SettingsText.HoboleaksComplement}"
                  FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
 
       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                 Text="Blueprints, reprocessing, compression, and repackaged volumes updated shortly after each TQ patch — often ahead of the official SDE." />
+                 Text="{x:Static loc:SettingsText.BlueprintsReprocessingCompressionAndNote}" />
 
       <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:"
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.LoadedLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HoboImportedAt}"
                    Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SettingsText.LatestLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HoboLatest}"
                    Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
@@ -96,7 +98,7 @@
       </StackPanel>
 
       <Button x:Name="HoboImportButton"
-              Content="Import from Hoboleaks"
+              Content="{x:Static loc:SettingsText.ImportFromHoboleaks}"
               Click="OnHoboImport"
               IsEnabled="{Binding !HoboIsBusy}"
               HorizontalAlignment="Left"

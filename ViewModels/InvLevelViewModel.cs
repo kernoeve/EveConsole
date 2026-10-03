@@ -11,6 +11,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -172,15 +173,35 @@ public class InvGroupRow : ReactiveObject
 
     // Displayed beneath the group name to indicate scope
     public string ScopeDisplay => Scope == "Everywhere"
-        ? "Everywhere"
-        : $"{LocationName} · {Scope}";
+        ? AssetsText.Everywhere
+        : $"{LocationDisplay} · {ScopeLabel}";
+
+    /// <summary>
+    /// The scope's place as the screen names it: a region, system or NPC station in the interface
+    /// language.
+    ///
+    /// <para>⚠️ <see cref="LocationName"/> stays English. The Multiplier setter saves the whole
+    /// group back from this row, and the edit dialog is handed it to return unchanged.</para>
+    /// </summary>
+    public string LocationDisplay => InvLevelService.ScopePlaceName(Scope, LocationId, LocationName);
+
+    /// <summary>The scope's word as shown. ⚠️ Scope itself is the saved key — "Station",
+    /// "System", "Region", "Everywhere" — and is what everything compares; only this is looked up.</summary>
+    public string ScopeLabel => Scope switch
+    {
+        "Station"    => AssetsText.Station,
+        "System"     => AssetsText.System,
+        "Region"     => AssetsText.Region,
+        "Everywhere" => AssetsText.Everywhere,
+        _            => Scope,
+    };
 
     // ── The scope's location, as a link ───────────────────────────────────────
     //
     // ScopeDisplay reads "Jita IV - Moon 4 · Station". The name half points somewhere, the scope
     // word does not, so the view renders the two separately and only the name links. An
     // "Everywhere" group has no location at all and shows neither.
-    public string ScopeSuffix   => Scope == "Everywhere" ? "" : $" · {Scope}";
+    public string ScopeSuffix   => Scope == "Everywhere" ? "" : $" · {ScopeLabel}";
     public bool   HasLocationLink => LocationId is > 0 && LocationName.Length > 0
                                   && Scope != "Everywhere";
 
@@ -230,12 +251,12 @@ public class InvGroupRow : ReactiveObject
         get
         {
             var parts = new List<string>();
-            if (IncludeAssets)          parts.Add("Assets");
-            if (IncludeIndustryJobs)    parts.Add("IJ");
-            if (IncludeMarketBuyOrders) parts.Add("Orders");
-            if (IncludeContractsBuying) parts.Add("Contracts");
-            if (PackagedOnly)           parts.Add("packaged only");
-            return parts.Count > 0 ? string.Join(", ", parts) : "None";
+            if (IncludeAssets)          parts.Add(AssetsText.Assets);
+            if (IncludeIndustryJobs)    parts.Add(AssetsText.IncludeIjShort);
+            if (IncludeMarketBuyOrders) parts.Add(AssetsText.IncludeOrdersShort);
+            if (IncludeContractsBuying) parts.Add(AssetsText.IncludeContractsShort);
+            if (PackagedOnly)           parts.Add(AssetsText.IncludePackagedOnly);
+            return parts.Count > 0 ? string.Join(", ", parts) : AssetsText.IncludeNone;
         }
     }
 
@@ -287,8 +308,10 @@ public class InvGroupRow : ReactiveObject
         IncludeContractsBuying = g.IncludeContractsBuying;
         PackagedOnly           = g.PackagedOnly;
         this.RaisePropertyChanged(nameof(ScopeDisplay));
+        this.RaisePropertyChanged(nameof(ScopeLabel));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(HasLocationLink));
         this.RaisePropertyChanged(nameof(IncludeSummary));
     }
@@ -323,6 +346,10 @@ public class InvItemRow : ReactiveObject
     public int    GroupId  { get; }
     public int    TypeId   { get; }
     public string TypeName { get; }
+
+    /// <summary>The item as the grid shows it, and what the grid sorts it by. ⚠️ Display only:
+    /// <see cref="TypeName"/> is the English, and what is handed on.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -539,7 +566,6 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     private readonly ProductionCalculatorService? _prodCalc;
     private readonly FittingsService?             _fittings;
     private readonly ObservableCollection<Character>?   _characters;
-    private readonly ObservableCollection<Corporation>? _corporations;
     private readonly AppPreferencesService              _prefs;
 
     private readonly List<InvGroupRow>       _allGroups       = [];
@@ -560,7 +586,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     }
     public bool IsItemRowSelected => _selectedRow is InvItemRow;
 
-    private string _statusText = "Loading…";
+    private string _statusText = CommonText.Loading;
     public string StatusText
     {
         get => _statusText;
@@ -610,15 +636,18 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             var r = await _transfer.ImportAsync(input);
             await LoadGroupsAsync();
             await RefreshAllAsync();
-            StatusText = $"Imported '{r.CollectionName}' — {r.Groups} group(s), {r.Items} item(s)"
-                       + (r.UnknownTypes > 0
-                            ? $". {r.UnknownTypes} item(s) skipped: this install's SDE does not have them."
-                            : ".");
+            var rm     = AssetsText.ResourceManager;
+            var groups = Plurals.Format(rm, nameof(AssetsText.InvGroupsOther), r.Groups);
+            var items  = Plurals.Format(rm, nameof(AssetsText.InvItemsOther),  r.Items);
+            StatusText = r.UnknownTypes > 0
+                ? string.Format(AssetsText.StatusImportedSkipped, r.CollectionName, groups, items,
+                      Plurals.Format(rm, nameof(AssetsText.ImportSkippedItemsOther), r.UnknownTypes))
+                : string.Format(AssetsText.StatusImported, r.CollectionName, groups, items);
             await NotifyGroupsChangedAsync();
         }
         catch (Exception ex)
         {
-            StatusText = $"Import failed: {ex.Message}";
+            StatusText = string.Format(AssetsText.ErrImportFailed, ex.Message);
         }
     }
     public Func<Task<FitSelectorResult?>>?                                                  ShowFitSelectorDialog      { get; set; }
@@ -638,8 +667,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         BatchAddService?             batchSvc      = null,
         ProductionCalculatorService? prodCalc      = null,
         FittingsService?             fittings      = null,
-        ObservableCollection<Character>?   characters   = null,
-        ObservableCollection<Corporation>? corporations = null)
+        ObservableCollection<Character>?   characters   = null)
     {
         _svc          = svc;
         _dbFactory    = dbFactory;
@@ -649,7 +677,6 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         _prodCalc     = prodCalc;
         _fittings     = fittings;
         _characters   = characters;
-        _corporations = corporations;
 
         var hasGroups = this.WhenAnyValue(x => x.HasAnyGroup);
         AddGroupCommand              = ReactiveCommand.CreateFromTask(AddGroupAsync);
@@ -697,6 +724,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task InitAsync()
     {
+        // The rows are named, and sorted, in the interface language; this runs at start, so wait
+        // for the names once rather than sort by the English and keep that order.
+        await SdeNames.EnsureLoadedAsync();
         await LoadGroupsAsync();
         await RefreshAllAsync();
     }
@@ -733,7 +763,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         // Create the synthetic Default collection if any group has null CollectionId
         if (_allGroups.Any(g => g.CollectionId == null))
-            _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeCollectionRow(null, AssetsText.DefaultCollection, isSynthetic: true);
 
         // Before the first rebuild, so the list is drawn folded as it was left rather than
         // opening everything and snapping shut a frame later.
@@ -741,21 +771,21 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
-        StatusText = $"{_allGroups.Count} group(s) loaded. Hit Refresh to load availability.";
+        StatusText = Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusGroupsLoadedOther), _allGroups.Count);
     }
 
     // ── Refresh (load available quantities from DB) ───────────────────────────
 
     private async Task RefreshAllAsync()
     {
-        StatusText = "Loading availability data…";
+        StatusText = AssetsText.StatusLoadingAvailability;
         int updated = 0;
         foreach (var groupRow in _allGroups)
         {
             await RefreshGroupAsync(groupRow);
             updated += groupRow.AllItems.Count;
         }
-        StatusText = $"Updated {updated} item(s) at {DateTime.Now:HH:mm:ss}.";
+        StatusText = Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusItemsUpdatedOther), updated, DateTime.Now);
     }
 
     private async Task RefreshGroupAsync(InvGroupRow groupRow)
@@ -791,7 +821,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     public FitSelectorViewModel? CreateFitSelectorViewModel()
     {
-        if (_fittings == null || _characters == null || _corporations == null) return null;
+        if (_fittings == null || _characters == null) return null;
         var groupOptions = _allGroups.Select(g => new FitGroupOption(g.GroupId, g.GroupName)).ToList();
         var preselectedId = _selectedRow switch
         {
@@ -799,7 +829,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             InvItemRow  i => i.GroupId,
             _             => groupOptions.Count > 0 ? groupOptions[0].GroupId : 0
         };
-        return new FitSelectorViewModel(_fittings!, _dbFactory, _characters!, _corporations!, groupOptions, preselectedId);
+        return new FitSelectorViewModel(_fittings!, _dbFactory, _characters!, groupOptions, preselectedId);
     }
 
     private async Task AddFromFitInvokeAsync()
@@ -837,27 +867,30 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowMarketGroupPickerDialog();
         if (pick == null) return;
 
-        StatusText = $"Loading items in '{pick.GroupName}'…";
+        // Only ever said on screen, in the status line.
+        var groupName = SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName);
+
+        StatusText = string.Format(AssetsText.StatusLoadingItemsIn, groupName);
         var items = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
 
         if (items.Count == 0)
         {
-            StatusText = $"No published items found under '{pick.GroupName}'.";
+            StatusText = string.Format(AssetsText.StatusNoPublishedItems, groupName);
             return;
         }
 
         if (items.Count > 100)
         {
-            var confirmed = await ShowConfirmLargeGroupAsync(pick.GroupName, items.Count);
-            if (!confirmed) { StatusText = "Cancelled."; return; }
+            var confirmed = await ShowConfirmLargeGroupAsync(groupName, items.Count);
+            if (!confirmed) { StatusText = AssetsText.StatusCancelled; return; }
         }
 
         var targetGroup = GetContextGroup();
-        if (targetGroup == null) { StatusText = "No group selected."; return; }
+        if (targetGroup == null) { StatusText = AssetsText.StatusNoGroupSelected; return; }
 
         await AddItemsToGroupAsync(targetGroup,
             items.ToDictionary(x => x.TypeId, _ => pick.TargetQty),
-            pick.GroupName);
+            groupName);
     }
 
     // ── Blueprint add ─────────────────────────────────────────────────────────
@@ -868,7 +901,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowBlueprintPickerDialog();
         if (pick == null) return;
 
-        StatusText = "Calculating materials…";
+        StatusText = AssetsText.StatusCalculatingMaterials;
         Dictionary<int, (long Qty, string Name)> mats;
         try
         {
@@ -881,18 +914,18 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            StatusText = $"Calculation error: {ex.Message}";
+            StatusText = string.Format(AssetsText.ErrCalculation, ex.Message);
             return;
         }
 
         if (mats.Count == 0)
         {
-            StatusText = "No materials found for that blueprint.";
+            StatusText = AssetsText.StatusNoMaterials;
             return;
         }
 
         var targetGroup = GetContextGroup();
-        if (targetGroup == null) { StatusText = "No group selected."; return; }
+        if (targetGroup == null) { StatusText = AssetsText.StatusNoGroupSelected; return; }
 
         // ⚠️ Chain quantities are long; an inventory level is an int column in the rules
         // table. Clamped rather than cast, so an absurd plan produces a capped level instead
@@ -900,7 +933,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
                                               kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
-        await AddItemsToGroupAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
+        // The label is only said in the status line, so it is named as the screen shows it.
+        await AddItemsToGroupAsync(targetGroup, itemsWithQty,
+            SdeNames.Type(pick.ProductTypeId, pick.ProductName), nameOverrides);
     }
 
     // ── Shared batch-add helper ───────────────────────────────────────────────
@@ -917,7 +952,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         if (candidates.Count == 0)
         {
-            StatusText = $"All items from '{label}' are already in the group.";
+            StatusText = string.Format(AssetsText.StatusAllItemsAlreadyIn, label);
             return;
         }
 
@@ -942,7 +977,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 meta = nameOverridesMeta.TryGetValue(typeId, out var nameOverride)
                     ? fm with { Name = nameOverride } : fm;
             else
-                meta = new InvTypeMeta(nameOverridesMeta.GetValueOrDefault(typeId, $"Type {typeId}"), 0, null, null);
+                meta = new InvTypeMeta(nameOverridesMeta.GetValueOrDefault(typeId, string.Format(AssetsText.FallbackTypeName, typeId)), 0, null, null);
 
             var itemRow = new InvItemRow(item, meta, _svc,
                 () => DeleteItemAsync(item.Id), groupRow.Multiplier);
@@ -957,8 +992,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         int totalSkipped = alreadyIn + dupeInDb;
         StatusText = totalSkipped > 0
-            ? $"Added {added} item(s) from '{label}'; {totalSkipped} already present, skipped."
-            : $"Added {added} item(s) from '{label}'.";
+            ? Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusItemsAddedSkippedOther), added, label, totalSkipped)
+            : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusItemsAddedOther), added, label);
     }
 
     private async Task<bool> ShowConfirmLargeGroupAsync(string groupName, int count)
@@ -994,7 +1029,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private IReadOnlyList<CollectionOption> GetCollectionOptions()
     {
-        var opts = new List<CollectionOption> { new(null, "— Default —") };
+        var opts = new List<CollectionOption> { new(null, AssetsText.DefaultCollectionOption) };
         opts.AddRange(_allCollections.Select(c => new CollectionOption(c.CollectionId, c.CollectionName)));
         return opts;
     }
@@ -1012,10 +1047,10 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         // Ensure the synthetic Default row exists if the group has no collection
         if (g.CollectionId == null && _defaultCollRow == null)
-            _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeCollectionRow(null, AssetsText.DefaultCollection, isSynthetic: true);
 
         RebuildGridRows();
-        StatusText = $"Group '{g.Name}' added.";
+        StatusText = string.Format(AssetsText.StatusGroupAdded, g.Name);
         await NotifyGroupsChangedAsync();
     }
 
@@ -1037,7 +1072,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         // Ensure/remove synthetic Default row based on whether any group is uncollected
         if (_allGroups.Any(g => g.CollectionId == null) && _defaultCollRow == null)
-            _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeCollectionRow(null, AssetsText.DefaultCollection, isSynthetic: true);
         else if (!_allGroups.Any(g => g.CollectionId == null))
             _defaultCollRow = null;
 
@@ -1050,15 +1085,17 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     {
         // ⚠️ Asked before doing it, not offered as an undo afterwards. Delete sits inches from
         // Edit on the group line and takes the items with it; there is nothing to put back.
-        var items = row.AllItems.Count;
-        var what  = items == 0 ? "" : items == 1 ? " and its 1 item" : $" and its {items:N0} items";
-        if (!await ConfirmAsync($"Delete the group '{row.GroupName}'{what}? This cannot be undone."))
+        var items    = row.AllItems.Count;
+        var question = items == 0
+            ? string.Format(AssetsText.ConfirmDeleteGroup, row.GroupName)
+            : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.ConfirmDeleteGroupItemsOther), items, row.GroupName);
+        if (!await ConfirmAsync(question))
             return;
 
         await _svc.DeleteGroupAsync(row.GroupId);
         _allGroups.Remove(row);
         RebuildGridRows();
-        StatusText = $"Group '{row.GroupName}' deleted.";
+        StatusText = string.Format(AssetsText.StatusGroupDeleted, row.GroupName);
         await NotifyGroupsChangedAsync();
     }
 
@@ -1085,7 +1122,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId, result.TargetQty);
         if (item is null)
         {
-            StatusText = $"{result.TypeName} is already in the group.";
+            StatusText = string.Format(AssetsText.StatusAlreadyInGroup, SdeNames.Type(result.TypeId, result.TypeName));
             return;
         }
 
@@ -1162,7 +1199,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         Func<InvItemRow, IComparable?>? key = propName switch
         {
-            "TypeName"       => r => r.TypeName,
+            // By what the column shows, not the English behind it.
+            "TypeName"       => r => r.DisplayName,
             "TargetQty"      => r => (IComparable?)r.TargetQty,
             "TargetTotal"    => r => (IComparable?)r.TargetTotal,
             "Available"      => r => (IComparable?)r.Available,
@@ -1189,9 +1227,10 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         RebuildGridRows();
     }
 
+    /// <summary>By the name the grid shows, in the reader's own collation (Chinese by pinyin).</summary>
     private static void SortItemsAlpha(InvGroupRow group)
     {
-        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+        var sorted = group.AllItems.OrderBy(i => i.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
         group.AllItems.Clear();
         group.AllItems.AddRange(sorted);
     }
@@ -1416,11 +1455,12 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 // The groups SURVIVE — DeleteCollectionAsync clears their CollectionId rather than
                 // removing them, so they reappear under Default. Worth saying in the prompt: the
                 // fear when deleting a folder is losing what is in it.
-                var kept = _allGroups.Count(g => g.CollectionId == collectionId.Value);
-                var fate = kept == 0 ? ""
-                    : kept == 1 ? " Its 1 group moves to Default and is not deleted."
-                    : $" Its {kept:N0} groups move to Default and are not deleted.";
-                if (!await ConfirmAsync($"Delete the collection '{collRow.CollectionName}'?{fate}"))
+                var kept     = _allGroups.Count(g => g.CollectionId == collectionId.Value);
+                var question = kept == 0
+                    ? string.Format(AssetsText.ConfirmDeleteCollection, collRow.CollectionName)
+                    : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.ConfirmDeleteCollectionGroupsOther),
+                                     kept, collRow.CollectionName, AssetsText.DefaultCollection);
+                if (!await ConfirmAsync(question))
                     return;
 
                 await _svc.DeleteCollectionAsync(collectionId.Value);
@@ -1428,9 +1468,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                     g.CollectionId = null;
                 _allCollections.Remove(collRow);
                 if (_allGroups.Any(g => g.CollectionId == null) && _defaultCollRow == null)
-                    _defaultCollRow = MakeCollectionRow(null, "Default", isSynthetic: true);
+                    _defaultCollRow = MakeCollectionRow(null, AssetsText.DefaultCollection, isSynthetic: true);
                 RebuildGridRows();
-                StatusText = $"Collection '{collRow.CollectionName}' deleted.";
+                StatusText = string.Format(AssetsText.StatusCollectionDeleted, collRow.CollectionName);
             },
             expandAll: () =>
             {
@@ -1456,6 +1496,6 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var row  = MakeCollectionRow(c.Id, c.Name, isSynthetic: false);
         _allCollections.Add(row);
         RebuildGridRows();
-        StatusText = $"Collection '{c.Name}' added.";
+        StatusText = string.Format(AssetsText.StatusCollectionAdded, c.Name);
     }
 }

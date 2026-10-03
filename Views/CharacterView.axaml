@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
@@ -139,7 +140,7 @@
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto">
 
-        <TextBlock Grid.Column="0" Text="Period:" FontSize="12"
+        <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.PeriodLabel}" FontSize="12"
                    Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                    Margin="0 0 8 0" />
 
@@ -160,7 +161,7 @@
                      FontSize="11" Foreground="{DynamicResource BadBrush}" />
         </StackPanel>
 
-        <Button Grid.Column="3" Content="⚙ Customize Layout"
+        <Button Grid.Column="3" Content="{x:Static loc:OverviewText.CustomizeLayout}"
                 Click="OnCustomizeClick"
                 FontSize="11" Padding="10 4" VerticalAlignment="Center"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
@@ -182,7 +183,7 @@
           <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
 
-            <TextBlock Text="Activity Summary" FontSize="13" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:OverviewText.ActivitySummary}" FontSize="13" FontWeight="SemiBold"
                        Foreground="{DynamicResource AccentBrush}" />
 
             <!-- Two-column metric grid -->
@@ -195,9 +196,9 @@
 
                   <!-- Header row -->
                   <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
-                    <TextBlock Grid.Column="0" Text="In Period" FontSize="11"
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.InPeriod}" FontSize="11"
                                FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
-                    <TextBlock Grid.Column="1" Text="Count" FontSize="11"
+                    <TextBlock Grid.Column="1" Text="{x:Static loc:OverviewText.Count}" FontSize="11"
                                FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="ISK" FontSize="11"
@@ -207,29 +208,29 @@
 
                   <!-- Rows -->
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Market Sales"       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.MarketSales}"       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding MktSellCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="{Binding MktSellIsk}"   FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Market Purchases"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.MarketPurchases}"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding MktBuyCount}"  FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="{Binding MktBuyIsk}"    FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Completed Jobs"     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.CompletedJobs}"     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding CompletedJobCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Player Ship Kills"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                               ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.PlayerShipKills}"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                               ToolTip.Tip="{x:Static loc:OverviewText.TipRequiresFullKillMail}" />
                     <TextBlock Grid.Column="1" Text="{Binding ShipKillCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Ships Lost"         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                               ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.ShipsLost}"         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                               ToolTip.Tip="{x:Static loc:OverviewText.TipRequiresFullKillMail}" />
                     <TextBlock Grid.Column="1" Text="{Binding ShipLossCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
@@ -243,33 +244,33 @@
                 <StackPanel Spacing="0">
 
                   <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
-                    <TextBlock Grid.Column="0" Text="Current State" FontSize="11"
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.CurrentState}" FontSize="11"
                                FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
-                    <TextBlock Grid.Column="1" Text="Count" FontSize="11"
+                    <TextBlock Grid.Column="1" Text="{x:Static loc:OverviewText.Count}" FontSize="11"
                                FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="Value" FontSize="11"
+                    <TextBlock Grid.Column="2" Text="{x:Static loc:OverviewText.Value}" FontSize="11"
                                FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                   </Grid>
 
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Sell Orders" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.OutstandingSellOrders}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding SellOrderCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="{Binding SellOrderIsk}"   FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Buy Orders"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.OutstandingBuyOrders}"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding BuyOrderCount}"  FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="{Binding BuyOrderIsk}"    FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Contracts"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.OutstandingContracts}"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding CtrActiveCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Active Indy Jobs"        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.ActiveIndyJobs}"        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding ActiveJobCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
@@ -289,10 +290,10 @@
             <Grid RowDefinitions="Auto,*">
 
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.Alerts}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenAlertSettings" VerticalAlignment="Center">
-                  <TextBlock Text="Alert Settings →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.AlertSettings}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -300,7 +301,7 @@
                 <StackPanel Spacing="8">
 
               <TextBlock IsVisible="{Binding NoAlerts}"
-                         Text="No active alerts."
+                         Text="{x:Static loc:OverviewText.NoActiveAlerts}"
                          FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          FontStyle="Italic" />
 
@@ -344,7 +345,7 @@
                         <Button Grid.Column="2"
                                 IsVisible="{Binding IsDismissible}"
                                 Command="{Binding DismissCommand}"
-                                Content="Dismiss"
+                                Content="{x:Static loc:OverviewText.Dismiss}"
                                 FontSize="10" Padding="8 2" Margin="8 0 0 0"
                                 Background="{DynamicResource WarnSurfaceBrush}" Foreground="{DynamicResource AccentBrush}"
                                 BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
@@ -364,14 +365,14 @@
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
-              <TextBlock Grid.Row="0" Text="Eve Online News" FontSize="13" FontWeight="SemiBold"
+              <TextBlock Grid.Row="0" Text="{x:Static loc:OverviewText.EveOnlineNews}" FontSize="13" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
 
               <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="8">
 
               <TextBlock IsVisible="{Binding NoNews}"
-                         Text="News unavailable — will retry next refresh."
+                         Text="{x:Static loc:OverviewText.NewsUnavailableWillRetryNext}"
                          FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          FontStyle="Italic" />
 
@@ -441,17 +442,17 @@
           <Grid RowDefinitions="Auto,*">
 
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-              <TextBlock Text="Notifications" FontSize="13" FontWeight="SemiBold"
+              <TextBlock Text="{x:Static loc:OverviewText.Notifications}" FontSize="13" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
               <Button Grid.Column="1" Classes="newslink" Click="OnOpenNotifications" VerticalAlignment="Center">
-                <TextBlock Text="Notifications →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                <TextBlock Text="{x:Static loc:OverviewText.Notifications2}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
               </Button>
             </Grid>
 
             <Grid Grid.Row="1">
 
             <TextBlock IsVisible="{Binding NoNotifications}"
-                       Text="No recent notifications."
+                       Text="{x:Static loc:OverviewText.NoRecentNotifications}"
                        FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                        VerticalAlignment="Top" />
 
@@ -491,10 +492,10 @@
             <Grid RowDefinitions="Auto,Auto,*">
 
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Personal Killmails" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.PersonalKillmails}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenKillmailsTool" VerticalAlignment="Center">
-                  <TextBlock Text="Killmails →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.Killmails}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -503,7 +504,7 @@
                 <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}"
                         BorderThickness="1" Padding="10 6" Margin="0 0 4 0">
                   <StackPanel Spacing="2">
-                    <TextBlock Text="KILLS" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+                    <TextBlock Text="{x:Static loc:OverviewText.KillsLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                FontWeight="SemiBold" LetterSpacing="1" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding PersonalKillCount}" FontSize="16"
@@ -516,7 +517,7 @@
                 <Border Grid.Column="1" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}"
                         BorderThickness="1" Padding="10 6" Margin="4 0 0 0">
                   <StackPanel Spacing="2">
-                    <TextBlock Text="LOSSES" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+                    <TextBlock Text="{x:Static loc:OverviewText.LossesLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                FontWeight="SemiBold" LetterSpacing="1" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding PersonalLossCount}" FontSize="16"
@@ -530,7 +531,7 @@
 
               <!-- Empty state -->
               <TextBlock Grid.Row="2" IsVisible="{Binding NoPersonalKills}"
-                         Text="No killmails in this period."
+                         Text="{x:Static loc:OverviewText.NoKillmailsInThisPeriod}"
                          FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
@@ -553,7 +554,9 @@
                   <DataTemplate DataType="vm:Activity24hKillRowVm">
                     <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1"
                             Background="{Binding RowTint}">
-                      <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+                      <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                           nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+                      <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4">
 
                         <!-- Date / Time / ISK -->
                         <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
@@ -569,11 +572,11 @@
                                ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
 
                         <!-- System / Constellation / Region -->
-                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                          <StackPanel Orientation="Horizontal" Spacing="3">
-                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                          <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{Binding SecurityColor}" />
-                            <Panel>
+                            <Panel Grid.Column="1">
                             <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
                               <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                          FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
@@ -581,7 +584,7 @@
                             <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                           </Panel>
-                          </StackPanel>
+                          </Grid>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                      TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -600,7 +603,7 @@
                           <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
                               <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -633,7 +636,7 @@
                           <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
                               <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -687,7 +690,7 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Income" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.Income}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding IncomeTotalText}" FontSize="12"
                            FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
@@ -698,7 +701,7 @@
                             LegendPosition="Right" LegendTextSize="10"
                             Background="Transparent" />
               <TextBlock Grid.Row="1" IsVisible="{Binding !HasIncomeData}"
-                         Text="No income data for this period."
+                         Text="{x:Static loc:OverviewText.NoIncomeDataForThis}"
                          FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
@@ -709,7 +712,7 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Expenses" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.Expenses}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding ExpenseTotalText}" FontSize="12"
                            FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
@@ -720,7 +723,7 @@
                             LegendPosition="Right" LegendTextSize="10"
                             Background="Transparent" />
               <TextBlock Grid.Row="1" IsVisible="{Binding !HasExpenseData}"
-                         Text="No expense data for this period."
+                         Text="{x:Static loc:OverviewText.NoExpenseDataForThis}"
                          FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
@@ -738,15 +741,15 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Orders" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.Orders}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenOrderTracker" VerticalAlignment="Center">
-                  <TextBlock Text="Order Tracker →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.OrderTracker}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoOrders}"
-                         Text="No active orders." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
+                         Text="{x:Static loc:OverviewText.NoActiveOrders}" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasOrders}"
@@ -770,23 +773,23 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColCreatedOn}" Binding="{Binding Created}"
                                       SortMemberPath="CreatedSort" Width="90" />
-                  <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColItem}"       Binding="{Binding Item}"    Width="*" />
                   <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
                        would not if the column sorted the text it displays. -->
-                  <DataGridTextColumn Header="Units"      Binding="{Binding UnitsText}"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColUnits}"      Binding="{Binding UnitsText}"
                                       SortMemberPath="Units" Width="70" CellStyleClasses="num" />
-                  <DataGridTextColumn Header="Buyer"      Binding="{Binding Buyer}"   Width="140" />
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColBuyer}"      Binding="{Binding Buyer}"   Width="140" />
                   <!-- ⚠️ Sorts on EstSortKey, not on the text. An empty date sorts as earliest,
                        which put the orders nobody has answered at the top of a list ordered by
                        what is due soonest. -->
-                  <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColEstDate}"   Binding="{Binding EstDate}"
                                       SortMemberPath="EstSortKey" Width="85" />
                   <!-- The column that moves while an order is open. No Status beside it: this
                        section shows active orders only, so it read "Pending" on every row by
                        construction, and the room is better spent on the item name. -->
-                  <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="95" />
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColSource}"     Binding="{Binding Source}"  Width="95" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -796,15 +799,15 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.StandingBuyOrders}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingBuyOrders" VerticalAlignment="Center">
-                  <TextBlock Text="Standing Buy Orders →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.StandingBuyOrders2}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingBuyOrders}"
-                         Text="No standing buy orders." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
+                         Text="{x:Static loc:OverviewText.NoStandingBuyOrders}" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingBuyOrders}"
@@ -821,13 +824,13 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenBuyOrderItem"
                                   IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:OverviewText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="11"
                                        TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -838,7 +841,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Status" Width="80" ClipboardContentBinding="{Binding Status}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColStatus}" Width="80" ClipboardContentBinding="{Binding Status}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -846,7 +849,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Our bid" Width="120" ClipboardContentBinding="{Binding Price}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColOurBid}" Width="120" ClipboardContentBinding="{Binding Price}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Price}" Foreground="{Binding PriceColor}"
@@ -855,8 +858,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Rem." Binding="{Binding RemainingPct}" Width="70" />
-                  <DataGridTemplateColumn Header="Expires" Width="140" ClipboardContentBinding="{Binding Expiry}">
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColRem}" Binding="{Binding RemainingPct}" Width="70" />
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColExpires}" Width="140" ClipboardContentBinding="{Binding Expiry}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Expiry}" Foreground="{Binding ExpiryColor}"
@@ -875,10 +878,10 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Worklist (All)" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.WorklistAll}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.Worklist}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -904,7 +907,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -959,9 +962,9 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColValue}"     Binding="{Binding ValueText}"     Width="80"
                                       SortMemberPath="Value" />
-                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColVolume}"    Binding="{Binding VolumeText}"    Width="90"
                                       SortMemberPath="VolumeRaw" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -973,10 +976,10 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Worklist (Buy)" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.WorklistBuy}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.Worklist}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1002,7 +1005,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1046,9 +1049,9 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColValue}"     Binding="{Binding ValueText}"     Width="80"
                                       SortMemberPath="Value" />
-                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColVolume}"    Binding="{Binding VolumeText}"    Width="90"
                                       SortMemberPath="VolumeRaw" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -1060,10 +1063,10 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Worklist (Haul)" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.WorklistHaul}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.Worklist}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1089,7 +1092,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1133,9 +1136,9 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColValue}"     Binding="{Binding ValueText}"     Width="80"
                                       SortMemberPath="Value" />
-                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColVolume}"    Binding="{Binding VolumeText}"    Width="90"
                                       SortMemberPath="VolumeRaw" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -1147,10 +1150,10 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Worklist (Jobs)" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.WorklistJobs}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.Worklist}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1176,7 +1179,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1220,9 +1223,9 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Value"     Binding="{Binding ValueText}"     Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColValue}"     Binding="{Binding ValueText}"     Width="80"
                                       SortMemberPath="Value" />
-                  <DataGridTextColumn Header="Volume"    Binding="{Binding VolumeText}"    Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColVolume}"    Binding="{Binding VolumeText}"    Width="90"
                                       SortMemberPath="VolumeRaw" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -1234,10 +1237,10 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Worklist (Station Needs)" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.WorklistStationNeeds}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklistNeeds" VerticalAlignment="Center">
-                  <TextBlock Text="Station Needs →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.StationNeeds}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1253,12 +1256,12 @@
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColItem}" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StationNeedRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:OverviewText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding Item}" Classes="linktext"
                                        TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1268,23 +1271,23 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Short"   Binding="{Binding Short}"   Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColShort}"   Binding="{Binding Short}"   Width="80"
                                       SortMemberPath="ShortRaw" />
-                  <DataGridTextColumn Header="Total"   Binding="{Binding Total}"   Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColTotal}"   Binding="{Binding Total}"   Width="80"
                                       SortMemberPath="TotalRaw" />
-                  <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}"  Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColOnHand}" Binding="{Binding OnHand}"  Width="80"
                                       SortMemberPath="OnHandRaw" />
-                  <DataGridTextColumn Header="Order jobs"       Binding="{Binding OrderJobs}" Width="80"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColOrderJobs}"       Binding="{Binding OrderJobs}" Width="80"
                                       SortMemberPath="OrderJobsRaw" />
-                  <DataGridTextColumn Header="Jobs"             Binding="{Binding Jobs}"      Width="70"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColJobs}"             Binding="{Binding Jobs}"      Width="70"
                                       SortMemberPath="JobsRaw" />
-                  <DataGridTextColumn Header="Inv levels"       Binding="{Binding InvLevels}" Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColInvLevels}"       Binding="{Binding InvLevels}" Width="90"
                                       SortMemberPath="InvLevelsRaw" />
-                  <DataGridTextColumn Header="Stn levels"       Binding="{Binding StnLevels}" Width="90"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColStnLevels}"       Binding="{Binding StnLevels}" Width="90"
                                       SortMemberPath="StnLevelsRaw" />
-                  <DataGridTextColumn Header="Short value"  Binding="{Binding ShortValue}"  Width="100"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColShortValue}"  Binding="{Binding ShortValue}"  Width="100"
                                       SortMemberPath="ShortValueRaw" />
-                  <DataGridTextColumn Header="Short volume" Binding="{Binding ShortVolume}" Width="110"
+                  <DataGridTextColumn Header="{x:Static loc:OverviewText.ColShortVolume}" Binding="{Binding ShortVolume}" Width="110"
                                       SortMemberPath="ShortVolumeRaw" />
                 </DataGrid.Columns>
               </DataGrid>
@@ -1296,15 +1299,15 @@
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
-                <TextBlock Text="Standing Projects" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{x:Static loc:OverviewText.StandingProjects}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingProjects" VerticalAlignment="Center">
-                  <TextBlock Text="Corp Activity →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+                  <TextBlock Text="{x:Static loc:OverviewText.CorpActivity}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingProjects}"
-                         Text="No standing projects." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
+                         Text="{x:Static loc:OverviewText.NoStandingProjects}" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingProjects}"
@@ -1324,14 +1327,14 @@
                   <!-- One line for the whole project, since the panel has one column: the type,
                        then whatever identifies that type. Still opens the Item Browser where the
                        project names an item; the rest stay plain text. -->
-                  <DataGridTemplateColumn Header="Project" SortMemberPath="SummaryText" Width="*" ClipboardContentBinding="{Binding SummaryText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColProject}" SortMemberPath="SummaryText" Width="*" ClipboardContentBinding="{Binding SummaryText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <Panel>
                           <Button Click="OnOpenProjectItem" IsVisible="{Binding HasItemLink}"
                                   Background="Transparent" BorderThickness="0" Padding="6 0"
                                   Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:OverviewText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding SummaryText}" FontSize="11"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1342,7 +1345,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Project Status" Width="170" ClipboardContentBinding="{Binding ProjectStatusText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColProjectStatus}" Width="170" ClipboardContentBinding="{Binding ProjectStatusText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <TextBlock Text="{Binding ProjectStatusText}" Foreground="{Binding ProjectStatusColor}"
@@ -1350,7 +1353,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Remaining" Width="90" ClipboardContentBinding="{Binding RemainingText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColRemaining}" Width="90" ClipboardContentBinding="{Binding RemainingText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
@@ -1362,7 +1365,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Rem. %" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
+                  <DataGridTemplateColumn Header="{x:Static loc:OverviewText.ColRem2}" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
@@ -1381,7 +1384,7 @@
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
     <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="14 4"
             BorderThickness="0 1 0 0" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <TextBlock Text="Overview data reflects characters and personal corporations only."
+      <TextBlock Text="{x:Static loc:OverviewText.OverviewDataReflectsCharactersNote}"
                  FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" />
     </Border>
 

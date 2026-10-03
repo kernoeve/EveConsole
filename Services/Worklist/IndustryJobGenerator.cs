@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -43,7 +44,7 @@ public class IndustryJobGenerator(
     WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "industry_jobs";
-    public string DisplayName => "Industry Jobs";
+    public string DisplayName => WorklistText.SourceIndustryJobs;
 
     /// <summary>
     /// Time efficiency assumed for runs that have no print at all — a fully researched original,
@@ -153,6 +154,15 @@ public class IndustryJobGenerator(
             if (!siteIds.Contains(d.Site) || !Ours(d.OwnerType, d.OwnerId)) continue;
             var pile = d.OwnerType == "corporation" ? stock.Corp : stock.Personal;
             pile[(d.Site, d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.Site, d.TypeId, d.OwnerId)) + d.Units;
+        }
+
+        // The same for contracts: material put on a contract since the poll is gone from the
+        // site, material bought on one is there. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (!siteIds.Contains(m.Site) || !Ours(m.OwnerType, m.OwnerId)) continue;
+            var pile = m.OwnerType == "corporation" ? stock.Corp : stock.Personal;
+            pile[(m.Site, m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.Site, m.TypeId, m.OwnerId)) + m.Units);
         }
 
         // Everything in scope, wherever it sits — assets and running jobs. Separate from the
@@ -548,7 +558,9 @@ public class IndustryJobGenerator(
                 var product = ctx.BlueprintByProduct.GetValueOrDefault(d.TypeId);
                 if (product is null) continue;   // nothing makes it — a Buy rule's job, not this
 
-                var name       = names.GetValueOrDefault(d.TypeId, $"Type {d.TypeId}");
+                var name       = names.GetValueOrDefault(d.TypeId, string.Format(WorklistText.TypeWithId, d.TypeId));
+                // For the titles, which are screen text. TypeName goes on carrying the English.
+                var shown      = SdeNames.Type(d.TypeId, name);
                 var isReaction = product.Activity == "reaction";
                 var pool       = isReaction ? IndustryPool.Reaction : IndustryPool.Manufacturing;
                 var required   = bpSkills.GetValueOrDefault((product.TypeId, product.Activity), []);
@@ -569,27 +581,30 @@ public class IndustryJobGenerator(
                 if (eligible.Count == 0)
                 {
                     items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0}.",
+                        string.Format(WorklistText.JobDetailBuild, head, d.Units),
                         required.Count > 0
-                            ? "No enabled character has the skills for this job"
-                            : "No enabled character runs this activity"));
+                            ? WorklistText.BlockedNoSkilledCharacter
+                            : WorklistText.BlockedNoCharacterRunsActivity));
                     continue;
                 }
 
                 // Where the park sends this job. Facility assignment is by category, not by
                 // quantity, so one probe at the full shortfall settles it for every split.
+                // The site's name only goes into the rows' text, so the facility the park links to
+                // is named as the screen names it. The park's own label for its structure, the
+                // fallback, is the user's words and stays as they are.
                 var probe    = await PlanRootJobAsync(ctx, d.TypeId, d.Units, ct: ct);
                 var siteId   = probe?.StationId;
-                var siteName = probe?.StationName.Length > 0 ? probe.StationName
+                var siteName = probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
                              : probe?.StructureName ?? "";
 
                 if (siteId is null)
                 {
                     items.Add(Unstartable(d.TypeId, name, priority, pool, d.Units,
-                        $"{head} Build {d.Units:N0}.",
+                        string.Format(WorklistText.JobDetailBuild, head, d.Units),
                         siteName.Length > 0
-                            ? $"{siteName} is not linked to a real structure, so materials cannot be checked"
-                            : "No linked structure for this job, so materials cannot be checked"));
+                            ? string.Format(WorklistText.BlockedSiteNotLinked, siteName)
+                            : WorklistText.BlockedNoLinkedStructure));
                     continue;
                 }
 
@@ -705,7 +720,7 @@ public class IndustryJobGenerator(
                         // Waiting rather than Ready when every slot is busy: real information,
                         // and different from being unable to do it at all.
                         var readiness = busy ? WorklistReadiness.Waiting : WorklistReadiness.Ready;
-                        var blockedBy = busy ? "Every character who can run this has all slots busy" : "";
+                        var blockedBy = busy ? WorklistText.WaitingAllSlotsBusy : "";
 
                         // A slot is only taken by a job that can actually start.
                         if (!busy) slotsLeft[owner.Config.CharacterId][pool] -= 1;
@@ -731,8 +746,7 @@ public class IndustryJobGenerator(
 
                         Emit(runnable, readiness, blockedBy, "",
                              runnable < job.Runs
-                                 ? $" Cut to what the materials on hand cover — {job.Runs - runnable:N0} "
-                                 + "more run(s) are on a separate row."
+                                 ? " " + string.Format(WorklistText.JobCutToMaterials, job.Runs - runnable)
                                  : "");
                     }
 
@@ -751,15 +765,24 @@ public class IndustryJobGenerator(
                         var short_   = MissingAtSite(
                             stock, inScope, ctx, owner, restMats, siteId.Value, claimed);
 
-                        var haul = short_.Where(m => !m.MustBuy).Select(m => m.Name).ToList();
-                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => m.Name).ToList();
+                        // Named as the screen shows them: these only go into the sentence below.
+                        // The shortages recorded with the row keep the English.
+                        var haul = short_.Where(m => !m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
+                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
 
+                        // With the scope's name where there is one: "not owned" means nothing
+                        // owned in that region, which is not the same claim as nothing anywhere.
+                        var scopePlace = settings.IndustryScopePlace;
                         var why = buy.Count == 0
-                            ? $"Materials not at {siteName}: " + Names(haul)
+                            ? string.Format(WorklistText.BlockedMaterialsNotAt, siteName, Names(haul))
                             : haul.Count == 0
-                                ? $"Not owned{settings.IndustryScopeSuffix}: " + Names(buy)
-                                : $"Not owned{settings.IndustryScopeSuffix}: {Names(buy)}; "
-                                  + $"elsewhere: {Names(haul)}";
+                                ? scopePlace.Length > 0
+                                    ? string.Format(WorklistText.BlockedNotOwnedIn, scopePlace, Names(buy))
+                                    : string.Format(WorklistText.BlockedNotOwned, Names(buy))
+                                : scopePlace.Length > 0
+                                    ? string.Format(WorklistText.BlockedNotOwnedInElsewhere,
+                                                    scopePlace, Names(buy), Names(haul))
+                                    : string.Format(WorklistText.BlockedNotOwnedElsewhere, Names(buy), Names(haul));
 
                         // ⚠️ A distinct key, so this and the startable half snooze and age
                         // separately. The startable half keeps the original key: it is the row
@@ -767,7 +790,7 @@ public class IndustryJobGenerator(
                         // drop a snooze the moment materials ran short.
                         Emit(restRuns, WorklistReadiness.Blocked, why,
                              runnable > 0 ? ":short" : "",
-                             runnable > 0 ? " The rest of this job, waiting on materials." : "",
+                             runnable > 0 ? " " + WorklistText.JobRestWaiting : "",
                              // ⚠️ The same list the sentence above was built from, kept whole.
                              // What is short and whether it is owned at all is the input to every
                              // material bottleneck question, and it was being thrown away here.
@@ -787,10 +810,13 @@ public class IndustryJobGenerator(
                         // sorts by digit — scattering the several jobs of one split across the
                         // whole list.
                         var runsText = product.Quantity > 1
-                            ? $"{name} — {runs:N0} run(s) → {produced:N0}"
-                            : $"{name} — {runs:N0} run(s)";
+                            ? string.Format(WorklistText.JobTitleRunsMaking, shown, runs, produced)
+                            : string.Format(WorklistText.JobTitleRuns, shown, runs);
 
-                        var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
+                        // Which piece of a split this is, named only on a real split.
+                        var shortText = split.Jobs.Count > 1
+                            ? string.Format(WorklistText.JobDetailShortOf, head, d.Units, job.Index, job.Of)
+                            : string.Format(WorklistText.JobDetailShort, head, d.Units);
 
                         // Scaled: job.Seconds covers the whole planned job, and a row for part of
                         // it that quoted the whole duration would be wrong in the direction that
@@ -803,7 +829,7 @@ public class IndustryJobGenerator(
                         // mention of those runs, which is how a need for 3,375 showed up as one
                         // 40-run task; they are their own blocked rows now, and this says so.
                         var leftover = i == split.Jobs.Count - 1 && split.RunsUnassigned > 0
-                            ? $" {split.RunsUnassigned:N0} further run(s) have no free print — listed separately."
+                            ? " " + string.Format(WorklistText.JobRunsNoFreePrint, split.RunsUnassigned)
                             : "";
 
                         // Named only on a real split. A job well under the configured length looks
@@ -811,9 +837,10 @@ public class IndustryJobGenerator(
                         // answer is the blueprint's own run cap rather than the clock.
                         var capText = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
                         {
-                            SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
-                            SplitCap.CopyRuns  => " Capped by the runs left on the copy.",
-                            SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysFor(pool):0.#}-day job length.",
+                            SplitCap.GameLimit => " " + WorklistText.JobCapGameLimit,
+                            SplitCap.CopyRuns  => " " + WorklistText.JobCapCopyRuns,
+                            SplitCap.JobLength => " " + string.Format(WorklistText.JobCapJobLength,
+                                                                      settings.MaxJobDaysFor(pool)),
                             _                  => "",
                         };
 
@@ -833,8 +860,9 @@ public class IndustryJobGenerator(
                             Kind          = WorklistKind.Job,
                             Title         = runsText,
                             Quantity      = produced,
-                            Detail        = $"{head} Short {d.Units:N0}{ofText}. "
-                                          + $"{job.Print.Describe()} at {siteName}.{durText}{capText}{extraDetail}{leftover}",
+                            Detail        = shortText
+                                          + " " + string.Format(WorklistText.PrintAt, job.Print.Describe(), siteName)
+                                          + $"{durText}{capText}{extraDetail}{leftover}",
                             Readiness     = readiness,
                             BlockedBy     = blockedBy,
                             Shortages     = shortages ?? [],
@@ -1002,14 +1030,14 @@ public class IndustryJobGenerator(
                     }
 
                     var printWhy = reference is null
-                        ? "No blueprint owned — one has to be acquired"
+                        ? WorklistText.BlockedNoBlueprintOwned
                         : reference.LockedInJob
-                            ? $"Blueprint busy in a running job ({reference.Describe()})"
-                            : $"No blueprint free at {siteName} ({reference.Describe()})";
+                            ? string.Format(WorklistText.BlockedBlueprintBusy, reference.Describe())
+                            : string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference.Describe());
 
-                    var assumed = reference is null
-                        ? $" Sized against a fully researched print (TE{FullyResearchedTe}) — none is owned."
-                        : $" Sized against {reference.Describe()}.";
+                    var assumed = " " + (reference is null
+                        ? string.Format(WorklistText.JobSizedFullyResearched, FullyResearchedTe)
+                        : string.Format(WorklistText.JobSizedAgainst, reference.Describe()));
 
                     // ⚠️ ONE row per visit, then back to the picker — the same rule the printed
                     // path follows. Emitting every piece in one loop stamped them all with the
@@ -1069,11 +1097,13 @@ public class IndustryJobGenerator(
                             Source        = Id,
                             Kind          = WorklistKind.Job,
                             Title         = product.Quantity > 1
-                                ? $"{name} — {runs:N0} run(s) → {runs * (long)Math.Max(1, product.Quantity):N0}"
-                                : $"{name} — {runs:N0} run(s)",
+                                ? string.Format(WorklistText.JobTitleRunsMaking,
+                                                shown, runs, runs * (long)Math.Max(1, product.Quantity))
+                                : string.Format(WorklistText.JobTitleRuns, shown, runs),
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
-                            Detail        = $"{head} Short {d.Units:N0}. Needs a blueprint at "
-                                          + $"{siteName}.{assumed}",
+                            Detail        = string.Format(WorklistText.JobDetailShort, head, d.Units)
+                                          + " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName)
+                                          + assumed,
                             Readiness      = WorklistReadiness.Blocked,
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
@@ -1118,7 +1148,7 @@ public class IndustryJobGenerator(
         foreach (var s in queue.Where(s => !accounted.Contains(s.Demand.TypeId))
                                .OrderByDescending(s => s.Demand.Units))
         {
-            var name = names.GetValueOrDefault(s.Demand.TypeId, $"Type {s.Demand.TypeId}");
+            var name = names.GetValueOrDefault(s.Demand.TypeId, string.Format(WorklistText.TypeWithId, s.Demand.TypeId));
             var made = ctx.BlueprintByProduct.ContainsKey(s.Demand.TypeId);
 
             items.Add(Unstartable(
@@ -1126,10 +1156,10 @@ public class IndustryJobGenerator(
                 ctx.BlueprintByProduct.GetValueOrDefault(s.Demand.TypeId)?.Activity == "reaction"
                     ? IndustryPool.Reaction : IndustryPool.Manufacturing,
                 s.Demand.Units,
-                $"{s.Demand.Head} Short {s.Demand.Units:N0}.",
+                string.Format(WorklistText.JobDetailShort, s.Demand.Head, s.Demand.Units),
                 made
-                    ? "The planner did not produce a task for this and did not say why — please report it"
-                    : "Nothing in the SDE makes this, so it can only be bought"));
+                    ? WorklistText.BlockedPlannerSilent
+                    : WorklistText.BlockedNothingMakesIt));
         }
 
         return items;
@@ -1194,7 +1224,9 @@ public class IndustryJobGenerator(
             // ⚠️ The amount belongs in the title. There is no run count — that is the whole
             // point of the row, nothing can be started — but a bare name beside a filled-in
             // value and volume column reads as a malformed row rather than a blocked one.
-            Title        = units > 0 ? $"{name} — {units:N0} needed" : name,
+            // Named as the screen shows it; TypeName below keeps the English.
+            Title        = units > 0 ? string.Format(WorklistText.JobTitleNeeded, SdeNames.Type(typeId, name), units)
+                                     : SdeNames.Type(typeId, name),
             Quantity     = units,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,
@@ -1291,7 +1323,7 @@ public class IndustryJobGenerator(
             if (here >= wanted) continue;
 
             missing.Add(new MissingMaterial(
-                ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}"),
+                ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
                 typeId,
                 // ⚠️ How much short, not merely that it is. Without the amount, "blocked on this"
                 // reads the same whether the job wanted two more than it had or ten thousand more
@@ -1313,8 +1345,9 @@ public class IndustryJobGenerator(
 
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>
     private static string Names(IReadOnlyList<string> names) =>
-        string.Join(", ", names.Take(4))
-        + (names.Count > 4 ? $", and {names.Count - 4} more" : "");
+        names.Count > 4
+            ? string.Format(WorklistText.NamesAndMore, string.Join(CommonText.ListSeparator, names.Take(4)), names.Count - 4)
+            : string.Join(CommonText.ListSeparator, names);
 
     /// <summary>What is on hand at the park's facilities, indexed by who can reach it. Materials
     /// in a corp hangar serve every alt in that corporation; personal stock serves only its

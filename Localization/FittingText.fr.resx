@@ -1,0 +1,1237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>Montage</value>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>Objets</value>
+  </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Hors marché</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Double-cliquez sur un objet pour l'ajouter, ou faites-le glisser sur un emplacement.</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Tous</value>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>Modules</value>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>Optimisations</value>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>Sous-systèmes</value>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>Charges</value>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>Drones</value>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>Implants</value>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>Boosters</value>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>Autres objets</value>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>Rechercher par nom ou groupe…</value>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>Uniquement ce qui convient à cette coque</value>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>Afficher tous les emplacements</value>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>Ajouter au montage</value>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>Ajouter à la soute</value>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>Placer l'objet sélectionné dans la soute — tout peut y être transporté</value>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>Haute</value>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>Interm.</value>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>Basse</value>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>Optim.</value>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>Sous-syst.</value>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>Charge</value>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>Drone</value>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>Chasseur</value>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>Implant</value>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>Booster</value>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>Modules pour emplacement haute puissance uniquement</value>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>Modules pour emplacement intermédiaire uniquement</value>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>Modules pour emplacement basse puissance uniquement</value>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>Modules pour emplacement d'optimisation uniquement</value>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>Modules pour emplacement de sous-système uniquement</value>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>Modules pour emplacement de service uniquement</value>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ Objets</value>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>Afficher ou masquer la liste des objets</value>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>Nouveau montage</value>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>Coque — saisissez un nom ou une classe…</value>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>Coller EFT…</value>
+  </data>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Ouvrir un montage…</value>
+  </data>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Ouvrir un montage enregistré dans EVE Console, ou l'un des montages de vos personnages dans le jeu</value>
+  </data>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Ouvrir un montage</value>
+  </data>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Rechercher par nom de montage ou de coque…</value>
+  </data>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Aucun montage ne correspond à la recherche.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Supprimer le montage</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Supprimer le montage « {0} » enregistré dans EVE Console ? Cette action est irréversible.</value>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>Supprimer le montage choisi (uniquement ceux enregistrés dans EVE Console)</value>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>Commencez un montage à partir d'une coque, collez-en un, ou ouvrez-en un depuis le jeu ou vos montages enregistrés. Chacun s'ouvre dans son propre onglet.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Déposez ici pour voir deux montages côte à côte</value>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>Nouveau montage</value>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>Faites glisser pour réorganiser, ou sur la moitié droite pour voir deux montages côte à côte</value>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>Modifié depuis son ouverture ou son enregistrement</value>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>Fermer ce montage</value>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>Pilote</value>
+  </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>Le mode tactique du vaisseau : ses bonus sont pris en compte dans les chiffres</value>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>Pilote dont les compétences servent aux calculs</value>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>Tout à V</value>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>Tout à 0</value>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>Nom du montage</value>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>Nouveau {0}</value>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>Montage {0}</value>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>Enregistré depuis EVE Console</value>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>Montage</value>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>Copier EFT</value>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>Copier ce montage dans le presse-papiers au format EFT</value>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>Enregistrer par-dessus le montage d'où il a été ouvert ou sous lequel il a été enregistré, sans rien demander. Pour un montage jamais enregistré, utilisez Enregistrer sous.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Enregistrer sous…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Choisir un nom et où enregistrer : EVE Console, ou les montages d'un personnage dans le jeu</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Enregistré dans EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Enregistré dans les montages de {0} dans le jeu</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Pas encore enregistré</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Remplacer le montage</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Un montage nommé « {0} » pour cette coque est déjà enregistré dans EVE Console. Le remplacer ?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Remplacer le montage « {0} » dans les montages de {1} dans le jeu ? Le jeu ne permet pas de modifier un montage : le nouveau est enregistré d'abord, puis l'ancien supprimé.</value>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>Issu des montages de {0} dans le jeu : {1}</value>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>Emplacements haute puissance  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>Emplacements intermédiaires  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>Emplacements basse puissance  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>Emplacements d'optimisation  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>Emplacements de sous-système  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>Emplacements de service  {0} / {1}</value>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[Emplacement haute puissance vide]</value>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[Emplacement intermédiaire vide]</value>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[Emplacement basse puissance vide]</value>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[Emplacement d'optimisation vide]</value>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[Emplacement de sous-système vide]</value>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[Emplacement de service vide]</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>OFF</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>ON</value>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>ACT</value>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>SURC</value>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>Hors ligne — cliquez pour connecter</value>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>En ligne — cliquez pour activer</value>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>En ligne — cliquez pour déconnecter</value>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>Actif — cliquez pour déconnecter</value>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>Surchauffé — cliquez pour déconnecter</value>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>SURC</value>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>Surchauffé — cliquez pour arrêter</value>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>Cliquez pour surchauffer</value>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>Aucune charge</value>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>Valeur marchande du module</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>Cliquez pour choisir un module pour cet emplacement</value>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>Hors ligne</value>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>En ligne</value>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>Actif</value>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>Surchauffé</value>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>Connecter</value>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>Déconnecter</value>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>Désactiver</value>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>Surchauffer</value>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>Arrêter la surchauffe</value>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>Décharger {0}</value>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>Drones et chasseurs</value>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>en hangar</value>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>largués</value>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>en tube</value>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>Lancé — seuls les escadrons en tube comptent dans les dégâts du montage</value>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>Valeur marchande du tas entier</value>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>Léger</value>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>Soutien</value>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>Lourd</value>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>Escadron léger, jusqu'à {0} chasseurs</value>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>Escadron de soutien, jusqu'à {0} chasseurs</value>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>Escadron lourd, jusqu'à {0} chasseurs</value>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>Escadron de {0} chasseurs au plus</value>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>Attaque</value>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>Missiles</value>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>Bombe</value>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>Kamikaze</value>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>Neutraliseur d'énergie</value>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>Générateur de stase</value>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>Perturbateur de warp</value>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>CME</value>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>Tacler</value>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>Manœuvres évasives</value>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>Post-combustion</value>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>Propulseur de microwarp</value>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>Propulseur de microsaut</value>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0} : compté dans le DPS tant que l'aptitude est active</value>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0} : sans effet sur les valeurs du montage</value>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>Soute</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>quantité</value>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>Implants et boosters</value>
+  </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Bonus de flotte</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Ses propres salves de commandement le renforcent</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Les salves touchent tous les membres de la flotte à portée, y compris le vaisseau lui-même. Décochez pour un booster seul.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Ajouter un montage de bonus…</value>
+  </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Ajouter un montage de soutien</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Les compétences avec lesquelles les salves et modules à distance de ce montage sont calculés</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Montages qui aident celui-ci, autant que voulu : leurs salves de commandement actives (d'un même bonus venu de plusieurs, le plus fort s'applique) et leurs réparateurs à distance, boosters de bouclier à distance, transmetteurs de capaciteur et drones logistiques (qui s'additionnent)</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Boost du bouclier à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Réparation du blindage à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Réparation de la structure à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Transfert de capaciteur  {0:N1} GJ/s  · {1}</value>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>Ressources</value>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>Réseau d'alimentation</value>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>Étalonnage</value>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>Tourelles {0} / {1}    Lanceurs {2} / {3}</value>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>Soute {0:N1} / {1:N0} m³</value>
+  </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>Soute {0:N1} m³</value>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>Hangar à drones {0:0} / {1:0} m³    Bande passante {2:0} / {3:0} Mbit/s</value>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>Soute à chasseurs {0:N0} / {1:N0} m³    Tubes {2} / {3}</value>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>Légers {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>Soutien {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>Lourds {0} / {1}</value>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>Valeur</value>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>Coque {0}</value>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>Modules {0}</value>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>Drones {0}</value>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>Soute {0}</value>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>Implants et boosters {0} (ceux du pilote, hors total)</value>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>Pas encore de prix du marché — choisissez un marché pour la valeur des biens dans Paramètres → Marché.</value>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>Prix : {0}</value>
+  </data>
+  <data name="ValuePricesUnpricedOne" xml:space="preserve">
+    <value>Prix : {1} — {0} objet sans prix</value>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>Prix : {1} — {0} objets sans prix</value>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>Attaque</value>
+  </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>Extraction</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Minerai {0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Glace {0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Gaz {0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>Une heure avec tous les extracteurs actifs, réussites critiques comprises en moyenne. Les résidus sont perdus sur l'astéroïde ou le nuage, pas sur ce que vous récoltez. Cristaux, compétences, bonus et coque sont comptés.</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} m³ toutes les {1:0.#} s</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>résidus {0:0.#} %</value>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} DPS</value>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>Armes {0:N1}</value>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>Drones {0:N1}</value>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>Chasseurs {0:N1}</value>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>Volée {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>Avec rechargements {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Pleine montée en puissance {0:N1} après {1}</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>Le DPS est entre deux rechargements. Avec rechargements, chaque arme tire sa charge de munitions puis recharge, encore et encore. Les lasers ne rechargent jamais : les cristaux ne s'usent pas. La pleine montée en puissance est ce qu'atteignent les désintégrateurs entropiques après avoir tiré sans arrêt sur une cible.</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0} : {1:N0} {2}, toutes les {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0} : {1:N0} {2} par seconde pendant {3:0} s ({4:N0} au total), toutes les {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0} : {1:N0} {2} à tout ce qui est à moins de {3:0.#} km, toutes les {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0} : {1:0.##} % de la coque de la cible par seconde, jusqu'à {2:N0} PV, pendant {3:0} s, toutes les {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Neutralise {0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Nosferatu {0:N1} GJ/s</value>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>EM {0:P0} · Th {1:P0} · Cin {2:P0} · Exp {3:P0}</value>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} DPS</value>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0} {1:N0} DPS</value>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0} {1:N0} alpha</value>
+  </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} charge, réarmement de {1:0.#} s par charge</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} charges, réarmement de {1:0.#} s par charge</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Délai de réutilisation de {0:0} s</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>Inutilisable en haute sécurité</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>Inutilisable en haute et basse sécurité</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Chasseurs {0:N1} ({1:N1} en continu)</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>En continu : chaque escadron combat jusqu'à épuiser les charges des aptitudes actives, puis se réarme et se ravitaille dans son tube avant de repartir. Le trajet aller-retour vers la cible n'est pas compté.</value>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>Étalonnage {0:0}</value>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>CPU {0:0.##}</value>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>RA {0:0.##}</value>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>{0:N1} PV/s de bouclier</value>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>{0:N1} PV/s de blindage</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} avec rechargements</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} en pleine puissance</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Vitesse {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Puissance de perturbation {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Neutralise {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Draine jusqu'à {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Puissance de brouillage {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Portée de verrouillage {0:+0.#;-0.#} % · résolution {1:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Optimale {0:+0.#;-0.#} % · déperdition {1:+0.#;-0.#} % · poursuite {2:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Vitesse du missile {0:+0.#;-0.#} % · temps de vol {1:+0.#;-0.#} % · vitesse d'explosion {2:+0.#;-0.#} % · rayon d'explosion {3:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Signature {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} chacun</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>capitaux et citadelles uniquement</value>
+  </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Vitesse {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s pendant {1:0} s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>signature {0:+0;-0} %</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>saute de {0:0.#} km après {1:0} s</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>résistances du bouclier {0:0} %</value>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>{0:N1} PV/s de structure</value>
+  </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>dégâts des capsules de brèche {0:0} % pendant le fonctionnement</value>
+  </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>se stabilise à {0}</value>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>Défense</value>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>Contre</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>Les dégâts contre lesquels la défense est évaluée, et auxquels s'adapte un Renforcement de blindage réactif</value>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>Uniforme (25 % chacun)</value>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>Personnalisé</value>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>Thermique</value>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>Cinétique</value>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>Explosif</value>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>Proportions relatives de chaque type de dégâts — à n'importe quelle échelle</value>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} EHP</value>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>PV effectifs contre les dégâts choisis ci-dessus</value>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>PV</value>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>Th</value>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>Cin</value>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>Exp</value>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>EHP</value>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>Bouclier</value>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>Blindage</value>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>Structure</value>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>Régénération du bouclier {0:N1} PV/s au maximum ({1:N0} EHP/s)    Recharge {2}</value>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>Boost du bouclier {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>Réparation du blindage {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>Réparation de la structure {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Boost du bouclier à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Réparation du blindage à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Réparation de la structure à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>Les réparations qui consomment du capaciteur s'arrêtent quand il est vide ({0})</value>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>Capaciteur</value>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>Stable à {0:0.0} %</value>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>S'épuise en {0}</value>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>Consommation {0:0.0} GJ/s    Recharge max. {1:0.0} GJ/s</value>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>Boosters +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transferts +{0:0.0} GJ/s</value>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>Alignement {0:0.00} s    Signature {1:N0} m    Warp {2:0.##} UA/s</value>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>Signature {0:N0} m</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>Alignement {0:0.00} s    Signature {1:N0} m    Warp impossible</value>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>Masse {0:N0} kg    Inertie {1:0.###}</value>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>Ciblage</value>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>Portée {0:0.#} km    Résolution {1:N0} mm    Cibles {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Verrouillage : frégate {0:0.0} s · croiseur {1:0.0} s · cuirassé {2:0.0} s · capital {3:0.0} s</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Secondes pour verrouiller une cible ayant la signature d'une frégate type (35 m), d'un croiseur (125 m), d'un cuirassé (400 m) et d'un capital (5 000 m), avec la résolution de ce montage.</value>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>Radar {0:0.#}</value>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>Ladar {0:0.#}</value>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>Magnétométrique {0:0.#}</value>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>Gravimétrique {0:0.#}</value>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0} min {1} s</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0} s</value>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>Chargement des données du jeu…</value>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>Pas encore de données du jeu — importez le SDE dans Paramètres → SDE, puis rouvrez cet outil.</value>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>Les données du jeu sont en cours de mise à jour pour le montage (Paramètres → SDE en montre la progression). Rouvrez cet outil une fois la mise à jour terminée.</value>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>Commencez un montage à partir d'une coque, collez-en un, ou ouvrez-en un depuis le jeu ou vos montages enregistrés.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Impossible de charger les données du jeu : {0}</value>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>Commencez d'abord un montage.</value>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>Choisissez d'abord une coque.</value>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>Nouveau montage pour {0}. Ajoutez des modules depuis la liste Objets.</value>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>Nouveau montage. Choisissez une coque.</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Montage {0} importé.</value>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>Importé, mais éléments non reconnus : {0}</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>Aucun personnage dont lire les montages.</value>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>Montage {0} importé depuis le jeu.</value>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>Montage {0} ouvert.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Montage {0} supprimé.</value>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>Ajouté : {0}.</value>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>Escadron ajouté : {0} × {1}.</value>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>{0} : déjà en place.</value>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>Aucun module monté ne peut charger {0}.</value>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>Chargé : {0}.</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} ne va pas dans cet emplacement.</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} ne peut pas charger {1}.</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{0} remplace {1}.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
+    <value>Chargé dans {0} module : {1}.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>Chargé dans {0} modules : {1}.</value>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>{0} dans la soute.</value>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>Choisissez un module pour emplacement haute puissance dans la liste Objets.</value>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>Choisissez un module pour emplacement intermédiaire dans la liste Objets.</value>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>Choisissez un module pour emplacement basse puissance dans la liste Objets.</value>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>Choisissez un module pour emplacement d'optimisation dans la liste Objets.</value>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>Choisissez un module pour emplacement de sous-système dans la liste Objets.</value>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>Choisissez un module pour emplacement de service dans la liste Objets.</value>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>Échec du calcul : {0}</value>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>Drones largués et chasseurs lancés ramenés à ce que le pilote peut contrôler et la coque lancer.</value>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>Rien à copier pour l'instant.</value>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>Montage copié dans le presse-papiers au format EFT.</value>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>Rien à enregistrer pour l'instant.</value>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>Montage {0} enregistré dans EVE Console.</value>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>Impossible de joindre le jeu depuis cette fenêtre.</value>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>Enregistrement dans les montages de {0}…</value>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>Enregistré dans les montages de {0} dans le jeu.</value>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>Ce montage n'a pas été ouvert depuis le jeu.</value>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>Mise à jour du montage de {0}…</value>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>Montage {0} mis à jour dans les montages de {1}.</value>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>Nouveau montage enregistré, mais l'ancien n'a pas pu être supprimé (HTTP {0}). Supprimez l'ancien dans le jeu.</value>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>Ce personnage n'est pas dans EVE Console.</value>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>Le jeton de {0} a expiré — réautorisez-le dans Paramètres → Jetons ESI.</value>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>{0} n'a pas accordé l'autorisation d'écriture des montages — mettez à jour le personnage dans Paramètres → Jetons ESI.</value>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>Non enregistrés (un montage n'a pas de place pour eux) : {0}.</value>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>type n° {0}</value>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>Enregistrer le montage</value>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>Enregistrer dans</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>Les implants appartiennent au pilote et ne font pas partie d'un montage en jeu.</value>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console (cette application)</value>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>En jeu : remplacer « {0} » dans les montages de {1}</value>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>En jeu : nouveau montage pour {0}</value>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>jeton expiré — à réautoriser dans Paramètres → Jetons ESI</value>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>autorisation d'écriture des montages non accordée — mettez à jour le personnage dans Paramètres → Jetons ESI</value>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>Un montage doit avoir un nom.</value>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>Choisissez où l'enregistrer.</value>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>Impossible d'enregistrer dans les montages de ce personnage.</value>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>Importer un montage</value>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>Collez un montage au format EFT — ce que copie la fenêtre de montage du jeu et ce que partagent les sites de montage. La première ligne nomme la coque : [Rifter, Mon montage].</value>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>Importer</value>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>Un montage EFT commence par [Vaisseau, Nom du montage].</value>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>Un montage EFT commence par une ligne telle que [Vaisseau, Nom du montage].</value>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>Vaisseau inconnu : {0}</value>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>Impossible de joindre le jeu.</value>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>Ce personnage n'a pas accordé l'autorisation d'écriture des montages — réautorisez-le dans Paramètres → Jetons ESI.</value>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>Le jeu a refusé le montage (HTTP {0}).</value>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0} ne se monte dans aucun emplacement.</value>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>Aucun emplacement haute puissance libre.</value>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>Aucun emplacement intermédiaire libre.</value>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>Aucun emplacement basse puissance libre.</value>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>Aucun emplacement d'optimisation libre.</value>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>Aucun emplacement de sous-système libre.</value>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>Aucun emplacement de service libre.</value>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>Aucun point de fixation de tourelle libre.</value>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>Aucun point de fixation de lanceur libre.</value>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>La taille de l'optimisation ne correspond pas à la coque.</value>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>Ce sous-système est destiné à une autre coque.</value>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>Cette position de sous-système est déjà occupée.</value>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>Impossible de monter {0} sur un {1}.</value>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>Ce groupe est limité à {0:0} par montage.</value>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>Ce module est limité à {0:0} par montage.</value>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>Charger le montage</value>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>Afficher les montages d'un seul personnage, ou ceux d'EVE Console</value>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>Tous</value>
+  </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Vaisseaux existants…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Tous les vaisseaux assemblés de vos personnages et corporations personnelles, avec leur équipement tel que la liste des biens l'a vu en dernier. Celui que vous choisissez s'ouvre dans un nouvel onglet comme un nouvel équipement ; utilisez Enregistrer sous pour le garder.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Vaisseaux existants</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Une partie du nom du vaisseau, de sa coque, de son système ou de son propriétaire</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Vaisseau</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Coque</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Valeur de la coque</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Valeur de l'équipement</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Valeur totale</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Ouvrir comme nouvel équipement</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Ouvre le vaisseau et son équipement dans un nouvel onglet, enregistré nulle part pour l'instant : Enregistrer sous le range dans EVE Console ou dans les équipements d'un personnage.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Lecture de vos vaisseaux…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} vaisseaux</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>Aucun vaisseau assemblé dans les biens de vos personnages ou de vos corporations personnelles.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Valeurs à {0}. L'équipement est ce que la dernière mise à jour des biens a vu monté : modules, rigs, sous-systèmes, munitions chargées, drones et chasseurs — pas la soute.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Pas de prix : choisissez un marché pour la valeur des biens dans Paramètres → Marché. L'équipement est ce que la dernière mise à jour des biens a vu monté : modules, rigs, sous-systèmes, munitions chargées, drones et chasseurs — pas la soute.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Certains noms de vaisseaux n'ont pas pu être lus depuis le jeu ; ceux-là sont listés par leur coque seulement.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} ouvert comme nouvel équipement — pas encore enregistré ; utilisez Enregistrer sous pour le garder.</value>
+  </data>
+</root>

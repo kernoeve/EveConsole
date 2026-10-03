@@ -7,6 +7,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -99,14 +100,14 @@ public static class CorpTrendChartReport
 
         ISeries[] series =
         [
-            Line("Income",       ordered.Select(r => (double)(r.TotalIncome    / 1_000_000_000m)), Green),
-            Line("Expenses",     ordered.Select(r => (double)(r.TotalExpense   / 1_000_000_000m)), Red),
-            Line("Ratting Tax",  ordered.Select(r => (double)(r.RattingTax     / 1_000_000_000m)), Gold),
-            Line("Industry Tax", ordered.Select(r => (double)(r.IndustryTax    / 1_000_000_000m)), Blue),
-            Line("Proj Payouts", ordered.Select(r => (double)(r.ProjectPayouts / 1_000_000_000m)), Purple),
+            Line(CorpText.SeriesIncome,      ordered.Select(r => (double)(r.TotalIncome    / 1_000_000_000m)), Green),
+            Line(CorpText.SeriesExpenses,    ordered.Select(r => (double)(r.TotalExpense   / 1_000_000_000m)), Red),
+            Line(CorpText.SeriesRattingTax,  ordered.Select(r => (double)(r.RattingTax     / 1_000_000_000m)), Gold),
+            Line(CorpText.SeriesIndustryTax, ordered.Select(r => (double)(r.IndustryTax    / 1_000_000_000m)), Blue),
+            Line(CorpText.SeriesProjPayouts, ordered.Select(r => (double)(r.ProjectPayouts / 1_000_000_000m)), Purple),
         ];
 
-        return new Chart(series, [XAxis(labels)], [YAxis("B")], "ISK Trends (billions)");
+        return new Chart(series, [XAxis(labels)], [YAxis("B")], CorpText.ChartTitleIskTrends);
     }
 
     /// <summary>
@@ -128,9 +129,9 @@ public static class CorpTrendChartReport
 
         ISeries[] series =
         [
-            Line("Kills",       ordered.Select(r => (double)r.Kills),      Green, 0),
-            Line("Losses",      ordered.Select(r => (double)r.Losses),     Red,   0),
-            Line("Units Mined", ordered.Select(r => (double)r.UnitsMined), Gold,  1),
+            Line(CorpText.SeriesKills,      ordered.Select(r => (double)r.Kills),      Green, 0),
+            Line(CorpText.SeriesLosses,     ordered.Select(r => (double)r.Losses),     Red,   0),
+            Line(CorpText.SeriesUnitsMined, ordered.Select(r => (double)r.UnitsMined), Gold,  1),
         ];
 
         Axis[] yAxes =
@@ -156,7 +157,7 @@ public static class CorpTrendChartReport
         ];
 
         return new Chart(series, [XAxis(labels)], yAxes,
-                         "Activity Trends (kills and losses left, units mined right)");
+                         CorpText.ChartTitleActivityTrends);
     }
 
     /// <summary>
@@ -175,13 +176,13 @@ public static class CorpTrendChartReport
 
         ISeries[] series =
         [
-            Line("Kills",  ordered.Select(r => (double)r.Kills),  Green, 0),
-            Line("Losses", ordered.Select(r => (double)r.Losses), Red,   0),
+            Line(CorpText.SeriesKills,  ordered.Select(r => (double)r.Kills),  Green, 0),
+            Line(CorpText.SeriesLosses, ordered.Select(r => (double)r.Losses), Red,   0),
 
             // ⚠️ Nullable, so a month with no fighting leaves a GAP rather than a point at zero.
             // Plotted as 0% it would read as "everything we flew was destroyed and we killed
             // nothing", which is the opposite of "nothing happened".
-            Gapped("ISK Efficiency", ordered.Select(r => r.IskEfficiency), Gold, 1),
+            Gapped(CorpText.SeriesIskEfficiency, ordered.Select(r => r.IskEfficiency), Gold, 1),
         ];
 
         Axis[] yAxes =
@@ -204,7 +205,7 @@ public static class CorpTrendChartReport
         ];
 
         return new Chart(series, [XAxis(labels)], yAxes,
-                         "Kills and Losses (ISK efficiency on the right)");
+                         CorpText.ChartTitleKillTrends);
     }
 
     /// <summary>The month's ore as reprocessed value, on its own scale. Value rather than units:
@@ -216,7 +217,7 @@ public static class CorpTrendChartReport
         var ordered = rows.OrderBy(r => r.Month).ToList();
         var labels  = ordered.Select(r => r.Month).ToArray();
 
-        ISeries[] series = [Line("Mined Value", ordered.Select(r => (double)r.MinedValue), Gold)];
+        ISeries[] series = [Line(CorpText.SeriesMinedValue, ordered.Select(r => (double)r.MinedValue), Gold)];
 
         Axis[] yAxes =
         [
@@ -233,7 +234,7 @@ public static class CorpTrendChartReport
             },
         ];
 
-        return new Chart(series, [XAxis(labels)], yAxes, "Mining (reprocessed value)");
+        return new Chart(series, [XAxis(labels)], yAxes, CorpText.ChartTitleMining);
     }
 
     /// <summary>Distinct members seen doing something the corporation can see, month by month.</summary>
@@ -244,7 +245,7 @@ public static class CorpTrendChartReport
         var ordered = rows.OrderBy(r => r.Month).ToList();
         var labels  = ordered.Select(r => r.Month).ToArray();
 
-        ISeries[] series = [Line("Players Active", ordered.Select(r => (double)r.PlayersActive), Blue)];
+        ISeries[] series = [Line(CorpText.ChartPlayersActive, ordered.Select(r => (double)r.PlayersActive), Blue)];
 
         Axis[] yAxes =
         [
@@ -257,7 +258,7 @@ public static class CorpTrendChartReport
             },
         ];
 
-        return new Chart(series, [XAxis(labels)], yAxes, "Players Active");
+        return new Chart(series, [XAxis(labels)], yAxes, CorpText.ChartPlayersActive);
     }
 
     /// <summary>

@@ -8,6 +8,7 @@ using EveConsole.Api;
 using EveConsole.Auth;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using EveConsole.Localization;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,24 +68,23 @@ public class MainWindowViewModel : ReactiveObject
                 await conn.OpenAsync();
                 await using var cmd = new Npgsql.NpgsqlCommand(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
-                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? "unknown";
+                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? ShellText.DbSizeUnknown;
 
-                DbEngineTip = $"PostgreSQL on {b.Host}\nDatabase: {b.Database}\nSize: {size}";
+                DbEngineTip = string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
             }
             else
             {
                 var path = AppConfig.GetDbPath();
                 var size = File.Exists(path)
                     ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
-                    : "file not found";
-                DbEngineTip = $"SQLite\n{path}\nSize: {size}";
+                    : ShellText.DbFileNotFound;
+                DbEngineTip = string.Format(ShellText.TipDbSqlite, path, size);
             }
         }
         catch (Exception ex)
         {
             // The label still names the engine; only the detail is missing.
-            DbEngineTip = $"{DbEngine.DisplayName} — could not read details: "
-                        + ex.Message.Split('\n')[0];
+            DbEngineTip = string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -113,7 +113,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _workerState, value);
     }
 
-    private string _workerTip = "Checking which client is doing the background work…";
+    private string _workerTip = ShellText.TipWorkerChecking;
     /// <summary>Host, pid and version of the holder, on hover.</summary>
     public string WorkerTip
     {
@@ -136,13 +136,10 @@ public class MainWindowViewModel : ReactiveObject
         // One process, no contest, nothing to report but itself.
         if (!DbEngine.IsPostgres)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
-            WorkerTip   = "Background processes run in this client.\n\n"
-                        + $"Host: {Environment.MachineName}\n"
-                        + $"PID: {Environment.ProcessId}\n"
-                        + $"Version: {AppVersion.Number}\n\n"
-                        + "SQLite allows one client at a time, so there is nothing to hand over to.";
+            WorkerTip   = string.Format(ShellText.TipWorkerSqlite, ShellText.WorkerHeadlineMine,
+                                        Environment.MachineName, Environment.ProcessId, AppVersion.Number);
             return;
         }
 
@@ -153,48 +150,45 @@ public class MainWindowViewModel : ReactiveObject
         // lock is the only thing that actually knows.
         if (_workerLease.IsHolder)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
             WorkerTip   = s is null
-                ? "Background processes run in this client."
-                : Describe("Background processes run in this client.", s);
+                ? ShellText.WorkerHeadlineMine
+                : Describe(ShellText.WorkerHeadlineMine, s);
             return;
         }
 
         if (s is null)
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = "No client has claimed the background work.\n\n"
-                        + "ESI polling, build costs and backups are not running.";
+            WorkerTip   = ShellText.TipWorkerUnclaimed;
             return;
         }
 
         if (!WorkerLease.IsLive(s))
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = Describe("Nothing is doing the background work — this is the last client that did.", s);
+            WorkerTip   = Describe(ShellText.WorkerHeadlineStale, s);
             return;
         }
 
         WorkerOwner = s.HostName;
         WorkerState = WorkerOwnership.Other;
-        WorkerTip   = Describe("Background processes run in another client.", s);
+        WorkerTip   = Describe(ShellText.WorkerHeadlineOther, s);
     }
 
     private static string Describe(string headline, BackgroundWorkerStatus s) =>
-        $"{headline}\n\n"
-      + $"Host: {s.HostName}{(s.Headless ? "  (headless)" : "")}\n"
-      + $"PID: {s.ProcessId}\n"
-      + $"Version: {s.Version}\n"
-      + $"Since: {s.LeaseTakenUtc.ToLocalTime():yyyy-MM-dd HH:mm}\n"
-      + $"Last heartbeat: {Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc)}";
+        string.Format(ShellText.TipWorkerDetails, headline,
+                      s.Headless ? string.Format(ShellText.WorkerHostHeadless, s.HostName) : s.HostName,
+                      s.ProcessId, s.Version, s.LeaseTakenUtc.ToLocalTime(),
+                      Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc));
 
     private static string Ago(TimeSpan t) =>
-        t < TimeSpan.FromMinutes(1) ? $"{Math.Max(0, (int)t.TotalSeconds)}s ago"
-      : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
-      :                               $"{(int)t.TotalHours} h ago";
+        t < TimeSpan.FromMinutes(1) ? string.Format(ShellText.AgoSeconds, Math.Max(0, (int)t.TotalSeconds))
+      : t < TimeSpan.FromHours(1)   ? string.Format(ShellText.AgoMinutes, (int)t.TotalMinutes)
+      :                               string.Format(ShellText.AgoHours, (int)t.TotalHours);
 
     // ── Whether this machine stays quiet for alarms ───────────────────────────
 
@@ -239,9 +233,13 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
+    public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
-    public UniverseViewModel              UniverseVm             { get; }
+    public PlanetaryIndustryViewModel     PlanetaryIndustryVm    { get; }
+    /// <summary>Planetary Industry's one door to the data, for the Settings window's PI boxes.</summary>
+    public EveConsole.Services.Pi.PiService Pi                   { get; }
+    public MapToolViewModel                MapVm                  { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
     public SchedulerViewModel             SchedulerVm            { get; }
     public JumpPlannerViewModel           JumpPlannerVm          { get; }
@@ -274,6 +272,7 @@ public class MainWindowViewModel : ReactiveObject
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
+    public DiscordSettingsViewModel       DiscordSettingsVm      { get; }
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
@@ -346,7 +345,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _alarmGleamOpacity, value);
     }
 
-    private string _alarmsTip = "Alarms";
+    private string _alarmsTip = ShellText.TabAlarms;
     public string AlarmsTip
     {
         get => _alarmsTip;
@@ -402,17 +401,11 @@ public class MainWindowViewModel : ReactiveObject
     /// </summary>
     private void RefreshAlarmsTip()
     {
-        var armed = _armedCount switch
-        {
-            0 => "Alarms — none armed",
-            1 => "Alarms — 1 armed",
-            _ => $"Alarms — {_armedCount} armed",
-        };
+        var armed = _armedCount == 0
+            ? ShellText.AlarmsNoneArmed
+            : Plurals.Format(ShellText.ResourceManager, nameof(ShellText.AlarmsArmedOther), _armedCount);
 
-        AlarmsTip = AlarmsMuted
-            ? armed + "\n\nMuted on this client: no sound, dialog or agent notification will be "
-                    + "raised here. Alerts are still recorded.\n\nRight-click to unmute."
-            : armed + "\n\nRight-click to mute this client.";
+        AlarmsTip = armed + "\n\n" + (AlarmsMuted ? ShellText.AlarmsMutedNote : ShellText.AlarmsMuteHint);
     }
 
     // ── My characters online (shown beside the EVE clock) ───────────────────────
@@ -455,78 +448,132 @@ public class MainWindowViewModel : ReactiveObject
     /// timer rather than the clock's, because it costs a query — and off the UI thread, since
     /// SQLite has no real async I/O and awaiting it here would freeze the window.
     /// </summary>
-    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory)
+    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
-        _ = RefreshOnlineCharactersAsync(dbFactory);
+        _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
 
         var timer = new System.Timers.Timer(TimeSpan.FromSeconds(30)) { AutoReset = true };
-        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory);
+        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
         timer.Start();
     }
 
-    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory)
+    /// <summary>The last failure logged, so one that repeats every thirty seconds is written once.</summary>
+    private string? _onlineCharactersError;
+
+    /// <summary>One of your characters as the header reads it: online or not, and for one who
+    /// is, where and in what — any of which a poll may not have filled in yet. The names are the
+    /// English; the ids are for naming them in the interface language.</summary>
+    internal sealed record OnlineCharacterRow(
+        string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0,
+        long CorporationId = 0, long AllianceId = 0);
+
+    /// <summary>
+    /// Every character with a status row, with names looked up for the ones online.
+    ///
+    /// <para>⚠️ A plain join and then a lookup per name, never correlated left joins. Written as
+    /// "from x in table.Where(matches s).DefaultIfEmpty()" once per name, this needed SQL's
+    /// APPLY, which SQLite does not have: on every SQLite database the query threw, the catch in
+    /// the caller swallowed it, and the header showed a dot with no words beside it. Only
+    /// PostgreSQL, which has APPLY, ever saw it work.</para>
+    /// </summary>
+    internal static async Task<List<OnlineCharacterRow>> ReadOnlineCharactersAsync(
+        AppDbContext db, CancellationToken ct = default)
+    {
+        var statuses = await (
+            from s in db.CharacterStatuses.AsNoTracking()
+            join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
+            select new
+            {
+                c.Id, c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
+                c.CorporationId, c.AllianceId,
+            }).ToListAsync(ct);
+
+        // Names only for who is online — nothing else is shown. A character who has just logged
+        // in may not have had a location or ship poll yet, and is still counted.
+        var here = statuses.Where(s => s.Online).ToList();
+        var systemIds    = here.Where(s => s.SolarSystemId is not null).Select(s => s.SolarSystemId!.Value).Distinct().ToList();
+        var shipIds      = here.Where(s => s.ShipTypeId is not null).Select(s => s.ShipTypeId!.Value).Distinct().ToList();
+        var stationIds   = here.Where(s => s.StationId is not null).Select(s => (int)s.StationId!.Value).Distinct().ToList();
+        var structureIds = here.Where(s => s.StructureId is not null).Select(s => s.StructureId!.Value).Distinct().ToList();
+
+        var systems  = await db.SdeSolarSystems.AsNoTracking().Where(x => systemIds.Contains(x.SolarSystemId))
+            .ToDictionaryAsync(x => x.SolarSystemId, x => x.Name, ct);
+        var ships    = await db.SdeTypes.AsNoTracking().Where(x => shipIds.Contains(x.TypeId))
+            .ToDictionaryAsync(x => x.TypeId, x => x.Name, ct);
+        var stations = await db.SdeStations.AsNoTracking().Where(x => stationIds.Contains(x.StationId))
+            .ToDictionaryAsync(x => (long)x.StationId, x => x.Name, ct);
+
+        // The docked place from every table that names one — three for player structures — so a
+        // pilot in a Keepstar reads as being in it rather than merely in its system. The first
+        // table to name it wins, in the order these were always read.
+        var structures = new Dictionary<long, string>();
+        void Name(IEnumerable<(long Id, string Name)> found)
+        {
+            foreach (var (id, name) in found)
+                if (!string.IsNullOrEmpty(name)) structures.TryAdd(id, name);
+        }
+        if (structureIds.Count > 0)
+        {
+            Name((await db.Structures.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+            Name((await db.EsiStructureNames.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+            Name((await db.EsiCorpStructures.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+        }
+
+        return statuses.Select(s => new OnlineCharacterRow(
+            s.Name,
+            s.Online,
+            Docked: s.StationId != null || s.StructureId != null,
+            System: s.SolarSystemId is int sys ? systems.GetValueOrDefault(sys) : null,
+            Place:  s.StationId is long sta && stations.TryGetValue(sta, out var station) ? station
+                  : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
+            Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
+            s.ShipName,
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id,
+            CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
+    }
+
+    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         try
         {
+            // Off the UI thread: SQLite has no real async I/O, and awaiting it here would freeze
+            // the window.
             var rows = await Task.Run(async () =>
             {
                 await using var db = await dbFactory.CreateDbContextAsync();
-
-                // Left joins throughout: a character who has just logged in may not have had a
-                // location or ship poll yet, and should still be counted as online. The docked
-                // place is looked up in every table that names one — the SDE for NPC stations,
-                // three for player structures — so a pilot in a Keepstar reads as being in it
-                // rather than merely in its system.
-                return await (
-                    from s in db.CharacterStatuses.AsNoTracking()
-                    join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
-                    from sys in db.SdeSolarSystems.AsNoTracking()
-                        .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
-                    from ship in db.SdeTypes.AsNoTracking()
-                        .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
-                    from sta in db.SdeStations.AsNoTracking()
-                        .Where(x => (long)x.StationId == s.StationId).DefaultIfEmpty()
-                    from str in db.Structures.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    from strn in db.EsiStructureNames.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    from cstr in db.EsiCorpStructures.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    select new
-                    {
-                        c.Name,
-                        s.Online,
-                        Docked   = s.StationId != null || s.StructureId != null,
-                        System   = sys != null ? sys.Name : null,
-                        Place    = sta  != null ? sta.Name
-                                 : str  != null ? str.Name
-                                 : strn != null ? strn.Name
-                                 : cstr != null ? cstr.Name : null,
-                        Hull     = ship != null ? ship.Name : null,
-                        s.ShipName,
-                    }).ToListAsync();
+                return await ReadOnlineCharactersAsync(db);
             });
 
             var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
 
-            var text = $"{online.Count} of {rows.Count} Online";
+            // Nobody on is worth saying in words: "0 of 24 Online" makes the reader do the sum.
+            var text = online.Count > 0 ? string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count) : ShellText.NoCharactersOnline;
 
             var list = online.Select(r =>
             {
-                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+                // The system, an NPC station and the hull in the interface language. A player
+                // structure stays as its owner named it.
+                var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown
+                           : SdeNames.SolarSystem(r.SolarSystemId ?? 0, r.System);
 
                 // Docked: the station or structure, which says more than its system does. In
                 // space: the system, which is all there is to say.
                 var where = !r.Docked                              ? system
-                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
-                          :                                          $"a structure in {system}";
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? (r.StationId is { } station ? SdeNames.Station(station, r.Place) : r.Place)
+                          :                                          string.Format(ShellText.StructureInSystem, system);
 
                 // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                // both only when the pilot bothered to rename it.
-                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                // both only when the pilot bothered to rename it — judged on the English hull,
+                // never on the translated one shown.
+                var hull = string.IsNullOrWhiteSpace(r.Hull) ? r.Hull : SdeNames.Type(r.ShipTypeId ?? 0, r.Hull);
+                var ship = string.IsNullOrWhiteSpace(hull) ? ShellText.ShipUnknown : hull;
                 if (!string.IsNullOrWhiteSpace(r.ShipName)
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                    ship = $"{r.Hull} \"{r.ShipName}\"";
+                    ship = $"{hull} \"{r.ShipName}\"";
 
                 return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
             }).ToList();
@@ -537,10 +584,18 @@ public class MainWindowViewModel : ReactiveObject
                 OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
+            _onlineCharactersError = null;
         }
-        catch
+        catch (Exception ex)
         {
-            // A header ornament must never be the thing that takes the window down.
+            // A header ornament must never be the thing that takes the window down — but it must
+            // not fail in silence either: this one was broken on SQLite with nothing to show for
+            // it. Logged once per distinct failure, not every thirty seconds.
+            if (ex.Message != _onlineCharactersError)
+            {
+                _onlineCharactersError = ex.Message;
+                errorLogger.Log(nameof(MainWindowViewModel), "online characters", ex);
+            }
         }
     }
 
@@ -554,7 +609,7 @@ public class MainWindowViewModel : ReactiveObject
     public DataRetentionSettingsViewModel DataRetentionVm { get; private set; } = null!;
 
     public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
-    public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
+    public string EveTimeLinkTip => string.Format(ShellText.TipEveTimeLink, EveTimeUrl);
 
     // ── Theme (shown on the title bar, beside the alarm beacon) ─────────────────
 
@@ -565,9 +620,9 @@ public class MainWindowViewModel : ReactiveObject
     /// never disagree about what is on — either can change it, and both follow the event.</para>
     /// </summary>
     public string ThemeName => ThemeService.All
-        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? "Theme";
+        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? ShellText.ThemeFallback;
 
-    public string ThemeTip => $"Theme: {ThemeName} — click to change";
+    public string ThemeTip => string.Format(ShellText.TipTheme, ThemeName);
 
     private void OnThemeChanged()
     {
@@ -579,7 +634,7 @@ public class MainWindowViewModel : ReactiveObject
     /// theme so the bar and the Settings window can never disagree.</summary>
     public string UiScaleName => UiScaleService.Label;
 
-    public string UiScaleTip => $"UI scale: {UiScaleName} — click to change";
+    public string UiScaleTip => string.Format(ShellText.TipUiScale, UiScaleName);
 
     private void OnUiScaleChanged()
     {
@@ -589,7 +644,7 @@ public class MainWindowViewModel : ReactiveObject
 
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
-    private string _serverStatusText = "Online";
+    private string _serverStatusText = ShellText.ServerOnline;
     public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
 
     private IBrush _serverStatusColor = Palette.Good;
@@ -598,7 +653,7 @@ public class MainWindowViewModel : ReactiveObject
     private string _serverPlayersText = "";
     public string ServerPlayersText { get => _serverPlayersText; private set => this.RaiseAndSetIfChanged(ref _serverPlayersText, value); }
 
-    private string _serverStatusTip = "Tranquility server status";
+    private string _serverStatusTip = ShellText.TipServerStatus;
     public string ServerStatusTip { get => _serverStatusTip; private set => this.RaiseAndSetIfChanged(ref _serverStatusTip, value); }
 
     /// <summary>Mirrors EveServerStatusService onto the UI thread. The service raises
@@ -610,9 +665,10 @@ public class MainWindowViewModel : ReactiveObject
             ServerStatusText   = status.StatusText;
             ServerStatusColor  = status.StatusColor;
             ServerPlayersText  = status.PlayersText;
-            ServerStatusTip    = status.IsOnline
-                ? $"Tranquility is online{(status.Players > 0 ? $" — {status.Players:N0} players" : "")}"
-                : "Tranquility is offline — ESI polling is paused until it returns";
+            ServerStatusTip    = !status.IsOnline ? ShellText.TipTranquilityOffline
+                               : status.Players > 0
+                                   ? Plurals.Format(ShellText.ResourceManager, nameof(ShellText.TipTranquilityOnlinePlayersOther), status.Players)
+                                   : ShellText.TipTranquilityOnline;
         });
 
         status.PropertyChanged += (_, _) => Apply();
@@ -620,7 +676,30 @@ public class MainWindowViewModel : ReactiveObject
     }
 
 
-    private string _buildCostStatusText = "Build costs: not yet calculated";
+    // ── ESI governor (shown beside the Tranquility status while it holds work back) ──
+
+    private bool _esiThrottled;
+    /// <summary>The governor is holding background work back: the error budget is low, or a
+    /// rate-limit group is being paced. See EsiBudget.</summary>
+    public bool EsiThrottled { get => _esiThrottled; private set => this.RaiseAndSetIfChanged(ref _esiThrottled, value); }
+
+    private string _esiThrottleTip = "";
+    public string EsiThrottleTip { get => _esiThrottleTip; private set => this.RaiseAndSetIfChanged(ref _esiThrottleTip, value); }
+
+    /// <summary>Once a second: the ESI limits panel's figures, and the header's word on them.</summary>
+    private void SyncEsiThrottle()
+    {
+        var limits = ActivityVm.Limits;
+        limits.Refresh();
+        var s = EveConsole.Api.EsiBudget.Shared;
+        EsiThrottled   = s.Level != EveConsole.Api.EsiGovernorLevel.Normal || s.Snapshot().Groups.Any(g => g.Paced);
+        EsiThrottleTip = EsiThrottled ? string.Format(ShellText.TipEsiThrottled, limits.GovernorText, limits.BudgetText) : "";
+    }
+
+    /// <summary>The header's "ESI slowed": opens the Background Processes tool on its ESI limits tab.</summary>
+    public void OpenEsiLimits() => OpenBackgroundProcesses(DataText.TabEsiLimits);
+
+    private string _buildCostStatusText = ShellText.BuildCostsNotYet;
     public string BuildCostStatusText
     {
         get => _buildCostStatusText;
@@ -630,26 +709,141 @@ public class MainWindowViewModel : ReactiveObject
     // ── Navigation ────────────────────────────────────────────────────────────
 
     public IReadOnlyList<NavGroup>       NavGroups { get; }
-    public ObservableCollection<ToolTab> OpenTabs  { get; } = new();
 
     private readonly NavItem[] _allNavItems;
 
-    private ToolTab? _selectedTab;
+    // ── Tabs: the main window's, and the windows tabs are dragged out into ───
+
+    /// <summary>The main window's tabs.</summary>
+    public TabWorkspace Main { get; } = new(isMain: true);
+
+    /// <summary>Every window a tab has been dragged out into, each with tabs of its own. The main
+    /// window opens a window for each one added and closes it when it is removed.</summary>
+    public ObservableCollection<TabWorkspace> Hosts { get; } = [];
+
+    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main);
+
+    // The main window's own, as it and the agent read them.
+    public ToolPane LeftPane  => Main.LeftPane;
+    public ToolPane RightPane => Main.RightPane;
+    public bool     IsSplit   => Main.IsSplit;
+    public ToolPane ActivePane { get => Main.ActivePane; set => Main.ActivePane = value; }
+    public ToolTab? OtherSideTab => Main.OtherSideTab;
+    /// <summary>The main window's tabs.</summary>
+    public IEnumerable<ToolTab> OpenTabs => Main.OpenTabs;
+    /// <summary>Every tab, in every window.</summary>
+    public IEnumerable<ToolTab> AllTabs  => Workspaces.SelectMany(w => w.OpenTabs);
+
+    /// <summary>The tool being worked in in the main window. Setting it shows a tab wherever it
+    /// is — bringing its window forward if that is not the main one.</summary>
     public ToolTab? SelectedTab
     {
-        get => _selectedTab;
-        set => this.RaiseAndSetIfChanged(ref _selectedTab, value);
+        get => Main.SelectedTab;
+        set { if (value is not null) Show(value); }
+    }
+
+    public TabWorkspace? WorkspaceOf(ToolTab tab) => Workspaces.FirstOrDefault(w => w.Contains(tab));
+    public ToolPane?     PaneOf(ToolTab tab)      => WorkspaceOf(tab)?.PaneOf(tab);
+
+    /// <summary>Asks the view to bring a window of tabs forward.</summary>
+    public event Action<TabWorkspace>? ShowWorkspaceRequested;
+
+    /// <summary>Shows <paramref name="tab"/> in whichever window holds it.</summary>
+    public void Show(ToolTab tab)
+    {
+        if (WorkspaceOf(tab) is not { } ws) return;
+        ws.SelectedTab = tab;
+        if (!ws.IsMain) ShowWorkspaceRequested?.Invoke(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    /// <summary>
+    /// Puts <paramref name="tab"/> on <paramref name="to"/>, in this window or another, before
+    /// position <paramref name="index"/> (at the end when null). A window left with no tabs closes.
+    /// The Overview stays in the main window.
+    /// </summary>
+    public void MoveTab(ToolTab tab, ToolPane to, int? index = null)
+    {
+        if (WorkspaceOf(tab) is not { } from || to.Workspace is not { } dest) return;
+        if (from == dest) { from.Move(tab, to, index); return; }
+        if (!CanLeaveMain(tab) && !dest.IsMain) return;
+        from.Remove(tab);
+        dest.Add(tab, to, index);
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    /// <summary>Any tool but the Overview can go to a window of its own.</summary>
+    public static bool CanLeaveMain(ToolTab tab) => tab.Id != "overview";
+
+    /// <summary>Takes <paramref name="tab"/> out into a window of its own; the view opens the window.</summary>
+    public TabWorkspace? DetachTab(ToolTab tab)
+    {
+        if (!CanLeaveMain(tab) || WorkspaceOf(tab) is not { } from) return null;
+        from.Remove(tab);
+        var ws = new TabWorkspace(isMain: false);
+        ws.Add(tab);
+        Hosts.Add(ws);
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        return ws;
+    }
+
+    /// <summary>A window of tabs was closed: its tools close with it, as closing a tab does.</summary>
+    public void CloseWorkspace(TabWorkspace ws)
+    {
+        if (ws.IsMain) return;
+        foreach (var tab in ws.OpenTabs.ToList())
+        {
+            ws.Remove(tab);
+            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+            if (navItem is not null) navItem.IsOpen = false;
+        }
+        Hosts.Remove(ws);
+    }
+
+    private void DropIfEmpty(TabWorkspace ws)
+    {
+        if (!ws.IsMain && ws.IsEmpty) Hosts.Remove(ws);
     }
 
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
     public ReactiveCommand<ToolTab, Unit> CloseTabCommand { get; }
 
+    private const string NavVisibleKey = "nav.visible";
+    private bool _isNavVisible = ReadNavVisible();
+    private static bool ReadNavVisible() { try { return UiState.GetBool(NavVisibleKey, true); } catch { return true; } }
+
+    /// <summary>The navigation on the left, hidden to give the tools the width. Remembered on this
+    /// machine; the button at the left of the title bar brings it back.</summary>
+    public bool IsNavVisible
+    {
+        get => _isNavVisible;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isNavVisible, value);
+            try { UiState.SetBool(NavVisibleKey, value); } catch { }
+        }
+    }
+    public ReactiveCommand<Unit, Unit> ToggleNavCommand => _toggleNav ??= ReactiveCommand.Create(() => { IsNavVisible = !IsNavVisible; });
+    private ReactiveCommand<Unit, Unit>? _toggleNav;
+
     public void OpenTool(string toolId)
     {
-        var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
+        // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
+        // still name them.
+        if (toolId is "jump_planner" or "route_planner")
+        {
+            OpenTool("universe");
+            if (toolId == "jump_planner") MapVm.ShowJumpPlannerTab();
+            else                          MapVm.ShowRouteTab();
+            return;
+        }
+
+        var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
-            SelectedTab = existing;
+            Show(existing);
             // Returning to an already-open tab has to refresh too, or an alarm that fired while
             // the tab sat in the background shows nothing until something else triggers a load.
             if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
@@ -663,50 +857,51 @@ public class MainWindowViewModel : ReactiveObject
 
         var (title, vm, canClose) = toolId switch
         {
-            "overview"   => ("Overview",       (object)OverviewVm,       false),
-            "characters" => ("Characters",      CharacterViewerVm,        true),
-            "assets"     => ("Assets",          AssetBrowserVm,           true),
-            "items"      => ("Item Browser",    ItemBrowserVm,            true),
-            "industry"   => ("Industry Jobs",   IndustryBrowserVm,        true),
-            "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
-            "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
-            "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
-            "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
-            "universe"        => ("Universe",        UniverseVm,        true),
-            "alarms"          => ("Alarms",          AlarmsVm,          true),
-            "scheduler"       => ("Scheduler",       SchedulerVm,       true),
-            "jump_planner"    => ("Jump Planner",    JumpPlannerVm,     true),
-            "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
-            "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
-            "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
-            "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
-            "sale_posting"    => ("Sale Posting",    SalePostingVm,            true),
-            "stores"          => ("Stores",          StoresVm,                 true),
-            "net_worth"  => ("Net Worth",       NetWorthVm,               true),
-            "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
-            "wallet"         => ("Wallet",          WalletVm,          true),
-            "contracts"      => ("Contracts",       ContractsVm,       true),
-            "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
-            "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
-            "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
-            "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
-            "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
-            "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
-            "worklist"       => ("Worklist",       WorklistVm,        true),
-            "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
-            "item_valuation"   => ("Item Valuation",   ItemValuationVm,  true),
-            "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
-            "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
-            "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
-            "killmails"      => ("Killmails",      KillmailBrowserVm, true),
-            "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
-            "notifications"  => ("Notifications",  NotificationsVm,   true),
-            "background"     => ("Background Processes", ActivityVm,  true),
-            "data"           => ("ESI Explorer",   ExplorerVm,        true),
-            "error_log"      => ("Error Log",      ErrorLogVm,        true),
-            "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
-            "game_log"       => ("Game Log",       GameLogViewerVm,   true),
-            "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
+            "overview"   => (ShellText.NavOverview,       (object)OverviewVm,       false),
+            "characters" => (ShellText.NavCharacters,      CharacterViewerVm,        true),
+            "assets"     => (ShellText.NavAssets,          AssetBrowserVm,           true),
+            "items"      => (ShellText.NavItemBrowser,    ItemBrowserVm,            true),
+            "industry"   => (ShellText.NavIndustryJobs,   IndustryBrowserVm,        true),
+            "indy_parks" => (ShellText.NavIndyParks,      IndyParksVm,              true),
+            "prod_calc"  => (ShellText.NavProductionCalc, ProductionCalcVm,         true),
+            "fitting"    => (ShellText.NavFitting,        FittingVm,                true),
+            "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
+            "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
+            "planetary_industry" => (ShellText.NavPlanetaryIndustry, PlanetaryIndustryVm, true),
+            "universe"        => (ShellText.TabUniverse,        MapVm,             true),
+            "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
+            "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
+            "trade"           => (ShellText.TabTrade,           TradeOpportunitiesVm,     true),
+            "industry_opps"   => (ShellText.TabIndustryOpps,   IndustryOpportunitiesVm,  true),
+            "market_levels"   => (ShellText.NavMarketLevels,   MarketLevelVm,            true),
+            "inv_levels"      => (ShellText.TabInvLevels,     InvLevelVm,               true),
+            "sale_posting"    => (ShellText.NavSalePosting,    SalePostingVm,            true),
+            "stores"          => (ShellText.NavStores,          StoresVm,                 true),
+            "net_worth"  => (ShellText.NavNetWorth,       NetWorthVm,               true),
+            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseVm,     true),
+            "wallet"         => (ShellText.NavWallet,          WalletVm,          true),
+            "contracts"      => (ShellText.NavContracts,       ContractsVm,       true),
+            "market_viewer"  => (ShellText.NavMarketOverview, MarketViewerVm,    true),
+            "sales_tracker"  => (ShellText.NavSalesTracker,   SalesTrackerVm,    true),
+            "sale_list_build"  => (ShellText.TabSaleListingBuild,  SaleListingBuildVm,  true),
+            "sale_list_market" => (ShellText.TabSaleListingMarket, SaleListingMarketVm, true),
+            "order_tracker"  => (ShellText.NavOrderTracker,   OrderTrackerVm,    true),
+            "standing_buy_orders" => (ShellText.NavStandingBuyOrders, StandingBuyOrdersVm, true),
+            "worklist"       => (ShellText.NavWorklist,       WorklistVm,        true),
+            "lp_market_values" => (ShellText.NavLpMarketValues, LpMarketValuesVm, true),
+            "item_valuation"   => (ShellText.NavItemValuation,   ItemValuationVm,  true),
+            "player_entities"  => (ShellText.NavPlayerEntities, PlayerEntitiesVm, true),
+            "npc_entities"     => (ShellText.NavNpcEntities,    NpcEntitiesVm,    true),
+            "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
+            "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
+            "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
+            "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
+            "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
+            "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
+            "error_log"      => (ShellText.NavErrorLog,      ErrorLogVm,        true),
+            "ai_usage"       => (ShellText.NavAiUsage,       AgentUsageVm,      true),
+            "game_log"       => (ShellText.NavGameLog,       GameLogViewerVm,   true),
+            "chat_log"       => (ShellText.NavChatLog,       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
@@ -715,8 +910,8 @@ public class MainWindowViewModel : ReactiveObject
         // not a visibility check — see IPeriodicRefresh.
         if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
-        OpenTabs.Add(tab);
-        SelectedTab = tab;
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
         // a fresh read also picks up anything the agent created since the tab was last shown.
@@ -729,6 +924,7 @@ public class MainWindowViewModel : ReactiveObject
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
         if (toolId == "ai_usage")  AgentUsageVm.Reload();
+        if (toolId == "planetary_industry") _ = PlanetaryIndustryVm.RefreshAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -762,51 +958,39 @@ public class MainWindowViewModel : ReactiveObject
     /// open — an empty one of these would have no content and no reason to exist.</para>
     ///
     /// <para>⚠️ Marshalled to the UI thread by the caller's Dispatcher.Invoke. Agent tools run on
-    /// a background thread and OpenTabs is bound to the tab strip.</para>
+    /// a background thread and the panes' tabs are bound to the tab strips.</para>
     /// </summary>
     public string OpenAgentTab(string title, object viewModel)
     {
         var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
         var tab = new ToolTab(id, title, viewModel, canClose: true);
-        OpenTabs.Add(tab);
-        SelectedTab = tab;
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
         return id;
     }
 
     public void CloseTab(ToolTab tab)
     {
-        if (!tab.CanClose) return;
-        bool wasSelected = SelectedTab == tab;
-        OpenTabs.Remove(tab);
+        if (!tab.CanClose || WorkspaceOf(tab) is not { } ws) return;
+        ws.Remove(tab);
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
         if (navItem is not null) navItem.IsOpen = false;
-
-        if (wasSelected)
-            SelectedTab = OpenTabs.FirstOrDefault(t => t.Id == "overview") ?? OpenTabs.FirstOrDefault();
+        DropIfEmpty(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
-    // Called when a tab is detached into a floating window — removes it from the
-    // strip but keeps the nav-item dot lit (the tool is still "open").
-    public void MarkToolDetached(string toolId)
+    /// <summary>
+    /// Closes the tabs on <paramref name="tab"/>'s side of its window — the whole window when it is
+    /// not split — all of them, or all but <paramref name="tab"/>. The Overview stays; a window of
+    /// tabs left with none closes.
+    /// </summary>
+    public void CloseTabsBeside(ToolTab tab, bool keepIt)
     {
-        var tab = OpenTabs.FirstOrDefault(t => t.Id == toolId);
-        if (tab is not null)
-        {
-            bool wasSelected = SelectedTab == tab;
-            OpenTabs.Remove(tab);
-            if (wasSelected)
-                SelectedTab = OpenTabs.FirstOrDefault(t => t.Id == "overview") ?? OpenTabs.FirstOrDefault();
-        }
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = true;
-    }
-
-    // Called when a detached window closes — extinguishes the nav-item dot.
-    public void MarkToolReattached(string toolId)
-    {
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = false;
+        if (WorkspaceOf(tab) is not { } ws || ws.PaneOf(tab) is not { } pane) return;
+        foreach (var t in pane.Tabs.Where(t => t.CanClose && !(keepIt && t == tab)).ToList())
+            CloseTab(t);
+        if (keepIt) Show(tab);
     }
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -866,6 +1050,7 @@ public class MainWindowViewModel : ReactiveObject
         MarketHistoryService            historyService,
         ContractsService                contractsService,
         SlackService                    slackService,
+        DiscordService                  discordService,
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
@@ -893,8 +1078,15 @@ public class MainWindowViewModel : ReactiveObject
         LpStoreService                  lpStoreService,
         LpValueService                  lpValueService,
         SchedulerService                schedulerService,
-        ScheduledBlockRenderer          blockRenderer)
+        ScheduledBlockRenderer          blockRenderer,
+        EveScoutService                 eveScout,
+        SystemGraph                     systemGraph,
+        SovCampaignService              sovCampaigns,
+        EveConsole.Services.Pi.PiService piService)
     {
+        // The main window's selection, as those who ask the main view model for it see it.
+        Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
+
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
@@ -905,11 +1097,12 @@ public class MainWindowViewModel : ReactiveObject
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
-        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
-        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
+        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
+        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
@@ -943,18 +1136,23 @@ public class MainWindowViewModel : ReactiveObject
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
-        var fittingsService = new FittingsService(esi, dbFactory);
+        var fittingsService = new FittingsService(esi);
+        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
+        // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
+        // fitting tool reads the new game data; one that loaded during the import gets its second try.
+        SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
+            .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
+            CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
         // until far below this line, and passing it here handed the view model a null.
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations);
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
+            CharacterVm.Characters);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -1050,15 +1248,33 @@ public class MainWindowViewModel : ReactiveObject
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
+        Pi                     = piService;
+        PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
+        // The Overview's PI alerts open the colony they are about, or the list for several.
+        OverviewVm.Pi                     = piService;
+        OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
+        OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
         var universeMapService = new UniverseMapService(dbFactory);
-        UniverseVm             = new UniverseViewModel(
-            universeMapService, mapStatsService,
-            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
-        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
-        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
-                                                        corpActivityService, salePostingService, errorLogger);
+        // Each system tab gets a page of its own, wired to the Item Browser like the rest.
+        SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
+        {
+            NavigateToItemAction = typeId =>
+            {
+                OpenTool("items");
+                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+            },
+        };
+        // The jump planner and the route planner are tabs of the map tool.
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
-
+        var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
+        MapVm                  = new MapToolViewModel(
+            universeMapService, mapStatsService, appPrefs, NewSystemPage,
+            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
+            JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
+        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
+                                                        corpActivityService, salePostingService, errorLogger);
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>
@@ -1076,40 +1292,40 @@ public class MainWindowViewModel : ReactiveObject
             if (player) PlayerEntitiesVm.Open(kind, id);
             else        NpcEntitiesVm.Open(kind, id);
         };
-        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); MapVm.OpenSystem(id); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
         EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
-        // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
-        // the system page still returns to it. A region is now territory you zoom to on the
-        // one continuous universe map.
-        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.FocusRegionAsync(id); };
+        // A region or constellation is territory you zoom to on a map: the map tab used last,
+        // framed on it, or a new map tab if none is open.
+        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = MapVm.FocusRegionAsync(id); };
         EntityNavigator.Instance.OpenConstellation =
-            name => { OpenTool("universe"); _ = UniverseVm.FocusConstellationAsync(name); };
+            name => { OpenTool("universe"); _ = MapVm.FocusConstellationAsync(name); };
 
         // Resolve the overlay here rather than in the agent tool: this is the list's home, so
         // an overlay added to the map is reachable by name without touching the tool.
         EntityNavigator.Instance.SetOverlay = text =>
         {
             var wanted = (text ?? "").Trim();
-            var mode = UniverseVm.OverlayModes.FirstOrDefault(m =>
+            OpenTool("universe");
+            var map  = MapVm.ShowUniverseTab().Map;
+            var mode = map.OverlayModes.FirstOrDefault(m =>
                            m.Key.Equals(wanted, StringComparison.OrdinalIgnoreCase) ||
                            m.Name.Equals(wanted, StringComparison.OrdinalIgnoreCase))
-                    ?? UniverseVm.OverlayModes.FirstOrDefault(m =>
+                    ?? map.OverlayModes.FirstOrDefault(m =>
                            m.Name.Contains(wanted, StringComparison.OrdinalIgnoreCase));
             if (mode is null) return "";
 
-            OpenTool("universe");
-            UniverseVm.SelectedOverlay = mode;
+            map.SelectedOverlay = mode;
             return $"Map overlay set to {mode.Name}.";
         };
 
         Action<int> showSystem = systemId =>
         {
             OpenTool("universe");
-            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+            MapVm.OpenSystem(systemId);
         };
         PlayerEntitiesVm.NavigateToSystem = showSystem;
         NpcEntitiesVm.NavigateToSystem    = showSystem;
@@ -1149,19 +1365,11 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
-        if (UniverseVm.SystemPage is { } sysPage)
-            sysPage.NavigateToItemAction = typeId =>
-            {
-                OpenTool("items");
-                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
-            };
 
         KillmailBrowserVm.NavigateToSystemAction = systemId =>
         {
             OpenTool("universe");
-            // Through the command rather than the method directly: it already routes failures
-            // to the map's status line instead of leaving an unobserved task exception.
-            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+            MapVm.OpenSystem(systemId);
         };
 
         using var tmpDb      = dbFactory.CreateDbContext();
@@ -1208,7 +1416,7 @@ public class MainWindowViewModel : ReactiveObject
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();
-        StartOnlineCharactersWatch(dbFactory);
+        StartOnlineCharactersWatch(dbFactory, errorLogger);
         BindAlarmLight(alarmService, workerActivity);
 
         // The status bar's lines on the background processes, once a second whatever tab is
@@ -1216,7 +1424,7 @@ public class MainWindowViewModel : ReactiveObject
         // publishes — and at once whenever that worker signals a change (the view model listens).
         Observable.Interval(TimeSpan.FromSeconds(1))
             .ObserveOnUi("MainWindow.BackgroundStatus")
-            .Subscribe(_ => ActivityVm.SyncStatusBar());
+            .Subscribe(_ => { ActivityVm.SyncStatusBar(); SyncEsiThrottle(); });
         ActivityVm.SyncStatusBar();
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
@@ -1228,74 +1436,78 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new("General",
+            new("general", ShellText.NavGroupGeneral,
             [
-                new NavItem("overview",    "Overview"),
-                new NavItem("worklist",    "Worklist"),
-                new NavItem("characters",  "Characters"),
+                new NavItem("overview",    ShellText.NavOverview),
+                new NavItem("worklist",    ShellText.NavWorklist),
+                new NavItem("characters",  ShellText.NavCharacters),
             ]),
-            new("Assets",
+            new("assets", ShellText.NavGroupAssets,
             [
-                new NavItem("assets",     "Assets"),
-                new NavItem("items",      "Item Browser"),
-                new NavItem("inv_levels", "Inventory Levels"),
+                new NavItem("assets",     ShellText.NavAssets),
+                new NavItem("items",      ShellText.NavItemBrowser),
+                new NavItem("inv_levels", ShellText.NavInventoryLevels),
             ]),
-            new("Structures / Navigation",
+            new("ships", ShellText.NavGroupShips,
             [
-                new NavItem("structure_browser", "Structure Browser"),
-                new NavItem("universe",          "Universe Map"),
-                new NavItem("jump_planner",      "Jump Planner"),
+                new NavItem("fitting", ShellText.NavFitting),
             ]),
-            new("Industry",
+            new("structures", ShellText.NavGroupStructures,
             [
-                new NavItem("industry",      "Industry Jobs"),
-                new NavItem("indy_parks",    "Indy Parks"),
-                new NavItem("prod_calc",     "Production Calc"),
-                new NavItem("price_overrides", "Price Overrides"),
-                new NavItem("industry_opps", "Industry Opportunities"),
+                new NavItem("structure_browser", ShellText.NavStructureBrowser),
+                new NavItem("universe",          ShellText.NavUniverseMap),
             ]),
-            new("Market / Trade",
+            new("industry", ShellText.NavGroupIndustry,
             [
-                new NavItem("market_viewer", "Market Overview"),
-                new NavItem("item_valuation", "Item Valuation"),
-                new NavItem("lp_market_values", "LP Market Values"),
-                new NavItem("market_levels", "Market Levels"),
-                new NavItem("contracts",     "Contracts"),
-                new NavItem("trade",         "Trade Opportunities"),
-                new NavItem("standing_buy_orders", "Standing Buy Orders"),
-                new NavItem("order_tracker", "Order Tracker"),
-                new NavItem("sales_tracker", "Sales Tracker"),
-                new NavItem("sale_posting",  "Sale Posting"),
-                new NavItem("stores",        "Stores"),
+                new NavItem("industry",      ShellText.NavIndustryJobs),
+                new NavItem("indy_parks",    ShellText.NavIndyParks),
+                new NavItem("prod_calc",     ShellText.NavProductionCalc),
+                new NavItem("planetary_industry", ShellText.NavPlanetaryIndustry),
+                new NavItem("price_overrides", ShellText.NavPriceOverrides),
+                new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),
-            new("Finance",
+            new("market", ShellText.NavGroupMarket,
             [
-                new NavItem("net_worth",     "Net Worth"),
-                new NavItem("income_expense","Income & Expense"),
-                new NavItem("wallet",        "Wallet"),
+                new NavItem("market_viewer", ShellText.NavMarketOverview),
+                new NavItem("item_valuation", ShellText.NavItemValuation),
+                new NavItem("lp_market_values", ShellText.NavLpMarketValues),
+                new NavItem("market_levels", ShellText.NavMarketLevels),
+                new NavItem("contracts",     ShellText.NavContracts),
+                new NavItem("trade",         ShellText.NavTradeOpportunities),
+                new NavItem("standing_buy_orders", ShellText.NavStandingBuyOrders),
+                new NavItem("order_tracker", ShellText.NavOrderTracker),
+                new NavItem("sales_tracker", ShellText.NavSalesTracker),
+                new NavItem("sale_posting",  ShellText.NavSalePosting),
+                new NavItem("stores",        ShellText.NavStores),
             ]),
-            new("Corp / Interactions",
+            new("finance", ShellText.NavGroupFinance,
             [
-                new NavItem("corp_activity", "Corp Activity"),
-                new NavItem("killmails",     "Killmails"),
-                new NavItem("player_entities", "Player Entities"),
-                new NavItem("npc_entities",    "NPC Entities"),
+                new NavItem("net_worth",     ShellText.NavNetWorth),
+                new NavItem("income_expense",ShellText.NavIncomeExpense),
+                new NavItem("wallet",        ShellText.NavWallet),
             ]),
-            new("Communication",
+            new("corp", ShellText.NavGroupCorp,
             [
-                new NavItem("eve_mail", "Eve Mail"),
-                new NavItem("notifications", "Notifications"),
+                new NavItem("corp_activity", ShellText.NavCorpActivity),
+                new NavItem("killmails",     ShellText.NavKillmails),
+                new NavItem("player_entities", ShellText.NavPlayerEntities),
+                new NavItem("npc_entities",    ShellText.NavNpcEntities),
             ]),
-            new("Data / Logs",
+            new("communication", ShellText.NavGroupCommunication,
+            [
+                new NavItem("eve_mail", ShellText.NavEveMail),
+                new NavItem("notifications", ShellText.NavNotifications),
+            ]),
+            new("data", ShellText.NavGroupData,
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
-                new NavItem("background", "Background Processes"),
-                new NavItem("data", "ESI Explorer"),
-                new NavItem("error_log", "Error Log"),
-                new NavItem("ai_usage",  "AI Usage"),
-                new NavItem("game_log", "Game Log"),
-                new NavItem("chat_log", "Chat Log"),
+                new NavItem("background", ShellText.NavBackgroundProcesses),
+                new NavItem("data", ShellText.NavEsiExplorer),
+                new NavItem("error_log", ShellText.NavErrorLog),
+                new NavItem("ai_usage",  ShellText.NavAiUsage),
+                new NavItem("game_log", ShellText.NavGameLog),
+                new NavItem("chat_log", ShellText.NavChatLog),
             ]),
         ];
 

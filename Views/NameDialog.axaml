@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.NameDialog"
         Width="360" Height="160"
         CanResize="False"
@@ -20,12 +21,12 @@
     </StackPanel>
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 12 0 0">
-      <Button Grid.Column="1" Content="Cancel"
+      <Button Grid.Column="1" Content="{x:Static loc:CommonText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
-      <Button Grid.Column="2" Content="OK"
+      <Button Grid.Column="2" Content="{x:Static loc:CommonText.Ok}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6"

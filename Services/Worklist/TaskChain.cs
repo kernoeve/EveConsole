@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -57,8 +59,8 @@ public static class TaskChain
                 found.Add(new ShortageTask(
                     "Stopped", hop, task.TypeName, task.Title,
                     task.Readiness.ToString(),
-                    $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"
-                  + (sh.MustBuy ? "" : " (owned, but not where the job is)"),
+                    string.Format(sh.MustBuy ? WorklistText.WhyShort : WorklistText.WhyShortOwnedElsewhere,
+                                  sh.Short, sh.Wanted, SdeNames.Type(sh.TypeId, sh.TypeName)),
                     task.TypeId));
 
                 if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue((task.TypeId, hop + 1));

@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>确认并停止声音</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>声音</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ 试听</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>添加声音…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>重复播放，直到被确认或情况自行结束</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>朗读内容（可选）</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>留空则朗读检查项生成的内容</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>立即通过文字转语音朗读，不经过 AI 助手——需要在“设置 → 助手”中配置语音（而不是模型），AI 助手关闭时同样有效。在 AI 助手窗口中显示为应用自身的发言。占位符：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>给 AI 助手的额外指示（可选）</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>例如：说明是哪个星系，并尽量简短</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>AI 助手会得知触发了什么，并自行组织措辞。如果已配置文字转语音，它会大声说出来；如果尚未设置 AI 助手，则改为记录一条提醒。</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>使用此检查项的默认措辞</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>占位符：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>新建警报</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>仅限本机的声音、对话框和 AI 助手通知。无论如何，提醒都会继续记录，其他客户端也不受影响。</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>早期开发阶段——此工具仍在成形中，其行为、布局和已保存的设置都可能发生变化。</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>未关闭的提醒</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>这个警报是做什么用的？</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>生效时间自</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>始终</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>时间以本机时钟为准，例如 18:00 至 02:00。留空表示始终生效。在此时段之外，完全不会检查该警报。</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>触发时机</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>检查项</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>输入物品名称…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>开始输入名称，然后点击“添加”…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>触发后</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>检查间隔（秒）</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>冷却时间（秒）</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>警报只会通报之前没有通报过的情况，因此一直成立的条件不会重复通报。“持续”模式会一直保持待命，直到你将其停用；“单次”模式在触发一次后会自行停用。冷却时间则在此基础上再增加一个最短间隔。</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>执行操作</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>添加操作</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>经过</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>此阶段没有操作——请添加一个，或不勾选此阶段。</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>选择一个警报，或新建一个。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>测试声音</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>最近触发记录（EVE 时间）</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>新建任务</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>时间均为 EVE 时间</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>选择一个任务，或新建一个。</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>这个任务是做什么的？</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>任务类型</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>重复</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>每隔</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>在以下几天</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>每月日期</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>月份</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>时间（HH:MM EVE）</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>若当天应用未开启则跳过</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>发布到</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Slack 设置中定义的工作区频道和 Webhook，汇总在同一个列表中。</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>动态区块为空时不发布</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>关闭时，无论数据如何，消息都会发出。开启时，只有当至少一个读取数据的区块（即“文本”以外的任何区块）确实有内容时，消息才会发出。</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>添加区块</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>按实际发布时的样子渲染各区块，但不会发布。</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>还没有任何内容。请选择一种区块类型并添加——各区块会按此顺序组成一条消息发出。</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>要说的内容。此处支持 Slack 标记格式。</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>要包含的榜单</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>只显示占总额的比例，不显示 ISK</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>每个榜单都会列出金额及其占比。勾选后会去掉金额——“击毁”除外，因为它的数字是次数而不是价值。</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>十二个月的趋势，绘制成图片并上传到消息下方。</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>此区块不会被发布。该任务的目标是 Webhook，而 Webhook 无法附带图片——请在上方选择一个工作区频道，否则任务运行时会跳过此区块。</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>价格和数量与“销售发布”工具中显示的完全一致。它的各个发布块会按顺序合并到这一个区块中。</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>项目类型</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>“缺失”指当前没有任何进行中的项目覆盖的内容——包括应用无法检查的内容。“偏低”会另外加入剩余不足 10%、即将需要更换的项目。</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>区块标题</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>无标题</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>列标题</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>“剩余 ISK”列</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>“上次完成”列</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>要包含的项目</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>全不选</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>每个已定义的项目占一行；范围为星域或星座的项目在此只列出一次，发布时会展开为每个符合条件的星系各占一行。保存时勾选了哪些，就发布哪些——之后定义的项目不会自动加入。</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>点击“预览”，即可按实际发布时的样子渲染各区块。</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>留空则使用任务名称。</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>提醒要显示的内容。</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>会显示在“概览”和“警报”工具中，直到被关闭为止，与警报自身产生的提醒相同。</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>放弃更改</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>将编辑器恢复为已保存的内容。</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>按屏幕上的当前内容真实运行一次，并计为本次计划运行。</value>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>本月</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>上个月</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>交付物品</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>摧毁 NPC</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>缺失的项目</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>缺失及偏低的项目</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>全部项目</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>前十榜单</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>军团月度摘要</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>军团 ISK 趋势图表</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>军团活动趋势图表</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>军团击毁 / 损失图表</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>军团采矿图表</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>进行中——{0:yyyy年M月}，以当前数据为准。</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:yyyy年M月}，以当前数据为准。</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>无法读取项目：{0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>此军团没有定义“交付物品”项目。</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>此军团没有定义“摧毁 NPC”项目。</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>要切换到其他任务并放弃这些更改吗？</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>发布到 Slack</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>发出提醒</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>军团前十</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>军团月度摘要</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>军团 ISK 趋势图表</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>军团活动趋势图表</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>军团击毁 / 损失图表</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>军团采矿图表</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>每隔一段时间</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>每周指定日</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>每月一次</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>每年一次</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>周日</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>周一</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>周二</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>周三</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>周四</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>周五</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>周六</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>一月</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>二月</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>三月</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>四月</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>五月</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>六月</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>七月</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>八月</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>九月</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>十月</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>十一月</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>十二月</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>从上次运行时开始计时。如果应用关闭的时间超过了间隔，它会在应用打开时运行一次——而不是每错过一个周期就补运行一次。</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>勾选的每一天都各按每日任务运行一次。应用关闭期间过去的日子之后不会补运行，因此时间设在午夜刚过，比设在午夜之前更好。</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>每月运行一次，在设定的日期和时间或其后运行。若所选日期超出短月份的天数，则在该月最后一天运行，因此设为 31 日的任务在二月同样会运行。</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>每年运行一次，在设定的日期和时间或其后运行。在没有 2 月 29 日的年份（每四年中有三年），设为 2 月 29 日的任务改在 28 日运行。</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>要刷新并放弃这些更改吗？</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>（未命名）</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>从未运行</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>上次运行：{0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>{0} 个任务。</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook：{0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>要新建任务并放弃这些更改吗？</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>新任务。</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>此任务</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>“{0}”有未保存的更改。</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>请为任务命名。</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>时间必须为 HH:mm 格式（EVE 时间）。</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>请至少选择一天。</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>还没有频道或 Webhook——请在“设置 → Slack”中添加。</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>请选择发布位置。</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>请添加要发布的内容。</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>请填写提醒的内容。</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）需要选择军团。</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）需要选择销售发布。</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）至少需要一个榜单。</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）为空。</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）至少需要勾选一个项目。</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>已保存。</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>没有可放弃的更改。</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>已放弃更改。</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>已删除。</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>没有可渲染的内容：此任务没有任何区块。</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>正在渲染…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0}——已跳过：目标为 Webhook]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0}——以图片形式上传]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>（各区块渲染后为空）</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>已渲染，但没有任何动态区块有内容——此消息不会发布。</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0} 个字符。</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>预览失败：{0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>正在运行…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>立即运行</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0} 个月前</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>待命 · 已触发 {0} 次</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>待命</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE 时间</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>本地时间</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= 本地时间 {0:M月d日 HH:mm}</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= EVE 时间 {0:M月d日 HH:mm}</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>“{0}”不是应用已知的名称——请从列表中选择。</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>不支持该文件类型。</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>第 {0} 阶段</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>持续</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>单次</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>{0} 个警报 · {1} 个未关闭的提醒</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>新警报</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…此处显示匹配到的详情</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>此警报</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>措辞将由检查项提供。</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>例如“{0}”，下方再列出匹配项。</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>请先选择检查项。</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>请为警报命名。</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>“{0}”不是物品——请从列表中选择。</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>请在“{0}”下至少添加一项。</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>生效起始时间须为类似 18:00 的时间。</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>生效结束时间须为类似 18:00 的时间。</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>已创建警报。</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>已保存警报。</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>已删除警报。</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>已播放警报的声音。要测试其他操作，请先保存。</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>警报响起——{0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>声音会一直重复，直到你确认为止。</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>选择警报声音</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>警报</value>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>日期 / 时间</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>在指定的日期和时间触发，之后还可以按固定间隔重复。适用于提醒以及任何定时事项。应用关闭期间到期的触发不会被跳过，而是在下次启动时触发。</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>情报报告</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>攻击者中有敌对飞行员的击毁也会计入：一次击毁说明其攻击者当时就在该星系。</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>舰船出站</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>当你的某个角色出站时触发。可选择只针对从指定空间站、建筑、星系或星域的出站，只针对指定的船体或舰船类别，以及只针对特定状态——已装配或未装配、跳跃燃料是否低于某个数量、弹药是否低于某个数量。每个筛选条件都会缩小范围，因此可以设置两个警报分别覆盖不同的出站，而不会让同一次出站被报两次。位置轮询会在约十秒内发现出站；船上装载了什么则根据最近一次资产快照判断，ESI 每小时刷新一次该快照，每条匹配都会注明快照距今多久。</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>出站过久（叫醒服务）</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>用来叫醒你。当你的某个角色驾驶指定的船体或舰船类别出站，并在若干秒后仍停留在同一星系时，最多分三个阶段触发——比如货舰或战略货舰处于系留状态，驾驶员却打起了瞌睡。或者，在勾选“跳跃抵达”时，当可跳跃的船体通过跳跃引擎或跳桥抵达、且仍在太空中时触发——也就是跳跃后的那三十秒。进站、离开该星系或下线都会使其结束。点击对话框中的按钮，或对 AI 助手做出任何回复，都会让它暂时安静下来；静默期结束后如果舰船仍在原处，各阶段将重新开始。每个阶段都有自己的操作——通过“TTS 直接朗读”或 AI 助手说出该阶段的台词、弹出对话框、播放一直重复直到被确认的声音。重复和冷却时间设置不适用。</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>商店订单事件</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>在 EVE 邮件商店的订单发生以下变化时触发：收到新订单（附带商店、买家、物品、价格，以及是有现货还是需要制造）、订单转为可用现货交付或转为制造中、为订单发出了合同、合同被接受（订单完成），或订单被取消。勾选你需要的事件类型。在“订单跟踪”中手动添加的订单不会被报告。商店一登记或更新订单就会立即运行。</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>市场 / 合同价格</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>当某物品以等于或低于你指定的价格挂出时触发——可以是市场、公开合同，或两者皆可。读取的是“设置 → 市场”中配置的市场以及已在扫描的公开合同，因此只能看到这些范围内的内容。</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>数据库查询</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>按设定的间隔对本地 EVE Console 数据库运行一条 SELECT 查询，并在返回行时触发，或在没有返回任何行时触发。在没有合适的专用检查项时使用。只允许 SELECT。</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>触发时间</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>触发时间，采用 ISO 8601 格式。请包含时区偏移（例如 2026-08-04T18:00:00-05:00），或在末尾加 Z 表示 UTC；不带偏移的时间按本机的本地时间理解。</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>重复间隔（秒）</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>可选。首次触发后按此间隔重复。留空或填 0 表示一次性定时器。</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>要监视的星系，例如 {0} 或 {1}。逐个添加；跳数为 0 时只监视这些星系。</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>跳数</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>从每个角色或星系向外经星门监视的跳数。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>最少人数</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>仅当报告中的飞行员人数不少于此值时才触发。默认为 1。</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>忽略无目视</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>跳过标记为 NV（无目视）的报告——即报告者只是转述了一个自己实际上看不到的目标。</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>出站地点</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>可选。空间站、建筑、星系或星域的名称，可任意混合。从其中任意一处出站即匹配；留空表示任何地点。</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>驾驶舰船</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>可选。船体名称（“{0}”）、舰船类别（“{1}”、“{2}”）或“Pod”（太空舱），可任意混合。匹配其中任意一项；留空表示任何舰船。</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>“未装配”：所有槽位都是空的。“已装配”：至少有一个槽位装有东西。太空舱和穿梭机没有槽位，两者都不匹配。根据最近一次资产快照判断，而 ESI 每小时才刷新一次该快照——它可能比船上当前的实际情况落后最多一小时。</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>跳跃燃料</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>仅适用于可跳跃的船体；其他船体两者都不匹配。数量按该船体跳跃引擎所消耗的同位素计算，燃料舱和货舱合计——以最近一次资产快照为准，而 ESI 每小时才刷新一次该快照，因此最近一小时内装载的燃料可能尚未计入。</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>弹药</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>按每个已装配的炮台或发射器计算：船上可供其装填的弹药数量——已装填的加上货舱中的，所有兼容类型合计。“低于”：任意一件武器的弹药不足。“不低于”：装有武器且没有一件不足。能量炮台只需一枚晶体。没有武器的舰船两者都不匹配。以最近一次资产快照为准，而 ESI 每小时才刷新一次该快照——最近一小时内装载的弹药可能尚未计入。</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>个单位</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>未装配</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>已装配</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>低于</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>不低于</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>跳跃抵达，而非出站</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>勾选时：当可跳跃的船体抵达一个无法从原所在星系经星门直达的星系（即通过跳跃引擎或跳桥抵达），且仍在太空中时开始计时；只监视装有跳跃引擎的船体，“驾驶舰船”列表为空表示监视所有此类船体。不勾选时：在出站时开始计时，适用于任何船体，且必须在“驾驶舰船”中指定要监视的舰船。</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>船体名称（“{0}”）或舰船类别（“{1}”、“{2}”、“{3}”），可任意混合。只监视列出的这些——若是跳跃抵达，也可以留空，以监视所有可跳跃的船体。</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>第 {0} 阶段：经过</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>第一个阶段，较为温和。取消勾选即可跳过。</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>取消勾选即可跳过。</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>最后的手段——请搭配一个设为重复播放直到被确认的“声音”操作。取消勾选即可跳过。</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>秒后仍未进站</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>确认后静默</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>舰船仍在站外时，一次回复或点击对话框按钮能让此警报安静多久——应足以等待泰坦开桥。之后各阶段将重新开始。</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>收到新订单</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>附带商店、买家、物品、价格，以及订单到达时的状态。</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>转为可用现货交付</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>订单履行流程现在能在库存中找到该订单的物品——可以为它发合同了。</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>转为制造中</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>现已有一个工业任务被分配给该订单。</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>已发出合同</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>已向买家发出装有该订单物品的合同，正在等待接受。</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>合同已接受——订单完成</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>订单已取消</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>通过买家的邮件、合同被拒绝，或手动取消。</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>可选：按名称只监视此商店。留空表示所有商店。</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>准确的物品名称，例如“{0}”或“{1}”。必须与类型名称完全一致；无法识别的名称不会匹配任何物品。</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>最高单价</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>当单价等于或低于此值时触发，单位为 ISK。</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>最少数量</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>仅当单个挂单中至少有这么多数量在售时才触发。默认为 1。</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>在哪里查找。默认为“两者”。</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>可选。按名称将市场部分限定为某一个已配置的市场，例如“Jita”。留空则监视所有市场。</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>捆绑合同</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>包括除此物品外还含有其他物品的合同。默认关闭，因为此时要价还涵盖了其他内容，由此算出的单价并不真实。</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>两者</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>要运行的 SELECT 语句。只允许 SELECT（或 WITH…SELECT）。请保持查询精简并加上 LIMIT——每次检查都会运行它。请包含一个稳定的标识列，并在 key_column（键列）中填写该列名。</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>键列</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>存放每行稳定且唯一标识的列——例如 Id 之类的列。正是它防止同一行被通报两次。切勿指定在两次运行之间会发生变化的列，否则每次检查都会触发警报。如果查询中有名为 Id 的列，则默认使用该列；否则将整行本身作为键。</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>标签列</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>可选，用作提醒文本的列。默认为整行。</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>“有结果”（默认）在查询返回行时触发。“无结果”在查询完全没有返回任何行时触发，并在再次返回行后重新待命——用于监视某件预期中的事情是否已停止发生。</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>有结果</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>无结果</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…另有 {0} 项</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>发现敌对</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>{0} 条敌对报告</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>在 {1} 发现 {0} 名敌对飞行员。</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>在 {1} 发现 {0} 名敌对飞行员，{2}。</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>就在这里</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>距离 {0} 跳</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>驾驶 {0}。</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0}，另外还有 {1} 人。</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}。</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>在一次击毁中出现</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>未知星系</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>太空舱</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>未知舰船</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} 和 {1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} 等</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>另外还有 {0} 项。</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0} 驾驶 {1} 出站</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>{0} 次出站</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0} 在 {1} 驾驶 {2} 出站。</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0} 在 {1} 驾驶 {2} 出站——{3}。</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>未装配任何装备</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>没有燃料</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>燃料不足</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>没有弹药</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>弹药不足</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>醒醒，{0}</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}，{1} 的 {2} 在 {4}前抵达 {3}，现在还没有进站。一切还好吗？</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>醒醒，{0}。{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。马上进站。</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}！{1} 的 {2} 抵达后已经在 {3} 停了 {4}。立刻进站！</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}，{1} 的 {2} 在 {3} 出站已经 {4} 了。一切还好吗？</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>醒醒，{0}。{1} 的 {2} 在 {4}前从 {3} 出站，到现在还没有进站。快进站，或者回答我。</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。快醒醒，马上进站。</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>太空舱</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>克隆飞行员</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>{0} 个商店订单事件</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>新订单：{1} 订购 {0}</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>订单 {0}：现在可以用现货交付</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>订单 {0}：已进入制造</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>订单 {0} 已发出合同</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>订单 {0}：已交付 {1:N0} / {2:N0}</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>订单 {0} 已完成</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>订单 {0} 已取消</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。有现货——请发合同。</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。正在制造中。</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。已发出合同。</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。没有现货，也不在制造中——需要新开制造。</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单现在可以用现货交付了。</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单已进入制造。</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单：已发出合同，等待接受。</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单：{3:N0} 个中已有 {2:N0} 个发出合同，等待接受。</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0} 接受了 {1} 其中一部分的合同：{3:N0} 个中已交付 {2:N0} 个。</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0} 接受了 {1} 的合同。订单完成。</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单已取消。</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##} 十亿 ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##} 百万 ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##} 千 ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0}：{1:N0} ISK 起</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} 有售</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>静音警报</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>解除警报静音</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>音频不可用：无法加载 libvlc。请安装 VLC 及其插件（Arch 和 Fedora 上为“vlc”软件包；Debian 和 Ubuntu 上为“vlc”或“libvlc-dev”），然后重启。[{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>音频不可用：{0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>钟声——柔和</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>钟声——三和弦</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>叮声——玻璃</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>铃声——黄铜</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>铃声——浑厚</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>锣声——低沉</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>提示音——双响</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>警报——紧急</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>警告——双音</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>警告——电笛</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>警告——蜂鸣器</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>警告——警笛</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>警告——号角</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>未选择声音。</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>找不到自定义声音文件：{0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>缺少内置声音：{0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>无法将 {0} 解压到 {1}：{2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC 无法播放 {0}。在 Linux 上，这通常是因为缺少插件软件包或没有音频输出（请检查其他应用程序能否正常播放声音）。</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>播放失败：{0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>我醒了</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>（尚未设置 AI 助手，因此已改为记录一条提醒。）</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>每 {0} 小时</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>每 {0} 分钟</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>每月 {0} 日 {1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>每年{0} {1} 日 {2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>每天</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>未选日期</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>未知的任务类型“{0}”。</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>没有可发布的内容：未配置任何区块。</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>没有可发布的内容：各区块渲染后为空。</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>没有可发布的内容：没有任何动态区块有内容。</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>已发布。</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack 拒绝了发布：{0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>已发布 {1} 条消息中的 {0} 条（{2:N0} 个字符）；Slack 拒绝了下一条：{3}。</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>已分 {1} 条消息发布 {0:N0} 个字符。</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>已发布 {0:N0} 个字符。</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>已上传 {0} 张图表。</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>{0} 张图表失败：{1}。</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>已跳过 {0} 个图表区块：Webhook 无法附带图片。</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>没有可发出的提醒：提醒没有内容。</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>计划提醒</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>已发出提醒。</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>未选择 Webhook。</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>该 Webhook 已被删除。</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} 亿 ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} 万 ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>发布到 Slack 或 Discord</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord：{0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>还没有频道或 Webhook——请在“设置 → Slack”或“设置 → Discord”中添加。</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>按“设置”中的配置，先列出 Slack 频道和 Webhook，再列出 Discord Webhook——合并在一个列表中。</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord 拒绝了发布：{0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>已发布 {1} 条消息中的 {0} 条（{2:N0} 个字符）；Discord 拒绝了下一条：{3}。</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>监视范围中心</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>已出站角色：你在线的角色在太空中的所在位置；停靠中的角色不监视。角色：在线期间所在的位置，无论是否停靠。星系：下方列出的星系。</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>已出站角色</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>可选。要监视其周边的你自己的角色；留空则为全部角色。只计算在线的角色。</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>就在 {0} 所在的星系</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>距离 {1} {0} 跳</value>
+  </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>停船即结束</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>勾选：出站后停船会结束此次出站的警报——停下的舰船不会从出站点漂走，而且有人按下了停止。此信息读取自游戏日志，因此必须读取该客户端的游戏日志文件夹（设置 → 游戏日志）；否则各阶段照常进行。</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>游戏日志事件</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>当你某个角色的游戏日志显示它因附近的某物而解除隐形、被跃迁扰频或跃迁干扰、或正受到攻击时触发——可任意组合勾选。扰频或攻击每场战斗只触发一次：相隔不超过两分钟的记录属于同一场战斗。需要读取该客户端的游戏日志文件夹（设置 → 游戏日志）；几秒内即可察觉。</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>隐形解除</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>你的隐形在星门、建筑或其他会解除隐形的东西附近失效了。</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>跃迁被扰频</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>你被跃迁扰频器或跃迁干扰器锁定了。</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>受到攻击</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>你正在受到伤害。</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>仅限玩家</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>勾选：扰频或攻击只在来自玩家时计入，不计 NPC——否则刷怪时会整晚响个不停。</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>可选。要监视的自己的角色；留空表示全部。</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>游戏日志事件：{0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0}在{1}附近解除了隐形。</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}被{1}跃迁扰频。</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0}正受到{1}的攻击。</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>针对进行行星开发的角色的殖民地触发：采集器的开采方案已结束或即将结束（精确），储藏设施或发射平台已满，或工厂行星的原料即将耗尽（后两者均根据该殖民地最近一次在游戏中被打开时的数据推算）。每个殖民地的事件只触发一次；重新运行采集器或再次打开该殖民地后，它会重新算作新事件。</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>监视内容</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>对三者中的哪一项触发。</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>预警时间</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>在事件发生前这么多小时触发。0 表示在发生时触发。</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>全部三项</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>采集器即将停止</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>储藏即将装满</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>原料即将耗尽</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} 个行星开发殖民地需要处理</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>可选。同时监视此光年范围内的所有星系，无论隔多少星门——即跳跃引擎或诱导能触及的范围。任一范围捕获到报告即触发。最多 20。</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>距 {1} {0} 光年</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} 光年外</value>
+  </data>
+</root>

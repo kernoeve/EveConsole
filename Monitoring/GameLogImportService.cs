@@ -5,6 +5,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Monitoring;
 
@@ -60,7 +61,7 @@ public sealed class GameLogImportService : ReactiveObject
 
     // ── Observable state ─────────────────────────────────────────────────────
 
-    private string _statusText = "Game logs: Not started";
+    private string _statusText = SettingsText.GameLogStatusNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -127,7 +128,7 @@ public sealed class GameLogImportService : ReactiveObject
 
         _cts     = null;
         _runTask = null;
-        StatusText = "Game logs: Stopped";
+        StatusText = SettingsText.GameLogStatusStopped;
     }
 
     private async Task RunAsync(CancellationToken ct)
@@ -144,13 +145,13 @@ public sealed class GameLogImportService : ReactiveObject
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex)
                 {
-                    StatusText = $"Game logs: Error — {Truncate(ex.Message)}";
+                    StatusText = string.Format(SettingsText.GameLogStatusError, Truncate(ex.Message));
                     _errorLogger.Log(nameof(GameLogImportService), nameof(RunAsync), ex);
                 }
             }
             else if (!_settings.GameLogEnabled)
             {
-                StatusText = "Game logs: Disabled";
+                StatusText = SettingsText.GameLogStatusDisabled;
             }
 
             await Task.Delay(TimeSpan.FromSeconds(_settings.ScanSeconds), ct);
@@ -164,7 +165,7 @@ public sealed class GameLogImportService : ReactiveObject
         var dirs = _settings.ResolveDirectories();
         if (dirs.Count == 0)
         {
-            StatusText = "Game logs: no folder found";
+            StatusText = SettingsText.GameLogStatusNoFolder;
             return;
         }
 
@@ -202,10 +203,10 @@ public sealed class GameLogImportService : ReactiveObject
         if (imported > 0) ImportedTotal += imported;
 
         StatusText = unreachable > 0
-            ? $"Game logs: watching, {unreachable} unreachable folder(s)"
+            ? string.Format(SettingsText.GameLogStatusUnreachable, unreachable)
             : imported > 0
-                ? $"Game logs: +{imported:N0} new"
-                : "Game logs: watching";
+                ? string.Format(SettingsText.GameLogStatusNew, imported)
+                : SettingsText.GameLogStatusWatching;
     }
 
     // ── History import ───────────────────────────────────────────────────────
@@ -247,7 +248,7 @@ public sealed class GameLogImportService : ReactiveObject
         IsImporting     = true;
         ProgressCurrent = 0;
         ProgressTotal   = 0;
-        ProgressText    = "Scanning folders…";
+        ProgressText    = SettingsText.GameLogScanningFolders;
 
         try
         {
@@ -284,7 +285,7 @@ public sealed class GameLogImportService : ReactiveObject
 
                 var fi = files[i];
                 ProgressCurrent = i + 1;
-                ProgressText    = $"File {i + 1:N0} of {files.Count:N0} — {fi.Name}";
+                ProgressText    = string.Format(SettingsText.LogImportFileProgress, i + 1, files.Count, fi.Name);
 
                 imported += await SafeImportAsync(db, fi, ct);
             }
@@ -293,19 +294,19 @@ public sealed class GameLogImportService : ReactiveObject
 
             if (ct.IsCancellationRequested)
             {
-                StatusText   = $"Game logs: import cancelled after {ProgressCurrent:N0} file(s), {imported:N0} row(s)";
+                StatusText   = string.Format(SettingsText.GameLogImportCancelled, ProgressCurrent, imported);
                 ProgressText = StatusText;
             }
             else
             {
                 _settings.HistoryImported = true;
-                StatusText   = $"Game logs: imported {imported:N0} row(s) from {files.Count:N0} file(s)";
+                StatusText   = string.Format(SettingsText.GameLogImportDone, imported, files.Count);
                 ProgressText = StatusText;
             }
         }
         catch (Exception ex)
         {
-            StatusText   = $"Game logs: import failed — {Truncate(ex.Message)}";
+            StatusText   = string.Format(SettingsText.GameLogImportFailed, Truncate(ex.Message));
             ProgressText = StatusText;
             _errorLogger.Log(nameof(GameLogImportService), nameof(ImportHistoryAsync), ex);
         }

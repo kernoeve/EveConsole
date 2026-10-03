@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace EveConsole.Services;
@@ -6,11 +7,12 @@ namespace EveConsole.Services;
 /// <summary>
 /// Persists machine-level config outside the database so it can be read before the DB
 /// connection is opened (e.g. splash screen monitor, DB path).
-/// Stored at %LocalAppData%\EveConsole\config.json.
+/// Stored at %LocalAppData%\EVE Console Data\config.json on Windows, and
+/// ~/.local/share/EveConsole/config.json on Linux.
 /// </summary>
 public static class AppConfig
 {
-    private const string AppFolder     = "EveConsole";
+    private const string AppFolder     = "EveConsole";     // Windows: the install folder. Elsewhere: the data folder
     private const string LegacyFolder  = "EveCortex";     // pre-rename data location
     private const string DbFileName    = "EveConsole.db";
     private const string LegacyDbFile  = "EveCortex.db";
@@ -54,7 +56,7 @@ public static class AppConfig
 
         var dir = looksLikePath
             ? Path.GetFullPath(value)
-            : Path.Combine(LocalAppData, AppFolder, "Profiles", Sanitise(value));
+            : Path.Combine(BaseDir, "Profiles", Sanitise(value));
 
         Directory.CreateDirectory(dir);
         _profileDir = dir;
@@ -74,7 +76,7 @@ public static class AppConfig
     //
     // ⚠️ The profile's directory when there is one, so everything that keeps a file beside the
     // config follows it without knowing profiles exist.
-    public static string AppDataDir => _profileDir ?? Path.Combine(LocalAppData, AppFolder);
+    public static string AppDataDir => _profileDir ?? BaseDir;
 
     /// <summary>
     /// A config.json sitting beside the executable, which takes precedence over the one in app
@@ -510,6 +512,222 @@ public static class AppConfig
         var c = Load();
         c.RelocateTo = null;
         Save(c);
+    }
+
+    // ── The data out of the install folder (Windows) ─────────────────────────────
+
+    /// <summary>
+    /// Where the data lives on Windows: beside the install folder, never in it.
+    ///
+    /// <para>⚠️ Velopack installs into %LocalAppData%\EveConsole and treats that folder as its own.
+    /// Its installer, run over an existing install, moves the whole folder aside and deletes it
+    /// once the new install succeeds, and an uninstall deletes it outright. The data used to live
+    /// in that same folder — config.json with a server address and password, SQLite databases,
+    /// backups, profiles — so reinstalling wiped it. Velopack has no option to keep files, and
+    /// installing somewhere else would mean a new package id, which Velopack treats as another
+    /// app. So the data moves instead: once, by the installed copy, on its first start.</para>
+    /// </summary>
+    private const string WindowsDataFolder = "EVE Console Data";
+
+    /// <summary>Left in the install folder once the data has gone, for a person looking there.</summary>
+    internal const string MovedNoteName = "Your EVE Console data has moved.txt";
+
+    private static string? _baseDir;
+
+    /// <summary>What the move out of the install folder could not do, for the error log (App
+    /// writes it once there is one). Null when there was nothing to move, or it moved.</summary>
+    public static string? DataMoveProblem { get; private set; }
+
+    private static string InstallDir => Path.Combine(LocalAppData, AppFolder);
+    private static string DataDir    => OperatingSystem.IsWindows()
+        ? Path.Combine(LocalAppData, WindowsDataFolder)
+        : Path.Combine(LocalAppData, AppFolder);
+
+    /// <summary>The ordinary data directory, before any profile. Settled by
+    /// <see cref="MoveDataOutOfInstallFolder"/> at start; a process that never calls it (a tool, a
+    /// harness) looks without moving anything.</summary>
+    private static string BaseDir => _baseDir ??= ResolveDataFolder(InstallDir, DataDir, move: false).BaseDir;
+
+    /// <summary>
+    /// Moves the data out of Velopack's install folder, once. Called first thing in
+    /// <c>Program.Main</c>, before a profile, a lock file or a setting has been touched.
+    ///
+    /// <para>⚠️ Only the INSTALLED copy moves anything — the one running from the install folder's
+    /// own <c>current</c> directory. A development build run beside an older installed copy would
+    /// otherwise carry the installed copy's data out from under it, and that copy would start as a
+    /// fresh install. Any other build just uses whichever folder holds the data.</para>
+    /// </summary>
+    public static void MoveDataOutOfInstallFolder()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var install     = InstallDir;
+        var fromInstall = AppContext.BaseDirectory.StartsWith(
+            Path.Combine(install, "current") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+
+        (_baseDir, DataMoveProblem) = ResolveDataFolder(install, DataDir, move: fromInstall);
+    }
+
+    /// <summary>
+    /// Which folder holds the data — moving it out of <paramref name="installDir"/> first when
+    /// <paramref name="move"/> allows. Takes both folders so it can be tried on scratch ones.
+    ///
+    /// <para>All or nothing: a file held open means another copy of the app is running on this
+    /// data, and nothing moves; a folder that will not move puts back whatever already had, so the
+    /// data is never split between two places. The old folder is used for the run either way, and
+    /// the next start tries again.</para>
+    /// </summary>
+    internal static (string BaseDir, string? Problem) ResolveDataFolder(string installDir, string dataDir, bool move)
+    {
+        // One folder for both — Linux, where the AppImage lives somewhere else entirely.
+        if (string.Equals(Path.GetFullPath(installDir).TrimEnd('\\', '/'),
+                          Path.GetFullPath(dataDir).TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+            return (dataDir, null);
+
+        try
+        {
+            var ours = Directory.Exists(installDir)
+                ? Directory.EnumerateFileSystemEntries(installDir).Where(e => !StaysInInstallFolder(e)).ToList()
+                : [];
+            if (ours.Count == 0) return (dataDir, null);   // a fresh machine, or moved already
+
+            if (File.Exists(Path.Combine(dataDir, "config.json")))
+                return (dataDir, $"{dataDir} is in use, and the install folder {installDir} still holds " +
+                                 $"{Names(ours)}, which were left where they are.");
+
+            if (!move) return (installDir, null);
+
+            string Dest(string e) => Path.Combine(dataDir, Path.GetFileName(e));
+
+            if (ours.FirstOrDefault(e => File.Exists(Dest(e)) || Directory.Exists(Dest(e))) is { } clash)
+                return (installDir, $"Not moved: {Dest(clash)} is already there.");
+
+            foreach (var f in ours.Where(File.Exists))
+            {
+                try { using var _ = new FileStream(f, FileMode.Open, FileAccess.Read, FileShare.None); }
+                catch (IOException ex)
+                {
+                    return (installDir, $"Not moved this time: {Path.GetFileName(f)} is in use, probably by " +
+                                        $"another copy of the app ({ex.Message}).");
+                }
+            }
+
+            // Folders first: one with a file held open inside cannot be renamed, and finding that
+            // out before any file has gone leaves less to put back.
+            var moved = new List<(string From, string To)>();
+            try
+            {
+                Directory.CreateDirectory(dataDir);
+                foreach (var e in ours.OrderBy(File.Exists))
+                {
+                    var d = Dest(e);
+                    if (Directory.Exists(e)) Directory.Move(e, d); else File.Move(e, d);
+                    moved.Add((e, d));
+                }
+            }
+            catch (Exception ex)
+            {
+                foreach (var (from, to) in Enumerable.Reverse(moved))
+                    try { if (Directory.Exists(to)) Directory.Move(to, from); else File.Move(to, from); } catch { }
+                return (installDir, $"Not moved this time, and put back as it was: {ex.Message}");
+            }
+
+            RebaseSettings(installDir, dataDir);
+            try
+            {
+                File.WriteAllText(Path.Combine(installDir, MovedNoteName),
+                    $"EVE Console keeps its settings and data in{Environment.NewLine}{Environment.NewLine}" +
+                    $"    {dataDir}{Environment.NewLine}{Environment.NewLine}" +
+                    $"This folder holds only the program, which installing and updating replace as a whole.{Environment.NewLine}");
+            }
+            catch { /* a courtesy, not part of the move */ }
+
+            return (dataDir, null);
+        }
+        catch (Exception ex)
+        {
+            // Unforeseen: stay where the data was last known to be.
+            return (Directory.Exists(installDir) ? installDir : dataDir, $"Not moved: {ex.Message}");
+        }
+    }
+
+    /// <summary>What belongs to Velopack, or to the move itself, and never leaves the install folder.</summary>
+    private static bool StaysInInstallFolder(string path)
+    {
+        var name = Path.GetFileName(path);
+        if (Directory.Exists(path))
+            return name.Equals("current", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("packages", StringComparison.OrdinalIgnoreCase);
+
+        return name.StartsWith('.')
+            || name.Equals(MovedNoteName, StringComparison.OrdinalIgnoreCase)
+            || name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)      // Update.exe, and the launcher stub
+            || name.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("velopack", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string Names(IEnumerable<string> paths) =>
+        string.Join(", ", paths.Select(Path.GetFileName).Take(8));
+
+    /// <summary>
+    /// Points a setting that named a place inside the old folder at the same place in the new one:
+    /// a database at the default location, a profile's own database. ⚠️ A path anywhere else — a
+    /// database the user moved elsewhere — is theirs, and is left exactly as it is.
+    /// </summary>
+    private static void RebaseSettings(string installDir, string dataDir)
+    {
+        var files = new List<string> { Path.Combine(dataDir, "config.json"), Path.Combine(dataDir, "config.json" + BackupSuffix) };
+        var profiles = Path.Combine(dataDir, "Profiles");
+        if (Directory.Exists(profiles))
+            foreach (var p in Directory.EnumerateDirectories(profiles))
+                files.AddRange([Path.Combine(p, "config.json"), Path.Combine(p, "config.json" + BackupSuffix)]);
+
+        foreach (var f in files.Where(File.Exists))
+        {
+            try
+            {
+                if (JsonNode.Parse(File.ReadAllText(f)) is { } node && Rebase(node, installDir, dataDir))
+                    File.WriteAllText(f, node.ToJsonString(JsonOpts));
+            }
+            catch { /* left as it was: whatever it names can still be changed from Settings */ }
+        }
+    }
+
+    private static bool Rebase(JsonNode node, string from, string to)
+    {
+        var changed = false;
+        switch (node)
+        {
+            case JsonObject o:
+                foreach (var (key, child) in o.ToList())
+                {
+                    if (child is JsonValue v && v.TryGetValue<string>(out var s) && Inside(s, from) is { } rest)
+                    { o[key] = to + rest; changed = true; }
+                    else if (child is not null) changed |= Rebase(child, from, to);
+                }
+                break;
+            case JsonArray a:
+                for (var i = 0; i < a.Count; i++)
+                {
+                    if (a[i] is JsonValue v && v.TryGetValue<string>(out var s) && Inside(s, from) is { } rest)
+                    { a[i] = to + rest; changed = true; }
+                    else if (a[i] is { } child) changed |= Rebase(child, from, to);
+                }
+                break;
+        }
+        return changed;
+    }
+
+    /// <summary>What follows <paramref name="dir"/> in <paramref name="path"/>, separator
+    /// included, when the path lies inside it; otherwise null.</summary>
+    private static string? Inside(string path, string dir)
+    {
+        var d = dir.TrimEnd('\\', '/');
+        if (path.Equals(d, StringComparison.OrdinalIgnoreCase)) return "";
+        return path.StartsWith(d + "\\", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith(d + "/", StringComparison.OrdinalIgnoreCase)
+            ? path[d.Length..]
+            : null;
     }
 
     // ── One-time migration from the pre-rename "EveCortex" folder ─────────────

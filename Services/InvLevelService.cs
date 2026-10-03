@@ -4,13 +4,28 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-public record LocationOption(long Id, string Name);
+public record LocationOption(long Id, string Name, int RegionId, string Region)
+{
+    /// <summary>A place with no region to show. ⚠️ A constructor of its own, not optional
+    /// arguments: EF's query expressions cannot call a constructor that leaves any out.</summary>
+    public LocationOption(long id, string name) : this(id, name, 0, "") { }
+
+    /// <summary>A system's region, shown to the right of it in every system picker; "" otherwise.</summary>
+    public string RegionLabel => RegionId > 0 ? SdeNames.Region(RegionId, Region) : Region;
+}
+
+/// <summary>A search result as a list shows it: the place, and a system's region beside it.</summary>
+public sealed record ShownPlace(string Name, string Region)
+{
+    public override string ToString() => Name;
+}
 
 public record InvTypeResult(int TypeId, string Name);
 
@@ -166,12 +181,19 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
     // ── Item type search ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Published types whose name contains <paramref name="text"/> — in English or as the screen
+    /// names them, since a name may be typed either way. The results carry the English; the
+    /// picker shows each in the interface language.
+    /// </summary>
     public async Task<IReadOnlyList<InvTypeResult>> SearchTypesAsync(string text, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return [];
+        await SdeNames.EnsureLoadedAsync(ct);
+        var shown = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
         await using var db = dbFactory.CreateDbContext();
         return await db.SdeTypes
-            .Where(t => EF.Functions.Like(t.Name, $"%{text}%") && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, $"%{text}%") || shown.Contains(t.TypeId)) && t.Published)
             .OrderBy(t => t.Name)
             .Take(40)
             .Select(t => new InvTypeResult(t.TypeId, t.Name))
@@ -188,10 +210,14 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (scope == "Station")
         {
-            // NPC stations from SDE
+            // NPC stations from SDE — by the English or by the name the screen shows for one. The
+            // structures below are player-named, and have only the one name to search.
+            await SdeNames.EnsureLoadedAsync(ct);
+            var shown = SdeNames.Find(SdeNameKind.Station, text).Select(id => (int)id).ToList();
+
             var npc = await db.SdeStations
-                .Where(s => EF.Functions.Like(s.Name, $"%{text}%"))
-                .OrderBy(s => s.Name).Take(40)
+                .Where(s => EF.Functions.Like(s.Name, $"%{text}%") || shown.Contains(s.StationId))
+                .OrderBy(s => s.Name).Take(shown.Count == 0 ? 40 : 200)
                 .Select(s => new LocationOption(s.StationId, s.Name))
                 .ToListAsync(ct);
 
@@ -209,26 +235,34 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .Select(s => new LocationOption(s.StructureId, s.Name))
                 .ToListAsync(ct);
 
-            return npc
+            var hits = npc
                 .Concat(player)
                 .Concat(corp)
                 .GroupBy(l => l.Id)
-                .Select(g => g.First())
-                .OrderBy(l => l.Name)
-                .Take(50)
-                .ToList();
+                .Select(g => g.First());
+            return shown.Count == 0
+                ? hits.OrderBy(l => l.Name).Take(50).ToList()
+                : RankStations(hits, text).Take(50).ToList();
         }
+
+        // Systems and regions are SDE names, so they are found by the name the screen shows as
+        // well as by the English.
+        await SdeNames.EnsureLoadedAsync(ct);
+        var systems = scope == "System" ? SdeNames.Find(SdeNameKind.SolarSystem, text).Select(id => (int)id).ToList() : [];
+        var regions = scope == "Region" ? SdeNames.Find(SdeNameKind.Region, text).Select(id => (int)id).ToList() : [];
 
         return scope switch
         {
             "System" => await db.SdeSolarSystems
-                .Where(s => EF.Functions.Like(s.Name, $"%{text}%") && !s.IsWormhole)
+                .Where(s => (EF.Functions.Like(s.Name, $"%{text}%") || systems.Contains(s.SolarSystemId)) && !s.IsWormhole)
                 .OrderBy(s => s.Name).Take(40)
-                .Select(s => new LocationOption(s.SolarSystemId, s.Name))
+                // The region comes along: every system picker shows it beside the name.
+                .Join(db.SdeRegions, s => s.RegionId, r => r.RegionId,
+                      (s, r) => new LocationOption(s.SolarSystemId, s.Name, s.RegionId, r.Name))
                 .ToListAsync(ct),
 
             "Region" => await db.SdeRegions
-                .Where(r => EF.Functions.Like(r.Name, $"%{text}%") && !r.IsWormhole)
+                .Where(r => (EF.Functions.Like(r.Name, $"%{text}%") || regions.Contains(r.RegionId)) && !r.IsWormhole)
                 .OrderBy(r => r.Name).Take(40)
                 .Select(r => new LocationOption(r.RegionId, r.Name))
                 .ToListAsync(ct),
@@ -237,7 +271,40 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         };
     }
 
+    /// <summary>
+    /// Stations ranked again on whichever of each one's two names holds the text: the name itself
+    /// first, then names starting with it, then the rest, shorter before longer — the ranking the
+    /// Corp Activity pickers use. The SQL orders by the English only, which would put a name typed
+    /// as the screen shows it wherever its English happens to sort, and past the cut.
+    /// </summary>
+    private static IEnumerable<LocationOption> RankStations(IEnumerable<LocationOption> rows, string text) =>
+        rows.Select(r => (Row: r, Name: r.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
+                                            ? r.Name : SdeNames.Location(r.Id, r.Name)))
+            .OrderBy(x => x.Name.Equals(text, StringComparison.OrdinalIgnoreCase)     ? 0
+                        : x.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 1
+                        : 2)
+            .ThenBy(x => x.Name.Length)
+            .ThenBy(x => x.Name, StringComparer.CurrentCulture)
+            .Select(x => x.Row);
+
     // ── Scope resolution ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A scope's place as the screen names it: a region, a solar system or an NPC station in the
+    /// interface language, a player structure as it is (players name those).
+    ///
+    /// <para>⚠️ Display only. The English is what a group, a posting or the worklist saves, and
+    /// what goes back into it — call this where the name becomes text, never on what is stored.</para>
+    /// </summary>
+    /// <param name="scope">The saved key — "Station", "System", "Region" or "Everywhere".</param>
+    public static string ScopePlaceName(string scope, long? locationId, string english) => scope switch
+    {
+        "System"  when locationId is > 0 => SdeNames.SolarSystem(locationId.Value, english),
+        "Region"  when locationId is > 0 => SdeNames.Region(locationId.Value, english),
+        // One column holds a station or a structure; Location tells them apart by the id.
+        "Station" when locationId is > 0 => SdeNames.Location(locationId.Value, english),
+        _                                => english,
+    };
 
     // Resolve the set of location IDs a group's scope covers — NPC stations + player/corp
     // structures, plus the solar-system id itself so items floating in space (or in a ship in
@@ -453,6 +520,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         Dictionary<long, long> runsByItem = [];
         List<DeliveredOutput> deliveredItems  = [];
         List<DeliveredPrint>  deliveredPrints = [];
+        List<ContractMove>    contractMoves   = [];
         if (anyAssets)
         {
             assetRows = (await db.EsiAssets
@@ -487,6 +555,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             deliveredItems = await DeliveryLag.ItemsAsync(db, ct, allTypes);
             if (bpTypeIds.Count > 0)
                 deliveredPrints = await DeliveryLag.PrintsAsync(db, ct, bpTypeIds.ToList());
+
+            // And what contracts have moved since the asset poll — out with one made, back with
+            // one deleted, in with one accepted. See ContractLag.
+            contractMoves = await ContractLag.MovesAsync(db, ct, allTypes);
         }
 
         // ── Industry jobs: active manufacturing (1) and reactions (9, plus legacy 11) ──
@@ -628,6 +700,18 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     if (!ownerFilter.Contains(p.OwnerId)) continue;
                     if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
                     assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
+                }
+
+                // Contracts last, and never below zero — see ContractLag. The same packaging rule
+                // as the rows above. ⚠️ Blueprint types are left to the snapshot: they are counted
+                // in runs here, and a contract line says how many copies, never their runs.
+                foreach (var m in contractMoves)
+                {
+                    if (!wanted.Contains(m.TypeId) || bpTypeIds.Contains(m.TypeId)) continue;
+                    if (!ownerFilter.Contains(m.OwnerId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(m.Site)) continue;
+                    if ((packagedOnly || group.PackagedOnly) && m.IsSingleton) continue;
+                    assets[m.TypeId] = Math.Max(0, assets.GetValueOrDefault(m.TypeId) + m.Units);
                 }
             }
 

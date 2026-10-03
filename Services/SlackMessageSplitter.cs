@@ -96,6 +96,9 @@ public static class SlackMessageSplitter
     /// <summary>
     /// Cuts <paramref name="text"/> into parts of at most <paramref name="max"/> characters. Text
     /// that already fits comes back whole, as the one part.
+    ///
+    /// <para>Discord posts are cut here too, at <see cref="DiscordService.MaxPartLength"/>: where a
+    /// message may end is the same question on both, and only the limit differs.</para>
     /// </summary>
     public static IReadOnlyList<string> Split(string text, int max = MaxPartLength)
     {

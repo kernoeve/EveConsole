@@ -1,0 +1,1442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>Название группы</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>Коллекция</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Везде</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Введите текст для поиска…</value>
+  </data>
+  <data name="IncludeLabel" xml:space="preserve">
+    <value>Учитывать</value>
+  </data>
+  <data name="Assets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="IndustryJobsProducts" xml:space="preserve">
+    <value>Промышленные проекты (продукция)</value>
+  </data>
+  <data name="MarketBuyOrders" xml:space="preserve">
+    <value>Рыночные ордера на покупку</value>
+  </data>
+  <data name="ContractsBuying" xml:space="preserve">
+    <value>Контракты на покупку</value>
+  </data>
+  <data name="OnlyCountPackagedItems" xml:space="preserve">
+    <value>Считать только предметы в упаковке (без собранных / оснащённых корпусов)</value>
+  </data>
+  <data name="TipBlueprintsAreNeverFiltered" xml:space="preserve">
+    <value>Чертежи этим фильтром не отсеиваются: копия не складывается в стопку, но собранной не считается.</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>Множитель</value>
+  </data>
+  <data name="TargetQuantitiesForAllItems" xml:space="preserve">
+    <value>× целевое количество всех предметов</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="TheFiltersBelowSearchNote" xml:space="preserve">
+    <value>Фильтры ниже ищут в пределах этого охвата.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Фильтр</value>
+  </data>
+  <data name="TabDetailedView" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="TabByLocation" xml:space="preserve">
+    <value>По местам</value>
+  </data>
+  <data name="TabBySystem" xml:space="preserve">
+    <value>По системам</value>
+  </data>
+  <data name="TabByRegion" xml:space="preserve">
+    <value>По секторам</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Загрузить ещё</value>
+  </data>
+  <data name="TitleAssetBrowser" xml:space="preserve">
+    <value>Просмотр имущества</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Добавить группу</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Коллекция</value>
+  </data>
+  <data name="ImportCollection" xml:space="preserve">
+    <value>Импорт коллекции</value>
+  </data>
+  <data name="TipReadACollectionFrom" xml:space="preserve">
+    <value>Прочитать коллекцию из файла. Она всегда добавляется как новая коллекция и никогда не объединяется с существующей.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Добавить предметы из оснастки</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Добавить предметы из группы рынка</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Добавить предметы из чертежа</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Удалить предмет</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>Группа / предмет</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Развернуть все группы</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Свернуть все группы</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Переименовать</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="TipSaveThisCollectionsGroups" xml:space="preserve">
+    <value>Сохранить группы, охваты и целевые количества предметов этой коллекции в файл.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Предмет</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Открыть это место</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Цель</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>Цель, всего</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>Доступно</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>Разница</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="ColIndJobs" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="ColBuyOrders" xml:space="preserve">
+    <value>Ордера</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>Рын. цена</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Стоим. произв.</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>Объём (m³)</value>
+  </data>
+  <data name="TitleInventoryLevels" xml:space="preserve">
+    <value>Уровни запасов</value>
+  </data>
+  <data name="TipGoBack" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="TipGoForward" xml:space="preserve">
+    <value>Вперёд</value>
+  </data>
+  <data name="HintSearchItems" xml:space="preserve">
+    <value>Поиск предметов…</value>
+  </data>
+  <data name="LoadingCategories" xml:space="preserve">
+    <value>Загрузка категорий…</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Выберите предмет в дереве или найдите его поиском, чтобы увидеть подробности.</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Объём:</value>
+  </data>
+  <data name="BuildCostLabel" xml:space="preserve">
+    <value>Стоимость производства:</value>
+  </data>
+  <data name="ReprocValueLabel" xml:space="preserve">
+    <value>Стоимость при переработке:</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Характеристики</value>
+  </data>
+  <data name="TabRequirements" xml:space="preserve">
+    <value>Требования</value>
+  </data>
+  <data name="NoSkillRequirements" xml:space="preserve">
+    <value>Навыки не требуются.</value>
+  </data>
+  <data name="TabRequiredFor" xml:space="preserve">
+    <value>Требуется для</value>
+  </data>
+  <data name="NothingRequiresThisSkillNote" xml:space="preserve">
+    <value>Этот навык на этом уровне ни для чего не требуется.</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="OutcomeLabel" xml:space="preserve">
+    <value>Продукция</value>
+  </data>
+  <data name="RequiredSkillsLabel" xml:space="preserve">
+    <value>Требуемые навыки</value>
+  </data>
+  <data name="InputMaterialsLabel" xml:space="preserve">
+    <value>Исходные материалы</value>
+  </data>
+  <data name="NoBlueprintDataAvailableNote" xml:space="preserve">
+    <value>Для этого предмета нет данных о чертеже.</value>
+  </data>
+  <data name="ProducedByLabel" xml:space="preserve">
+    <value>Источники производства</value>
+  </data>
+  <data name="RequiredMaterialsLabel" xml:space="preserve">
+    <value>Необходимые материалы:</value>
+  </data>
+  <data name="ProducedByReprocessingLabel" xml:space="preserve">
+    <value>Получается переработкой</value>
+  </data>
+  <data name="ReprocessOneBatchOfNote" xml:space="preserve">
+    <value>Переработайте одну партию этих предметов — и этот предмет окажется среди полученного. Каждая строка оценивается по своему потолку — 90,6% для руды, льда и руды со спутников, 55% для всего остального, — так что количества указаны для лучшего случая, а не по 100%-м значениям SDE.</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Показать:</value>
+  </data>
+  <data name="TipOreIncludesIceAnd" xml:space="preserve">
+    <value>«Руда» включает лёд и руду со спутников — всё из категории «Астероиды». «Не руда» — всё остальное: модули, корабли, демонтированные компоненты и тому подобное.</value>
+  </data>
+  <data name="NoneOfThatKindNote" xml:space="preserve">
+    <value>Ни один источник такого вида не даёт этот предмет.</value>
+  </data>
+  <data name="ReprocessesToLabel" xml:space="preserve">
+    <value>Перерабатывается в</value>
+  </data>
+  <data name="UsedInManufacturingLabel" xml:space="preserve">
+    <value>Используется в производстве</value>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="GroupByLabel" xml:space="preserve">
+    <value>Группировать по:</value>
+  </data>
+  <data name="ScopeLabel2" xml:space="preserve">
+    <value>Охват:</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Контейнер</value>
+  </data>
+  <data name="ColFlag" xml:space="preserve">
+    <value>Флаг</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Открыть эту систему</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Безоп.</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>Магазин наград</value>
+  </data>
+  <data name="OfferedByTheLoyaltyNote" xml:space="preserve">
+    <value>Предлагается в магазинах наград ниже. Один предмет могут продавать несколько корпораций по разным ценам — выгоднее та, у которой у вас есть LP. Ваш баланс — наибольшее количество LP у одного персонажа.</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="TipOpenThisCorporationInNpc" xml:space="preserve">
+    <value>Открыть эту корпорацию в справочнике NPC</value>
+  </data>
+  <data name="ColLpCost" xml:space="preserve">
+    <value>Цена в LP</value>
+  </data>
+  <data name="ColIskCost" xml:space="preserve">
+    <value>Цена в ISK</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Ваши LP</value>
+  </data>
+  <data name="ColLpEstValue" xml:space="preserve">
+    <value>Ценность LP</value>
+  </data>
+  <data name="TipItemValueLessIsk" xml:space="preserve">
+    <value>Стоимость предмета за вычетом ISK и требуемых предметов в пересчёте на LP; всё приведено к одной единице.</value>
+  </data>
+  <data name="ColRequiredItems" xml:space="preserve">
+    <value>Требуется</value>
+  </data>
+  <data name="TabMarketOrders" xml:space="preserve">
+    <value>Рыночные ордера</value>
+  </data>
+  <data name="SourceLabel" xml:space="preserve">
+    <value>Источник:</value>
+  </data>
+  <data name="NoEsiMarketSourcesNote" xml:space="preserve">
+    <value>Источники рыночных данных ESI не настроены. Добавьте источник типа «Сектор» или «Сооружение игрока» в разделе «Настройки → Рынок».</value>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>Ордера на продажу</value>
+  </data>
+  <data name="ColPriceIsk" xml:space="preserve">
+    <value>Цена (ISK)</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Открыть эту станцию или сооружение</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="BuyOrdersLabel" xml:space="preserve">
+    <value>Ордера на покупку</value>
+  </data>
+  <data name="ColRange" xml:space="preserve">
+    <value>Радиус</value>
+  </data>
+  <data name="ColMinQty" xml:space="preserve">
+    <value>Мин. кол.</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Сектор:</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Период:</value>
+  </data>
+  <data name="NoPriceHistoryAvailableNote" xml:space="preserve">
+    <value>Для этого предмета в выбранном секторе нет истории цен.</value>
+  </data>
+  <data name="TabChart" xml:space="preserve">
+    <value>График</value>
+  </data>
+  <data name="TabGrid" xml:space="preserve">
+    <value>Таблица</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Объём торгов</value>
+  </data>
+  <data name="ColAvgPrice" xml:space="preserve">
+    <value>Средняя цена</value>
+  </data>
+  <data name="ColHigh" xml:space="preserve">
+    <value>Максимум</value>
+  </data>
+  <data name="ColLow" xml:space="preserve">
+    <value>Минимум</value>
+  </data>
+  <data name="ColOrders" xml:space="preserve">
+    <value>Ордера</value>
+  </data>
+  <data name="TabDerivedHistory" xml:space="preserve">
+    <value>Расчётная история</value>
+  </data>
+  <data name="NoDerivedPriceHistoryNote" xml:space="preserve">
+    <value>Для этого предмета расчётной истории цен пока нет. Ежедневный снимок рыночной стоимости, стоимости производства, цены в контрактах и стоимости при переработке сохраняется автоматически при обновлении цен.</value>
+  </data>
+  <data name="FmtWhatOneBatchReturns" xml:space="preserve">
+    <value>Выход одной партии при {0} — лучшем показателе, с которым можно переработать этот предмет: Tatara с модификаторами в нуль-секе, с нужными навыками и имплантатами. Для руды, льда и руды со спутников максимум — 90,6%; всё остальное — металлолом, где потолок 55%, как бы хорошо ни было сооружение. Ваша собственная переработка даст меньше.</value>
+  </data>
+  <data name="TitleItemBrowser" xml:space="preserve">
+    <value>Просмотр предметов</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>Станция:</value>
+  </data>
+  <data name="HintTypeAStationOrStructure" xml:space="preserve">
+    <value>введите название станции или сооружения…</value>
+  </data>
+  <data name="TipAnyStationOrStructure" xml:space="preserve">
+    <value>Любая станция или сооружение с ордерами в данных приложения, каким бы источником рыночных данных они ни были загружены. Ордера на продажу читаются на станции, ордера на покупку — на станции, в её системе или по всему сектору.</value>
+  </data>
+  <data name="PricesLabel" xml:space="preserve">
+    <value>Цены:</value>
+  </data>
+  <data name="TipSellTheLowestSell" xml:space="preserve">
+    <value>Продажа: самый дешёвый ордер на продажу. Покупка: самый дорогой ордер на покупку. Середина: посередине между ними.</value>
+  </data>
+  <data name="ValueLabel" xml:space="preserve">
+    <value>Оценивать:</value>
+  </data>
+  <data name="TipTheItemsAsPasted" xml:space="preserve">
+    <value>Предметы в том виде, в каком они вставлены, или то, во что они превращаются при переработке: материалы (партия за партией, с выходом, который использует приложение) и всё, что переработать не удалось.</value>
+  </data>
+  <data name="PriceLabel" xml:space="preserve">
+    <value>Цена, %:</value>
+  </data>
+  <data name="TipTheShareOfThe" xml:space="preserve">
+    <value>Доля цены, по которой оценивать: 100 — сама цена, 90 — выкуп за девять десятых.</value>
+  </data>
+  <data name="Appraise" xml:space="preserve">
+    <value>Оценить</value>
+  </data>
+  <data name="TipValueTheListA" xml:space="preserve">
+    <value>Оценить список. То же самое делает вставка в поле или Enter в нём.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="TipCopyBothTablesAnd" xml:space="preserve">
+    <value>Скопировать обе таблицы и итоги как текст с табуляцией — для электронной таблицы или чата.</value>
+  </data>
+  <data name="HideList" xml:space="preserve">
+    <value>Скрыть список</value>
+  </data>
+  <data name="HintPasteAListOf" xml:space="preserve">
+    <value>Вставьте список предметов: ангар или
+грузовой отсек, скопированный из клиента,
+контракт, оснастку, список оптовой покупки
+или строки вида
+Tritanium 22222
+Pyerite x 3000
+Warrior II 5
+
+Вставка сама оценивает список; Enter —
+тоже. После оценки список сворачивается:
+«Изменить список» вернёт его.</value>
+  </data>
+  <data name="TabValues" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>объём</value>
+  </data>
+  <data name="ItemsUnits" xml:space="preserve">
+    <value>предметы / единицы</value>
+  </data>
+  <data name="HintFilterByItemName" xml:space="preserve">
+    <value>фильтр по названию предмета…</value>
+  </data>
+  <data name="TipShowOnlyTheItems" xml:space="preserve">
+    <value>Показывать на обеих вкладках только предметы, в названии которых есть этот текст.</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="TipNoOrdersAtThis" xml:space="preserve">
+    <value>На этой станции нет ордеров: цена взята из контрактов.</value>
+  </data>
+  <data name="ColUnit" xml:space="preserve">
+    <value>За ед.</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="ColVsBest" xml:space="preserve">
+    <value>от лучш.</value>
+  </data>
+  <data name="TabMarketCompare" xml:space="preserve">
+    <value>Сравнение рынков</value>
+  </data>
+  <data name="CompareWithLabel" xml:space="preserve">
+    <value>Сравнить с:</value>
+  </data>
+  <data name="HintTypeAStationOr" xml:space="preserve">
+    <value>введите название станции или сооружения и нажмите «Добавить»…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="ScopeEverything" xml:space="preserve">
+    <value>Всё имущество</value>
+  </data>
+  <data name="ScopePersonal" xml:space="preserve">
+    <value>Персонажи и личные корпорации</value>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>Копировать с заголовками</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>столбец…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>значение…</value>
+  </data>
+  <data name="LpHeldNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="BatchPerPortion" xml:space="preserve">
+    <value>на {0:N0} ед.</value>
+  </data>
+  <data name="BatchPerUnit" xml:space="preserve">
+    <value>на единицу</value>
+  </data>
+  <data name="OrderExpired" xml:space="preserve">
+    <value>Истёк</value>
+  </data>
+  <data name="ExpiresDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="ExpiresHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="RangeStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="RangeSolarSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="RangeRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="MarketValueLabel" xml:space="preserve">
+    <value>Рыночная стоимость:</value>
+  </data>
+  <data name="FallbackCorpName" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="ErrLpStore" xml:space="preserve">
+    <value>Магазин наград: {0}</value>
+  </data>
+  <data name="AssetScopeAllOwners" xml:space="preserve">
+    <value>Все владельцы</value>
+  </data>
+  <data name="AssetsNoneHeldPersonal" xml:space="preserve">
+    <value>У ваших персонажей и личных корпораций этого нет. «Все владельцы» включает все корпорации, которые видит приложение.</value>
+  </data>
+  <data name="AssetsNoneHeldAnywhere" xml:space="preserve">
+    <value>Ни у кого из тех, кого видит приложение, этого нет.</value>
+  </data>
+  <data name="StatusLoadingItems" xml:space="preserve">
+    <value>Загрузка предметов…</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>За всё время</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Последние 30 дней</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Последние 90 дней</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Последние 365 дней</value>
+  </data>
+  <data name="FallbackGroupName" xml:space="preserve">
+    <value>Группа № {0}</value>
+  </data>
+  <data name="ErrLoadingTree" xml:space="preserve">
+    <value>Ошибка загрузки дерева: {0}</value>
+  </data>
+  <data name="SeriesAvg" xml:space="preserve">
+    <value>Средняя</value>
+  </data>
+  <data name="TipChartAvg" xml:space="preserve">
+    <value>Средняя: {0:N2}</value>
+  </data>
+  <data name="TipChartHigh" xml:space="preserve">
+    <value>Максимум: {0:N2}</value>
+  </data>
+  <data name="TipChartLow" xml:space="preserve">
+    <value>Минимум: {0:N2}</value>
+  </data>
+  <data name="SeriesVolume" xml:space="preserve">
+    <value>Объём торгов</value>
+  </data>
+  <data name="TipChartVolume" xml:space="preserve">
+    <value>Объём: {0:N0}</value>
+  </data>
+  <data name="TipChartSeriesIsk" xml:space="preserve">
+    <value>{0}: {1:N2} ISK</value>
+  </data>
+  <data name="SeriesMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="SeriesBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="SeriesContract" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="SeriesReprocessed" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="MarketValueWithPriceType" xml:space="preserve">
+    <value>Рыночная стоимость ({0}):</value>
+  </data>
+  <data name="LocPrivateStructure" xml:space="preserve">
+    <value>Частное сооружение</value>
+  </data>
+  <data name="LocUnanchoredStructure" xml:space="preserve">
+    <value>Снятое с якоря сооружение</value>
+  </data>
+  <data name="LocPlayerStructure" xml:space="preserve">
+    <value>Сооружение игрока</value>
+  </data>
+  <data name="FallbackStationName" xml:space="preserve">
+    <value>Станция {0}</value>
+  </data>
+  <data name="ErrOrders" xml:space="preserve">
+    <value>Ошибка ордеров: {0}</value>
+  </data>
+  <data name="StatVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="StatMass" xml:space="preserve">
+    <value>Масса</value>
+  </data>
+  <data name="StatCapacity" xml:space="preserve">
+    <value>Вместимость</value>
+  </data>
+  <data name="StatPortionSize" xml:space="preserve">
+    <value>Размер партии</value>
+  </data>
+  <data name="StatBasePrice" xml:space="preserve">
+    <value>Базовая цена</value>
+  </data>
+  <data name="FallbackBlueprintName" xml:space="preserve">
+    <value>Чертёж № {0}</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Реакция</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Модернизация</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="FallbackSkillName" xml:space="preserve">
+    <value>Навык № {0}</value>
+  </data>
+  <data name="ActivityMaterialResearch" xml:space="preserve">
+    <value>Исследование экономии материалов</value>
+  </data>
+  <data name="ActivityTimeResearch" xml:space="preserve">
+    <value>Исследование экономии времени</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="ActivityIndustryFallback" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="NoPrice" xml:space="preserve">
+    <value>нет цены</value>
+  </data>
+  <data name="Best" xml:space="preserve">
+    <value>лучшая</value>
+  </data>
+  <data name="NoteContract" xml:space="preserve">
+    <value>контракт</value>
+  </data>
+  <data name="TargetTheItems" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="TargetReprocessedOutput" xml:space="preserve">
+    <value>Результат переработки</value>
+  </data>
+  <data name="StatusPasteList" xml:space="preserve">
+    <value>Вставьте список предметов и нажмите «Оценить».</value>
+  </data>
+  <data name="StatusNoOrdersHeld" xml:space="preserve">
+    <value>Ордеров пока нет. Добавьте источник рыночных данных в разделе «Настройки → {0}» и дождитесь загрузки.</value>
+  </data>
+  <data name="ErrLoadStations" xml:space="preserve">
+    <value>Не удалось загрузить станции: {0}</value>
+  </data>
+  <data name="StatusPickStation" xml:space="preserve">
+    <value>Сначала выберите станцию.</value>
+  </data>
+  <data name="StatusNothingToAppraise" xml:space="preserve">
+    <value>Оценивать нечего: сначала вставьте список предметов.</value>
+  </data>
+  <data name="StatusAppraising" xml:space="preserve">
+    <value>Оценка…</value>
+  </data>
+  <data name="ErrAppraisalFailed" xml:space="preserve">
+    <value>Не удалось оценить: {0}</value>
+  </data>
+  <data name="StatusCopied" xml:space="preserve">
+    <value>Скопировано в буфер обмена.</value>
+  </data>
+  <data name="AgeNoOrdersHeld" xml:space="preserve">
+    <value>ордеров нет</value>
+  </data>
+  <data name="NoPrices" xml:space="preserve">
+    <value>нет цен</value>
+  </data>
+  <data name="CoveragePriced" xml:space="preserve">
+    <value>оценено {0:N0} из {1:N0}</value>
+  </data>
+  <data name="NotRead" xml:space="preserve">
+    <value>Не распознано: {0}</value>
+  </data>
+  <data name="NothingToValue" xml:space="preserve">
+    <value>так оценить нечего</value>
+  </data>
+  <data name="AgeJustNow" xml:space="preserve">
+    <value>получены только что</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>получены {0:0} мин назад</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>получены {0:0} ч назад</value>
+  </data>
+  <data name="GroupMarketValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="GroupBuildValue" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="GroupReprocessedValue" xml:space="preserve">
+    <value>Стоимость при переработке</value>
+  </data>
+  <data name="StatusClipboardNoItem" xml:space="preserve">
+    <value>В буфере обмена нет названий предметов, поэтому список не изменён. «Изменить список» принимает любой текст.</value>
+  </data>
+  <data name="TipRemoveCompareStation" xml:space="preserve">
+    <value>Убрать эту станцию из сравнения</value>
+  </data>
+  <data name="EditList" xml:space="preserve">
+    <value>Изменить список</value>
+  </data>
+  <data name="TipEditList" xml:space="preserve">
+    <value>Вернуть список, чтобы изменить его. Пока он свёрнут, вставка в любом месте инструмента оценивает новый список.</value>
+  </data>
+  <data name="TipHideList" xml:space="preserve">
+    <value>Свернуть список, чтобы таблицы заняли всю ширину. После оценки он сворачивается сам.</value>
+  </data>
+  <data name="IncludeIjShort" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="IncludeOrdersShort" xml:space="preserve">
+    <value>Ордера</value>
+  </data>
+  <data name="IncludeContractsShort" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="IncludePackagedOnly" xml:space="preserve">
+    <value>только в упаковке</value>
+  </data>
+  <data name="IncludeNone" xml:space="preserve">
+    <value>Ничего</value>
+  </data>
+  <data name="ErrImportFailed" xml:space="preserve">
+    <value>Не удалось импортировать: {0}</value>
+  </data>
+  <data name="DefaultCollection" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="StatusLoadingAvailability" xml:space="preserve">
+    <value>Загрузка данных о наличии…</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Загрузка предметов группы «{0}»…</value>
+  </data>
+  <data name="StatusNoPublishedItems" xml:space="preserve">
+    <value>В группе «{0}» не найдено опубликованных предметов.</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>Группа не выбрана.</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Расчёт материалов…</value>
+  </data>
+  <data name="ErrCalculation" xml:space="preserve">
+    <value>Ошибка расчёта: {0}</value>
+  </data>
+  <data name="StatusNoMaterials" xml:space="preserve">
+    <value>Для этого чертежа не найдено материалов.</value>
+  </data>
+  <data name="StatusAllItemsAlreadyIn" xml:space="preserve">
+    <value>Все предметы из «{0}» уже есть в группе.</value>
+  </data>
+  <data name="FallbackTypeName" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="AttrSizeSmall" xml:space="preserve">
+    <value>Малый</value>
+  </data>
+  <data name="AttrSizeMedium" xml:space="preserve">
+    <value>Средний</value>
+  </data>
+  <data name="AttrSizeLarge" xml:space="preserve">
+    <value>Большой</value>
+  </data>
+  <data name="AttrSizeExtraLarge" xml:space="preserve">
+    <value>Сверхбольшой</value>
+  </data>
+  <data name="AttrSexMale" xml:space="preserve">
+    <value>Мужской</value>
+  </data>
+  <data name="AttrSexUnisex" xml:space="preserve">
+    <value>Унисекс</value>
+  </data>
+  <data name="AttrSexFemale" xml:space="preserve">
+    <value>Женский</value>
+  </data>
+  <data name="AttrHours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="DefaultCollectionOption" xml:space="preserve">
+    <value>— По умолчанию —</value>
+  </data>
+  <data name="StatusGroupAdded" xml:space="preserve">
+    <value>Группа «{0}» добавлена.</value>
+  </data>
+  <data name="StatusGroupDeleted" xml:space="preserve">
+    <value>Группа «{0}» удалена.</value>
+  </data>
+  <data name="StatusAlreadyInGroup" xml:space="preserve">
+    <value>{0} уже есть в группе.</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Коллекция «{0}» удалена.</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Коллекция «{0}» добавлена.</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Добавление коллекции</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>Название коллекции</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Переименование коллекции</value>
+  </data>
+  <data name="TitleExportCollection" xml:space="preserve">
+    <value>Экспорт коллекции</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Добавление группы</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Изменение группы</value>
+  </data>
+  <data name="LocationLabelStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="LocationLabelSolarSystem" xml:space="preserve">
+    <value>Звёздная система</value>
+  </data>
+  <data name="LocationLabelRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>Укажите название группы.</value>
+  </data>
+  <data name="AssetColItemId" xml:space="preserve">
+    <value>ID предмета</value>
+  </data>
+  <data name="AssetColTypeId" xml:space="preserve">
+    <value>ID типа</value>
+  </data>
+  <data name="AssetColTypeName" xml:space="preserve">
+    <value>Название типа</value>
+  </data>
+  <data name="AssetColGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="AssetColCategory" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="AssetColQuantity" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="AssetColOwnerType" xml:space="preserve">
+    <value>Тип владельца</value>
+  </data>
+  <data name="AssetColOwnerName" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="AssetColOwnerId" xml:space="preserve">
+    <value>ID владельца</value>
+  </data>
+  <data name="AssetColLocationId" xml:space="preserve">
+    <value>ID места</value>
+  </data>
+  <data name="AssetColLocationName" xml:space="preserve">
+    <value>Название места</value>
+  </data>
+  <data name="AssetColLocationType" xml:space="preserve">
+    <value>Тип места</value>
+  </data>
+  <data name="AssetColRootLocationId" xml:space="preserve">
+    <value>ID корневого места</value>
+  </data>
+  <data name="AssetColSolarSystem" xml:space="preserve">
+    <value>Звёздная система</value>
+  </data>
+  <data name="AssetColSolarSystemId" xml:space="preserve">
+    <value>ID системы</value>
+  </data>
+  <data name="AssetColRegionName" xml:space="preserve">
+    <value>Название сектора</value>
+  </data>
+  <data name="AssetColRegionId" xml:space="preserve">
+    <value>ID сектора</value>
+  </data>
+  <data name="AssetColSecurity" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="AssetColIsStation" xml:space="preserve">
+    <value>Это станция</value>
+  </data>
+  <data name="AssetColVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="AssetColTotalVolume" xml:space="preserve">
+    <value>Общий объём</value>
+  </data>
+  <data name="AssetColValuePerUnit" xml:space="preserve">
+    <value>Стоимость за ед.</value>
+  </data>
+  <data name="AssetColTotalValue" xml:space="preserve">
+    <value>Общая стоимость</value>
+  </data>
+  <data name="AssetColIskPerM3" xml:space="preserve">
+    <value>ISK/m³</value>
+  </data>
+  <data name="AssetColBuildCost" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="AssetColItemCount" xml:space="preserve">
+    <value>Кол-во предметов</value>
+  </data>
+  <data name="AssetColIsSingleton" xml:space="preserve">
+    <value>Собран</value>
+  </data>
+  <data name="AssetColIsBlueprintCopy" xml:space="preserve">
+    <value>Копия чертежа</value>
+  </data>
+  <data name="StatusNoAssets" xml:space="preserve">
+    <value>Имущества нет.</value>
+  </data>
+  <data name="StatusShowingAssetsOne" xml:space="preserve">
+    <value>Показано {1:N0} из {0:N0} предмета</value>
+  </data>
+  <data name="StatusShowingAssetsOther" xml:space="preserve">
+    <value>Показано {1:N0} из {0:N0} предмета</value>
+  </data>
+  <data name="StatusShowingAssetsFew" xml:space="preserve">
+    <value>Показано {1:N0} из {0:N0} предметов</value>
+  </data>
+  <data name="StatusShowingAssetsMany" xml:space="preserve">
+    <value>Показано {1:N0} из {0:N0} предметов</value>
+  </data>
+  <data name="StatusAssetsTotalOne" xml:space="preserve">
+    <value>Всего {0:N0} предмет</value>
+  </data>
+  <data name="StatusAssetsTotalOther" xml:space="preserve">
+    <value>Всего {0:N0} предмета</value>
+  </data>
+  <data name="StatusAssetsTotalFew" xml:space="preserve">
+    <value>Всего {0:N0} предмета</value>
+  </data>
+  <data name="StatusAssetsTotalMany" xml:space="preserve">
+    <value>Всего {0:N0} предметов</value>
+  </data>
+  <data name="RangeJumpsOne" xml:space="preserve">
+    <value>{0} прыжок</value>
+  </data>
+  <data name="RangeJumpsOther" xml:space="preserve">
+    <value>{0} прыжка</value>
+  </data>
+  <data name="RangeJumpsFew" xml:space="preserve">
+    <value>{0} прыжка</value>
+  </data>
+  <data name="RangeJumpsMany" xml:space="preserve">
+    <value>{0} прыжков</value>
+  </data>
+  <data name="ReprocessFilterAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="ReprocessFilterOre" xml:space="preserve">
+    <value>Руда</value>
+  </data>
+  <data name="ReprocessFilterNonOre" xml:space="preserve">
+    <value>Не руда</value>
+  </data>
+  <data name="AssetGroupNone" xml:space="preserve">
+    <value>Без группировки</value>
+  </data>
+  <data name="AssetsSummaryUnitsStacksPlaces" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+  </data>
+  <data name="AssetsUnitsOne" xml:space="preserve">
+    <value>{0:N0} единица</value>
+  </data>
+  <data name="AssetsUnitsOther" xml:space="preserve">
+    <value>{0:N0} единицы</value>
+  </data>
+  <data name="AssetsUnitsFew" xml:space="preserve">
+    <value>{0:N0} единицы</value>
+  </data>
+  <data name="AssetsUnitsMany" xml:space="preserve">
+    <value>{0:N0} единиц</value>
+  </data>
+  <data name="AssetsStacksOne" xml:space="preserve">
+    <value>{0:N0} стопка</value>
+  </data>
+  <data name="AssetsStacksOther" xml:space="preserve">
+    <value>{0:N0} стопки</value>
+  </data>
+  <data name="AssetsStacksFew" xml:space="preserve">
+    <value>{0:N0} стопки</value>
+  </data>
+  <data name="AssetsStacksMany" xml:space="preserve">
+    <value>{0:N0} стопок</value>
+  </data>
+  <data name="AssetsLocationsOne" xml:space="preserve">
+    <value>{0:N0} место</value>
+  </data>
+  <data name="AssetsLocationsOther" xml:space="preserve">
+    <value>{0:N0} места</value>
+  </data>
+  <data name="AssetsLocationsFew" xml:space="preserve">
+    <value>{0:N0} места</value>
+  </data>
+  <data name="AssetsLocationsMany" xml:space="preserve">
+    <value>{0:N0} мест</value>
+  </data>
+  <data name="AssetsSummaryWorth" xml:space="preserve">
+    <value>стоимость {0}</value>
+  </data>
+  <data name="AssetsSummaryInJobs" xml:space="preserve">
+    <value>ещё в промышленных проектах: {0:N0}</value>
+  </data>
+  <data name="AllSources" xml:space="preserve">
+    <value>Все источники</value>
+  </data>
+  <data name="StatusItemsAcrossCategories" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="TreeItemsOne" xml:space="preserve">
+    <value>{0:N0} предмет</value>
+  </data>
+  <data name="TreeItemsOther" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="TreeItemsFew" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="TreeItemsMany" xml:space="preserve">
+    <value>{0:N0} предметов</value>
+  </data>
+  <data name="TreeCategoriesOne" xml:space="preserve">
+    <value>{0:N0} категория</value>
+  </data>
+  <data name="TreeCategoriesOther" xml:space="preserve">
+    <value>{0:N0} категории</value>
+  </data>
+  <data name="TreeCategoriesFew" xml:space="preserve">
+    <value>{0:N0} категории</value>
+  </data>
+  <data name="TreeCategoriesMany" xml:space="preserve">
+    <value>{0:N0} категорий</value>
+  </data>
+  <data name="CopyBasisSell" xml:space="preserve">
+    <value>по цене продажи</value>
+  </data>
+  <data name="CopyBasisBuy" xml:space="preserve">
+    <value>по цене покупки</value>
+  </data>
+  <data name="CopyBasisSplit" xml:space="preserve">
+    <value>по цене «Середина»</value>
+  </data>
+  <data name="CopyValuedAt" xml:space="preserve">
+    <value>Оценка: {0}, {1}, {2:0.#}% от рынка</value>
+  </data>
+  <data name="CopyValuedAtReprocessed" xml:space="preserve">
+    <value>Оценка: {0}, {1}, {2:0.#}% от рынка, после переработки</value>
+  </data>
+  <data name="CopyColVolumeM3" xml:space="preserve">
+    <value>Объём, m3</value>
+  </data>
+  <data name="CopyColMarketUnit" xml:space="preserve">
+    <value>Рынок за ед.</value>
+  </data>
+  <data name="CopyColMarketTotal" xml:space="preserve">
+    <value>Рынок всего</value>
+  </data>
+  <data name="CopyColMarketPct" xml:space="preserve">
+    <value>Рынок %</value>
+  </data>
+  <data name="CopyColBuildUnit" xml:space="preserve">
+    <value>Производство за ед.</value>
+  </data>
+  <data name="CopyColBuildTotal" xml:space="preserve">
+    <value>Производство всего</value>
+  </data>
+  <data name="CopyColBuildPct" xml:space="preserve">
+    <value>Производство %</value>
+  </data>
+  <data name="CopyColReprocessUnit" xml:space="preserve">
+    <value>Переработка за ед.</value>
+  </data>
+  <data name="CopyColReprocessTotal" xml:space="preserve">
+    <value>Переработка всего</value>
+  </data>
+  <data name="CopyColReprocessPct" xml:space="preserve">
+    <value>Переработка %</value>
+  </data>
+  <data name="CopyColNote" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="CopyTotalMarket" xml:space="preserve">
+    <value>Итого по рынку</value>
+  </data>
+  <data name="CopyTotalBuild" xml:space="preserve">
+    <value>Итого по производству</value>
+  </data>
+  <data name="CopyTotalReprocessed" xml:space="preserve">
+    <value>Итого по переработке</value>
+  </data>
+  <data name="CopyTotalVolumeM3" xml:space="preserve">
+    <value>Общий объём, m3</value>
+  </data>
+  <data name="CopyColStationUnit" xml:space="preserve">
+    <value>{0} за ед.</value>
+  </data>
+  <data name="CopyColStationTotal" xml:space="preserve">
+    <value>{0} всего</value>
+  </data>
+  <data name="CopyColStationPct" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="StatusPricesSell" xml:space="preserve">
+    <value>цены продажи</value>
+  </data>
+  <data name="StatusPricesBuy" xml:space="preserve">
+    <value>цены покупки</value>
+  </data>
+  <data name="StatusPricesSplit" xml:space="preserve">
+    <value>цены «Середина»</value>
+  </data>
+  <data name="StatusValuedItemsOne" xml:space="preserve">
+    <value>{0:N0} предмет — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedItemsOther" xml:space="preserve">
+    <value>{0:N0} предмета — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedItemsFew" xml:space="preserve">
+    <value>{0:N0} предмета — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedItemsMany" xml:space="preserve">
+    <value>{0:N0} предметов — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsOne" xml:space="preserve">
+    <value>{0:N0} строка после переработки — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsOther" xml:space="preserve">
+    <value>{0:N0} строки после переработки — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsFew" xml:space="preserve">
+    <value>{0:N0} строки после переработки — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsMany" xml:space="preserve">
+    <value>{0:N0} строк после переработки — {1}: {2} {3}</value>
+  </data>
+  <data name="StatusValued" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="StatusValuedUnpriced" xml:space="preserve">
+    <value>{0}; не удалось оценить: {1}.</value>
+  </data>
+  <data name="AgeDaysOne" xml:space="preserve">
+    <value>получены {0} день назад</value>
+  </data>
+  <data name="AgeDaysOther" xml:space="preserve">
+    <value>получены {0} дня назад</value>
+  </data>
+  <data name="AgeDaysFew" xml:space="preserve">
+    <value>получены {0} дня назад</value>
+  </data>
+  <data name="AgeDaysMany" xml:space="preserve">
+    <value>получены {0} дней назад</value>
+  </data>
+  <data name="InvGroupsOne" xml:space="preserve">
+    <value>{0} группа</value>
+  </data>
+  <data name="InvGroupsOther" xml:space="preserve">
+    <value>{0} группы</value>
+  </data>
+  <data name="InvGroupsFew" xml:space="preserve">
+    <value>{0} группы</value>
+  </data>
+  <data name="InvGroupsMany" xml:space="preserve">
+    <value>{0} групп</value>
+  </data>
+  <data name="InvItemsOne" xml:space="preserve">
+    <value>{0} предмет</value>
+  </data>
+  <data name="InvItemsOther" xml:space="preserve">
+    <value>{0} предмета</value>
+  </data>
+  <data name="InvItemsFew" xml:space="preserve">
+    <value>{0} предмета</value>
+  </data>
+  <data name="InvItemsMany" xml:space="preserve">
+    <value>{0} предметов</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Импортирована коллекция «{0}» — {1}, {2}.</value>
+  </data>
+  <data name="StatusImportedSkipped" xml:space="preserve">
+    <value>Импортирована коллекция «{0}» — {1}, {2}. {3}</value>
+  </data>
+  <data name="ImportSkippedItemsOne" xml:space="preserve">
+    <value>Пропущен {0} предмет, которого нет в SDE этой установки.</value>
+  </data>
+  <data name="ImportSkippedItemsOther" xml:space="preserve">
+    <value>Пропущено {0} предмета, которых нет в SDE этой установки.</value>
+  </data>
+  <data name="ImportSkippedItemsFew" xml:space="preserve">
+    <value>Пропущено {0} предмета, которых нет в SDE этой установки.</value>
+  </data>
+  <data name="ImportSkippedItemsMany" xml:space="preserve">
+    <value>Пропущено {0} предметов, которых нет в SDE этой установки.</value>
+  </data>
+  <data name="StatusGroupsLoadedOne" xml:space="preserve">
+    <value>Загружена {0} группа. Нажмите «Обновить», чтобы загрузить данные о наличии.</value>
+  </data>
+  <data name="StatusGroupsLoadedOther" xml:space="preserve">
+    <value>Загружено {0} группы. Нажмите «Обновить», чтобы загрузить данные о наличии.</value>
+  </data>
+  <data name="StatusGroupsLoadedFew" xml:space="preserve">
+    <value>Загружены {0} группы. Нажмите «Обновить», чтобы загрузить данные о наличии.</value>
+  </data>
+  <data name="StatusGroupsLoadedMany" xml:space="preserve">
+    <value>Загружено {0} групп. Нажмите «Обновить», чтобы загрузить данные о наличии.</value>
+  </data>
+  <data name="StatusItemsUpdatedOne" xml:space="preserve">
+    <value>Обновлён {0} предмет в {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsUpdatedOther" xml:space="preserve">
+    <value>Обновлено {0} предмета в {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsUpdatedFew" xml:space="preserve">
+    <value>Обновлено {0} предмета в {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsUpdatedMany" xml:space="preserve">
+    <value>Обновлено {0} предметов в {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsAddedOne" xml:space="preserve">
+    <value>Добавлен {0} предмет из «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedOther" xml:space="preserve">
+    <value>Добавлено {0} предмета из «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedFew" xml:space="preserve">
+    <value>Добавлено {0} предмета из «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedMany" xml:space="preserve">
+    <value>Добавлено {0} предметов из «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedSkippedOne" xml:space="preserve">
+    <value>Добавлен {0} предмет из «{1}»; уже были в группе и пропущены: {2}.</value>
+  </data>
+  <data name="StatusItemsAddedSkippedOther" xml:space="preserve">
+    <value>Добавлено {0} предмета из «{1}»; уже были в группе и пропущены: {2}.</value>
+  </data>
+  <data name="StatusItemsAddedSkippedFew" xml:space="preserve">
+    <value>Добавлено {0} предмета из «{1}»; уже были в группе и пропущены: {2}.</value>
+  </data>
+  <data name="StatusItemsAddedSkippedMany" xml:space="preserve">
+    <value>Добавлено {0} предметов из «{1}»; уже были в группе и пропущены: {2}.</value>
+  </data>
+  <data name="ConfirmDeleteGroup" xml:space="preserve">
+    <value>Удалить группу «{0}»? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOne" xml:space="preserve">
+    <value>Удалить группу «{1}» и {0:N0} предмет в ней? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOther" xml:space="preserve">
+    <value>Удалить группу «{1}» и {0:N0} предмета в ней? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsFew" xml:space="preserve">
+    <value>Удалить группу «{1}» и {0:N0} предмета в ней? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsMany" xml:space="preserve">
+    <value>Удалить группу «{1}» и {0:N0} предметов в ней? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmDeleteCollection" xml:space="preserve">
+    <value>Удалить коллекцию «{0}»?</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOne" xml:space="preserve">
+    <value>Удалить коллекцию «{1}»? Её {0:N0} группа перейдёт в коллекцию «{2}» и не будет удалена.</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOther" xml:space="preserve">
+    <value>Удалить коллекцию «{1}»? Её {0:N0} группы перейдут в коллекцию «{2}» и не будут удалены.</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsFew" xml:space="preserve">
+    <value>Удалить коллекцию «{1}»? Её {0:N0} группы перейдут в коллекцию «{2}» и не будут удалены.</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsMany" xml:space="preserve">
+    <value>Удалить коллекцию «{1}»? Её {0:N0} групп перейдут в коллекцию «{2}» и не будут удалены.</value>
+  </data>
+  <data name="ConfirmAddLargeGroupOne" xml:space="preserve">
+    <value>В выбранной группе {0} предмет. Вы уверены, что хотите его добавить?</value>
+  </data>
+  <data name="ConfirmAddLargeGroupOther" xml:space="preserve">
+    <value>В выбранной группе {0} предмета. Вы уверены, что хотите добавить их все?</value>
+  </data>
+  <data name="ConfirmAddLargeGroupFew" xml:space="preserve">
+    <value>В выбранной группе {0} предмета. Вы уверены, что хотите добавить их все?</value>
+  </data>
+  <data name="ConfirmAddLargeGroupMany" xml:space="preserve">
+    <value>В выбранной группе {0} предметов. Вы уверены, что хотите добавить их все?</value>
+  </data>
+  <data name="ErrSelectStation" xml:space="preserve">
+    <value>Выберите станцию или вариант «{0}».</value>
+  </data>
+  <data name="ErrSelectSystem" xml:space="preserve">
+    <value>Выберите систему или вариант «{0}».</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Выберите сектор или вариант «{0}».</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Сооружение {0}</value>
+  </data>
+  <data name="ProblemNotAnItem" xml:space="preserve">
+    <value>не название предмета</value>
+  </data>
+  <data name="SectionLeftOver" xml:space="preserve">
+    <value>Остаётся</value>
+  </data>
+  <data name="ProblemCannotReprocess" xml:space="preserve">
+    <value>не перерабатывается</value>
+  </data>
+  <data name="ProblemShortOfBatch" xml:space="preserve">
+    <value>остаток {0:N0} — меньше партии в {1:N0}</value>
+  </data>
+  <data name="SectionOutput" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="ImportedCollectionName" xml:space="preserve">
+    <value>Импортированная коллекция</value>
+  </data>
+  <data name="LocUnknownStation" xml:space="preserve">
+    <value>&lt;Неизвестная станция&gt;</value>
+  </data>
+  <data name="LocUnknownSystem" xml:space="preserve">
+    <value>&lt;Неизвестная система&gt;</value>
+  </data>
+  <data name="LocUnknownStructure" xml:space="preserve">
+    <value>&lt;Неизвестное сооружение&gt;</value>
+  </data>
+  <data name="LocUnresolved" xml:space="preserve">
+    <value>&lt;Не определено — обновите&gt;</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>Подразделение {0}</value>
+  </data>
+  <data name="FlagIndustryJob" xml:space="preserve">
+    <value>Промышленный проект</value>
+  </data>
+  <data name="ColItemVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+</root>

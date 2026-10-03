@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -36,7 +37,7 @@ public class RefiningGenerator(
     AppErrorLogger errorLogger) : IWorklistGenerator
 {
     public string Id          => "refining";
-    public string DisplayName => "Refining";
+    public string DisplayName => WorklistText.SourceRefining;
 
     private sealed record Holding(long LocationId, string Route, int TypeId, string Name, long Units);
 
@@ -129,14 +130,22 @@ public class RefiningGenerator(
             .ToList();
 
         var total = lines.Sum(l => l.Quantity);
-        var place = places.GetValueOrDefault(locationId, $"Location {locationId}");
-        var what  = refine ? "ore" : "compressed gas";
-        var verb  = refine ? "Reprocess" : "Decompress";
+        var place = places.GetValueOrDefault(locationId, string.Format(WorklistText.LocationWithId, locationId));
 
-        var types = lines.Count == 1 ? lines[0].TypeName : $"{lines.Count} {what} types";
+        // The lines keep the English names; these two sentences name them as the screen does.
+        static string Shown(WorklistLine l) => SdeNames.Type(l.TypeId, l.TypeName);
 
-        var biggest = string.Join(", ", lines.Take(3).Select(l => $"{l.Quantity:N0} {l.TypeName}"));
-        var more    = lines.Count > 3 ? $" and {lines.Count - 3} more" : "";
+        // A whole title per case: the verb, and the word the kinds are counted in, differ.
+        var title = (refine, lines.Count == 1) switch
+        {
+            (true,  true)  => string.Format(WorklistText.RefineTitleOne, Shown(lines[0]), total),
+            (true,  false) => string.Format(WorklistText.RefineTitleMany, lines.Count, total),
+            (false, true)  => string.Format(WorklistText.DecompressTitleOne, Shown(lines[0]), total),
+            (false, false) => string.Format(WorklistText.DecompressTitleMany, lines.Count, total),
+        };
+
+        var biggest = string.Join(CommonText.ListSeparator, lines.Take(3).Select(l => $"{l.Quantity:N0} {Shown(l)}"));
+        var more    = lines.Count - 3;
 
         return new WorklistItem
         {
@@ -145,24 +154,31 @@ public class RefiningGenerator(
             Key           = $"{Id}:{(refine ? "refine" : "decompress")}:{locationId}",
             Source        = Id,
             Kind          = refine ? WorklistKind.Refine : WorklistKind.Decompress,
-            Title         = $"{verb} {types} — {total:N0} units",
+            Title         = title,
             Quantity      = total,
-            Detail        = refine
-                // ⚠️ "Reprocessable" rather than "held". The two differ by whatever does not fill
-                // a whole batch, and quoting the held figure sends someone to a window that then
-                // refuses part of it.
-                ? $"At {place}: {total:N0} units reprocessable in whole batches — {biggest}{more}. "
-                + "Anything short of a full batch stays where it is."
-                : $"At {place}: {total:N0} units to decompress — {biggest}{more}.",
+            // ⚠️ "Reprocessable" rather than "held". The two differ by whatever does not fill a
+            // whole batch, and quoting the held figure sends someone to a window that then refuses
+            // part of it.
+            Detail        = (refine, more > 0) switch
+            {
+                (true,  false) => string.Format(WorklistText.RefineDetail, place, total, biggest),
+                (true,  true)  => string.Format(WorklistText.RefineDetailMore, place, total, biggest, more),
+                (false, false) => string.Format(WorklistText.DecompressDetail, place, total, biggest),
+                (false, true)  => string.Format(WorklistText.DecompressDetailMore, place, total, biggest, more),
+            },
             // Nothing to check: the material is here and the action is local.
             Readiness     = WorklistReadiness.Ready,
             LocationId    = locationId,
             LocationName  = place,
             Priority      = WorklistPriority.Refining,
             Lines         = lines,
+            // The most of what is there: the ore (or compressed ore) the row is mostly about.
+            IconUrl       = lines.Count > 0 ? WorklistIcons.Type(lines[0].TypeId) : null,
         };
     }
 
+    /// <summary>Places as the screen names them: the facility only becomes the task's detail and
+    /// location cell. The task is keyed on the id.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, List<long> ids, CancellationToken ct)
     {
@@ -172,7 +188,7 @@ public class RefiningGenerator(
         foreach (var s in await db.SdeStations.AsNoTracking()
                      .Where(s => ids.Contains(s.StationId))
                      .Select(s => new { s.StationId, s.Name }).ToListAsync(ct))
-            names[s.StationId] = s.Name;
+            names[s.StationId] = SdeNames.Station(s.StationId, s.Name);
 
         foreach (var s in await db.Structures.AsNoTracking()
                      .Where(s => ids.Contains(s.StructureId) && s.Name != "")

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -35,95 +36,95 @@ public static class NotificationTitles
     private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
     {
         // Corporation membership
-        ["CorpAppNewMsg"]      = "New corporation application",
-        ["CorpAppInvitedMsg"]  = "Invited to a corporation",
-        ["CorpAppAcceptMsg"]   = "Corporation application accepted",
-        ["CharAppAcceptMsg"]   = "Application accepted",
-        ["CharAppRejectMsg"]   = "Application rejected",
-        ["CharAppWithdrawMsg"] = "Application withdrawn",
-        ["CharTerminationMsg"] = "Member left the corporation",
-        ["CorpTaxChangeMsg"]   = "Corporation tax changed",
+        ["CorpAppNewMsg"]      = CommsText.NotifTitleCorpAppNewMsg,
+        ["CorpAppInvitedMsg"]  = CommsText.NotifTitleCorpAppInvitedMsg,
+        ["CorpAppAcceptMsg"]   = CommsText.NotifTitleCorpAppAcceptMsg,
+        ["CharAppAcceptMsg"]   = CommsText.NotifTitleCharAppAcceptMsg,
+        ["CharAppRejectMsg"]   = CommsText.NotifTitleCharAppRejectMsg,
+        ["CharAppWithdrawMsg"] = CommsText.NotifTitleCharAppWithdrawMsg,
+        ["CharTerminationMsg"] = CommsText.NotifTitleCharTerminationMsg,
+        ["CorpTaxChangeMsg"]   = CommsText.NotifTitleCorpTaxChangeMsg,
 
         // Money
-        ["CorpAllBillMsg"]     = "Corporation bill",
-        ["InsurancePayoutMsg"] = "Insurance payout",
+        ["CorpAllBillMsg"]     = CommsText.NotifTitleCorpAllBillMsg,
+        ["InsurancePayoutMsg"] = CommsText.NotifTitleInsurancePayoutMsg,
 
         // Standings. ⚠️ Both named as a change, not a loss or a gain: ESI reports a mission's
         // standing GAIN as NPCStandingsLost too, so the type cannot say which way it went — the
         // sign of each change in the body does.
-        ["NPCStandingsLost"]   = "NPC standings changed",
-        ["NPCStandingsGained"] = "NPC standings changed",
+        ["NPCStandingsLost"]   = CommsText.NotifTitleNPCStandingsLost,
+        ["NPCStandingsGained"] = CommsText.NotifTitleNPCStandingsGained,
 
         // Projects
-        ["CorporationGoalCreated"]     = "Corporation project created",
-        ["CorporationGoalCompleted"]   = "Corporation project completed",
-        ["CorporationGoalClosed"]      = "Corporation project closed",
-        ["FreelanceProjectCreated"]    = "Freelance project created",
-        ["FreelanceProjectCompleted"]  = "Freelance project completed",
-        ["FreelanceProjectExpired"]    = "Freelance project expired",
-        ["FreelanceProjectACLDeleted"] = "Freelance project access list deleted",
+        ["CorporationGoalCreated"]     = CommsText.NotifTitleCorporationGoalCreated,
+        ["CorporationGoalCompleted"]   = CommsText.NotifTitleCorporationGoalCompleted,
+        ["CorporationGoalClosed"]      = CommsText.NotifTitleCorporationGoalClosed,
+        ["FreelanceProjectCreated"]    = CommsText.NotifTitleFreelanceProjectCreated,
+        ["FreelanceProjectCompleted"]  = CommsText.NotifTitleFreelanceProjectCompleted,
+        ["FreelanceProjectExpired"]    = CommsText.NotifTitleFreelanceProjectExpired,
+        ["FreelanceProjectACLDeleted"] = CommsText.NotifTitleFreelanceProjectACLDeleted,
 
         // Moon mining
-        ["MoonminingExtractionStarted"]   = "Moon extraction started",
-        ["MoonminingExtractionFinished"]  = "Moon extraction finished",
-        ["MoonminingExtractionCancelled"] = "Moon extraction cancelled",
-        ["MoonminingAutomaticFracture"]   = "Moon fractured automatically",
-        ["MoonminingLaserFired"]          = "Moon drill fired",
+        ["MoonminingExtractionStarted"]   = CommsText.NotifTitleMoonminingExtractionStarted,
+        ["MoonminingExtractionFinished"]  = CommsText.NotifTitleMoonminingExtractionFinished,
+        ["MoonminingExtractionCancelled"] = CommsText.NotifTitleMoonminingExtractionCancelled,
+        ["MoonminingAutomaticFracture"]   = CommsText.NotifTitleMoonminingAutomaticFracture,
+        ["MoonminingLaserFired"]          = CommsText.NotifTitleMoonminingLaserFired,
 
         // Structures
-        ["StructureAnchoring"]            = "Structure anchoring",
-        ["StructureUnanchoring"]          = "Structure unanchoring",
-        ["StructureOnline"]               = "Structure online",
-        ["StructureWentHighPower"]        = "Structure went to high power",
-        ["StructureWentLowPower"]         = "Structure went to low power",
-        ["StructureUnderAttack"]          = "Structure under attack",
-        ["StructureLostShields"]          = "Structure lost shields",
-        ["StructureLostArmor"]            = "Structure lost armor",
-        ["StructureDestroyed"]            = "Structure destroyed",
-        ["StructureFuelAlert"]            = "Structure low on fuel",
-        ["StructureLowReagentsAlert"]     = "Structure low on reagents",
-        ["StructureNoReagentsAlert"]      = "Structure out of reagents",
-        ["StructureServicesOffline"]      = "Structure services offline",
-        ["StructureItemsMovedToSafety"]   = "Items moved to asset safety",
-        ["StructureItemsDelivered"]       = "Items delivered to a structure",
-        ["StructureImpendingAbandonmentAssetsAtRisk"] = "Structure being abandoned — assets at risk",
-        ["StructurePaintPurchased"]       = "Structure paint purchased",
-        ["OwnershipTransferred"]          = "Structure ownership transferred",
-        ["EntosisCaptureStarted"]         = "Entosis capture started",
+        ["StructureAnchoring"]            = CommsText.NotifTitleStructureAnchoring,
+        ["StructureUnanchoring"]          = CommsText.NotifTitleStructureUnanchoring,
+        ["StructureOnline"]               = CommsText.NotifTitleStructureOnline,
+        ["StructureWentHighPower"]        = CommsText.NotifTitleStructureWentHighPower,
+        ["StructureWentLowPower"]         = CommsText.NotifTitleStructureWentLowPower,
+        ["StructureUnderAttack"]          = CommsText.NotifTitleStructureUnderAttack,
+        ["StructureLostShields"]          = CommsText.NotifTitleStructureLostShields,
+        ["StructureLostArmor"]            = CommsText.NotifTitleStructureLostArmor,
+        ["StructureDestroyed"]            = CommsText.NotifTitleStructureDestroyed,
+        ["StructureFuelAlert"]            = CommsText.NotifTitleStructureFuelAlert,
+        ["StructureLowReagentsAlert"]     = CommsText.NotifTitleStructureLowReagentsAlert,
+        ["StructureNoReagentsAlert"]      = CommsText.NotifTitleStructureNoReagentsAlert,
+        ["StructureServicesOffline"]      = CommsText.NotifTitleStructureServicesOffline,
+        ["StructureItemsMovedToSafety"]   = CommsText.NotifTitleStructureItemsMovedToSafety,
+        ["StructureItemsDelivered"]       = CommsText.NotifTitleStructureItemsDelivered,
+        ["StructureImpendingAbandonmentAssetsAtRisk"] = CommsText.NotifTitleStructureImpendingAbandonmentAssetsAtRisk,
+        ["StructurePaintPurchased"]       = CommsText.NotifTitleStructurePaintPurchased,
+        ["OwnershipTransferred"]          = CommsText.NotifTitleOwnershipTransferred,
+        ["EntosisCaptureStarted"]         = CommsText.NotifTitleEntosisCaptureStarted,
 
         // Starbases
-        ["TowerAlertMsg"]         = "Starbase under attack",
-        ["TowerResourceAlertMsg"] = "Starbase low on fuel",
+        ["TowerAlertMsg"]         = CommsText.NotifTitleTowerAlertMsg,
+        ["TowerResourceAlertMsg"] = CommsText.NotifTitleTowerResourceAlertMsg,
 
         // Clones
-        ["CloneActivationMsg2"]  = "Clone activated",
-        ["CloneActivationMsg"]   = "Clone activated",
-        ["CloneRevokedMsg2"]     = "Clone revoked",
-        ["JumpCloneDeletedMsg1"] = "Jump clone destroyed",
-        ["JumpCloneDeletedMsg2"] = "Jump clone destroyed",
+        ["CloneActivationMsg2"]  = CommsText.NotifTitleCloneActivationMsg2,
+        ["CloneActivationMsg"]   = CommsText.NotifTitleCloneActivationMsg,
+        ["CloneRevokedMsg2"]     = CommsText.NotifTitleCloneRevokedMsg2,
+        ["JumpCloneDeletedMsg1"] = CommsText.NotifTitleJumpCloneDeletedMsg1,
+        ["JumpCloneDeletedMsg2"] = CommsText.NotifTitleJumpCloneDeletedMsg2,
 
         // Combat
-        ["KillReportVictim"]    = "Ship lost",
-        ["KillReportFinalBlow"] = "Final blow",
-        ["KillRightEarned"]     = "Kill right earned",
+        ["KillReportVictim"]    = CommsText.NotifTitleKillReportVictim,
+        ["KillReportFinalBlow"] = CommsText.NotifTitleKillReportFinalBlow,
+        ["KillRightEarned"]     = CommsText.NotifTitleKillRightEarned,
 
         // War
-        ["WarDeclared"]               = "War declared",
-        ["WarInherited"]              = "War inherited",
-        ["WarAllyInherited"]          = "War ally inherited",
-        ["WarInvalid"]                = "War invalidated",
-        ["WarRetractedByConcord"]     = "War retracted by CONCORD",
-        ["WarHQRemovedFromSpace"]     = "War HQ removed from space",
-        ["MutualWarInviteSent"]       = "Mutual war invitation sent",
-        ["OfferedToAlly"]             = "Offered to join a war as an ally",
-        ["AllyJoinedWarAggressorMsg"] = "Ally joined the aggressor",
-        ["AllyJoinedWarAllyMsg"]      = "Ally joined the war",
-        ["CorpBecameWarEligible"]     = "Corporation became war eligible",
-        ["CorpNoLongerWarEligible"]   = "Corporation no longer war eligible",
-        ["AllianceCapitalChanged"]    = "Alliance capital changed",
+        ["WarDeclared"]               = CommsText.NotifTitleWarDeclared,
+        ["WarInherited"]              = CommsText.NotifTitleWarInherited,
+        ["WarAllyInherited"]          = CommsText.NotifTitleWarAllyInherited,
+        ["WarInvalid"]                = CommsText.NotifTitleWarInvalid,
+        ["WarRetractedByConcord"]     = CommsText.NotifTitleWarRetractedByConcord,
+        ["WarHQRemovedFromSpace"]     = CommsText.NotifTitleWarHQRemovedFromSpace,
+        ["MutualWarInviteSent"]       = CommsText.NotifTitleMutualWarInviteSent,
+        ["OfferedToAlly"]             = CommsText.NotifTitleOfferedToAlly,
+        ["AllyJoinedWarAggressorMsg"] = CommsText.NotifTitleAllyJoinedWarAggressorMsg,
+        ["AllyJoinedWarAllyMsg"]      = CommsText.NotifTitleAllyJoinedWarAllyMsg,
+        ["CorpBecameWarEligible"]     = CommsText.NotifTitleCorpBecameWarEligible,
+        ["CorpNoLongerWarEligible"]   = CommsText.NotifTitleCorpNoLongerWarEligible,
+        ["AllianceCapitalChanged"]    = CommsText.NotifTitleAllianceCapitalChanged,
 
         // Account
-        ["ExpertSystemExpired"] = "Expert system expired",
-        ["GameTimeAdded"]       = "Game time added",
+        ["ExpertSystemExpired"] = CommsText.NotifTitleExpertSystemExpired,
+        ["GameTimeAdded"]       = CommsText.NotifTitleGameTimeAdded,
     };
 }

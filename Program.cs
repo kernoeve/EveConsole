@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using System.Runtime.InteropServices;
+using EveConsole.Localization;
 using EveConsole.Services;
 using Velopack;
 
@@ -41,10 +43,19 @@ class Program
         // with special args and exit before the UI starts).
         VelopackApp.Build().Run();
 
+        // ⚠️ First of all, before a profile, a lock file or a setting is touched: the data moves
+        // out of Velopack's install folder, whose installer and uninstaller delete everything in
+        // it. Once, by the installed copy — see AppConfig.MoveDataOutOfInstallFolder.
+        AppConfig.MoveDataOutOfInstallFolder();
+
         // ⚠️ Before anything asks where anything is. Every path in the app comes from
         // AppConfig.AppDataDir, and this is what moves it; a single read beforehand would be a
         // read against the ordinary directory, which is the one this switch exists to leave alone.
         if (ProfileFrom(args) is { } profile) AppConfig.UseProfile(profile);
+
+        // The interface language, before anything reads a string — and after the profile, whose
+        // config holds the choice. Fixed for the run; see Languages.
+        Languages.ApplyAtStartup(args);
 
         // ⚠️ Before everything else, and it exits. This is the elevated copy of ourselves, asked to
         // do the one thing an ordinary token cannot: create or delete a service and write a
@@ -225,9 +236,19 @@ class Program
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
             .UseReactiveUI();
+
+        // The interface language's own fonts, ahead of the system's pick, for every character
+        // Inter lacks — all of Chinese, Japanese and Korean. None for a language Inter covers,
+        // which leaves the fallback exactly as it was. See Languages.FontFallbacks.
+        if (Languages.FontFallbacks() is { Count: > 0 } fallbacks)
+            builder = builder.With(new FontManagerOptions { FontFallbacks = fallbacks });
+
+        return builder;
+    }
 }

@@ -1,4 +1,5 @@
 using EveConsole.Models;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -9,6 +10,14 @@ public class MapStatsSettings(AppPreferencesService prefs)
     {
         get => prefs.GetBool("mapstats.enabled", true);
         set => _ = prefs.SetBoolAsync("mapstats.enabled", value);
+    }
+
+    /// <summary>Thera and Turnur connections from EVE-Scout (see EveScoutService). On unless
+    /// switched off; shared, like the rest, so the one client that polls reads it.</summary>
+    public bool EveScoutEnabled
+    {
+        get => prefs.GetBool("mapstats.evescout", true);
+        set => _ = prefs.SetBoolAsync("mapstats.evescout", value);
     }
 
     /// <summary>
@@ -148,13 +157,13 @@ public class MapStatsBackfillService(
                 }
             }
 
-            StatusText = ct.IsCancellationRequested ? "Cancelled" : "Complete";
+            StatusText = ct.IsCancellationRequested ? SettingsText.MapStatsBackfillCancelled : SettingsText.MapStatsBackfillComplete;
         }
-        catch (OperationCanceledException) { StatusText = "Cancelled"; }
+        catch (OperationCanceledException) { StatusText = SettingsText.MapStatsBackfillCancelled; }
         catch (Exception ex)
         {
             errors?.Log("MapStats", "backfill", ex);
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {
@@ -277,7 +286,7 @@ public class MapStatsBackfillService(
                 // and kill rows sitting around for a day for no reason.
                 await stats.RollUpAsync(settings.KeepHourlyDays, ct);
                 settings.LastRollUp = DateTime.UtcNow.ToString("yyyy-MM-dd");
-                StatusText = "Complete";
+                StatusText = SettingsText.MapStatsBackfillComplete;
                 return;
             }
 
@@ -301,7 +310,7 @@ public class MapStatsBackfillService(
 
         try
         {
-            if (upgrade) StatusText = "Compacting existing map data…";
+            if (upgrade) StatusText = SettingsText.MapStatsCompacting;
 
             await stats.RollUpAsync(settings.KeepHourlyDays, ct);
             settings.LastRollUp = today;
@@ -310,10 +319,10 @@ public class MapStatsBackfillService(
             {
                 // Deleting rows leaves the file the same size; only VACUUM gives the space
                 // back, and it cannot run inside the rollup's transaction.
-                StatusText = "Reclaiming disk space…";
+                StatusText = SettingsText.MapStatsReclaiming;
                 await stats.VacuumAsync(ct);
                 settings.CompactionDone = MapStatsSettings.CurrentCompaction;
-                StatusText = "Compaction complete";
+                StatusText = SettingsText.MapStatsCompactionComplete;
             }
         }
         catch (OperationCanceledException) { }

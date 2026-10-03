@@ -1,0 +1,1303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>Compose Mail</value>
+    <comment>Window title in ComposeMailDialog.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>FROM</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>TO  (search name, press Enter to add)</value>
+    <comment>Note in ComposeMailDialog.</comment>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>Character name…</value>
+    <comment>Hint in an empty box in ComposeMailDialog.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>SUBJECT</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>BODY</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Send</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>CHARACTER</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Reply</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>Forward</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ Compose</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>From:</value>
+    <comment>EVE mail → a message's header: who sent it. Not a date — the notifications filter's "From:" is DateFromLabel.</comment>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>From:</value>
+    <comment>Notifications → filter row: the first date of the range, before a date picker (then "Thru:"). Not a sender — that is FromLabel2.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in EveMailView.</comment>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>To:</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>Date:</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>Select a message to read it.</value>
+    <comment>Text in EveMailView.</comment>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>Eve Mail</value>
+    <comment>Window title in EveMailWindow.</comment>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>Character:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Type:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>Sender:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Thru:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sort:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>Unread only</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Date</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Sender</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>Sender Type</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>Read</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>Sender</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>Read</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Character</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>No further details.</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>Show the original text</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>Select a notification to view its details.</value>
+    <comment>Note in NotificationsView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>All Characters</value>
+    <comment>Mail filter: every character's mail.</comment>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>All Mail</value>
+    <comment>Mail folder.</comment>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>Inbox</value>
+    <comment>Mail folder.</comment>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>Sent</value>
+    <comment>Mail folder.</comment>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Mail folder: corporation mail.</comment>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Mail folder: alliance mail.</comment>
+  </data>
+  <data name="MailCountOne" xml:space="preserve">
+    <value>{0:N0} message</value>
+    <comment>EVE mail → status line: how many mails are listed, when it is one. {0} is the number.</comment>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} messages</value>
+    <comment>EVE mail → status line: how many mails are listed. {0} is the number.</comment>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>(Error loading body: {0})</value>
+    <comment>Shown in place of a mail's text. {0} is the error.</comment>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>No characters available to compose mail.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>The character this mail was sent to is no longer available to send from.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{0} wrote on {1}:
+
+</value>
+    <comment>Line above a quoted mail in a reply. {0} is the sender, {1} when it was sent.</comment>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>Sending…</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Mail sent.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>Send failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>Read</value>
+    <comment>A notification's state.</comment>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>Unread</value>
+    <comment>A notification's state.</comment>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip on a character, corporation or alliance.</comment>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>All types</value>
+    <comment>Notification type filter: every type.</comment>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>Date: newest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>Date: oldest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>Type (A → Z)</value>
+    <comment>Sort order: by notification type, alphabetically.</comment>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>All characters</value>
+    <comment>Character filter: every character.</comment>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>No notifications match these filters.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>Searching…</value>
+    <comment>Status while searching for a recipient.</comment>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>No character found matching "{0}".</value>
+    <comment>Status. {0} is the name typed.</comment>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>Subject is required.</value>
+    <comment>Error in the compose dialog.</comment>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>Body is required.</value>
+    <comment>Error in the compose dialog.</comment>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>Add at least one recipient.</value>
+    <comment>Error in the compose dialog.</comment>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>New corporation application</value>
+    <comment>What the notification type CorpAppNewMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>Invited to a corporation</value>
+    <comment>What the notification type CorpAppInvitedMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>Corporation application accepted</value>
+    <comment>What the notification type CorpAppAcceptMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>Application accepted</value>
+    <comment>What the notification type CharAppAcceptMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>Application rejected</value>
+    <comment>What the notification type CharAppRejectMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>Application withdrawn</value>
+    <comment>What the notification type CharAppWithdrawMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>Member left the corporation</value>
+    <comment>What the notification type CharTerminationMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>Corporation tax changed</value>
+    <comment>What the notification type CorpTaxChangeMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>Corporation bill</value>
+    <comment>What the notification type CorpAllBillMsg is called.</comment>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>Insurance payout</value>
+    <comment>What the notification type InsurancePayoutMsg is called.</comment>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>NPC standings changed</value>
+    <comment>What the notification type NPCStandingsLost is called.</comment>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>NPC standings changed</value>
+    <comment>What the notification type NPCStandingsGained is called.</comment>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>Corporation project created</value>
+    <comment>What the notification type CorporationGoalCreated is called.</comment>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>Corporation project completed</value>
+    <comment>What the notification type CorporationGoalCompleted is called.</comment>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>Corporation project closed</value>
+    <comment>What the notification type CorporationGoalClosed is called.</comment>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>Freelance project created</value>
+    <comment>What the notification type FreelanceProjectCreated is called.</comment>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>Freelance project completed</value>
+    <comment>What the notification type FreelanceProjectCompleted is called.</comment>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>Freelance project expired</value>
+    <comment>What the notification type FreelanceProjectExpired is called.</comment>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>Freelance project access list deleted</value>
+    <comment>What the notification type FreelanceProjectACLDeleted is called.</comment>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>Moon extraction started</value>
+    <comment>What the notification type MoonminingExtractionStarted is called.</comment>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>Moon extraction finished</value>
+    <comment>What the notification type MoonminingExtractionFinished is called.</comment>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>Moon extraction cancelled</value>
+    <comment>What the notification type MoonminingExtractionCancelled is called.</comment>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>Moon fractured automatically</value>
+    <comment>What the notification type MoonminingAutomaticFracture is called.</comment>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>Moon drill fired</value>
+    <comment>What the notification type MoonminingLaserFired is called.</comment>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>Structure anchoring</value>
+    <comment>What the notification type StructureAnchoring is called.</comment>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>Structure unanchoring</value>
+    <comment>What the notification type StructureUnanchoring is called.</comment>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>Structure online</value>
+    <comment>What the notification type StructureOnline is called.</comment>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>Structure went to high power</value>
+    <comment>What the notification type StructureWentHighPower is called.</comment>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>Structure went to low power</value>
+    <comment>What the notification type StructureWentLowPower is called.</comment>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>Structure under attack</value>
+    <comment>What the notification type StructureUnderAttack is called.</comment>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>Structure lost shields</value>
+    <comment>What the notification type StructureLostShields is called.</comment>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>Structure lost armor</value>
+    <comment>What the notification type StructureLostArmor is called.</comment>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>Structure destroyed</value>
+    <comment>What the notification type StructureDestroyed is called.</comment>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>Structure low on fuel</value>
+    <comment>What the notification type StructureFuelAlert is called.</comment>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>Structure low on reagents</value>
+    <comment>What the notification type StructureLowReagentsAlert is called.</comment>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>Structure out of reagents</value>
+    <comment>What the notification type StructureNoReagentsAlert is called.</comment>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>Structure services offline</value>
+    <comment>What the notification type StructureServicesOffline is called.</comment>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>Items moved to asset safety</value>
+    <comment>What the notification type StructureItemsMovedToSafety is called.</comment>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>Items delivered to a structure</value>
+    <comment>What the notification type StructureItemsDelivered is called.</comment>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>Structure being abandoned — assets at risk</value>
+    <comment>What the notification type StructureImpendingAbandonmentAssetsAtRisk is called.</comment>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>Structure paint purchased</value>
+    <comment>What the notification type StructurePaintPurchased is called.</comment>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>Structure ownership transferred</value>
+    <comment>What the notification type OwnershipTransferred is called.</comment>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>Entosis capture started</value>
+    <comment>What the notification type EntosisCaptureStarted is called.</comment>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>Starbase under attack</value>
+    <comment>What the notification type TowerAlertMsg is called.</comment>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>Starbase low on fuel</value>
+    <comment>What the notification type TowerResourceAlertMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>Clone activated</value>
+    <comment>What the notification type CloneActivationMsg2 is called.</comment>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>Clone activated</value>
+    <comment>What the notification type CloneActivationMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>Clone revoked</value>
+    <comment>What the notification type CloneRevokedMsg2 is called.</comment>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>Jump clone destroyed</value>
+    <comment>What the notification type JumpCloneDeletedMsg1 is called.</comment>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>Jump clone destroyed</value>
+    <comment>What the notification type JumpCloneDeletedMsg2 is called.</comment>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>Ship lost</value>
+    <comment>What the notification type KillReportVictim is called.</comment>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>Final blow</value>
+    <comment>What the notification type KillReportFinalBlow is called.</comment>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>Kill right earned</value>
+    <comment>What the notification type KillRightEarned is called.</comment>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>War declared</value>
+    <comment>What the notification type WarDeclared is called.</comment>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>War inherited</value>
+    <comment>What the notification type WarInherited is called.</comment>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>War ally inherited</value>
+    <comment>What the notification type WarAllyInherited is called.</comment>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>War invalidated</value>
+    <comment>What the notification type WarInvalid is called.</comment>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>War retracted by CONCORD</value>
+    <comment>What the notification type WarRetractedByConcord is called.</comment>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>War HQ removed from space</value>
+    <comment>What the notification type WarHQRemovedFromSpace is called.</comment>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>Mutual war invitation sent</value>
+    <comment>What the notification type MutualWarInviteSent is called.</comment>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>Offered to join a war as an ally</value>
+    <comment>What the notification type OfferedToAlly is called.</comment>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>Ally joined the defender</value>
+    <comment>What the notification type AllyJoinedWarAggressorMsg is called.</comment>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>Ally joined the war</value>
+    <comment>What the notification type AllyJoinedWarAllyMsg is called.</comment>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>Corporation became war eligible</value>
+    <comment>What the notification type CorpBecameWarEligible is called.</comment>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Corporation no longer war eligible</value>
+    <comment>What the notification type CorpNoLongerWarEligible is called.</comment>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>Alliance capital changed</value>
+    <comment>What the notification type AllianceCapitalChanged is called.</comment>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>Expert system expired</value>
+    <comment>What the notification type ExpertSystemExpired is called.</comment>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>Game time added</value>
+    <comment>What the notification type GameTimeAdded is called.</comment>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>Structure type</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>Moved to</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>Clone location</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>Moon</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>Created by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>Closed by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>Invited by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>Started by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>Fired by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>Cancelled by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>Purchased by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>Destroyed by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>Podded by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>New owner</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>Previous owner</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>Location owner</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>Placed by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>Declared by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>Against</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>Aggressor</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>Aggressor corporation</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>Aggressor alliance</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>Defender</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>Ally</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>Enemy</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>Opponent</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>Left the war</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>War HQ</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>Fee</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>Starts after</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>Hostile now</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>Types</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>Requires</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>Items</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>Services</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>Ore</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>Needs</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>Killmail</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>Bounty</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>Loyalty points</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>Project</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>Shield</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>Armor</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>Corporation owned</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>Abandoned</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>Days until abandoned</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>Security status</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>New tax rate</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>Previous tax rate</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>Time</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>Started</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>Starts</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>Declared</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>Ends</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>Time left</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>Vulnerability window</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>Fractures automatically</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>Last cloned</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>Purchased</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>Lasts</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>Deliverable from</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>Delivered automatically</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>Due</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>Application</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>Applicant</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>Invited</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>Member</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>Revoked by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>Was at</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>Implants lost</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>Clone of</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>Payout</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>Asset safety station</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>Fuel remaining</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>Delivered</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>Delivered to</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>Services offline</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>Tower</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>Attacker</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>Attacker corporation</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>Attacker alliance</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>Transferred by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>Expert system</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>New capital</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>Structures painted</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>Offered by</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>Kill right on</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>Reinforced until</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>Fighting starts</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>Your corporation is now eligible for war declarations.</value>
+    <comment>The whole text of a CorpBecameWarEligible notification.</comment>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Your corporation is no longer eligible for war declarations.</value>
+    <comment>The whole text of a CorpNoLongerWarEligible notification.</comment>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>Game time was added to the account.</value>
+    <comment>The whole text of a GameTimeAdded notification.</comment>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Heading of a notification's free text.</comment>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in a notification's item table.</comment>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Column header in a notification's item table.</comment>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Last row of a notification's ore table.</comment>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Column header in a notification's ore table.</comment>
+  </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Reprocessed</value>
+    <comment>Column header in a moon notification's ore table (extraction finished / fractured), right of Volume: what that volume of each ore is worth reprocessed, in ISK. Short.</comment>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>No reprocessed value yet: the prices of what this ore refines into have not been read.</value>
+    <comment>Tooltip on a dash in a moon notification's Reprocessed column, when the ore's value is not known yet.</comment>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>Open the killmail</value>
+    <comment>Link to a killmail.</comment>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>A yes/no field's value.</comment>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>No</value>
+    <comment>A yes/no field's value.</comment>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>Standing changes</value>
+    <comment>Heading of a table of standing changes.</comment>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>With</value>
+    <comment>Column header: who the standing is with.</comment>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>Change</value>
+    <comment>Column header: how much it changed.</comment>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>Standing now</value>
+    <comment>Column header.</comment>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>Bill type {0}</value>
+    <comment>A bill of a type the app does not know. {0} is its number.</comment>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>Market fine</value>
+    <comment>A kind of corporation bill.</comment>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>Office rental</value>
+    <comment>A kind of corporation bill: rent for an office in a station or structure.</comment>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>Broker fee</value>
+    <comment>A kind of corporation bill.</comment>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>War</value>
+    <comment>A kind of corporation bill: the cost of a war declaration.</comment>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>Alliance maintenance</value>
+    <comment>A kind of corporation bill: the upkeep of an alliance.</comment>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>Sovereignty marker</value>
+    <comment>A kind of corporation bill: the upkeep of a sovereignty claim.</comment>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>+{0} more</value>
+    <comment>After the first row of a list on a notification card. {0} is how many more rows the list has.</comment>
+  </data>
+  <data name="NotifHoursOne" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>A number of hours, one. {0} is the number.</comment>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>A number of hours, several. {0} is the number.</comment>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#} hours</value>
+    <comment>A number of hours that is not whole, e.g. 1.5 hours. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0}d</value>
+    <comment>Part of a short time span such as "1d 4h 12m": days. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0}h</value>
+    <comment>Part of a short time span such as "1d 4h 12m": hours. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>Part of a short time span such as "1d 4h 12m": minutes. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0}s</value>
+    <comment>A short time span under a minute: seconds. {0} is the number.</comment>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}: {1}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the amount in ISK.</comment>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{0} at {1}: {2}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the station or structure, {2} the amount in ISK.</comment>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}: {1}, due {2}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the amount in ISK, {2} the date it is due.</comment>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{0} at {1}: {2}, due {3}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the station or structure, {2} the amount in ISK, {3} the date it is due.</comment>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>Bill</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>Billed to</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>Payable to</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>Rented</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>For alliance</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>Reference</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>Second reference</value>
+    <comment>Label of a field in a notification's details.</comment>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip on an item.</comment>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>System {0}</value>
+    <comment>A solar system whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+Open on the map</value>
+    <comment>Tooltip on a solar system. {0} is its security, described.</comment>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>Open on the map</value>
+    <comment>Tooltip on a solar system.</comment>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>Moon {0}</value>
+    <comment>A moon whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>Station {0}</value>
+    <comment>A station whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>Open in NPC Entities</value>
+    <comment>Tooltip on a station.</comment>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0} (name unknown)</value>
+    <comment>A structure whose name the app cannot see. {0} is what kind of structure it is.</comment>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>Structure (name unknown)</value>
+    <comment>A structure whose name and kind the app cannot see.</comment>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>Structure {0}
+Open in the Structure Browser</value>
+    <comment>Tooltip on a structure. {0} is its number.</comment>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>Open in the Structure Browser</value>
+    <comment>Tooltip on a structure.</comment>
+  </data>
+  <data name="NotifOthersOne" xml:space="preserve">
+    <value>+{0} other</value>
+    <comment>On a standing-change card: how many more changed, one. {0} is the number.</comment>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>+{0} others</value>
+    <comment>On a standing-change card: how many more changed, several. {0} is the number.</comment>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0} increased their standing towards you by {1}.</value>
+    <comment>{0} is who, {1} by how much.</comment>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0} increased their standing towards you by {1}, to {2}.</value>
+    <comment>{0} is who, {1} by how much, {2} the standing now.</comment>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0} decreased their standing towards you by {1}.</value>
+    <comment>{0} is who, {1} by how much.</comment>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0} decreased their standing towards you by {1}, to {2}.</value>
+    <comment>{0} is who, {1} by how much, {2} the standing now.</comment>
+  </data>
+  <data name="NotifStandingMoreOne" xml:space="preserve">
+    <value> {0} other standing changed with it.</value>
+    <comment>Follows the sentence above (note the leading space), one. {0} is the number.</comment>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value> {0} other standings changed with it.</value>
+    <comment>Follows the sentence above (note the leading space), several. {0} is the number.</comment>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>All senders</value>
+    <comment>Notification sender filter: every sender.</comment>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Notification sender filter: sent by a corporation.</comment>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Notification sender filter: sent by a character.</comment>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0} ago</value>
+    <comment>How long ago something happened: a notification's age, or "already posted to Slack 3 hours ago". {0} is the time, one unit ("45 seconds") or two ("3 hours and 14 minutes").</comment>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} and {1}</value>
+    <comment>A time in two units, inside TimeAgo: "3 hours and 14 minutes". {0} is the larger unit, {1} the smaller.</comment>
+  </data>
+  <data name="TimeAgoSecondsOne" xml:space="preserve">
+    <value>{0} second</value>
+    <comment>A number of seconds, inside TimeAgo ("1 second ago"), one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} seconds</value>
+    <comment>A number of seconds, inside TimeAgo ("45 seconds ago"), several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>A number of minutes, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>A number of minutes, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoHoursOne" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>A number of hours, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>A number of hours, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoDaysOne" xml:space="preserve">
+    <value>{0} day</value>
+    <comment>A number of days, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} days</value>
+    <comment>A number of days, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
+</root>

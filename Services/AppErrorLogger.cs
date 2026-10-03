@@ -38,7 +38,19 @@ public class AppErrorLogger
     public void Log(string source, string context, string message, string? innerMessage = null)
         => _ = LogAsync(source, context, message, innerMessage);
 
-    public async Task LogAsync(string source, string context, string message, string? innerMessage = null)
+    /// <summary>Something worth a look that did not fail: shown in the log as a warning.</summary>
+    public void Warn(string source, string context, string message, string? details = null)
+        => _ = LogAsync(source, context, message, details, LogSeverity.Warning);
+
+    /// <summary>
+    /// A record of what happened, kept in the log because the log is what stays — not a fault.
+    /// Shown as a note, with <paramref name="details"/> under it rather than as an inner error.
+    /// </summary>
+    public void Note(string source, string context, string message, string? details = null)
+        => _ = LogAsync(source, context, message, details, LogSeverity.Note);
+
+    public async Task LogAsync(string source, string context, string message, string? innerMessage = null,
+        LogSeverity severity = LogSeverity.Error)
     {
         try
         {
@@ -56,6 +68,7 @@ public class AppErrorLogger
                 // does not say which client wrote it sends the search to the wrong machine.
                 HostName     = Environment.MachineName,
                 Headless     = AppRuntime.IsHeadless,
+                Severity     = (int)severity,
             });
             await db.SaveChangesAsync();
         }

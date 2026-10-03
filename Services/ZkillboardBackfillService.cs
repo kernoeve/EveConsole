@@ -2,6 +2,7 @@ using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -56,7 +57,7 @@ public sealed class ZkillboardBackfillService(
     /// pass is about to import far more cheaply.</summary>
     public Task InitialGapFillCompleted => _initialPass.Task;
 
-    private string _statusText = "zKillboard backfill: not started";
+    private string _statusText = DataText.ZkbBackfillNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -162,7 +163,7 @@ public sealed class ZkillboardBackfillService(
         IsImporting     = true;
         ProgressCurrent = 0;
         ProgressTotal   = Math.Max(1, days);
-        ProgressText    = "Starting…";
+        ProgressText    = DataText.ZkbBackfillStarting;
 
         try
         {
@@ -191,19 +192,25 @@ public sealed class ZkillboardBackfillService(
 
                 var date = startDate.AddDays(i);
                 ProgressCurrent = i + 1;
-                ProgressText    = $"Day {i + 1:N0} of {days:N0} — {date:yyyy-MM-dd}";
+                ProgressText    = string.Format(DataText.ZkbBackfillDay, i + 1, days, date);
 
                 imported += await ImportDayAsync(db, date, charIds, corpIds, known, ct);
             }
 
             StatusText = ct.IsCancellationRequested
-                ? $"zKillboard backfill: cancelled after {ProgressCurrent:N0} day(s), {imported:N0} kill(s)"
-                : $"zKillboard backfill: imported {imported:N0} kill(s) across {days:N0} day(s)";
+                ? string.Format(DataText.ZkbBackfillCancelled, ProgressCurrent, imported)
+                : string.Format(DataText.ZkbBackfillImported, imported, days);
+            ProgressText = StatusText;
+        }
+        catch (ZkillboardApiClient.R2Z2RefusedException ex)
+        {
+            // Logged once by the API client, when the refusals began.
+            StatusText   = string.Format(DataText.ZkbBackfillStopped, ProgressText, ex.Message);
             ProgressText = StatusText;
         }
         catch (Exception ex)
         {
-            StatusText   = $"zKillboard backfill: failed — {Truncate(ex.Message)}";
+            StatusText   = string.Format(DataText.ZkbBackfillFailed, Truncate(ex.Message));
             ProgressText = StatusText;
             errorLogger.Log(nameof(ZkillboardBackfillService), nameof(BackfillAsync), ex);
         }
@@ -263,19 +270,26 @@ public sealed class ZkillboardBackfillService(
             while (day <= lastComplete && !localCt.IsCancellationRequested)
             {
                 ProgressCurrent++;
-                ProgressText = $"Gap-fill {ProgressCurrent:N0} of {totalDays:N0} — {day:yyyy-MM-dd}";
+                ProgressText = string.Format(DataText.ZkbGapFillDay, ProgressCurrent, totalDays, day);
                 imported += await ImportDayAsync(db, day, charIds, corpIds, known, localCt);
                 day = day.AddDays(1);
             }
 
             StatusText = localCt.IsCancellationRequested
-                ? $"zKillboard gap-fill: cancelled, caught up through {settings.LastFullDay:yyyy-MM-dd}"
-                : $"zKillboard gap-fill: caught up through {settings.LastFullDay:yyyy-MM-dd}, {imported:N0} kill(s)";
+                ? string.Format(DataText.ZkbGapFillCancelled, settings.LastFullDay)
+                : string.Format(DataText.ZkbGapFillDone, settings.LastFullDay, imported);
+            ProgressText = StatusText;
+        }
+        catch (ZkillboardApiClient.R2Z2RefusedException ex)
+        {
+            // Logged once by the API client, when the refusals began; the next hourly pass
+            // takes up from the watermark, which only a fetched day moves.
+            StatusText   = string.Format(DataText.ZkbGapFillWaiting, settings.LastFullDay, ex.Message);
             ProgressText = StatusText;
         }
         catch (Exception ex)
         {
-            StatusText = $"zKillboard gap-fill: failed — {Truncate(ex.Message)}";
+            StatusText = string.Format(DataText.ZkbGapFillFailed, Truncate(ex.Message));
             errorLogger.Log(nameof(ZkillboardBackfillService), nameof(RunGapFillAsync), ex);
         }
         finally

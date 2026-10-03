@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -21,7 +22,7 @@ public class StandingProjectGenerator(
     WorklistCorpAltService          corpAlts) : IWorklistGenerator
 {
     public string Id          => "standing_projects";
-    public string DisplayName => "Standing Projects";
+    public string DisplayName => WorklistText.SourceStandingProjects;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -48,7 +49,7 @@ public class StandingProjectGenerator(
 
             altMap.TryGetValue(corpId, out var alt);
             var blocked  = alt is null;
-            var corpName = corpNames.GetValueOrDefault(corpId, $"Corp {corpId}");
+            var corpName = corpNames.GetValueOrDefault(corpId, string.Format(WorklistText.CorpWithId, corpId));
 
             foreach (var r in rows)
             {
@@ -65,7 +66,7 @@ public class StandingProjectGenerator(
                     Title         = title,
                     Detail        = $"{corpName} · {detail}",
                     Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                    BlockedBy     = blocked ? "No character assigned to this corporation" : "",
+                    BlockedBy     = blocked ? WorklistText.BlockedNoCharacterForCorp : "",
                     CharacterId   = alt?.CharacterId   ?? 0,
                     CharacterName = alt?.CharacterName ?? "",
                     TypeId        = r.ItemTypeId ?? 0,
@@ -95,7 +96,9 @@ public class StandingProjectGenerator(
     /// </summary>
     private static (string? Title, string Detail) Describe(StandingProjectGridRow r)
     {
-        var deliver = r.TypeDisplay == "Deliver Item";
+        // ⚠️ By the stored type, never TypeDisplay: that is translated, and a delivery read as
+        // "Deliver Item" would have been taken for destroy-NPC in any other language.
+        var deliver = r.ProjectType == StandingProjectReport.DeliverItem;
 
         // ⚠️ Two scopes reach here as different shapes, and the difference matters to the reader.
         // A definition naming one system carries it in TargetDisplay with no dest. An ADM rule
@@ -103,40 +106,51 @@ public class StandingProjectGenerator(
         // so a system can appear because somebody chose it, or because its ADM dropped under a
         // threshold, and only the second kind goes away again when the ADM recovers.
         var byRule = r.DestDisplay.Length > 0;
-        var place  = byRule ? r.DestDisplay : r.TargetDisplay;
+
+        // ⚠️ The row's names are English — the same row feeds the posted report — so its SDE
+        // names are put in the interface language here, where they become the task's text, the
+        // way the Corp Activity grid words the same row: the item of a delivery, and a system,
+        // which a row names by id in ExpandedSystemId. An ADM or alliance rule's label is a
+        // sentence around a region or constellation the row carries no id for, so it comes
+        // worded already, in TargetShown, by CorpActivityService, which has the id. A delivery's
+        // destination is a station or a structure, by id in StationId: an NPC station is named as
+        // the screen names it, and a structure as its owner named it.
+        var target = r.TargetShown.Length > 0 ? r.TargetShown
+                   : r.ItemTypeId is int item ? SdeNames.Type(item, r.TargetDisplay)
+                   : !byRule && r.ExpandedSystemId is int named ? SdeNames.SolarSystem(named, r.TargetDisplay)
+                   : r.TargetDisplay;
+        var dest   = deliver && r.StationId is long station ? SdeNames.Location(station, r.DestDisplay)
+                   : !deliver && byRule && r.ExpandedSystemId is int system ? SdeNames.SolarSystem(system, r.DestDisplay)
+                   : r.DestDisplay;
+        var place  = byRule ? dest : target;
 
         return r.MatchStatus switch
         {
             "not_active" when deliver => (
-                $"{r.TypeDisplay} — {r.TargetDisplay} to "
-              + (r.DestDisplay.Length > 0 ? r.DestDisplay : "any corp office"),
-                "No active project matches this definition."),
+                r.DestDisplay.Length > 0
+                    ? string.Format(WorklistText.ProjectDeliverTo, r.TypeDisplay, target, dest)
+                    : string.Format(WorklistText.ProjectDeliverToAnyOffice, r.TypeDisplay, target),
+                WorklistText.ProjectNotActive),
 
             "not_active" => (
                 $"{r.TypeDisplay} — {place}"
-              + (byRule ? $" — {r.TargetDisplay}" : ""),
-                "No active project matches this definition."
-              + (byRule
-                  ? " This system qualifies under an ADM rule, so it drops off the list on its "
-                  + "own once the ADM recovers."
-                  : " This system is named by the definition itself.")),
+              + (byRule ? $" — {target}" : ""),
+                byRule ? WorklistText.ProjectNotActiveByRule : WorklistText.ProjectNotActiveNamed),
 
             // ⚠️ Not a create. There is nothing to create a project against, and saying "create"
             // would send somebody to try. Three separate reasons reach here and they want three
             // different answers — one is a fault, one is a misconfiguration, one is good news.
             "no_adm" => (
-                $"Check ADM data — {r.TypeDisplay}: {r.TargetDisplay}",
-                "Sovereignty data could not be read, so no system can be measured against the "
-              + "threshold. This is a fetch that failed, not a scope that is empty."),
+                string.Format(WorklistText.ProjectCheckAdm, r.TypeDisplay, target),
+                WorklistText.ProjectCheckAdmDetail),
 
             "no_systems" => (
-                $"Check scope — {r.TypeDisplay}: {r.TargetDisplay}",
-                "The scope expands to no systems at all, so nothing can be created for it."),
+                string.Format(WorklistText.ProjectCheckScope, r.TypeDisplay, target),
+                WorklistText.ProjectCheckScopeDetail),
 
             "all_healthy" => (
-                $"{r.TypeDisplay} — nothing to raise in {r.TargetDisplay}",
-                "Every system in scope is at or above the threshold, so the rule selects nothing "
-              + "today. It reappears on its own if an ADM falls."),
+                string.Format(WorklistText.ProjectNothingToRaise, r.TypeDisplay, target),
+                WorklistText.ProjectNothingToRaiseDetail),
 
 
             _ => (null, ""),

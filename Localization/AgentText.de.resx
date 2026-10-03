@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Markdown kopieren</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>Auswahl kopieren</value>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>Kopiert die ausgewählten Zeilen mit Spaltenköpfen als tabulatorgetrennten Text – direkt in eine Tabellenkalkulation einfügbar. Ctrl+C bewirkt dasselbe.</value>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>Alles kopieren</value>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>Als CSV speichern</value>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>KI-Assistent</value>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>Lautstärke der Stimme (unabhängig von der Systemlautstärke)</value>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>Unterhaltung leeren</value>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>Panel schließen</value>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>– früherer Kontext zusammengefasst –</value>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>Zum Sprechen gedrückt halten, zum Senden loslassen. Oder das globale Tastenkürzel gedrückt halten.</value>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>Stimme von {0} stummschalten / wieder einschalten</value>
+  </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>{0} fragen…</value>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>Die Mikrofonaufnahme konnte nicht gestartet werden. Prüfen Sie Ihr Mikrofon unter Einstellungen → {0}.</value>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>Aufnahme…</value>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>Wird transkribiert…</value>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>Keine Sprache aufgenommen – halten Sie die Taste gedrückt, während Sie sprechen.</value>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>Keine Sprache erkannt – versuchen Sie, etwas länger zu sprechen.</value>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>Transkription fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>Es ist kein Modell eingerichtet. Fügen Sie unter Einstellungen → {0} eines hinzu, mit seinem Schlüssel oder der Adresse seines Servers.</value>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>Der KI-Assistent ist deaktiviert. Aktivieren Sie ihn unter Einstellungen → {0}.</value>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>Kontext wird geordnet…</value>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>Denkt nach…</value>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>Sieht nach…</value>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>Liest die Datenbank…</value>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>Prüft das Schema…</value>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>Ruft den Besitz ab…</value>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>Ruft Industrieaufträge ab…</value>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>Ruft den Charakter ab…</value>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>Prüft Marktpreise…</value>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>Durchsucht Gegenstände…</value>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>Sieht sich den Bildschirm an…</value>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>Richtet den Alarm ein…</value>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>Arbeitet…</value>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>{0:N0} Zeile(n) mit Spaltenköpfen kopiert.</value>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>{0:N0} Zeile(n) in {1} gespeichert</value>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>Dokument als Markdown kopiert.</value>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>Gespeichert unter {0}</value>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>Dokument speichern</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>Alle Dateien</value>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>Tabelle speichern</value>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>Dieses Dokument konnte nicht dargestellt werden: {0}</value>
+  </data>
+  <data name="GridRowsOne" xml:space="preserve">
+    <value>{0:N0} Zeile</value>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0} Zeilen</value>
+  </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>keine Tool-Aufrufe</value>
+  </data>
+  <data name="ToolCallsOne" xml:space="preserve">
+    <value>{0} Tool-Aufruf: {1}</value>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>{0} Tool-Aufrufe: {1}</value>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>Alarm</value>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>Stimmwechsel</value>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>Modellwechsel</value>
+  </data>
+</root>

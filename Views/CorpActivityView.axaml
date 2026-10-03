@@ -1,5 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:m="clr-namespace:EveConsole.Models"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
@@ -49,7 +50,7 @@
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,12,Auto,*,Auto">
 
-        <TextBlock Grid.Column="0" Text="Corporation:" FontSize="11"
+        <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.CorporationLabel}" FontSize="11"
                    Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
 
         <ComboBox Grid.Column="2"
@@ -72,7 +73,7 @@
 
         <Button Grid.Column="4"
                 Command="{Binding RefreshCommand}"
-                Content="Refresh"
+                Content="{x:Static loc:CorpText.Refresh}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" />
@@ -101,7 +102,7 @@
       </TabControl.Styles>
 
       <!-- ══ Activity 24h ═══════════════════════════════════════════ -->
-      <TabItem Header="ACTIVITY (24H)">
+      <TabItem Header="{x:Static loc:CorpText.TabActivity24h}">
         <Grid RowDefinitions="Auto,Auto,Auto,*">
 
           <!-- Summary bar -->
@@ -109,15 +110,15 @@
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <StackPanel Orientation="Horizontal" Spacing="24">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="PLAYERS ACTIVE:" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:CorpText.PlayersActiveLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding Activity24hPlayerCountText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="INCOME:" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:CorpText.IncomeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding Activity24hIncomeText}" FontSize="11" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="EXPENSES:" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:CorpText.ExpensesLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding Activity24hExpenseText}" FontSize="11" Foreground="{DynamicResource BadBrush}" VerticalAlignment="Center"/>
               </StackPanel>
             </StackPanel>
@@ -130,7 +131,7 @@
             <Grid Grid.Column="0" RowDefinitions="Auto,*">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="8 5 8 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-                <TextBlock Text="RATTING" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"/>
+                <TextBlock Text="{x:Static loc:CorpText.RattingLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"/>
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hRatters}"
                         AutoGenerateColumns="False" IsReadOnly="True"
@@ -147,12 +148,12 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -162,7 +163,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColValue}"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -173,7 +174,7 @@
             <Grid Grid.Column="2" RowDefinitions="Auto,*">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="8 5 8 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-                <TextBlock Text="INDUSTRY" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="{x:Static loc:CorpText.IndustryLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hIndustry}"
                         AutoGenerateColumns="False" IsReadOnly="True"
@@ -190,12 +191,12 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -205,7 +206,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColValue}"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -216,7 +217,7 @@
             <Grid Grid.Column="4" RowDefinitions="Auto,*">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="8 5 8 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-                <TextBlock Text="MINING" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"/>
+                <TextBlock Text="{x:Static loc:CorpText.MiningLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"/>
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Activity24hMiners}"
                         AutoGenerateColumns="False" IsReadOnly="True"
@@ -233,12 +234,12 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -248,7 +249,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="VALUE"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColValue}"     Binding="{Binding ValueText}" SortMemberPath="ValueRaw" Width="90"  />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -258,7 +259,7 @@
           <!-- Kills/Losses header -->
           <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
-            <TextBlock Text="RECENT KILLS &amp; LOSSES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}"/>
+            <TextBlock Text="{x:Static loc:CorpText.RecentKillsLossesLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}"/>
           </Border>
 
           <!-- Killmail list (zkillboard style) -->
@@ -282,7 +283,9 @@
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:Activity24hKillRowVm">
                 <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
-                  <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+                  <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                       nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+                  <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4 4 4 4">
 
                     <!-- Date / Time / ISK -->
                     <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
@@ -305,12 +308,12 @@
                            Margin="0 0 6 0" />
 
                     <!-- System / Constellation / Region -->
-                    <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                      <StackPanel Orientation="Horizontal" Spacing="3">
-                        <TextBlock Text="{Binding SecurityText}"
+                    <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                      <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0"
                                    FontSize="10" FontWeight="SemiBold"
                                    Foreground="{Binding SecurityColor}" />
-                        <Panel>
+                        <Panel Grid.Column="1">
                           <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
                             <TextBlock Text="{Binding SystemName}" Classes="linktext"
                                        FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -321,7 +324,7 @@
                                      TextTrimming="CharacterEllipsis" />
                         </Panel>
 
-                      </StackPanel>
+                      </Grid>
                       <TextBlock Text="{Binding ConstellationName}"
                                  FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                  TextTrimming="CharacterEllipsis"
@@ -348,7 +351,7 @@
                              VerticalAlignment="Center"
                              ToolTip.Tip="{Binding VictimAlliance}"
                              Margin="0 0 4 0" />
-                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                         <Panel>
                           <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -385,7 +388,7 @@
                              VerticalAlignment="Center"
                              ToolTip.Tip="{Binding FbAlliance}"
                              Margin="0 0 4 0" />
-                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                         <Panel>
                           <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -423,7 +426,7 @@
       </TabItem>
 
       <!-- ══ Monthly Activity ═══════════════════════════════════════ -->
-      <TabItem Header="MONTHLY ACTIVITY">
+      <TabItem Header="{x:Static loc:CorpText.TabMonthlyActivity}">
         <Grid RowDefinitions="*,Auto" Margin="0">
 
           <!-- Activity grid -->
@@ -449,17 +452,17 @@
               </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
-              <DataGridTextColumn Header="MONTH"         Binding="{Binding Month}"            Width="90"  />
-              <DataGridTextColumn Header="TOTAL INCOME"  Binding="{Binding TotalIncomeText}"  SortMemberPath="TotalIncomeRaw"   Width="110" />
-              <DataGridTextColumn Header="TOTAL EXPENSE" Binding="{Binding TotalExpenseText}" SortMemberPath="TotalExpenseRaw"  Width="120" />
-              <DataGridTextColumn Header="RATTING TAX"   Binding="{Binding RattingTaxText}"   SortMemberPath="RattingTaxRaw"    Width="105" />
-              <DataGridTextColumn Header="INDUSTRY TAX"  Binding="{Binding IndustryTaxText}"  SortMemberPath="IndustryTaxRaw"   Width="105" />
-              <DataGridTextColumn Header="PROJ PAYOUTS"  Binding="{Binding ProjPayoutsText}"  SortMemberPath="ProjPayoutsRaw"   Width="110" />
-              <DataGridTextColumn Header="MINED VALUE"   Binding="{Binding MinedValueText}"   SortMemberPath="MinedValueRaw"    Width="110" />
-              <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
-              <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
-              <DataGridTextColumn Header="ISK EFF"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
-              <DataGridTextColumn Header="PLAYERS ACTIVE" Binding="{Binding PlayersActiveText}" SortMemberPath="PlayersActiveRaw" Width="110" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColMonth}"         Binding="{Binding Month}"            Width="90"  />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColTotalIncome}"  Binding="{Binding TotalIncomeText}"  SortMemberPath="TotalIncomeRaw"   Width="110" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColTotalExpense}" Binding="{Binding TotalExpenseText}" SortMemberPath="TotalExpenseRaw"  Width="120" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRattingTax}"   Binding="{Binding RattingTaxText}"   SortMemberPath="RattingTaxRaw"    Width="105" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColIndustryTax}"  Binding="{Binding IndustryTaxText}"  SortMemberPath="IndustryTaxRaw"   Width="105" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColProjPayouts}"  Binding="{Binding ProjPayoutsText}"  SortMemberPath="ProjPayoutsRaw"   Width="110" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColMinedValue}"   Binding="{Binding MinedValueText}"   SortMemberPath="MinedValueRaw"    Width="110" />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColKills}"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColLosses}"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColIskEff}"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColPlayersActive}" Binding="{Binding PlayersActiveText}" SortMemberPath="PlayersActiveRaw" Width="110" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -472,7 +475,7 @@
             <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="ISK TRENDS (billions)" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="{x:Static loc:CorpText.IskTrendsBillions}" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"
@@ -490,7 +493,7 @@
             <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="KILLS / LOSSES (ISK efficiency right)" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="{x:Static loc:CorpText.KillsLossesIskEfficiencyRight}" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"
@@ -508,7 +511,7 @@
             <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="PLAYERS ACTIVE" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="{x:Static loc:CorpText.PlayersActiveLabel2}" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"
@@ -526,7 +529,7 @@
             <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="MINING (reprocessed value)" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="{x:Static loc:CorpText.MiningReprocessedValue}" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"
@@ -546,17 +549,17 @@
       </TabItem>
 
       <!-- ══ Income ══════════════════════════════════════════════════ -->
-      <TabItem Header="INCOME">
+      <TabItem Header="{x:Static loc:CorpText.TabIncome}">
         <Grid RowDefinitions="Auto,*">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="INCOME BY TYPE"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.IncomeByTypeLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -580,7 +583,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,300">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding IncomeTypeRows}"
@@ -597,14 +600,14 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
-                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCount}"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="INCOME BY TYPE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.IncomeByTypeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding IncomeSeries}" XAxes="{Binding IncomeXAxes}" YAxes="{Binding IncomeYAxes}"
@@ -612,20 +615,20 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
              <Grid RowDefinitions="Auto,*">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="6 4" Margin="0 0 0 2">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                  <TextBlock Text="TYPE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{x:Static loc:CorpText.TypeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox ItemsSource="{Binding IncomeTypeChoices}"
                             SelectedItem="{Binding SelectedIncomeType}"
                             MinWidth="200" FontSize="11" />
-                  <TextBlock Text="NAME" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{x:Static loc:CorpText.NameLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" Margin="8 0 0 0" />
-                  <TextBox Text="{Binding IncomeNameFilter}" Watermark="contains…"
+                  <TextBox Text="{Binding IncomeNameFilter}" Watermark="{x:Static loc:CorpText.HintContains}"
                            MinWidth="180" FontSize="11" />
-                  <TextBlock Text="{Binding IncomeDetailCount, StringFormat='{}{0:N0} rows'}"
+                  <TextBlock Text="{Binding IncomeDetailCount, StringFormat={x:Static loc:CorpText.FmtRows}}"
                              FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"
                              Margin="8 0 0 0" />
                 </StackPanel>
@@ -647,15 +650,15 @@
                   <!-- Binds the text, sorts the instant: two string columns could not be put in
                        chronological order, because the time sorted 23:59 above 00:01
                        whatever the day. -->
-                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDateTime}" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
-                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -665,8 +668,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
-                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReason}" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
               </Grid>
@@ -677,17 +680,17 @@
       </TabItem>
 
       <!-- ══ Expense ══════════════════════════════════════════════════ -->
-      <TabItem Header="EXPENSE">
+      <TabItem Header="{x:Static loc:CorpText.TabExpense}">
         <Grid RowDefinitions="Auto,*" Margin="0">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="EXPENSES BY TYPE"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.ExpensesByTypeLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -711,7 +714,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,300">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding ExpenseTypeRows}"
@@ -728,14 +731,14 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="*" />
-                    <DataGridTextColumn Header="COUNT"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="*" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCount}"  Binding="{Binding CountText}"  SortMemberPath="CountRaw"  Width="75" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="120" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="EXPENSES BY TYPE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.ExpensesByTypeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding ExpenseSeries}" XAxes="{Binding ExpenseXAxes}" YAxes="{Binding ExpenseYAxes}"
@@ -743,20 +746,20 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
              <Grid RowDefinitions="Auto,*">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="6 4" Margin="0 0 0 2">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                  <TextBlock Text="TYPE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{x:Static loc:CorpText.TypeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox ItemsSource="{Binding ExpenseTypeChoices}"
                             SelectedItem="{Binding SelectedExpenseType}"
                             MinWidth="200" FontSize="11" />
-                  <TextBlock Text="NAME" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{x:Static loc:CorpText.NameLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" Margin="8 0 0 0" />
-                  <TextBox Text="{Binding ExpenseNameFilter}" Watermark="contains…"
+                  <TextBox Text="{Binding ExpenseNameFilter}" Watermark="{x:Static loc:CorpText.HintContains}"
                            MinWidth="180" FontSize="11" />
-                  <TextBlock Text="{Binding ExpenseDetailCount, StringFormat='{}{0:N0} rows'}"
+                  <TextBlock Text="{Binding ExpenseDetailCount, StringFormat={x:Static loc:CorpText.FmtRows}}"
                              FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"
                              Margin="8 0 0 0" />
                 </StackPanel>
@@ -778,15 +781,15 @@
                   <!-- Binds the text, sorts the instant: two string columns could not be put in
                        chronological order, because the time sorted 23:59 above 00:01
                        whatever the day. -->
-                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDateTime}" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
-                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -796,8 +799,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
-                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReason}" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
               </Grid>
@@ -808,17 +811,17 @@
       </TabItem>
 
       <!-- ══ Ratting Taxes ════════════════════════════════════════════ -->
-      <TabItem Header="RATTING TAXES">
+      <TabItem Header="{x:Static loc:CorpText.TabRattingTaxes}">
         <Grid RowDefinitions="Auto,*" Margin="0">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="RATTING TAX"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.RattingTaxLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -842,7 +845,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,230">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding RattingTaxRows}"
@@ -859,12 +862,12 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -874,12 +877,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="DAILY RATTING TAX" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.DailyRattingTaxLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding RattingDailySeries}" XAxes="{Binding RattingDailyXAxes}" YAxes="{Binding RattingDailyYAxes}"
@@ -887,7 +890,7 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
               <DataGrid ItemsSource="{Binding RattingDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}"
@@ -905,15 +908,15 @@
                   <!-- Binds the text, sorts the instant: two string columns could not be put in
                        chronological order, because the time sorted 23:59 above 00:01
                        whatever the day. -->
-                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDateTime}" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
-                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -923,8 +926,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
-                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReason}" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -934,17 +937,17 @@
       </TabItem>
 
       <!-- ══ Industry Taxes ════════════════════════════════════════════ -->
-      <TabItem Header="INDUSTRY TAXES">
+      <TabItem Header="{x:Static loc:CorpText.TabIndustryTaxes}">
         <Grid RowDefinitions="Auto,*" Margin="0">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="INDUSTRY TAX"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.IndustryTaxLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -968,7 +971,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,230">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding IndustryTaxRows}"
@@ -985,12 +988,12 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1000,12 +1003,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="DAILY INDUSTRY TAX" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.DailyIndustryTaxLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding IndustryDailySeries}" XAxes="{Binding IndustryDailyXAxes}" YAxes="{Binding IndustryDailyYAxes}"
@@ -1013,7 +1016,7 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
               <DataGrid ItemsSource="{Binding IndustryDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}"
@@ -1031,15 +1034,15 @@
                   <!-- Binds the text, sorts the instant: two string columns could not be put in
                        chronological order, because the time sorted 23:59 above 00:01
                        whatever the day. -->
-                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDateTime}" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
-                  <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"   Binding="{Binding TypeName}"   Width="160" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1049,8 +1052,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
-                  <DataGridTextColumn Header="REASON" Binding="{Binding ReasonText}" Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}" Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReason}" Binding="{Binding ReasonText}" Width="*" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -1060,17 +1063,17 @@
       </TabItem>
 
       <!-- ══ Donations ══════════════════════════════════════════════════ -->
-      <TabItem Header="DONATIONS">
+      <TabItem Header="{x:Static loc:CorpText.TabDonations}">
         <Grid RowDefinitions="Auto,*" Margin="0">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="DONATIONS"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.DonationsLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -1094,7 +1097,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,230">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding DonationRows}"
@@ -1111,12 +1114,12 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"       Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowEntity" IsVisible="{Binding HasEntityLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1126,12 +1129,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="DONATED" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColDonated}" Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="DAILY DONATIONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.DailyDonationsLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding DonationDailySeries}" XAxes="{Binding DonationDailyXAxes}" YAxes="{Binding DonationDailyYAxes}"
@@ -1139,7 +1142,7 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
               <DataGrid ItemsSource="{Binding DonationDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}"
@@ -1157,15 +1160,15 @@
                   <!-- Binds the text, sorts the instant: two string columns could not be put in
                        chronological order, because the time sorted 23:59 above 00:01
                        whatever the day. -->
-                  <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDateTime}" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
-                  <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
-                  <DataGridTemplateColumn Header="DONOR" SortMemberPath="Name" Width="160" ClipboardContentBinding="{Binding Name}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"    Binding="{Binding TypeName}"   Width="120" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColDonor}" SortMemberPath="Name" Width="160" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowParty" IsVisible="{Binding HasPartyLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1175,8 +1178,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="AMOUNT"  Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
-                  <DataGridTextColumn Header="REASON"  Binding="{Binding ReasonText}" Width="*"   />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColAmount}"  Binding="{Binding AmountText}" SortMemberPath="AmountRaw" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReason}"  Binding="{Binding ReasonText}" Width="*"   />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -1186,17 +1189,17 @@
       </TabItem>
 
       <!-- ══ Mining ══════════════════════════════════════════════════ -->
-      <TabItem Header="MINING">
+      <TabItem Header="{x:Static loc:CorpText.TabMining}">
         <Grid RowDefinitions="Auto,*">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="MINING LEDGER"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.MiningLedgerLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -1220,9 +1223,9 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid>
-                <TextBlock Text="No mining data for this period. If a step failed, the status line above says so."
+                <TextBlock Text="{x:Static loc:CorpText.NoMiningDataForNote}"
                            FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                            IsVisible="{Binding !HasMiningData}"
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -1240,13 +1243,13 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColDate}"               Binding="{Binding Date}"                  Width="90"  />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1256,12 +1259,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColOreType}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1271,14 +1274,14 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
-                    <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColQuantity}"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColReprocessedValue}"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
               <DataGrid ItemsSource="{Binding MiningDetailRows}"
                         AutoGenerateColumns="False" IsReadOnly="True"
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}"
@@ -1293,13 +1296,13 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColDate}"               Binding="{Binding Date}"                  Width="90"  />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1309,12 +1312,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColOreType}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheItemBrowser}">
                             <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1324,8 +1327,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="QUANTITY"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
-                  <DataGridTextColumn Header="REPROCESSED VALUE"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColQuantity}"           Binding="{Binding QuantityText}"          Width="100" SortMemberPath="Quantity" />
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColReprocessedValue}"  Binding="{Binding ReprocessedValueText}"  Width="130" SortMemberPath="ReprocessedValue" />
                 </DataGrid.Columns>
               </DataGrid>
             </TabItem>
@@ -1335,17 +1338,17 @@
       </TabItem>
 
       <!-- ══ Killmails ═══════════════════════════════════════════════ -->
-      <TabItem Header="KILLMAILS">
+      <TabItem Header="{x:Static loc:CorpText.TabKillmails}">
         <Grid RowDefinitions="Auto,*" Margin="0">
 
           <!-- Period picker (shared) -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
             <Grid ColumnDefinitions="*,Auto,8,Auto">
-              <TextBlock Grid.Column="0" Text="KILLMAILS"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.KillmailsLabel}"
                          FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}"
                          VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="Period:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.PeriodLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding TaxPeriods}"
@@ -1369,7 +1372,7 @@
               </Style>
             </TabControl.Styles>
 
-            <TabItem Header="SUMMARY">
+            <TabItem Header="{x:Static loc:CorpText.TabSummary}">
               <Grid RowDefinitions="*,Auto,230">
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding KillCharRows}"
@@ -1386,12 +1389,12 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCharacter}" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:CorpKillCharRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1401,13 +1404,13 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="KILLS"     Binding="{Binding KillsText}"     SortMemberPath="KillsRaw"  Width="80" />
-                    <DataGridTextColumn Header="LOSSES"    Binding="{Binding LossesText}"    SortMemberPath="LossesRaw" Width="80" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColKills}"     Binding="{Binding KillsText}"     SortMemberPath="KillsRaw"  Width="80" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColLosses}"    Binding="{Binding LossesText}"    SortMemberPath="LossesRaw" Width="80" />
                   </DataGrid.Columns>
                 </DataGrid>
                 <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                  <TextBlock Text="DAILY KILLS / LOSSES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}" />
+                  <TextBlock Text="{x:Static loc:CorpText.DailyKillsLossesLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}" />
                 </Border>
                 <lvc:CartesianChart Grid.Row="2"
                                     Series="{Binding KillDailySeries}" XAxes="{Binding KillDailyXAxes}" YAxes="{Binding KillDailyYAxes}"
@@ -1415,7 +1418,7 @@
               </Grid>
             </TabItem>
 
-            <TabItem Header="DETAIL">
+            <TabItem Header="{x:Static loc:CorpText.TabDetail}">
               <!-- Double-click opens the kill in the Killmail tool, the same as the 24H list on
                    the Activity tab. Taken off the tapped row rather than off SelectedItem, so it
                    works wherever the pointer lands — including on a name that is itself a link,
@@ -1439,7 +1442,7 @@
                 <ListBox.ItemTemplate>
                   <DataTemplate DataType="vm:Activity24hKillRowVm">
                     <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
-                      <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+                      <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4 4 4 4">
                         <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                           <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
                           <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
@@ -1448,10 +1451,10 @@
                         </StackPanel>
                         <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
                                Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
-                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                          <StackPanel Orientation="Horizontal" Spacing="3">
-                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
-                            <Panel>
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                          <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
+                            <Panel Grid.Column="1">
                               <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
                                 <TextBlock Text="{Binding SystemName}" Classes="linktext"
                                            FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1461,7 +1464,7 @@
                                          FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                          TextTrimming="CharacterEllipsis" />
                             </Panel>
-                          </StackPanel>
+                          </Grid>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                           <Panel>
@@ -1476,7 +1479,7 @@
                         <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
                           <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                           <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1506,7 +1509,7 @@
                         <Grid Grid.Column="4" ColumnDefinitions="32,*">
                           <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                           <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1545,7 +1548,7 @@
       </TabItem>
 
       <!-- ══ Corp Projects ═══════════════════════════════════════════ -->
-      <TabItem Header="PROJECTS">
+      <TabItem Header="{x:Static loc:CorpText.TabProjects}">
         <Grid x:Name="ProjectsOuterGrid" RowDefinitions="*,4,*">
 
           <!-- ── Top 50%: Active / History / Maintain grids ──────── -->
@@ -1565,7 +1568,7 @@
             </TabControl.Styles>
 
             <!-- Active -->
-            <TabItem Header="ACTIVE">
+            <TabItem Header="{x:Static loc:CorpText.TabActive}">
               <Grid RowDefinitions="Auto,*" Margin="8 4 8 0">
 
                 <!-- Reward summary bar -->
@@ -1575,18 +1578,18 @@
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Margin="0 0 0 4">
                   <StackPanel Orientation="Horizontal" Spacing="24">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                      <TextBlock Text="Total Reward:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Static loc:CorpText.TotalRewardLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                       <TextBlock Text="{Binding ActiveTotalRewardText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                      <TextBlock Text="Remaining:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Static loc:CorpText.RemainingLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                       <TextBlock Text="{Binding ActiveRemainingRewardText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                   </StackPanel>
                 </Border>
 
                 <TextBlock Grid.Row="1" IsVisible="{Binding !HasProjectData}"
-                           Text="No active corp projects."
+                           Text="{x:Static loc:CorpText.NoActiveCorpProjects}"
                            FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
                 <DataGrid Grid.Row="1" ItemsSource="{Binding ActiveProjects}"
@@ -1609,17 +1612,17 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="TYPE"     Binding="{Binding ConfigType}"   Width="130" />
-                    <DataGridTextColumn Header="NAME"     Binding="{Binding Name}"         Width="*"   />
-                    <DataGridTextColumn Header="CAREER"   Binding="{Binding Career}"       Width="100" />
-                    <DataGridTextColumn Header="PROGRESS" Binding="{Binding ProgressText}" Width="170" />
-                    <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
-                  <DataGridTemplateColumn Header="CREATOR" SortMemberPath="CreatorText" Width="120" ClipboardContentBinding="{Binding CreatorText}">
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"     Binding="{Binding ConfigType}"   Width="130" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColName}"     Binding="{Binding Name}"         Width="*"   />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCareer}"   Binding="{Binding Career}"       Width="100" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColProgress}" Binding="{Binding ProgressText}" Width="170" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColRemReward}" Binding="{Binding RemainingRewardText}" Width="95" />
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColCreator}" SortMemberPath="CreatorText" Width="120" ClipboardContentBinding="{Binding CreatorText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:CorpProjectRowVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenProjectCreator" IsVisible="{Binding HasCreatorLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding CreatorText}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1629,17 +1632,17 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="CREATED"  Binding="{Binding CreatedText}"  Width="90"  />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCreated}"  Binding="{Binding CreatedText}"  Width="90"  />
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
             </TabItem>
 
             <!-- History -->
-            <TabItem Header="HISTORY">
+            <TabItem Header="{x:Static loc:CorpText.TabHistory}">
               <Grid Margin="8 4 8 0">
                 <TextBlock IsVisible="{Binding !HasProjectData}"
-                           Text="No project history available."
+                           Text="{x:Static loc:CorpText.NoProjectHistoryAvailable}"
                            FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
                 <DataGrid ItemsSource="{Binding HistoryProjects}"
@@ -1662,38 +1665,38 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="TYPE"      Binding="{Binding ConfigType}"    Width="130" />
-                    <DataGridTextColumn Header="NAME"      Binding="{Binding Name}"          Width="*"   />
-                    <DataGridTextColumn Header="STATE"     Binding="{Binding State}"         Width="80"  />
-                    <DataGridTextColumn Header="CAREER"    Binding="{Binding Career}"        Width="100" />
-                    <DataGridTextColumn Header="CREATED"   Binding="{Binding CreatedText}"   Width="90"  />
-                    <DataGridTextColumn Header="COMPLETED" Binding="{Binding CompletedText}" Width="90"  />
-                    <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"      Binding="{Binding ConfigType}"    Width="130" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColName}"      Binding="{Binding Name}"          Width="*"   />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColState}"     Binding="{Binding State}"         Width="80"  />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCareer}"    Binding="{Binding Career}"        Width="100" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCreated}"   Binding="{Binding CreatedText}"   Width="90"  />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColCompleted}" Binding="{Binding CompletedText}" Width="90"  />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColRemReward}" Binding="{Binding RemainingRewardText}" Width="95" />
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
             </TabItem>
 
             <!-- Maintain -->
-            <TabItem Header="STANDING PROJECTS">
+            <TabItem Header="{x:Static loc:CorpText.TabStandingProjects}">
               <Grid RowDefinitions="Auto,*" Margin="0">
 
                 <!-- Toolbar -->
                 <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="8 5"
                         BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
                   <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="+ Add Project"
+                    <Button Content="{x:Static loc:CorpText.AddProject}"
                             Command="{Binding AddStandingProjectCommand}"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
                             BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                             Padding="12 4" FontSize="11" />
-                    <Button Content="Refresh"
+                    <Button Content="{x:Static loc:CorpText.Refresh}"
                             Command="{Binding RefreshMaintainCommand}"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                             BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
                             Padding="10 4" FontSize="11" />
                     <TextBlock IsVisible="{Binding IsLoadingMaintain}"
-                               Text="Loading…" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                               Text="{x:Static loc:CorpText.Loading}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                VerticalAlignment="Center" Margin="8 0 0 0" />
                   </StackPanel>
                 </Border>
@@ -1713,9 +1716,9 @@
                           Margin="0">
                   <DataGrid.ContextMenu>
                     <ContextMenu>
-                      <MenuItem Header="Clone item"
+                      <MenuItem Header="{x:Static loc:CorpText.MenuCloneItem}"
                                 Command="{Binding CloneStandingProjectCommand}" />
-                      <MenuItem Header="Open Item in Item Browser"
+                      <MenuItem Header="{x:Static loc:CorpText.MenuOpenItemInItemBrowser}"
                                 Command="{Binding OpenMaintainItemInBrowserCommand}"
                                 IsVisible="{Binding SelectedMaintainRow.IsDeliverItem}" />
                     </ContextMenu>
@@ -1730,18 +1733,18 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="TYPE"        Binding="{Binding TypeDisplay}"    Width="95" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColType}"        Binding="{Binding TypeDisplay}"    Width="95" />
                     <!-- The description is the item on a delivery project, so this is the cell
                          that opens the Item Browser; the location beside it is the station the
                          delivery goes to. Projects that name no item stay plain text. -->
-                    <DataGridTemplateColumn Header="DESCRIPTION" SortMemberPath="DescriptionText" Width="*" ClipboardContentBinding="{Binding DescriptionText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColDescription}" SortMemberPath="DescriptionText" Width="*" ClipboardContentBinding="{Binding DescriptionText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <Panel>
                             <Button Click="OnOpenProjectItem" IsVisible="{Binding HasItemLink}"
                                     Background="Transparent" BorderThickness="0" Padding="6 0"
                                     Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    ToolTip.Tip="Open in the Item Browser">
+                                    ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheItemBrowser}">
                               <TextBlock Text="{Binding DescriptionText}" FontSize="10"
                                          VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                             </Button>
@@ -1754,14 +1757,14 @@
                     </DataGridTemplateColumn>
                     <!-- Only a delivery has a destination you can dock at. A destroy-NPC project's
                          location names a region or constellation, so it stays plain text. -->
-                    <DataGridTemplateColumn Header="LOCATION" SortMemberPath="LocationText" Width="130" ClipboardContentBinding="{Binding LocationText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColLocation}" SortMemberPath="LocationText" Width="130" ClipboardContentBinding="{Binding LocationText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <Panel>
                             <Button Click="OnOpenProjectLocation" IsVisible="{Binding HasLocationLink}"
                                     Background="Transparent" BorderThickness="0" Padding="6 0"
                                     Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    ToolTip.Tip="Open this station or structure">
+                                    ToolTip.Tip="{x:Static loc:CorpText.TipOpenThisStationOrStructure}">
                               <TextBlock Text="{Binding LocationText}" FontSize="10"
                                          VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                             </Button>
@@ -1772,7 +1775,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="PROJECT STATUS" Width="200" ClipboardContentBinding="{Binding ProjectStatusText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColProjectStatus}" Width="200" ClipboardContentBinding="{Binding ProjectStatusText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <TextBlock Text="{Binding ProjectStatusText}"
@@ -1782,7 +1785,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="REMAINING" Width="90" ClipboardContentBinding="{Binding RemainingText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColRemaining}" Width="90" ClipboardContentBinding="{Binding RemainingText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
@@ -1794,7 +1797,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="REM. %" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColRem}" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
@@ -1803,19 +1806,19 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding RemainingPayoutText}" Width="110"
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColPayout}"      Binding="{Binding RemainingPayoutText}" Width="110"
                                         CellStyleClasses="num" />
                     <DataGridTemplateColumn Header="" Width="120" IsReadOnly="True">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <StackPanel Orientation="Horizontal" Spacing="6"
                                       VerticalAlignment="Center" Margin="4 0">
-                            <Button Content="Edit"
+                            <Button Content="{x:Static loc:CorpText.Edit}"
                                     Command="{Binding EditCommand}"
                                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                                     BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                                     Padding="8 2" FontSize="10" />
-                            <Button Content="Delete"
+                            <Button Content="{x:Static loc:CorpText.Delete}"
                                     Command="{Binding DeleteCommand}"
                                     Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                                     BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
@@ -1830,7 +1833,7 @@
                 <!-- Empty state -->
                 <TextBlock Grid.Row="1"
                            IsVisible="{Binding HasNoStandingProjects}"
-                           Text="No standing projects defined. Click '+ Add Project' to create one."
+                           Text="{x:Static loc:CorpText.NoStandingProjectsDefinedNote}"
                            FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
 
@@ -1848,7 +1851,7 @@
 
             <!-- Placeholder -->
             <TextBlock IsVisible="{Binding !HasSelectedProject}"
-                       Text="Select a project above to view details."
+                       Text="{x:Static loc:CorpText.SelectAProjectAboveNote}"
                        FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                        VerticalAlignment="Center" HorizontalAlignment="Center" />
 
@@ -1868,7 +1871,7 @@
               </TabControl.Styles>
 
               <!-- Tab 1: Details -->
-              <TabItem Header="DETAILS">
+              <TabItem Header="{x:Static loc:CorpText.TabDetails}">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto"
                               Margin="8 4">
@@ -1896,7 +1899,7 @@
                             BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             Padding="8 6" Margin="0 8 0 0">
                       <StackPanel Spacing="0">
-                        <TextBlock Text="CONFIGURATION"
+                        <TextBlock Text="{x:Static loc:CorpText.ConfigurationLabel}"
                                    FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}"
                                    Margin="0 0 0 4" />
                         <ItemsControl ItemsSource="{Binding ProjectConfigFields}">
@@ -1921,7 +1924,7 @@
               </TabItem>
 
               <!-- Tab 2: Contributors -->
-              <TabItem Header="CONTRIBUTORS">
+              <TabItem Header="{x:Static loc:CorpText.TabContributors}">
                 <DataGrid ItemsSource="{Binding ProjectContributors}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
@@ -1942,12 +1945,12 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"           Binding="{Binding Rank}"          Width="36"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName}" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ProjectContributorVm">
                         <Panel>
                           <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                  ToolTip.Tip="Open in the entity browser">
+                                  ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                             <TextBlock Text="{Binding CharacterName}" Classes="linktext" FontSize="10"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
@@ -1957,9 +1960,9 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="CONTRIBUTED" Binding="{Binding Contributed}"   Width="100" />
-                    <DataGridTextColumn Header="% OF TARGET" Binding="{Binding PercentText}"   Width="80"  />
-                    <DataGridTextColumn Header="PAYOUT"      Binding="{Binding PayoutText}"    Width="110" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColContributed}" Binding="{Binding Contributed}"   Width="100" />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColOfTarget}" Binding="{Binding PercentText}"   Width="80"  />
+                    <DataGridTextColumn Header="{x:Static loc:CorpText.ColPayout}"      Binding="{Binding PayoutText}"    Width="110" />
                   </DataGrid.Columns>
                 </DataGrid>
               </TabItem>
@@ -1971,22 +1974,25 @@
       </TabItem>
 
       <!-- ══ Top 10 Lists ═══════════════════════════════════════════ -->
-      <TabItem Header="TOP 10 LISTS">
+      <TabItem Header="{x:Static loc:CorpText.TabTop10Lists}">
         <Grid RowDefinitions="Auto,*">
 
           <!-- Period selector row -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
               <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <TextBlock Text="TOP 10 BY MONTH"
+                <TextBlock Text="{x:Static loc:CorpText.Top10ByMonthLabel}"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                            VerticalAlignment="Center" />
                 <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
                            FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DiscordStatus}" ToolTip.Tip="{Binding DiscordStatus}"
+                           FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </StackPanel>
-              <TextBlock Grid.Column="1" Text="Month:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.MonthLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding Top10Months}"
@@ -1995,7 +2001,7 @@
                         FontSize="10" MinWidth="100"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-              <TextBlock Grid.Column="5" Text="Year:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="5" Text="{x:Static loc:CorpText.YearLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="7"
                         ItemsSource="{Binding Top10Years}"
@@ -2004,7 +2010,7 @@
                         FontSize="10" MinWidth="60"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-              <TextBlock Grid.Column="9" Text="Loading..."
+              <TextBlock Grid.Column="9" Text="{x:Static loc:CorpText.Loading2}"
                          IsVisible="{Binding IsTop10Loading}"
                          FontSize="10" Foreground="{DynamicResource GoodBrush}" FontStyle="Italic"
                          VerticalAlignment="Center" />
@@ -2013,18 +2019,18 @@
               <ComboBox Grid.Column="11"
                         ItemsSource="{Binding ExportFormats}"
                         SelectedItem="{Binding SelectedExportFormat}"
-                        ToolTip.Tip="Format used for Export to Clipboard and Post to Slack"
+                        ToolTip.Tip="{x:Static loc:CorpText.TipFormatUsedForExport}"
                         FontSize="10" MinWidth="95"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
               <Button Grid.Column="13" x:Name="ExportTop10Button"
-                      Content="Export to Clipboard"
+                      Content="{x:Static loc:CorpText.ExportToClipboard}"
                       IsEnabled="{Binding !IsTop10Loading}"
                       FontSize="10" Padding="8 3"
                       Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
                       BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
               <Button Grid.Column="15" x:Name="ExportTop10NoIskButton"
-                      Content="Export (No ISK)"
+                      Content="{x:Static loc:CorpText.ExportNoIsk}"
                       IsEnabled="{Binding !IsTop10Loading}"
                       FontSize="10" Padding="8 3"
                       Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
@@ -2046,7 +2052,24 @@
                       <Path Fill="#ECB22E" Data="M80.1 99.8c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V99.8h13.2zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h33.1c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H80.1z" />
                     </Canvas>
                   </Viewbox>
-                  <TextBlock Text="Post to Slack" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:CorpText.PostToSlack}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <!-- Only shown once a Discord webhook is set for the Top 10. Separate from Slack's: both show when both are set. -->
+              <Button Grid.Column="19" x:Name="PostTop10DiscordButton"
+                      IsVisible="{Binding IsDiscordTop10Configured}"
+                      IsEnabled="{Binding !IsTop10Loading}"
+                      ToolTip.Tip="{Binding DiscordTop10HookText}"
+                      FontSize="10" Padding="8 3"
+                      Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource InfoBrush}"
+                      BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127.14" Height="96.36">
+                      <Path Fill="#5865F2" Data="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="{x:Static loc:CorpText.PostToDiscord}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Grid>
@@ -2061,7 +2084,7 @@
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="RATTING TAX"
+                  <TextBlock Text="{x:Static loc:CorpText.RattingTaxLabel}"
                              FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <ItemsControl ItemsSource="{Binding TopRatters}">
                     <ItemsControl.ItemTemplate>
@@ -2071,7 +2094,7 @@
                                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                           <Panel Grid.Column="1">
                                      <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                             ToolTip.Tip="Open in the entity browser">
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                                        <TextBlock Text="{Binding CharacterName}" Classes="linktext"
                                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                      </Button>
@@ -2095,7 +2118,7 @@
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="MINING — UNITS MINED"
+                  <TextBlock Text="{x:Static loc:CorpText.MiningUnitsMinedLabel}"
                              FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
                   <ItemsControl ItemsSource="{Binding TopMiners}">
                     <ItemsControl.ItemTemplate>
@@ -2105,7 +2128,7 @@
                                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                           <Panel Grid.Column="1">
                                      <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                             ToolTip.Tip="Open in the entity browser">
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                                        <TextBlock Text="{Binding CharacterName}" Classes="linktext"
                                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                      </Button>
@@ -2128,7 +2151,7 @@
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="KILLS"
+                  <TextBlock Text="{x:Static loc:CorpText.KillsLabel}"
                              FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
                   <ItemsControl ItemsSource="{Binding TopKillers}">
                     <ItemsControl.ItemTemplate>
@@ -2138,7 +2161,7 @@
                                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                           <Panel Grid.Column="1">
                                      <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                             ToolTip.Tip="Open in the entity browser">
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                                        <TextBlock Text="{Binding CharacterName}" Classes="linktext"
                                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                      </Button>
@@ -2159,7 +2182,7 @@
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="PROJECT CONTRIBUTORS"
+                  <TextBlock Text="{x:Static loc:CorpText.ProjectContributorsLabel}"
                              FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                   <ItemsControl ItemsSource="{Binding TopContributors}">
                     <ItemsControl.ItemTemplate>
@@ -2169,7 +2192,7 @@
                                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                           <Panel Grid.Column="1">
                                      <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                             ToolTip.Tip="Open in the entity browser">
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                                        <TextBlock Text="{Binding CharacterName}" Classes="linktext"
                                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                      </Button>
@@ -2192,7 +2215,7 @@
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="INDUSTRY TAX"
+                  <TextBlock Text="{x:Static loc:CorpText.IndustryTaxLabel}"
                              FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
                   <ItemsControl ItemsSource="{Binding TopIndustry}">
                     <ItemsControl.ItemTemplate>
@@ -2202,7 +2225,7 @@
                                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                           <Panel Grid.Column="1">
                                      <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
-                                             ToolTip.Tip="Open in the entity browser">
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
                                        <TextBlock Text="{Binding CharacterName}" Classes="linktext"
                                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                      </Button>
@@ -2228,22 +2251,25 @@
       </TabItem>
 
       <!-- ══ Monthly Summary ════════════════════════════════════════ -->
-      <TabItem Header="MONTHLY SUMMARY">
+      <TabItem Header="{x:Static loc:CorpText.TabMonthlySummary}">
         <Grid RowDefinitions="Auto,*">
 
           <!-- Period selector row -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
               <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <TextBlock Text="MONTHLY SUMMARY"
+                <TextBlock Text="{x:Static loc:CorpText.MonthlySummaryLabel}"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                            VerticalAlignment="Center" />
                 <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
                            FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DiscordStatus}" ToolTip.Tip="{Binding DiscordStatus}"
+                           FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </StackPanel>
-              <TextBlock Grid.Column="1" Text="Month:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.MonthLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding SummaryMonths}"
@@ -2252,7 +2278,7 @@
                         FontSize="10" MinWidth="100"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-              <TextBlock Grid.Column="5" Text="Year:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Grid.Column="5" Text="{x:Static loc:CorpText.YearLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                          VerticalAlignment="Center" />
               <ComboBox Grid.Column="7"
                         ItemsSource="{Binding SummaryYears}"
@@ -2261,7 +2287,7 @@
                         FontSize="10" MinWidth="60"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-              <TextBlock Grid.Column="9" Text="Loading..."
+              <TextBlock Grid.Column="9" Text="{x:Static loc:CorpText.Loading2}"
                          IsVisible="{Binding IsSummaryLoading}"
                          FontSize="10" Foreground="{DynamicResource GoodBrush}" FontStyle="Italic"
                          VerticalAlignment="Center" />
@@ -2269,12 +2295,12 @@
               <ComboBox Grid.Column="11"
                         ItemsSource="{Binding ExportFormats}"
                         SelectedItem="{Binding SelectedExportFormat}"
-                        ToolTip.Tip="Format used for Export to Clipboard and Post to Slack"
+                        ToolTip.Tip="{x:Static loc:CorpText.TipFormatUsedForExport}"
                         FontSize="10" MinWidth="95"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
               <Button Grid.Column="13" x:Name="ExportSummaryButton"
-                      Content="Export to Clipboard"
+                      Content="{x:Static loc:CorpText.ExportToClipboard}"
                       IsEnabled="{Binding !IsSummaryLoading}"
                       FontSize="10" Padding="8 3"
                       Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
@@ -2296,7 +2322,24 @@
                       <Path Fill="#ECB22E" Data="M80.1 99.8c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V99.8h13.2zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h33.1c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H80.1z" />
                     </Canvas>
                   </Viewbox>
-                  <TextBlock Text="Post to Slack" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:CorpText.PostToSlack}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <!-- Only shown once a Discord webhook is set for the Monthly Summary. -->
+              <Button Grid.Column="17" x:Name="PostSummaryDiscordButton"
+                      IsVisible="{Binding IsDiscordMonthlyConfigured}"
+                      IsEnabled="{Binding !IsSummaryLoading}"
+                      ToolTip.Tip="{Binding DiscordMonthlyHookText}"
+                      FontSize="10" Padding="8 3"
+                      Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource InfoBrush}"
+                      BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127.14" Height="96.36">
+                      <Path Fill="#5865F2" Data="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="{x:Static loc:CorpText.PostToDiscord}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Grid>
@@ -2309,9 +2352,9 @@
 
               <!-- Column headers -->
               <Grid ColumnDefinitions="*,110,110,70" Margin="0 0 0 4">
-                <TextBlock Grid.Column="1" Text="This month" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+                <TextBlock Grid.Column="1" Text="{x:Static loc:CorpText.ThisMonth}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Right" />
-                <TextBlock Grid.Column="2" Text="Change" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+                <TextBlock Grid.Column="2" Text="{x:Static loc:CorpText.Change}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Right" />
                 <TextBlock Grid.Column="3" Text="%" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Right" Margin="8 0 0 0" />
@@ -2340,12 +2383,12 @@
                                  IsVisible="{Binding IsValue}"
                                  Foreground="{Binding ChangeColor}"
                                  FontSize="11" HorizontalAlignment="Right" Margin="0 1"
-                                 ToolTip.Tip="Change vs the previous month" />
+                                 ToolTip.Tip="{x:Static loc:CorpText.TipChangeVsThePreviousMonth}" />
                       <TextBlock Grid.Column="3" Text="{Binding Percent}"
                                  IsVisible="{Binding IsValue}"
                                  Foreground="{Binding ChangeColor}"
                                  FontSize="10" HorizontalAlignment="Right" Margin="8 1 0 1"
-                                 ToolTip.Tip="Percent change vs the previous month" />
+                                 ToolTip.Tip="{x:Static loc:CorpText.TipPercentChangeVsThePrevious}" />
                     </Grid>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

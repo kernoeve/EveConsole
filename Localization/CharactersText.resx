@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>All characters</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in CharacterViewerView.</comment>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>Double-click a row to open it on the Detail tab.</value>
+    <comment>Note in CharacterViewerView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>Pod value</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>Home station</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>Skill queue</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>Entries in the queue, and how long until the last one finishes.</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>Total SP</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>Mfg</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>Manufacturing slots free of total</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>Rxn</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>Reaction slots free of total</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>Sci</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>Science slots free of total — copying, research and invention</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Character:</value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>Total SP: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>Unallocated: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>Sec Status: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>Skill Groups</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>Training Queue</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Attributes</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>Character Attributes</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>Intelligence</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Memory</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>Charisma</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>Perception</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>Willpower</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>No attribute data available. Character attributes are loaded during ESI polling.</value>
+    <comment>Note in CharacterViewerView.</comment>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>Neural Remapping</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>Last Remap:</value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>Clones</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>Active Clone Implants</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>No implants fitted in active clone.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>Jump Clones</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>No jump clones.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>Medals</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>Titles</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>No titles held by this character.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>Standings</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>No standings data available.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>Updated: {0:dd MMM yyyy HH:mm}</value>
+    <comment>Formatted text ({0} is filled in) in CharacterViewerView.</comment>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>Character Viewer</value>
+    <comment>Window title in CharacterViewerWindow.</comment>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Summary grid, Status column: the character is logged in.</comment>
+  </data>
+  <data name="StatusOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Summary grid, Status column: the character is not logged in.</comment>
+  </data>
+  <data name="QueueEmptyShort" xml:space="preserve">
+    <value>empty</value>
+    <comment>Summary grid, Skill queue column: nothing is queued. Keep short.</comment>
+  </data>
+  <data name="QueuePausedShort" xml:space="preserve">
+    <value>{0} · paused</value>
+    <comment>Summary grid, Skill queue column: the queue is paused. {0} is how many skills are in it. Keep short.</comment>
+  </data>
+  <data name="SpanDone" xml:space="preserve">
+    <value>done</value>
+    <comment>Summary grid, Skill queue column: the queue has run out. Keep short.</comment>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0:F0}d</value>
+    <comment>Summary grid, Skill queue column: days until the queue ends. Keep short.</comment>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0:F0}h</value>
+    <comment>Summary grid, Skill queue column: hours until the queue ends. Keep short.</comment>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0:F0}m</value>
+    <comment>Summary grid, Skill queue column: minutes until the queue ends. Keep short.</comment>
+  </data>
+  <data name="SpMillions" xml:space="preserve">
+    <value>{0:F2}M SP</value>
+    <comment>Skill points of a skill group, in millions. SP = skill points.</comment>
+  </data>
+  <data name="SpThousands" xml:space="preserve">
+    <value>{0:F0}k SP</value>
+    <comment>Skill points of a skill group, in thousands. SP = skill points.</comment>
+  </data>
+  <data name="SpPlain" xml:space="preserve">
+    <value>{0} SP</value>
+    <comment>Skill points of a skill group. SP = skill points.</comment>
+  </data>
+  <data name="QueuePaused" xml:space="preserve">
+    <value>Paused</value>
+    <comment>Training queue: when a skill finishes, while the queue is paused.</comment>
+  </data>
+  <data name="QueueComplete" xml:space="preserve">
+    <value>Complete</value>
+    <comment>Training queue: time left for a skill that has finished.</comment>
+  </data>
+  <data name="StandingTypeFaction" xml:space="preserve">
+    <value>Faction</value>
+    <comment>Standings tab: what the standing is with. Column value.</comment>
+  </data>
+  <data name="StandingTypeCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Standings tab: what the standing is with, an NPC corporation. Column value.</comment>
+  </data>
+  <data name="StandingTypeAgent" xml:space="preserve">
+    <value>Agent</value>
+    <comment>Standings tab: what the standing is with, an agent. Column value.</comment>
+  </data>
+  <data name="SummaryStatusOne" xml:space="preserve">
+    <value>{0} character. Figures come from polled data — the detail tab's Refresh updates one character, polling updates all.</value>
+    <comment>Character Viewer status line, one character. {0} is the number.</comment>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>{0} characters. Figures come from polled data — the detail tab's Refresh updates one character, polling updates all.</value>
+    <comment>Character Viewer status line, several characters. {0} is the number.</comment>
+  </data>
+  <data name="SummaryLoadFailed" xml:space="preserve">
+    <value>Could not load the summary: {0}</value>
+    <comment>Status line under the Summary grid. {0} is the error.</comment>
+  </data>
+  <data name="NoMedalsOnRecord" xml:space="preserve">
+    <value>No medals on record for this character.</value>
+    <comment>Medals tab.</comment>
+  </data>
+  <data name="MedalCountOne" xml:space="preserve">
+    <value>{0} medal</value>
+    <comment>How many medals a character has, one. {0} is the number.</comment>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>{0} medals</value>
+    <comment>How many medals a character has, several. {0} is the number.</comment>
+  </data>
+  <data name="StatusSelectCharacterToView" xml:space="preserve">
+    <value>Select a character to view their data.</value>
+    <comment>Status line before a character is chosen.</comment>
+  </data>
+  <data name="StatusLoadingCharacter" xml:space="preserve">
+    <value>Loading {0}…</value>
+    <comment>Status line. {0} is the character.</comment>
+  </data>
+  <data name="StatusCharacterSp" xml:space="preserve">
+    <value>{0} — {1:N0} SP</value>
+    <comment>Status line once a character is loaded. {0} is the character, {1} their skill points (SP).</comment>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>Error loading {0}: {1}</value>
+    <comment>Status line. {0} is the character, {1} the error.</comment>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp #{0}</value>
+    <comment>A corporation whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="SkillGroupUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>A skill group whose name is not known.</comment>
+  </data>
+  <data name="SkillNumbered" xml:space="preserve">
+    <value>Skill #{0}</value>
+    <comment>A skill whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="AllSkills" xml:space="preserve">
+    <value>All Skills</value>
+    <comment>First entry of the skill group list: every group.</comment>
+  </data>
+  <data name="QueueEmpty" xml:space="preserve">
+    <value>Queue empty</value>
+    <comment>Skills tab, above the training queue.</comment>
+  </data>
+  <data name="RemapNoData" xml:space="preserve">
+    <value>No attribute data available</value>
+    <comment>Attributes tab: neural remap information.</comment>
+  </data>
+  <data name="RemapBonusOne" xml:space="preserve">
+    <value>{0} bonus remap available</value>
+    <comment>Attribute remaps banked, one. {0} is the number.</comment>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>{0} bonus remaps available</value>
+    <comment>Attribute remaps banked, several. {0} is the number.</comment>
+  </data>
+  <data name="RemapAvailableOn" xml:space="preserve">
+    <value>Remap available: {0:dd MMM yyyy}</value>
+    <comment>Attributes tab. {0} is the date the next remap becomes available.</comment>
+  </data>
+  <data name="RemapLastAvailableNow" xml:space="preserve">
+    <value>Last remap: {0:dd MMM yyyy} — Remap available now</value>
+    <comment>Attributes tab. {0} is the date of the last remap.</comment>
+  </data>
+  <data name="RemapAvailable" xml:space="preserve">
+    <value>Remap available</value>
+    <comment>Attributes tab.</comment>
+  </data>
+  <data name="ImplantNumbered" xml:space="preserve">
+    <value>Implant #{0}</value>
+    <comment>An implant whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="CloneLocation" xml:space="preserve">
+    <value>Location {0} ({1})</value>
+    <comment>A jump clone's location when its name is not known and ESI gives a kind of place other than a station or a structure (those read as AssetsText.FallbackStationName and FallbackStructureName). {0} is its id, {1} the kind as ESI names it.</comment>
+  </data>
+  <data name="MedalNumbered" xml:space="preserve">
+    <value>Medal #{0}</value>
+    <comment>A medal whose title is not known. {0} is its id.</comment>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Faction #{0}</value>
+    <comment>A faction whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="AgentNumbered" xml:space="preserve">
+    <value>Agent #{0}</value>
+    <comment>An agent whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="EntityNumbered" xml:space="preserve">
+    <value>Entity #{0}</value>
+    <comment>Something whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0} (in space)</value>
+    <comment>Character summary → Location column, for a character undocked. {0} is the solar system's name.</comment>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>Station {0}</value>
+    <comment>Character summary → a station whose name is not known yet. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Character summary → a player structure whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>System {0}</value>
+    <comment>Character summary → a solar system whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>Character summary → Home column, a place whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Character summary → Ship column, a hull whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>Character summary → a corporation whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>Character summary → an alliance whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="StatusSelectCharacter" xml:space="preserve">
+    <value>Select a character.</value>
+    <comment>Status line when no character is selected.</comment>
+  </data>
+  <data name="DurationDaysOne" xml:space="preserve">
+    <value>{0} day</value>
+    <comment>Part of a training time like "4 days, 2 hours, 3 minutes" (the parts are joined by commas), one day. {0} is the number.</comment>
+  </data>
+  <data name="DurationDaysOther" xml:space="preserve">
+    <value>{0} days</value>
+    <comment>Part of a training time like "4 days, 2 hours, 3 minutes" (the parts are joined by commas), several days. {0} is the number.</comment>
+  </data>
+  <data name="DurationHoursOne" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>Part of a training time, one hour. {0} is the number.</comment>
+  </data>
+  <data name="DurationHoursOther" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>Part of a training time, several hours (also 0). {0} is the number.</comment>
+  </data>
+  <data name="DurationMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>Part of a training time, one minute. {0} is the number.</comment>
+  </data>
+  <data name="DurationMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>Part of a training time, several minutes (also 0). {0} is the number.</comment>
+  </data>
+  <data name="QueueSkillsFinishOne" xml:space="preserve">
+    <value>{0} skill — finishes {1:dd MMM yyyy}</value>
+    <comment>Skills tab, above the training queue, one skill queued. {0} is the number, {1} the date the queue finishes.</comment>
+  </data>
+  <data name="QueueSkillsFinishOther" xml:space="preserve">
+    <value>{0} skills — finishes {1:dd MMM yyyy}</value>
+    <comment>Skills tab, above the training queue, several skills queued. {0} is the number, {1} the date the queue finishes.</comment>
+  </data>
+  <data name="QueueSkillsPausedOne" xml:space="preserve">
+    <value>{0} skill (paused)</value>
+    <comment>Skills tab, above a paused training queue, one skill queued. {0} is the number.</comment>
+  </data>
+  <data name="QueueSkillsPausedOther" xml:space="preserve">
+    <value>{0} skills (paused)</value>
+    <comment>Skills tab, above a paused training queue, several skills queued. {0} is the number.</comment>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value>, </value>
+    <comment>Between the parts of a duration: "4 days, 2 hours, 3 minutes". A comma and a space in English; keep whatever spacing your language uses.</comment>
+  </data>
+</root>

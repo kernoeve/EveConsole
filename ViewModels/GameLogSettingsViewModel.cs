@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Monitoring;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -38,7 +39,6 @@ public class GameLogSettingsViewModel : ReactiveObject
 
         AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
         RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
-        DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
         OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
         ImportHistoryCommand   = ReactiveCommand.CreateFromTask(() => _importer.ImportHistoryAsync(HistoryDays));
         CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
@@ -141,10 +141,10 @@ public class GameLogSettingsViewModel : ReactiveObject
             {
                 var files = _importer.EstimateHistoryFiles(days);
                 text = days <= 0
-                    ? $"All {files:N0} log file(s) will be processed."
-                    : $"{files:N0} log file(s) modified in the last {days:N0} day(s) will be processed.";
+                    ? string.Format(SettingsText.GameLogImportAllFiles, files)
+                    : string.Format(SettingsText.GameLogImportFilesSince, files, days);
             }
-            catch (Exception ex) { text = $"Could not count files — {ex.Message}"; }
+            catch (Exception ex) { text = string.Format(SettingsText.LogsCountFailed, ex.Message); }
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => EstimateText = text);
         });
@@ -184,7 +184,6 @@ public class GameLogSettingsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddDirectoryCommand    { get; }
     public ReactiveCommand<Unit, Unit> RemoveDirectoryCommand { get; }
-    public ReactiveCommand<Unit, Unit> DetectDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDirectoryCommand   { get; }
     public ReactiveCommand<Unit, Unit> ImportHistoryCommand   { get; }
     public ReactiveCommand<Unit, Unit> CancelImportCommand    { get; }
@@ -223,10 +222,13 @@ public class GameLogSettingsViewModel : ReactiveObject
     private string DescribeResolvedPaths()
     {
         var resolved = _settings.ResolveDirectories();
+        var local    = MonitoringSettings.DefaultGameLogDirectory();
         return resolved.Count == 0
-            ? "No game log folder found — add one below."
+            ? SettingsText.GameLogNoFolder
             : string.Join("\n", resolved.Select(d =>
-                (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));
+                MonitoringSettings.IsLocalDefault(d, local) ? string.Format(SettingsText.LogsFolderThisComputer, d)
+                : Directory.Exists(d) ? "✓ " + d
+                : string.Format(SettingsText.LogsFolderUnreachable, d)));
     }
 
     private async Task AddDirectoryAsync()
@@ -245,18 +247,6 @@ public class GameLogSettingsViewModel : ReactiveObject
         if (SelectedDirectory is null) return;
         Directories.Remove(SelectedDirectory);
         await SaveDirectoriesAsync();
-    }
-
-    private async Task DetectDirectoryAsync()
-    {
-        var auto = MonitoringSettings.DefaultGameLogDirectory();
-        if (auto is null) { ResolvedPaths = "Could not find a local EVE game log folder."; return; }
-
-        if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
-        {
-            Directories.Add(auto);
-            await SaveDirectoriesAsync();
-        }
     }
 
     private void OpenSelectedDirectory()

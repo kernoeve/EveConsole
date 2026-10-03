@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -29,7 +30,7 @@ public class InventoryLevelGenerator(
     OutbidOrderService              outbidOrders) : IWorklistGenerator
 {
     public string Id          => "inventory_levels";
-    public string DisplayName => "Inventory Levels";
+    public string DisplayName => WorklistText.SourceInventoryLevels;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -145,7 +146,7 @@ public class InventoryLevelGenerator(
                     var held    = subHeld.GetValueOrDefault(gi.TypeId);
                     var shortfall = need.Shortfall - ordered - held.Units;
 
-                    var name = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
+                    var name = names.GetValueOrDefault(gi.TypeId, string.Format(WorklistText.TypeWithId, gi.TypeId));
 
                     // ⚠️ Everything except the orders. What is left is whether this rule would
                     // still be short if no order existed — which is exactly the question of
@@ -164,18 +165,19 @@ public class InventoryLevelGenerator(
                     // "Here" and "elsewhere" kept apart so the detail says where the incoming
                     // material actually is; both count the same against the shortfall.
                     var away  = ordered - onOrder;
-                    var order = (onOrder > 0 ? $", {onOrder:N0} on order here" : "")
-                              + (away    > 0 ? $", {away:N0} on order elsewhere" : "")
+                    var order = (onOrder > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrderHere, onOrder) : "")
+                              + (away    > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrderElsewhere, away) : "")
                               + held.Note;
                     var fill  = need.FillText(rule);
 
                     // The name leads. The column sorts on this string, so a leading verb sorted
-                    // every shortfall in the list under "P" for "Place order".
-                    var title    = $"{name} × {shortfall:N0}";
-                    var detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
+                    // every shortfall in the list under "P" for "Place order". Named as the screen
+                    // shows it; TypeName below stays English.
+                    var title    = $"{SdeNames.Type(gi.TypeId, name)} × {shortfall:N0}";
+                    var detail   = $"{stock}{order}.{fill} " + string.Format(WorklistText.ShortBy, shortfall)
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
-                                      : " Competing bids unknown — this location is not a configured market source.");
+                                      : " " + WorklistText.CompetingBidsUnknown);
                     var priority = WorklistPriority.ForStock(need.Percent);
                     // Only a shortfall is an amount to acquire, and only an amount can be added
                     // to what another source wants of the same thing at the same station.
@@ -191,7 +193,9 @@ public class InventoryLevelGenerator(
                         Source        = Id,
                         Kind          = WorklistKind.Buy,
                         Title         = title,
-                        Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
+                        Detail        = $"{group.Name} · "
+                                      + string.Format(WorklistText.BelowThreshold, rule.ThresholdPercent)
+                                      + $" · {detail}",
                         Quantity      = shortfall,
                         MergeKey      = mergeKey,
                         // Both halves of the subtraction, so merging with a job's demand for the
@@ -199,11 +203,12 @@ public class InventoryLevelGenerator(
                         GrossDemand    = need.Wanted,
                         SupplyCredited = need.Have + ordered + held.Units,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                        BlockedBy     = blocked ? "No character assigned to this location" : "",
+                        BlockedBy     = blocked ? WorklistText.BlockedNoCharacterAtLocation : "",
                         CharacterId   = alt?.CharacterId   ?? 0,
                         CharacterName = alt?.CharacterName ?? "",
                         LocationId    = rule.LocationId,
-                        LocationName  = rule.LocationName,
+                        // The cell's text; the rule keeps the English it was saved with.
+                        LocationName  = SdeNames.Location(rule.LocationId, rule.LocationName),
                         TypeId        = gi.TypeId,
                         TypeName      = name,
                         Priority      = priority,
@@ -257,8 +262,9 @@ public class InventoryLevelGenerator(
             var  from  = new List<string>();
 
             // Each source counts in full against every product it yields. One batch of ice gives
-            // all of its outputs at once, so there is nothing to apportion between them.
-            foreach (var s in subs[typeId].OrderBy(s => s.SourceName))
+            // all of its outputs at once, so there is nothing to apportion between them. Named,
+            // and listed, as the screen shows them — this is only ever a clause of the row's detail.
+            foreach (var s in subs[typeId].OrderBy(s => SdeNames.Type(s.SourceTypeId, s.SourceName)))
             {
                 var have  = held.GetValueOrDefault(s.SourceTypeId);
                 var due   = onOrder.GetValueOrDefault(s.SourceTypeId);
@@ -268,17 +274,20 @@ public class InventoryLevelGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
+                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
-                    ? $"{have:N0} {s.SourceName} and {due:N0} on order"
-                    : $"{units:N0} {s.SourceName}");
+                    ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)
+                    : $"{units:N0} {shown}");
             }
 
             if (total <= 0) continue;
 
-            result[typeId] = (total,
-                $", {total:N0} recoverable from " + string.Join(", ", from.Take(3))
-                + (from.Count > 3 ? $" and {from.Count - 3} more" : ""));
+            // A clause of the detail's list, so it opens with the list's own comma.
+            var named = string.Join(CommonText.ListSeparator, from.Take(3));
+            result[typeId] = (total, CommonText.ClauseSeparator + (from.Count > 3
+                ? string.Format(WorklistText.RecoverableFromMore, total, named, from.Count - 3)
+                : string.Format(WorklistText.RecoverableFrom, total, named)));
         }
 
         return result;

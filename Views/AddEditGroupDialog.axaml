@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:svc="clr-namespace:EveConsole.Services"
         x:Class="EveConsole.Views.AddEditGroupDialog"
-        Title="Group"
+        Title="{x:Static loc:MarketText.TitleGroup}"
         Width="440" Height="450"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -14,7 +15,7 @@
     <StackPanel Grid.Row="0" Spacing="16">
 
       <StackPanel Spacing="5">
-        <TextBlock Text="GROUP NAME" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.GroupNameLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <TextBox x:Name="NameBox"
                  Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -23,7 +24,7 @@
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Text="COLLECTION" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.CollectionLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <ComboBox x:Name="CollectionBox"
                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -31,26 +32,28 @@
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Text="STATION" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.StationLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <ComboBox x:Name="StationBox"
                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                   FontSize="12" HorizontalAlignment="Stretch">
+          <!-- Each station named as the screen names it; the station itself, with its English
+               name, is what the group saves. -->
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="svc:MarketLevelStation">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding Kind}" FontSize="10" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
               </StackPanel>
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBlock Text="Only stations with cached sell orders appear here."
+        <TextBlock Text="{x:Static loc:MarketText.OnlyStationsWithCachedNote}"
                    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Text="MARKET PRICE SOURCE" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.MarketPriceSourceLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <ComboBox x:Name="SourceBox"
                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -64,11 +67,11 @@
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Text="MAX PRICE OVER SOURCE (%)" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.MaxPriceOverSourceLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <StackPanel Orientation="Horizontal" Spacing="6">
           <TextBox x:Name="MaxPctBox"
-                   Watermark="e.g. 100 — leave blank to disable"
+                   Watermark="{x:Static loc:MarketText.HintEG100Leave}"
                    Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                    CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                    FontSize="12" Padding="8 5" Width="200" />
@@ -77,7 +80,7 @@
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Text="MULTIPLIER" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:MarketText.MultiplierLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <StackPanel Orientation="Horizontal" Spacing="8">
           <NumericUpDown x:Name="MultiplierBox"
@@ -86,7 +89,7 @@
                          Width="120" FontSize="12"
                          Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                          Foreground="{DynamicResource TextPrimaryBrush}" />
-          <TextBlock Text="× target quantities for all items in this group"
+          <TextBlock Text="{x:Static loc:MarketText.TargetQuantitiesForAllNote}"
                      FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
         </StackPanel>
       </StackPanel>
@@ -97,12 +100,12 @@
       <TextBlock Grid.Column="0" x:Name="ErrorText"
                  Foreground="{DynamicResource BadBrush}" FontSize="11"
                  VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="Cancel"
+      <Button Grid.Column="1" Content="{x:Static loc:MarketText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
-      <Button Grid.Column="2" Content="OK"
+      <Button Grid.Column="2" Content="{x:Static loc:MarketText.Ok}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6"

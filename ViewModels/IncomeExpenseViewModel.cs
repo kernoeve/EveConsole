@@ -13,6 +13,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -75,7 +76,7 @@ public class IncomeExpenseViewModel : ReactiveObject
         int show = Math.Max(1, _maxRows - 1);   // leave a slot for the rolled-up "Other"
         for (int i = 0; i < show; i++) target.Add(new IncomeExpenseRowVm(full[i]));
         var otherSum = full.Skip(show).Sum(c => c.Amount);
-        target.Add(new IncomeExpenseRowVm(new WalletCategory("Other", otherSum, isIncome, new SKColor(120, 120, 130))));
+        target.Add(new IncomeExpenseRowVm(new WalletCategory(FinanceText.CategoryOther, otherSum, isIncome, new SKColor(120, 120, 130))));
     }
 
     private ISeries[] _series = [];
@@ -85,7 +86,7 @@ public class IncomeExpenseViewModel : ReactiveObject
     [
         new Axis
         {
-            Labeler    = v => { var t = (long)v; return t < DateTime.MinValue.Ticks || t > DateTime.MaxValue.Ticks ? "" : new DateTime(t).ToString("MMM d"); },
+            Labeler    = v => { var t = (long)v; return t < DateTime.MinValue.Ticks || t > DateTime.MaxValue.Ticks ? "" : new DateTime(t).ToString(CommonText.DateMonthDay); },
             UnitWidth  = TimeSpan.FromDays(1).Ticks,
             MinStep    = TimeSpan.FromDays(1).Ticks,
             TextSize   = 11,
@@ -130,7 +131,7 @@ public class IncomeExpenseViewModel : ReactiveObject
     {
         if (IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -160,8 +161,8 @@ public class IncomeExpenseViewModel : ReactiveObject
             NetTotal     = MarketFmt.Isk((double)(incomeTotal - expenseTotal));
 
             BuildChart(dailyMap, cutoff.UtcDateTime.Date);
-            StatusText = owners.Count == 0 ? "No characters."
-                       : $"Last {days} day{(days == 1 ? "" : "s")} — ISK moved between your own wallets is left out";
+            StatusText = owners.Count == 0 ? FinanceText.NoCharacters
+                       : Plurals.Format(FinanceText.ResourceManager, nameof(FinanceText.LastDaysNoteOther), days);
         }
         catch (Exception ex)
         {
@@ -190,9 +191,9 @@ public class IncomeExpenseViewModel : ReactiveObject
 
         Series =
         [
-            Line("Income",   incPts,  new SKColor(0x70, 0xad, 0x47)),
-            Line("Expense",  expPts,  new SKColor(0xe0, 0x52, 0x52)),
-            Line("Cashflow", cashPts, new SKColor(0xc8, 0xa8, 0x4b), thickness: 3),
+            Line(FinanceText.SeriesIncome,   incPts,  new SKColor(0x70, 0xad, 0x47)),
+            Line(FinanceText.SeriesExpense,  expPts,  new SKColor(0xe0, 0x52, 0x52)),
+            Line(FinanceText.SeriesCashflow, cashPts, new SKColor(0xc8, 0xa8, 0x4b), thickness: 3),
         ];
     }
 

@@ -26,6 +26,15 @@ public static class UiState
     public const string UpdateAutoCheck      = "update.auto_check";
     public const string UpdateDeclined       = "update.declined_version";
     public const string UniverseOverlay      = "universe.overlay";
+    public const string UniverseSidePanel    = "universe.side_panel";
+    public const string UniverseBridges      = "universe.bridges";
+    public const string RouteAvoid           = "route.avoid";
+    public const string UniverseWormholes    = "universe.wormholes";
+    public const string UniverseStorms       = "universe.storms";
+    public const string UniverseCampaigns    = "universe.campaigns";
+    public const string RouteShowOnMap       = "route.show_on_map";
+    public const string JumpPlannerShowOnMap = "jumpplanner.show_on_map";
+    public const string JumpRangeShowOnMap   = "jumprange.show_on_map";
     public const string OverviewPeriodHours  = "overview.period_hours";
     public const string MarketSource         = "itembrowser.market_source";
     public const string CollapsedGroups      = "invlevels.collapsed_groups";
@@ -37,6 +46,9 @@ public static class UiState
     public const string Theme                 = "ui.theme";
     /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
     public const string Scale                 = "ui.scale";
+    /// <summary>The interface language's code, "zh-Hans"; absent for the system's language. Read
+    /// once at startup — see Localization.Languages.</summary>
+    public const string Language              = "ui.language";
     /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
     public const string ConfirmExternalLinks  = "links.confirm_external";
 

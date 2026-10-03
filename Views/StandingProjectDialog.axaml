@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.StandingProjectDialog"
-        Title="Standing Project"
+        Title="{x:Static loc:CorpText.TitleStandingProject}"
         Width="480" Height="520"
         MinWidth="480" MinHeight="420"
         CanResize="True"
@@ -15,15 +16,15 @@
 
         <!-- Project Type -->
         <StackPanel Spacing="5">
-          <TextBlock Text="PROJECT TYPE" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:CorpText.ProjectTypeLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <ComboBox x:Name="TypeCombo"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                     BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                     FontSize="12" HorizontalAlignment="Stretch"
                     SelectionChanged="OnTypeChanged">
-            <ComboBoxItem Content="Deliver Item" Tag="deliver_item" />
-            <ComboBoxItem Content="Destroy NPC"  Tag="destroy_npc" />
+            <ComboBoxItem Content="{x:Static loc:CorpText.DeliverItem}" Tag="deliver_item" />
+            <ComboBoxItem Content="{x:Static loc:CorpText.DestroyNpc}"  Tag="destroy_npc" />
           </ComboBox>
         </StackPanel>
 
@@ -31,10 +32,10 @@
         <StackPanel x:Name="DeliverPanel" Spacing="12">
 
           <StackPanel Spacing="5">
-            <TextBlock Text="ITEM TYPE" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.ItemTypeLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBox x:Name="ItemSearchBox"
-                     Watermark="Search for item type…"
+                     Watermark="{x:Static loc:CorpText.HintSearchForItemType}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5"
@@ -68,10 +69,10 @@
           </StackPanel>
 
           <StackPanel Spacing="5">
-            <TextBlock Text="DESTINATION STATION / STRUCTURE" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.DestinationStationStructureLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBox x:Name="StationSearchBox"
-                     Watermark="Search for station or structure…"
+                     Watermark="{x:Static loc:CorpText.HintSearchForStationOrStructure}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5"
@@ -111,22 +112,22 @@
 
           <!-- Scope selector -->
           <StackPanel Spacing="5">
-            <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.ScopeLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <StackPanel Spacing="4">
-              <RadioButton x:Name="ScopeSystem" Content="Specific System"
+              <RadioButton x:Name="ScopeSystem" Content="{x:Static loc:CorpText.SpecificSystem}"
                            GroupName="Scope" IsChecked="True"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Checked="OnScopeChanged" />
-              <RadioButton x:Name="ScopeRegionAdm" Content="All systems in a Region below min ADM"
+              <RadioButton x:Name="ScopeRegionAdm" Content="{x:Static loc:CorpText.AllSystemsInA}"
                            GroupName="Scope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Checked="OnScopeChanged" />
-              <RadioButton x:Name="ScopeConstAdm" Content="All systems in a Constellation below min ADM"
+              <RadioButton x:Name="ScopeConstAdm" Content="{x:Static loc:CorpText.AllSystemsInA2}"
                            GroupName="Scope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Checked="OnScopeChanged" />
-              <RadioButton x:Name="ScopeAllianceSov" Content="All systems where an Alliance holds sovereignty"
+              <RadioButton x:Name="ScopeAllianceSov" Content="{x:Static loc:CorpText.AllSystemsWhereAn}"
                            GroupName="Scope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Checked="OnScopeChanged" />
@@ -135,10 +136,10 @@
 
           <!-- Specific System -->
           <StackPanel x:Name="SystemPanel" Spacing="5">
-            <TextBlock Text="SOLAR SYSTEM" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.SolarSystemLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBox x:Name="SystemSearchBox"
-                     Watermark="Search for solar system…"
+                     Watermark="{x:Static loc:CorpText.HintSearchForSolarSystem}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5"
@@ -161,7 +162,12 @@
                   </ListBox.Styles>
                   <ListBox.ItemTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <!-- The region beside the system, as every system picker shows it. -->
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                      </Grid>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>
@@ -173,10 +179,10 @@
 
           <!-- Region ADM -->
           <StackPanel x:Name="RegionPanel" Spacing="5" IsVisible="False">
-            <TextBlock Text="REGION" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.RegionLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBox x:Name="RegionSearchBox"
-                     Watermark="Search for region…"
+                     Watermark="{x:Static loc:CorpText.HintSearchForRegion}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5"
@@ -208,7 +214,7 @@
             <TextBlock x:Name="RegionSelectedLabel"
                        FontSize="11" Foreground="{DynamicResource GoodBrush}" IsVisible="False" />
             <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
-              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.MinAdmLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" Margin="0 0 10 0" />
               <NumericUpDown x:Name="RegionAdmBox"
                              Grid.Column="1"
@@ -223,10 +229,10 @@
 
           <!-- Constellation ADM -->
           <StackPanel x:Name="ConstPanel" Spacing="5" IsVisible="False">
-            <TextBlock Text="CONSTELLATION" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.ConstellationLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBox x:Name="ConstSearchBox"
-                     Watermark="Search for constellation…"
+                     Watermark="{x:Static loc:CorpText.HintSearchForConstellation}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5"
@@ -258,7 +264,7 @@
             <TextBlock x:Name="ConstSelectedLabel"
                        FontSize="11" Foreground="{DynamicResource GoodBrush}" IsVisible="False" />
             <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
-              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.MinAdmLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" Margin="0 0 10 0" />
               <NumericUpDown x:Name="ConstAdmBox"
                              Grid.Column="1"
@@ -275,17 +281,17 @@
                the alliance chooses WHICH systems are in scope, the ADM chooses which of those
                currently need something doing. -->
           <StackPanel x:Name="AlliancePanel" Spacing="5" IsVisible="False">
-            <TextBlock Text="ALLIANCE" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:CorpText.AllianceLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <ComboBox x:Name="AllianceCombo"
                       HorizontalAlignment="Stretch"
                       Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
             <TextBlock x:Name="AllianceEmptyLabel"
-                       Text="No alliance found on any tracked character."
+                       Text="{x:Static loc:CorpText.NoAllianceFoundOnNote}"
                        FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="False" TextWrapping="Wrap" />
             <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
-              <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+              <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.MinAdmLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" Margin="0 0 10 0" />
               <NumericUpDown x:Name="AllianceAdmBox"
                              Grid.Column="1"
@@ -296,7 +302,7 @@
                              Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
             </Grid>
-            <TextBlock Text="Every system this alliance holds that is below the ADM, wherever it is. Re-read from the sovereignty map each time the grid is built."
+            <TextBlock Text="{x:Static loc:CorpText.EverySystemThisAllianceNote}"
                        FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 2 0 0" />
           </StackPanel>
 
@@ -313,13 +319,13 @@
     <!-- Buttons -->
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,8,Auto" Margin="0 16 0 0">
       <Button Grid.Column="1" x:Name="CancelButton"
-              Content="Cancel"
+              Content="{x:Static loc:CorpText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="18 6" FontSize="12"
               Click="OnCancelClick" />
       <Button Grid.Column="3" x:Name="SaveButton"
-              Content="Save"
+              Content="{x:Static loc:CorpText.Save}"
               Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
               BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
               Padding="18 6" FontSize="12"

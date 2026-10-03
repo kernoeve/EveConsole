@@ -1,8 +1,52 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.ServiceProcess;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
+
+/// <summary>How a request to install, remove, repoint, start or stop the background worker ended —
+/// on either platform (see <see cref="SystemdServiceControl"/> too).</summary>
+public enum ServiceOutcome
+{
+    /// <summary>It did what was asked.</summary>
+    Done,
+
+    /// <summary>The administrator prompt was dismissed: nothing changed, and nothing went wrong.</summary>
+    Cancelled,
+
+    /// <summary>Windows refused this account the right to start or stop the service — the grant
+    /// made at install time did not take.</summary>
+    AccessDenied,
+
+    /// <summary>It went wrong; <see cref="ServiceResult.Error"/> says how.</summary>
+    Failed,
+}
+
+/// <summary>
+/// What a service operation came to, and the words for it when it did not happen.
+///
+/// <para>⚠️ Told apart by <see cref="Outcome"/>, never by <see cref="Error"/>. The settings pages
+/// used to recognise a dismissed prompt by the word "Cancelled." and a refusal by "denied" in the
+/// exception's message — the first is translated now, and Windows translates the second itself.
+/// The refusal is recognised from the Win32 error code instead (see
+/// <see cref="WindowsServiceControl"/>).</para>
+/// </summary>
+/// <param name="Error">The reason to show; empty when it was done. A dismissed prompt still has
+/// words, for a caller that reports it as the reason something else did not happen.</param>
+public sealed record ServiceResult(ServiceOutcome Outcome, string Error)
+{
+    public static ServiceResult Done { get; } = new(ServiceOutcome.Done, "");
+
+    public static ServiceResult Cancelled { get; } = new(ServiceOutcome.Cancelled, SettingsText.OperationCancelled);
+
+    public static ServiceResult Failed(string error) => new(ServiceOutcome.Failed, error);
+
+    public bool Succeeded => Outcome == ServiceOutcome.Done;
+
+    /// <summary>Went wrong, as opposed to done or called off.</summary>
+    public bool IsFailure => Outcome is ServiceOutcome.Failed or ServiceOutcome.AccessDenied;
+}
 
 /// <summary>
 /// Installs, removes, starts and stops the background worker service, from the settings window.
@@ -116,7 +160,7 @@ public static class WindowsServiceControl
     /// privilege escalation dressed as a convenience. Start and stop are safe to hand over;
     /// reconfiguring is not.</para>
     /// </summary>
-    public static string? SetStartsWithWindows(bool automatic)
+    public static ServiceResult SetStartsWithWindows(bool automatic)
         => Elevate(automatic ? AutoStartArgument : ManualArgument);
 
     [SupportedOSPlatform("windows")]
@@ -141,8 +185,11 @@ public static class WindowsServiceControl
     /// not two.</para>
     /// </summary>
     [SupportedOSPlatform("windows")]
-    public static string? StopAndDisable()
-        => StopService() ?? SetStartsWithWindows(false);
+    public static ServiceResult StopAndDisable()
+    {
+        var stopped = StopService();
+        return stopped.Succeeded ? SetStartsWithWindows(false) : stopped;
+    }
 
     /// <summary>Whether the installed service runs THIS copy of the application.</summary>
     [SupportedOSPlatform("windows")]
@@ -169,26 +216,26 @@ public static class WindowsServiceControl
     /// run this build against that build's database — which is a worse outcome than the mismatch it
     /// was fixing, and a silent one.</para>
     /// </summary>
-    public static string? Repoint() => Elevate(RepointArgument);
+    public static ServiceResult Repoint() => Elevate(RepointArgument);
 
     // ── Elevated half ─────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Asks UAC for a full token and installs the service. Returns what went wrong, or null.
+    /// Asks UAC for a full token and installs the service. Says what went wrong, if anything.
     /// </summary>
-    public static string? Install() => Elevate(InstallArgument);
+    public static ServiceResult Install() => Elevate(InstallArgument);
 
     /// <summary>Asks UAC for a full token and removes the service.</summary>
-    public static string? Uninstall() => Elevate(UninstallArgument);
+    public static ServiceResult Uninstall() => Elevate(UninstallArgument);
 
-    private static string? Elevate(string argument)
+    private static ServiceResult Elevate(string argument)
     {
-        if (!OperatingSystem.IsWindows()) return "Windows only.";
+        if (!OperatingSystem.IsWindows()) return ServiceResult.Failed(SettingsText.SvcWindowsOnly);
 
         try
         {
             var exe = Environment.ProcessPath;
-            if (exe is null) return "Could not determine this application's path.";
+            if (exe is null) return ServiceResult.Failed(SettingsText.SvcNoAppPath);
 
             var start = new ProcessStartInfo(exe, argument)
             {
@@ -198,21 +245,24 @@ public static class WindowsServiceControl
             };
 
             using var p = Process.Start(start);
-            if (p is null) return "The elevated step did not start.";
+            if (p is null) return ServiceResult.Failed(SettingsText.SvcElevatedNotStarted);
 
             p.WaitForExit(TimeSpan.FromMinutes(2));
 
             // ⚠️ Its exit code, not its output. A separate elevated process has no console we can
             // read, so the two halves agree on a number: nonzero means it wrote the reason to the
             // application's own error log, which is where the settings page sends people.
-            return p.ExitCode == 0 ? null : $"The elevated step failed (exit {p.ExitCode}). See the error log.";
+            return p.ExitCode == 0
+                ? ServiceResult.Done
+                : ServiceResult.Failed(string.Format(SettingsText.SvcElevatedFailed, p.ExitCode));
         }
         catch (Exception ex)
         {
-            // Cancelling the UAC prompt lands here, and is not a failure worth alarming about.
+            // Cancelling the UAC prompt lands here (ERROR_CANCELLED), and is not a failure worth
+            // alarming about.
             return ex is System.ComponentModel.Win32Exception { NativeErrorCode: 1223 }
-                ? "Cancelled."
-                : ex.Message.Split('\n')[0];
+                ? ServiceResult.Cancelled
+                : ServiceResult.Failed(ex.Message.Split('\n')[0]);
         }
     }
 
@@ -353,33 +403,50 @@ public static class WindowsServiceControl
     // ── Unelevated half ───────────────────────────────────────────────────────
 
     [SupportedOSPlatform("windows")]
-    public static string? StartService()
+    public static ServiceResult StartService()
     {
         try
         {
             using var sc = new ServiceController(WindowsServiceHost.Name);
-            if (sc.Status == ServiceControllerStatus.Running) return null;
+            if (sc.Status == ServiceControllerStatus.Running) return ServiceResult.Done;
 
             sc.Start();
             sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
-            return null;
+            return ServiceResult.Done;
         }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+        catch (Exception ex) { return StartStopFailure(ex); }
     }
 
     [SupportedOSPlatform("windows")]
-    public static string? StopService()
+    public static ServiceResult StopService()
     {
         try
         {
             using var sc = new ServiceController(WindowsServiceHost.Name);
-            if (sc.Status == ServiceControllerStatus.Stopped) return null;
+            if (sc.Status == ServiceControllerStatus.Stopped) return ServiceResult.Done;
 
             sc.Stop();
             sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
-            return null;
+            return ServiceResult.Done;
         }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+        catch (Exception ex) { return StartStopFailure(ex); }
+    }
+
+    /// <summary>
+    /// A start or stop that threw: refused, or failed for a reason of its own.
+    ///
+    /// <para>⚠️ Refused is told by the Win32 error, ERROR_ACCESS_DENIED (5), never by the words.
+    /// ServiceController wraps it in an InvalidOperationException whose own message names the
+    /// service rather than the reason — "denied" is only in the inner exception — and Windows
+    /// translates both into the system's language.</para>
+    /// </summary>
+    private static ServiceResult StartStopFailure(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+            if (e is System.ComponentModel.Win32Exception { NativeErrorCode: 5 } or UnauthorizedAccessException)
+                return new ServiceResult(ServiceOutcome.AccessDenied, ex.Message.Split('\n')[0]);
+
+        return ServiceResult.Failed(ex.Message.Split('\n')[0]);
     }
 
     // ── sc.exe ────────────────────────────────────────────────────────────────

@@ -1,0 +1,1873 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitlePosting" xml:space="preserve">
+    <value>Annonce</value>
+  </data>
+  <data name="PostingNameLabel" xml:space="preserve">
+    <value>Nom de l'annonce</value>
+  </data>
+  <data name="InventoryScopeInStockIn" xml:space="preserve">
+    <value>Périmètre du stock (En stock / En production)</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Région</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Partout</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Emplacement</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Tapez pour rechercher…</value>
+  </data>
+  <data name="SalePriceBasisLabel" xml:space="preserve">
+    <value>Base du prix de vente</value>
+  </data>
+  <data name="BuildCost" xml:space="preserve">
+    <value>Coût de construction</value>
+  </data>
+  <data name="ContractCost" xml:space="preserve">
+    <value>Prix des contrats</value>
+  </data>
+  <data name="SpecificMarket" xml:space="preserve">
+    <value>Marché spécifique</value>
+  </data>
+  <data name="MarketCurrentOrdersSameNote" xml:space="preserve">
+    <value>Marché (ordres actuels — même liste que dans Opportunités commerciales)</value>
+  </data>
+  <data name="NoPolledMarketsYetNote" xml:space="preserve">
+    <value>Aucun marché collecté pour l'instant — ajoutez d'abord une configuration de marché dans Aperçu du marché.</value>
+  </data>
+  <data name="PriceTypeLabel" xml:space="preserve">
+    <value>Type de prix</value>
+  </data>
+  <data name="SalePriceBasisLabel2" xml:space="preserve">
+    <value>Prix de vente = base ×  %</value>
+  </data>
+  <data name="BuildDefaults110ContractMarket" xml:space="preserve">
+    <value>%  (par défaut : construction 110 %, contrat/marché 100 %)</value>
+  </data>
+  <data name="ShowQuantitiesInPostingLabel" xml:space="preserve">
+    <value>Afficher les quantités dans l'annonce</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>En stock</value>
+  </data>
+  <data name="InBuild" xml:space="preserve">
+    <value>En production</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>Réservé</value>
+  </data>
+  <data name="IncludeEarliestJobCompletion" xml:space="preserve">
+    <value>Inclure la date de fin du travail le plus proche (quand En stock = 0 et En production ≥ 1)</value>
+  </data>
+  <data name="OnlyIncludePackagedItems" xml:space="preserve">
+    <value>N'inclure que les objets emballés (ignorer les coques assemblées / équipées)</value>
+  </data>
+  <data name="ColourEveMailOnlyNote" xml:space="preserve">
+    <value>Couleur  (courrier EVE uniquement — les autres formats l'ignorent)</value>
+  </data>
+  <data name="ColourEachItemLine" xml:space="preserve">
+    <value>Colorer chaque ligne d'objet selon qu'il est en stock, en production ou ni l'un ni l'autre</value>
+  </data>
+  <data name="InStockLabel" xml:space="preserve">
+    <value>En stock</value>
+  </data>
+  <data name="InBuildLabel" xml:space="preserve">
+    <value>En production</value>
+  </data>
+  <data name="NeitherLabel" xml:space="preserve">
+    <value>Ni l'un ni l'autre</value>
+  </data>
+  <data name="AColourSetOnNote" xml:space="preserve">
+    <value>Une couleur définie sur un objet l'emporte sur celle-ci ; la couleur d'une section s'applique quand aucune des deux n'est définie. Dans l'en-tête, le pied de page et le texte statique, écrivez [color=#rrggbb]texte[/color] — tous les autres formats retirent cette balise.</value>
+  </data>
+  <data name="PostBlocksFirstParentNote" xml:space="preserve">
+    <value>Blocs de publication  (premier = message parent ; suivants = détail dans le fil)</value>
+  </data>
+  <data name="AddPost" xml:space="preserve">
+    <value>+ Ajouter une publication</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="TipMoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="TipMoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="HintStaticContent" xml:space="preserve">
+    <value>Contenu statique…</value>
+  </data>
+  <data name="HintHeaderTextBeforeTheContent" xml:space="preserve">
+    <value>En-tête — texte avant le contenu…</value>
+  </data>
+  <data name="HintFooterTextAfterTheContent" xml:space="preserve">
+    <value>Pied de page — texte après le contenu…</value>
+  </data>
+  <data name="FooterColourLabel" xml:space="preserve">
+    <value>Couleur du pied de page</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="TitleSection" xml:space="preserve">
+    <value>Section</value>
+  </data>
+  <data name="SectionNameLabel" xml:space="preserve">
+    <value>Nom de la section</value>
+  </data>
+  <data name="SectionPrefixOutputOnlyNote" xml:space="preserve">
+    <value>Préfixe de section  (sortie uniquement — p. ex. :macro: pour Slack)</value>
+  </data>
+  <data name="HintEGShips" xml:space="preserve">
+    <value>p. ex. :ships:</value>
+  </data>
+  <data name="SectionHeaderColourEveMail" xml:space="preserve">
+    <value>Couleur de l'en-tête de section  (courrier EVE uniquement)</value>
+  </data>
+  <data name="SectionRowColourLabel" xml:space="preserve">
+    <value>Couleur des lignes de la section</value>
+  </data>
+  <data name="OnlyUsedWhenTheNote" xml:space="preserve">
+    <value>⚠ Utilisée uniquement quand l'annonce ne colore PAS selon l'état. Ce réglage s'applique ligne par ligne et a la priorité : quand il est activé, celle-ci n'a aucun effet. La couleur propre d'un objet l'emporte sur les deux.</value>
+  </data>
+  <data name="OverrideInventoryScopeForThis" xml:space="preserve">
+    <value>Remplacer le périmètre du stock pour cette section</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Périmètre</value>
+  </data>
+  <data name="OverrideSalePriceBasis" xml:space="preserve">
+    <value>Remplacer la base du prix de vente pour cette section</value>
+  </data>
+  <data name="MarketCurrentOrders" xml:space="preserve">
+    <value>Marché (ordres actuels)</value>
+  </data>
+  <data name="Build110ContractMarket100" xml:space="preserve">
+    <value>%  (construction 110 %, contrat/marché 100 %)</value>
+  </data>
+  <data name="OverridePackagedOnlySetting" xml:space="preserve">
+    <value>Remplacer le réglage « emballés uniquement » pour cette section</value>
+  </data>
+  <data name="TitleWhereShouldTheSiteLive" xml:space="preserve">
+    <value>Où héberger le site ?</value>
+  </data>
+  <data name="TheSiteNeedsAnNote" xml:space="preserve">
+    <value>Le site a besoin d'une adresse. Il peut utiliser celle, gratuite, que Cloudflare donne à chaque Worker, ou un domaine à vous qui se trouve déjà sur ce compte Cloudflare. L'une comme l'autre peut être changée plus tard dans l'onglet Site web.</value>
+  </data>
+  <data name="TheFreeWorkersDevAddress" xml:space="preserve">
+    <value>L'adresse workers.dev gratuite</value>
+  </data>
+  <data name="ThisAccountHasNoNote" xml:space="preserve">
+    <value>Ce compte n'a pas encore de nom workers.dev. Choisissez-en un :</value>
+  </data>
+  <data name="HintYourName" xml:space="preserve">
+    <value>votre-nom</value>
+  </data>
+  <data name="WorkersDev" xml:space="preserve">
+    <value>.workers.dev</value>
+  </data>
+  <data name="EveryWorkerOnThisNote" xml:space="preserve">
+    <value>Tous les Workers de ce compte Cloudflare le partagent ; il doit être unique sur l'ensemble de Cloudflare, et peut être changé plus tard dans le tableau de bord, sous Workers &amp; Pages, Account details. Lettres minuscules, chiffres et traits d'union.</value>
+  </data>
+  <data name="ADomainOfMy" xml:space="preserve">
+    <value>Mon propre domaine sur Cloudflare</value>
+  </data>
+  <data name="TheDomainMustAlreadyNote" xml:space="preserve">
+    <value>Le domaine doit déjà se trouver sur ce compte Cloudflare, avec son DNS. Cloudflare crée l'enregistrement et le certificat ; le site ne répond que sous ce nom.</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continuer</value>
+  </data>
+  <data name="TitleAddOrder" xml:space="preserve">
+    <value>Ajouter une commande</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Type d'objet</value>
+  </data>
+  <data name="NoneSelected" xml:space="preserve">
+    <value>(aucune sélection)</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Saisissez le nom d'un objet…</value>
+  </data>
+  <data name="UnitsLabel" xml:space="preserve">
+    <value>Unités</value>
+  </data>
+  <data name="PurchasePriceTotalLabel" xml:space="preserve">
+    <value>Prix d'achat (total)</value>
+  </data>
+  <data name="BuyerLabel" xml:space="preserve">
+    <value>Acheteur</value>
+  </data>
+  <data name="HintStartTypingACharacterOr" xml:space="preserve">
+    <value>Saisissez un personnage ou une corporation…</value>
+  </data>
+  <data name="EstimatedDateLabel" xml:space="preserve">
+    <value>Date estimée</value>
+  </data>
+  <data name="CompletedDateLabel" xml:space="preserve">
+    <value>Date de clôture</value>
+  </data>
+  <data name="SetAutomaticallyTodayWhenNote" xml:space="preserve">
+    <value>Renseignée automatiquement : la date du jour quand vous marquez une commande comme terminée ou annulée, ou la date d'acceptation du contrat lié. Modifiez-la ici si la date réelle diffère.</value>
+  </data>
+  <data name="PriorityPutThisOrder" xml:space="preserve">
+    <value>Priorité — placer cette commande et tout ce dont elle a besoin en tête</value>
+  </data>
+  <data name="TipOutranksEveryOtherOrder" xml:space="preserve">
+    <value>Passe avant toutes les autres commandes, quelle que soit leur date estimée, avec les travaux, achats et transports qui la servent.</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="HintContractIdsIfThe" xml:space="preserve">
+    <value>ID de contrats, si l'association en a manqué un</value>
+  </data>
+  <data name="NormallyFilledInAutomaticallyNote" xml:space="preserve">
+    <value>Normalement rempli automatiquement — tous les contrats qui portent cette commande, car une commande peut être livrée en plusieurs contrats. Ajoutez ici un ID quand un contrat ne peut pas être associé, généralement parce qu'il a été établi avant la saisie de la commande ; séparez-en plusieurs par des virgules. Retirer un ID libère ce contrat.</value>
+  </data>
+  <data name="LabelsLabel" xml:space="preserve">
+    <value>Étiquettes</value>
+  </data>
+  <data name="FreeTagsForGroupingNote" xml:space="preserve">
+    <value>Étiquettes libres pour regrouper les commandes — un programme de corporation, un client, une expédition. Tapez ce que vous voulez ; si l'étiquette n'existe pas encore, appuyez sur Enter pour la créer. Le suivi des commandes peut filtrer sur ces étiquettes.</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="SelectAnItemTypeAbove" xml:space="preserve">
+    <value>Sélectionnez un type d'objet ci-dessus.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Suivi des commandes</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="AddOrder" xml:space="preserve">
+    <value>Ajouter une commande</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Création</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>du yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>au yyyy-MM-dd</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="HintItemName" xml:space="preserve">
+    <value>nom de l'objet</value>
+  </data>
+  <data name="Buyer" xml:space="preserve">
+    <value>Acheteur</value>
+  </data>
+  <data name="HintBuyer" xml:space="preserve">
+    <value>acheteur</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Étiquette</value>
+  </data>
+  <data name="MenuAddLabel" xml:space="preserve">
+    <value>Ajouter une étiquette</value>
+  </data>
+  <data name="MenuRemoveLabel" xml:space="preserve">
+    <value>Retirer l'étiquette</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Créée le</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Unités</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Acheteur</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'entités</value>
+  </data>
+  <data name="ColOrder" xml:space="preserve">
+    <value>Commande</value>
+  </data>
+  <data name="ColLabels" xml:space="preserve">
+    <value>Étiquettes</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Boutique</value>
+  </data>
+  <data name="ColContractTo" xml:space="preserve">
+    <value>Contrat pour</value>
+  </data>
+  <data name="ColStock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="ColIndyJob" xml:space="preserve">
+    <value>Travail</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Manque</value>
+  </data>
+  <data name="ColOnContract" xml:space="preserve">
+    <value>Sous contrat</value>
+  </data>
+  <data name="ColDelivered" xml:space="preserve">
+    <value>Livré</value>
+  </data>
+  <data name="ColContract" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Date est.</value>
+  </data>
+  <data name="ColPri" xml:space="preserve">
+    <value>Prio</value>
+  </data>
+  <data name="ColPurchasePrice" xml:space="preserve">
+    <value>Prix d'achat</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Clôturée le</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Coût de constr.</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Bénéf.</value>
+  </data>
+  <data name="ColProfit2" xml:space="preserve">
+    <value>Bénéf. %</value>
+  </data>
+  <data name="SalesTracker" xml:space="preserve">
+    <value>Suivi des ventes →</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>Date / heure</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objet</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Montant</value>
+  </data>
+  <data name="TabDefinitions" xml:space="preserve">
+    <value>Définitions</value>
+  </data>
+  <data name="AddPosting" xml:space="preserve">
+    <value>+ Ajouter une annonce</value>
+  </data>
+  <data name="ImportPosting" xml:space="preserve">
+    <value>Importer une annonce</value>
+  </data>
+  <data name="ProfitBasedOn" xml:space="preserve">
+    <value>Bénéfice calculé sur</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Ajouter des objets depuis un groupe de marché</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Supprimer l'objet</value>
+  </data>
+  <data name="ColPostingSectionItem" xml:space="preserve">
+    <value>Annonce / section / objet</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>+ Section</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Ouvrir cet emplacement</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Objet</value>
+  </data>
+  <data name="ColNameOverride" xml:space="preserve">
+    <value>Nom personnalisé</value>
+  </data>
+  <data name="ColPrefix" xml:space="preserve">
+    <value>Préfixe</value>
+  </data>
+  <data name="ColColour" xml:space="preserve">
+    <value>Couleur</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="ColInStock" xml:space="preserve">
+    <value>En stock</value>
+  </data>
+  <data name="ColStockOvr" xml:space="preserve">
+    <value>Stock perso.</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>En production</value>
+  </data>
+  <data name="ColBuildOvr" xml:space="preserve">
+    <value>Prod. perso.</value>
+  </data>
+  <data name="ColReserved" xml:space="preserve">
+    <value>Réservé</value>
+  </data>
+  <data name="ColRsrvOvr" xml:space="preserve">
+    <value>Rés. perso.</value>
+  </data>
+  <data name="ColBuildCost2" xml:space="preserve">
+    <value>Coût constr.</value>
+  </data>
+  <data name="ColMktValue" xml:space="preserve">
+    <value>Val. marché</value>
+  </data>
+  <data name="ColContract2" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="ColSalePrice" xml:space="preserve">
+    <value>Prix de vente</value>
+  </data>
+  <data name="ColProfit3" xml:space="preserve">
+    <value>Bénéfice</value>
+  </data>
+  <data name="ColProfit4" xml:space="preserve">
+    <value>Bénéf. %</value>
+  </data>
+  <data name="ColReadyEst" xml:space="preserve">
+    <value>Prêt (est.)</value>
+  </data>
+  <data name="TabPosting" xml:space="preserve">
+    <value>Annonce</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="TipReRenderTheSelected" xml:space="preserve">
+    <value>Générer à nouveau l'annonce sélectionnée avec les dernières données des définitions</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Publier sur Slack</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="TipCopyTheRawFormatted" xml:space="preserve">
+    <value>Copier le texte brut mis en forme (avec ses balises) dans le presse-papiers</value>
+  </data>
+  <data name="SalesTracker2" xml:space="preserve">
+    <value>Suivi des ventes</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Du</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>Au</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="SaleType" xml:space="preserve">
+    <value>Type de vente</value>
+  </data>
+  <data name="ShowNotForProfit" xml:space="preserve">
+    <value>Afficher les ventes sans but lucratif</value>
+  </data>
+  <data name="TipIncludeSalesMarkedAs" xml:space="preserve">
+    <value>Inclure les ventes marquées comme sans but lucratif. Quand elles sont affichées, elles comptent partout sur cet écran : les résumés, les graphiques et la grille suivent tous cette case.</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Résumé</value>
+  </data>
+  <data name="ProfitByBuyer" xml:space="preserve">
+    <value>Bénéfice par acheteur</value>
+  </data>
+  <data name="ColSales" xml:space="preserve">
+    <value>Ventes</value>
+  </data>
+  <data name="ProfitByMarketGroup" xml:space="preserve">
+    <value>Bénéfice par groupe de marché</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Groupe</value>
+  </data>
+  <data name="ProfitByItem" xml:space="preserve">
+    <value>Bénéfice par objet</value>
+  </data>
+  <data name="NoProfitToShow" xml:space="preserve">
+    <value>Aucun bénéfice à afficher</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>Regrouper par</value>
+  </data>
+  <data name="CostsSalesAndProfit" xml:space="preserve">
+    <value>Coûts, ventes et bénéfice</value>
+  </data>
+  <data name="Margin" xml:space="preserve">
+    <value>Marge</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Détail</value>
+  </data>
+  <data name="MenuMarkAsNotForProfit" xml:space="preserve">
+    <value>Marquer comme sans but lucratif</value>
+  </data>
+  <data name="MenuRestoreToProfit" xml:space="preserve">
+    <value>Réintégrer aux bénéfices</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Emplacement</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Ouvrir cette station ou cette structure</value>
+  </data>
+  <data name="ColItemS" xml:space="preserve">
+    <value>Objet(s)</value>
+  </data>
+  <data name="ColTotalSale" xml:space="preserve">
+    <value>Vente totale</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Prix de constr.</value>
+  </data>
+  <data name="ColMarketPrice" xml:space="preserve">
+    <value>Prix du marché</value>
+  </data>
+  <data name="AddStore" xml:space="preserve">
+    <value>+ Ajouter une boutique</value>
+  </data>
+  <data name="CheckMailNow" xml:space="preserve">
+    <value>Relever le courrier maintenant</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Vue d'ensemble</value>
+  </data>
+  <data name="Inquiries" xml:space="preserve">
+    <value>Demandes</value>
+  </data>
+  <data name="ActiveItems" xml:space="preserve">
+    <value>Objets actifs</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Terminés</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Annulés</value>
+  </data>
+  <data name="ActiveOrders" xml:space="preserve">
+    <value>Commandes actives</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Créée le</value>
+  </data>
+  <data name="ColOrder2" xml:space="preserve">
+    <value>Commande</value>
+  </data>
+  <data name="ColEstDate2" xml:space="preserve">
+    <value>Date est.</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>Messages</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="ColDirection" xml:space="preserve">
+    <value>Sens</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Correspondant</value>
+  </data>
+  <data name="ColCommand" xml:space="preserve">
+    <value>Mot-clé</value>
+  </data>
+  <data name="ColSubject" xml:space="preserve">
+    <value>Sujet</value>
+  </data>
+  <data name="ColOutcome" xml:space="preserve">
+    <value>Résultat</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="WebSiteEvents" xml:space="preserve">
+    <value>Événements du site web</value>
+  </data>
+  <data name="ShowVisits" xml:space="preserve">
+    <value>Afficher les visites</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="BookIt" xml:space="preserve">
+    <value>Accepter</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
+  <data name="TabGeneral" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>Boutique</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="EveMailbox" xml:space="preserve">
+    <value>Boîte aux lettres EVE</value>
+  </data>
+  <data name="UsedForOrderStatusNote" xml:space="preserve">
+    <value>Utilisée pour les notifications de statut des commandes, et pour les demandes adressées à la boutique quand la boutique par courrier EVE est ouverte.</value>
+  </data>
+  <data name="PriceList" xml:space="preserve">
+    <value>Liste de prix</value>
+  </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>Comme l'application ({0})</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>Ce que lisent les acheteurs : les courriers de la boutique et les noms des objets sur son site web. « Comme l'application » suit la langue de l'interface de l'ordinateur qui fait tourner la boutique.</value>
+  </data>
+  <data name="GiveInStockOrders" xml:space="preserve">
+    <value>Donner une date prévue aux commandes en stock</value>
+  </data>
+  <data name="DaySFromTheOrder" xml:space="preserve">
+    <value>jour(s) après la commande</value>
+  </data>
+  <data name="OrderLabelsOnEveryNote" xml:space="preserve">
+    <value>Étiquettes de commande  (sur chaque commande reçue par cette boutique)</value>
+  </data>
+  <data name="LabelsAppearOnTheNote" xml:space="preserve">
+    <value>Les étiquettes apparaissent dans le suivi des commandes, qui permet de filtrer sur elles. Tout ce qui est saisi ici est proposé dans ses sélecteurs d'étiquettes : un programme peut ainsi être préparé avant l'arrivée de sa première commande.</value>
+  </data>
+  <data name="TabRestrictions" xml:space="preserve">
+    <value>Restrictions</value>
+  </data>
+  <data name="WhoMayOrder" xml:space="preserve">
+    <value>Qui peut commander</value>
+  </data>
+  <data name="UsedWhenServeIsNote" xml:space="preserve">
+    <value>Utilisée quand Servir est réglé sur Liste. Un expéditeur correspond par son propre nom, sa corporation ou son alliance. Les noms sont résolus d'après les ID que l'application a déjà rencontrés.</value>
+  </data>
+  <data name="Serve" xml:space="preserve">
+    <value>Servir</value>
+  </data>
+  <data name="AnyoneOrOnlyTheNote" xml:space="preserve">
+    <value>Tout le monde, ou seulement la liste ci-dessous. Identique pour le courrier EVE et le site web.</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Tapez deux lettres du nom…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="PurchaseLimit" xml:space="preserve">
+    <value>Limite d'achat</value>
+  </data>
+  <data name="HowMuchOneBuyerNote" xml:space="preserve">
+    <value>Ce qu'un acheteur peut prendre, compté sur ses commandes non annulées dans cette boutique, quel que soit le canal par lequel elles ont été passées. Pour un programme qui distribue la première coque de chaque modèle : une unité de chaque type d'objet, sans limite de durée. Sur le site, un objet qu'un acheteur ne peut plus commander est grisé, et la case des unités indique ce qui reste ; une commande qui dépasse la limite mais parvient quand même à l'application est mise en attente pour que vous l'examiniez, jamais acceptée automatiquement.</value>
+  </data>
+  <data name="LimitEachBuyer" xml:space="preserve">
+    <value>Limiter chaque acheteur</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>à</value>
+  </data>
+  <data name="UnitSOf" xml:space="preserve">
+    <value>unité(s)</value>
+  </data>
+  <data name="Per" xml:space="preserve">
+    <value>sur</value>
+  </data>
+  <data name="TabEveMail" xml:space="preserve">
+    <value>Courrier EVE</value>
+  </data>
+  <data name="EveMail" xml:space="preserve">
+    <value>Courrier EVE</value>
+  </data>
+  <data name="AShopFrontInNote" xml:space="preserve">
+    <value>Une vitrine dans la boîte aux lettres : les acheteurs écrivent au personnage ci-dessus, et l'application répond, enregistre les commandes et les tient informés. Qui peut acheter se règle dans l'onglet Restrictions, de la même façon pour le courrier et le web.</value>
+  </data>
+  <data name="OpenByEveMail" xml:space="preserve">
+    <value>Ouverte par courrier EVE — lire les courriers envoyés à la boîte aux lettres et y répondre</value>
+  </data>
+  <data name="BuyersPutTheCommandNote" xml:space="preserve">
+    <value>Les acheteurs indiquent le mot-clé dans le SUJET du courrier : PRICES, ORDER, STATUS, CANCEL ou HELP. Le corps d'un ORDER contient un objet par ligne — le plus simple est d'y faire glisser l'objet. STATUS seul liste toutes les commandes ouvertes ; CANCEL nécessite la référence indiquée dans le courrier de confirmation.</value>
+  </data>
+  <data name="MessageHeaderOnEveryNote" xml:space="preserve">
+    <value>En-tête des messages  (sur chaque courrier envoyé par cette boutique)</value>
+  </data>
+  <data name="HintEGThanksFor" xml:space="preserve">
+    <value>p. ex. Merci pour vos achats.</value>
+  </data>
+  <data name="TipEveMarkupWorksHere" xml:space="preserve">
+    <value>La mise en forme d'EVE fonctionne ici : &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, les liens glissés et [color=#rrggbb]texte[/color]. La couleur à côté de cette case teinte tout le bloc ; la balise en colore une partie.</value>
+  </data>
+  <data name="MessageFooterLabel" xml:space="preserve">
+    <value>Pied de page des messages</value>
+  </data>
+  <data name="BothAcceptEveMarkupNote" xml:space="preserve">
+    <value>Les deux acceptent la mise en forme d'EVE — gras, italique, souligné, liens glissés — et [color=#rrggbb]texte[/color] pour une partie de ligne. Le sélecteur à côté de chaque case teinte tout le bloc.</value>
+  </data>
+  <data name="HintEGContractsAre" xml:space="preserve">
+    <value>p. ex. Les contrats sont émis depuis Jita 4-4.</value>
+  </data>
+  <data name="TabWebSite" xml:space="preserve">
+    <value>Site web</value>
+  </data>
+  <data name="WebSite" xml:space="preserve">
+    <value>Site web</value>
+  </data>
+  <data name="AShopFrontOnNote" xml:space="preserve">
+    <value>Une vitrine sur le web, sur un site que vous hébergez. Les acheteurs se connectent avec le SSO d'EVE, voient cette liste de prix avec ce qui est en stock, en production et réservé, passent des commandes et en suivent l'avancement. L'application envoie au site ce qu'il peut afficher et récupère toutes les quelques minutes ce que les acheteurs ont fait ; rien sur le site n'atteint la base de données. Qui peut acheter se règle dans l'onglet Restrictions, de la même façon pour le courrier et le web.</value>
+  </data>
+  <data name="OpenOnTheWeb" xml:space="preserve">
+    <value>Ouverte sur le web — publier sur le site et prendre ses commandes</value>
+  </data>
+  <data name="SiteAddress" xml:space="preserve">
+    <value>Adresse du site</value>
+  </data>
+  <data name="Secret" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="NewSecret" xml:space="preserve">
+    <value>Nouveau secret</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Thème</value>
+  </data>
+  <data name="BuyersMayAlsoChooseLabel" xml:space="preserve">
+    <value>Les acheteurs peuvent aussi choisir :</value>
+  </data>
+  <data name="CheckTheSite" xml:space="preserve">
+    <value>Interroger le site</value>
+  </data>
+  <data name="Every" xml:space="preserve">
+    <value>toutes les</value>
+  </data>
+  <data name="MinutesABuyerWaitsNote" xml:space="preserve">
+    <value>minutes. Un acheteur attend une confirmation jusqu'à cette durée ; chaque appel compte parmi les requêtes quotidiennes gratuites du site.</value>
+  </data>
+  <data name="AlsoMailWebBuyers" xml:space="preserve">
+    <value>Écrire aussi aux acheteurs web quand leurs commandes avancent (nécessite le personnage ci-dessus)</value>
+  </data>
+  <data name="TheThemeIsTheNote" xml:space="preserve">
+    <value>Le thème est propre à la boutique et n'a rien à voir avec celui qu'affiche cette application de bureau. Le secret est ce avec quoi l'application signe chaque appel ; définissez la même valeur que le STORE_SYNC_SECRET du site quand vous configurez le site à la main.</value>
+  </data>
+  <data name="AboutThisStoreOnTheLabel" xml:space="preserve">
+    <value>À propos de cette boutique, sur le site</value>
+  </data>
+  <data name="HintContractTermsPickupWhatever" xml:space="preserve">
+    <value>Conditions des contrats, retrait, tout ce qu'un acheteur doit lire avant de commander. Texte brut ou HTML.</value>
+  </data>
+  <data name="HtmlIsWelcomeBNote" xml:space="preserve">
+    <value>Le HTML est bienvenu : &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; et le &lt;font color&gt; de la mise en forme des courriers. Les retours à la ligne et les lignes vides sont conservés tels quels jusqu'à ce que vous structuriez le texte avec des balises de paragraphe ou de liste ; ce sont alors les balises qui décident. Le site supprime les scripts, les gestionnaires d'événements et les balises qu'il ne connaît pas, et ferme toute balise laissée ouverte.</value>
+  </data>
+  <data name="BannerLabel" xml:space="preserve">
+    <value>Bannière</value>
+  </data>
+  <data name="OptionalShownAcrossTheNote" xml:space="preserve">
+    <value>Facultative. Affichée en haut de la liste de prix, sur toute la largeur de la page et jusqu'à 300 pixels de haut ; une image large, d'environ 1100 sur 250, convient le mieux, et d'une image plus haute seul le milieu est affiché. Un gros fichier est réduit et envoyé en WebP.</value>
+  </data>
+  <data name="ChoosePicture" xml:space="preserve">
+    <value>Choisir une image…</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>Synchroniser maintenant</value>
+  </data>
+  <data name="EveApplicationNeededBeforeNote" xml:space="preserve">
+    <value>Application EVE  (nécessaire pour que les acheteurs puissent se connecter)</value>
+  </data>
+  <data name="DeployFirstSoTheNote" xml:space="preserve">
+    <value>Déployez d'abord, pour que le site ait une adresse. Enregistrez ensuite une application sur le site des développeurs d'EVE : nom et description au choix, Authentication only (aucune autorisation), et l'adresse de rappel indiquée ci-dessous. Copiez son Client ID et sa Secret Key dans les deux cases : un site déployé d'ici les reçoit dès leur enregistrement, et la ligne sous les cases indique si le site détient ces clés. Un site configuré à la main a besoin des mêmes valeurs dans ses secrets EVE_CLIENT_ID et EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="OpenDevelopersEveonlineCom" xml:space="preserve">
+    <value>Ouvrir developers.eveonline.com pour créer l'application</value>
+  </data>
+  <data name="CallbackUrl" xml:space="preserve">
+    <value>URL de rappel</value>
+  </data>
+  <data name="HintKnownOnceTheSite" xml:space="preserve">
+    <value>Connue une fois que le site a une adresse, ou un compte et un nom de Worker ci-dessous</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="HintFromTheApplicationsPage" xml:space="preserve">
+    <value>Sur la page de l'application, sur le site des développeurs</value>
+  </data>
+  <data name="SecretKey" xml:space="preserve">
+    <value>Secret Key</value>
+  </data>
+  <data name="HintShownOnceWhenThe" xml:space="preserve">
+    <value>Affichée une seule fois, à la création de l'application</value>
+  </data>
+  <data name="AutomaticDeploymentAndUpdatesNote" xml:space="preserve">
+    <value>Déploiement et mises à jour automatiques sur Cloudflare  (uniquement pour le bouton de déploiement)</value>
+  </data>
+  <data name="FillTheseInOnlyNote" xml:space="preserve">
+    <value>Ne remplissez ces champs que pour que l'application installe le site sur votre propre compte Cloudflare et le tienne à jour avec le bouton Déployer ou mettre à jour le site : elle crée la base de données, téléverse la dernière version du site, définit les secrets ci-dessus et le place sur l'adresse workers.dev gratuite ou sur un domaine à vous sur ce compte. Un nouveau déploiement met le site à jour sans toucher à ses commandes. Pour configurer plutôt le site à la main, suivez la documentation, puis saisissez l'adresse du site et le secret ci-dessus ; aucun de ces champs n'est alors nécessaire.</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="SiteSourceAndReleases" xml:space="preserve">
+    <value>Code source et versions du site</value>
+  </data>
+  <data name="CreateACloudflareApiToken" xml:space="preserve">
+    <value>Créer un jeton d'API Cloudflare</value>
+  </data>
+  <data name="OnTheCloudflareTokenNote" xml:space="preserve">
+    <value>Sur la page des jetons de Cloudflare : Create Token, le modèle « Edit Cloudflare Workers », ajoutez la permission D1 Edit, puis Continue et Create. Collez le jeton ci-dessous et appuyez sur Enregistrer le jeton ; il est vérifié, puis conservé sur cette machine uniquement, chiffré pour votre compte.</value>
+  </data>
+  <data name="ApiToken" xml:space="preserve">
+    <value>Jeton d'API</value>
+  </data>
+  <data name="HintPasteATokenTo" xml:space="preserve">
+    <value>Collez un jeton pour l'enregistrer sur cette machine</value>
+  </data>
+  <data name="SaveToken" xml:space="preserve">
+    <value>Enregistrer le jeton</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Oublier</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Compte</value>
+  </data>
+  <data name="HintSaveATokenToList" xml:space="preserve">
+    <value>Enregistrez un jeton pour lister les comptes</value>
+  </data>
+  <data name="WorkerName" xml:space="preserve">
+    <value>Nom du Worker</value>
+  </data>
+  <data name="AlsoTheDatabasesNameNote" xml:space="preserve">
+    <value>C'est aussi le nom de la base de données. Lettres minuscules, chiffres et traits d'union ; l'adresse du site est ce nom sur le workers.dev du compte, sauf si un domaine à vous est choisi ci-dessous.</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="TheFreeWorkersDev" xml:space="preserve">
+    <value>L'adresse workers.dev gratuite : le nom du Worker sur le workers.dev du compte</value>
+  </data>
+  <data name="RenameTheAccountsWorkersDev" xml:space="preserve">
+    <value>Changer le nom workers.dev du compte…</value>
+  </data>
+  <data name="ADomainOfMy2" xml:space="preserve">
+    <value>Mon propre domaine sur Cloudflare :</value>
+  </data>
+  <data name="ADomainMustAlreadyNote" xml:space="preserve">
+    <value>Le domaine doit déjà se trouver sur ce compte Cloudflare, avec son DNS. Le prochain déploiement y rattache le site, Cloudflare crée l'enregistrement et le certificat, et l'adresse workers.dev est désactivée pour que les acheteurs et le rappel de l'application EVE ne voient qu'un seul nom ; revenir en arrière libère le domaine. Dans les deux cas, l'URL de rappel ci-dessus change : mettez l'application EVE à jour en conséquence.</value>
+  </data>
+  <data name="DeployOrUpdateSite" xml:space="preserve">
+    <value>Déployer ou mettre à jour le site</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Vérifier</value>
+  </data>
+  <data name="TabInfo" xml:space="preserve">
+    <value>Infos</value>
+  </data>
+  <data name="AboutThisStore" xml:space="preserve">
+    <value>À propos de cette boutique</value>
+  </data>
+  <data name="WhatInfoSendsBackNote" xml:space="preserve">
+    <value>Ce que renvoie INFO : qui tient la boutique, ce qu'elle propose, les conditions de livraison, tout ce qu'un acheteur doit savoir avant de commander. Laissez ce champ vide et le mot-clé n'est pas proposé — le message d'aide ne mentionnera pas INFO, et quiconque l'envoie quand même reçoit le message d'aide à la place.</value>
+  </data>
+  <data name="InformationLabel" xml:space="preserve">
+    <value>Informations</value>
+  </data>
+  <data name="WriteItAsTextNote" xml:space="preserve">
+    <value>Rédigez-le en texte — les retours à la ligne deviennent des sauts de ligne à l'envoi. La même mise en forme des courriers EVE que pour le message d'aide : &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; et &lt;font color="#ffc8a84b"&gt; — les couleurs sont en ARGB, la paire alpha n'est donc pas facultative. Un texte fait uniquement d'espaces ne compte pas comme rempli.</value>
+  </data>
+  <data name="TabUsage" xml:space="preserve">
+    <value>Aide</value>
+  </data>
+  <data name="UsageMessage" xml:space="preserve">
+    <value>Message d'aide</value>
+  </data>
+  <data name="WhatHelpSendsAndNote" xml:space="preserve">
+    <value>Ce qu'envoie HELP, et ce qui est renvoyé avec tout ce que cette boutique n'a pas pu comprendre. Le message par défaut explique comment commander en général ; une boutique qui a ses propres règles — une coque par acheteur, un prix fixe, un programme avec des conditions — a intérêt à le dire avec ses propres mots plutôt qu'à envoyer des instructions qui ne s'appliquent pas.</value>
+  </data>
+  <data name="UseACustomUsage" xml:space="preserve">
+    <value>Utiliser un message d'aide personnalisé pour cette boutique</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="WriteItAsTextNote2" xml:space="preserve">
+    <value>Rédigez-le en texte — les retours à la ligne deviennent des sauts de ligne à l'envoi. Mise en forme des courriers EVE : &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; et &lt;font color="#ffc8a84b"&gt; — les couleurs sont en ARGB, la paire alpha n'est donc pas facultative. Les liens vers des objets et des personnages s'écrivent &lt;a href="showinfo:TYPEID"&gt; et &lt;a href="showinfo:1373//CHARACTERID"&gt;. Les espaces sont conservés tels quels ; les entités HTML ne sont pas décodées et s'affichent telles que saisies.</value>
+  </data>
+  <data name="ResetToTheDefaultMessage" xml:space="preserve">
+    <value>Rétablir le message par défaut</value>
+  </data>
+  <data name="OrderStatusPending" xml:space="preserve">
+    <value>En attente</value>
+  </data>
+  <data name="OrderStatusCompleted" xml:space="preserve">
+    <value>Terminée</value>
+  </data>
+  <data name="OrderStatusCanceled" xml:space="preserve">
+    <value>Annulée</value>
+  </data>
+  <data name="TipOpenContract" xml:space="preserve">
+    <value>Ouvrir ce contrat dans l'outil Contrats</value>
+  </data>
+  <data name="UnitsInBuild" xml:space="preserve">
+    <value>{0:N0} en production</value>
+  </data>
+  <data name="TipBuildCostAsOf" xml:space="preserve">
+    <value>Coût de construction tel qu'il était le {0}, jour de la clôture de cette commande.</value>
+  </data>
+  <data name="TipBuildCostCurrent" xml:space="preserve">
+    <value>Coût de construction actuel.</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Actives</value>
+  </data>
+  <data name="FilterCompleted" xml:space="preserve">
+    <value>Terminées</value>
+  </data>
+  <data name="FilterCanceled" xml:space="preserve">
+    <value>Annulées</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Toutes</value>
+  </data>
+  <data name="ContractNumbered" xml:space="preserve">
+    <value>Contrat {0}</value>
+  </data>
+  <data name="ContractAcceptedOn" xml:space="preserve">
+    <value>accepté le {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ContractAccepted" xml:space="preserve">
+    <value>accepté</value>
+  </data>
+  <data name="ContractWaiting" xml:space="preserve">
+    <value>en attente de l'acheteur</value>
+  </data>
+  <data name="ContractDeclined" xml:space="preserve">
+    <value>refusé</value>
+  </data>
+  <data name="ContractNotPolled" xml:space="preserve">
+    <value>pas encore parmi les contrats collectés</value>
+  </data>
+  <data name="ContractsListed" xml:space="preserve">
+    <value>{0} contrats — {1}</value>
+  </data>
+  <data name="ContractUnitsUncounted" xml:space="preserve">
+    <value>unités pas encore comptées</value>
+  </data>
+  <data name="TipClickToOpenContract" xml:space="preserve">
+    <value>
+Cliquez pour ouvrir le contrat {0} dans l'outil Contrats.</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+  </data>
+  <data name="StatusLabelled" xml:space="preserve">
+    <value>Étiquette « {1} » ajoutée à {0:N0} commande(s).</value>
+  </data>
+  <data name="StatusLabelFailed" xml:space="preserve">
+    <value>Impossible d'étiqueter : {0}</value>
+  </data>
+  <data name="StatusLabelRemoved" xml:space="preserve">
+    <value>Étiquette « {0} » retirée de {1:N0} commande(s).</value>
+  </data>
+  <data name="BuyerCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="BuyerCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>Jour</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>Semaine</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>Mois</value>
+  </data>
+  <data name="UncostedNote" xml:space="preserve">
+    <value>{0:N0} vente(s) sans coût sur l'une ou l'autre base, non représentée(s) dans les graphiques.</value>
+  </data>
+  <data name="OwnerCharsAndPersonalCorps" xml:space="preserve">
+    <value>Tous les personnages et corporations personnelles</value>
+  </data>
+  <data name="TypeAll" xml:space="preserve">
+    <value>Tous les types</value>
+  </data>
+  <data name="SaleTypeMarket" xml:space="preserve">
+    <value>Marché</value>
+  </data>
+  <data name="SaleTypeContract" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="BasisBuild" xml:space="preserve">
+    <value>Construction</value>
+  </data>
+  <data name="BasisMarket" xml:space="preserve">
+    <value>Marché</value>
+  </data>
+  <data name="NoSalesMatch" xml:space="preserve">
+    <value>Aucune vente ne correspond aux filtres.</value>
+  </data>
+  <data name="ExcludedShown" xml:space="preserve">
+    <value> · {0:N0} sans but lucratif, affichée(s) mais non comptée(s)</value>
+  </data>
+  <data name="ExcludedHidden" xml:space="preserve">
+    <value> · {0:N0} sans but lucratif, masquée(s)</value>
+  </data>
+  <data name="SeriesGrossCosts" xml:space="preserve">
+    <value>Coûts bruts</value>
+  </data>
+  <data name="SeriesGrossSales" xml:space="preserve">
+    <value>Ventes brutes</value>
+  </data>
+  <data name="SeriesNetProfit" xml:space="preserve">
+    <value>Bénéfice net</value>
+  </data>
+  <data name="SeriesMargin" xml:space="preserve">
+    <value>Marge</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Autres</value>
+  </data>
+  <data name="StatusLabelledSales" xml:space="preserve">
+    <value>Étiquette « {1} » ajoutée à {0:N0} vente(s).</value>
+  </data>
+  <data name="StatusLabelRemovedSales" xml:space="preserve">
+    <value>Étiquette « {0} » retirée de {1:N0} vente(s).</value>
+  </data>
+  <data name="StatusLabelRemoveFailed" xml:space="preserve">
+    <value>Impossible de retirer l'étiquette : {0}</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>Partout</value>
+  </data>
+  <data name="PriceBasisContract" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="PriceBasisMarketAt" xml:space="preserve">
+    <value>Marché : {0} ({1})</value>
+  </data>
+  <data name="PriceBasisBuild" xml:space="preserve">
+    <value>Construction</value>
+  </data>
+  <data name="SummaryScope" xml:space="preserve">
+    <value>périmètre : </value>
+  </data>
+  <data name="PriceBasisMarketShort" xml:space="preserve">
+    <value>Marché : {0}</value>
+  </data>
+  <data name="SummaryPackagedOnly" xml:space="preserve">
+    <value>emballés uniquement</value>
+  </data>
+  <data name="SummaryAllItems" xml:space="preserve">
+    <value>tous les objets</value>
+  </data>
+  <data name="StatusPostingExported" xml:space="preserve">
+    <value>Annonce exportée.</value>
+  </data>
+  <data name="StatusExportFailed" xml:space="preserve">
+    <value>Échec de l'export : {0}</value>
+  </data>
+  <data name="StatusNotAPosting" xml:space="preserve">
+    <value>Ce fichier n'est pas une annonce de vente.</value>
+  </data>
+  <data name="StatusImportFailed" xml:space="preserve">
+    <value>Échec de l'import : {0}</value>
+  </data>
+  <data name="NoPostingsYet" xml:space="preserve">
+    <value>Aucune annonce pour l'instant — ajoutez-en une pour commencer.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Échec du chargement : {0}</value>
+  </data>
+  <data name="SlackSelectPosting" xml:space="preserve">
+    <value>Sélectionnez d'abord une annonce.</value>
+  </data>
+  <data name="SlackNotConfigured" xml:space="preserve">
+    <value>Aucun canal Slack ni webhook configuré.</value>
+  </data>
+  <data name="SlackAlreadyPosted" xml:space="preserve">
+    <value>L'annonce « {0} » a déjà été publiée sur Slack {1}.
+
+</value>
+  </data>
+  <data name="SlackPostAgain" xml:space="preserve">
+    <value>La publier à nouveau ?</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Publication annulée.</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Publication sur Slack…</value>
+  </data>
+  <data name="SlackNothingToPost" xml:space="preserve">
+    <value>Rien à publier — cette annonce n'a aucun bloc de publication.</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Échec de la publication Slack sur « {0} » : {1}</value>
+  </data>
+  <data name="SlackAllEmpty" xml:space="preserve">
+    <value>Rien à publier — tous les blocs de publication étaient vides.</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Publiée sur {0} — {1:t}</value>
+  </data>
+  <data name="SelectSectionFirst" xml:space="preserve">
+    <value>Sélectionnez d'abord une section (ou un objet d'une section).</value>
+  </data>
+  <data name="NoItemsInGroup" xml:space="preserve">
+    <value>Aucun objet dans ce groupe de marché.</value>
+  </data>
+  <data name="ItemsAlreadyInSection" xml:space="preserve">
+    <value>Tous ces objets sont déjà dans la section.</value>
+  </data>
+  <data name="AddedItems" xml:space="preserve">
+    <value>{0} objet(s) ajouté(s).</value>
+  </data>
+  <data name="StoreOpenMailAndWeb" xml:space="preserve">
+    <value>Courrier et web ouverts</value>
+  </data>
+  <data name="StoreOpenMail" xml:space="preserve">
+    <value>Courrier ouvert</value>
+  </data>
+  <data name="StoreOpenWeb" xml:space="preserve">
+    <value>Web ouvert</value>
+  </data>
+  <data name="StoreClosed" xml:space="preserve">
+    <value>Fermée</value>
+  </data>
+  <data name="MailReceived" xml:space="preserve">
+    <value>Reçu</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Envoyé</value>
+  </data>
+  <data name="EventOrder" xml:space="preserve">
+    <value>Commande</value>
+  </data>
+  <data name="EventCancel" xml:space="preserve">
+    <value>Annulation</value>
+  </data>
+  <data name="EventVisit" xml:space="preserve">
+    <value>Visite</value>
+  </data>
+  <data name="OutcomeBooked" xml:space="preserve">
+    <value>Acceptée</value>
+  </data>
+  <data name="OutcomeApplied" xml:space="preserve">
+    <value>Appliquée</value>
+  </data>
+  <data name="OutcomeDeclined" xml:space="preserve">
+    <value>Refusée</value>
+  </data>
+  <data name="OutcomeFailed" xml:space="preserve">
+    <value>En échec</value>
+  </data>
+  <data name="OutcomeNoted" xml:space="preserve">
+    <value>Notée</value>
+  </data>
+  <data name="AllowNotFoundCharacter" xml:space="preserve">
+    <value>Aucun personnage nommé « {0} » n'a été trouvé.</value>
+  </data>
+  <data name="AllowNotFoundCorporation" xml:space="preserve">
+    <value>Aucune corporation nommée « {0} » n'a été trouvée.</value>
+  </data>
+  <data name="AllowNotFoundAlliance" xml:space="preserve">
+    <value>Aucune alliance nommée « {0} » n'a été trouvée.</value>
+  </data>
+  <data name="WebStatusSynced" xml:space="preserve">
+    <value>Dernière synchronisation le {0:yyyy-MM-dd HH:mm}.</value>
+  </data>
+  <data name="WebStatusSyncedVersion" xml:space="preserve">
+    <value>Dernière synchronisation le {0:yyyy-MM-dd HH:mm}, version du site : {1}.</value>
+  </data>
+  <data name="WebStatusNotSynced" xml:space="preserve">
+    <value>Pas encore synchronisé.</value>
+  </data>
+  <data name="WebStatusNotSyncedVersion" xml:space="preserve">
+    <value>Pas encore synchronisé, version du site : {0}.</value>
+  </data>
+  <data name="StoreUnnamed" xml:space="preserve">
+    <value>(sans nom)</value>
+  </data>
+  <data name="OutcomeNeedsDecision" xml:space="preserve">
+    <value>Décision requise</value>
+  </data>
+  <data name="SalesCountOne" xml:space="preserve">
+    <value>{0:N0} vente</value>
+  </data>
+  <data name="SalesCountOther" xml:space="preserve">
+    <value>{0:N0} ventes</value>
+  </data>
+  <data name="TipContractLine" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+  </data>
+  <data name="BuyerAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="LimitScopeType" xml:space="preserve">
+    <value>de chaque type d'objet</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>de chaque groupe d'objets</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>dans toute la boutique</value>
+  </data>
+  <data name="LimitPeriodDays" xml:space="preserve">
+    <value>jour(s)</value>
+  </data>
+  <data name="LimitPeriodMonths" xml:space="preserve">
+    <value>mois</value>
+  </data>
+  <data name="LimitPeriodYears" xml:space="preserve">
+    <value>an(s)</value>
+  </data>
+  <data name="LimitPeriodAllTime" xml:space="preserve">
+    <value>sans limite de durée</value>
+  </data>
+  <data name="PriceListTooLong" xml:space="preserve">
+    <value>⚠  La liste de prix fait {0:N0} octets sur {1:N0} — {2:N0} de trop : elle arrivera donc en {3} courriers. Raccourcissez l'annonce pour l'envoyer en un seul.</value>
+  </data>
+  <data name="PriceListFits" xml:space="preserve">
+    <value>La liste de prix fait {0:N0} octets sur {1:N0} — elle tient en un seul courrier, avec {2:N0} octets de marge.</value>
+  </data>
+  <data name="BannerNone" xml:space="preserve">
+    <value>Aucune.</value>
+  </data>
+  <data name="BannerSaved" xml:space="preserve">
+    <value>Bannière enregistrée ; elle sera envoyée au site à la prochaine synchronisation.</value>
+  </data>
+  <data name="BannerSavedScaled" xml:space="preserve">
+    <value>Bannière enregistrée, redimensionnée en {0} × {1} et convertie en WebP ; elle sera envoyée au site à la prochaine synchronisation.</value>
+  </data>
+  <data name="BannerUnusable" xml:space="preserve">
+    <value>La bannière n'a pas pu être utilisée : {0}</value>
+  </data>
+  <data name="BannerRemoved" xml:space="preserve">
+    <value>Bannière retirée ; le site la supprimera à la prochaine synchronisation.</value>
+  </data>
+  <data name="BannerRemoveFailed" xml:space="preserve">
+    <value>La bannière n'a pas pu être retirée : {0}</value>
+  </data>
+  <data name="WebClosed" xml:space="preserve">
+    <value>Le canal web est fermé.</value>
+  </data>
+  <data name="WebNeedsAddress" xml:space="preserve">
+    <value>Une adresse de site et un secret sont nécessaires avant de pouvoir synchroniser.</value>
+  </data>
+  <data name="WebOtherClient" xml:space="preserve">
+    <value>Un autre client effectue le travail d'arrière-plan et synchronise le site web ; il prendra le changement en compte à son prochain cycle.</value>
+  </data>
+  <data name="WebSyncing" xml:space="preserve">
+    <value>Synchronisation du site web…</value>
+  </data>
+  <data name="WebSecretGenerated" xml:space="preserve">
+    <value>Nouveau secret généré. Définissez la même valeur sur le site, sinon la prochaine synchronisation sera refusée.</value>
+  </data>
+  <data name="SsoKeysNeeded" xml:space="preserve">
+    <value>Les acheteurs ne peuvent pas se connecter tant que le site n'a pas le Client ID et la Secret Key de l'application EVE. Saisissez-les ici : le bouton de déploiement les place sur le site, et un site configuré à la main a besoin des mêmes valeurs dans ses secrets EVE_CLIENT_ID et EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="TokenSavedDpapi" xml:space="preserve">
+    <value>Un jeton est enregistré sur cette machine, chiffré par Windows pour votre compte.</value>
+  </data>
+  <data name="TokenSavedKeyring" xml:space="preserve">
+    <value>Un jeton est enregistré dans le trousseau de cette machine.</value>
+  </data>
+  <data name="TokenSavedPlain" xml:space="preserve">
+    <value>Un jeton est enregistré sur cette machine dans config.json, tel que saisi ; aucun trousseau n'était disponible.</value>
+  </data>
+  <data name="TokenNone" xml:space="preserve">
+    <value>Aucun jeton n'est enregistré sur cette machine. Le déploiement et la mise à jour en nécessitent un ; la synchronisation, non.</value>
+  </data>
+  <data name="DeployPasteToken" xml:space="preserve">
+    <value>Collez d'abord le jeton.</value>
+  </data>
+  <data name="DeployCheckingToken" xml:space="preserve">
+    <value>Vérification du jeton…</value>
+  </data>
+  <data name="DeployTokenGone" xml:space="preserve">
+    <value>Le jeton a été retiré de cette machine. Le site continue de fonctionner ; seuls le déploiement et la mise à jour depuis ici en ont besoin.</value>
+  </data>
+  <data name="SsoSendThem" xml:space="preserve">
+    <value>Appuyez sur Déployer ou mettre à jour le site pour les envoyer ; un site configuré à la main en a besoin dans ses secrets EVE_CLIENT_ID et EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="SsoKeysNotOnSite" xml:space="preserve">
+    <value>Les clés sont enregistrées ici, mais le site ne les a pas encore. {0}</value>
+  </data>
+  <data name="SsoNoKeys" xml:space="preserve">
+    <value>Le site n'a pas encore de clés d'application EVE : enregistrez l'application et saisissez ses clés ci-dessus.</value>
+  </data>
+  <data name="SsoReady" xml:space="preserve">
+    <value>Le site a des clés d'application EVE ; la connexion est configurée.</value>
+  </data>
+  <data name="SsoKeysNotSaved" xml:space="preserve">
+    <value>Le site a des clés d'application EVE, mais aucune n'est enregistrée ici : saisissez les mêmes ci-dessus pour qu'une mise à jour les conserve.</value>
+  </data>
+  <data name="SsoReadySame" xml:space="preserve">
+    <value>Le site a ces clés d'application EVE ; la connexion est configurée.</value>
+  </data>
+  <data name="SsoKeysDiffer" xml:space="preserve">
+    <value>Le site a des clés d'application EVE différentes de celles enregistrées ici. {0}</value>
+  </data>
+  <data name="DeployCheckingAccount" xml:space="preserve">
+    <value>Vérification du compte…</value>
+  </data>
+  <data name="DeployCancelled" xml:space="preserve">
+    <value>Déploiement annulé.</value>
+  </data>
+  <data name="DeployAskingSite" xml:space="preserve">
+    <value>Interrogation du site…</value>
+  </data>
+  <data name="NoStoresYet" xml:space="preserve">
+    <value>Aucune boutique pour l'instant — ajoutez-en une pour que les acheteurs puissent faire leurs demandes par courrier EVE.</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Échec de l'enregistrement : {0}</value>
+  </data>
+  <data name="NewStoreName" xml:space="preserve">
+    <value>Nouvelle boutique</value>
+  </data>
+  <data name="DeployPickAccount" xml:space="preserve">
+    <value>Choisissez d'abord le compte Cloudflare.</value>
+  </data>
+  <data name="RenameWorkersTitle" xml:space="preserve">
+    <value>Changer le nom workers.dev du compte</value>
+  </data>
+  <data name="RenameWorkersLabel" xml:space="preserve">
+    <value>Nouveau nom</value>
+  </data>
+  <data name="RenameWorkersHint" xml:space="preserve">
+    <value>lettres minuscules, chiffres et traits d'union</value>
+  </data>
+  <data name="DeployRenaming" xml:space="preserve">
+    <value>Changement de nom…</value>
+  </data>
+  <data name="DeleteStoreConfirm" xml:space="preserve">
+    <value>Supprimer la boutique « {0} » ?
+
+Elle ferme et disparaît de cette liste.
+
+Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses paramètres, sa liste d'autorisation et son historique de messages sont conservés pour que tout ce qui y fait référence reste valide. Elle cesse simplement de lire le courrier et d'y répondre.</value>
+  </data>
+  <data name="AllowAlreadyListed" xml:space="preserve">
+    <value>{0} figure déjà dans la liste.</value>
+  </data>
+  <data name="AllowAddFailed" xml:space="preserve">
+    <value>Ajout impossible : {0}</value>
+  </data>
+  <data name="TitleAddPosting" xml:space="preserve">
+    <value>Ajouter une annonce</value>
+  </data>
+  <data name="TitleEditPosting" xml:space="preserve">
+    <value>Modifier l'annonce</value>
+  </data>
+  <data name="LocStationLabel" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="LocSolarSystemLabel" xml:space="preserve">
+    <value>Système solaire</value>
+  </data>
+  <data name="LocRegionLabel" xml:space="preserve">
+    <value>Région</value>
+  </data>
+  <data name="PostingNameRequired" xml:space="preserve">
+    <value>Le nom de l'annonce est obligatoire.</value>
+  </data>
+  <data name="SelectMarketForBasis" xml:space="preserve">
+    <value>Sélectionnez un marché pour la base Marché spécifique.</value>
+  </data>
+  <data name="TitleAddSection" xml:space="preserve">
+    <value>Ajouter une section</value>
+  </data>
+  <data name="TitleEditSection" xml:space="preserve">
+    <value>Modifier la section</value>
+  </data>
+  <data name="SectionNameRequired" xml:space="preserve">
+    <value>Le nom de la section est obligatoire.</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corporation {0}</value>
+  </data>
+  <data name="CharNumbered" xml:space="preserve">
+    <value>Personnage {0}</value>
+  </data>
+  <data name="NoItems" xml:space="preserve">
+    <value>(aucun objet)</value>
+  </data>
+  <data name="UnitsMultiple" xml:space="preserve">
+    <value>Plusieurs</value>
+  </data>
+  <data name="TitleEditOrder" xml:space="preserve">
+    <value>Modifier la commande</value>
+  </data>
+  <data name="NotLinked" xml:space="preserve">
+    <value>{0}  (non lié)</value>
+  </data>
+  <data name="ChooseBannerTitle" xml:space="preserve">
+    <value>Choisir une image de bannière</value>
+  </data>
+  <data name="AddLabelToOrders" xml:space="preserve">
+    <value>Ajouter une étiquette à {0} commandes</value>
+  </data>
+  <data name="AddLabel" xml:space="preserve">
+    <value>Ajouter une étiquette</value>
+  </data>
+  <data name="RemoveLabelFromOrders" xml:space="preserve">
+    <value>Retirer une étiquette de {0} commandes</value>
+  </data>
+  <data name="RemoveLabel" xml:space="preserve">
+    <value>Retirer l'étiquette</value>
+  </data>
+  <data name="NewLabelMenu" xml:space="preserve">
+    <value>Nouvelle étiquette…</value>
+  </data>
+  <data name="NewLabelTitle" xml:space="preserve">
+    <value>Nouvelle étiquette</value>
+  </data>
+  <data name="LabelPrompt" xml:space="preserve">
+    <value>Étiquette</value>
+  </data>
+  <data name="NewLabelHint" xml:space="preserve">
+    <value>p. ex. Programme capitaux</value>
+  </data>
+  <data name="AddLabelToSales" xml:space="preserve">
+    <value>Ajouter une étiquette à {0} ventes</value>
+  </data>
+  <data name="RemoveLabelFromSales" xml:space="preserve">
+    <value>Retirer une étiquette de {0} ventes</value>
+  </data>
+  <data name="TitleExportPosting" xml:space="preserve">
+    <value>Exporter l'annonce</value>
+  </data>
+  <data name="TitleImportPosting" xml:space="preserve">
+    <value>Importer une annonce</value>
+  </data>
+  <data name="WorkersNameInvalid" xml:space="preserve">
+    <value>Le nom workers.dev doit se composer de lettres minuscules, de chiffres et de traits d'union, 63 au maximum.</value>
+  </data>
+  <data name="HostnameInvalid" xml:space="preserve">
+    <value>Ce n'est pas un nom d'hôte : il faut quelque chose comme store.example.com, uniquement des lettres, des chiffres, des traits d'union et des points.</value>
+  </data>
+  <data name="ContractUnitsOne" xml:space="preserve">
+    <value>{0:N0} unité</value>
+  </data>
+  <data name="ContractUnitsOther" xml:space="preserve">
+    <value>{0:N0} unités</value>
+  </data>
+  <data name="BasisContract" xml:space="preserve">
+    <value>Contrat</value>
+  </data>
+  <data name="PolicyList" xml:space="preserve">
+    <value>Liste</value>
+  </data>
+  <data name="PolicyAnyone" xml:space="preserve">
+    <value>Tout le monde</value>
+  </data>
+  <data name="ScopePickStation" xml:space="preserve">
+    <value>Sélectionnez une station ou choisissez Partout.</value>
+  </data>
+  <data name="ScopePickSystem" xml:space="preserve">
+    <value>Sélectionnez un système solaire ou choisissez Partout.</value>
+  </data>
+  <data name="ScopePickRegion" xml:space="preserve">
+    <value>Sélectionnez une région ou choisissez Partout.</value>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>Tous</value>
+  </data>
+  <data name="TitleSaleListingBuild" xml:space="preserve">
+    <value>Liste de vente — coût de construction</value>
+  </data>
+  <data name="TitleSaleListingMarket" xml:space="preserve">
+    <value>Liste de vente — valeur marchande</value>
+  </data>
+  <data name="PostTypeSummary" xml:space="preserve">
+    <value>Résumé</value>
+  </data>
+  <data name="PostTypeDetail" xml:space="preserve">
+    <value>Détail</value>
+  </data>
+  <data name="PostTypeStatic" xml:space="preserve">
+    <value>Statique</value>
+  </data>
+  <data name="TextColourLabel" xml:space="preserve">
+    <value>Couleur du texte</value>
+  </data>
+  <data name="HeaderColourLabel" xml:space="preserve">
+    <value>Couleur de l'en-tête</value>
+  </data>
+  <data name="SourceStock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="SourceInProduction" xml:space="preserve">
+    <value>En production</value>
+  </data>
+  <data name="SourceContracted" xml:space="preserve">
+    <value>Sous contrat</value>
+  </data>
+  <data name="SourceUnsourced" xml:space="preserve">
+    <value>Sans source</value>
+  </data>
+  <data name="ItemsAndMoreOne" xml:space="preserve">
+    <value>{1} +{0} autre objet</value>
+  </data>
+  <data name="ItemsAndMoreOther" xml:space="preserve">
+    <value>{1} +{0} autres objets</value>
+  </data>
+  <data name="MoreItemsTailOne" xml:space="preserve">
+    <value>+{0} autre objet</value>
+  </data>
+  <data name="MoreItemsTailOther" xml:space="preserve">
+    <value>+{0} autres objets</value>
+  </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>Échec du dernier relevé : {0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>Aucune boutique ouverte.</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>{0} boutiques ouvertes, rien de nouveau.</value>
+  </data>
+  <data name="MailStoreNothingNewOne" xml:space="preserve">
+    <value>{0} boutique ouverte, rien de nouveau.</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>{0} message(s) traité(s), {1} mise(s) à jour envoyée(s).</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>En attente — {0}.</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>il reste {0} appel(s) de messagerie sur {1} dans la fenêtre de 15 minutes en cours</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>Échec de l'envoi de la mise à jour : {0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>Une réponse ou un transfert — cela fait partie d'une conversation, ce n'est pas une demande.</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>Aucun expéditeur sur le courrier — impossible d'y répondre sans risque.</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>L'expéditeur ne figure pas dans la liste de cette boutique.</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>Aucun mot-clé dans le sujet — message d'aide déjà envoyé récemment ; à traiter manuellement.</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>Aucun mot-clé dans le sujet — message d'aide envoyé.</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>Aucune information rédigée pour cette boutique — message d'aide envoyé à la place.</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>L'annonce de la boutique n'a rien produit — vérifiez qu'elle comporte des blocs de publication.</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>La boutique n'a aucune annonce sur laquelle baser les prix.</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>Rien de reconnu. Sans correspondance : {0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>Aucune ligne de commande trouvée dans le corps du courrier.</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>Aucune commande en cours pour cet expéditeur.</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>Aucune commande correspondant à {0} pour cet expéditeur.</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>Aucune référence de commande trouvée dans le courrier.</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>Échec de l'envoi de la réponse : {0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>Raccourci pour respecter la longueur maximale d'un courrier.</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>Non envoyé : {0} ({1:N0} caractères, {2:N0} octets)</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>Aucune boutique web ouverte.</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>{0} boutique(s) web, dont {1} injoignable(s) — voir l'écran Boutiques.</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>{0} boutique(s) web synchronisée(s), {1} commande(s) acceptée(s).</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>{0} boutique(s) web synchronisée(s) ; {1} session(s) d'acheteur active(s).</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>Synchronisation effectuée — {0} commande(s) acceptée(s), {1} événement(s) appliqué(s).</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>Synchronisation effectuée — {0} événement(s) appliqué(s), {1} ligne(s) de commande envoyée(s), {2} session(s) active(s).</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>La boutique n'existe plus.</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>La boutique web n'est pas configurée : elle doit être activée, avec une adresse de site et un secret.</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>Impossible de préparer l'envoi : {0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>L'annonce de la boutique n'a rien produit — vérifiez qu'elle comporte des sections et des objets.</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>Aucune réponse.</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>Type d'événement « {0} » inconnu.</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>Impossible d'appliquer</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>L'adresse du site « {0} » n'est pas une adresse https valide.</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>Le site a refusé la signature. Le secret enregistré ici et celui du site diffèrent, ou les horloges ont plus de cinq minutes d'écart.</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>Le site n'a aucun point d'accès de synchronisation à cette adresse. Vérifiez l'adresse et assurez-vous que le site est bien déployé.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>Le site utilise le protocole {0} et cette application le protocole {1}. Mettez à jour l'application.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>Le site utilise le protocole {0} et cette application le protocole {1}. Mettez à jour le site.</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>Le site et l'application ne s'accordent pas sur la version du protocole.</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>Le site a répondu {0} {1}.</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>Le site a répondu {0} {1} : {2}.</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>La réponse du site était vide.</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>Le site n'a pas répondu dans un délai d'une minute.</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>Impossible de joindre le site : {0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>La réponse du site n'a pas pu être lue : {0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>La bannière n'a pas pu être envoyée : l'adresse du site « {0} » n'est pas une adresse https valide.</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>La bannière n'a pas pu être envoyée : le site n'a pas répondu dans un délai d'une minute.</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>La bannière n'a pas pu être envoyée : impossible de joindre le site : {0}.</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>Le site est trop ancien pour accepter une bannière ; mettez-le à jour.</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>Le site a refusé la bannière ({0}).</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>Le site a refusé la bannière ({0}) : {1}.</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>Connexion au site.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOne" xml:space="preserve">
+    <value>Retour sur le site après {0} jour d'absence.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>Retour sur le site après {0} jours d'absence.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOne" xml:space="preserve">
+    <value>Retour sur le site après {0} heure d'absence.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>Retour sur le site après {0} heures d'absence.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>Retour sur le site après {0} minutes d'absence.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOne" xml:space="preserve">
+    <value>Retour sur le site après {0} minute d'absence.</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>La boutique n'a aucune annonce à laquelle comparer la commande.</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>Aucun prix sur la ligne pour {0}.</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0} ne figure pas dans la liste de cette boutique.</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>{0} n'a actuellement aucun prix dans l'annonce.</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>Le site a affiché {0:N0} ISK pour {1} ; l'annonce indique désormais {2:N0} ISK ({3:+0;-0} %).</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>{0} lignes, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncBookedLinesOne" xml:space="preserve">
+    <value>{0} ligne, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>Annulée avant d'avoir été acceptée.</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>Aucune commande ne correspond.</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>La commande appartient à quelqu'un d'autre.</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>Rien dans la commande n'est encore en cours.</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>{0} lignes annulées. ⚠ Contrat(s) {1} déjà établi(s), à supprimer dans le jeu.</value>
+  </data>
+  <data name="WebSyncCancelledContractOne" xml:space="preserve">
+    <value>{0} ligne annulée. ⚠ Contrat(s) {1} déjà établi(s), à supprimer dans le jeu.</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>{0} lignes annulées.</value>
+  </data>
+  <data name="WebSyncCancelledOne" xml:space="preserve">
+    <value>{0} ligne annulée.</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>{0} lignes annulées. Motif indiqué : {1}</value>
+  </data>
+  <data name="WebSyncCancelledReasonOne" xml:space="preserve">
+    <value>{0} ligne annulée. Motif indiqué : {1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>Cet événement n'existe plus.</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>Seule une commande peut être acceptée.</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>Déjà acceptée.</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>L'événement n'a pas pu être lu.</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>Acceptée par le propriétaire. {0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>Acceptée sous la référence {0}.</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>Déjà acceptée — annulez-la plutôt dans le suivi des commandes.</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>Refusée.</value>
+  </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Publier sur Discord</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>Aucun webhook Discord configuré pour la publication des ventes.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>L'annonce « {0} » a déjà été publiée sur Discord {1}.
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Publication sur Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Échec de la publication Discord sur « {0} » : {1}</value>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.SplashWindow"
         Width="900" Height="360"
         Icon="avares://EveConsole/Assets/ec.ico"
@@ -35,7 +36,7 @@
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="StatusText"
                      Grid.Column="0"
-                     Text="Initializing…"
+                     Text="{x:Static loc:ShellText.Initializing}"
                      FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                      VerticalAlignment="Center" />
           <TextBlock x:Name="VersionText"

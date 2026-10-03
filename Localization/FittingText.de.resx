@@ -1,0 +1,1237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>Ausrüstung</value>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>Gegenstände</value>
+  </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Nicht auf dem Markt</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Doppelklick auf ein Element fügt es hinzu, oder auf einen Slot ziehen.</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>Module</value>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>Rigs</value>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>Subsysteme</value>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>Ladungen</value>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>Drohnen</value>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>Implantate</value>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>Booster</value>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>Nach Name oder Gruppe suchen…</value>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>Nur, was in diesen Rumpf passt</value>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>Module für alle Slots anzeigen</value>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>Ausrüsten</value>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>In Frachtraum legen</value>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>Legt den ausgewählten Gegenstand in den Frachtraum – mitnehmen lässt sich alles.</value>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>High</value>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>Mid</value>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>Dienst</value>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>Rig</value>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>Subsystem</value>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>Ladung</value>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>Drohne</value>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>Jäger</value>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>Implantat</value>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>Booster</value>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>Nur Module für High Slots</value>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>Nur Module für Mid Slots</value>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>Nur Module für Low Slots</value>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>Nur Module für Rig-Slots</value>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>Nur Module für Subsystem-Slots</value>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>Nur Module für Dienstmodul-Slots</value>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ Gegenstände</value>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>Gegenstandsliste ein- oder ausblenden</value>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>Neue Ausrüstung</value>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>Rumpf – Name oder Klasse eingeben…</value>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>EFT einfügen…</value>
+  </data>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Ausrüstung öffnen…</value>
+  </data>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Eine in EVE Console gespeicherte Ausrüstung oder eine Ausrüstung Ihrer Charaktere im Spiel öffnen</value>
+  </data>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Ausrüstung öffnen</value>
+  </data>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Nach Ausrüstungs- oder Rumpfname suchen…</value>
+  </data>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Keine Ausrüstung passt zur Suche.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Ausrüstung löschen</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Die in EVE Console gespeicherte Ausrüstung „{0}“ löschen? Das kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>Die gewählte Ausrüstung löschen – nur in EVE Console gespeicherte</value>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>Beginnen Sie eine Ausrüstung mit einem Rumpf, fügen Sie eine ein oder öffnen Sie eine aus dem Spiel oder aus Ihren gespeicherten Ausrüstungen. Jede öffnet sich in einem eigenen Tab.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Hier ablegen, um zwei Ausrüstungen nebeneinander zu sehen</value>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>Neue Ausrüstung</value>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>Ziehen, um die Reihenfolge zu ändern, oder auf die rechte Hälfte, um zwei Ausrüstungen nebeneinander zu sehen</value>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>Seit dem Öffnen oder Speichern geändert</value>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>Diese Ausrüstung schließen</value>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>Der taktische Modus des Schiffs – seine Boni sind in den Werten enthalten</value>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>Mit wessen Skills die Werte berechnet werden</value>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>Alle V</value>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>Alle 0</value>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>Ausrüstungsname</value>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>Neue {0}</value>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>{0}-Ausrüstung</value>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>Gespeichert aus EVE Console</value>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>Ausrüstung</value>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>EFT kopieren</value>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>Diese Ausrüstung als EFT-Text in die Zwischenablage kopieren</value>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>Über die Ausrüstung speichern, aus der diese geöffnet oder zuletzt gespeichert wurde, ohne Rückfrage. Für eine nie gespeicherte Ausrüstung „Speichern unter“ verwenden.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Speichern unter…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Namen und Speicherort wählen: EVE Console oder die Ausrüstungen eines Charakters im Spiel</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Gespeichert in EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Gespeichert in den Ausrüstungen von {0} im Spiel</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Noch nicht gespeichert</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Ausrüstung überschreiben</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Eine Ausrüstung namens „{0}“ für diesen Rumpf ist bereits in EVE Console gespeichert. Überschreiben?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Die Ausrüstung „{0}“ in den Ausrüstungen von {1} im Spiel ersetzen? Das Spiel kann eine Ausrüstung nicht ändern; die neue wird zuerst gespeichert, dann die alte gelöscht.</value>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>Aus den Ausrüstungen von {0} im Spiel: {1}</value>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>High Slots  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>Mid Slots  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>Low Slots  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>Rig-Slots  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>Subsystem-Slots  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>Dienstmodul-Slots  {0} / {1}</value>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[Leerer High Slot]</value>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[Leerer Mid Slot]</value>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[Leerer Low Slot]</value>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[Leerer Rig-Slot]</value>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[Leerer Subsystem-Slot]</value>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[Leerer Dienstmodul-Slot]</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>An</value>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>Akt.</value>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>Überh.</value>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>Offline – klicken, um es online zu bringen</value>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>Online – klicken, um es zu aktivieren</value>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>Online – klicken, um es offline zu schalten</value>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>Aktiv – klicken, um es offline zu schalten</value>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>Überhitzt – klicken, um es offline zu schalten</value>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>Überh.</value>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>Überhitzt – klicken, um die Überhitzung zu beenden</value>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>Klicken, um zu überhitzen</value>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>Keine Ladung</value>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>Marktwert des Moduls</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>Klicken, um ein Modul für diesen Slot zu wählen</value>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>Überhitzt</value>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>Online bringen</value>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>Offline schalten</value>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>Aktivieren</value>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>Überhitzen</value>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>Überhitzung beenden</value>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>{0} entladen</value>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>Drohnen und Jäger</value>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>im Hangar</value>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>gestartet</value>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>im Startrohr</value>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>Gestartet – nur Staffeln in Startrohren zählen zum Schaden der Ausrüstung</value>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>Marktwert des ganzen Stapels</value>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>Leicht</value>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>Unterstützung</value>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>Schwer</value>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>Leichte Staffel mit bis zu {0} Jägern</value>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>Unterstützungsstaffel mit bis zu {0} Jägern</value>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>Schwere Staffel mit bis zu {0} Jägern</value>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>Staffel mit bis zu {0} Jägern</value>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>Angriff</value>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>Lenkwaffen</value>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>Bombe</value>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>Kamikaze</value>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>Energieneutralisierung</value>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>Stasisnetz</value>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>Warpstörung</value>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>ECM</value>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>Tackle</value>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>Ausweichmanöver</value>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>Nachbrenner</value>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>Mikrowarpantrieb</value>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>Mikrosprungantrieb</value>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0}: zählt zum DPS, solange eingeschaltet</value>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0}: ohne Einfluss auf die Werte der Ausrüstung</value>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>Frachtraum</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Menge</value>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>Implantate und Booster</value>
+  </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Flottenboni</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Die eigenen Kommandoschübe verstärken es selbst</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Schübe erreichen jedes Flottenmitglied in Reichweite, auch das Schiff selbst. Für einen allein fliegenden Booster abwählen.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Boostende Ausrüstung hinzufügen…</value>
+  </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Boostende Ausrüstung hinzufügen</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Mit wessen Skills die Schübe und Fernmodule dieser Ausrüstung berechnet werden</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Ausrüstungen, die diese unterstützen – beliebig viele: ihre laufenden Kommandoschübe (von gleichen Boni gilt der stärkste) und ihre Fernreparaturmodule, Fern-Schildbooster, Energietransmitter und Logistikdrohnen (die sich addieren)</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Fern-Schildboost  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Fern-Panzerungsreparatur  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Fern-Strukturreparatur  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Energietransfer  {0:N1} GJ/s  · {1}</value>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>Ressourcen</value>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>Stromnetz</value>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>Kalibrierung</value>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>Geschütztürme {0} / {1}    Werfer {2} / {3}</value>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>Fracht {0:N1} / {1:N0} m³</value>
+  </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>Fracht {0:N1} m³</value>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>Drohnenhangar {0:0} / {1:0} m³    Bandbreite {2:0} / {3:0} Mbit/s</value>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>Jägerhangar {0:N0} / {1:N0} m³    Startrohre {2} / {3}</value>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>Leicht {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>Unterstützung {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>Schwer {0} / {1}</value>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>Rumpf {0}</value>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>Module {0}</value>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>Drohnen {0}</value>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>Fracht {0}</value>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>Implantate und Booster {0} (gehören dem Piloten, nicht in der Summe)</value>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>Noch keine Marktpreise – wählen Sie unter „Einstellungen → Markt“ einen Markt für den Besitzwert.</value>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>Preise: {0}</value>
+  </data>
+  <data name="ValuePricesUnpricedOne" xml:space="preserve">
+    <value>Preise: {1} – {0} Gegenstand ohne Preis</value>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>Preise: {1} – {0} Gegenstände ohne Preis</value>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>Angriffsstärke</value>
+  </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>Bergbau</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Erz {0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Eis {0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Gas {0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>Eine Stunde mit allen laufenden Bergbaumodulen, kritische Erfolge gemittelt. Rückstände gehen dem Gestein oder der Wolke verloren, nicht dem, was du einbringst. Bergbaukristalle, Skills, Boni und das Schiff sind berücksichtigt.</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} m³ alle {1:0.#} s</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>Rückstand {0:0.#} %</value>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} DPS</value>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>Waffen {0:N1}</value>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>Drohnen {0:N1}</value>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>Jäger {0:N1}</value>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>Salve {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>Mit Nachladen {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Voll aufgeladen {0:N1} nach {1}</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS gilt zwischen dem Nachladen. Mit Nachladen wird jede Ladung abgefeuert und dann nachgeladen, immer wieder. Laser laden nie nach: Kristalle werden nicht verbraucht. Voll aufgeladen ist, was Entropie-Desintegratoren nach ununterbrochenem Feuer auf ein Ziel erreichen.</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}: {1:N0} {2}, alle {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}: {1:N0} {2} pro Sekunde für {3:0} s (insgesamt {4:N0}), alle {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}: {1:N0} {2} an allem im Umkreis von {3:0.#} km, alle {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}: {1:0.##} % der Struktur des Ziels pro Sekunde, bis {2:N0} TP, für {3:0} s, alle {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Neutralisiert {0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Nosferatu {0:N1} GJ/s</value>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>EM {0:P0} · Th {1:P0} · Kin {2:P0} · Exp {3:P0}</value>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} DPS</value>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0} {1:N0} DPS</value>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0} {1:N0} Alpha</value>
+  </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} Ladung, Nachladen {1:0.#} s je Ladung</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} Ladungen, Nachladen {1:0.#} s je Ladung</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Abklingzeit {0:0} s</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>In Hochsicherheit nicht nutzbar</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>In Hoch- und Niedersicherheit nicht nutzbar</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Jäger {0:N1} ({1:N1} dauerhaft)</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>Dauerhaft: Jede Staffel kämpft, bis die Ladungen der eingeschalteten Fähigkeiten verbraucht sind, und wird dann im Startrohr nachgeladen und betankt, bevor sie zurückkehrt. Der Flug zum Ziel und zurück ist nicht eingerechnet.</value>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>Kalibrierung {0:0}</value>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>CPU {0:0.##}</value>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>PG {0:0.##}</value>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>{0:N1} Schild-HP/s</value>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>{0:N1} Panzerungs-HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} mit Nachladen</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} aufgeladen</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Geschwindigkeit {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Warpstörstärke {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Neutralisiert {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Saugt bis {0:N1} GJ/s ab</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Störstärke {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Zielreichweite {0:+0.#;-0.#} % · Scanauflösung {1:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Optimal {0:+0.#;-0.#} % · Falloff {1:+0.#;-0.#} % · Nachführung {2:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Raketengeschwindigkeit {0:+0.#;-0.#} % · Flugzeit {1:+0.#;-0.#} % · Explosionsgeschwindigkeit {2:+0.#;-0.#} % · Explosionsradius {3:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Signatur {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} je</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>nur Großkampfschiffe und Zitadellen</value>
+  </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Geschwindigkeit {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s für {1:0} s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>Signatur {0:+0;-0} %</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>springt {0:0.#} km nach {1:0} s</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>Schildresistenzen {0:0} %</value>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>{0:N1} Struktur-HP/s</value>
+  </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>Breacher-Pod-Schaden {0:0} % während des Betriebs</value>
+  </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>stellt sich ein auf {0}</value>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>Verteidigung</value>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>Gegen</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>Der Schaden, gegen den der Tank bewertet wird – und an den sich ein reaktiver Panzerungshärter anpasst</value>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>Gleichmäßig (je 25 %)</value>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>Benutzerdefiniert</value>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>Thermal</value>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>Kinetik</value>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>Explosiv</value>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>Relativer Anteil jeder Schadensart – beliebiger Maßstab</value>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} EHP</value>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>Effektive HP gegen den oben gewählten Schaden</value>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>HP</value>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>Th</value>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>Kin</value>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>Exp</value>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>EHP</value>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>Schild</value>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>Panzerung</value>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>Struktur</value>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>Schildregeneration max. {0:N1} HP/s ({1:N0} EHP/s)    Ladezeit {2}</value>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>Schildboost {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>Panzerungsreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>Strukturreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Fern-Schildboost {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Fern-Panzerungsreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Fern-Strukturreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>Reparaturen, die Energiespeicher verbrauchen, enden, wenn er leer ist ({0})</value>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>Energiespeicher</value>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>Stabil bei {0:0.0} %</value>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>Hält {0}</value>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>Verbrauch {0:0.0} GJ/s    Max. Aufladung {1:0.0} GJ/s</value>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>Booster +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transfers +{0:0.0} GJ/s</value>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>Ausrichten {0:0.00} s    Signatur {1:N0} m    Warp {2:0.##} AE/s</value>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>Signatur {0:N0} m</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>Ausrichten {0:0.00} s    Signatur {1:N0} m    Kein Warp möglich</value>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>Masse {0:N0} kg    Trägheit {1:0.###}</value>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>Zielaufschaltung</value>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>Reichweite {0:0.#} km    Scanauflösung {1:N0} mm    Ziele {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Aufschalten: Fregatte {0:0.0} s · Kreuzer {1:0.0} s · Schlachtschiff {2:0.0} s · Großkampfschiff {3:0.0} s</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Sekunden zum Aufschalten eines Ziels mit der Signatur einer typischen Fregatte (35 m), eines Kreuzers (125 m), eines Schlachtschiffs (400 m) und eines Großkampfschiffs (5.000 m), bei der Scanauflösung dieses Fittings.</value>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>Radar {0:0.#}</value>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>Ladar {0:0.#}</value>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>Magnetometrisch {0:0.#}</value>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>Gravimetrisch {0:0.#}</value>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0} Min. {1} Sek.</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0} Sek.</value>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>Spieldaten werden geladen…</value>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>Noch keine Spieldaten – importieren Sie das SDE unter „Einstellungen → SDE“ und öffnen Sie dieses Tool dann erneut.</value>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>Die Spieldaten werden für die Ausrüstungsberechnung aktualisiert (den Fortschritt zeigt „Einstellungen → SDE“). Öffnen Sie dieses Tool erneut, sobald das abgeschlossen ist.</value>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>Beginnen Sie eine Ausrüstung mit einem Rumpf, fügen Sie eine ein oder öffnen Sie eine aus dem Spiel oder aus Ihren gespeicherten Ausrüstungen.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Spieldaten konnten nicht geladen werden: {0}</value>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>Beginnen Sie zuerst eine Ausrüstung.</value>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>Wählen Sie zuerst einen Rumpf.</value>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>Neue {0}-Ausrüstung. Fügen Sie Module aus „Gegenstände“ hinzu.</value>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>Neue Ausrüstung. Wählen Sie einen Rumpf.</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>{0} importiert.</value>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>Importiert, aber nicht erkannt: {0}</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>Keine Charaktere, deren Ausrüstungen gelesen werden könnten.</value>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>{0} aus dem Spiel importiert.</value>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>{0} geöffnet.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>{0} gelöscht.</value>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>{0} hinzugefügt.</value>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>Staffel mit {0} × {1} hinzugefügt.</value>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>{0} ist bereits eingesetzt.</value>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>Kein eingebautes Modul kann {0} laden.</value>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>{0} geladen.</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} passt nicht in diesen Slot.</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} kann {1} nicht laden.</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{0} ersetzt {1}.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
+    <value>{1} in {0} Modul geladen.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>{1} in {0} Module geladen.</value>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>{0} im Frachtraum.</value>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen High Slot.</value>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen Mid Slot.</value>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen Low Slot.</value>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen Rig-Slot.</value>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen Subsystem-Slot.</value>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>Wählen Sie unter „Gegenstände“ ein Modul für einen Dienstmodul-Slot.</value>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>Berechnung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>Gestartete Drohnen und Jäger auf das reduziert, was der Pilot steuern und der Rumpf starten kann.</value>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>Noch nichts zu kopieren.</value>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>Ausrüstung als EFT-Text in die Zwischenablage kopiert.</value>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>Noch nichts zu speichern.</value>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>{0} in EVE Console gespeichert.</value>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>Das Spiel ist von hier aus nicht erreichbar.</value>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>Wird in den Ausrüstungen von {0} gespeichert…</value>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>In den Ausrüstungen von {0} im Spiel gespeichert.</value>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>Diese Ausrüstung wurde nicht aus dem Spiel geöffnet.</value>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>Ausrüstung von {0} wird aktualisiert…</value>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>{0} in den Ausrüstungen von {1} aktualisiert.</value>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>Die neue Ausrüstung wurde gespeichert, aber die alte konnte nicht entfernt werden (HTTP {0}). Löschen Sie die alte im Spiel.</value>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>Dieser Charakter ist nicht in EVE Console.</value>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>Das Token von {0} ist abgelaufen – autorisieren Sie es unter „Einstellungen → ESI-Token“ neu.</value>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>{0} hat die Schreibberechtigung für Ausrüstungen nicht erteilt – aktualisieren Sie den Charakter unter „Einstellungen → ESI-Token“.</value>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>Nicht gespeichert (eine Ausrüstung hat keinen Platz dafür): {0}.</value>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>Typ {0}</value>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>Ausrüstung speichern</value>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>Speichern in</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>Implantate gehören dem Piloten und sind nicht Teil einer Ausrüstung im Spiel.</value>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console (diese App)</value>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>Im Spiel: „{0}“ in den Ausrüstungen von {1} ersetzen</value>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>Im Spiel: neue Ausrüstung bei {0}</value>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>Token abgelaufen – unter „Einstellungen → ESI-Token“ neu autorisieren</value>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>Schreibberechtigung für Ausrüstungen nicht erteilt – Charakter unter „Einstellungen → ESI-Token“ aktualisieren</value>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>Eine Ausrüstung braucht einen Namen.</value>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>Wählen Sie, wo gespeichert werden soll.</value>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>Bei diesem Charakter kann nicht gespeichert werden.</value>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>Ausrüstung importieren</value>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>Fügen Sie eine Ausrüstung im EFT-Format ein – so, wie das Ausrüstungsfenster des Spiels sie kopiert und Ausrüstungs-Websites sie teilen. Die erste Zeile nennt den Rumpf: [Rifter, Meine Ausrüstung].</value>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>Eine EFT-Ausrüstung beginnt mit [Schiff, Ausrüstungsname].</value>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>Eine EFT-Ausrüstung beginnt mit einer Zeile wie [Schiff, Ausrüstungsname].</value>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>Unbekanntes Schiff: {0}</value>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>Das Spiel war nicht erreichbar.</value>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>Dieser Charakter hat die Schreibberechtigung für Ausrüstungen nicht erteilt – autorisieren Sie ihn unter „Einstellungen → ESI-Token“ neu.</value>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>Das Spiel hat die Ausrüstung abgelehnt (HTTP {0}).</value>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0} wird in keinen Slot eingebaut.</value>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>Kein freier High Slot.</value>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>Kein freier Mid Slot.</value>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>Kein freier Low Slot.</value>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>Kein freier Rig-Slot.</value>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>Kein freier Subsystem-Slot.</value>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>Kein freier Dienstmodul-Slot.</value>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>Kein freier Montageplatz für Geschütztürme.</value>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>Kein freier Montageplatz für Werfer.</value>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>Die Rig-Größe passt nicht zum Rumpf.</value>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>Dieses Subsystem gehört zu einem anderen Rumpf.</value>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>Diese Subsystem-Position ist bereits belegt.</value>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>{0} kann nicht in den Rumpf {1} eingebaut werden.</value>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>Von dieser Gruppe können nur {0:0} eingebaut werden.</value>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>Von diesem Modul können nur {0:0} eingebaut werden.</value>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>Ausrüstung laden</value>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>Nur die Ausrüstungen eines Charakters oder die von EVE Console anzeigen</value>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Vorhandene Schiffe…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Alle zusammengesetzten Schiffe Ihrer Charaktere und persönlichen Corporations, mit ihrer Ausrüstung, wie die Asset-Liste sie zuletzt gesehen hat. Das gewählte öffnet sich in einem neuen Tab als neue Ausrüstung – mit „Speichern unter“ behalten Sie es.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Vorhandene Schiffe</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Teil des Schiffsnamens, des Rumpfs, des Systems oder des Besitzers</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Besitzer</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Rumpfwert</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Ausrüstungswert</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Gesamtwert</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Als neue Ausrüstung öffnen</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Öffnet das Schiff mit seiner Ausrüstung in einem neuen Tab, noch nirgends gespeichert: „Speichern unter“ legt es in EVE Console oder in den Ausrüstungen eines Charakters ab.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Ihre Schiffe werden gelesen…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} Schiffe</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>Keine zusammengesetzten Schiffe in den Assets Ihrer Charaktere oder persönlichen Corporations.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Werte zu {0}. Die Ausrüstung ist, was die letzte Asset-Aktualisierung eingebaut gesehen hat: Module, Rigs, Subsysteme, geladene Munition, Drohnen und Jäger – nicht der Frachtraum.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Keine Preise: Wählen Sie unter Einstellungen → Markt einen Markt für Asset-Werte. Die Ausrüstung ist, was die letzte Asset-Aktualisierung eingebaut gesehen hat: Module, Rigs, Subsysteme, geladene Munition, Drohnen und Jäger – nicht der Frachtraum.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Einige Schiffsnamen konnten nicht aus dem Spiel gelesen werden; diese stehen nur mit ihrem Rumpf in der Liste.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} als neue Ausrüstung geöffnet – noch nicht gespeichert; mit „Speichern unter“ behalten Sie sie.</value>
+  </data>
+</root>

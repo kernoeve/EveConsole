@@ -1,0 +1,2027 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+    <comment>Button or option in AlarmDialogWindow.</comment>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>Acknowledge — stop the sound</value>
+    <comment>Button or option in AlarmSoundWindow.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>SOUND</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>VOLUME</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ Preview</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>Add Sound…</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>Repeat until acknowledged, or until the situation ends on its own</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>WORDS TO SAY (OPTIONAL)</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>leave empty to say what the check composed</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>Spoken at once by text-to-speech, no agent involved — needs a voice under Settings → Agent, not a model, and works with the agent switched off. Shows in the agent window as the application's own line. Placeholders: {alarm} {summary} {count} {time} {date}</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>EXTRA INSTRUCTION FOR THE AGENT (OPTIONAL)</value>
+    <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>e.g. mention which system, and keep it short</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>The agent is told what fired and phrases it itself. It will speak aloud if you have text-to-speech configured; if the agent is not set up, this is recorded as an alert instead.</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>Use the default wording for this check</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>TITLE</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>MESSAGE</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>Placeholders: {alarm} {summary} {count} {time} {date}</value>
+    <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>New Alarm</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>Sound, dialogs and agent notifications on this machine only. Alerts go on being recorded either way, and other clients are unaffected.</value>
+    <comment>Tooltip in AlarmsView.</comment>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change.</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>agent</value>
+    <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>OPEN ALERTS</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>What is this alarm for?</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>ACTIVE FROM</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>always</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>THRU</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>Hours on this machine's clock, e.g. 18:00 thru 02:00. Blank means always. Outside them the alarm is not checked at all.</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>WHEN</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>CHECK</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>start typing an item name…</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>start typing a name, then Add…</value>
+    <comment>Hint in an empty box in AlarmsView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>AFTER FIRING</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>CHECK EVERY (SEC)</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>COOLDOWN (SEC)</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>An alarm only announces things it has not announced before, so a condition that stays true does not repeat. Continuous stays armed until you disable it; One shot disables itself after firing once. Cooldown adds a minimum gap on top.</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>THEN</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>Add Action</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>after</value>
+    <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>No actions at this stage — add one, or leave the stage unticked.</value>
+    <comment>Note in AlarmsView.</comment>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>Select an alarm, or create one.</value>
+    <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>Test Sounds</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in AlarmsView.</comment>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>RECENT FIRINGS (EVE TIME)</value>
+    <comment>Label in AlarmsView.</comment>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>New Task</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>Times are EVE time</value>
+    <comment>Text in SchedulerView.</comment>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>Select a task, or create one.</value>
+    <comment>Text in SchedulerView.</comment>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>What does this task do?</value>
+    <comment>Hint in an empty box in SchedulerView.</comment>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>TASK TYPE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>REPEATS</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>EVERY</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>minutes</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>hours</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>ON THESE DAYS</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>DAY OF MONTH</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>MONTH</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>DAY</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>AT (HH:MM EVE)</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>Skip if the app was closed on the day</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>POST TO</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Workspace channels and webhooks defined in Slack settings, in one list.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>Do not post if the dynamic sections are empty</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>Off, the message goes out whatever the data says. On, it is held back unless at least one section that reads from the data — anything but a Text section — actually has something to say.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>Add Section</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>Preview</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>Renders the sections as they would be posted, without posting.</value>
+    <comment>Tooltip in SchedulerView.</comment>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>Nothing to say yet. Pick a section type and add it — sections go out in this order, as one message.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>What to say. Slack markup works here.</value>
+    <comment>Hint in an empty box in SchedulerView.</comment>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>CORP</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>LISTS TO INCLUDE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>Show only the share of the total, not the ISK</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>Each list prints the amount and its share. Ticked, the amount comes off — except Kills, whose number is a count rather than a value.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>Twelve months of trends, drawn as an image and uploaded under the message.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>POSTING</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>Priced and counted exactly as the Sale Posting tool shows it. Its post blocks are joined in order into this one section.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>PROJECT TYPE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>REPORT</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>Missing is anything no active project is covering — including any the app could not check. Low adds the ones under 10% remaining, about to need replacing.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>SECTION TITLE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>No title</value>
+    <comment>Hint in an empty box in SchedulerView.</comment>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>Column headers</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>ISK Left column</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>Last Completed column</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>PROJECTS TO INCLUDE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>One row per project as defined; a project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted. What is ticked when you save is what gets posted — a project defined later will not join on its own.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>PREVIEW</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>Press Preview to render the sections as they would be posted.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>ALERT</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>HEADLINE</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>Leave empty to use the task's name.</value>
+    <comment>Hint in an empty box in SchedulerView.</comment>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>TEXT</value>
+    <comment>Label in SchedulerView.</comment>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>What the alert should say.</value>
+    <comment>Hint in an empty box in SchedulerView.</comment>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert.</value>
+    <comment>Note in SchedulerView.</comment>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>Discard Changes</value>
+    <comment>Button or option in SchedulerView.</comment>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>Puts the editor back to what is saved.</value>
+    <comment>Tooltip in SchedulerView.</comment>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>Runs what is on screen, for real, and counts as the scheduled run.</value>
+    <comment>Tooltip in SchedulerView.</comment>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>Current month</value>
+    <comment>Scheduler, month pick list of a corp section: the month in progress.</comment>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>Last month</value>
+    <comment>Scheduler, month pick list of a corp section: the month before this one.</comment>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>Deliver item</value>
+    <comment>Scheduler, Standing Projects section: project type pick list.</comment>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>Destroy NPC</value>
+    <comment>Scheduler, Standing Projects section: project type pick list.</comment>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>Missing projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list: only the projects no active corp project covers. Also lower-cased after a dash in a section's own title, as in "Destroy NPC projects — missing projects".</comment>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>Missing and low projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list: those, plus the ones nearly finished. Also lower-cased after a dash in a section's own title.</comment>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>All projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list: every project.</comment>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>TOP 10 LISTS</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp." and in the preview.</comment>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>CORP MONTHLY SUMMARY</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp."</comment>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>SALE POSTING</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a posting."</comment>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>STANDING PROJECTS</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp."</comment>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>CORP ISK TRENDS CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>CORP ACTIVITY TRENDS CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>CORP KILLS / LOSSES CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>CORP MINING CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>TEXT</value>
+    <comment>Scheduler: heading of a message section of plain text. Also shown lower-cased in "Section {0} ({1}) is empty."</comment>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>In progress — {0:MMMM yyyy} as things stand.</value>
+    <comment>Scheduler, under the month pick list. {0} is the month and year, e.g. "September 2026".</comment>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:MMMM yyyy} as things stand.</value>
+    <comment>Scheduler, under the month pick list. {0} is the month and year, e.g. "August 2026".</comment>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>Could not read the projects: {0}</value>
+    <comment>Scheduler, Standing Projects section. {0} is the error.</comment>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>No deliver item projects are defined for this corp.</value>
+    <comment>Scheduler, Standing Projects section, when the corp has no standing projects of that type.</comment>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>No destroy NPC projects are defined for this corp.</value>
+    <comment>Scheduler, Standing Projects section, when the corp has no standing projects of that type.</comment>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>Failed: {0}</value>
+    <comment>Scheduler status line when a button's action failed. {0} is the error.</comment>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>Move to another task and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when another task is picked.</comment>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Post to Slack</value>
+    <comment>Scheduler, task type pick list.</comment>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>Raise an alert</value>
+    <comment>Scheduler, task type pick list.</comment>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>Text</value>
+    <comment>Scheduler, pick list of message sections to add: plain text.</comment>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>Corp Top 10</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>Corp Monthly Summary</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>Sale Posting</value>
+    <comment>Scheduler, pick list of message sections to add: a Sale Posting.</comment>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>Standing Projects</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>Corp ISK Trends Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>Corp Activity Trends Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>Corp Kills / Losses Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>Corp Mining Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>Every so often</value>
+    <comment>Scheduler, Repeats pick list: every so many minutes or hours.</comment>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>Days of the week</value>
+    <comment>Scheduler, Repeats pick list: on the days ticked.</comment>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>Once a month</value>
+    <comment>Scheduler, Repeats pick list.</comment>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>Once a year</value>
+    <comment>Scheduler, Repeats pick list.</comment>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>Sun</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>Mon</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>Tue</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>Wed</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>Thu</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>Fri</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>Sat</value>
+    <comment>Scheduler, day of the week tick box, and the days in the task list ("Mon, Wed at 00:01 EVE"). Short: three letters in English.</comment>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>January</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>February</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>March</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>April</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>May</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>June</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>July</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>August</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>September</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>October</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>November</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>December</value>
+    <comment>Scheduler, month pick list of a yearly task, and the month in the task list ("January 1 each year at 00:01 EVE").</comment>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>Measured from the last run. Closed for longer than the interval, it runs once when it opens — not once per period missed.</value>
+    <comment>Scheduler, under the schedule of a task that repeats every so often.</comment>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>Every day ticked is a daily task. A day that passes while the app is closed is not made up later, so just after midnight beats just before it.</value>
+    <comment>Scheduler, under the schedule of a task that runs on days of the week.</comment>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>Runs once in the month, from that day and time onward. A day past the end of a short month runs on its last day, so the 31st still happens in February.</value>
+    <comment>Scheduler, under the schedule of a task that runs once a month.</comment>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>Runs once in the year, from that day and time onward. 29 February falls back to the 28th in the three years out of four that lack it.</value>
+    <comment>Scheduler, under the schedule of a task that runs once a year.</comment>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>Refresh and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when Refresh is pressed.</comment>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>(unnamed)</value>
+    <comment>Scheduler task list: a task with no name.</comment>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>Never run</value>
+    <comment>Scheduler task list: the task has not run yet.</comment>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>Last run {0:yyyy-MM-dd HH:mm} EVE</value>
+    <comment>Scheduler task list. {0} is the date and time of the last run, in EVE time.</comment>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>{0} task(s).</value>
+    <comment>Scheduler status line. {0} is the number of tasks.</comment>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook: {0}</value>
+    <comment>Scheduler, Post To pick list: a Slack webhook rather than a channel. {0} is the webhook's name.</comment>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>Start a new task and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when New Task is pressed.</comment>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>New task.</value>
+    <comment>Scheduler status line after New Task.</comment>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>This task</value>
+    <comment>Stands in for the name of a task that has none, in "{0}" has unsaved changes.</comment>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>"{0}" has unsaved changes.</value>
+    <comment>First half of the question asked before unsaved changes to a task are lost. {0} is the task's name.</comment>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>Give the task a name.</value>
+    <comment>Scheduler status line on Save.</comment>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>Time of day must be HH:mm, EVE time.</value>
+    <comment>Scheduler status line on Save. HH:mm is the time format; keep it.</comment>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>Pick at least one day.</value>
+    <comment>Scheduler status line on Save of a weekly task with no day ticked.</comment>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>No channels or webhooks yet — add one under Settings, Slack.</value>
+    <comment>Scheduler status line on Save. Settings and Slack name the place in the Settings window.</comment>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>Pick where to post it.</value>
+    <comment>Scheduler status line on Save of a Slack post with nowhere to post.</comment>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>Add something to say.</value>
+    <comment>Scheduler status line on Save of a Slack post with no sections.</comment>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>Write what the alert should say.</value>
+    <comment>Scheduler status line on Save of an alert with no text.</comment>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>Section {0} ({1}) needs a corp.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>Section {0} ({1}) needs a posting.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one list.</value>
+    <comment>Scheduler status line on Save of a Top 10 section with no list ticked. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>Section {0} ({1}) is empty.</value>
+    <comment>Scheduler status line on Save of a text section with nothing in it. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one project ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Scheduler status line.</comment>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>Nothing to discard.</value>
+    <comment>Scheduler status line after Discard Changes with nothing changed.</comment>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>Discarded.</value>
+    <comment>Scheduler status line after Discard Changes.</comment>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Deleted.</value>
+    <comment>Scheduler status line after a task was deleted.</comment>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>Nothing to render: this task has no blocks.</value>
+    <comment>Scheduler status line on Preview of a task with no sections.</comment>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>Rendering…</value>
+    <comment>Scheduler status line while a preview is rendered.</comment>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — skipped: the destination is a webhook]</value>
+    <comment>A line in the Scheduler's preview for a chart section. {0} is the section's heading.</comment>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — uploaded as an image]</value>
+    <comment>A line in the Scheduler's preview for a chart section. {0} is the section's heading.</comment>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>(the sections rendered empty)</value>
+    <comment>Scheduler preview when the sections produced no text.</comment>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>Rendered, but no dynamic section had anything to say — this would not post.</value>
+    <comment>Scheduler status line after Preview, when the task is set to skip posts with nothing to say.</comment>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0} characters.</value>
+    <comment>Scheduler status line after Preview. {0} is the length of the message in characters.</comment>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>Preview failed: {0}</value>
+    <comment>Scheduler status line. {0} is the error.</comment>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running…</value>
+    <comment>On the Run Now button, and in the status line, while a task runs.</comment>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>Run Now</value>
+    <comment>Scheduler button: run the task on screen now, for real.</comment>
+  </data>
+  <data name="MonthsBackOne" xml:space="preserve">
+    <value>{0} month back</value>
+    <comment>Scheduler, month pick list of a corp section: a month counted back from this one. {0} is how many months (2 to 12 in the list).</comment>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0} months back</value>
+    <comment>Scheduler, month pick list of a corp section: a month counted back from this one. {0} is how many months (2 to 12 in the list).</comment>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Alarm list, under an alarm's name: it is switched off.</comment>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>Error</value>
+    <comment>Alarm list, under an alarm's name: its last check failed.</comment>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>Armed · fired {0}×</value>
+    <comment>Alarm list, under an alarm's name: armed, and how often it has fired. {0} is the number of times.</comment>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>Armed</value>
+    <comment>Alarm list, under an alarm's name: armed and waiting.</comment>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE time</value>
+    <comment>Alarm editor, clock pick list beside a date and time: EVE time (UTC).</comment>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>Local time</value>
+    <comment>Alarm editor, clock pick list beside a date and time: this computer's clock.</comment>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} local</value>
+    <comment>Alarm editor, under a date and time in EVE time: the same moment on this computer's clock. {0} is the day, date and time.</comment>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} EVE</value>
+    <comment>Alarm editor, under a date and time on this computer's clock: the same moment in EVE time. {0} is the day, date and time.</comment>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>"{0}" is not a name the app knows — pick one from the list.</value>
+    <comment>Alarm editor, under a list of names, when the typed name matches nothing. {0} is what was typed.</comment>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>That file type is not supported.</value>
+    <comment>Alarm editor, after Add Sound… picked a file the app cannot play.</comment>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>STAGE {0}</value>
+    <comment>Alarm editor: heading of one stage of a check that fires in stages. {0} is the stage's number.</comment>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>Continuous</value>
+    <comment>Alarm editor, After Firing pick list: the alarm stays armed.</comment>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>One shot</value>
+    <comment>Alarm editor, After Firing pick list: the alarm switches itself off after firing once.</comment>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>{0} alarm(s) · {1} open alert(s)</value>
+    <comment>Alarms status line. {0} is the number of alarms, {1} of alerts not yet dismissed.</comment>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>New alarm</value>
+    <comment>The name a new alarm starts with.</comment>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…the matching detail goes here</value>
+    <comment>Stand-in for what a check found, used when showing an example of an alarm's default wording.</comment>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>This alarm</value>
+    <comment>Stands in for the name of an alarm that has none, in the example of its default wording.</comment>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>The check will supply the wording.</value>
+    <comment>Alarm editor, beside "Use the default wording for this check", when there is no example to show.</comment>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>e.g. "{0}", then the matches beneath it.</value>
+    <comment>Alarm editor, beside "Use the default wording for this check". {0} is an example of the headline the check would write.</comment>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>Pick a check first.</value>
+    <comment>Alarms status line on Save with no check chosen.</comment>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>Give the alarm a name.</value>
+    <comment>Alarms status line on Save.</comment>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>"{0}" is not an item — pick one from the list.</value>
+    <comment>Alarms status line on Save, when an item name matches no item. {0} is what was typed.</comment>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>Add at least one entry under {0}.</value>
+    <comment>Alarms status line on Save, when a required list is empty. {0} is the list's label.</comment>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>Active from needs a time like 18:00.</value>
+    <comment>Alarms status line on Save. "Active from" is the first of the two hours the alarm is on (ACTIVE FROM … THRU).</comment>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>Active thru needs a time like 18:00.</value>
+    <comment>Alarms status line on Save. "Active thru" is the second of the two hours the alarm is on (ACTIVE FROM … THRU).</comment>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>Alarm created.</value>
+    <comment>Alarms status line after saving a new alarm.</comment>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>Alarm saved.</value>
+    <comment>Alarms status line after saving an alarm.</comment>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>Alarm deleted.</value>
+    <comment>Alarms status line.</comment>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>Played the alarm's sounds. Save first to test the other actions.</value>
+    <comment>Alarms status line after Test Sounds.</comment>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>Alarm sounding — {0}</value>
+    <comment>Title of the window that comes with a repeating alarm sound. {0} is the alarm's name.</comment>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>The sound repeats until you acknowledge it.</value>
+    <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>Choose an alarm sound</value>
+    <comment>Title of the file picker behind Add Sound… in the alarm editor.</comment>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>Audio</value>
+    <comment>File type in the Add Sound… file picker: sound files.</comment>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>Alarm</value>
+    <comment>Title of an alarm's pop-up dialog when the alarm gives none.</comment>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>Date / time</value>
+    <comment>Alarm editor, Check pick list: the check that fires at a date and time. (The AI agent is given its own English names for the checks; this is only what the screen shows.)</comment>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>Fires at a specific date and time, and optionally repeats on a fixed interval thereafter. Use for reminders and anything scheduled. An occurrence that came due while the app was closed fires at the next start rather than being skipped.</value>
+    <comment>Alarm editor, under the Check pick list when Date / time is picked: what the check does.</comment>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>Intel report</value>
+    <comment>Alarm editor, Check pick list: the check that fires on a sighting reported in an intel channel.</comment>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>Fires when someone reports a pilot near what you are watching: your characters while they are undocked, your characters wherever they are, or a list of systems, each with a range in jumps. Reads the intel channels already being parsed under Settings → Chat Logs.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked. "Settings → Chat Logs" names the place in the Settings window.</comment>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Kills there with hostile pilots among the attackers count too: a kill places its attackers in that system.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentence. A kill (a killmail) whose attackers include hostile pilots counts as a sighting of them. Hostile = not yours and not at positive standing.</comment>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>Ship undocks</value>
+    <comment>Alarm editor, Check pick list: the check that fires when one of your characters undocks.</comment>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>Fires when one of your characters undocks. Optionally only from named stations, structures, systems or regions, only in named hulls or ship classes, and only in a given state — fit or not fit, jump fuel lower than a number or not, ammunition lower than a number or not. Every filter narrows, so two alarms can be set to cover different undocks rather than the same one twice. The undock is seen by the location poll within about ten seconds; what was aboard is judged from the last asset snapshot, which ESI refreshes hourly, and each match says how old that was.</value>
+    <comment>Alarm editor, under the Check pick list when Ship undocks is picked.</comment>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>Undocked too long (wake-up call)</value>
+    <comment>Alarm editor, Check pick list: the check that wakes you when a ship sits in space too long after an undock or a jump.</comment>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>Wakes you up. Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or replying anything at all to the agent, quiets it for a while; when that lapses and the ship is still there, the stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
+    <comment>Alarm editor, under the Check pick list when Undocked too long is picked. "TTS direct" is the action that speaks without the agent.</comment>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>Store order events</value>
+    <comment>Alarm editor, Check pick list: the check that fires on what happens to EVE Mail store orders.</comment>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>Fires on what happens to EVE Mail store orders: a new order placed — with the store, the buyer, the item, the price, and whether it is in stock or has to be built — an order newly fillable from stock or newly in build, a contract issued for it, the contract accepted (the order complete), or the order canceled. Tick the kinds you want. Orders added by hand in the Order Tracker are not reported. Runs the moment the store books or updates an order.</value>
+    <comment>Alarm editor, under the Check pick list when Store order events is picked. Order Tracker is the name of a tool in the app.</comment>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>Market / contract price</value>
+    <comment>Alarm editor, Check pick list: the check that fires when an item is offered at or below a price.</comment>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>Fires when an item is listed at or below a price you name — on the market, in public contracts, or both. Reads the markets configured under Settings → Market and the public contracts already being swept, so it sees what those cover and nothing else.</value>
+    <comment>Alarm editor, under the Check pick list when Market / contract price is picked. "Settings → Market" names the place in the Settings window.</comment>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>Database query</value>
+    <comment>Alarm editor, Check pick list: the check that runs a database query of your own.</comment>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>Runs a SELECT against the local EVE Console database on an interval and fires on the rows it returns, or on there being none. Use when no purpose-built check fits. Only SELECT is permitted.</value>
+    <comment>Alarm editor, under the Check pick list when Database query is picked. SELECT is an SQL word; keep it.</comment>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>At</value>
+    <comment>Alarm editor, Date / time check: label over the date and time the alarm fires at.</comment>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>When to fire, ISO 8601. Include an offset (e.g. 2026-08-04T18:00:00-05:00) or a trailing Z for UTC; a bare local time is read as the machine's local time.</value>
+    <comment>Alarm editor, Date / time check, under the date and time. ISO 8601 names the date format; keep it and the example as they are.</comment>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>Repeat every seconds</value>
+    <comment>Alarm editor, Date / time check: label of the box for how often, in seconds, the alarm repeats.</comment>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>Optional. Repeat this often after the first firing. Omit or 0 for a one-time timer.</value>
+    <comment>Alarm editor, Date / time check, under the repeat box.</comment>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>Systems</value>
+    <comment>Alarm editor, Intel report check: label of the solar systems to watch.</comment>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>Systems to watch, e.g. {0} or {1}. Add each one; with Jumps at 0, only these systems are watched.</value>
+    <comment>Alarm editor, Intel report check, under Systems (shown when Watch around is Systems). {0} and {1} are two systems' names, filled in as the game names them in the interface language (Jita, Amarr). "Jumps" is the setting below it (IntelJumpsLabel).</comment>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>Jumps</value>
+    <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around each character or system.</comment>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>How many gate jumps out from each character or system to watch. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
+    <comment>Alarm editor, Intel report check, under Jumps.</comment>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>Min players</value>
+    <comment>Alarm editor, Intel report check: label of the least number of pilots a report must name.</comment>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>Only fire when the report is of at least this many pilots. Default 1.</value>
+    <comment>Alarm editor, Intel report check, under Min players.</comment>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>Ignore no visual</value>
+    <comment>Alarm editor, Intel report check: tick box to skip reports marked "no visual".</comment>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>Skip reports flagged NV (no visual) — someone relaying a contact they cannot actually see.</value>
+    <comment>Alarm editor, Intel report check, beside Ignore no visual. NV is the tag intel channels use; keep it.</comment>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>Undocking from</value>
+    <comment>Alarm editor, Ship undocks check: label of the list of places to watch undocks from.</comment>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>Optional. Station, structure, solar system or region names, any mix. Matches an undock from any of them; leave empty for anywhere.</value>
+    <comment>Alarm editor, Ship undocks check, under Undocking from.</comment>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>Flying</value>
+    <comment>Alarm editor, Ship undocks and Undocked too long checks: label of the list of hulls and ship classes to watch.</comment>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>Optional. Hull names ("{0}"), ship classes ("{1}", "{2}") or "Pod", any mix. Matches any of them; leave empty for any ship.</value>
+    <comment>Alarm editor, Ship undocks check, under Flying. {0} is a hull's name and {1}, {2} ship classes' names, filled in as the game names them in the interface language (Rifter, Cruiser, Titan). "Pod" is what is typed in the list to mean a capsule, so keep it as Pod.</comment>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Alarm editor, Ship undocks check: label of the choice Any / Not fit / Fit — whether the ship has anything fitted.</comment>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>"Not fit": nothing at all in any slot. "Fit": something is. A pod or shuttle has no slots and matches neither. Judged from the last asset snapshot, which ESI refreshes only hourly — it can be up to an hour behind what is aboard right now.</value>
+    <comment>Alarm editor, Ship undocks check, under Fit. "Not fit" and "Fit" are the choices; use the same words as OptionNotFit and OptionFit.</comment>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>Jump fuel</value>
+    <comment>Alarm editor, Ship undocks check: label of the choice about the jump fuel aboard.</comment>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>Jump-capable hulls only; any other hull matches neither. The units are of the isotope the hull's jump drive burns, fuel bay and cargo hold together — as of the last asset snapshot, which ESI refreshes only hourly, so fuel loaded in the last hour may not be counted yet.</value>
+    <comment>Alarm editor, Ship undocks check, under Jump fuel.</comment>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>Ammunition</value>
+    <comment>Alarm editor, Ship undocks check: label of the choice about the ammunition aboard.</comment>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>Per fitted turret or launcher: the rounds it can load that are aboard, loaded plus cargo, all compatible types together. "Lower than": any weapon short. "Not lower than": weapons fitted and none short. An energy turret only needs one crystal. A ship without weapons matches neither. As of the last asset snapshot, which ESI refreshes only hourly — ammunition loaded in the last hour may not be counted yet.</value>
+    <comment>Alarm editor, Ship undocks check, under Ammunition. "Lower than" and "Not lower than" are the choices; use the same words as OptionLowerThan and OptionNotLowerThan.</comment>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>units</value>
+    <comment>Alarm editor, Ship undocks check: the word after a number of jump fuel or ammunition units, as in "Lower than [5,000] units".</comment>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>Any</value>
+    <comment>Alarm editor, Ship undocks check, choices under Fit, Jump fuel and Ammunition: the one that does not filter.</comment>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>Not fit</value>
+    <comment>Alarm editor, Ship undocks check, choice under Fit: nothing at all is fitted.</comment>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Alarm editor, Ship undocks check, choice under Fit: something is fitted.</comment>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>Lower than</value>
+    <comment>Alarm editor, Ship undocks check, choice under Jump fuel and Ammunition, before a number: less than that is aboard.</comment>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>Not lower than</value>
+    <comment>Alarm editor, Ship undocks check, choice under Jump fuel and Ammunition, before a number: at least that is aboard.</comment>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>Jump arrivals, not undocks</value>
+    <comment>Alarm editor, Undocked too long check: tick box that starts the clock when a ship lands by jump drive or bridge instead of when it undocks.</comment>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>Ticked: the clock starts when a jump-capable hull lands in a system no stargate leads to from where it was — a jump drive or a bridge — and is still in space; only hulls with a jump drive are watched, and an empty Flying list means all of them. Unticked: the clock starts at an undock, any hull, and Flying must name what to watch.</value>
+    <comment>Alarm editor, Undocked too long check, beside Jump arrivals. Flying is the list of hulls below it (FlyingLabel).</comment>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>Hull names ("{0}") or ship classes ("{1}", "{2}", "{3}"), any mix. Only these are watched — or, for jump arrivals, leave it empty for every jump-capable hull.</value>
+    <comment>Alarm editor, Undocked too long check, under Flying. {0} is a hull's name and {1} to {3} ship classes' names, filled in as the game names them in the interface language (Rhea, Freighter, Jump Freighter, Hauler).</comment>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>Stage {0} after</value>
+    <comment>Alarm editor, Undocked too long check: a stage's own setting, before a number of seconds. {0} is the stage's number.</comment>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>The first, gentler stage. Untick to skip it.</value>
+    <comment>Alarm editor, Undocked too long check, under stage 1's number of seconds.</comment>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>Untick to skip it.</value>
+    <comment>Alarm editor, Undocked too long check, under stage 2's number of seconds.</comment>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>The last resort — pair it with a Sound action set to repeat until acknowledged. Untick to skip it.</value>
+    <comment>Alarm editor, Undocked too long check, under stage 3's number of seconds. Sound is the name of an action.</comment>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>seconds undocked</value>
+    <comment>Alarm editor, Undocked too long check: after a stage's number, as in "STAGE 1  after [180] seconds undocked".</comment>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>Quiet after an acknowledgement</value>
+    <comment>Alarm editor, Undocked too long check: label of how many minutes an acknowledgement keeps the alarm quiet.</comment>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>How long a reply or the dialog's button keeps this quiet while the ship stays undocked — long enough to wait on a titan bridge. Then the stages start over.</value>
+    <comment>Alarm editor, Undocked too long check, under Quiet after an acknowledgement.</comment>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>minutes</value>
+    <comment>Alarm editor: the word after a number of minutes, as in "[30] minutes".</comment>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>New order placed</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>With the store, the buyer, the item, the price, and its state on arrival.</value>
+    <comment>Alarm editor, Store order events check, beside New order placed: what the alarm says about a new order.</comment>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>Newly fillable from stock</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>An order the fulfilment pass now finds on the shelf — contract it.</value>
+    <comment>Alarm editor, Store order events check, beside Newly fillable from stock.</comment>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>Newly in build</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>An industry job now claimed for the order.</value>
+    <comment>Alarm editor, Store order events check, beside Newly in build.</comment>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>Contract issued</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>A contract to the buyer carrying the order, awaiting acceptance.</value>
+    <comment>Alarm editor, Store order events check, beside Contract issued.</comment>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>Contract accepted — order complete</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>Order canceled</value>
+    <comment>Alarm editor, Store order events check: tick box for one kind of event.</comment>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>By the buyer's mail, a rejected contract, or by hand.</value>
+    <comment>Alarm editor, Store order events check, beside Order canceled: the ways an order is canceled.</comment>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>Store</value>
+    <comment>Alarm editor, Store order events check: label of the one store to watch.</comment>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>Optional: only this store, by name. Blank for every store.</value>
+    <comment>Alarm editor, Store order events check, under Store.</comment>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>Item</value>
+    <comment>Alarm editor, Market / contract price check: label of the item to watch.</comment>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>Exact item name, e.g. "{0}" or "{1}". Must match the type name exactly; a name that does not resolve matches nothing.</value>
+    <comment>Alarm editor, Market / contract price check, under Item. {0} and {1} are two items' names, filled in as the game names them in the interface language (Sigil, Imperial Navy Slicer).</comment>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>Max unit price</value>
+    <comment>Alarm editor, Market / contract price check: label of the highest price per unit, in ISK.</comment>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>Fire when the price per unit is at or below this, in ISK.</value>
+    <comment>Alarm editor, Market / contract price check, under Max unit price.</comment>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>Min quantity</value>
+    <comment>Alarm editor, Market / contract price check: label of the least number on offer.</comment>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>Only fire when at least this many are on offer in the one listing. Default 1.</value>
+    <comment>Alarm editor, Market / contract price check, under Min quantity.</comment>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>Source</value>
+    <comment>Alarm editor, Market / contract price check: label of where to look — the market, contracts or both.</comment>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>Where to look. Default both.</value>
+    <comment>Alarm editor, Market / contract price check, under Source. "both" is the choice OptionBoth; use the same word.</comment>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>Market</value>
+    <comment>Alarm editor, Market / contract price check: label of the one configured market to watch.</comment>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>Optional. Restrict the market side to one configured market by name, e.g. "Jita". Omit to watch them all.</value>
+    <comment>Alarm editor, Market / contract price check, under Market. Jita is a place in the game; keep it.</comment>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>Bundled contracts</value>
+    <comment>Alarm editor, Market / contract price check: tick box to include contracts holding other items too.</comment>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>Include contracts holding more than just this item. Off by default, because the asking price then covers the other contents too and the resulting price per unit is not a real one.</value>
+    <comment>Alarm editor, Market / contract price check, beside Bundled contracts.</comment>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>both</value>
+    <comment>Alarm editor, Market / contract price check, Source choices: the market and public contracts.</comment>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>market</value>
+    <comment>Alarm editor, Market / contract price check, Source choices: the market only.</comment>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>contracts</value>
+    <comment>Alarm editor, Market / contract price check, Source choices: public contracts only.</comment>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>Sql</value>
+    <comment>Alarm editor, Database query check: label of the box for the SQL query.</comment>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>The SELECT to run. Only SELECT (or a WITH…SELECT) is allowed. Keep it small and add a LIMIT — it runs on every check. Include a stable identifying column and name it in key_column.</value>
+    <comment>Alarm editor, Database query check, under the query. SELECT, WITH and LIMIT are SQL words, and key_column is the setting below it (Key column); keep them.</comment>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>Key column</value>
+    <comment>Alarm editor, Database query check: label of the column that identifies each row.</comment>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>Column holding a stable, unique identifier for each row — an Id or similar. This is what stops a row being announced twice. Never nominate something that changes between runs, or the alarm will fire on every check. Defaults to a column called Id if the query has one, otherwise the whole row is used as its own key.</value>
+    <comment>Alarm editor, Database query check, under Key column. Id is a column name; keep it.</comment>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>Label column</value>
+    <comment>Alarm editor, Database query check: label of the column whose value is the alert's text.</comment>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>Optional column to use as the alert text. Defaults to the whole row.</value>
+    <comment>Alarm editor, Database query check, under Label column.</comment>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>Mode</value>
+    <comment>Alarm editor, Database query check: label of the choice between firing on rows and firing on none.</comment>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>'present' (default) fires on rows returned. 'absent' fires when the query returns nothing at all, and re-arms once rows come back — for watching that something expected has stopped happening.</value>
+    <comment>Alarm editor, Database query check, under Mode. 'present' and 'absent' are the choices; use the same words as OptionPresent and OptionAbsent.</comment>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>present</value>
+    <comment>Alarm editor, Database query check, Mode choices: fire on the rows the query returns.</comment>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>absent</value>
+    <comment>Alarm editor, Database query check, Mode choices: fire when the query returns no rows.</comment>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…and {0} more</value>
+    <comment>Last line of the list of matches under an alarm's alert or dialog, after a bullet. {0} is how many more matches there are.</comment>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>Hostile reported</value>
+    <comment>Title of an Intel report alarm's alert or dialog for one report; the systems follow after a dash.</comment>
+  </data>
+  <data name="IntelHostileReportsOne" xml:space="preserve">
+    <value>{0} hostile report</value>
+    <comment>Title of an Intel report alarm's alert or dialog for several reports; the systems follow after a dash. {0} is the number of reports. (Exactly one reads IntelHostileReported instead.)</comment>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>{0} hostile reports</value>
+    <comment>Title of an Intel report alarm's alert or dialog for several reports; the systems follow after a dash. {0} is the number of reports.</comment>
+  </data>
+  <data name="IntelSaidReportedOne" xml:space="preserve">
+    <value>{0} hostile reported in {1}.</value>
+    <comment>Spoken when an Intel report alarm fires. {0} is the number of hostiles, {1} the system.</comment>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>{0} hostiles reported in {1}.</value>
+    <comment>Spoken when an Intel report alarm fires. {0} is the number of hostiles, {1} the system.</comment>
+  </data>
+  <data name="IntelSaidReportedAtOne" xml:space="preserve">
+    <value>{0} hostile reported in {1}, {2}.</value>
+    <comment>Spoken when an Intel report alarm fires. {0} is the number of hostiles, {1} the system, {2} how far away it is (IntelSaidHere or IntelSaidJumpsOut).</comment>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>{0} hostiles reported in {1}, {2}.</value>
+    <comment>Spoken when an Intel report alarm fires. {0} is the number of hostiles, {1} the system, {2} how far away it is (IntelSaidHere or IntelSaidJumpsOut).</comment>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>here</value>
+    <comment>Spoken, in IntelSaidReportedAt: the hostiles are in the watched system itself.</comment>
+  </data>
+  <data name="IntelSaidJumpsOutOne" xml:space="preserve">
+    <value>{0} jump out</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from the watched system. {0} is the number of jumps.</comment>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>{0} jumps out</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from the watched system. {0} is the number of jumps.</comment>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>Flying {0}.</value>
+    <comment>Spoken when an Intel report alarm fires: the hostiles' ships. {0} is one hull with its article (HullA, HullAn) or a list of hull names (ListAnd, ListAndMore).</comment>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0} and {1} more.</value>
+    <comment>Spoken when an Intel report alarm fires: the pilots reported. {0} is five names, joined by commas; {1} how many more there are.</comment>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}.</value>
+    <comment>Spoken: a sentence that is only names, or a note copied from an intel report. {0} is that text; only the full stop is translated.</comment>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Seen on a kill</value>
+    <comment>Spoken by an intel alarm after the hostiles' count, hulls and names, when they were seen as attackers on a kill rather than reported in a channel. Goes into SaidSentence ("{0}."), so no full stop here.</comment>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>an unknown system</value>
+    <comment>Spoken in place of a solar system's name when it is not known, as in "3 hostiles reported in an unknown system."</comment>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>a {0}</value>
+    <comment>Spoken or in an alert's title: a ship by its hull name, when the name starts with a consonant — "a Rifter". {0} is the hull name, from the game. In a language without articles, just {0}.</comment>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>an {0}</value>
+    <comment>Spoken or in an alert's title: a ship by its hull name, when the name starts with a vowel — "an Abaddon". {0} is the hull name, from the game. In a language without articles, just {0}.</comment>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>a pod</value>
+    <comment>Spoken or in an alert's title, in place of a hull: the character is in a capsule (pod).</comment>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>a ship</value>
+    <comment>Spoken or in an alert's title, in place of a hull whose name is not known.</comment>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} and {1}</value>
+    <comment>Spoken: the end of a list of hull names. {0} is the names before the last, joined by commas; {1} the last.</comment>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} and more</value>
+    <comment>Spoken: a list of hull names cut short. {0} is the first three, joined by commas.</comment>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>And {0} more.</value>
+    <comment>Spoken at the end of an alarm's announcement when more happened than was read out. {0} is how many more.</comment>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0} undocked in {1}</value>
+    <comment>Title of a Ship undocks alarm's alert or dialog. {0} is the character, {1} the ship with its article (HullA, HullAn, HullPod, HullShip).</comment>
+  </data>
+  <data name="UndocksOne" xml:space="preserve">
+    <value>{0} undock</value>
+    <comment>Title of a Ship undocks alarm's alert or dialog for several undocks. {0} is the number of undocks.</comment>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>{0} undocks</value>
+    <comment>Title of a Ship undocks alarm's alert or dialog for several undocks. {0} is the number of undocks.</comment>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0} undocked in {1} in {2}.</value>
+    <comment>Spoken when a Ship undocks alarm fires. {0} is the character, {1} the solar system, {2} the ship with its article (HullA, HullAn, HullPod, HullShip).</comment>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0} undocked in {1} in {2} — {3}.</value>
+    <comment>Spoken when a Ship undocks alarm fires and something is missing. {0} is the character, {1} the solar system, {2} the ship with its article (HullA, HullAn, HullPod, HullShip), {3} what is missing (UndockNothingFitted, UndockLowFuel and the rest), joined by commas.</comment>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>nothing fitted</value>
+    <comment>Spoken, in UndockSaidProblems: the ship left with nothing fitted.</comment>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>no fuel</value>
+    <comment>Spoken, in UndockSaidProblems: the ship left with no jump fuel.</comment>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>low on fuel</value>
+    <comment>Spoken, in UndockSaidProblems: the ship left short of jump fuel.</comment>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>no ammunition</value>
+    <comment>Spoken, in UndockSaidProblems: the ship left with no ammunition.</comment>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>low on ammunition</value>
+    <comment>Spoken, in UndockSaidProblems: the ship left short of ammunition.</comment>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>Wake up, {0}</value>
+    <comment>Title of an Undocked too long (wake-up call) alarm's alert or dialog. {0} is the person's name as the agent knows it, or AdriftCapsuleer.</comment>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of a wake-up call's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of a wake-up call's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}, {1}'s {2} landed in {3} {4} ago and is not docked yet. Is everything all right?</value>
+    <comment>Spoken at stage 1 of a wake-up call, after a jump arrival. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>Wake up, {0}. {1}'s {2} is still in space in {3}, {4} after landing. Dock up now.</value>
+    <comment>Spoken at stage 2 of a wake-up call, after a jump arrival. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}! {1}'s {2} has been sitting in {3} for {4} since landing. Dock up now!</value>
+    <comment>Spoken at stage 3, the last, of a wake-up call, after a jump arrival. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}, {1}'s {2} has been undocked in {3} for {4}. Is everything all right?</value>
+    <comment>Spoken at stage 1 of a wake-up call, after an undock. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>Wake up, {0}. {1}'s {2} undocked in {3} {4} ago and still is not docked. Dock up, or answer me.</value>
+    <comment>Spoken at stage 2 of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Wake up and dock now.</value>
+    <comment>Spoken at stage 3, the last, of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>pod</value>
+    <comment>Wake-up call, in place of a hull name when the character is in a capsule, as in "the character's pod".</comment>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>capsuleer</value>
+    <comment>Wake-up call: what the person is called when they have not told the agent their name. EVE's word for a player pilot.</comment>
+  </data>
+  <data name="SpanSecondsOne" xml:space="preserve">
+    <value>{0} second</value>
+    <comment>Wake-up call: how long, under two minutes. {0} is the number of seconds.</comment>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0} seconds</value>
+    <comment>Wake-up call: how long, under two minutes. {0} is the number of seconds.</comment>
+  </data>
+  <data name="SpanMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>Wake-up call: how long, from two minutes on. {0} is the number of minutes.</comment>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>Wake-up call: how long, from two minutes on. {0} is the number of minutes.</comment>
+  </data>
+  <data name="StoreEventsOne" xml:space="preserve">
+    <value>{0} store order event</value>
+    <comment>Title of a Store order events alarm's alert or dialog for several events. {0} is the number of events.</comment>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>{0} store order events</value>
+    <comment>Title of a Store order events alarm's alert or dialog for several events. {0} is the number of events.</comment>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>New order: {0} for {1}</value>
+    <comment>Title of a Store order events alarm's alert or dialog: an order was placed. {0} is the item, with its count when more than one ("3× Rifter"); {1} the buyer.</comment>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>Order {0}: can now be filled from stock</value>
+    <comment>Title of a Store order events alarm's alert or dialog. {0} is the order's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>Order {0}: is now in build</value>
+    <comment>Title of a Store order events alarm's alert or dialog. {0} is the order's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>Order {0} contracted</value>
+    <comment>Title of a Store order events alarm's alert or dialog: a contract to the buyer was made for it. {0} is the order's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>Order {0}: {1:N0} of {2:N0} delivered</value>
+    <comment>Title of a Store order events alarm's alert or dialog. {0} is the order's reference, {1} the units delivered so far, {2} the units ordered.</comment>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>Order {0} complete</value>
+    <comment>Title of a Store order events alarm's alert or dialog. {0} is the order's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>Order {0} canceled</value>
+    <comment>Title of a Store order events alarm's alert or dialog. {0} is the order's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>New order at {0}: {1} for {2}, {3}. In stock — contract it.</value>
+    <comment>Spoken when a store order arrives that can be filled from stock. {0} is the store, {1} the item with its count when more than one, {2} the buyer, {3} the price (IskBillions and the rest).</comment>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>New order at {0}: {1} for {2}, {3}. In build.</value>
+    <comment>Spoken when a store order arrives that is already being built. {0} is the store, {1} the item with its count when more than one, {2} the buyer, {3} the price.</comment>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>New order at {0}: {1} for {2}, {3}. Already contracted.</value>
+    <comment>Spoken when a store order arrives that already has a contract. {0} is the store, {1} the item with its count when more than one, {2} the buyer, {3} the price.</comment>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>New order at {0}: {1} for {2}, {3}. Not in stock and not in build — a new build.</value>
+    <comment>Spoken when a store order arrives that has to be built. {0} is the store, {1} the item with its count when more than one, {2} the buyer, {3} the price.</comment>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>Order for {0} for {1} can now be filled from stock.</value>
+    <comment>Spoken. {0} is the item with its count when more than one, {1} the buyer.</comment>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>Order for {0} for {1} is now in build.</value>
+    <comment>Spoken. {0} is the item with its count when more than one, {1} the buyer.</comment>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>Order for {0} for {1}: contracted and awaiting acceptance.</value>
+    <comment>Spoken. {0} is the item with its count when more than one, {1} the buyer.</comment>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>Order for {0} for {1}: {2:N0} of {3:N0} contracted and awaiting acceptance.</value>
+    <comment>Spoken when part of a store order is on a contract. {0} is the item with its count, {1} the buyer, {2} the units on the contract, {3} the units ordered.</comment>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0} accepted a contract for part of {1}: {2:N0} of {3:N0} delivered.</value>
+    <comment>Spoken. {0} is the buyer, {1} the item with its count, {2} the units delivered so far, {3} the units ordered.</comment>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0} accepted the contract for {1}. Order complete.</value>
+    <comment>Spoken. {0} is the buyer, {1} the item with its count when more than one.</comment>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>Order for {0} for {1} was canceled.</value>
+    <comment>Spoken. {0} is the item with its count when more than one, {1} the buyer.</comment>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##} billion ISK</value>
+    <comment>A price read out when a store order arrives. {0} is the amount in billions, e.g. 12.4.</comment>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##} million ISK</value>
+    <comment>A price read out when a store order arrives. {0} is the amount in millions, e.g. 12.4.</comment>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##} thousand ISK</value>
+    <comment>A price read out when a store order arrives. {0} is the amount in thousands, e.g. 12.4.</comment>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0} from {1:N0} ISK</value>
+    <comment>Title of a Market / contract price alarm's alert or dialog. {0} is the item, {1} the cheapest price found per unit.</comment>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} available</value>
+    <comment>Title of a Market / contract price alarm's alert or dialog when no price is known. {0} is the item.</comment>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>Item</value>
+    <comment>Stands in for the item's name in a Market / contract price alarm's title when no item is set yet.</comment>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>Mute Alarms</value>
+    <comment>Button on the Alarms tool, and item in the alarm beacon's right-click menu: silence alarms on this machine.</comment>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>Unmute Alarms</value>
+    <comment>Button on the Alarms tool, and item in the alarm beacon's right-click menu: let alarms sound on this machine again.</comment>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>Audio unavailable: libvlc could not be loaded. Install VLC and its plugins (the "vlc" package on Arch and Fedora; "vlc" or "libvlc-dev" on Debian and Ubuntu), then restart. [{0}]</value>
+    <comment>Alarms tool, on Linux, when sounds cannot play. {0} is the error. vlc and libvlc-dev are package names; keep them.</comment>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>Audio unavailable: {0}</value>
+    <comment>Alarms tool, when sounds cannot play. {0} is the error.</comment>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>Chime — soft</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>Chime — triad</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app (a three-note chime).</comment>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>Ping — glass</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>Bell — brass</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>Bell — deep</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>Gong — low</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>Alert — double</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>Alarm — urgent</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>Warning — two-tone</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>Warning — klaxon</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>Warning — buzzer</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>Warning — siren</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>Warning — horn</value>
+    <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>No sound selected.</value>
+    <comment>Alarms tool, when a sound could not play: none was chosen.</comment>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>Custom sound file not found: {0}</value>
+    <comment>Alarms tool, when a sound could not play. {0} is the file's path.</comment>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>Bundled sound missing: {0}</value>
+    <comment>Alarms tool, when one of the app's own sounds could not be found. {0} is its file name.</comment>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>Could not unpack {0} into {1}: {2}</value>
+    <comment>Alarms tool, when one of the app's own sounds could not be prepared for playing. {0} is its file name, {1} the folder, {2} the error.</comment>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC could not play {0}. On Linux this is usually a missing plugin package or no audio output (check that other applications play sound).</value>
+    <comment>Alarms tool, when a sound could not play. {0} is the sound's file name. VLC is the player's name.</comment>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>Playback failed: {0}</value>
+    <comment>Alarms tool, when a sound could not play. {0} is the error.</comment>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>I'm awake</value>
+    <comment>The button on a wake-up call's dialog (Undocked too long): pressing it quiets the alarm for a while. Also named in AdriftBodyLanded and AdriftBodyUndocked.</comment>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>(The agent is not configured, so this was recorded as an alert.)</value>
+    <comment>Under what an alarm found, in an alert recorded instead because the alarm's only action was the agent and no agent is set up.</comment>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>Every {0} hour(s)</value>
+    <comment>Scheduler task list: a task that repeats every so many hours. {0} is the number of hours.</comment>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>Every {0} minute(s)</value>
+    <comment>Scheduler task list: a task that repeats every so many minutes. {0} is the number of minutes.</comment>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0} at {1}</value>
+    <comment>Scheduler task list: a task that runs on days of the week. {0} is the days (e.g. "Mon, Wed, Fri", or ScheduleEveryDay), {1} the time, e.g. "00:01 EVE".</comment>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>Day {0} of each month at {1}</value>
+    <comment>Scheduler task list: a task that runs once a month. {0} is the day of the month, {1} the time, e.g. "00:01 EVE".</comment>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>{0} {1} each year at {2}</value>
+    <comment>Scheduler task list: a task that runs once a year. {0} is the month's name, {1} the day of the month, {2} the time, e.g. "00:01 EVE".</comment>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>Every day</value>
+    <comment>Scheduler task list, in ScheduleWeeklyAt: a task that runs on all seven days.</comment>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>No days</value>
+    <comment>Scheduler task list, in ScheduleWeeklyAt: a weekly task with no day ticked.</comment>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>Unknown task type "{0}".</value>
+    <comment>Scheduler, the result of a task's run. {0} is the stored task type.</comment>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>Failed: {0}</value>
+    <comment>Scheduler, the result of a task's run that failed. {0} is the error.</comment>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>Nothing to post: no sections configured.</value>
+    <comment>Scheduler, the result of a task's run.</comment>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>Nothing to post: the sections rendered empty.</value>
+    <comment>Scheduler, the result of a task's run.</comment>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>Nothing to post: no dynamic section had anything to say.</value>
+    <comment>Scheduler, the result of a task's run that is set to stay silent when the sections that read the data are empty.</comment>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>Posted.</value>
+    <comment>Scheduler, the result of a task's run: the message went to Slack.</comment>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack refused it: {0}</value>
+    <comment>Scheduler, the result of a task's run. {0} is Slack's error.</comment>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>Posted {0} of {1} messages ({2:N0} characters); Slack refused the next: {3}.</value>
+    <comment>Scheduler, the result of a task's run whose message went in parts and not all arrived. {0} is the parts posted, {1} how many there were, {2} the characters posted, {3} Slack's error.</comment>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>Posted {0:N0} characters in {1} messages.</value>
+    <comment>Scheduler, the result of a task's run. {0} is the characters posted, {1} the number of messages (always more than one).</comment>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>Posted {0:N0} characters.</value>
+    <comment>Scheduler, the result of a task's run. {0} is the characters posted.</comment>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>{0} chart(s) uploaded.</value>
+    <comment>Scheduler, added to the result of a task's run. {0} is the number of charts.</comment>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>{0} chart(s) failed: {1}.</value>
+    <comment>Scheduler, added to the result of a task's run. {0} is the number of charts, {1} each chart's title and error, separated by semicolons.</comment>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>{0} chart section(s) skipped: a webhook cannot carry an image.</value>
+    <comment>Scheduler, added to the result of a task's run that posts to a webhook. {0} is the number of chart sections left out.</comment>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>Nothing to raise: the alert has no text.</value>
+    <comment>Scheduler, the result of an alert task's run.</comment>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>Scheduled alert</value>
+    <comment>Title of the alert a scheduled task raises when the task has no headline and no name.</comment>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>Alert raised.</value>
+    <comment>Scheduler, the result of an alert task's run.</comment>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>No webhook chosen.</value>
+    <comment>Scheduler, in RunSlackRefused: the task names no webhook.</comment>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>That webhook has been deleted.</value>
+    <comment>Scheduler, in RunSlackRefused: the task's webhook no longer exists.</comment>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} hundred million ISK</value>
+    <comment>Only for languages that count in 10,000s (Chinese, Japanese, Korean): a price read out when a store order arrives, in units of 100,000,000. {0} is the amount, e.g. 124. English uses the billion/million/thousand entries instead.</comment>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} ten thousand ISK</value>
+    <comment>Only for languages that count in 10,000s (Chinese, Japanese, Korean): a price read out when a store order arrives, in units of 10,000. {0} is the amount, e.g. 350. English uses the billion/million/thousand entries instead.</comment>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Post to Slack or Discord</value>
+    <comment>Scheduler, task type pick list. Slack and Discord are brand names.</comment>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+    <comment>Scheduler, Post To pick list: a Discord webhook, listed after the Slack channels and webhooks. {0} is the webhook's name. Discord is a brand name.</comment>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>No channels or webhooks yet — add one under Settings, Slack or Discord.</value>
+    <comment>Scheduler status line on Save. Settings, Slack and Discord name places in the Settings window.</comment>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Slack channels and webhooks, then Discord webhooks, as set in Settings — in one list.</value>
+    <comment>Note under the Scheduler's Post To pick list.</comment>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord refused it: {0}</value>
+    <comment>Scheduler, the result of a task's run that posts to Discord. {0} is why.</comment>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>Posted {0} of {1} messages ({2:N0} characters); Discord refused the next: {3}.</value>
+    <comment>Scheduler, the result of a Discord task's run whose message went in parts and not all arrived. {0} is the parts posted, {1} how many there were, {2} the characters posted, {3} the error.</comment>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Watch around</value>
+    <comment>Alarm editor, Intel report check: label of the choice of what the jump range is drawn around.</comment>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Undocked characters: wherever your online characters are in space; docked ones are not watched. Characters: wherever they are while online, docked or not. Systems: the systems listed below.</value>
+    <comment>Alarm editor, Intel report check, under Watch around. The three names are the choices (OptionUndockedCharacters, OptionCharacters, OptionSystems).</comment>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Undocked characters</value>
+    <comment>Alarm editor, Intel report check, Watch around: the capsuleer's own characters while online and in space.</comment>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Alarm editor, Intel report check, Watch around: the capsuleer's own characters while online, docked or not.</comment>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Systems</value>
+    <comment>Alarm editor, Intel report check, Watch around: a list of solar systems.</comment>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Alarm editor, Intel report check: label of the list of the capsuleer's own characters to watch around.</comment>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Optional. Your own characters to watch around; leave empty for all of them. Only characters that are online count.</value>
+    <comment>Alarm editor, Intel report check, under Characters.</comment>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>where {0} is</value>
+    <comment>Spoken, in IntelSaidReportedAt: the hostiles are in the same system as one of the capsuleer's characters. {0} is that character's name.</comment>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>{0} jump from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{0} jumps from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
+  </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Stopping the ship ends it</value>
+    <comment>Alarm editor, Undocked too long check: a checkbox, shown when Jump arrivals is unticked.</comment>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Ticked: stopping the ship after the undock ends that undock's alarm — a stopped ship does not drift off the undock, and somebody pressed stop. Read from the game log, so that client's game log folder must be read (Settings → Game Logs); without it the stages run as before.</value>
+    <comment>Alarm editor, Undocked too long check, beside the Stopping the ship ends it checkbox.</comment>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Game log event</value>
+    <comment>Alarm editor, name of the check in the Check list.</comment>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Fires when the game log of one of your characters says it was decloaked by something nearby, warp scrambled or disrupted, or is under attack — tick any mix. A scramble or an attack fires once per fight: lines with no more than two minutes between them are one fight. Needs that client's game log folder being read (Settings → Game Logs); seen within seconds.</value>
+    <comment>Alarm editor, under the Check list when Game log event is picked.</comment>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Decloaked</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Your cloak dropped near a gate, a structure or anything else that drops one.</value>
+    <comment>Alarm editor, Game log event check, beside Decloaked.</comment>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Warp scrambled</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>A warp scramble or warp disruption landed on you.</value>
+    <comment>Alarm editor, Game log event check, beside Warp scrambled.</comment>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Under attack</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>You are taking damage.</value>
+    <comment>Alarm editor, Game log event check, beside Under attack.</comment>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Players only</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Ticked: a scramble or an attack counts only from a player, not an NPC — ratting would otherwise set it off all evening.</value>
+    <comment>Alarm editor, Game log event check, beside Players only.</comment>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Optional. Your own characters to watch; leave empty for all of them.</value>
+    <comment>Alarm editor, Game log event check, beside Characters.</comment>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>Game log events: {0}</value>
+    <comment>Title of a Game log event alarm's alert or dialog for several events. {0} is how many.</comment>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0} decloaked near {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} what dropped the cloak, as the game log names it (in the game client's language, e.g. Stargate (Jita), Keepstar).</comment>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0} is warp scrambled by {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} who scrambled them, as the game log names them (pilot and ship, or an NPC).</comment>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} is under attack by {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} who is attacking, as the game log names them (pilots and ships, or NPCs).</comment>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Name of an alarm check in the alarm editor's Check list.</comment>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Fires for the colonies of characters that do PI: an extractor program ended or ending (exact), storage or a launchpad full, or a factory planet's input running out (both estimated from the last time the colony was opened in the game). Each colony's event fires once; re-running the extractors or opening the colony again makes it news again.</value>
+    <comment>Alarm editor, under the Check list, for the Planetary Industry check.</comment>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>WATCH FOR</value>
+    <comment>Alarm editor, Planetary Industry check: field label, upper case as the editor's labels are.</comment>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Which of the three to fire for.</value>
+    <comment>Alarm editor, Planetary Industry check: under the Watch for field.</comment>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>LEAD TIME</value>
+    <comment>Alarm editor, Planetary Industry check: field label, upper case as the editor's labels are.</comment>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Fire this many hours before it happens. 0 fires when it happens.</value>
+    <comment>Alarm editor, Planetary Industry check: under the Lead time field.</comment>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>hours</value>
+    <comment>Alarm editor, Planetary Industry check: after the Lead time box.</comment>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>All three</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for: extractors, storage and inputs.</comment>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extractors stopping</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Storage filling</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Inputs running out</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} Planetary Industry colony needs attention</value>
+    <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} Planetary Industry colonies need attention</value>
+    <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Light years</value>
+    <comment>Alarm editor, Intel report check: label of the light-year range to watch, beside Jumps.</comment>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Optional. Also watch every system within this many light years, however many gates away — what a jump drive or a cyno puts in reach. A report caught by either range fires. Capped at 20.</value>
+    <comment>Alarm editor, Intel report check, under Light years.</comment>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{0} light years from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from one of the capsuleer's characters. {0} the light years (one decimal), {1} the character's name.</comment>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} light years out</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from the watched system. {0} the light years (one decimal).</comment>
+  </data>
+</root>

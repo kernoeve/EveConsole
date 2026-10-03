@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Markdownをコピー</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>選択行をコピー</value>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>選択した行を見出し付きのタブ区切りテキストとしてコピーします。そのままスプレッドシートに貼り付けられます。Ctrl+Cでも同じ操作ができます。</value>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>すべてコピー</value>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>CSVで保存</value>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>AIアシスタント</value>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>音声の音量（システムの音量とは別に設定）</value>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>会話をクリアします</value>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>パネルを閉じます</value>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>— これまでの会話を要約しました —</value>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>押している間に話し、離すと送信します。グローバルホットキーを押し続けても同じです。</value>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>{0}の音声のミュートを切り替えます</value>
+  </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>{0}に質問…</value>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>マイクの録音を開始できませんでした。「設定 → {0}」でマイクを確認してください。</value>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>録音中…</value>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>文字起こし中…</value>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>音声が録音されませんでした — 話している間はキーを押し続けてください。</value>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>音声を認識できませんでした — もう少し長く話してみてください。</value>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>文字起こしに失敗しました：{0}</value>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>モデルが設定されていません。「設定 → {0}」で、キーまたはサーバーのアドレスを指定してモデルを追加してください。</value>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>AIアシスタントは無効になっています。「設定 → {0}」で有効にしてください。</value>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>会話を整理中…</value>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>考え中…</value>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>調べています…</value>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>データベースを読み込み中…</value>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>スキーマを確認中…</value>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>資産を検索中…</value>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>生産ジョブを検索中…</value>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>キャラクターを検索中…</value>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>マーケット価格を確認中…</value>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>アイテムを検索中…</value>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>画面を確認中…</value>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>アラームを設定中…</value>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>処理中…</value>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>{0:N0}行を見出し付きでコピーしました。</value>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>{0:N0}行を{1}に保存しました</value>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>ドキュメントをMarkdownとしてコピーしました。</value>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>{0}に保存しました</value>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>ドキュメントを保存</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>テキスト</value>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>すべてのファイル</value>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>表を保存</value>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>このドキュメントを表示できませんでした：{0}</value>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0}行</value>
+  </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>ツール呼び出しなし</value>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>ツール呼び出し{0}回：{1}</value>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>アラーム</value>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>音声の切り替え</value>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>モデルの切り替え</value>
+  </data>
+</root>

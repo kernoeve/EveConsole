@@ -1,5 +1,7 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -12,7 +14,12 @@ public sealed record JumpShip(
     int    FuelTypeId,
     string FuelTypeName)
 {
-    public override string ToString() => Name;
+    /// <summary>The hull and its isotope as the interface names them; Name and FuelTypeName stay
+    /// English.</summary>
+    public string Label     => SdeNames.Type(TypeId, Name);
+    public string FuelLabel => SdeNames.Type(FuelTypeId, FuelTypeName);
+
+    public override string ToString() => Label;
 }
 
 /// <summary>
@@ -37,11 +44,22 @@ public enum JumpMidpoints
     KeepstarSystems,
 }
 
+/// <summary>A system a jump drive reaches from where it is, and how far it is.</summary>
+public sealed record JumpRangeSystem(int Id, string Name, string Region, int RegionId, double Security, double Ly)
+{
+    public string Label       => SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel => SdeNames.Region(RegionId, Region);
+}
+
+/// <summary>Everything in range of one system, or why nothing can be.</summary>
+public sealed record JumpRangeResult(double RangeLy, IReadOnlyList<JumpRangeSystem> Systems, string? Problem);
+
 /// <summary>One jump in a planned route.</summary>
 public sealed record JumpLeg(
     int    FromSystemId,
     string FromSystem,
     string FromRegion,
+    int    FromRegionId,
     double FromSecurity,
     int    ToSystemId,
     string ToSystem,
@@ -57,10 +75,12 @@ public sealed record MapPoint(int Id, double X, double Y, double Security);
 /// <summary>A system that could replace a midpoint, with how far it is either side of it.</summary>
 public sealed record JumpAlternative(
     int Id, string Name, string Region, double Security,
-    double InLy, double OutLy, double MapX, double MapY)
+    double InLy, double OutLy, double MapX, double MapY, int RegionId = 0)
 {
-    public string Detail => $"{Region} · in {InLy:N2} ly · out {OutLy:N2} ly";
-    public override string ToString() => Name;
+    /// <summary>The system as the interface names it; Name and Region stay English.</summary>
+    public string Label  => SdeNames.SolarSystem(Id, Name);
+    public string Detail => string.Format(MapText.AlternativeDetail, SdeNames.Region(RegionId, Region), InLy, OutLy);
+    public override string ToString() => Label;
 }
 
 public sealed record JumpRoute(
@@ -122,6 +142,13 @@ public sealed class JumpPlannerService
     /// </summary>
     private static readonly HashSet<int> JoveRegionIds = [10_000_004, 10_000_017, 10_000_019];
 
+    /// <summary>
+    /// Pochven and Yasna Zakh (Zarzakh): null-sec by their security, but no cynosural field can
+    /// be lit in either, so a jump drive can never land there. Without this the planner took
+    /// both for ordinary null sec.
+    /// </summary>
+    private static readonly HashSet<int> NoCynoRegionIds = [10_000_070, 10_001_000];
+
     private List<Node>? _systems;
     private Dictionary<int, MapPoint>? _mapPoints;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -172,7 +199,7 @@ public sealed class JumpPlannerService
             var fuelType  = (int)a.GetValueOrDefault(AttrFuelTypeId);
 
             result.Add(new JumpShip(s.TypeId, s.Name, range, fuelPerLy, fuelType,
-                fuelNames.GetValueOrDefault(fuelType, "Isotopes")));
+                fuelNames.GetValueOrDefault(fuelType, MapText.FuelIsotopes)));
         }
 
         return result.OrderByDescending(s => s.BaseRangeLy).ThenBy(s => s.Name).ToList();
@@ -206,7 +233,7 @@ public sealed class JumpPlannerService
             // cluster at null-sec security, with no gate in or out — were perfectly good
             // midpoints as far as the search was concerned, and no player can go there.
             _systems = rows
-                .Where(r => !JoveRegionIds.Contains(r.RegionId))
+                .Where(r => !JoveRegionIds.Contains(r.RegionId) && !NoCynoRegionIds.Contains(r.RegionId))
                 .Select(r => new Node(r.SolarSystemId, r.Name, r.Region, r.RegionId, r.Security, r.X, r.Y, r.Z))
                 .ToList();
 
@@ -216,8 +243,10 @@ public sealed class JumpPlannerService
     }
 
     /// <summary>Every system by name, for the pickers — including high sec, so a route that
-    /// starts there can say why it cannot be flown rather than not finding the system.</summary>
-    public async Task<List<(int Id, string Name, string Region, double Security)>> SearchSystemsAsync(
+    /// starts there can say why it cannot be flown rather than not finding the system. Finds the
+    /// name the interface shows as well as the English, and ranks by the one shown; the names
+    /// returned are English.</summary>
+    public async Task<List<(int Id, string Name, string Region, int RegionId, double Security)>> SearchSystemsAsync(
         string term, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(term) || term.Length < 2) return [];
@@ -228,19 +257,33 @@ public sealed class JumpPlannerService
         // without exposing LIKE's % and _ wildcards to whatever the user typed.
         var needle = term.ToLowerInvariant();
 
+        // Systems whose shown name holds the text, by id — the SQL can only see the English.
+        // Always empty in English.
+        await SdeNames.EnsureLoadedAsync(ct);
+        var shownIds = SdeNames.Find(SdeNameKind.SolarSystem, term).Select(id => (int)id).ToList();
+
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var systems = shownIds.Count == 0
+            ? db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToLower().Contains(needle))
+            : db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(needle) || shownIds.Contains(s.SolarSystemId));
+
         var hits = await (
-            from s in db.SdeSolarSystems.AsNoTracking()
+            from s in systems
             join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
-            where s.Name.ToLower().Contains(needle)
-            select new { s.SolarSystemId, s.Name, Region = r.Name, s.Security })
+            select new { s.SolarSystemId, s.Name, Region = r.Name, s.RegionId, s.Security })
             .Take(60).ToListAsync(ct);
 
+        // In English the shown name is the English, and this is the order it always was.
+        string Shown(int id, string name) => SdeNames.SolarSystem(id, name);
+
         return hits
-            .OrderBy(h => h.Name.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(h => h.Name.Length)
-            .ThenBy(h => h.Name)
-            .Select(h => (h.SolarSystemId, h.Name, h.Region, h.Security))
+            .OrderBy(h => h.Name.StartsWith(term, StringComparison.OrdinalIgnoreCase)
+                       || Shown(h.SolarSystemId, h.Name).StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(h => Shown(h.SolarSystemId, h.Name).Length)
+            .ThenBy(h => Shown(h.SolarSystemId, h.Name), StringComparer.CurrentCulture)
+            .Select(h => (h.SolarSystemId, h.Name, h.Region, h.RegionId, h.Security))
             .ToList();
     }
 
@@ -294,13 +337,15 @@ public sealed class JumpPlannerService
             get
             {
                 var parts = new List<string>(4);
-                if (Keepstar)         parts.Add("Keepstar");
-                if (Fortizar)         parts.Add("Fortizar");
-                if (NpcStation)       parts.Add("NPC station");
+                // The hulls' own names, as the interface shows them.
+                if (Keepstar)         parts.Add(SdeNames.Type(IndustryMe.KeepstarTypeId, "Keepstar"));
+                if (Fortizar)         parts.Add(SdeNames.Type(IndustryMe.FortizarTypeId, "Fortizar"));
+                if (NpcStation)       parts.Add(MapText.BadgeNpcStation);
                 if (PlayerStructures > 0 && !Keepstar && !Fortizar)
-                    parts.Add($"{PlayerStructures} player structure{(PlayerStructures == 1 ? "" : "s")}");
+                    parts.Add(Plurals.Format(MapText.ResourceManager,
+                                             nameof(MapText.BadgePlayerStructuresOther), PlayerStructures));
                 else if (PlayerStructures > 1)
-                    parts.Add($"+{PlayerStructures - 1} more");
+                    parts.Add(string.Format(MapText.BadgeMoreStructures, PlayerStructures - 1));
                 return string.Join(" · ", parts);
             }
         }
@@ -491,14 +536,15 @@ public sealed class JumpPlannerService
         public int ToId   { get; set; }
     }
 
-    private Dictionary<int, (string Name, string Region)>? _systemNames;
+    private Dictionary<int, (string Name, string Region, int RegionId)>? _systemNames;
     private readonly SemaphoreSlim _nameGate = new(1, 1);
 
     /// <summary>
     /// Name and region for every system, including the high-sec ones a jump drive cannot enter —
     /// those are still drawn on the map as context and still worth identifying under the pointer.
+    /// English, with the region's id so the map can show its name.
     /// </summary>
-    public async Task<IReadOnlyDictionary<int, (string Name, string Region)>> SystemNamesAsync(
+    public async Task<IReadOnlyDictionary<int, (string Name, string Region, int RegionId)>> SystemNamesAsync(
         CancellationToken ct = default)
     {
         if (_systemNames is { } cached) return cached;
@@ -512,10 +558,10 @@ public sealed class JumpPlannerService
             var rows = await (
                 from s in db.SdeSolarSystems.AsNoTracking()
                 join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
-                select new { s.SolarSystemId, s.Name, Region = r.Name })
+                select new { s.SolarSystemId, s.Name, Region = r.Name, s.RegionId })
                 .ToListAsync(ct);
 
-            _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => (r.Name, r.Region));
+            _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => (r.Name, r.Region, r.RegionId));
             return _systemNames;
         }
         finally { _nameGate.Release(); }
@@ -630,10 +676,44 @@ public sealed class JumpPlannerService
 
             var p = points.GetValueOrDefault(n.Id);
             result.Add(new JumpAlternative(n.Id, n.Name, n.Region, n.Security, inLy, outLy,
-                                           p?.X ?? 0, p?.Y ?? 0));
+                                           p?.X ?? 0, p?.Y ?? 0, n.RegionId));
         }
 
         return result.OrderBy(r => r.InLy + r.OutLy).ToList();
+    }
+
+    /// <summary>
+    /// Every system a jump drive of <paramref name="rangeLy"/> reaches from one system, nearest
+    /// first, landing only where <paramref name="landing"/> allows. A drive cannot be used in
+    /// high sec, nor anywhere a cyno cannot be lit, so a start there is a problem rather than an
+    /// empty list.
+    /// </summary>
+    public async Task<JumpRangeResult> InRangeAsync(
+        int fromSystemId, double rangeLy, JumpMidpoints landing = JumpMidpoints.Any, CancellationToken ct = default)
+    {
+        var nodes = await SystemsAsync(ct);
+        var start = nodes.FirstOrDefault(n => n.Id == fromSystemId);
+        if (start is null)
+        {
+            // Not a place a drive can be used: say which kind of not.
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var s = await db.SdeSolarSystems.AsNoTracking().Where(x => x.SolarSystemId == fromSystemId)
+                .Select(x => new { x.Name, x.Security }).FirstOrDefaultAsync(ct);
+            var name = s is null ? "" : SdeNames.SolarSystem(fromSystemId, s.Name);
+            return new JumpRangeResult(rangeLy, [],
+                s is { Security: >= HighSecFloor } ? string.Format(MapText.JumpRangeHighSec, name)
+                                                   : string.Format(MapText.JumpRangeNoDrive, name));
+        }
+
+        var allowed = await MidpointSetAsync(landing, ct);
+        var list = new List<JumpRangeSystem>();
+        foreach (var n in nodes)
+        {
+            if (n.Id == start.Id || (allowed is not null && !allowed.Contains(n.Id))) continue;
+            var ly = DistanceLy(start, n);
+            if (ly <= rangeLy) list.Add(new JumpRangeSystem(n.Id, n.Name, n.Region, n.RegionId, n.Security, ly));
+        }
+        return new JumpRangeResult(rangeLy, [.. list.OrderBy(x => x.Ly)], null);
     }
 
     private static double DistanceLy(Node a, Node b)
@@ -664,11 +744,11 @@ public sealed class JumpPlannerService
         var byId    = nodes.ToDictionary(n => n.Id);
 
         if (!byId.TryGetValue(fromSystemId, out var start))
-            return Empty(range, ship, "The starting system cannot be reached by jump drive — high security space is closed to capitals.");
+            return Empty(range, ship, MapText.RouteStartHighSec);
         if (!byId.TryGetValue(toSystemId, out var goal))
-            return Empty(range, ship, "The destination cannot be reached by jump drive — high security space is closed to capitals.");
+            return Empty(range, ship, MapText.RouteDestinationHighSec);
         if (fromSystemId == toSystemId)
-            return Empty(range, ship, "The start and the destination are the same system.");
+            return Empty(range, ship, MapText.RouteSameSystem);
 
         // Distance travelled so far, and where each system was reached from.
         var bestJumps   = new Dictionary<int, int> { [start.Id] = 0 };
@@ -727,13 +807,11 @@ public sealed class JumpPlannerService
             return Empty(range, ship, midpoints switch
             {
                 JumpMidpoints.KeepstarSystems =>
-                    $"No route within {range:N2} ly per jump using only known Keepstar systems. " +
-                    "Widening the midpoints, or resolving more structures, would be needed.",
+                    string.Format(MapText.RouteNoneKeepstar, range),
                 JumpMidpoints.StationSystems =>
-                    $"No route within {range:N2} ly per jump using only station systems.",
+                    string.Format(MapText.RouteNoneStations, range),
                 _ =>
-                    $"No route within {range:N2} ly per jump. A longer-ranged hull or more " +
-                    "Jump Drive Calibration would be needed.",
+                    string.Format(MapText.RouteNone, range),
             });
 
         // Walk the chain back to the start.
@@ -758,7 +836,7 @@ public sealed class JumpPlannerService
             totalDist += d;
             totalFuel += f;
 
-            legs.Add(new JumpLeg(a.Id, a.Name, a.Region, a.Security,
+            legs.Add(new JumpLeg(a.Id, a.Name, a.Region, a.RegionId, a.Security,
                                  b.Id, b.Name, b.Region, b.RegionId, b.Security, d, f));
         }
 

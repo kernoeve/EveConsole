@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        x:Class="EveConsole.Views.UpdateRequiredDialog"
+        Title="EVE Console"
+        Width="480"
+        MinWidth="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}"
+        CanResize="False"
+        SizeToContent="Height">
+
+  <!-- Shown instead of FatalDialog when the database is AHEAD of this build: the one version
+       mismatch a client can fix by itself. Update is not "carry on regardless" — it replaces this
+       build with one that can open the database, and Close still ends the session. -->
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+
+    <TextBlock Grid.Row="0"
+               Text="{x:Static loc:ShellText.ThisBuildIsOlderNote}"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource WarnBrush}"
+               FontSize="14"
+               FontWeight="SemiBold"
+               Margin="20 20 20 8" />
+
+    <TextBlock Grid.Row="1"
+               x:Name="MessageText"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource TextPrimaryBrush}"
+               FontSize="13"
+               Margin="20 0 20 12" />
+
+    <TextBlock Grid.Row="2"
+               x:Name="StatusText"
+               Text="{x:Static loc:ShellText.CheckingForAnUpdate}"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource TextSecondaryBrush}"
+               FontSize="13"
+               Margin="20 0 20 12" />
+
+    <ProgressBar Grid.Row="3"
+                 x:Name="DownloadProgress"
+                 IsVisible="False"
+                 Minimum="0"
+                 Maximum="100"
+                 Height="6"
+                 Margin="20 0 20 12" />
+
+    <Border Grid.Row="4" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <HyperlinkButton Grid.Column="0"
+                         x:Name="ReleasesLink"
+                         Content="{x:Static loc:ShellText.ReleasesPage}"
+                         Click="OnReleases"
+                         VerticalAlignment="Center"
+                         Padding="4 5" />
+        <Button Grid.Column="1"
+                x:Name="UpdateButton"
+                Content="{x:Static loc:ShellText.UpdateAndRestart}"
+                Click="OnUpdate"
+                IsVisible="False"
+                IsDefault="True"
+                Padding="20 5"
+                Margin="0 0 8 0" />
+        <Button Grid.Column="2"
+                x:Name="CloseButton"
+                Content="{x:Static loc:ShellText.Close}"
+                Click="OnClose"
+                Padding="20 5" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</Window>

@@ -7,6 +7,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using YamlDotNet.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -150,6 +151,7 @@ public static class NotificationBody
         Isk, Number, Decimal2, Percent, Fraction, Bool,
         Date, Duration, Seconds, Hours,
         Killmail, TypeQuantities, OreVolumes, Wants, LinkDataEntity, StructureIdType,
+        OreValue, OreValueTotal,
     }
 
     /// <summary>What a key means: its label, the kind of value, and where it sits among the
@@ -160,107 +162,107 @@ public static class NotificationBody
     private static readonly Dictionary<string, F> Defaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // where. ⚠️ Structure notifications spell it "solarsystemID"; the lookup ignores case.
-        ["structureID"]     = new("Structure", K.Structure),
-        ["structureTypeID"] = new("Structure type", K.Type, 1),
-        ["structureIDs"]    = new("Structures", K.StructureList),
-        ["stationID"]       = new("Station", K.Location),
-        ["newStationID"]    = new("Moved to", K.Location),
-        ["cloneStationID"]  = new("Clone location", K.Location),
-        ["locationID"]      = new("Location", K.Location),
-        ["solarSystemID"]   = new("System", K.System),
-        ["moonID"]          = new("Moon", K.Moon),
+        ["structureID"]     = new(CommsText.NotifLabelStructure, K.Structure),
+        ["structureTypeID"] = new(CommsText.NotifLabelStructureType, K.Type, 1),
+        ["structureIDs"]    = new(CommsText.NotifLabelStructures, K.StructureList),
+        ["stationID"]       = new(CommsText.NotifLabelStation, K.Location),
+        ["newStationID"]    = new(CommsText.NotifLabelMovedTo, K.Location),
+        ["cloneStationID"]  = new(CommsText.NotifLabelCloneLocation, K.Location),
+        ["locationID"]      = new(CommsText.NotifLabelLocation, K.Location),
+        ["solarSystemID"]   = new(CommsText.NotifLabelSystem, K.System),
+        ["moonID"]          = new(CommsText.NotifLabelMoon, K.Moon),
 
         // who
-        ["charID"]                 = new("Character", K.Character),
-        ["corpID"]                 = new("Corporation", K.Corporation),
-        ["corporation_id"]         = new("Corporation", K.Corporation),
-        ["allianceID"]             = new("Alliance", K.Alliance),
-        ["ownerID"]                = new("Owner", K.Entity),
-        ["creator_id"]             = new("Created by", K.Character, 31),
-        ["closer_id"]              = new("Closed by", K.Character, 32),
-        ["invokingCharID"]         = new("Invited by", K.Character),
-        ["startedBy"]              = new("Started by", K.Character),
-        ["firedBy"]                = new("Fired by", K.Character),
-        ["cancelledBy"]            = new("Cancelled by", K.Character),
-        ["purchasedByCharacterID"] = new("Purchased by", K.Character),
-        ["destroyerID"]            = new("Destroyed by", K.Character),
-        ["podKillerID"]            = new("Podded by", K.Character),
-        ["newOwnerCorpID"]         = new("New owner", K.Corporation),
-        ["oldOwnerCorpID"]         = new("Previous owner", K.Corporation),
-        ["locationOwnerID"]        = new("Location owner", K.Corporation),
-        ["ownerCorpLinkData"]      = new("Owner", K.LinkDataEntity),
-        ["corpLinkData"]           = new("Corporation", K.LinkDataEntity),
-        ["bountyPlacerID"]         = new("Placed by", K.Entity),
+        ["charID"]                 = new(CommsText.NotifLabelCharacter, K.Character),
+        ["corpID"]                 = new(CommsText.NotifLabelCorporation, K.Corporation),
+        ["corporation_id"]         = new(CommsText.NotifLabelCorporation, K.Corporation),
+        ["allianceID"]             = new(CommsText.NotifLabelAlliance, K.Alliance),
+        ["ownerID"]                = new(CommsText.NotifLabelOwner, K.Entity),
+        ["creator_id"]             = new(CommsText.NotifLabelCreatedBy, K.Character, 31),
+        ["closer_id"]              = new(CommsText.NotifLabelClosedBy, K.Character, 32),
+        ["invokingCharID"]         = new(CommsText.NotifLabelInvitedBy, K.Character),
+        ["startedBy"]              = new(CommsText.NotifLabelStartedBy, K.Character),
+        ["firedBy"]                = new(CommsText.NotifLabelFiredBy, K.Character),
+        ["cancelledBy"]            = new(CommsText.NotifLabelCancelledBy, K.Character),
+        ["purchasedByCharacterID"] = new(CommsText.NotifLabelPurchasedBy, K.Character),
+        ["destroyerID"]            = new(CommsText.NotifLabelDestroyedBy, K.Character),
+        ["podKillerID"]            = new(CommsText.NotifLabelPoddedBy, K.Character),
+        ["newOwnerCorpID"]         = new(CommsText.NotifLabelNewOwner, K.Corporation),
+        ["oldOwnerCorpID"]         = new(CommsText.NotifLabelPreviousOwner, K.Corporation),
+        ["locationOwnerID"]        = new(CommsText.NotifLabelLocationOwner, K.Corporation),
+        ["ownerCorpLinkData"]      = new(CommsText.NotifLabelOwner, K.LinkDataEntity),
+        ["corpLinkData"]           = new(CommsText.NotifLabelCorporation, K.LinkDataEntity),
+        ["bountyPlacerID"]         = new(CommsText.NotifLabelPlacedBy, K.Entity),
 
         // war: who declared, on whom, then whoever joined or left
-        ["declaredByID"]        = new("Declared by", K.Entity, 30),
-        ["againstID"]           = new("Against", K.Entity, 31),
-        ["aggressorID"]         = new("Aggressor", K.Entity, 30),
-        ["aggressorCorpID"]     = new("Aggressor corporation", K.Corporation, 31),
-        ["aggressorAllianceID"] = new("Aggressor alliance", K.Alliance, 32),
-        ["defenderID"]          = new("Defender", K.Entity, 33),
-        ["allyID"]              = new("Ally", K.Entity, 34),
-        ["mercID"]              = new("Ally", K.Entity, 34),
-        ["enemyID"]             = new("Enemy", K.Entity, 35),
-        ["opponentID"]          = new("Opponent", K.Entity, 35),
-        ["quitterID"]           = new("Left the war", K.Entity, 36),
-        ["warHQ"]               = new("War HQ", K.Text, 37),
-        ["warHQ_IdType"]        = new("War HQ", K.StructureIdType, 37),
-        ["cost"]                = new("Cost", K.Isk),
-        ["iskValue"]            = new("Fee", K.Isk),
-        ["delayHours"]          = new("Starts after", K.Hours),
-        ["hostileState"]        = new("Hostile now", K.Bool),
+        ["declaredByID"]        = new(CommsText.NotifLabelDeclaredBy, K.Entity, 30),
+        ["againstID"]           = new(CommsText.NotifLabelAgainst, K.Entity, 31),
+        ["aggressorID"]         = new(CommsText.NotifLabelAggressor, K.Entity, 30),
+        ["aggressorCorpID"]     = new(CommsText.NotifLabelAggressorCorporation, K.Corporation, 31),
+        ["aggressorAllianceID"] = new(CommsText.NotifLabelAggressorAlliance, K.Alliance, 32),
+        ["defenderID"]          = new(CommsText.NotifLabelDefender, K.Entity, 33),
+        ["allyID"]              = new(CommsText.NotifLabelAlly, K.Entity, 34),
+        ["mercID"]              = new(CommsText.NotifLabelAlly, K.Entity, 34),
+        ["enemyID"]             = new(CommsText.NotifLabelEnemy, K.Entity, 35),
+        ["opponentID"]          = new(CommsText.NotifLabelOpponent, K.Entity, 35),
+        ["quitterID"]           = new(CommsText.NotifLabelLeftTheWar, K.Entity, 36),
+        ["warHQ"]               = new(CommsText.NotifLabelWarHq, K.Text, 37),
+        ["warHQ_IdType"]        = new(CommsText.NotifLabelWarHq, K.StructureIdType, 37),
+        ["cost"]                = new(CommsText.NotifLabelCost, K.Isk),
+        ["iskValue"]            = new(CommsText.NotifLabelFee, K.Isk),
+        ["delayHours"]          = new(CommsText.NotifLabelStartsAfter, K.Hours),
+        ["hostileState"]        = new(CommsText.NotifLabelHostileNow, K.Bool),
 
         // what
-        ["typeID"]                 = new("Type", K.Type),
-        ["typeIDs"]                = new("Types", K.TypeList),
-        ["victimShipTypeID"]       = new("Ship", K.Type),
-        ["requiresDeedTypeID"]     = new("Requires", K.Type),
-        ["listOfTypesAndQty"]      = new("Items", K.TypeQuantities),
-        ["listOfServiceModuleIDs"] = new("Services", K.TypeList),
-        ["oreVolumeByType"]        = new("Ore", K.OreVolumes),
-        ["wants"]                  = new("Needs", K.Wants),
-        ["killMailID"]             = new("Killmail", K.Killmail),
-        ["amount"]                 = new("Amount", K.Isk),
-        ["bounty"]                 = new("Bounty", K.Isk),
-        ["lpAmount"]               = new("Loyalty points", K.Number),
-        ["goal_name"]              = new("Project", K.Text, 0),
-        ["project_name"]           = new("Project", K.Text, 0),
+        ["typeID"]                 = new(CommsText.NotifLabelType, K.Type),
+        ["typeIDs"]                = new(CommsText.NotifLabelTypes, K.TypeList),
+        ["victimShipTypeID"]       = new(CommsText.NotifLabelShip, K.Type),
+        ["requiresDeedTypeID"]     = new(CommsText.NotifLabelRequires, K.Type),
+        ["listOfTypesAndQty"]      = new(CommsText.NotifLabelItems, K.TypeQuantities),
+        ["listOfServiceModuleIDs"] = new(CommsText.NotifLabelServices, K.TypeList),
+        ["oreVolumeByType"]        = new(CommsText.NotifLabelOre, K.OreVolumes),
+        ["wants"]                  = new(CommsText.NotifLabelNeeds, K.Wants),
+        ["killMailID"]             = new(CommsText.NotifLabelKillmail, K.Killmail),
+        ["amount"]                 = new(CommsText.NotifLabelAmount, K.Isk),
+        ["bounty"]                 = new(CommsText.NotifLabelBounty, K.Isk),
+        ["lpAmount"]               = new(CommsText.NotifLabelLoyaltyPoints, K.Number),
+        ["goal_name"]              = new(CommsText.NotifLabelProject, K.Text, 0),
+        ["project_name"]           = new(CommsText.NotifLabelProject, K.Text, 0),
 
         // state — shield, armor, hull, in the game's order
-        ["shieldPercentage"] = new("Shield", K.Percent, 50),
-        ["armorPercentage"]  = new("Armor", K.Percent, 51),
-        ["hullPercentage"]   = new("Hull", K.Percent, 52),
-        ["shieldValue"]      = new("Shield", K.Fraction, 50),
-        ["armorValue"]       = new("Armor", K.Fraction, 51),
-        ["hullValue"]        = new("Hull", K.Fraction, 52),
-        ["isCorpOwned"]      = new("Corporation owned", K.Bool),
-        ["isAbandoned"]      = new("Abandoned", K.Bool),
-        ["daysUntilAbandon"] = new("Days until abandoned", K.Number),
-        ["security"]         = new("Security status", K.Decimal2),
-        ["newTaxRate"]       = new("New tax rate", K.Percent),
-        ["oldTaxRate"]       = new("Previous tax rate", K.Percent),
+        ["shieldPercentage"] = new(CommsText.NotifLabelShield, K.Percent, 50),
+        ["armorPercentage"]  = new(CommsText.NotifLabelArmor, K.Percent, 51),
+        ["hullPercentage"]   = new(CommsText.NotifLabelHull, K.Percent, 52),
+        ["shieldValue"]      = new(CommsText.NotifLabelShield, K.Fraction, 50),
+        ["armorValue"]       = new(CommsText.NotifLabelArmor, K.Fraction, 51),
+        ["hullValue"]        = new(CommsText.NotifLabelHull, K.Fraction, 52),
+        ["isCorpOwned"]      = new(CommsText.NotifLabelCorporationOwned, K.Bool),
+        ["isAbandoned"]      = new(CommsText.NotifLabelAbandoned, K.Bool),
+        ["daysUntilAbandon"] = new(CommsText.NotifLabelDaysUntilAbandoned, K.Number),
+        ["security"]         = new(CommsText.NotifLabelSecurityStatus, K.Decimal2),
+        ["newTaxRate"]       = new(CommsText.NotifLabelNewTaxRate, K.Percent),
+        ["oldTaxRate"]       = new(CommsText.NotifLabelPreviousTaxRate, K.Percent),
 
         // when. EVE writes instants as Windows file times and spans as 100 ns ticks.
-        ["timestamp"]                   = new("Time", K.Date),
-        ["timeStarted"]                 = new("Started", K.Date),
-        ["startTime"]                   = new("Starts", K.Date),
-        ["timeDeclared"]                = new("Declared", K.Date),
-        ["endDate"]                     = new("Ends", K.Date),
-        ["expireTimeStamp"]             = new("Expires", K.Date),
-        ["timeLeft"]                    = new("Time left", K.Duration),
-        ["vulnerableTime"]              = new("Vulnerability window", K.Duration),
-        ["readyTime"]                   = new("Ready", K.Date, 60),
-        ["autoTime"]                    = new("Fractures automatically", K.Date, 61),
-        ["lastCloned"]                  = new("Last cloned", K.Date),
-        ["issuedAt"]                    = new("Purchased", K.Date),
-        ["durationSeconds"]             = new("Lasts", K.Seconds),
-        ["assetSafetyMinimumTimestamp"] = new("Deliverable from", K.Date, 60),
-        ["assetSafetyFullTimestamp"]    = new("Delivered automatically", K.Date, 61),
-        ["currentDate"]                 = new("Issued", K.Date),
-        ["dueDate"]                     = new("Due", K.Date),
+        ["timestamp"]                   = new(CommsText.NotifLabelTime, K.Date),
+        ["timeStarted"]                 = new(CommsText.NotifLabelStarted, K.Date),
+        ["startTime"]                   = new(CommsText.NotifLabelStarts, K.Date),
+        ["timeDeclared"]                = new(CommsText.NotifLabelDeclared, K.Date),
+        ["endDate"]                     = new(CommsText.NotifLabelEnds, K.Date),
+        ["expireTimeStamp"]             = new(CommsText.NotifLabelExpires, K.Date),
+        ["timeLeft"]                    = new(CommsText.NotifLabelTimeLeft, K.Duration),
+        ["vulnerableTime"]              = new(CommsText.NotifLabelVulnerabilityWindow, K.Duration),
+        ["readyTime"]                   = new(CommsText.NotifLabelReady, K.Date, 60),
+        ["autoTime"]                    = new(CommsText.NotifLabelFracturesAutomatically, K.Date, 61),
+        ["lastCloned"]                  = new(CommsText.NotifLabelLastCloned, K.Date),
+        ["issuedAt"]                    = new(CommsText.NotifLabelPurchased, K.Date),
+        ["durationSeconds"]             = new(CommsText.NotifLabelLasts, K.Seconds),
+        ["assetSafetyMinimumTimestamp"] = new(CommsText.NotifLabelDeliverableFrom, K.Date, 60),
+        ["assetSafetyFullTimestamp"]    = new(CommsText.NotifLabelDeliveredAutomatically, K.Date, 61),
+        ["currentDate"]                 = new(CommsText.NotifLabelIssued, K.Date),
+        ["dueDate"]                     = new(CommsText.NotifLabelDue, K.Date),
 
-        ["applicationText"] = new("Application", K.LongText),
+        ["applicationText"] = new(CommsText.NotifLabelApplication, K.LongText),
 
         // Not shown. Links and show-info arrays repeat an id already shown; the names are the
         // game's copy of what the ids resolve to (kept as a fallback, see Hints); the rest are
@@ -285,59 +287,59 @@ public static class NotificationBody
     private static readonly Dictionary<string, Dictionary<string, F>> ByType = new(StringComparer.Ordinal)
     {
         // The applicant, not the recipient.
-        ["CorpAppNewMsg"]      = Over(("charID", new("Applicant", K.Character))),
-        ["CorpAppAcceptMsg"]   = Over(("charID", new("Applicant", K.Character))),
-        ["CharAppAcceptMsg"]   = Over(("charID", new("Applicant", K.Character))),
-        ["CharAppRejectMsg"]   = Over(("charID", new("Applicant", K.Character))),
-        ["CharAppWithdrawMsg"] = Over(("charID", new("Applicant", K.Character))),
-        ["CorpAppInvitedMsg"]  = Over(("charID", new("Invited", K.Character))),
-        ["CharTerminationMsg"] = Over(("charID", new("Member", K.Character))),
+        ["CorpAppNewMsg"]      = Over(("charID", new(CommsText.NotifLabelApplicant, K.Character))),
+        ["CorpAppAcceptMsg"]   = Over(("charID", new(CommsText.NotifLabelApplicant, K.Character))),
+        ["CharAppAcceptMsg"]   = Over(("charID", new(CommsText.NotifLabelApplicant, K.Character))),
+        ["CharAppRejectMsg"]   = Over(("charID", new(CommsText.NotifLabelApplicant, K.Character))),
+        ["CharAppWithdrawMsg"] = Over(("charID", new(CommsText.NotifLabelApplicant, K.Character))),
+        ["CorpAppInvitedMsg"]  = Over(("charID", new(CommsText.NotifLabelInvited, K.Character))),
+        ["CharTerminationMsg"] = Over(("charID", new(CommsText.NotifLabelMember, K.Character))),
 
         // corpID is the corporation that revoked the clone; stationID where it was (often a
         // structure), newStationID where it went.
-        ["CloneRevokedMsg2"] = Over(("corpID", new("Revoked by", K.Corporation)),
-                                    ("stationID", new("Was at", K.Location))),
+        ["CloneRevokedMsg2"] = Over(("corpID", new(CommsText.NotifLabelRevokedBy, K.Corporation)),
+                                    ("stationID", new(CommsText.NotifLabelWasAt, K.Location))),
         // corpStationID is the same place again: the YAML aliases it to cloneStationID.
         ["CloneActivationMsg2"] = Over(("corpStationID", new("", K.Skip))),
 
         // typeIDs are the implants that went with the clone; ownerID the clone's owner.
-        ["JumpCloneDeletedMsg1"] = Over(("typeIDs", new("Implants lost", K.TypeList)),
-                                        ("ownerID", new("Clone of", K.Character))),
-        ["JumpCloneDeletedMsg2"] = Over(("typeIDs", new("Implants lost", K.TypeList)),
-                                        ("ownerID", new("Clone of", K.Character))),
+        ["JumpCloneDeletedMsg1"] = Over(("typeIDs", new(CommsText.NotifLabelImplantsLost, K.TypeList)),
+                                        ("ownerID", new(CommsText.NotifLabelCloneOf, K.Character))),
+        ["JumpCloneDeletedMsg2"] = Over(("typeIDs", new(CommsText.NotifLabelImplantsLost, K.TypeList)),
+                                        ("ownerID", new(CommsText.NotifLabelCloneOf, K.Character))),
 
-        ["InsurancePayoutMsg"]          = Over(("amount", new("Payout", K.Isk))),
-        ["StructureItemsMovedToSafety"] = Over(("newStationID", new("Asset safety station", K.Location, 2))),
-        ["StructureFuelAlert"]          = Over(("listOfTypesAndQty", new("Fuel remaining", K.TypeQuantities))),
-        ["StructureItemsDelivered"]     = Over(("listOfTypesAndQty", new("Delivered", K.TypeQuantities)),
-                                               ("charID", new("Delivered to", K.Character))),
-        ["StructureServicesOffline"]    = Over(("listOfServiceModuleIDs", new("Services offline", K.TypeList))),
+        ["InsurancePayoutMsg"]          = Over(("amount", new(CommsText.NotifLabelPayout, K.Isk))),
+        ["StructureItemsMovedToSafety"] = Over(("newStationID", new(CommsText.NotifLabelAssetSafetyStation, K.Location, 2))),
+        ["StructureFuelAlert"]          = Over(("listOfTypesAndQty", new(CommsText.NotifLabelFuelRemaining, K.TypeQuantities))),
+        ["StructureItemsDelivered"]     = Over(("listOfTypesAndQty", new(CommsText.NotifLabelDelivered, K.TypeQuantities)),
+                                               ("charID", new(CommsText.NotifLabelDeliveredTo, K.Character))),
+        ["StructureServicesOffline"]    = Over(("listOfServiceModuleIDs", new(CommsText.NotifLabelServicesOffline, K.TypeList))),
 
         // A starbase is named by its tower's type; "wants" is the fuel it has left.
-        ["TowerResourceAlertMsg"] = Over(("typeID", new("Tower", K.Type, 1)),
-                                         ("wants", new("Fuel remaining", K.Wants))),
-        ["TowerAlertMsg"]         = Over(("typeID", new("Tower", K.Type, 1)),
-                                         ("aggressorID", new("Aggressor", K.Character, 30))),
+        ["TowerResourceAlertMsg"] = Over(("typeID", new(CommsText.NotifLabelTower, K.Type, 1)),
+                                         ("wants", new(CommsText.NotifLabelFuelRemaining, K.Wants))),
+        ["TowerAlertMsg"]         = Over(("typeID", new(CommsText.NotifLabelTower, K.Type, 1)),
+                                         ("aggressorID", new(CommsText.NotifLabelAggressor, K.Character, 30))),
 
         // The attacker's character, corporation and alliance.
-        ["StructureUnderAttack"] = Over(("charID", new("Attacker", K.Character, 30)),
-                                        ("corpLinkData", new("Attacker corporation", K.LinkDataEntity, 31)),
-                                        ("allianceID", new("Attacker alliance", K.Alliance, 32))),
+        ["StructureUnderAttack"] = Over(("charID", new(CommsText.NotifLabelAttacker, K.Character, 30)),
+                                        ("corpLinkData", new(CommsText.NotifLabelAttackerCorporation, K.LinkDataEntity, 31)),
+                                        ("allianceID", new(CommsText.NotifLabelAttackerAlliance, K.Alliance, 32))),
 
-        ["OwnershipTransferred"]    = Over(("charID", new("Transferred by", K.Character))),
-        ["EntosisCaptureStarted"]   = Over(("structureTypeID", new("Structure", K.Type, 0))),
-        ["ExpertSystemExpired"]     = Over(("typeID", new("Expert system", K.Type))),
-        ["AllianceCapitalChanged"]  = Over(("solarSystemID", new("New capital", K.System))),
-        ["StructurePaintPurchased"] = Over(("structureIDs", new("Structures painted", K.StructureList))),
+        ["OwnershipTransferred"]    = Over(("charID", new(CommsText.NotifLabelTransferredBy, K.Character))),
+        ["EntosisCaptureStarted"]   = Over(("structureTypeID", new(CommsText.NotifLabelStructure, K.Type, 0))),
+        ["ExpertSystemExpired"]     = Over(("typeID", new(CommsText.NotifLabelExpertSystem, K.Type))),
+        ["AllianceCapitalChanged"]  = Over(("solarSystemID", new(CommsText.NotifLabelNewCapital, K.System))),
+        ["StructurePaintPurchased"] = Over(("structureIDs", new(CommsText.NotifLabelStructuresPainted, K.StructureList))),
         // mercID is the would-be ally; charID the character who made the offer.
-        ["OfferedToAlly"]           = Over(("charID", new("Offered by", K.Character, 36))),
-        ["KillRightEarned"]         = Over(("charID", new("Kill right on", K.Character))),
+        ["OfferedToAlly"]           = Over(("charID", new(CommsText.NotifLabelOfferedBy, K.Character, 36))),
+        ["KillRightEarned"]         = Over(("charID", new(CommsText.NotifLabelKillRightOn, K.Character))),
 
         // timestamp is when the reinforcement ends: the notice's own time plus timeLeft.
-        ["StructureLostShields"] = Over(("timestamp", new("Reinforced until", K.Date))),
-        ["StructureLostArmor"]   = Over(("timestamp", new("Reinforced until", K.Date))),
+        ["StructureLostShields"] = Over(("timestamp", new(CommsText.NotifLabelReinforcedUntil, K.Date))),
+        ["StructureLostArmor"]   = Over(("timestamp", new(CommsText.NotifLabelReinforcedUntil, K.Date))),
         // timeStarted is when the fighting starts: the declaration plus delayHours.
-        ["WarDeclared"]          = Over(("timeStarted", new("Fighting starts", K.Date))),
+        ["WarDeclared"]          = Over(("timeStarted", new(CommsText.NotifLabelFightingStarts, K.Date))),
     };
 
     private static Dictionary<string, F> Over(params (string Key, F Def)[] defs) =>
@@ -351,20 +353,20 @@ public static class NotificationBody
     // types are the game's own names, and their references are shown as they come.
     private static readonly Dictionary<int, string> BillTypes = new()
     {
-        [1] = "Market fine",
-        [2] = "Office rental",
-        [3] = "Broker fee",
-        [4] = "War",
-        [5] = "Alliance maintenance",
-        [6] = "Sovereignty marker",
+        [1] = CommsText.NotifBillMarketFine,
+        [2] = CommsText.NotifBillOfficeRental,
+        [3] = CommsText.NotifBillBrokerFee,
+        [4] = CommsText.NotifBillWar,
+        [5] = CommsText.NotifBillAllianceMaintenance,
+        [6] = CommsText.NotifBillSovereigntyMarker,
     };
 
     /// <summary>Types that carry nothing but their name.</summary>
     private static readonly Dictionary<string, string> Descriptions = new(StringComparer.Ordinal)
     {
-        ["CorpBecameWarEligible"]   = "Your corporation is now eligible for war declarations.",
-        ["CorpNoLongerWarEligible"] = "Your corporation is no longer eligible for war declarations.",
-        ["GameTimeAdded"]           = "Game time was added to the account.",
+        ["CorpBecameWarEligible"]   = CommsText.NotifSentenceCorpBecameWarEligible,
+        ["CorpNoLongerWarEligible"] = CommsText.NotifSentenceCorpNoLongerWarEligible,
+        ["GameTimeAdded"]           = CommsText.NotifSentenceGameTimeAdded,
     };
 
     /// <summary>Lays out one notification. Text it cannot read comes back whole, as a note,
@@ -385,6 +387,10 @@ public static class NotificationBody
         var r        = new Resolution();
         var prepared = notifications.Select(n => Prepare(n.Type, n.Text, r)).ToList();
         await r.ResolveAsync(names, dbFactory);
+
+        // Items, systems, NPC stations and NPCs are named in the interface language as each value is built.
+        // Waited for once, so a list laid out right after start does not show English and keep it.
+        await SdeNames.EnsureLoadedAsync();
         return [.. prepared.Select(p => p.Finish(r))];
     }
 
@@ -455,7 +461,7 @@ public static class NotificationBody
     }
 
     private static NotificationBodyVm Raw(string text) =>
-        new() { Notes = [new NotifFieldVm { Label = "Details", Values = [new NotifValueVm { Text = text.Trim() }] }] };
+        new() { Notes = [new NotifFieldVm { Label = CommsText.NotifDetails, Values = [new NotifValueVm { Text = text.Trim() }] }] };
 
     /// <summary>
     /// Names the notification itself carries, for things our own tables may not know: a structure
@@ -512,7 +518,7 @@ public static class NotificationBody
             List<Pending> first = quantityFirst && c2 is not null
                 ? [c2 with { Text = $"{c2.Text} ×", Flush = false }, c1]
                 : [c1, .. new[] { c2, c3 }.OfType<Pending>()];
-            if (table.Rows.Count > 1) first.Add(Pending.Muted($"+{table.Rows.Count - 1} more"));
+            if (table.Rows.Count > 1) first.Add(Pending.Muted(string.Format(CommsText.NotifMoreRows, table.Rows.Count - 1)));
 
             Facts[key] = first;
             Facts[$"{key}.count"] = [Pending.Plain(table.Rows.Count.ToString("N0", CultureInfo.CurrentCulture))];
@@ -535,14 +541,14 @@ public static class NotificationBody
                 return;
 
             case K.TypeQuantities when value is IList<object> pairs:          // [[quantity, typeId], ...]
-                parts.Table(key, new PendingTable(def.Label, "Type", "Quantity", "",
+                parts.Table(key, new PendingTable(def.Label, CommsText.NotifColType, CommsText.NotifColQuantity, "",
                     [.. pairs.OfType<IList<object>>().Where(p => p.Count >= 2)
                         .Select(p => (r.Type(Int(p[1])), (Pending?)Pending.Number(Long(p[0])), (Pending?)null))]),
                     quantityFirst: true);
                 return;
 
             case K.Wants when value is IList<object> wants:                   // [{quantity, typeID}, ...]
-                parts.Table(key, new PendingTable(def.Label, "Type", "Quantity", "",
+                parts.Table(key, new PendingTable(def.Label, CommsText.NotifColType, CommsText.NotifColQuantity, "",
                     [.. wants.OfType<IDictionary<object, object>>()
                         .Select(w => (r.Type(Int(Get(w, "typeID"))), (Pending?)Pending.Number(Long(Get(w, "quantity"))), (Pending?)null))]),
                     quantityFirst: true);
@@ -551,9 +557,12 @@ public static class NotificationBody
             case K.OreVolumes when value is IDictionary<object, object> ore:  // { typeId: m³ }
             {
                 var total = M3(ore.Values.Sum(Dbl));
-                var rows  = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))), (Pending?)null)).ToList();
-                if (rows.Count > 1) rows.Add((Pending.Plain("Total"), Pending.Right(total), null));
-                parts.Tables.Add(new PendingTable(def.Label, "", "Volume", "", rows));
+                // Each ore's reprocessed value beside its volume — what the chunk is worth once
+                // refined, which is the question a fracture notice raises.
+                var rows  = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))),
+                                             (Pending?)r.OreValue(Int(o.Key), Dbl(o.Value)))).ToList();
+                if (rows.Count > 1) rows.Add((Pending.Plain(CommsText.NotifTotal), Pending.Right(total), r.OreValueTotal()));
+                parts.Tables.Add(new PendingTable(def.Label, "", CommsText.NotifColVolume, CommsText.NotifColReprocessed, rows));
                 parts.Facts["ore.total"] = [Pending.Plain(total)];
                 parts.Facts["ore.count"] = [Pending.Plain(ore.Count.ToString("N0", CultureInfo.CurrentCulture))];
                 return;
@@ -648,7 +657,7 @@ public static class NotificationBody
         K.Structure => Long(s) > 0 ? r.Structure(Long(s)) : null,
         K.Location  => Long(s) > 0 ? r.Location(Long(s)) : null,
         K.Killmail  => Long(s) > 0
-            ? Pending.Link(Long(s).ToString(CultureInfo.InvariantCulture), "Open the killmail",
+            ? Pending.Link(Long(s).ToString(CultureInfo.InvariantCulture), CommsText.NotifOpenKillmail,
                            () => EntityNavigator.Instance.Killmail((int)Long(s)))
             : null,
         K.Isk       => Pending.Right(Isk(Dbl(s))),
@@ -656,11 +665,11 @@ public static class NotificationBody
         K.Decimal2  => Pending.Right(Dbl(s).ToString("0.00", CultureInfo.CurrentCulture)),
         K.Percent   => Pending.Right($"{Dbl(s):0.#}%"),
         K.Fraction  => Pending.Right($"{Dbl(s) * 100:0.#}%"),
-        K.Bool      => Pending.Plain(s.Equals("true", StringComparison.OrdinalIgnoreCase) || s == "1" ? "Yes" : "No"),
+        K.Bool      => Pending.Plain(s.Equals("true", StringComparison.OrdinalIgnoreCase) || s == "1" ? CommsText.NotifYes : CommsText.NotifNo),
         K.Date      => Pending.Plain(Date(Long(s)) ?? s),
         K.Duration  => Pending.Plain(Span(TimeSpan.FromTicks(Long(s)))),
         K.Seconds   => Pending.Plain(Span(TimeSpan.FromSeconds(Dbl(s)))),
-        K.Hours     => Pending.Plain(Dbl(s) == 1 ? "1 hour" : $"{Dbl(s):0.#} hours"),
+        K.Hours     => Pending.Plain(Hours(Dbl(s))),
         _           => Strip(s).Trim() is { Length: > 0 } t ? Pending.Plain(t) : null,
     };
 
@@ -692,21 +701,28 @@ public static class NotificationBody
         }
 
         if (first is not { } f) return null;
-        parts.Tables.Add(new PendingTable("Standing changes", "With", "Change", "Standing now", rows));
+        parts.Tables.Add(new PendingTable(CommsText.NotifStandingChanges, CommsText.NotifColWith, CommsText.NotifColChange, CommsText.NotifColStandingNow, rows));
 
         // For a card: who, by how much, to what — and how many more changed with it.
         var others = rows.Count - 1;
         parts.Facts["with"]   = [rows[0].Item1];
         parts.Facts["change"] = [rows[0].Item2!];
         if (f.Now is double resulting) parts.Facts["now"] = [Pending.Plain(Standing(resulting))];
-        if (others > 0) parts.Facts["others"] = [Pending.Muted($"+{others} other{(others == 1 ? "" : "s")}")];
+        if (others > 0) parts.Facts["others"] = [Pending.Muted(Plurals.Format(CommsText.ResourceManager, nameof(CommsText.NotifOthersOther), others))];
         return res =>
         {
             // The verb carries the direction, so the amount goes unsigned: "decreased by 0.0056".
-            var which = f.Change >= 0 ? "increased" : "decreased";
-            var to    = f.Now is double v ? $", to {Standing(v)}" : "";
-            var more  = others > 0 ? $" {others} other standing{(others == 1 ? "" : "s")} changed with it." : "";
-            return $"{res.EntityName(f.From)} {which} their standing towards you by {Standing(Math.Abs(f.Change))}{to}.{more}";
+            // ⚠️ Whole sentences, one per direction and whether the new standing is known: the
+            // verb, the amount and the "to" part were joined here in English word order.
+            var who = res.EntityName(f.From);
+            var by  = Standing(Math.Abs(f.Change));
+            var up  = f.Change >= 0;
+            var sentence = f.Now is double v
+                ? string.Format(up ? CommsText.NotifStandingUpTo : CommsText.NotifStandingDownTo, who, by, Standing(v))
+                : string.Format(up ? CommsText.NotifStandingUp : CommsText.NotifStandingDown, who, by);
+            return others > 0
+                ? sentence + Plurals.Format(CommsText.ResourceManager, nameof(CommsText.NotifStandingMoreOther), others)
+                : sentence;
         };
     }
 
@@ -723,38 +739,45 @@ public static class NotificationBody
         var ext2     = Long(Get(map, "externalID2"));
         var issued   = Date(Long(Get(map, "currentDate")));
         var due      = Date(Long(Get(map, "dueDate")));
-        var what     = BillTypes.GetValueOrDefault(billType, $"Bill type {billType}");
+        var what     = BillTypes.GetValueOrDefault(billType, string.Format(CommsText.NotifBillType, billType));
 
         // All one rank: a bill reads in the order it is written here. The keys are the names a
         // card asks for (NotificationBodyVm.Facts).
-        parts.Field("bill", "Bill", Pending.Plain(what), 0);
-        parts.Field("amount", "Amount", Pending.Plain(Isk(amount)), 0);
-        if (Long(Get(map, "debtorID")) is var debtor and > 0)     parts.Field("debtor", "Billed to",  r.Entity(debtor, K.Entity), 0);
-        if (Long(Get(map, "creditorID")) is var creditor and > 0) parts.Field("creditor", "Payable to", r.Entity(creditor, K.Entity), 0);
+        parts.Field("bill", CommsText.NotifLabelBill, Pending.Plain(what), 0);
+        parts.Field("amount", CommsText.NotifLabelAmount, Pending.Plain(Isk(amount)), 0);
+        if (Long(Get(map, "debtorID")) is var debtor and > 0)     parts.Field("debtor", CommsText.NotifLabelBilledTo,  r.Entity(debtor, K.Entity), 0);
+        if (Long(Get(map, "creditorID")) is var creditor and > 0) parts.Field("creditor", CommsText.NotifLabelPayableTo, r.Entity(creditor, K.Entity), 0);
 
         Pending? place = null;
         switch (billType)
         {
             case 2:
-                if (ext1 > 0) parts.Field("rented", "Rented", r.Type((int)ext1), 0);
-                if (ext2 > 0) parts.Field("location", "Location", place = r.Location(ext2), 0);
+                if (ext1 > 0) parts.Field("rented", CommsText.NotifLabelRented, r.Type((int)ext1), 0);
+                if (ext2 > 0) parts.Field("location", CommsText.NotifLabelLocation, place = r.Location(ext2), 0);
                 break;
             case 5:
-                if (ext1 > 0) parts.Field("alliance", "For alliance", r.Entity(ext1, K.Alliance), 0);
+                if (ext1 > 0) parts.Field("alliance", CommsText.NotifLabelForAlliance, r.Entity(ext1, K.Alliance), 0);
                 break;
             default:
-                if (ext1 > 0) parts.Field("reference", "Reference", Pending.Plain(ext1.ToString(CultureInfo.InvariantCulture)), 0);
-                if (ext2 > 0) parts.Field("reference2", "Second reference", Pending.Plain(ext2.ToString(CultureInfo.InvariantCulture)), 0);
+                if (ext1 > 0) parts.Field("reference", CommsText.NotifLabelReference, Pending.Plain(ext1.ToString(CultureInfo.InvariantCulture)), 0);
+                if (ext2 > 0) parts.Field("reference2", CommsText.NotifLabelSecondReference, Pending.Plain(ext2.ToString(CultureInfo.InvariantCulture)), 0);
                 break;
         }
-        if (issued is not null) parts.Field("issued", "Issued", Pending.Plain(issued), 0);
-        if (due is not null)    parts.Field("due", "Due", Pending.Plain(due), 0);
+        if (issued is not null) parts.Field("issued", CommsText.NotifLabelIssued, Pending.Plain(issued), 0);
+        if (due is not null)    parts.Field("due", CommsText.NotifLabelDue, Pending.Plain(due), 0);
 
+        // ⚠️ Whole sentences, one per case: "at" and "due" were joined on in English word order.
         return res =>
         {
-            var at   = place is not null ? $" at {place.Build(res).Text}" : "";
-            var when = due is not null ? $", due {due}" : "";
-            return $"{what}{at}: {Isk(amount)}{when}.";
+            var money = Isk(amount);
+            var where = place?.Build(res).Text;
+            return (where, due) switch
+            {
+                (null, null) => string.Format(CommsText.NotifBillSummary, what, money),
+                (_, null)    => string.Format(CommsText.NotifBillSummaryAt, what, where, money),
+                (null, _)    => string.Format(CommsText.NotifBillSummaryDue, what, money, due),
+                _            => string.Format(CommsText.NotifBillSummaryAtDue, what, where, money, due),
+            };
         };
     }
 
@@ -790,7 +813,7 @@ public static class NotificationBody
     /// <summary>Every id the body names, gathered first and looked up in one pass per kind.</summary>
     private sealed class Resolution
     {
-        private const string EntityTip = "Open in the entity browser";
+        private static readonly string EntityTip = CommsText.NotifTipEntity;
 
         private readonly HashSet<long> _entities   = [];
         private readonly HashSet<int>  _types      = [];
@@ -799,6 +822,8 @@ public static class NotificationBody
         private readonly HashSet<long> _stations   = [];
         private readonly HashSet<long> _structures = [];
         private readonly Dictionary<long, (string? Name, int TypeId)> _structureHints = [];
+        private readonly Dictionary<int, double> _oreVolumes = [];
+        private Dictionary<int, double> _orePerM3 = [];
 
         private IReadOnlyDictionary<long, string>           _entityNames = new Dictionary<long, string>();
         private readonly Dictionary<long, string>           _categories  = [];
@@ -812,6 +837,17 @@ public static class NotificationBody
         public Pending Type(int id)             { _types.Add(id);    return new(null, new Ref(K.Type, id)); }
         public Pending System(int id)           { _systems.Add(id);  return new(null, new Ref(K.System, id)); }
         public Pending Moon(int id)             { _moons.Add(id);    return new(null, new Ref(K.Moon, id)); }
+
+        /// <summary>An ore's reprocessed value for <paramref name="m3"/> of it, once prices are read.</summary>
+        public Pending OreValue(int typeId, double m3)
+        {
+            _types.Add(typeId);
+            _oreVolumes[typeId] = _oreVolumes.GetValueOrDefault(typeId) + m3;
+            return new(null, new Ref(K.OreValue, typeId));
+        }
+
+        /// <summary>The sum of every <see cref="OreValue"/> in the body.</summary>
+        public Pending OreValueTotal() => new(null, new Ref(K.OreValueTotal, 0));
 
         public Pending Structure(long id, int typeId = 0)
         {
@@ -835,8 +871,21 @@ public static class NotificationBody
             if (typeId > 0) _types.Add(typeId);
         }
 
-        public string EntityName(long id) =>
-            _entityNames.TryGetValue(id, out var n) && n.Length > 0 ? n : $"#{id}";
+        public string EntityName(long id) => ShownName(id, EntityKindOf(id, K.Entity));
+
+        /// <summary>An entity's name as the screen shows it: a faction, an NPC corporation or an
+        /// agent in the interface language; a player, their corporation and alliance as named.</summary>
+        private string ShownName(long id, EntityKind kind)
+        {
+            if (!_entityNames.TryGetValue(id, out var n) || n.Length == 0) return $"#{id}";
+            return kind switch
+            {
+                EntityKind.Faction => SdeNames.Faction(id, n),
+                EntityKind.NpcCorp => SdeNames.NpcCorporation(id, n),
+                EntityKind.Agent   => SdeNames.Agent(id, n),
+                _                  => n,
+            };
+        }
 
         public async Task ResolveAsync(ContractNameResolver names, IDbContextFactory<AppDbContext> dbFactory)
         {
@@ -869,6 +918,21 @@ public static class NotificationBody
                 var ids = _types.ToList();
                 _typeNames = await db.SdeTypes.AsNoTracking().Where(t => ids.Contains(t.TypeId))
                     .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+            }
+
+            if (_oreVolumes.Count > 0)
+            {
+                // ISK per m³ of each ore: the reprocessed value of a unit (ReprocessingValueService
+                // — the app's yields and asset-value prices, the same Item Valuation uses) over the
+                // unit's volume. An ore with no value yet (prices not read) shows none.
+                var ids     = _oreVolumes.Keys.ToList();
+                var perUnit = await db.ReprocessingItemValues.AsNoTracking().Where(v => ids.Contains(v.TypeId))
+                    .ToDictionaryAsync(v => v.TypeId, v => v.Value);
+                var volume  = await db.SdeTypes.AsNoTracking().Where(t => ids.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Volume);
+                _orePerM3 = ids
+                    .Where(id => perUnit.ContainsKey(id) && volume.GetValueOrDefault(id) > 0)
+                    .ToDictionary(id => id, id => perUnit[id] / volume[id]);
             }
 
             if (_systems.Count > 0)
@@ -904,14 +968,25 @@ public static class NotificationBody
         {
             switch (x.Kind)
             {
+                case K.OreValue:
+                    return _orePerM3.TryGetValue((int)x.Id, out var perM3)
+                        ? new NotifValueVm { Text = Isk(Math.Round(perM3 * _oreVolumes[(int)x.Id])), AlignRight = true }
+                        : new NotifValueVm { Text = "—", AlignRight = true, IsDim = true, Tip = CommsText.NotifTipNoReprocessValue };
+                case K.OreValueTotal:
+                {
+                    var known = _oreVolumes.Where(o => _orePerM3.ContainsKey(o.Key)).ToList();
+                    return known.Count == 0
+                        ? new NotifValueVm { Text = "—", AlignRight = true, IsDim = true, Tip = CommsText.NotifTipNoReprocessValue }
+                        : new NotifValueVm { Text = Isk(Math.Round(known.Sum(o => _orePerM3[o.Key] * o.Value))), AlignRight = true };
+                }
                 case K.Type:
                 {
                     var id = (int)x.Id;
                     return new NotifValueVm
                     {
-                        Text    = _typeNames.TryGetValue(id, out var n) ? n : $"Type {id}",
+                        Text    = _typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(CommsText.NotifTypeNumbered, id),
                         IconUrl = $"types/{id}/icon?size=32",
-                        Tip     = "Open in the Item Browser",
+                        Tip     = CommsText.NotifTipItemBrowser,
                         Open    = () => EntityNavigator.Instance.Item(id),
                     };
                 }
@@ -921,16 +996,16 @@ public static class NotificationBody
                     var known = _systemInfo.TryGetValue(id, out var s);
                     return new NotifValueVm
                     {
-                        Text    = known ? $"{s.Name} ({SecurityColors.Text(s.Sec)})" : $"System {id}",
+                        Text    = known ? $"{SdeNames.SolarSystem(id, s.Name)} ({SecurityColors.Text(s.Sec)})" : string.Format(CommsText.NotifSystemNumbered, id),
                         IconUrl = "",
-                        Tip     = known ? $"{SecurityColors.Tip(s.Sec)}\nOpen on the map" : "Open on the map",
+                        Tip     = known ? string.Format(CommsText.NotifTipSecOpenMap, SecurityColors.Tip(s.Sec)) : CommsText.NotifTipOpenMap,
                         Open    = () => EntityNavigator.Instance.System(id),
                     };
                 }
                 case K.Moon:
                     return new NotifValueVm
                     {
-                        Text    = _moonNames.TryGetValue((int)x.Id, out var mn) && mn.Length > 0 ? mn : $"Moon {x.Id}",
+                        Text    = _moonNames.TryGetValue((int)x.Id, out var mn) && mn.Length > 0 ? mn : string.Format(CommsText.NotifMoonNumbered, x.Id),
                         IconUrl = "",
                     };
                 case K.Location:   // an NPC station
@@ -939,9 +1014,10 @@ public static class NotificationBody
                     var known = _stationInfo.TryGetValue(id, out var st);
                     return new NotifValueVm
                     {
-                        Text    = known ? st.Name : $"Station {id}",
+                        // In the interface language, as the game client names it (SdeNames.Station).
+                        Text    = known ? SdeNames.Station(id, st.Name) : string.Format(CommsText.NotifStationNumbered, id),
                         IconUrl = known && st.TypeId > 0 ? $"types/{st.TypeId}/icon?size=32" : null,
-                        Tip     = "Open in NPC Entities",
+                        Tip     = CommsText.NotifTipNpcEntities,
                         Open    = () => EntityNavigator.Instance.Entity(EntityKind.Station, id),
                     };
                 }
@@ -953,13 +1029,13 @@ public static class NotificationBody
                     var typeId = x.IconTypeId > 0 ? x.IconTypeId : st.TypeId > 0 ? st.TypeId : hint.TypeId;
                     var name   = st.Name is { Length: > 0 } ? st.Name : hint.Name;
                     // A structure nobody has named to us: its type says more than its id would.
-                    var unknown = typeId > 0 && _typeNames.TryGetValue(typeId, out var tn) ? $"{tn} (name unknown)"
-                                                                                           : "Structure (name unknown)";
+                    var unknown = typeId > 0 && _typeNames.TryGetValue(typeId, out var tn) ? string.Format(CommsText.NotifNameUnknown, SdeNames.Type(typeId, tn))
+                                                                                           : CommsText.NotifStructureNameUnknown;
                     return new NotifValueVm
                     {
                         Text    = name ?? unknown,
                         IconUrl = typeId > 0 ? $"types/{typeId}/icon?size=32" : null,
-                        Tip     = name is null ? $"Structure {id}\nOpen in the Structure Browser" : "Open in the Structure Browser",
+                        Tip     = name is null ? string.Format(CommsText.NotifTipStructureNumbered, id) : CommsText.NotifTipStructureBrowser,
                         Open    = () => EntityNavigator.Instance.Structure(id),
                     };
                 }
@@ -969,7 +1045,7 @@ public static class NotificationBody
                     var kind = EntityKindOf(id, x.Kind);
                     return new NotifValueVm
                     {
-                        Text    = EntityName(id),
+                        Text    = ShownName(id, kind),
                         IconUrl = kind switch
                         {
                             EntityKind.Pilot or EntityKind.Agent => $"characters/{id}/portrait?size=32",
@@ -1048,11 +1124,17 @@ public static class NotificationBody
     private static string Span(TimeSpan t)
     {
         var parts = new List<string>(3);
-        if (t.TotalDays >= 1) parts.Add($"{(int)t.TotalDays}d");
-        if (t.Hours > 0)      parts.Add($"{t.Hours}h");
-        if (t.Minutes > 0)    parts.Add($"{t.Minutes}m");
-        return parts.Count > 0 ? string.Join(" ", parts) : $"{Math.Max(0, (int)t.TotalSeconds)}s";
+        if (t.TotalDays >= 1) parts.Add(string.Format(CommsText.NotifSpanDays, (int)t.TotalDays));
+        if (t.Hours > 0)      parts.Add(string.Format(CommsText.NotifSpanHours, t.Hours));
+        if (t.Minutes > 0)    parts.Add(string.Format(CommsText.NotifSpanMinutes, t.Minutes));
+        return parts.Count > 0 ? string.Join(" ", parts) : string.Format(CommsText.NotifSpanSeconds, Math.Max(0, (int)t.TotalSeconds));
     }
+
+    /// <summary>"1 hour", "24 hours", "1.5 hours".</summary>
+    private static string Hours(double h) =>
+        h == Math.Floor(h) && Math.Abs(h) < long.MaxValue
+            ? Plurals.Format(CommsText.ResourceManager, nameof(CommsText.NotifHoursOther), (long)h)
+            : string.Format(CommsText.NotifHoursFraction, h);
 
     private static string Strip(string s) =>
         Regex.Replace(Regex.Replace(s, @"<a[^>]*>(.*?)</a>", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline),

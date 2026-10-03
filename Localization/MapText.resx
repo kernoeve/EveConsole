@@ -1,0 +1,3102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShipLabel" xml:space="preserve">
+    <value>SHIP</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="HullLabel" xml:space="preserve">
+    <value>HULL</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpDriveCalibrationLabel" xml:space="preserve">
+    <value>JUMP DRIVE CALIBRATION</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpFuelConservationLabel" xml:space="preserve">
+    <value>JUMP FUEL CONSERVATION</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpThroughLabel" xml:space="preserve">
+    <value>JUMP THROUGH</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="LimitsWhereTheRouteNote" xml:space="preserve">
+    <value>Limits where the route may stop, not where it may start or end. Stations &amp; structures means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess.</value>
+    <comment>Note in JumpPlannerView.</comment>
+  </data>
+  <data name="WaypointsLabel" xml:space="preserve">
+    <value>WAYPOINTS</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="HintSystemName" xml:space="preserve">
+    <value>system name…</value>
+    <comment>Hint in an empty box in JumpPlannerView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="TipDragToReorder" xml:space="preserve">
+    <value>Drag to reorder</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="PlanRoute" xml:space="preserve">
+    <value>Plan Route</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Use" xml:space="preserve">
+    <value>Use</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in JumpPlannerView's list of jumps: the system a jump starts from (the next column is "Jump to"). Short.</comment>
+  </data>
+  <data name="ColFittingSource" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header on the Structure Browser's Fitting tab: where a fitted module is known from — the structure's assets, or entered by hand. Short.</comment>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Open this system</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="ColJumpTo" xml:space="preserve">
+    <value>Jump to</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="TipFrameThisRegionOnThe" xml:space="preserve">
+    <value>Frame this region on the map</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColDistance" xml:space="preserve">
+    <value>Distance</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ResolveViaEsi" xml:space="preserve">
+    <value>Resolve via ESI</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="AddById" xml:space="preserve">
+    <value>Add by ID…</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>Clear Filters</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ShowUnknown" xml:space="preserve">
+    <value>Show unknown</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintAny" xml:space="preserve">
+    <value>any</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>CONSTELLATION</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>CORP</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>ALLIANCE</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="ColStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Open on the map</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColConstellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipFrameThisConstellationOnThe" xml:space="preserve">
+    <value>Frame this constellation on the map</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Nearest</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="SelectAStructureAboveNote" xml:space="preserve">
+    <value>Select a structure above to view and edit it.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>Location ID</value>
+    <comment>Text in StructureBrowserView.</comment>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintTypeTwoLettersOf" xml:space="preserve">
+    <value>Type two letters of the system name…</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>NOTES</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintAccessNotesWhoTo" xml:space="preserve">
+    <value>Access notes, who to ask for a docking invite — anything ESI will never carry.</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="PullFromEsi" xml:space="preserve">
+    <value>Pull from ESI</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="TipAsksEsiAboutThis" xml:space="preserve">
+    <value>Asks ESI about this structure now, ignoring the 30-day backoff a 403 normally earns. Use after gaining docking rights.</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationIdCannotBeNote" xml:space="preserve">
+    <value>Location ID cannot be changed — it is the structure's identity.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFitting" xml:space="preserve">
+    <value>Fitting</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="HintFilterModules" xml:space="preserve">
+    <value>filter modules…</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ClearSlot" xml:space="preserve">
+    <value>Clear slot</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ColSlot" xml:space="preserve">
+    <value>Slot</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColModule" xml:space="preserve">
+    <value>Module</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Container</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColWhere" xml:space="preserve">
+    <value>Where</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabCargo" xml:space="preserve">
+    <value>Cargo</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFighters" xml:space="preserve">
+    <value>Fighters</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="ColFighter" xml:space="preserve">
+    <value>Fighter</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="EndsFromLabel" xml:space="preserve">
+    <value>ENDS FROM</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="EndsThruLabel" xml:space="preserve">
+    <value>ENDS THRU</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>STATUS</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Product</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColRuns" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColEnds" xml:space="preserve">
+    <value>Ends</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="AddAStructureByLocation" xml:space="preserve">
+    <value>Add a structure by location ID</value>
+    <comment>Text in StructureBrowserView.</comment>
+  </data>
+  <data name="StructuresNormallyArriveOnNote" xml:space="preserve">
+    <value>Structures normally arrive on their own, from assets, jobs, contracts and kills. Use this for one that has not — a station you have been given docking rights to, or an ID someone has passed you.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationIdLabel" xml:space="preserve">
+    <value>LOCATION ID</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="LookUp" xml:space="preserve">
+    <value>Look up</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="TipTrueSecurity" xml:space="preserve">
+    <value>True security</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Text in SystemPageView, and a label in the map's side panel: the region a system is in.</comment>
+  </data>
+  <data name="Constellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Text in SystemPageView, and a label in the map's side panel: the constellation a system is in.</comment>
+  </data>
+  <data name="Sovereignty" xml:space="preserve">
+    <value>Sovereignty</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="LocalPirates" xml:space="preserve">
+    <value>Local pirates</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="IndustryIndices" xml:space="preserve">
+    <value>Industry indices</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="TipManufacturingTimeEfficiencyMaterial" xml:space="preserve">
+    <value>Manufacturing · time efficiency · material efficiency · copying · invention · reactions</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="Production" xml:space="preserve">
+    <value>Production</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Planets" xml:space="preserve">
+    <value>Planets</value>
+    <comment>Text in SystemPageView, and a label in the map's side panel: how many planets.</comment>
+  </data>
+  <data name="Moons" xml:space="preserve">
+    <value>Moons</value>
+    <comment>Text in SystemPageView, and a label in the map's side panel: how many moons.</comment>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>Belts</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Jumps1h24h" xml:space="preserve">
+    <value>Jumps 1h / 24h</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="ShipKills" xml:space="preserve">
+    <value>Ship kills</value>
+    <comment>Text in SystemPageView: ships destroyed in the system. Also a chart line's name.</comment>
+  </data>
+  <data name="NpcKills" xml:space="preserve">
+    <value>NPC kills</value>
+    <comment>Text in SystemPageView: NPCs destroyed in the system. Also a chart line's name.</comment>
+  </data>
+  <data name="PodKills" xml:space="preserve">
+    <value>Pod kills</value>
+    <comment>Text in SystemPageView: capsules destroyed in the system. Also a chart line's name.</comment>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="JumpsLabel" xml:space="preserve">
+    <value>JUMPS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NpcKillsLabel" xml:space="preserve">
+    <value>NPC KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ShipKillsLabel" xml:space="preserve">
+    <value>SHIP KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PodKillsLabel" xml:space="preserve">
+    <value>POD KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="SovereigntyStructuresLabel" xml:space="preserve">
+    <value>SOVEREIGNTY STRUCTURES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
+    <value>No sovereignty structures in this system.</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>OWNER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>STATE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="VulnerabilityWindowLabel" xml:space="preserve">
+    <value>VULNERABILITY WINDOW</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="SovereigntyChangesLabel" xml:space="preserve">
+    <value>SOVEREIGNTY CHANGES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoChangesRecordedInNote" xml:space="preserve">
+    <value>No changes recorded in the stored window.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="GatesLabel" xml:space="preserve">
+    <value>GATES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PlayerStructuresLabel" xml:space="preserve">
+    <value>PLAYER STRUCTURES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>CORPORATION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Open in the Structure Browser</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="NpcStationsLabel" xml:space="preserve">
+    <value>NPC STATIONS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Open in NPC Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabCelestials" xml:space="preserve">
+    <value>Celestials</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="LaidOutAsTheNote" xml:space="preserve">
+    <value>Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>OBJECT</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PowerLabel" xml:space="preserve">
+    <value>POWER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="WorkforceLabel" xml:space="preserve">
+    <value>WORKFORCE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ReagentLabel" xml:space="preserve">
+    <value>REAGENT</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TabGraphs" xml:space="preserve">
+    <value>Graphs</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="ShipJumpsLabel" xml:space="preserve">
+    <value>SHIP JUMPS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
+    <value>ACTIVITY DEFENSE MULTIPLIER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="IndustryCostIndicesLabel" xml:space="preserve">
+    <value>INDUSTRY COST INDICES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="DivisionLabel" xml:space="preserve">
+    <value>DIVISION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LevelLabel" xml:space="preserve">
+    <value>LEVEL</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LocatorLabel" xml:space="preserve">
+    <value>LOCATOR</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenTheStationInNpc" xml:space="preserve">
+    <value>Open the station in NPC Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="TipDoubleClickToOpen" xml:space="preserve">
+    <value>Double-click to open in the Killmail Browser</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabEvents" xml:space="preserve">
+    <value>Events</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="NoEventsRecordedInNote" xml:space="preserve">
+    <value>No events recorded in the stored window.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="WhenUtcLabel" xml:space="preserve">
+    <value>WHEN (UTC)</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PilotsLabel" xml:space="preserve">
+    <value>PILOTS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoteLabel" xml:space="preserve">
+    <value>NOTE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ReportedByLabel" xml:space="preserve">
+    <value>REPORTED BY</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipNoVisualReportedPresent" xml:space="preserve">
+    <value>No visual — reported present but not seen</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInPlayerEntities" xml:space="preserve">
+    <value>Open in Player Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="OverlayLabel" xml:space="preserve">
+    <value>OVERLAY</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="GoToLabel" xml:space="preserve">
+    <value>GO TO</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="HintRegionOrSystem" xml:space="preserve">
+    <value>region or system</value>
+    <comment>Hint in an empty box in UniverseView.</comment>
+  </data>
+  <data name="ClickANodeForNote" xml:space="preserve">
+    <value>Click a node for details. Double-click to open it.</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+  <data name="LegendLabel" xml:space="preserve">
+    <value>LEGEND</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="DockingBarAboveTheBoxLabel" xml:space="preserve">
+    <value>DOCKING — BAR ABOVE THE BOX</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="ServicesUnderTheBoxLabel" xml:space="preserve">
+    <value>SERVICES — UNDER THE BOX</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="MergedFromNpcStationsNote" xml:space="preserve">
+    <value>Merged from NPC stations and player structures. A structure whose type we have not resolved contributes nothing, so a blank side means "not known" rather than "nothing there".</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+  <data name="ScrollToZoomDragNote" xml:space="preserve">
+    <value>Scroll to zoom, drag to pan. Kill counts come from killmails this app has stored, not from all of New Eden.</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+  <data name="WaypointDetailHighSec" xml:space="preserve">
+    <value>{0} · {1} · high sec</value>
+    <comment>Second line of a Jump Planner waypoint that a jump drive cannot reach. {0} is its region, {1} its security status.</comment>
+  </data>
+  <data name="WaypointDetailPinned" xml:space="preserve">
+    <value>{0} · {1} · chosen midpoint</value>
+    <comment>Second line of a Jump Planner waypoint the user chose by hand in place of the planner's midpoint. {0} is its region, {1} its security status.</comment>
+  </data>
+  <data name="StatusAddStartAndDestination" xml:space="preserve">
+    <value>Add a start and a destination.</value>
+    <comment>Jump Planner status line before any systems are added.</comment>
+  </data>
+  <data name="MidpointsAnywhere" xml:space="preserve">
+    <value>Anywhere</value>
+    <comment>Jump Planner pick list: where the route may stop between jumps — any system.</comment>
+  </data>
+  <data name="MidpointsStationsAndStructures" xml:space="preserve">
+    <value>Stations &amp; structures</value>
+    <comment>Jump Planner pick list: where the route may stop — systems with an NPC station or a player structure.</comment>
+  </data>
+  <data name="MidpointsCitadelSystems" xml:space="preserve">
+    <value>Fortizar / Keepstar systems</value>
+    <comment>Jump Planner pick list: where the route may stop — systems with a Fortizar or Keepstar: the structures' names as your language's game client writes them (some clients leave them in English).</comment>
+  </data>
+  <data name="MidpointsKeepstarSystems" xml:space="preserve">
+    <value>Keepstar systems</value>
+    <comment>Jump Planner pick list: where the route may stop — systems with a Keepstar: the structure's name as your language's game client writes it (some clients leave it in English).</comment>
+  </data>
+  <data name="RangePerJump" xml:space="preserve">
+    <value>{0:N2} ly per jump ({1:N1} base, JDC {2})</value>
+    <comment>Jump Planner, under the hull. {0} is the jump range in light years (ly), {1} the hull's base range, {2} the Jump Drive Calibration (JDC) skill level.</comment>
+  </data>
+  <data name="StatusLoadHullsFailed" xml:space="preserve">
+    <value>Could not load jump-capable hulls: {0}</value>
+    <comment>Jump Planner status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNotASystem" xml:space="preserve">
+    <value>"{0}" is not a system — pick one from the list.</value>
+    <comment>Jump Planner status line. {0} is what the user typed.</comment>
+  </data>
+  <data name="StatusAddDestination" xml:space="preserve">
+    <value>Add a destination.</value>
+    <comment>Jump Planner status line: one system added, a destination is still needed.</comment>
+  </data>
+  <data name="StatusReadyToPlan" xml:space="preserve">
+    <value>Ready to plan.</value>
+    <comment>Jump Planner status line: enough systems to plan a route.</comment>
+  </data>
+  <data name="StatusWaypointOrderChanged" xml:space="preserve">
+    <value>Waypoint order changed — plan again to update the route.</value>
+    <comment>Jump Planner status line after the waypoints were reordered.</comment>
+  </data>
+  <data name="CandidateCost" xml:space="preserve">
+    <value>{0:N2} ly · {1:N0} fuel</value>
+    <comment>Map tooltip while dragging a midpoint: what choosing this system would cost. {0} is the distance in light years (ly), {1} the fuel.</comment>
+  </data>
+  <data name="CandidateCostVs" xml:space="preserve">
+    <value>{0} ly · {1} fuel vs {2}</value>
+    <comment>Map tooltip while dragging a midpoint: the change against the system being replaced. {0} is the distance change in light years (ly), {1} the fuel change, both signed; {2} the system being replaced.</comment>
+  </data>
+  <data name="AlternativesTitle" xml:space="preserve">
+    <value>Instead of {0}</value>
+    <comment>Title over the list of systems that could replace a midpoint. {0} is the midpoint's system.</comment>
+  </data>
+  <data name="StatusNoAlternatives" xml:space="preserve">
+    <value>No other system reaches both sides of {0} at this range.</value>
+    <comment>Jump Planner status line. {0} is the midpoint's system.</comment>
+  </data>
+  <data name="StatusMoveCancelled" xml:space="preserve">
+    <value>Move cancelled — drop onto one of the highlighted systems.</value>
+    <comment>Jump Planner status line after a midpoint was dropped on nothing.</comment>
+  </data>
+  <data name="StatusCannotMoveThere" xml:space="preserve">
+    <value>{0} cannot be moved there — that system is out of range of one side of the jump.</value>
+    <comment>Jump Planner status line. {0} is the midpoint's system.</comment>
+  </data>
+  <data name="StatusRoutingThrough" xml:space="preserve">
+    <value>Routing through {0}.</value>
+    <comment>Jump Planner status line while re-planning. {0} is the system chosen.</comment>
+  </data>
+  <data name="StatusPickShip" xml:space="preserve">
+    <value>Pick a ship.</value>
+    <comment>Jump Planner status line: no hull chosen.</comment>
+  </data>
+  <data name="StatusAddAtLeastStartAndDestination" xml:space="preserve">
+    <value>Add at least a start and a destination.</value>
+    <comment>Jump Planner status line: fewer than two systems.</comment>
+  </data>
+  <data name="StatusHighSecUnreachable" xml:space="preserve">
+    <value>{0} is high security space — a jump drive cannot go there.</value>
+    <comment>Jump Planner status line. {0} is a waypoint in high security space.</comment>
+  </data>
+  <data name="StatusLegProblem" xml:space="preserve">
+    <value>{0} to {1}: {2}</value>
+    <comment>Jump Planner status line when one hop cannot be planned. {0} and {1} are the two systems, {2} the reason.</comment>
+  </data>
+  <data name="StatusRoutePlanned" xml:space="preserve">
+    <value>Route planned.</value>
+    <comment>Jump Planner status line.</comment>
+  </data>
+  <data name="StatusPlanFailed" xml:space="preserve">
+    <value>Could not plan the route: {0}</value>
+    <comment>Jump Planner status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusAlternativesOne" xml:space="preserve">
+    <value>{0} system could replace {1}.</value>
+    <comment>Jump Planner status line after clicking a midpoint. {0} is how many systems (one), {1} the midpoint's system.</comment>
+  </data>
+  <data name="StatusAlternativesOther" xml:space="preserve">
+    <value>{0} systems could replace {1}.</value>
+    <comment>Jump Planner status line after clicking a midpoint. {0} is how many systems, {1} the midpoint's system.</comment>
+  </data>
+  <data name="RouteTotalsOne" xml:space="preserve">
+    <value>{0} jump · {1:N3} ly · {2:N0} {3} · {4:N2} ly range</value>
+    <comment>Jump Planner, over the route: its totals. {0} is the number of jumps (one), {1} the distance in light years (ly), {2} the fuel, {3} the fuel's item name, {4} the ship's jump range in light years.</comment>
+  </data>
+  <data name="RouteTotalsOther" xml:space="preserve">
+    <value>{0} jumps · {1:N3} ly · {2:N0} {3} · {4:N2} ly range</value>
+    <comment>Jump Planner, over the route: its totals. {0} is the number of jumps, {1} the distance in light years (ly), {2} the fuel, {3} the fuel's item name, {4} the ship's jump range in light years.</comment>
+  </data>
+  <data name="JumpMapPlanFirst" xml:space="preserve">
+    <value>Plan a route to see it on the map.</value>
+    <comment>Shown in the middle of the Jump Planner's map before a route is planned.</comment>
+  </data>
+  <data name="JumpMapHint" xml:space="preserve">
+    <value>drag a midpoint to move it · click one for alternatives · scroll to zoom</value>
+    <comment>Hint along the bottom of the Jump Planner's map, in lower case like a caption. Three gestures separated by ·.</comment>
+  </data>
+  <data name="TipNoKnownDocking" xml:space="preserve">
+    <value>no known station or structure</value>
+    <comment>Line in the Jump Planner map's tooltip on a system where nothing dockable is known.</comment>
+  </data>
+  <data name="FittingBandHigh" xml:space="preserve">
+    <value>HIGH</value>
+    <comment>Label beside a band of slots in the Structure Browser's fitting ring: high slots. Short, upper case in English.</comment>
+  </data>
+  <data name="FittingBandMid" xml:space="preserve">
+    <value>MID</value>
+    <comment>Label beside a band of slots in the fitting ring: mid slots. Short, upper case in English.</comment>
+  </data>
+  <data name="FittingBandLow" xml:space="preserve">
+    <value>LOW</value>
+    <comment>Label beside a band of slots in the fitting ring: low slots. Short, upper case in English.</comment>
+  </data>
+  <data name="FittingBandRigs" xml:space="preserve">
+    <value>RIGS</value>
+    <comment>Label beside a band of slots in the fitting ring: rig slots. Short, upper case in English.</comment>
+  </data>
+  <data name="FittingBandServices" xml:space="preserve">
+    <value>SERVICES</value>
+    <comment>Label beside a band of slots in the fitting ring: service slots. Short, upper case in English.</comment>
+  </data>
+  <data name="FittingBandSubsystems" xml:space="preserve">
+    <value>SUBSYSTEMS</value>
+    <comment>Label beside a band of slots in the fitting ring: subsystem slots (ships). Short, upper case in English.</comment>
+  </data>
+  <data name="FittingNoInfo" xml:space="preserve">
+    <value>No fitting information for this type.</value>
+    <comment>Shown in place of the fitting ring when the structure's type has no slots.</comment>
+  </data>
+  <data name="TipSlotFromAssets" xml:space="preserve">
+    <value>{0} {1} · from assets — the game is the authority here</value>
+    <comment>Tooltip on a slot in the fitting ring when the fitting comes from the game. {0} is the band's label (HIGH, MID…), {1} the slot's number.</comment>
+  </data>
+  <data name="TipClickToFitModule" xml:space="preserve">
+    <value>Click to fit a module</value>
+    <comment>Tooltip on an empty slot in the fitting ring.</comment>
+  </data>
+  <data name="TipSlotEnteredByHand" xml:space="preserve">
+    <value>{0} {1} · entered by hand</value>
+    <comment>Tooltip on a slot in the fitting ring that the user filled in. {0} is the band's label (HIGH, MID…), {1} the slot's number.</comment>
+  </data>
+  <data name="ServiceManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system where manufacturing is possible.</comment>
+  </data>
+  <data name="TipServiceManufacturing" xml:space="preserve">
+    <value>NPC factory, or a Standup Manufacturing Plant or Shipyard</value>
+    <comment>Tooltip on a map mark: where manufacturing can come from. Standup… are structure module names: as your language's game client writes them.</comment>
+  </data>
+  <data name="ServiceResearch" xml:space="preserve">
+    <value>Research / Invention</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system with a research or invention lab.</comment>
+  </data>
+  <data name="TipServiceResearch" xml:space="preserve">
+    <value>NPC laboratory, or a Standup Research or Invention Lab</value>
+    <comment>Tooltip on a map mark: where research can come from. Standup… are structure module names: as your language's game client writes them.</comment>
+  </data>
+  <data name="ServiceReprocessing" xml:space="preserve">
+    <value>Reprocessing</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system where reprocessing is possible.</comment>
+  </data>
+  <data name="TipServiceReprocessing" xml:space="preserve">
+    <value>NPC reprocessing plant or refinery, or a Standup Reprocessing Facility</value>
+    <comment>Tooltip on a map mark: where reprocessing can come from. Standup… are structure module names: as your language's game client writes them.</comment>
+  </data>
+  <data name="ServiceReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system where reactions can be run.</comment>
+  </data>
+  <data name="TipServiceReactions" xml:space="preserve">
+    <value>A Standup reactor. No NPC station reacts, so this is always a player structure</value>
+    <comment>Tooltip on a map mark: where reactions can come from. Standup is part of a structure module name: as your language's game client writes it.</comment>
+  </data>
+  <data name="ServiceCloning" xml:space="preserve">
+    <value>Clone bay</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system with a clone bay.</comment>
+  </data>
+  <data name="TipServiceCloning" xml:space="preserve">
+    <value>NPC cloning or jump clone facility, or a Standup Cloning Center</value>
+    <comment>Tooltip on a map mark: where a clone bay can come from. Standup… is a structure module name: as your language's game client writes it.</comment>
+  </data>
+  <data name="ServiceMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Map legend, and the title of a mark's tooltip: a system with a market.</comment>
+  </data>
+  <data name="TipServiceMarket" xml:space="preserve">
+    <value>NPC market, or a Standup Market Hub</value>
+    <comment>Tooltip on a map mark: where a market can come from. Standup… is a structure module name.</comment>
+  </data>
+  <data name="DockSupers" xml:space="preserve">
+    <value>Supers &amp; titans — Keepstar only</value>
+    <comment>Map legend, and the title of a mark's tooltip: supercarriers and titans can dock here. Keepstar is a structure name.</comment>
+  </data>
+  <data name="TipDockSupers" xml:space="preserve">
+    <value>A Keepstar is here. Supercarriers and titans can dock</value>
+    <comment>Tooltip on a map mark over a system box.</comment>
+  </data>
+  <data name="DockCapitals" xml:space="preserve">
+    <value>Capitals — Fortizar or NPC station</value>
+    <comment>Map legend, and the title of a mark's tooltip: capital ships can dock here. Fortizar is a structure name.</comment>
+  </data>
+  <data name="TipDockCapitals" xml:space="preserve">
+    <value>Capitals can dock, supers cannot</value>
+    <comment>Tooltip on a map mark over a system box. Supers are supercarriers and titans.</comment>
+  </data>
+  <data name="DockSubcaps" xml:space="preserve">
+    <value>Subcapitals — any other structure</value>
+    <comment>Map legend, and the title of a mark's tooltip: only subcapital ships can dock here.</comment>
+  </data>
+  <data name="TipDockSubcaps" xml:space="preserve">
+    <value>Something dockable is here, but nothing that takes a capital</value>
+    <comment>Tooltip on a map mark over a system box.</comment>
+  </data>
+  <data name="TipDoubleClickToOpenRegion" xml:space="preserve">
+    <value>Double-click to open {0}</value>
+    <comment>Map tooltip on a system in a neighbouring region. {0} is that region.</comment>
+  </data>
+  <data name="EmptyHighSlot" xml:space="preserve">
+    <value>Empty high slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring.</comment>
+  </data>
+  <data name="EmptyMidSlot" xml:space="preserve">
+    <value>Empty mid slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring.</comment>
+  </data>
+  <data name="EmptyLowSlot" xml:space="preserve">
+    <value>Empty low slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring.</comment>
+  </data>
+  <data name="EmptyRigSlot" xml:space="preserve">
+    <value>Empty rig slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring.</comment>
+  </data>
+  <data name="EmptyServiceSlot" xml:space="preserve">
+    <value>Empty service slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring: a structure's service module slot.</comment>
+  </data>
+  <data name="EmptySubsystemSlot" xml:space="preserve">
+    <value>Empty subsystem slot</value>
+    <comment>Title of the tooltip on an empty slot in the fitting ring: a ship's subsystem slot.</comment>
+  </data>
+  <data name="StructureKindNpc" xml:space="preserve">
+    <value>NPC</value>
+    <comment>System page: the kind of a structure in the system — an NPC station.</comment>
+  </data>
+  <data name="StructureKindPlayer" xml:space="preserve">
+    <value>Player</value>
+    <comment>System page: the kind of a structure in the system — one owned by players.</comment>
+  </data>
+  <data name="AgentLocator" xml:space="preserve">
+    <value>Locator</value>
+    <comment>System page, Agents tab: marks an agent who offers locator services (finding where a character is). EVE's term.</comment>
+  </data>
+  <data name="CorporationNumbered" xml:space="preserve">
+    <value>Corporation {0}</value>
+    <comment>A corporation whose name is not known yet — a logo's tooltip, the sovereignty holder in the system page's header. {0} is its ID.</comment>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name is not known yet — a logo's tooltip, a Structure Browser cell, a sovereignty holder on the system page and the map's sovereignty overlay. {0} is its ID.</comment>
+  </data>
+  <data name="IntelNoVisual" xml:space="preserve">
+    <value>NV</value>
+    <comment>System page, Intel tab: marks a report of pilots present but not seen ("no visual"). The players' own abbreviation; keep it very short.</comment>
+  </data>
+  <data name="IntelSuperseded" xml:space="preserve">
+    <value>superseded</value>
+    <comment>System page, Intel tab: a report that a later one has replaced.</comment>
+  </data>
+  <data name="IntelStanding" xml:space="preserve">
+    <value>standing</value>
+    <comment>System page, Intel tab: a report nothing has replaced yet.</comment>
+  </data>
+  <data name="NoIntelNote" xml:space="preserve">
+    <value>No intel recorded for this system. Reports are parsed from the channels ticked as Intel under Settings → Chat Logs; use "Parse Stored History" there to read the messages already on disk.</value>
+    <comment>System page, Intel tab, when it is empty. "Settings → Chat Logs" and "Parse Stored History" name places in the Settings window.</comment>
+  </data>
+  <data name="ProductionPower" xml:space="preserve">
+    <value>{0:N0} power</value>
+    <comment>System page header, production: the power the system's planets supply. {0} is the amount.</comment>
+  </data>
+  <data name="ProductionWorkforce" xml:space="preserve">
+    <value>{0:N0} workforce</value>
+    <comment>System page header, production: the workforce the system's planets supply. {0} is the amount.</comment>
+  </data>
+  <data name="ProductionMagmaticGas" xml:space="preserve">
+    <value>{0:N0}/h magmatic gas</value>
+    <comment>System page header, production: magmatic gas per hour (/h). {0} is the amount.</comment>
+  </data>
+  <data name="ProductionSuperionicIce" xml:space="preserve">
+    <value>{0:N0}/h superionic ice</value>
+    <comment>System page header, production: superionic ice per hour (/h), the reagent ice planets yield. {0} is the amount.</comment>
+  </data>
+  <data name="SovUnclaimed" xml:space="preserve">
+    <value>Unclaimed</value>
+    <comment>Sovereignty holder of a system nobody holds.</comment>
+  </data>
+  <data name="IntelSummary" xml:space="preserve">
+    <value>{0:N0} report(s), {1:N0} still standing. Superseded reports are shown dimmed.</value>
+    <comment>System page, Intel tab. {0} is how many reports, {1} how many of them nothing has replaced.</comment>
+  </data>
+  <data name="AgentsNone" xml:space="preserve">
+    <value>No agents in this system.</value>
+    <comment>System page, Agents tab, when it is empty.</comment>
+  </data>
+  <data name="AgentsSummary" xml:space="preserve">
+    <value>{0} agents across {1} stations.</value>
+    <comment>System page, Agents tab. {0} is how many agents, {1} how many stations they are in.</comment>
+  </data>
+  <data name="SovHistoryNone" xml:space="preserve">
+    <value>No sovereignty history stored yet.</value>
+    <comment>System page, sovereignty changes, when none have been stored.</comment>
+  </data>
+  <data name="SovHistoryNote" xml:space="preserve">
+    <value>Derived from stored snapshots since {0:yyyy-MM-dd}. Earlier changes were before this app began recording and cannot be recovered.</value>
+    <comment>System page, under the sovereignty changes. {0} is the date of the oldest stored snapshot.</comment>
+  </data>
+  <data name="KillsNone" xml:space="preserve">
+    <value>No killmails stored for this system.</value>
+    <comment>System page, Kills tab, when it is empty.</comment>
+  </data>
+  <data name="HourlyNone" xml:space="preserve">
+    <value>No hourly history stored yet.</value>
+    <comment>System page, over the hourly charts, when there is no data.</comment>
+  </data>
+  <data name="HourlyNote" xml:space="preserve">
+    <value>Last {0:F0} hours, hour by hour. Raise "keep hourly detail" in Settings for a longer span.</value>
+    <comment>System page, over the hourly charts. {0} is how many hours they cover. "keep hourly detail" names a setting.</comment>
+  </data>
+  <data name="GraphNone" xml:space="preserve">
+    <value>No activity history stored for this system yet.</value>
+    <comment>System page, Graphs tab, when there is no data.</comment>
+  </data>
+  <data name="GraphNote" xml:space="preserve">
+    <value>Daily totals, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}. Each point is a full UTC day; the last may be partial.</value>
+    <comment>System page, Graphs tab. {0} and {1} are the first and last day shown.</comment>
+  </data>
+  <data name="SeriesJumps" xml:space="preserve">
+    <value>Jumps</value>
+    <comment>Chart line on the system page: ship jumps through the system per day.</comment>
+  </data>
+  <data name="AdmNone" xml:space="preserve">
+    <value>No ADM history: this system holds no sovereignty structure.</value>
+    <comment>System page, ADM chart, when there is none. ADM is the Activity Defense Multiplier.</comment>
+  </data>
+  <data name="AdmNote" xml:space="preserve">
+    <value>Daily peak ADM, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}.</value>
+    <comment>System page, over the ADM chart. {0} and {1} are the first and last day shown. ADM is the Activity Defense Multiplier.</comment>
+  </data>
+  <data name="SeriesAdm" xml:space="preserve">
+    <value>ADM</value>
+    <comment>Chart line: the Activity Defense Multiplier. EVE's abbreviation.</comment>
+  </data>
+  <data name="ActivityTimeEfficiency" xml:space="preserve">
+    <value>Time efficiency</value>
+    <comment>Chart line on the system page: the cost index of time efficiency research.</comment>
+  </data>
+  <data name="ActivityMaterialEfficiency" xml:space="preserve">
+    <value>Material efficiency</value>
+    <comment>Chart line on the system page: the cost index of material efficiency research.</comment>
+  </data>
+  <data name="IndexNone" xml:space="preserve">
+    <value>No industry cost index history stored for this system yet.</value>
+    <comment>System page, cost index chart, when there is no data.</comment>
+  </data>
+  <data name="IndexNote" xml:space="preserve">
+    <value>Daily cost index, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}. Shown as a percentage, as the industry window does.</value>
+    <comment>System page, over the cost index chart. {0} and {1} are the first and last day shown.</comment>
+  </data>
+  <data name="KillsMostRecent" xml:space="preserve">
+    <value>{0} most recent</value>
+    <comment>System page, over the Kills tab's list. {0} is how many killmails are shown.</comment>
+  </data>
+  <data name="KillsMostRecentMore" xml:space="preserve">
+    <value>{0} most recent (more exist)</value>
+    <comment>System page, over the Kills tab's list, when older killmails are not shown. {0} is how many are shown.</comment>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>An industry activity: a chart line on the system page, and a job's activity in the Structure Browser.</comment>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>An industry activity: blueprint copying. A chart line on the system page, and a job's activity in the Structure Browser.</comment>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>An industry activity: a chart line on the system page, and a job's activity in the Structure Browser.</comment>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>Chart line on the system page: the cost index of reactions.</comment>
+  </data>
+  <data name="FittingSourceAssets" xml:space="preserve">
+    <value>assets</value>
+    <comment>Structure Browser, Fitting tab, the From column: this module is known from the structure's assets.</comment>
+  </data>
+  <data name="FittingSourceManual" xml:space="preserve">
+    <value>manual</value>
+    <comment>Structure Browser, Fitting tab, the From column: this module was entered by hand.</comment>
+  </data>
+  <data name="EditLockReason" xml:space="preserve">
+    <value>Name, system and type come from ESI and cannot be edited — the next resolve would overwrite them.</value>
+    <comment>Structure Browser, Details tab, under the fields that cannot be edited.</comment>
+  </data>
+  <data name="JobCount" xml:space="preserve">
+    <value>{0:N0} job(s)</value>
+    <comment>Structure Browser, Industry Jobs tab, beside the filters. {0} is how many jobs.</comment>
+  </data>
+  <data name="JobCountFiltered" xml:space="preserve">
+    <value>{0:N0} of {1:N0} job(s)</value>
+    <comment>Structure Browser, Industry Jobs tab, beside the filters. {0} is how many jobs are shown, {1} how many there are.</comment>
+  </data>
+  <data name="FittingReadOnlyNote" xml:space="preserve">
+    <value>Fitting comes from assets — read only</value>
+    <comment>Structure Browser, Fitting tab, under the fitting ring.</comment>
+  </data>
+  <data name="FittingEditableNote" xml:space="preserve">
+    <value>No fitting in assets — click a slot to record one</value>
+    <comment>Structure Browser, Fitting tab, under the fitting ring.</comment>
+  </data>
+  <data name="StatusFittingLocked" xml:space="preserve">
+    <value>This fitting is known from assets and cannot be edited.</value>
+    <comment>Structure Browser status line after clicking a slot of a fitting known from assets.</comment>
+  </data>
+  <data name="StatusModulesFit" xml:space="preserve">
+    <value>{0} module(s) fit this slot.</value>
+    <comment>Structure Browser status line after clicking a slot. {0} is how many modules can go in it.</comment>
+  </data>
+  <data name="StatusFitted" xml:space="preserve">
+    <value>Fitted {0}.</value>
+    <comment>Structure Browser status line. {0} is the module's name.</comment>
+  </data>
+  <data name="StatusSlotCleared" xml:space="preserve">
+    <value>Slot cleared.</value>
+    <comment>Structure Browser status line.</comment>
+  </data>
+  <data name="StatusRecordModuleFailed" xml:space="preserve">
+    <value>Could not record that module: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="StructureStatusOk" xml:space="preserve">
+    <value>OK</value>
+    <comment>Structure Browser, Status column: ESI described the structure.</comment>
+  </data>
+  <data name="StructureStatusNoAccess" xml:space="preserve">
+    <value>No access</value>
+    <comment>Structure Browser, Status column: ESI refused (no docking rights).</comment>
+  </data>
+  <data name="StructureStatusGone" xml:space="preserve">
+    <value>Unanchored (gone)</value>
+    <comment>Structure Browser, Status column: ESI no longer knows the structure — it was unanchored or destroyed.</comment>
+  </data>
+  <data name="StructureStatusPending" xml:space="preserve">
+    <value>Pending</value>
+    <comment>Structure Browser, Status column: not asked yet.</comment>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>A corporation whose name is not known yet. {0} is its ID.</comment>
+  </data>
+  <data name="StructureNumbered" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>A structure whose name is not known. {0} is its ID.</comment>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item type whose name is not known. {0} is its type ID.</comment>
+  </data>
+  <data name="StatusStructures" xml:space="preserve">
+    <value>{0} structure(s).</value>
+    <comment>Structure Browser status line. {0} is how many structures.</comment>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Load failed: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="ProvenanceNeverWritten" xml:space="preserve">
+    <value>Never written · {0}</value>
+    <comment>Structure Browser, under the name: nobody has edited this structure. {0} says who created the record (e.g. user).</comment>
+  </data>
+  <data name="ProvenanceLastWritten" xml:space="preserve">
+    <value>Last written by {0} at {1:yyyy-MM-dd HH:mm}</value>
+    <comment>Structure Browser, under the name. {0} says who last wrote the record (e.g. user), {1} when.</comment>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>A character whose name is not known. {0} is its ID.</comment>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>Division {0}</value>
+    <comment>A corporation hangar division with no name. {0} is its number.</comment>
+  </data>
+  <data name="DivisionWithNumber" xml:space="preserve">
+    <value>{0} (div {1})</value>
+    <comment>Structure Browser, Assets tab, Where column: a corporation hangar division. {0} is its name, {1} its number (div is short for division).</comment>
+  </data>
+  <data name="DetailCounts" xml:space="preserve">
+    <value>{0} fitted · {1:N0} stored · {2:N0} cargo · {3:N0} fuel · {4:N0} fighters · {5:N0} job(s)</value>
+    <comment>Structure Browser, beside the selected structure's name. {0} fitted modules, {1} stored items, {2} items in the cargo bay, {3} in the fuel bay, {4} fighters, {5} industry jobs.</comment>
+  </data>
+  <data name="StatusDetailLoadFailed" xml:space="preserve">
+    <value>Detail load failed: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="JobActivityTeResearch" xml:space="preserve">
+    <value>TE Research</value>
+    <comment>Structure Browser, Industry Jobs tab: a job's activity — time efficiency research.</comment>
+  </data>
+  <data name="JobActivityMeResearch" xml:space="preserve">
+    <value>ME Research</value>
+    <comment>Structure Browser, Industry Jobs tab: a job's activity — material efficiency research.</comment>
+  </data>
+  <data name="JobActivityReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>Structure Browser, Industry Jobs tab: a job's activity — reactions.</comment>
+  </data>
+  <data name="JobActivityNumbered" xml:space="preserve">
+    <value>Activity {0}</value>
+    <comment>Structure Browser, Industry Jobs tab: an activity the app has no name for. {0} is its number.</comment>
+  </data>
+  <data name="EveRefFieldName" xml:space="preserve">
+    <value>name</value>
+    <comment>One of the fields listed in the EVE Ref note on the Details tab: the structure's name.</comment>
+  </data>
+  <data name="EveRefFieldSystem" xml:space="preserve">
+    <value>system</value>
+    <comment>One of the fields listed in the EVE Ref note on the Details tab: the structure's system.</comment>
+  </data>
+  <data name="EveRefFieldType" xml:space="preserve">
+    <value>type</value>
+    <comment>One of the fields listed in the EVE Ref note on the Details tab: the structure's type.</comment>
+  </data>
+  <data name="EveRefFieldOwner" xml:space="preserve">
+    <value>owner</value>
+    <comment>One of the fields listed in the EVE Ref note on the Details tab: the structure's owner.</comment>
+  </data>
+  <data name="StatusPickersFailed" xml:space="preserve">
+    <value>Could not load pickers: {0}</value>
+    <comment>Structure Browser status line when the system and type lists cannot be loaded. {0} is the error.</comment>
+  </data>
+  <data name="PickNoType" xml:space="preserve">
+    <value>— none —</value>
+    <comment>Structure Browser, Details tab, first entry of the TYPE list: no type recorded.</comment>
+  </data>
+  <data name="StatusStructureGone" xml:space="preserve">
+    <value>That structure is no longer in the table.</value>
+    <comment>Structure Browser status line on saving.</comment>
+  </data>
+  <data name="StatusPickSystem" xml:space="preserve">
+    <value>Pick a system from the list, or clear the box to leave it unset.</value>
+    <comment>Structure Browser status line on saving with a half-typed system.</comment>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Structure Browser status line.</comment>
+  </data>
+  <data name="StatusNotesSaved" xml:space="preserve">
+    <value>Notes saved (identity comes from ESI).</value>
+    <comment>Structure Browser status line: only the notes could be saved.</comment>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Save failed: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusAskingEsi" xml:space="preserve">
+    <value>Asking ESI…</value>
+    <comment>Structure Browser status line while waiting for ESI.</comment>
+  </data>
+  <data name="PullResolved" xml:space="preserve">
+    <value>Resolved from ESI.</value>
+    <comment>Structure Browser status line after Pull from ESI.</comment>
+  </data>
+  <data name="PullNoAccess" xml:space="preserve">
+    <value>No access (403) — no docking rights with this structure.</value>
+    <comment>Structure Browser status line after Pull from ESI.</comment>
+  </data>
+  <data name="PullNotFound" xml:space="preserve">
+    <value>Not found (404) — the structure has been unanchored or destroyed.</value>
+    <comment>Structure Browser status line after Pull from ESI.</comment>
+  </data>
+  <data name="PullNoAnswer" xml:space="preserve">
+    <value>ESI did not answer. See the error log.</value>
+    <comment>Structure Browser status line after Pull from ESI.</comment>
+  </data>
+  <data name="StatusPullFailed" xml:space="preserve">
+    <value>Pull failed: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="AddEnterNumericId" xml:space="preserve">
+    <value>Enter a numeric location ID.</value>
+    <comment>Add-by-ID panel, when what was typed holds no number.</comment>
+  </data>
+  <data name="AddAlreadyInTable" xml:space="preserve">
+    <value>Already in the table.</value>
+    <comment>Add-by-ID panel, when the structure is already listed.</comment>
+  </data>
+  <data name="AddPreviewNoAnswer" xml:space="preserve">
+    <value>ESI did not answer — see the error log. It can still be added and filled in by hand.</value>
+    <comment>Add-by-ID panel, what the look-up found.</comment>
+  </data>
+  <data name="AddStatusNoAnswer" xml:space="preserve">
+    <value>No answer.</value>
+    <comment>Add-by-ID panel, the look-up's result.</comment>
+  </data>
+  <data name="AddPreviewNoAccess" xml:space="preserve">
+    <value>No access (403) — no docking rights with this structure. It can still be added and filled in by hand.</value>
+    <comment>Add-by-ID panel, what the look-up found.</comment>
+  </data>
+  <data name="AddPreviewNotFound" xml:space="preserve">
+    <value>Not found (404) — no such structure, or it has been unanchored. Check the ID before adding.</value>
+    <comment>Add-by-ID panel, what the look-up found.</comment>
+  </data>
+  <data name="AddPreviewNothingUsable" xml:space="preserve">
+    <value>ESI returned nothing usable for this ID.</value>
+    <comment>Add-by-ID panel, what the look-up found.</comment>
+  </data>
+  <data name="AddLookupFailed" xml:space="preserve">
+    <value>Look-up failed: {0}</value>
+    <comment>Add-by-ID panel. {0} is the error.</comment>
+  </data>
+  <data name="SystemNumbered" xml:space="preserve">
+    <value>System {0}</value>
+    <comment>A solar system whose name is not known. {0} is its ID.</comment>
+  </data>
+  <data name="PreviewUnknownType" xml:space="preserve">
+    <value>unknown type</value>
+    <comment>Add-by-ID panel, in the look-up's description: the structure's type is not known.</comment>
+  </data>
+  <data name="PreviewUnknownOwner" xml:space="preserve">
+    <value>unknown owner</value>
+    <comment>Add-by-ID panel, in the look-up's description: the structure's owner is not known.</comment>
+  </data>
+  <data name="AddFailed" xml:space="preserve">
+    <value>Add failed: {0}</value>
+    <comment>Add-by-ID panel. {0} is the error.</comment>
+  </data>
+  <data name="StatusStructuresShown" xml:space="preserve">
+    <value>{0} of {1} structure(s).</value>
+    <comment>Structure Browser status line. {0} is how many structures are shown, {1} how many there are.</comment>
+  </data>
+  <data name="StatusStructuresUnknownHidden" xml:space="preserve">
+    <value>{0} shown · {1} unknown hidden.</value>
+    <comment>Structure Browser status line. {0} is how many structures are shown, {1} how many ESI cannot describe and are hidden.</comment>
+  </data>
+  <data name="StatusResolving" xml:space="preserve">
+    <value>Resolving structures via ESI…</value>
+    <comment>Structure Browser status line while asking ESI about every structure.</comment>
+  </data>
+  <data name="StatusResolveFailed" xml:space="preserve">
+    <value>Resolve failed: {0}</value>
+    <comment>Structure Browser status line. {0} is the error.</comment>
+  </data>
+  <data name="JobStatusAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Structure Browser, Industry Jobs tab, status filter: jobs of every status.</comment>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>active</value>
+    <comment>An industry job's status (ESI's word, lower case in English): running.</comment>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>cancelled</value>
+    <comment>An industry job's status (ESI's word, lower case in English).</comment>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>delivered</value>
+    <comment>An industry job's status (ESI's word, lower case in English): finished and collected.</comment>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>paused</value>
+    <comment>An industry job's status (ESI's word, lower case in English).</comment>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>ready</value>
+    <comment>An industry job's status (ESI's word, lower case in English): finished, waiting to be collected.</comment>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>reverted</value>
+    <comment>An industry job's status (ESI's word, lower case in English).</comment>
+  </data>
+  <data name="PickerTitleHigh" xml:space="preserve">
+    <value>High slot {0}</value>
+    <comment>Title of the Structure Browser's module picker. {0} is the slot's number.</comment>
+  </data>
+  <data name="PickerTitleMid" xml:space="preserve">
+    <value>Mid slot {0}</value>
+    <comment>Title of the Structure Browser's module picker. {0} is the slot's number.</comment>
+  </data>
+  <data name="PickerTitleLow" xml:space="preserve">
+    <value>Low slot {0}</value>
+    <comment>Title of the Structure Browser's module picker. {0} is the slot's number.</comment>
+  </data>
+  <data name="PickerTitleRig" xml:space="preserve">
+    <value>Rig slot {0}</value>
+    <comment>Title of the Structure Browser's module picker. {0} is the slot's number.</comment>
+  </data>
+  <data name="PickerTitleService" xml:space="preserve">
+    <value>Service slot {0}</value>
+    <comment>Title of the Structure Browser's module picker: a structure's service module slot. {0} is the slot's number.</comment>
+  </data>
+  <data name="PickerTitleSubsystem" xml:space="preserve">
+    <value>Subsystem slot {0}</value>
+    <comment>Title of the Structure Browser's module picker: a ship's subsystem slot. {0} is the slot's number.</comment>
+  </data>
+  <data name="StatusNothingFitsHigh" xml:space="preserve">
+    <value>Nothing fits a High slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot.</comment>
+  </data>
+  <data name="StatusNothingFitsMid" xml:space="preserve">
+    <value>Nothing fits a Mid slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot.</comment>
+  </data>
+  <data name="StatusNothingFitsLow" xml:space="preserve">
+    <value>Nothing fits a Low slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot.</comment>
+  </data>
+  <data name="StatusNothingFitsRig" xml:space="preserve">
+    <value>Nothing fits a Rig slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot.</comment>
+  </data>
+  <data name="StatusNothingFitsService" xml:space="preserve">
+    <value>Nothing fits a Service slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot: a structure's service module slot.</comment>
+  </data>
+  <data name="StatusNothingFitsSubsystem" xml:space="preserve">
+    <value>Nothing fits a Subsystem slot on this hull.</value>
+    <comment>Structure Browser status line after clicking an empty slot: a ship's subsystem slot.</comment>
+  </data>
+  <data name="ProvenanceWriterUser" xml:space="preserve">
+    <value>user</value>
+    <comment>Who last wrote a structure's record, in the line under its name: the user, by hand (as opposed to esi).</comment>
+  </data>
+  <data name="EveRefNote" xml:space="preserve">
+    <value>The {0} came from EVE Ref — a third party's observation, not something ESI confirmed. It can be out of date.</value>
+    <comment>Structure Browser, Details tab. {0} lists the fields (name, system, type, owner), separated by commas. EVE Ref is a website's name.</comment>
+  </data>
+  <data name="EveRefNoteRead" xml:space="preserve">
+    <value>The {0} came from EVE Ref, read {1:yyyy-MM-dd} — a third party's observation, not something ESI confirmed. It can be out of date.</value>
+    <comment>Structure Browser, Details tab. {0} lists the fields (name, system, type, owner), separated by commas; {1} is when EVE Ref was read. EVE Ref is a website's name.</comment>
+  </data>
+  <data name="AddAskingEsi" xml:space="preserve">
+    <value>Asking ESI about {0}…</value>
+    <comment>Add-by-ID panel while the look-up runs. {0} is the location ID.</comment>
+  </data>
+  <data name="AddAskingEsiLowId" xml:space="preserve">
+    <value>Asking ESI about {0} (that is below the player-structure ID range, so a 404 is likely)…</value>
+    <comment>Add-by-ID panel while the look-up runs, for an ID too low to be a player structure. {0} is the location ID; 404 is ESI's "not found".</comment>
+  </data>
+  <data name="AddStatusResolved" xml:space="preserve">
+    <value>Resolved.</value>
+    <comment>Add-by-ID panel, the look-up's result: ESI described the structure.</comment>
+  </data>
+  <data name="AddStatusNoAccess" xml:space="preserve">
+    <value>No access.</value>
+    <comment>Add-by-ID panel, the look-up's result: ESI refused (no docking rights).</comment>
+  </data>
+  <data name="AddStatusGone" xml:space="preserve">
+    <value>Unanchored (gone).</value>
+    <comment>Add-by-ID panel, the look-up's result: ESI does not know the structure.</comment>
+  </data>
+  <data name="AddStatusPending" xml:space="preserve">
+    <value>Pending.</value>
+    <comment>Add-by-ID panel, the look-up's result: no answer yet.</comment>
+  </data>
+  <data name="AddPreviewResolved" xml:space="preserve">
+    <value>{0}
+{1} in {2}
+Owned by {3}</value>
+    <comment>Add-by-ID panel, what the look-up found, on three lines. {0} is the structure's name, {1} its type, {2} its system, {3} its owner.</comment>
+  </data>
+  <data name="OverlaySecurity" xml:space="preserve">
+    <value>Security</value>
+    <comment>Map overlay pick list: colour systems by security status.</comment>
+  </data>
+  <data name="OverlayConstellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Map overlay pick list: colour systems by constellation (regions, on the whole-cluster map).</comment>
+  </data>
+  <data name="OverlaySovereignty" xml:space="preserve">
+    <value>Sovereignty</value>
+    <comment>Map overlay pick list: colour systems by who holds sovereignty.</comment>
+  </data>
+  <data name="OverlaySovereigntyAdm" xml:space="preserve">
+    <value>Sovereignty ADM</value>
+    <comment>Map overlay pick list: the sovereignty Activity Defense Multiplier (ADM).</comment>
+  </data>
+  <data name="OverlayIndustryManufacturing" xml:space="preserve">
+    <value>Industry — manufacturing</value>
+    <comment>Map overlay pick list: the industry cost index of manufacturing.</comment>
+  </data>
+  <data name="OverlayIndustryReactions" xml:space="preserve">
+    <value>Industry — reactions</value>
+    <comment>Map overlay pick list: the industry cost index of reactions.</comment>
+  </data>
+  <data name="OverlayIndustryMeResearch" xml:space="preserve">
+    <value>Industry — ME research</value>
+    <comment>Map overlay pick list: the industry cost index of material efficiency (ME) research.</comment>
+  </data>
+  <data name="OverlayIndustryTeResearch" xml:space="preserve">
+    <value>Industry — TE research</value>
+    <comment>Map overlay pick list: the industry cost index of time efficiency (TE) research.</comment>
+  </data>
+  <data name="OverlayIndustryCopying" xml:space="preserve">
+    <value>Industry — copying</value>
+    <comment>Map overlay pick list: the industry cost index of blueprint copying.</comment>
+  </data>
+  <data name="OverlayIndustryInvention" xml:space="preserve">
+    <value>Industry — invention</value>
+    <comment>Map overlay pick list: the industry cost index of invention.</comment>
+  </data>
+  <data name="OverlayShipKills24h" xml:space="preserve">
+    <value>Ship kills (24h)</value>
+    <comment>Map overlay pick list: ships destroyed in the last 24 hours (h).</comment>
+  </data>
+  <data name="OverlayShipKills7d" xml:space="preserve">
+    <value>Ship kills (7d)</value>
+    <comment>Map overlay pick list: ships destroyed in the last 7 days (d).</comment>
+  </data>
+  <data name="OverlayShipKills30d" xml:space="preserve">
+    <value>Ship kills (30d)</value>
+    <comment>Map overlay pick list: ships destroyed in the last 30 days (d).</comment>
+  </data>
+  <data name="OverlayPodKills24h" xml:space="preserve">
+    <value>Pod kills (24h)</value>
+    <comment>Map overlay pick list: capsules destroyed in the last 24 hours (h).</comment>
+  </data>
+  <data name="OverlayPodKills7d" xml:space="preserve">
+    <value>Pod kills (7d)</value>
+    <comment>Map overlay pick list: capsules destroyed in the last 7 days (d).</comment>
+  </data>
+  <data name="OverlayPodKills30d" xml:space="preserve">
+    <value>Pod kills (30d)</value>
+    <comment>Map overlay pick list: capsules destroyed in the last 30 days (d).</comment>
+  </data>
+  <data name="OverlayIntel15m" xml:space="preserve">
+    <value>Intel (15m)</value>
+    <comment>Map overlay pick list: pilots reported in intel channels in the last 15 minutes (m).</comment>
+  </data>
+  <data name="OverlayIntelPaths15m" xml:space="preserve">
+    <value>Intel paths (15m)</value>
+    <comment>Map overlay pick list: every intel report of the last 15 minutes (m), so a gang's path shows.</comment>
+  </data>
+  <data name="OverlayIntelPaths1h" xml:space="preserve">
+    <value>Intel paths (1h)</value>
+    <comment>Map overlay pick list: every intel report of the last hour (h), so a gang's path shows.</comment>
+  </data>
+  <data name="OverlayIntelPaths24h" xml:space="preserve">
+    <value>Intel paths (24h)</value>
+    <comment>Map overlay pick list: every intel report of the last 24 hours (h), so a gang's path shows.</comment>
+  </data>
+  <data name="OverlayShipJumps24h" xml:space="preserve">
+    <value>Ship jumps (24h)</value>
+    <comment>Map overlay pick list: jumps through each system in the last 24 hours (h).</comment>
+  </data>
+  <data name="OverlayShipJumps7d" xml:space="preserve">
+    <value>Ship jumps (7d)</value>
+    <comment>Map overlay pick list: jumps through each system in the last 7 days (d).</comment>
+  </data>
+  <data name="OverlayNpcKills24h" xml:space="preserve">
+    <value>NPC kills (24h)</value>
+    <comment>Map overlay pick list: NPCs destroyed in the last 24 hours (h).</comment>
+  </data>
+  <data name="OverlayFactionWarfare" xml:space="preserve">
+    <value>Faction warfare</value>
+    <comment>Map overlay pick list: faction warfare.</comment>
+  </data>
+  <data name="OverlayIncursions" xml:space="preserve">
+    <value>Incursions</value>
+    <comment>Map overlay pick list: Sansha incursions.</comment>
+  </data>
+  <data name="OverlayPlanetaryPower" xml:space="preserve">
+    <value>Planetary power</value>
+    <comment>Map overlay pick list: the power a system's planets supply.</comment>
+  </data>
+  <data name="OverlayPlanetaryWorkforce" xml:space="preserve">
+    <value>Planetary workforce</value>
+    <comment>Map overlay pick list: the workforce a system's planets supply.</comment>
+  </data>
+  <data name="OverlayStations" xml:space="preserve">
+    <value>Stations (NPC/player)</value>
+    <comment>Map overlay pick list: NPC stations and player structures.</comment>
+  </data>
+  <data name="OverlayPlanets" xml:space="preserve">
+    <value>Planets</value>
+    <comment>Map overlay pick list: how many planets.</comment>
+  </data>
+  <data name="OverlayMoons" xml:space="preserve">
+    <value>Moons</value>
+    <comment>Map overlay pick list: how many moons.</comment>
+  </data>
+  <data name="OverlayAsteroidBelts" xml:space="preserve">
+    <value>Asteroid belts</value>
+    <comment>Map overlay pick list: how many asteroid belts.</comment>
+  </data>
+  <data name="StatusLoadingUniverse" xml:space="preserve">
+    <value>Loading universe…</value>
+    <comment>Map status line while the whole cluster loads.</comment>
+  </data>
+  <data name="StatusUniverse" xml:space="preserve">
+    <value>{0} regions · {1:N0} systems · zoom in to open the regions · double-click a system for detail</value>
+    <comment>Map status line. {0} is how many regions, {1} how many systems.</comment>
+  </data>
+  <data name="StatusLoadingPlace" xml:space="preserve">
+    <value>Loading {0}…</value>
+    <comment>Map status line. {0} is a region's name.</comment>
+  </data>
+  <data name="StatusPlaceSystems" xml:space="preserve">
+    <value>{0} — {1} systems</value>
+    <comment>Map status line after framing a region or constellation. {0} is its name, {1} how many systems it has.</comment>
+  </data>
+  <data name="StatusLoadingSystem" xml:space="preserve">
+    <value>Loading system…</value>
+    <comment>Map status line while a system page loads.</comment>
+  </data>
+  <data name="StatusSystemViewUnavailable" xml:space="preserve">
+    <value>System view unavailable</value>
+    <comment>Map status line.</comment>
+  </data>
+  <data name="StatusSystemNotFound" xml:space="preserve">
+    <value>System not found</value>
+    <comment>Map status line.</comment>
+  </data>
+  <data name="CrumbUniverse" xml:space="preserve">
+    <value>Universe</value>
+    <comment>First step of the map's breadcrumb trail: the whole cluster.</comment>
+  </data>
+  <data name="DetailSystems" xml:space="preserve">
+    <value>Systems</value>
+    <comment>Map side panel, a region's details: how many systems.</comment>
+  </data>
+  <data name="DetailConstellations" xml:space="preserve">
+    <value>Constellations</value>
+    <comment>Map side panel, a region's details: how many constellations.</comment>
+  </data>
+  <data name="DetailNpcStations" xml:space="preserve">
+    <value>NPC stations</value>
+    <comment>Map side panel, a region's or system's details: how many NPC stations.</comment>
+  </data>
+  <data name="DetailAvgSecurity" xml:space="preserve">
+    <value>Avg security</value>
+    <comment>Map side panel, a region's details: the average security status.</comment>
+  </data>
+  <data name="DetailRegionGateways" xml:space="preserve">
+    <value>Region gateways</value>
+    <comment>Map side panel, a region's details: how many systems have gates to other regions.</comment>
+  </data>
+  <data name="DetailSecurity" xml:space="preserve">
+    <value>Security</value>
+    <comment>Map side panel, a system's details: its security status.</comment>
+  </data>
+  <data name="DetailSecurityClass" xml:space="preserve">
+    <value>Security class</value>
+    <comment>Map side panel, a system's details: its security class.</comment>
+  </data>
+  <data name="DetailStargates" xml:space="preserve">
+    <value>Stargates</value>
+    <comment>Map side panel, a system's details: how many stargates.</comment>
+  </data>
+  <data name="LegendHighSec" xml:space="preserve">
+    <value>High sec  1.0 – 0.5</value>
+    <comment>Map legend for the security overlay: a range of security status. Two spaces before the numbers.</comment>
+  </data>
+  <data name="LegendLowSec" xml:space="preserve">
+    <value>Low sec  0.4 – 0.1</value>
+    <comment>Map legend for the security overlay: a range of security status. Two spaces before the numbers.</comment>
+  </data>
+  <data name="LegendNullSec" xml:space="preserve">
+    <value>Null sec  0.0 and below</value>
+    <comment>Map legend for the security overlay: a range of security status. Two spaces before the numbers.</comment>
+  </data>
+  <data name="NodeSecurityRegionAverage" xml:space="preserve">
+    <value>Security {0:F2} (region average)</value>
+    <comment>Map tooltip on a region: its average security status. {0} is the number.</comment>
+  </data>
+  <data name="NodeConstellationSecurity" xml:space="preserve">
+    <value>{0} · security {1:F2}</value>
+    <comment>Map tooltip on a system, constellation overlay. {0} is the constellation, {1} the security status.</comment>
+  </data>
+  <data name="TipOpenRegionForSovereignty" xml:space="preserve">
+    <value>Open a region to see sovereignty</value>
+    <comment>Map tooltip on a region, sovereignty overlay.</comment>
+  </data>
+  <data name="NodeHolderAdm" xml:space="preserve">
+    <value>{0} · ADM {1:F1}</value>
+    <comment>Map tooltip on a system, sovereignty overlay. {0} is who holds it, {1} the Activity Defense Multiplier (ADM).</comment>
+  </data>
+  <data name="LegendSovSummary" xml:space="preserve">
+    <value>…{0:N0} alliances, {1:N0} systems</value>
+    <comment>Map legend for the sovereignty overlay, after the biggest holders. {0} is how many alliances hold space, {1} how many systems they hold.</comment>
+  </data>
+  <data name="LegendUnclaimedNpc" xml:space="preserve">
+    <value>Unclaimed / NPC</value>
+    <comment>Map legend for the sovereignty overlay: systems no alliance holds.</comment>
+  </data>
+  <data name="NodeNoSovStructure" xml:space="preserve">
+    <value>No sovereignty structure</value>
+    <comment>Map tooltip, ADM overlay: the system has no sovereignty structure.</comment>
+  </data>
+  <data name="LegendLowest" xml:space="preserve">
+    <value>lowest</value>
+    <comment>Map legend, at the bottom of a colour scale: the lowest value.</comment>
+  </data>
+  <data name="LegendNoData" xml:space="preserve">
+    <value>no data</value>
+    <comment>Map legend, at the top of a colour scale, when nothing on the map has a value.</comment>
+  </data>
+  <data name="TipOpenRegionForFw" xml:space="preserve">
+    <value>Open a region to see faction warfare</value>
+    <comment>Map tooltip on a region, faction warfare overlay.</comment>
+  </data>
+  <data name="NodeNotFwSpace" xml:space="preserve">
+    <value>Not faction-warfare space</value>
+    <comment>Map tooltip on a system, faction warfare overlay.</comment>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Faction {0}</value>
+    <comment>A faction whose name is not known — the map legend, and the sovereignty overlay's captions and tooltips. {0} is its ID.</comment>
+  </data>
+  <data name="LegendNotFwSpace" xml:space="preserve">
+    <value>Not FW space</value>
+    <comment>Map legend, faction warfare overlay: systems outside faction warfare. FW is faction warfare.</comment>
+  </data>
+  <data name="NodeNoIncursion" xml:space="preserve">
+    <value>No incursion</value>
+    <comment>Map tooltip on a system, incursion overlay.</comment>
+  </data>
+  <data name="LegendNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Map legend, the colour of systems with nothing to show.</comment>
+  </data>
+  <data name="NodeNoStations" xml:space="preserve">
+    <value>No stations or known structures</value>
+    <comment>Map tooltip on a system, stations overlay.</comment>
+  </data>
+  <data name="LegendNpcPlayer" xml:space="preserve">
+    <value>NPC/player</value>
+    <comment>Map legend, stations overlay, at the bottom of the colour scale: the box shows NPC stations / player structures.</comment>
+  </data>
+  <data name="LegendMostShown" xml:space="preserve">
+    <value>{0:N0} — most shown</value>
+    <comment>Map legend, stations overlay, at the top of the colour scale. {0} is the largest number on the map.</comment>
+  </data>
+  <data name="LegendHighestShown" xml:space="preserve">
+    <value>{0:N0} — highest shown</value>
+    <comment>Map legend, at the top of a colour scale. {0} is the largest number on the map.</comment>
+  </data>
+  <data name="StatusRegionSystems" xml:space="preserve">
+    <value>{0}: {1} systems</value>
+    <comment>Map status line after opening a region. {0} is its name, {1} how many systems it has.</comment>
+  </data>
+  <data name="StatusRegionSystemsAdjacent" xml:space="preserve">
+    <value>{0}: {1} systems · {2} adjacent systems in neighbouring regions</value>
+    <comment>Map status line after opening a region. {0} is its name, {1} how many systems it has, {2} how many systems of other regions are drawn at its edges.</comment>
+  </data>
+  <data name="CountPlanetsOne" xml:space="preserve">
+    <value>{0:N0} planet</value>
+    <comment>Map tooltip, planets overlay. {0} is the number (one).</comment>
+  </data>
+  <data name="CountPlanetsOther" xml:space="preserve">
+    <value>{0:N0} planets</value>
+    <comment>Map tooltip, planets overlay. {0} is the number.</comment>
+  </data>
+  <data name="CountMoonsOne" xml:space="preserve">
+    <value>{0:N0} moon</value>
+    <comment>Map tooltip, moons overlay. {0} is the number (one).</comment>
+  </data>
+  <data name="CountMoonsOther" xml:space="preserve">
+    <value>{0:N0} moons</value>
+    <comment>Map tooltip, moons overlay. {0} is the number.</comment>
+  </data>
+  <data name="CountBeltsOne" xml:space="preserve">
+    <value>{0:N0} asteroid belt</value>
+    <comment>Map tooltip, asteroid belts overlay. {0} is the number (one).</comment>
+  </data>
+  <data name="CountBeltsOther" xml:space="preserve">
+    <value>{0:N0} asteroid belts</value>
+    <comment>Map tooltip, asteroid belts overlay. {0} is the number.</comment>
+  </data>
+  <data name="CountPlayersOne" xml:space="preserve">
+    <value>{0:N0} player</value>
+    <comment>Map tooltip, intel overlay: pilots believed to be in the system now. {0} is the number (one).</comment>
+  </data>
+  <data name="CountPlayersOther" xml:space="preserve">
+    <value>{0:N0} players</value>
+    <comment>Map tooltip, intel overlay: pilots believed to be in the system now. {0} is the number.</comment>
+  </data>
+  <data name="CountPlayersReportedOne" xml:space="preserve">
+    <value>{0:N0} player reported</value>
+    <comment>Map tooltip, intel paths overlay: pilots reported in the system in the period, including reports since replaced. {0} is the number (one).</comment>
+  </data>
+  <data name="CountPlayersReportedOther" xml:space="preserve">
+    <value>{0:N0} players reported</value>
+    <comment>Map tooltip, intel paths overlay: pilots reported in the system in the period, including reports since replaced. {0} is the number.</comment>
+  </data>
+  <data name="CountPower" xml:space="preserve">
+    <value>{0:N0} power</value>
+    <comment>Map tooltip, planetary power overlay: the power the system's planets supply. {0} is the amount.</comment>
+  </data>
+  <data name="CountWorkforce" xml:space="preserve">
+    <value>{0:N0} workforce</value>
+    <comment>Map tooltip, planetary workforce overlay: the workforce the system's planets supply. {0} is the amount.</comment>
+  </data>
+  <data name="CountPodKillsOne" xml:space="preserve">
+    <value>{0:N0} pod kill</value>
+    <comment>Map tooltip, pod kills overlay: capsules destroyed. {0} is the number (one).</comment>
+  </data>
+  <data name="CountPodKillsOther" xml:space="preserve">
+    <value>{0:N0} pod kills</value>
+    <comment>Map tooltip, pod kills overlay: capsules destroyed. {0} is the number.</comment>
+  </data>
+  <data name="CountShipKillsOne" xml:space="preserve">
+    <value>{0:N0} ship kill</value>
+    <comment>Map tooltip, ship kills overlay: ships destroyed. {0} is the number (one).</comment>
+  </data>
+  <data name="CountShipKillsOther" xml:space="preserve">
+    <value>{0:N0} ship kills</value>
+    <comment>Map tooltip, ship kills overlay: ships destroyed. {0} is the number.</comment>
+  </data>
+  <data name="CountJumpsOne" xml:space="preserve">
+    <value>{0:N0} jump</value>
+    <comment>Map tooltip, ship jumps overlay: jumps through the system. {0} is the number (one).</comment>
+  </data>
+  <data name="CountJumpsOther" xml:space="preserve">
+    <value>{0:N0} jumps</value>
+    <comment>Map tooltip, ship jumps overlay: jumps through the system. {0} is the number.</comment>
+  </data>
+  <data name="CountNpcKillsOne" xml:space="preserve">
+    <value>{0:N0} NPC kill</value>
+    <comment>Map tooltip, NPC kills overlay: NPCs destroyed. {0} is the number (one).</comment>
+  </data>
+  <data name="CountNpcKillsOther" xml:space="preserve">
+    <value>{0:N0} NPC kills</value>
+    <comment>Map tooltip, NPC kills overlay: NPCs destroyed. {0} is the number.</comment>
+  </data>
+  <data name="CountNpcStationsOne" xml:space="preserve">
+    <value>{0:N0} NPC station</value>
+    <comment>Map tooltip, stations overlay; followed by the player structures. {0} is the number (one).</comment>
+  </data>
+  <data name="CountNpcStationsOther" xml:space="preserve">
+    <value>{0:N0} NPC stations</value>
+    <comment>Map tooltip, stations overlay; followed by the player structures. {0} is the number.</comment>
+  </data>
+  <data name="CountKnownStructuresOne" xml:space="preserve">
+    <value>{0:N0} known player structure</value>
+    <comment>Map tooltip, stations overlay: player structures this app has seen. {0} is the number (one).</comment>
+  </data>
+  <data name="CountKnownStructuresOther" xml:space="preserve">
+    <value>{0:N0} known player structures</value>
+    <comment>Map tooltip, stations overlay: player structures this app has seen. {0} is the number.</comment>
+  </data>
+  <data name="NodeSecurity" xml:space="preserve">
+    <value>Security {0:F2}</value>
+    <comment>Map tooltip on a system, security overlay. {0} is its security status.</comment>
+  </data>
+  <data name="NodeAdm" xml:space="preserve">
+    <value>ADM {0:F1}</value>
+    <comment>Map tooltip on a system, ADM overlay. {0} is its Activity Defense Multiplier (ADM).</comment>
+  </data>
+  <data name="NodeAdmRegionAverage" xml:space="preserve">
+    <value>ADM {0:F1} (region average)</value>
+    <comment>Map tooltip on a region, ADM overlay. {0} is the average Activity Defense Multiplier (ADM) of its systems.</comment>
+  </data>
+  <data name="NodeIndex" xml:space="preserve">
+    <value>{0} index {1:F2}%</value>
+    <comment>Map tooltip on a system, industry overlay. {0} is the activity in lower case (e.g. manufacturing), {1} its cost index as a percentage.</comment>
+  </data>
+  <data name="NodeIndexRegionAverage" xml:space="preserve">
+    <value>{0} index {1:F2}% (region average)</value>
+    <comment>Map tooltip on a region, industry overlay. {0} is the activity in lower case (e.g. manufacturing), {1} the average cost index of its systems as a percentage.</comment>
+  </data>
+  <data name="NodeNoIndex" xml:space="preserve">
+    <value>No index recorded</value>
+    <comment>Map tooltip, industry overlay: no cost index is stored for the system.</comment>
+  </data>
+  <data name="LegendHighestRegionShown" xml:space="preserve">
+    <value>{0:F2}% — highest region shown</value>
+    <comment>Map legend, industry overlay, at the top of the colour scale. {0} is the highest cost index among the regions on the map.</comment>
+  </data>
+  <data name="LegendHighestSystemShown" xml:space="preserve">
+    <value>{0:F2}% — highest system shown</value>
+    <comment>Map legend, industry overlay, at the top of the colour scale. {0} is the highest cost index among the systems on the map.</comment>
+  </data>
+  <data name="IndexActivityManufacturing" xml:space="preserve">
+    <value>manufacturing</value>
+    <comment>An industry activity, in lower case for the middle of the industry overlay's tooltip ("manufacturing index 4.52%").</comment>
+  </data>
+  <data name="IndexActivityReaction" xml:space="preserve">
+    <value>reaction</value>
+    <comment>An industry activity, in lower case for the middle of the industry overlay's tooltip ("reaction index 4.52%").</comment>
+  </data>
+  <data name="IndexActivityMeResearch" xml:space="preserve">
+    <value>researching material efficiency</value>
+    <comment>An industry activity, in lower case for the middle of the industry overlay's tooltip ("researching material efficiency index 4.52%").</comment>
+  </data>
+  <data name="IndexActivityTeResearch" xml:space="preserve">
+    <value>researching time efficiency</value>
+    <comment>An industry activity, in lower case for the middle of the industry overlay's tooltip ("researching time efficiency index 4.52%").</comment>
+  </data>
+  <data name="IndexActivityCopying" xml:space="preserve">
+    <value>copying</value>
+    <comment>An industry activity (blueprint copying), in lower case for the middle of the industry overlay's tooltip ("copying index 4.52%").</comment>
+  </data>
+  <data name="IndexActivityInvention" xml:space="preserve">
+    <value>invention</value>
+    <comment>An industry activity, in lower case for the middle of the industry overlay's tooltip ("invention index 4.52%").</comment>
+  </data>
+  <data name="FactionUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Map tooltip, faction warfare overlay: the faction holding the system is not known.</comment>
+  </data>
+  <data name="NodeVictoryPoints" xml:space="preserve">
+    <value>{0:N0}/{1:N0} VP</value>
+    <comment>Map tooltip, faction warfare overlay. {0} is the victory points (VP) gained against the system, {1} how many would take it.</comment>
+  </data>
+  <data name="FwCaptured" xml:space="preserve">
+    <value>captured</value>
+    <comment>A faction warfare system's state (ESI's word, lower case in English): taken by the other side.</comment>
+  </data>
+  <data name="FwContested" xml:space="preserve">
+    <value>contested</value>
+    <comment>A faction warfare system's state (ESI's word, lower case in English): being fought over.</comment>
+  </data>
+  <data name="FwUncontested" xml:space="preserve">
+    <value>uncontested</value>
+    <comment>A faction warfare system's state (ESI's word, lower case in English): nobody is fighting over it.</comment>
+  </data>
+  <data name="FwVulnerable" xml:space="preserve">
+    <value>vulnerable</value>
+    <comment>A faction warfare system's state (ESI's word, lower case in English): it can be captured now.</comment>
+  </data>
+  <data name="IncursionEstablished" xml:space="preserve">
+    <value>established</value>
+    <comment>A Sansha incursion's state (ESI's word, lower case in English): in the map legend and tooltips.</comment>
+  </data>
+  <data name="IncursionMobilizing" xml:space="preserve">
+    <value>mobilizing</value>
+    <comment>A Sansha incursion's state (ESI's word, lower case in English): in the map legend and tooltips.</comment>
+  </data>
+  <data name="IncursionWithdrawing" xml:space="preserve">
+    <value>withdrawing</value>
+    <comment>A Sansha incursion's state (ESI's word, lower case in English): in the map legend and tooltips.</comment>
+  </data>
+  <data name="NodeStaging" xml:space="preserve">
+    <value>staging</value>
+    <comment>Caption in a system box, incursion overlay: the incursion's staging system. Very short.</comment>
+  </data>
+  <data name="NodeStagingSystem" xml:space="preserve">
+    <value>staging system</value>
+    <comment>Part of a map tooltip, incursion overlay, between · separators: this is the incursion's staging system.</comment>
+  </data>
+  <data name="NodeInfluence" xml:space="preserve">
+    <value>influence {0:F0}%</value>
+    <comment>Part of a map tooltip, incursion overlay, between · separators. {0} is the incursion's influence as a percentage.</comment>
+  </data>
+  <data name="NodeBossUp" xml:space="preserve">
+    <value>boss up</value>
+    <comment>Part of a map tooltip, incursion overlay, after a · separator: the incursion's boss (its final encounter) has appeared.</comment>
+  </data>
+  <data name="LegendStagingSystem" xml:space="preserve">
+    <value>Staging system</value>
+    <comment>Map legend, incursion overlay: the colour of an incursion's staging system.</comment>
+  </data>
+  <data name="LegendIncursionsActive" xml:space="preserve">
+    <value>{0} active</value>
+    <comment>Map legend, incursion overlay. {0} is how many incursions are running.</comment>
+  </data>
+  <data name="SecBandHigh" xml:space="preserve">
+    <value>High sec</value>
+    <comment>Security band of a system whose security rounds to 0.5 or above (high security space). Starts the security tooltip (SecurityTip) shown on the Map, Assets, Market and other screens.</comment>
+  </data>
+  <data name="SecBandLow" xml:space="preserve">
+    <value>Low sec</value>
+    <comment>Security band of a system whose security rounds to 0.1–0.4 (low security space). Starts the security tooltip (SecurityTip).</comment>
+  </data>
+  <data name="SecBandNull" xml:space="preserve">
+    <value>Null sec</value>
+    <comment>Security band of a system at 0.0 or below (null security space). Starts the security tooltip (SecurityTip).</comment>
+  </data>
+  <data name="SecurityTip" xml:space="preserve">
+    <value>{0} · true security {1}</value>
+    <comment>Tooltip on a system's security status, on the Map, Assets, Market and other screens. {0} is the band (SecBandHigh, SecBandLow or SecBandNull), {1} the system's true security, e.g. 0.4502.</comment>
+  </data>
+  <data name="GoToRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Map, GO TO box: the small line under a suggestion that is a region (a system's line shows its security and region instead).</comment>
+  </data>
+  <data name="AlternativeDetail" xml:space="preserve">
+    <value>{0} · in {1:N2} ly · out {2:N2} ly</value>
+    <comment>Jump Planner, the list of systems that could replace a midpoint: the small line under each system. {0} is its region, {1} the jump to it from the stop before, {2} the jump on to the next stop, both in light years (ly).</comment>
+  </data>
+  <data name="FuelIsotopes" xml:space="preserve">
+    <value>Isotopes</value>
+    <comment>Jump Planner: the fuel's name in the route totals when the hull's isotope type is not known.</comment>
+  </data>
+  <data name="BadgeNpcStation" xml:space="preserve">
+    <value>NPC station</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by · (beside Keepstar and Fortizar, which are structure names): the system has an NPC station.</comment>
+  </data>
+  <data name="BadgePlayerStructuresOne" xml:space="preserve">
+    <value>{0} player structure</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by ·: how many player structures the system has (when none is a Keepstar or Fortizar). {0} is the number (one).</comment>
+  </data>
+  <data name="BadgePlayerStructuresOther" xml:space="preserve">
+    <value>{0} player structures</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by ·: how many player structures the system has (when none is a Keepstar or Fortizar). {0} is the number.</comment>
+  </data>
+  <data name="BadgeMoreStructures" xml:space="preserve">
+    <value>+{0} more</value>
+    <comment>Jump Planner map tooltip, after Keepstar or Fortizar in the line of things a system offers: how many other player structures the system has. {0} is the number.</comment>
+  </data>
+  <data name="RouteStartHighSec" xml:space="preserve">
+    <value>The starting system is in high security space, which is closed to capitals — a jump drive cannot leave from there.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteDestinationHighSec" xml:space="preserve">
+    <value>The destination cannot be reached by jump drive — high security space is closed to capitals.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteSameSystem" xml:space="preserve">
+    <value>The start and the destination are the same system.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteNoneKeepstar" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump using only known Keepstar systems. Widening the midpoints, or resolving more structures, would be needed.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem), when the route may stop only in Keepstar systems (Keepstar is a structure name). {0} is the jump range in light years (ly).</comment>
+  </data>
+  <data name="RouteNoneStations" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump using only station systems.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem), when the route may stop only in systems with an NPC station or a player structure. {0} is the jump range in light years (ly).</comment>
+  </data>
+  <data name="RouteNone" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump. A longer-ranged hull or more Jump Drive Calibration would be needed.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): no route at this range. {0} is the jump range in light years (ly); Jump Drive Calibration is a skill's name.</comment>
+  </data>
+  <data name="IndexShortManufacturing" xml:space="preserve">
+    <value>Mfg</value>
+    <comment>System page header, industry indices: short name for the manufacturing cost index, before its value ("Mfg 4.52%"). Keep it as short as the game's own abbreviations.</comment>
+  </data>
+  <data name="IndexShortTimeEfficiency" xml:space="preserve">
+    <value>TE</value>
+    <comment>System page header, industry indices: short name for the time efficiency research cost index, before its value. EVE's abbreviation (TE).</comment>
+  </data>
+  <data name="IndexShortMaterialEfficiency" xml:space="preserve">
+    <value>ME</value>
+    <comment>System page header, industry indices: short name for the material efficiency research cost index, before its value. EVE's abbreviation (ME).</comment>
+  </data>
+  <data name="IndexShortCopying" xml:space="preserve">
+    <value>Copy</value>
+    <comment>System page header, industry indices: short name for the blueprint copying cost index (a noun), before its value. Very short.</comment>
+  </data>
+  <data name="IndexShortInvention" xml:space="preserve">
+    <value>Inv</value>
+    <comment>System page header, industry indices: short name for the invention cost index, before its value. Very short.</comment>
+  </data>
+  <data name="IndexShortReaction" xml:space="preserve">
+    <value>Rxn</value>
+    <comment>System page header, industry indices: short name for the reactions cost index, before its value. Very short.</comment>
+  </data>
+  <data name="SovWindow" xml:space="preserve">
+    <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm} ({2:F0}h)</value>
+    <comment>System page, sovereignty structures, Vulnerability window column. {0} is when the window opens (date and time), {1} when it closes (time), {2} how many hours (h) it lasts.</comment>
+  </data>
+  <data name="SovStructureFallbackType" xml:space="preserve">
+    <value>Sovereignty structure</value>
+    <comment>System page, sovereignty structures, Type column: a structure whose type is not known.</comment>
+  </data>
+  <data name="SovHolderNoOne" xml:space="preserve">
+    <value>no one</value>
+    <comment>System page, sovereignty changes: who held the system before it was first claimed, or after it was lost, as in "no one → an alliance". Lower case.</comment>
+  </data>
+  <data name="FallbackStationType" xml:space="preserve">
+    <value>Station</value>
+    <comment>System page, structure lists, Type column: an NPC station whose type is not known.</comment>
+  </data>
+  <data name="FallbackUnknownType" xml:space="preserve">
+    <value>Unknown type</value>
+    <comment>System page, structure lists, Type column: a player structure whose type is not known.</comment>
+  </data>
+  <data name="SovStateVulnerable" xml:space="preserve">
+    <value>Vulnerable</value>
+    <comment>System page, sovereignty structures, State column: the structure is inside its vulnerability window and can be attacked now.</comment>
+  </data>
+  <data name="SovStateInvulnerable" xml:space="preserve">
+    <value>Invulnerable</value>
+    <comment>System page, sovereignty structures, State column: the structure is outside its vulnerability window and cannot be attacked now.</comment>
+  </data>
+  <data name="SovStateUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>System page, sovereignty structures, State column: no vulnerability window is known for the structure.</comment>
+  </data>
+  <data name="SovEventGained" xml:space="preserve">
+    <value>Sovereignty gained</value>
+    <comment>System page, sovereignty changes and the Events tab: the kind of event — an alliance took sovereignty of the system.</comment>
+  </data>
+  <data name="SovEventLost" xml:space="preserve">
+    <value>Sovereignty lost</value>
+    <comment>System page, sovereignty changes and the Events tab: the kind of event — the holder lost sovereignty and nobody holds the system.</comment>
+  </data>
+  <data name="ReagentMagmaticGasPerHour" xml:space="preserve">
+    <value>{0:N0}/h Magmatic Gas</value>
+    <comment>System page, Celestials tab, Reagent column: what a lava planet yields per hour (/h). {0} is the amount; Magmatic Gas is the game's item name.</comment>
+  </data>
+  <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
+    <value>{0:N0}/h Superionic Ice</value>
+    <comment>System page, Celestials tab, Reagent column: what an ice planet yields per hour (/h). {0} is the amount; Superionic Ice is the game's item name.</comment>
+  </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Constellation · {0}</value>
+    <comment>Map tool search: the small line under a suggestion that is a constellation. {0} is its region.</comment>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>LIVE MARKS</value>
+    <comment>Label in UniverseView's side panel, above the legend of the live marks on the map.</comment>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly. "!": intel said something here (a spike, bubbles, a camp) but counted nobody.</value>
+    <comment>Legend beside the red round mark on the map.</comment>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Your characters online here. Hover for their ships and whether they are docked.</value>
+    <comment>Legend beside the blue square mark on the map.</comment>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Drag along the strip to reorder, or onto the right half to see two tabs side by side.</value>
+    <comment>Tooltip on a tab of the map tool.</comment>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Close this tab</value>
+    <comment>Tooltip on a map tool tab's close button.</comment>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ New map</value>
+    <comment>Button above the map tool's tabs: opens a map of New Eden in a new tab.</comment>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Open a map of New Eden in a new tab</value>
+    <comment>Tooltip on the New map button.</comment>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>system, constellation or region</value>
+    <comment>Hint in the map tool's empty search box.</comment>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Opens what you pick in a new tab: a system's page, or a map framed on the constellation or region.</value>
+    <comment>Tooltip on the map tool's search box.</comment>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>No tabs open. Add a map with + New map, or search for a system, constellation or region.</value>
+    <comment>Shown in the map tool when every tab is closed. '+ New map' is the button's text (NewUniverseTab).</comment>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Drop here to see two tabs side by side</value>
+    <comment>Target shown on the right half of the map tool while a tab is dragged.</comment>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Hostiles in {1}: {0}</value>
+    <comment>Map hover on the red mark. {0} is the number of hostiles, {1} the system or region.</comment>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Your characters in {1}: {0}</value>
+    <comment>Map hover on the blue mark. {0} is the number of characters, {1} the system or region.</comment>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map hover on a region's mark, one line per system. {0} is the system, {1} the number.</comment>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+    <comment>Map hover, one line per hostile pilot. {0} pilot, {1} ship, {2} how long ago (LiveJustNow or LiveMinutesAgo), {3} what placed them (LiveSource...).</comment>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>ship unknown</value>
+    <comment>Map hover: in place of a ship nobody reported.</comment>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>just now</value>
+    <comment>Map hover: placed less than a minute ago.</comment>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+    <comment>Map hover: placed {0} minutes ago.</comment>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>killmail</value>
+    <comment>Map hover: the pilot was placed by a killmail.</comment>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>intel</value>
+    <comment>Map hover: the pilot was placed by an intel report.</comment>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>intel, no visual</value>
+    <comment>Map hover: placed by an intel report that said NV (in local, not seen on grid).</comment>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…and {0} more</value>
+    <comment>Map hover: pilots beyond the ones listed. {0} is how many.</comment>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} not named</value>
+    <comment>Map hover: pilots an intel report counted without naming. {0} is how many.</comment>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+    <comment>Map hover, one line per own character. {0} character, {1} ship, {2} where (LiveInSpace, LiveDocked or LiveDockedAt).</comment>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>in space</value>
+    <comment>Map hover: the character is undocked.</comment>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>docked at {0}</value>
+    <comment>Map hover: docked. {0} is the station or structure.</comment>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>docked</value>
+    <comment>Map hover: docked where the name is not known.</comment>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Map hover: a pilot whose name has not been looked up yet. {0} is the character's id.</comment>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Details</value>
+    <comment>Toggle button at the right of the map's toolbar: shows or hides the details and legend panel.</comment>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Show or hide the details and legend on the right</value>
+    <comment>Tooltip on the Details toggle.</comment>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Button above the map tool's tabs, and the title of the jump bridges tab.</comment>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Every jump bridge known — from ESI or added by hand — and adding more</value>
+    <comment>Tooltip on the Jump bridges button.</comment>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Toggle in the map's toolbar: draws jump bridges on the map.</comment>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Show or hide jump bridges on the map</value>
+    <comment>Tooltip on the Jump bridges toggle.</comment>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Jump bridge: {0} ⇄ {1}</value>
+    <comment>Map hover on a jump bridge. {0} and {1} are its two systems.</comment>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>fuel until {0}</value>
+    <comment>Map hover, after a gate's name. {0} is the date its fuel runs out.</comment>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI shows only the gate in {0}</value>
+    <comment>Map hover: the gate at the other end belongs to a corporation without a token. {0} is the system of the gate that is seen.</comment>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>A jump bridge the user entered, not one read from ESI.</comment>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Jump bridges: {0} · from ESI: {1} · added by hand: {2}</value>
+    <comment>Top of the jump bridges tab. {0} total, {1} read from ESI, {2} entered by hand (a bridge can be both).</comment>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Bridges from ESI are the Ansiblexes of corporations you have added a token for, and they go where their names say ("A » B"). Add the rest by hand: other corporations' and allies' bridges. Only bridges added by hand can be removed here.</value>
+    <comment>Explanation at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>No jump bridges known yet.</value>
+    <comment>Jump bridges tab, empty list.</comment>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>GATES WHOSE NAME DOES NOT SAY WHERE THEY GO</value>
+    <comment>Label above the Ansiblexes ESI shows whose names are not in the 'A » B' form.</comment>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (in {1})</value>
+    <comment>One unreadable gate. {0} its name, {1} its system.</comment>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(no name)</value>
+    <comment>In place of a gate's name when ESI has none.</comment>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: one end of the bridge.</comment>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: the other end of the bridge.</comment>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>SOURCE</value>
+    <comment>Column: where the bridge is known from.</comment>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>FUEL</value>
+    <comment>Column: days of fuel left in the first gate to run out.</comment>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>GATES</value>
+    <comment>Column: the gates' names and owners.</comment>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, both gates</value>
+    <comment>Source: both gates are seen through ESI.</comment>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, one gate</value>
+    <comment>Source: only one gate is seen through ESI; its name says where the other is.</comment>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>Source: entered by the user.</comment>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI and by hand</value>
+    <comment>Source: seen through ESI and also entered by hand.</comment>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} days ({1})</value>
+    <comment>Fuel column. {0} whole days left, {1} the date it runs out.</comment>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Open this system in a tab</value>
+    <comment>Tooltip on a system name in the jump bridges list.</comment>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Remove this bridge</value>
+    <comment>Tooltip on the remove button of a bridge added by hand.</comment>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>ADD A BRIDGE</value>
+    <comment>Label above the pickers for adding one bridge.</comment>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>one end (system)</value>
+    <comment>Hint in the first system picker.</comment>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>other end (system)</value>
+    <comment>Hint in the second system picker.</comment>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>note (optional)</value>
+    <comment>Hint in the note box.</comment>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button: adds the bridge between the two picked systems.</comment>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Pick a system for each end.</value>
+    <comment>Shown when Add is pressed without two systems picked.</comment>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Added {0} ⇄ {1}.</value>
+    <comment>After a bridge is added. {0} and {1} its systems.</comment>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>That bridge is already in the list, or both ends are the same system.</value>
+    <comment>Shown when Add adds nothing.</comment>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>PASTE A LIST</value>
+    <comment>Label above the box for pasting many bridges.</comment>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>One bridge per line, for example:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+or as another tool exports them</value>
+    <comment>Hint in the paste box. The system names are invented examples; keep them as they are.</comment>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Import</value>
+    <comment>Button: adds every bridge in the pasted list.</comment>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Added {0} · already known {1} · not read {2} (left in the box)</value>
+    <comment>After an import. {0} added, {1} already in the list, {2} lines naming fewer than two systems, which stay in the box.</comment>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Jump bridge — each half in the zone colour of its end; fainter when ESI shows only one gate</value>
+    <comment>Map legend, beside the dashed violet line.</comment>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name has not been looked up yet. {0} is its id.</comment>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+    <comment>One direction of a jump bridge. {0} where the jump starts, {1} where it lands, {2} the alliance whose pilots may jump it, {3} the zone and cost (BridgeZoneFree / BridgeZoneCost / BridgeZoneNoCapital).</comment>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zone 1 ({0:0.0} ly from the capital), free</value>
+    <comment>Zone of a bridge jump that costs no capacitor. {0} light-years from the alliance capital to where the jump lands.</comment>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zone {0} ({1:0.0} ly from the capital), {2}× capacitor</value>
+    <comment>Zone of a bridge jump. {0} zone number, {1} light-years from the alliance capital to where the jump lands, {2} the multiple of the ship's base capacitor cost.</comment>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zone unknown (the alliance has no capital system)</value>
+    <comment>The alliance using the bridge has no capital, so the zone cannot be worked out.</comment>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: nobody holds sovereignty in {0}, so nobody can jump this way</value>
+    <comment>A bridge direction whose starting system has no sovereign alliance. {0} start, {1} destination.</comment>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Who may jump could not be read: sovereignty is not available right now.</value>
+    <comment>Shown when ESI's sovereignty data could not be read.</comment>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Since 22 September 2026 a bridge can be used only by the alliance holding sovereignty where the jump starts, and not by capital ships (Rorquals and freighters excepted). Each jump draws on the bridge's capacitor, more the further from that alliance's capital the jump lands: free within 5 ly (zone 1), then 2×, 6×, 9× and 15× the ship's base cost every 5 ly further.</value>
+    <comment>Rules summary at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Sovereignty zones</value>
+    <comment>Map overlay: each claimed system coloured by its Ansiblex zone (distance from its holder's capital).</comment>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+    <comment>Map box caption, Sovereignty zones overlay. {0} the zone number (or ?), {1} the holder, shortened. Z is short for zone.</comment>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1}: {2:0.0} ly from the capital, {3}</value>
+    <comment>Map hover, Sovereignty zones overlay. {0} holder, {1} zone, {2} light-years from the holder's capital, {3} the capital system.</comment>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+No capital system, so no zone</value>
+    <comment>Map hover, Sovereignty zones overlay: the holder has not set a capital. {0} holder.</comment>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: within 5 ly, free</value>
+    <comment>Legend, zone 1.</comment>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 ly, 2×</value>
+    <comment>Legend, zone 2: the bridge jump costs twice the ship's base capacitor cost.</comment>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 ly, 6×</value>
+    <comment>Legend, zone 3.</comment>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 ly, 9×</value>
+    <comment>Legend, zone 4.</comment>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: beyond 20 ly, 15×</value>
+    <comment>Legend, zone 5.</comment>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Holder has no capital system</value>
+    <comment>Legend: claimed, but the holder has no capital, so no zone.</comment>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>Route planner</value>
+    <comment>Map tool: the route planner's tab and the button above the tabs that opens it.</comment>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>Plan a route through gates, jump bridges, and Thera or Turnur</value>
+    <comment>Tooltip of the Route planner button. Thera and Turnur are solar systems.</comment>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>Jump planner</value>
+    <comment>Map tool: the capital jump planner's tab and the button that opens it.</comment>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>Plan a capital ship's jump route</value>
+    <comment>Tooltip of the Jump planner button.</comment>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>Clear route</value>
+    <comment>Map toolbar button: takes the planned route off this map.</comment>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>Take the planned routes off the map</value>
+    <comment>Tooltip of Clear route.</comment>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>Character</value>
+    <comment>Route planner: label of the character pick list.</comment>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — in {1}</value>
+    <comment>Route planner, character pick list: {0} a character's name, {1} the system they are in.</comment>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>Their alliance decides which jump bridges are open: only the alliance holding sovereignty where a jump starts may use it.</value>
+    <comment>Route planner, under the character pick list.</comment>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>From</value>
+    <comment>Route planner: label of the start system.</comment>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>To</value>
+    <comment>Route planner: label of the destination system.</comment>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>System name</value>
+    <comment>Route planner: placeholder in the from and to boxes.</comment>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>Here</value>
+    <comment>Route planner: button that starts the route where the character is.</comment>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>Start from where the character is</value>
+    <comment>Tooltip of Here.</comment>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>Swap from and to</value>
+    <comment>Tooltip of the swap arrows between From and To.</comment>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>Prefer</value>
+    <comment>Route planner: label of the route preference pick list.</comment>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>Shortest</value>
+    <comment>Route preference: fewest jumps.</comment>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>Safer (high security)</value>
+    <comment>Route preference: keep to high-security space where possible.</comment>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>Less secure (low and null)</value>
+    <comment>Route preference: keep out of high-security space where possible.</comment>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>Use jump bridges</value>
+    <comment>Route planner tick box.</comment>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Use Thera and Turnur</value>
+    <comment>Route planner tick box: route through the wormholes of Thera and Turnur.</comment>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>Wormholes listed by EVE-Scout (Settings → Map Data)</value>
+    <comment>Tooltip of Use Thera and Turnur. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Route planner: label of the ship size pick list (which wormholes the ship fits through).</comment>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>Frigate or destroyer</value>
+    <comment>Ship size for wormholes: small.</comment>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>Cruiser or battlecruiser</value>
+    <comment>Ship size for wormholes: medium.</comment>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>Battleship</value>
+    <comment>Ship size for wormholes: large.</comment>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>Freighter</value>
+    <comment>Ship size for wormholes: extra large.</comment>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>Avoid list</value>
+    <comment>Route planner: button that shows or hides the avoid list.</comment>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>Show or hide the systems routes keep out of</value>
+    <comment>Tooltip of Avoid list.</comment>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>Systems avoided: {0}</value>
+    <comment>Route planner: how many systems are on the avoid list.</comment>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>Add a system to avoid</value>
+    <comment>Route planner: placeholder of the box that adds a system to the avoid list.</comment>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>Take off the avoid list</value>
+    <comment>Tooltip of the × beside a system on the avoid list.</comment>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>Right-click a system on the map or in a route to add or remove it.</value>
+    <comment>Route planner, under the avoid list.</comment>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>Add {0} to the avoid list</value>
+    <comment>Right-click menu on a system. {0} is the system.</comment>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>Remove {0} from the avoid list</value>
+    <comment>Right-click menu on a system. {0} is the system.</comment>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>Capitals cannot use jump bridges, except Rorquals, freighters and jump freighters. The game's autopilot is given each bridge as a waypoint; it picks the gates in between itself.</value>
+    <comment>Route planner, at the foot of its settings.</comment>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>Show on map</value>
+    <comment>Route planner button: shows the route on a map tab.</comment>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>Set destination</value>
+    <comment>Route planner button: sends the route to the game's autopilot.</comment>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>Send the route to the game's autopilot for the chosen character</value>
+    <comment>Tooltip of Set destination.</comment>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>Pick a system to start from and one to go to.</value>
+    <comment>Route planner message.</comment>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>No route: the systems are not connected in the ways allowed, or the avoid list closes every way.</value>
+    <comment>Route planner message.</comment>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>{0} jumps — {1} by jump bridge, {2} by wormhole · lowest security {3}</value>
+    <comment>Route planner, above the route. {0} total jumps, {1} of them by jump bridge, {2} by wormhole, {3} the lowest security status on the route.</comment>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>Some bridges on this route have no known sovereignty holder, so who may use them is not known.</value>
+    <comment>Route planner message.</comment>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>Destination set for {0} ({1} waypoints). Each bridge or wormhole is yours to jump.</value>
+    <comment>Route planner message. {0} a character's name, {1} how many waypoints were set.</comment>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>The destination was not set: {0}</value>
+    <comment>Route planner message. {0} is the reason, as ESI gave it.</comment>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>Start</value>
+    <comment>Route planner, Via column: the first system.</comment>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>Gate</value>
+    <comment>Route planner, Via column: reached by stargate.</comment>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>Jump bridge</value>
+    <comment>Route planner, Via column: reached by jump bridge.</comment>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>Jump bridge · zone {0}, {1}× capacitor</value>
+    <comment>Route planner, Via column. {0} the zone, {1} the capacitor cost multiplier.</comment>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>Wormhole {0} → {1}</value>
+    <comment>Route planner, Via column: reached by wormhole. {0} the signature to warp to, {1} the one it lands on.</comment>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>Wormhole</value>
+    <comment>Route planner, Via column: reached by wormhole, signatures not known.</comment>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>Via</value>
+    <comment>Route planner column: how a system was reached.</comment>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Hostiles</value>
+    <comment>Route planner column: hostiles reported there in the last 5 minutes.</comment>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>Kills (1 h)</value>
+    <comment>Route planner column: ship and pod kills there in the last hour.</comment>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+    <comment>Map toolbar toggle: shows the Thera and Turnur wormhole connections. Thera and Turnur are solar systems.</comment>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Show Thera and Turnur connections, as EVE-Scout lists them</value>
+    <comment>Tooltip of the Thera / Turnur toggle. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Wormhole to Thera (Θ) or Turnur (T); dashed lines from Turnur. Hover for the signatures.</value>
+    <comment>Map legend, live marks. Θ and T are the marks drawn.</comment>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Capital</value>
+    <comment>Wormhole size: takes capital ships.</comment>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Wormholes in {0}</value>
+    <comment>Map hover on a system's wormhole mark. {0} the system.</comment>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} here, {2} on the far side · up to {3} · {4}</value>
+    <comment>Map hover, one wormhole. {0} Thera or Turnur, {1} the signature in this system, {2} the one in Thera/Turnur, {3} the largest ship (e.g. Battleship), {4} the time left (HoleHoursLeft).</comment>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Wormholes from {0}: {1}</value>
+    <comment>Map hover on Turnur's mark. {0} the system, {1} how many wormholes.</comment>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} here, {3} on the far side · up to {4} · {5}</value>
+    <comment>Map hover, one of Turnur's wormholes. {0} the system it leads to, {1} its region, {2} the signature in Turnur, {3} the one at the far end, {4} the largest ship, {5} the time left.</comment>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Thera and Turnur wormholes in {0}</value>
+    <comment>Map hover on a region's wormhole mark. {0} the region.</comment>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+    <comment>Map hover, a region's wormholes: {0} the system, {1} Thera or Turnur.</comment>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>{0} h left</value>
+    <comment>How long a wormhole has left. {0} whole hours.</comment>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>under an hour left</value>
+    <comment>A wormhole with less than an hour left.</comment>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>All online</value>
+    <comment>Set destination drop-down: every character logged in.</comment>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>No character is logged in; the game only takes a destination for a character who is.</value>
+    <comment>Route planner message.</comment>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Clear the route here and on the map</value>
+    <comment>Tooltip of the route planner's Clear button.</comment>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Draw the route on the Universe Map's tabs</value>
+    <comment>Tooltip of the Show on map tick box (route planner and jump planner).</comment>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Ansiblex zone</value>
+    <comment>System page header: label of the system's Ansiblex zone.</comment>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zone {0} · {1:0.0} ly from {2}, the capital · jump bridges landing here: {3}</value>
+    <comment>System page header. {0} the zone (1–5), {1} light-years from the holding alliance's capital, {2} the capital system, {3} SysZoneFree or SysZoneCost.</comment>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>free</value>
+    <comment>System page: a jump bridge landing in zone 1 uses no capacitor.</comment>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× capacitor</value>
+    <comment>System page: a jump bridge landing here costs the ship's base cost times {0}.</comment>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>The holder has no capital system, so no zone</value>
+    <comment>System page header, Ansiblex zone.</comment>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Now</value>
+    <comment>System page header: label of who is placed in the system now.</comment>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} hostiles placed here in the last 5 minutes: {1}</value>
+    <comment>System page header. {0} how many, {1} their names with ships.</comment>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Your characters here: {0}</value>
+    <comment>System page header. {0} their names.</comment>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>System page, Overview: the jump bridges from this system.</comment>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera and Turnur</value>
+    <comment>System page, Overview: Thera and Turnur wormholes in this system, from EVE-Scout.</comment>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Leads to</value>
+    <comment>Column: the system a jump bridge or wormhole leads to.</comment>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Gate here</value>
+    <comment>Column: the jump bridge's gate in this system.</comment>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Who may jump</value>
+    <comment>Column: each way across a jump bridge, who may use it and its zone.</comment>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Signature here</value>
+    <comment>Column: the wormhole's signature in this system.</comment>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Far side</value>
+    <comment>Column: the wormhole's signature at the other end.</comment>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Up to</value>
+    <comment>Column: the largest ship a wormhole takes.</comment>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Left</value>
+    <comment>Column: how long a wormhole has left.</comment>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Sovereignty standings</value>
+    <comment>Map overlay: each claimed system coloured by your standing towards its holder.</comment>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Yours</value>
+    <comment>Standing band: the holder is one of your own alliances or corporations.</comment>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Excellent</value>
+    <comment>Standing band: +5 and above (the game's dark blue).</comment>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Good</value>
+    <comment>Standing band: above 0, below +5.</comment>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Neutral</value>
+    <comment>Standing band: 0, or no contact set.</comment>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Bad</value>
+    <comment>Standing band: below 0, above -5.</comment>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Terrible</value>
+    <comment>Standing band: -5 and below.</comment>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+    <comment>Map hover, Sovereignty standings. {0} the holder, {1} the band, {2} the standing.</comment>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map legend, Sovereignty standings. {0} the band, {1} how many systems.</comment>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>From your characters', corporations' and alliances' contacts; the alliance's say wins over the corporation's, and that over a character's.</value>
+    <comment>Map legend note, Sovereignty standings.</comment>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+    <comment>Map hover, a region's incursions. {0} the constellation, {1} the state, {2} influence in percent, {3} the faction.</comment>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Incursion</value>
+    <comment>System page header: label of the incursion in this constellation.</comment>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · {1:0}% influence · {2} · staging in {3}</value>
+    <comment>System page header. {0} the state, {1} influence in percent, {2} the faction, {3} the staging system (or SysIncursionStagingHere).</comment>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>this system</value>
+    <comment>System page: the incursion stages in the system shown.</comment>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Storms</value>
+    <comment>Map toolbar toggle: shows metaliminal storms reported to EVE-Scout.</comment>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Show metaliminal storms, as EVE-Scout lists them</value>
+    <comment>Tooltip of the Storms toggle. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Metaliminal storm (⚡), as reported to EVE-Scout. Hover for its kind.</value>
+    <comment>Map legend, live marks.</comment>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Weather in {0}</value>
+    <comment>Map hover on a storm mark. {0} the system.</comment>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Storms in {0}</value>
+    <comment>Map hover on a region's storm mark. {0} the region.</comment>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · here {1} h</value>
+    <comment>A storm. {0} its kind as EVE-Scout names it (English), {1} hours it has been in the system.</comment>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Weather</value>
+    <comment>System page header: label of a metaliminal storm in the system.</comment>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Sov campaigns</value>
+    <comment>Map toolbar toggle: shows sovereignty campaigns.</comment>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Show sovereignty campaigns: ⚔ where one is scheduled, a red ring once it is being fought</value>
+    <comment>Tooltip of the Sov campaigns toggle.</comment>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Sovereignty campaign (⚔); a red ring once it has started. Hover for the structure, defender, start and scores.</value>
+    <comment>Map legend, live marks.</comment>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Sov campaigns</value>
+    <comment>Map tool: the sovereignty campaigns tab and the button that opens it.</comment>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Every sovereignty campaign now and coming, from ESI</value>
+    <comment>Tooltip of the Sov campaigns button.</comment>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Sovereignty Hub</value>
+    <comment>A campaign over a Sovereignty Hub (ESI event type ihub_defense).</comment>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Territorial Claim Unit</value>
+    <comment>A campaign over a TCU (tcu_defense).</comment>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>A campaign over an outpost station (station_defense).</comment>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Freeport</value>
+    <comment>A freeport campaign (station_freeport).</comment>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} m</value>
+    <comment>A span of hours and minutes. {0} hours, {1} minutes.</comment>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} m</value>
+    <comment>A span of minutes.</comment>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>running for {0}</value>
+    <comment>A campaign that has started. {0} how long ago (DurationHm/DurationM).</comment>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>starts in {0}</value>
+    <comment>A campaign to come. {0} how long until it starts.</comment>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · local {1:g}</value>
+    <comment>A campaign's start: {0} in EVE time (UTC), {1} on this machine's clock.</comment>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>defender {0:0}% · attackers {1:0}%</value>
+    <comment>A campaign's scores, in percent.</comment>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · defended by {2}</value>
+    <comment>One campaign. {0} the structure, {1} when (CampaignRunning/CampaignStartsIn), {2} the defending alliance.</comment>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Sovereignty campaign in {0}</value>
+    <comment>Map hover on a campaign mark. {0} the system.</comment>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Sovereignty campaigns in {0}</value>
+    <comment>Map hover on a region's campaign mark. {0} the region.</comment>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map hover, a region's campaigns. {0} the system, {1} the campaign (CampaignLine).</comment>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>All regions</value>
+    <comment>Campaigns tab, region filter: no filter.</comment>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Region</value>
+    <comment>Campaigns tab: label of the region filter.</comment>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>No sovereignty campaigns right now.</value>
+    <comment>Campaigns tab, when ESI lists none.</comment>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Campaigns: {0} · running: {1}</value>
+    <comment>Campaigns tab. {0} how many, {1} how many have started.</comment>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>Campaign state: started.</comment>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Scheduled</value>
+    <comment>Campaign state: not started yet.</comment>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>State</value>
+    <comment>Campaigns tab column.</comment>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>When</value>
+    <comment>Campaigns tab column: running for / starts in.</comment>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Starts</value>
+    <comment>Campaigns tab column: the start time.</comment>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Campaigns tab column: what is fought over.</comment>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Defender</value>
+    <comment>Campaigns tab column: the defending alliance.</comment>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Scores</value>
+    <comment>Campaigns tab column.</comment>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Campaign</value>
+    <comment>System page header: label of a sovereignty campaign in the system.</comment>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Front line</value>
+    <comment>Faction warfare: a system bordering one occupied by another militia.</comment>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Command operations</value>
+    <comment>Faction warfare: a system bordering its own militia's front line.</comment>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Rearguard</value>
+    <comment>Faction warfare: the rest of a militia's systems.</comment>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map legend, faction warfare. {0} the tier, {1} how many systems.</comment>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Dashed: contested ({0})</value>
+    <comment>Map legend, faction warfare. {0} how many systems are contested or vulnerable.</comment>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>spike</value>
+    <comment>Intel: the reporter said local spiked. Shown on the map hover, the system page and spoken by the intel alarm; lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>gate camp</value>
+    <comment>Intel: a gate camp reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>bubbles</value>
+    <comment>Intel: warp disruption bubbles reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>hotdrop risk</value>
+    <comment>Intel: a hot drop (cyno and black ops) reported or a pilot set up for one. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>cyno</value>
+    <comment>Intel: a cynosural field reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>wormhole</value>
+    <comment>Intel: a wormhole in the system reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>combat probes</value>
+    <comment>Intel: combat probes reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>at the ESS</value>
+    <comment>Intel: someone at the Encounter Surveillance System. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>at a skyhook</value>
+    <comment>Intel: someone at an orbital skyhook. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>on the {0} gate</value>
+    <comment>Intel: where in the system the hostiles are. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Reported in {0}</value>
+    <comment>Map hover on the mark of a system where intel reported something (spike, bubbles…) but nobody was counted. {0} is the system.</comment>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Ships: {0}</value>
+    <comment>Map hover and system page: hulls reported with no pilot named. {0} is the list, e.g. 3× Loki, Sabre.</comment>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Jump range</value>
+    <comment>Map tool: tab and toolbar button for the jump range tool.</comment>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Every system a jump drive reaches from a character or a system, ringed on the map</value>
+    <comment>Tooltip on the map tool's Jump range button.</comment>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Picking a character takes their system, their hull if it has a jump drive, and their Jump Drive Calibration. The range then follows them as they move.</value>
+    <comment>Jump range tab, under the Character picker.</comment>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>LAND IN</value>
+    <comment>Jump range tab: label over the choice of which systems count (anywhere, stations and structures, Fortizar/Keepstar, Keepstar).</comment>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Ring the systems in range on the Universe Map's tabs</value>
+    <comment>Tooltip on the Jump range tab's Show on map tick box.</comment>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>A jump drive cannot be used in high sec, wormhole space, Pochven or Zarzakh, so none of those are ever in range. Distances are straight-line light years.</value>
+    <comment>Jump range tab: the note at the bottom of the settings.</comment>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>LY</value>
+    <comment>Jump range tab: column of light years from the origin.</comment>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} systems within {1} ly of {2}</value>
+    <comment>Jump range tab: the line above the list. {0} how many systems, {1} the range in light years, {2} the system it is from.</comment>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Following {0} as they move</value>
+    <comment>Jump range tab, under From: the range is from a character's current system and follows them. {0} the character.</comment>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>A jump drive cannot be used in high sec ({0}).</value>
+    <comment>Jump range tab: the origin is a high-sec system. {0} the system.</comment>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>A jump drive cannot be used in {0}.</value>
+    <comment>Jump range tab: the origin is wormhole space, Pochven or Zarzakh. {0} the system.</comment>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>Nothing is in range.</value>
+    <comment>Jump range tab: no system within range of the origin.</comment>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>In jump range of the Jump range tab's system (the heavier ring)</value>
+    <comment>Map legend: the green ring the jump range tool draws.</comment>
+  </data>
+</root>

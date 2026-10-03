@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,13 @@ public sealed record MarketLevelGroupResult(
     DateTimeOffset?                   DataFetchedAt
 );
 
-public sealed record MarketLevelStation(long Id, string Name, string Kind);
+/// <summary>A place with sell orders, for the group dialog. <see cref="Name"/> is English: a group
+/// stores it as its StationName.</summary>
+public sealed record MarketLevelStation(long Id, string Name, string Kind)
+{
+    /// <summary>What the dialog shows: an NPC station in the interface language, a structure as named.</summary>
+    public string DisplayName => SdeNames.Location(Id, Name);
+}
 
 public class MarketLevelService(IDbContextFactory<AppDbContext> dbFactory)
 {

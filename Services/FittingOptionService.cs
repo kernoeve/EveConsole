@@ -1,12 +1,22 @@
 using EveConsole.Controls;
 using EveConsole.Data;
+using EveConsole.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
 /// <summary>A module that can go in a slot.</summary>
-public sealed record FittingOption(int TypeId, string Name, string GroupName)
+/// <param name="Name">The SDE's English name, which a text filter also matches — people paste
+/// English names from websites and chat.</param>
+/// <param name="GroupName">Likewise English.</param>
+public sealed record FittingOption(int TypeId, string Name, string GroupName, int GroupId = 0)
 {
+    /// <summary>The module's name in the interface language, for showing. Display only.</summary>
+    public string DisplayName      => SdeNames.Type(TypeId, Name);
+
+    /// <summary>The module's group in the interface language, for showing. Display only.</summary>
+    public string DisplayGroupName => SdeNames.Group(GroupId, GroupName);
+
     public override string ToString() => Name;
 }
 
@@ -71,7 +81,7 @@ public class FittingOptionService(IDbContextFactory<AppDbContext> dbFactory)
             where te.EffectId == effect
                   && t.Published
                   && g.CategoryId == StructureModuleCategory
-            select new { t.TypeId, t.Name, GroupName = g.Name };
+            select new { t.TypeId, t.Name, g.GroupId, GroupName = g.Name };
 
         var options = await query.ToListAsync(ct);
 
@@ -96,10 +106,13 @@ public class FittingOptionService(IDbContextFactory<AppDbContext> dbFactory)
             }
         }
 
+        // In the order of what the Structure Browser's picker shows — DisplayGroupName, then
+        // DisplayName — so the names are waited for first. CurrentCulture sorts Chinese by pinyin.
+        await SdeNames.EnsureLoadedAsync(ct);
         return options
-            .Select(o => new FittingOption(o.TypeId, o.Name, o.GroupName))
-            .OrderBy(o => o.GroupName, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(o => new FittingOption(o.TypeId, o.Name, o.GroupName, o.GroupId))
+            .OrderBy(o => o.DisplayGroupName, StringComparer.CurrentCulture)
+            .ThenBy(o => o.DisplayName, StringComparer.CurrentCulture)
             .ToList();
     }
 }

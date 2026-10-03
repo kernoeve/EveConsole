@@ -4,17 +4,24 @@ using System.Reactive;
 using EveConsole.Controls;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
 /// <summary>A stop on the route the user asked for, as opposed to one the planner filled in.</summary>
-public sealed class WaypointVm(int id, string name, string region, double security, bool isPinned = false)
+public sealed class WaypointVm(
+    int id, string name, string region, double security, bool isPinned = false, int regionId = 0)
     : ReactiveObject
 {
     public int    Id       { get; } = id;
+    /// <summary>English — a waypoint dragged out of the list carries it. <see cref="Label"/> is
+    /// what the list shows.</summary>
     public string Name     { get; } = name;
     public string Region   { get; } = region;
     public double Security { get; } = security;
+
+    public string Label       => SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel => SdeNames.Region(regionId, Region);
 
     /// <summary>A midpoint the user chose by hand in place of the one the planner picked. It is
     /// routed through like any other stop, but stays movable on the map and can be dropped to go
@@ -27,9 +34,9 @@ public sealed class WaypointVm(int id, string name, string region, double securi
     public bool   Unreachable => Security >= 0.45;
 
     public string Detail => Unreachable
-        ? $"{Region} · {SecurityText} · high sec"
-        : IsPinned ? $"{Region} · {SecurityText} · chosen midpoint"
-                   : $"{Region} · {SecurityText}";
+        ? string.Format(MapText.WaypointDetailHighSec, RegionLabel, SecurityText)
+        : IsPinned ? string.Format(MapText.WaypointDetailPinned, RegionLabel, SecurityText)
+                   : $"{RegionLabel} · {SecurityText}";
 }
 
 /// <summary>One jump on the planned route.</summary>
@@ -52,6 +59,17 @@ public sealed class JumpLegVm
     /// <summary>Where this leg's region sits, so the name can open the map on it.</summary>
     public required int    ToRegionId { get; init; }
 
+    /// <summary>The region the leg leaves from, for the first stop's caption on the map.</summary>
+    public required int    FromRegionId { get; init; }
+
+    // ── Shown ─────────────────────────────────────────────────────────────────
+    // In the interface language. From, To and the regions above stay English: a route copied
+    // out of the grid carries them.
+    public string FromLabel       => SdeNames.SolarSystem(FromSystemId, From);
+    public string ToLabel         => SdeNames.SolarSystem(ToSystemId, To);
+    public string FromRegionLabel => SdeNames.Region(FromRegionId, FromRegion);
+    public string ToRegionLabel   => SdeNames.Region(ToRegionId, ToRegion);
+
     // ── Links ─────────────────────────────────────────────────────────────────
     public bool HasFromLink   => FromSystemId > 0 && From.Length     > 0;
     public bool HasToLink     => ToSystemId   > 0 && To.Length       > 0;
@@ -72,6 +90,9 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 {
     private readonly JumpPlannerService _planner;
 
+    /// <summary>The service behind the planner, for the map tool's jump range tab.</summary>
+    public JumpPlannerService Service => _planner;
+
     public JumpPlannerViewModel(JumpPlannerService planner)
     {
         _planner = planner;
@@ -89,7 +110,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             MapLinks      = null;
             MapCandidates = null;
             TotalsText    = "";
-            StatusText = "Add a start and a destination.";
+            StatusText = MapText.StatusAddStartAndDestination;
         });
 
         RemoveWaypointCommand = ReactiveCommand.Create<WaypointVm>(w =>
@@ -117,6 +138,18 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     public ObservableCollection<WaypointVm> Waypoints { get; } = [];
     public ObservableCollection<JumpLegVm>  Legs      { get; } = [];
 
+    private bool _showOnMap = UiState.GetBool(UiState.JumpPlannerShowOnMap, true);
+    /// <summary>Whether the planned route is drawn on the Universe Map's tabs too. Remembered.</summary>
+    public bool ShowOnMap
+    {
+        get => _showOnMap;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showOnMap, value);
+            UiState.SetBool(UiState.JumpPlannerShowOnMap, value);
+        }
+    }
+
     private JumpShip? _selectedShip;
     public JumpShip? SelectedShip
     {
@@ -139,29 +172,34 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     public IReadOnlyList<MidpointOption> MidpointOptions { get; } =
     [
         // Ordered from most permissive to least, each a subset of the one above it.
-        new("Anywhere",                     JumpMidpoints.Any),
-        new("Stations & structures",        JumpMidpoints.StationSystems),
-        new("Fortizar / Keepstar systems",  JumpMidpoints.CitadelSystems),
-        new("Keepstar systems",             JumpMidpoints.KeepstarSystems),
+        new(MapText.MidpointsAnywhere,              JumpMidpoints.Any),
+        new(MapText.MidpointsStationsAndStructures, JumpMidpoints.StationSystems),
+        new(MapText.MidpointsCitadelSystems,        JumpMidpoints.CitadelSystems),
+        new(MapText.MidpointsKeepstarSystems,       JumpMidpoints.KeepstarSystems),
     ];
 
     private MidpointOption? _selectedMidpoints;
     public MidpointOption? SelectedMidpoints
     {
         get => _selectedMidpoints;
-        set => this.RaiseAndSetIfChanged(ref _selectedMidpoints, value);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice, and must not reset it to Any.
+            if (value is null && _selectedMidpoints is not null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedMidpoints, value);
+        }
     }
 
     /// <summary>What the picked hull and skill actually reach, so the number is visible before planning.</summary>
     public string RangeText => SelectedShip is { } s
-        ? $"{JumpPlannerService.MaxRange(s.BaseRangeLy, JdcLevel):N2} ly per jump " +
-          $"({s.BaseRangeLy:N1} base, JDC {JdcLevel})"
+        ? string.Format(MapText.RangePerJump,
+                        JumpPlannerService.MaxRange(s.BaseRangeLy, JdcLevel), s.BaseRangeLy, JdcLevel)
         : "";
 
     private string _systemSearch = "";
     public string SystemSearch { get => _systemSearch; set => this.RaiseAndSetIfChanged(ref _systemSearch, value); }
 
-    private string _statusText = "Add a start and a destination.";
+    private string _statusText = MapText.StatusAddStartAndDestination;
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
     private string _totalsText = "";
@@ -262,7 +300,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         async (text, ct) =>
         {
             var hits = await _planner.SearchSystemsAsync(text ?? "", ct);
-            return hits.Select(h => (object)new SystemMatch(h.Id, h.Name, h.Region, h.Security))
+            return hits.Select(h => (object)new SystemMatch(h.Id, h.Name, h.Region, h.Security, h.RegionId))
                        .ToList();
         };
 
@@ -271,14 +309,20 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         try
         {
             var ships = await Task.Run(() => _planner.GetShipsAsync());
-            foreach (var s in ships) Ships.Add(s);
+
+            // Loaded at startup, so the names are waited for before the hulls are put in the
+            // order of the names shown.
+            await SdeNames.EnsureLoadedAsync();
+            foreach (var s in ships.OrderByDescending(s => s.BaseRangeLy)
+                                   .ThenBy(s => s.Label, StringComparer.CurrentCulture))
+                Ships.Add(s);
 
             SelectedShip      ??= Ships.FirstOrDefault();
             SelectedMidpoints ??= MidpointOptions[0];
         }
         catch (Exception ex)
         {
-            StatusText = $"Could not load jump-capable hulls: {ex.Message}";
+            StatusText = string.Format(MapText.StatusLoadHullsFailed, ex.Message);
         }
     }
 
@@ -289,18 +333,26 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         var hits  = await _planner.SearchSystemsAsync(name);
         var exact = hits.FirstOrDefault(h => string.Equals(h.Name, name, StringComparison.OrdinalIgnoreCase));
+
+        // The box holds the name the picker showed, in the interface language, or one typed or
+        // pasted in English. The English is tried first.
+        if (exact.Id == 0)
+            exact = hits.FirstOrDefault(h => string.Equals(
+                SdeNames.SolarSystem(h.Id, h.Name), name, StringComparison.OrdinalIgnoreCase));
+
         if (exact.Id == 0)
         {
-            StatusText = $"\"{name}\" is not a system — pick one from the list.";
+            StatusText = string.Format(MapText.StatusNotASystem, name);
             return;
         }
 
-        Waypoints.Add(new WaypointVm(exact.Id, exact.Name, exact.Region, exact.Security));
+        Waypoints.Add(new WaypointVm(exact.Id, exact.Name, exact.Region, exact.Security,
+                                     regionId: exact.RegionId));
         RenumberWaypoints();
         SystemSearch = "";
         StatusText   = Waypoints.Count < 2
-            ? "Add a destination."
-            : "Ready to plan.";
+            ? MapText.StatusAddDestination
+            : MapText.StatusReadyToPlan;
     }
 
     private void RenumberWaypoints() { /* order is the collection order; nothing to renumber yet */ }
@@ -318,8 +370,8 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         Waypoints.Move(from, to);
         StatusText = Legs.Count > 0
-            ? "Waypoint order changed — plan again to update the route."
-            : "Ready to plan.";
+            ? MapText.StatusWaypointOrderChanged
+            : MapText.StatusReadyToPlan;
     }
 
     /// <summary>Range of the last planned route, needed to find alternatives for its midpoints.</summary>
@@ -352,10 +404,12 @@ public sealed class JumpPlannerViewModel : ReactiveObject
                                       asked.Contains(id), caption, pinned.Contains(id), region));
         }
 
+        // Names and regions English (the region is what its colour is found by); the captions
+        // are read, so they carry the region as it is shown.
         var first = Legs[0];
-        Add(first.FromSystemId, first.From, first.FromRegion, first.FromRegion);
+        Add(first.FromSystemId, first.From, first.FromRegion, first.FromRegionLabel);
         foreach (var leg in Legs)
-            Add(leg.ToSystemId, leg.To, leg.ToRegion, $"{leg.ToRegion} · {leg.DistanceLy:N2} ly");
+            Add(leg.ToSystemId, leg.To, leg.ToRegion, $"{leg.ToRegionLabel} · {leg.DistanceLy:N2} ly");
 
         _mapNodes = nodes;
         MapRoute  = nodes;
@@ -382,9 +436,9 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             .Where(p => !onRoute.Contains(p.Id))
             .Select(p =>
             {
-                var (name, region) = named.GetValueOrDefault(p.Id, ("", ""));
+                var (name, region, regionId) = named.GetValueOrDefault(p.Id, ("", "", 0));
                 var f = facilities.GetValueOrDefault(p.Id);
-                return new JumpMapDot(p.Id, name, region, p.X, p.Y, p.Security, f?.Badges ?? "");
+                return new JumpMapDot(p.Id, name, region, p.X, p.Y, p.Security, f?.Badges ?? "", regionId);
             })
             .Where(d => d.Name.Length > 0)
             .ToList();
@@ -454,12 +508,12 @@ public sealed class JumpPlannerViewModel : ReactiveObject
                 var fuel = JumpPlannerService.FuelFor(ly, fuelPerLy, JfcLevel);
 
                 if (current is not { } c)
-                    return new JumpMapCandidate(o.Id, $"{ly:N2} ly · {fuel:N0} fuel");
+                    return new JumpMapCandidate(o.Id, string.Format(MapText.CandidateCost, ly, fuel));
 
                 var dLy   = ly   - c.Ly;
                 var dFuel = fuel - c.Fuel;
                 return new JumpMapCandidate(o.Id,
-                    $"{Signed(dLy, "N2")} ly · {Signed(dFuel, "N0")} fuel vs {node.Name}");
+                    string.Format(MapText.CandidateCostVs, Signed(dLy, "N2"), Signed(dFuel, "N0"), node.Label));
             });
 
         static string Signed(double v, string format) =>
@@ -474,15 +528,16 @@ public sealed class JumpPlannerViewModel : ReactiveObject
         Alternatives.Clear();
         SelectedAlternative = null;
         _pickingFor         = node;
-        AlternativesTitle   = $"Instead of {node.Name}";
+        AlternativesTitle   = string.Format(MapText.AlternativesTitle, node.Label);
         IsPickingAlternative = true;
 
         var options = await AlternativesFor(node);
         foreach (var o in options.Where(o => o.Id != node.Id).Take(200)) Alternatives.Add(o);
 
         StatusText = Alternatives.Count == 0
-            ? $"No other system reaches both sides of {node.Name} at this range."
-            : $"{Alternatives.Count} system{(Alternatives.Count == 1 ? "" : "s")} could replace {node.Name}.";
+            ? string.Format(MapText.StatusNoAlternatives, node.Label)
+            : Plurals.Format(MapText.ResourceManager, nameof(MapText.StatusAlternativesOther),
+                             Alternatives.Count, node.Label);
     }
 
     private async Task ApplyAlternativeAsync()
@@ -512,7 +567,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         if (drop.OnSystemId is not { } target || target == drop.Node.Id)
         {
-            StatusText = "Move cancelled — drop onto one of the highlighted systems.";
+            StatusText = MapText.StatusMoveCancelled;
             return;
         }
 
@@ -521,8 +576,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
         if (pick is null)
         {
-            StatusText = $"{drop.Node.Name} cannot be moved there — that system is out of range " +
-                          "of one side of the jump.";
+            StatusText = string.Format(MapText.StatusCannotMoveThere, drop.Node.Label);
             return;
         }
 
@@ -536,7 +590,8 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     /// </summary>
     private async Task PinMidpointAsync(JumpMapNode node, JumpAlternative pick)
     {
-        var replacement = new WaypointVm(pick.Id, pick.Name, pick.Region, pick.Security, isPinned: true);
+        var replacement = new WaypointVm(pick.Id, pick.Name, pick.Region, pick.Security, isPinned: true,
+                                         regionId: pick.RegionId);
 
         var existing = Waypoints.FirstOrDefault(w => w.Id == node.Id);
         if (existing is not null)
@@ -556,18 +611,18 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             Waypoints.Insert(Math.Clamp(ahead, 0, Waypoints.Count), replacement);
         }
 
-        StatusText = $"Routing through {pick.Name}.";
+        StatusText = string.Format(MapText.StatusRoutingThrough, pick.Label);
         await PlanAsync();
     }
 
     private async Task PlanAsync()
     {
-        if (SelectedShip is not { } ship) { StatusText = "Pick a ship."; return; }
-        if (Waypoints.Count < 2) { StatusText = "Add at least a start and a destination."; return; }
+        if (SelectedShip is not { } ship) { StatusText = MapText.StatusPickShip; return; }
+        if (Waypoints.Count < 2) { StatusText = MapText.StatusAddAtLeastStartAndDestination; return; }
 
         if (Waypoints.FirstOrDefault(w => w.Unreachable) is { } bad)
         {
-            StatusText = $"{bad.Name} is high security space — a jump drive cannot go there.";
+            StatusText = string.Format(MapText.StatusHighSecUnreachable, bad.Label);
             return;
         }
 
@@ -580,7 +635,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
             var restriction = SelectedMidpoints?.Value ?? JumpMidpoints.Any;
             var all         = new List<(JumpLeg Leg, bool EndsWaypoint)>();
             double dist = 0, fuel = 0;
-            string fuelName = ship.FuelTypeName;
+            string fuelName = ship.FuelLabel;
             double range = 0;
 
             // Each requested hop is planned on its own, then the hops are laid end to end, so a
@@ -597,7 +652,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 
                 if (!route.Ok)
                 {
-                    StatusText = $"{a.Name} to {b.Name}: {route.Problem}";
+                    StatusText = string.Format(MapText.StatusLegProblem, a.Label, b.Label, route.Problem);
                     return;
                 }
 
@@ -616,6 +671,7 @@ public sealed class JumpPlannerViewModel : ReactiveObject
                     FromSystemId = leg.FromSystemId,
                     From         = leg.FromSystem,
                     FromRegion   = leg.FromRegion,
+                    FromRegionId = leg.FromRegionId,
                     ToSystemId   = leg.ToSystemId,
                     To           = leg.ToSystem,
                     ToRegion     = leg.ToRegion,
@@ -626,16 +682,16 @@ public sealed class JumpPlannerViewModel : ReactiveObject
                     IsWaypoint = endsWaypoint,
                 });
 
-            TotalsText = $"{all.Count} jump{(all.Count == 1 ? "" : "s")} · {dist:N3} ly · " +
-                         $"{fuel:N0} {fuelName} · {range:N2} ly range";
-            StatusText = "Route planned.";
+            TotalsText = Plurals.Format(MapText.ResourceManager, nameof(MapText.RouteTotalsOther),
+                                        all.Count, dist, fuel, fuelName, range);
+            StatusText = MapText.StatusRoutePlanned;
 
             _maxRangeLy = range;
             await BuildMapAsync();
         }
         catch (Exception ex)
         {
-            StatusText = $"Could not plan the route: {ex.Message}";
+            StatusText = string.Format(MapText.StatusPlanFailed, ex.Message);
         }
         finally { IsBusy = false; }
     }
@@ -648,12 +704,16 @@ public sealed record MidpointOption(string Label, JumpMidpoints Value)
 
 /// <summary>One row of the system type-ahead. ToString is the bare name, so anything that falls
 /// back to it (rather than the view's ValueMemberBinding) still puts a searchable name in the
-/// box rather than a formatted line.</summary>
-public sealed record SystemMatch(int Id, string Name, string Region, double Security)
+/// box rather than a formatted line — the name shown, which the search finds as well as the
+/// English. Name and Region stay English.</summary>
+public sealed record SystemMatch(int Id, string Name, string Region, double Security, int RegionId = 0)
 {
+    public string Label       => SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel => SdeNames.Region(RegionId, Region);
+
     // The security level, not true security to one decimal: they differ just above 0.0, where
     // the game shows 0.1 (see SecurityColors.Rounded).
     public string SecurityText =>
         EveConsole.Services.SecurityColors.Rounded(Security).ToString("N1", CultureInfo.InvariantCulture);
-    public override string ToString() => Name;
+    public override string ToString() => Label;
 }

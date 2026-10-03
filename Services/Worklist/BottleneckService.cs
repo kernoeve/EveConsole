@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -30,7 +31,7 @@ public sealed record SlotRemedy(string Action, int Slots, string Detail)
     public string Effect =>
         Slots <= 0 || double.IsInfinity(ClearDaysNow) || ClearDaysNow <= 0 ? ""
         : double.IsInfinity(ClearDaysAfter)                                ? ""
-        : $"backlog clears in {ClearDaysAfter:N0}d instead of {ClearDaysNow:N0}d";
+        : string.Format(WorklistText.RemedyEffect, ClearDaysAfter, ClearDaysNow);
 }
 
 /// <summary>
@@ -98,13 +99,6 @@ public sealed record ItemBandwidth(
     bool   IsReaction = false)
 {
     /// <summary>
-    /// What one of these is called.
-    ///
-    /// <para>⚠️ Never "copy". In EVE a copy is a BPC, and every figure here counts
-    /// ORIGINALS — so "every copy was busy" read as a statement about blueprint copies to
-    /// anyone who plays the game, which is the opposite of what it measures.</para>
-    /// </summary>
-    /// <summary>
     /// Tasks held up by this blueprint's output, directly or behind something that is.
     ///
     /// <para>The same walk Item Contention uses, seeded from what this makes rather than from a
@@ -114,10 +108,6 @@ public sealed record ItemBandwidth(
 
     /// <summary>How many of those there are, which is what the Blocking column shows.</summary>
     public int StalledTasks { get; init; }
-
-    public string Noun  => IsReaction ? "formula"  : "BPO";
-
-    public string Nouns => IsReaction ? "formulas" : "BPOs";
 
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
@@ -235,40 +225,44 @@ public sealed record ItemBandwidth(
       // ignore a row the list had just decided was worth showing them.
       :                             "Minor";
 
+    /// <summary>
+    /// What to do about the row: one sentence set per verdict and per kind of print — a BPO, or a
+    /// reaction formula — rather than the noun dropped into one, which other languages may not
+    /// take. Switched on the verdict KEY, which stays English.
+    ///
+    /// <para>⚠️ Never "copy". In EVE a copy is a BPC, and every figure here counts ORIGINALS — so
+    /// "every copy was busy" read as a statement about blueprint copies to anyone who plays the
+    /// game, which is the opposite of what it measures.</para>
+    /// </summary>
     public string Advice => Verdict switch
     {
-        "Blocking" =>
-            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days, and "
-          + $"{BlockedNow:N0} job(s) cannot start right now. Another {Noun} takes the ceiling from "
-          + $"{CapacityPerDay:N2} to {CeilingWithOneMore:N2}/day.",
+        "Blocking" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceBlockingFormula : WorklistText.PrintAdviceBlockingBpo,
+            ContentionPercent, WindowDays, BlockedNow, CapacityPerDay, CeilingWithOneMore),
 
-        "Steady" =>
-            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days with "
-          + $"{WantedNow:N0} job(s) queued — wanting another means waiting for one to free up. "
-          + $"A further {Noun} takes the ceiling to {CeilingWithOneMore:N2}/day.",
+        "Steady" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceSteadyFormula : WorklistText.PrintAdviceSteadyBpo,
+            ContentionPercent, WindowDays, WantedNow, CeilingWithOneMore),
 
-        "Contended" =>
-            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days, but "
-          + "nothing is queued for it today. Worth watching rather than buying for.",
+        "Contended" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceContendedFormula : WorklistText.PrintAdviceContendedBpo,
+            ContentionPercent, WindowDays),
 
-        "Blocked" =>
-            $"{BlockedNow:N0} job(s) cannot start, though the {Nouns} on hand have rarely all been "
-          + $"busy at once ({ContentionPercent:N0}%). Check what is really missing before buying "
-          + $"another {Noun} — this looks like something other than the blueprint.",
+        "Blocked" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceBlockedFormula : WorklistText.PrintAdviceBlockedBpo,
+            BlockedNow, ContentionPercent),
 
-        "Surge" =>
-            $"{WantedNow:N0} job(s) want it now, but every {Noun} was free for almost all of the "
-          + $"last {WindowDays} days. A one-off rather than a standing need — a BPC may serve "
-          + "better than an original.",
+        "Surge" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceSurgeFormula : WorklistText.PrintAdviceSurgeBpo,
+            WantedNow, WindowDays),
 
-        "Minor" =>
-            $"Every {Noun} was busy {ContentionPercent:N0}% of the last {WindowDays} days — real, "
-          + $"but outside the busiest tenth here, and nothing is queued for it. Another {Noun} "
-          + $"would take the ceiling to {CeilingWithOneMore:N2}/day.",
+        "Minor" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceMinorFormula : WorklistText.PrintAdviceMinorBpo,
+            ContentionPercent, WindowDays, CeilingWithOneMore),
 
-        _ =>
-            $"{WantedNow:N0} job(s) queued; every {Noun} busy {ContentionPercent:N0}% of the window. "
-          + $"Another {Noun} would take the ceiling to {CeilingWithOneMore:N2}/day.",
+        _ => string.Format(
+            IsReaction ? WorklistText.PrintAdviceBuildingFormula : WorklistText.PrintAdviceBuildingBpo,
+            WantedNow, ContentionPercent, CeilingWithOneMore),
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
@@ -424,30 +418,28 @@ public class BottleneckService(
                 .ToList();
 
             remedies.Add(Remedy(
-                "Train the characters already running this",
+                WorklistText.RemedyTrain,
                 trainable.Sum(x => x.Room),
                 trainable.Count == 0
-                    ? "Everyone running this pool is already at the skill cap."
-                    : $"{trainable.Count} character(s) below the {MaxSlotsPerCharacter}-slot cap: "
-                    + Name(trainable.Select(x => (x.c, x.Room)))));
+                    ? WorklistText.RemedyTrainNone
+                    : string.Format(WorklistText.RemedyTrainDetail, trainable.Count, MaxSlotsPerCharacter,
+                                    Name(trainable.Select(x => (x.c, x.Room))))));
 
             // ⚠️ Quantified, not recommended. These are off for reasons the app cannot see — a
             // trading alt, a character in someone else's corp — so this is a size, not a plan.
             var offSlots = off.Sum(c => c.Capacity.GetValueOrDefault(pool));
             remedies.Add(Remedy(
-                "Enable characters currently switched off for this pool",
+                WorklistText.RemedyEnable,
                 offSlots,
                 off.Count == 0
-                    ? "Every configured character already runs this pool."
-                    : $"{off.Count} character(s) switched off, holding {offSlots:N0} slot(s) today "
-                    + "— usually off for a reason, so read this as a size rather than a plan. "
-                    + Name(off.Select(c => (c, c.Capacity.GetValueOrDefault(pool))))));
+                    ? WorklistText.RemedyEnableNone
+                    : string.Format(WorklistText.RemedyEnableDetail, off.Count, offSlots,
+                                    Name(off.Select(c => (c, c.Capacity.GetValueOrDefault(pool)))))));
 
             remedies.Add(Remedy(
-                $"Add {CharactersPerAccount} characters (one account), trained to the cap",
+                string.Format(WorklistText.RemedyAccount, CharactersPerAccount),
                 CharactersPerAccount * MaxSlotsPerCharacter,
-                $"{CharactersPerAccount} × {MaxSlotsPerCharacter} slots against the {capacity:N0} "
-                + "running now. Training is not instant — this is the ceiling it buys."));
+                string.Format(WorklistText.RemedyAccountDetail, CharactersPerAccount, MaxSlotsPerCharacter, capacity)));
 
             result.Add(new SlotPressure(pool, capacity, inUse, waiting, blocked,
                                         backlog, avgJobDays, seen.Jobs, WindowDays, remedies));
@@ -485,7 +477,7 @@ public class BottleneckService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Using", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install", i.TypeId)).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId)).ToList());
 
         var wantedNow = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
@@ -595,7 +587,7 @@ public class BottleneckService(
 
             result.Add(new ItemBandwidth(
                 made.ProductTypeId,
-                names.GetValueOrDefault(made.ProductTypeId, $"Type {made.ProductTypeId}"),
+                names.GetValueOrDefault(made.ProductTypeId, string.Format(WorklistText.TypeWithId, made.ProductTypeId)),
                 made.CycleDays,
                 mine.Count,
                 mine.Count(p => p.LockedInJob),
@@ -678,9 +670,7 @@ public class BottleneckService(
         double At(double p) => sorted[(int)(p * (sorted.Count - 1))];
 
         var never = sorted.Count(v => v <= 0);
-        return $"Measured across {sorted.Count:N0} blueprint(s) over {WindowDays} days: "
-             + $"{never:N0} never had every original busy at once, the middle sits at {At(.5):N0}%, "
-             + $"and the busiest tenth start at {At(.9):N0}% — which is the line the flags use.";
+        return string.Format(WorklistText.ContentionScale, sorted.Count, WindowDays, never, At(.5), At(.9));
     }
 
     /// <summary>
@@ -764,6 +754,6 @@ public class BottleneckService(
     private static string Name(IEnumerable<(IndustryCandidate C, int N)> people)
     {
         var list = people.Take(4).Select(x => $"{x.C.Config.CharacterName} +{x.N}").ToList();
-        return list.Count == 0 ? "" : string.Join(", ", list);
+        return list.Count == 0 ? "" : string.Join(CommonText.ListSeparator, list);
     }
 }

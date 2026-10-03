@@ -1,0 +1,2330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShipLabel" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="HullLabel" xml:space="preserve">
+    <value>Casco</value>
+  </data>
+  <data name="JumpDriveCalibrationLabel" xml:space="preserve">
+    <value>Calibración de motor de salto</value>
+  </data>
+  <data name="JumpFuelConservationLabel" xml:space="preserve">
+    <value>Conservación de combustible</value>
+  </data>
+  <data name="JumpThroughLabel" xml:space="preserve">
+    <value>Escalas en</value>
+  </data>
+  <data name="LimitsWhereTheRouteNote" xml:space="preserve">
+    <value>Limita dónde puede hacer escala la ruta, no dónde puede empezar o terminar. Estaciones y estructuras significa cualquier lugar donde acoplar: una estación PNJ o una estructura de jugador. Las estructuras de jugadores son solo aquellas cuyo nombre ha resuelto esta aplicación, así que ambas opciones se quedan cortas en lugar de adivinar.</value>
+  </data>
+  <data name="WaypointsLabel" xml:space="preserve">
+    <value>Puntos de ruta</value>
+  </data>
+  <data name="HintSystemName" xml:space="preserve">
+    <value>nombre del sistema…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="TipDragToReorder" xml:space="preserve">
+    <value>Arrastra para reordenar</value>
+  </data>
+  <data name="PlanRoute" xml:space="preserve">
+    <value>Planificar ruta</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="Use" xml:space="preserve">
+    <value>Usar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>Desde</value>
+  </data>
+  <data name="ColFittingSource" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Abrir este sistema</value>
+  </data>
+  <data name="ColJumpTo" xml:space="preserve">
+    <value>Salto a</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="TipFrameThisRegionOnThe" xml:space="preserve">
+    <value>Encuadrar esta región en el mapa</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Seg.</value>
+  </data>
+  <data name="ColDistance" xml:space="preserve">
+    <value>Distancia</value>
+  </data>
+  <data name="ColFuel" xml:space="preserve">
+    <value>Combustible</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="ResolveViaEsi" xml:space="preserve">
+    <value>Resolver con ESI</value>
+  </data>
+  <data name="AddById" xml:space="preserve">
+    <value>Añadir por ID…</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>Borrar filtros</value>
+  </data>
+  <data name="ShowUnknown" xml:space="preserve">
+    <value>Mostrar desconocidas</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="HintAny" xml:space="preserve">
+    <value>cualquiera</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="ColStructure" xml:space="preserve">
+    <value>Estructura</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Abrir en el mapa</value>
+  </data>
+  <data name="ColConstellation" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="TipFrameThisConstellationOnThe" xml:space="preserve">
+    <value>Encuadrar esta constelación en el mapa</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp.</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Abrir en el explorador de entidades</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Más cercano</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="SelectAStructureAboveNote" xml:space="preserve">
+    <value>Selecciona arriba una estructura para verla y editarla.</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>ID de ubicación</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="HintTypeTwoLettersOf" xml:space="preserve">
+    <value>Escribe dos letras del nombre del sistema…</value>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="HintAccessNotesWhoTo" xml:space="preserve">
+    <value>Notas de acceso, a quién pedir permiso de acoplamiento… todo lo que ESI nunca va a incluir.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="PullFromEsi" xml:space="preserve">
+    <value>Obtener de ESI</value>
+  </data>
+  <data name="TipAsksEsiAboutThis" xml:space="preserve">
+    <value>Consulta ahora a ESI sobre esta estructura, sin respetar la espera de 30 días que normalmente conlleva un 403. Úsalo tras conseguir derechos de acoplamiento.</value>
+  </data>
+  <data name="LocationIdCannotBeNote" xml:space="preserve">
+    <value>El ID de ubicación no se puede cambiar: es la identidad de la estructura.</value>
+  </data>
+  <data name="TabFitting" xml:space="preserve">
+    <value>Equipamiento</value>
+  </data>
+  <data name="HintFilterModules" xml:space="preserve">
+    <value>filtrar módulos…</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>Equipar</value>
+  </data>
+  <data name="ClearSlot" xml:space="preserve">
+    <value>Vaciar ranura</value>
+  </data>
+  <data name="ColSlot" xml:space="preserve">
+    <value>Ranura</value>
+  </data>
+  <data name="ColModule" xml:space="preserve">
+    <value>Módulo</value>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Bienes</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Contenedor</value>
+  </data>
+  <data name="ColWhere" xml:space="preserve">
+    <value>Dónde</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Cant.</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="TabCargo" xml:space="preserve">
+    <value>Bodega</value>
+  </data>
+  <data name="TabFuel" xml:space="preserve">
+    <value>Combustible</value>
+  </data>
+  <data name="TabFighters" xml:space="preserve">
+    <value>Cazas</value>
+  </data>
+  <data name="ColFighter" xml:space="preserve">
+    <value>Caza</value>
+  </data>
+  <data name="TabIndustryJobs" xml:space="preserve">
+    <value>Trabajos de industria</value>
+  </data>
+  <data name="EndsFromLabel" xml:space="preserve">
+    <value>Termina desde</value>
+  </data>
+  <data name="EndsThruLabel" xml:space="preserve">
+    <value>Termina hasta</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Actividad</value>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="ColRuns" xml:space="preserve">
+    <value>Iter.</value>
+  </data>
+  <data name="ColEnds" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="AddAStructureByLocation" xml:space="preserve">
+    <value>Añadir una estructura por ID de ubicación</value>
+  </data>
+  <data name="StructuresNormallyArriveOnNote" xml:space="preserve">
+    <value>Normalmente las estructuras llegan solas, de los bienes, los trabajos, los contratos y las muertes. Usa esto para una que no haya llegado: una estación en la que te han dado derechos de acoplamiento o un ID que te ha pasado alguien.</value>
+  </data>
+  <data name="LocationIdLabel" xml:space="preserve">
+    <value>ID de ubicación</value>
+  </data>
+  <data name="LookUp" xml:space="preserve">
+    <value>Consultar</value>
+  </data>
+  <data name="TipTrueSecurity" xml:space="preserve">
+    <value>Seguridad real</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="Constellation" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="Sovereignty" xml:space="preserve">
+    <value>Soberanía</value>
+  </data>
+  <data name="LocalPirates" xml:space="preserve">
+    <value>Piratas locales</value>
+  </data>
+  <data name="IndustryIndices" xml:space="preserve">
+    <value>Índices de industria</value>
+  </data>
+  <data name="TipManufacturingTimeEfficiencyMaterial" xml:space="preserve">
+    <value>Fabricación · eficiencia temporal · eficiencia de materiales · copia · invención · reacciones</value>
+  </data>
+  <data name="Production" xml:space="preserve">
+    <value>Producción</value>
+  </data>
+  <data name="Planets" xml:space="preserve">
+    <value>Planetas</value>
+  </data>
+  <data name="Moons" xml:space="preserve">
+    <value>Lunas</value>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>Cinturones</value>
+  </data>
+  <data name="Jumps1h24h" xml:space="preserve">
+    <value>Saltos 1 h / 24 h</value>
+  </data>
+  <data name="ShipKills" xml:space="preserve">
+    <value>Naves destruidas</value>
+  </data>
+  <data name="NpcKills" xml:space="preserve">
+    <value>PNJ destruidos</value>
+  </data>
+  <data name="PodKills" xml:space="preserve">
+    <value>Cápsulas destruidas</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="JumpsLabel" xml:space="preserve">
+    <value>Saltos</value>
+  </data>
+  <data name="NpcKillsLabel" xml:space="preserve">
+    <value>PNJ destruidos</value>
+  </data>
+  <data name="ShipKillsLabel" xml:space="preserve">
+    <value>Naves destruidas</value>
+  </data>
+  <data name="PodKillsLabel" xml:space="preserve">
+    <value>Cápsulas destruidas</value>
+  </data>
+  <data name="SovereigntyStructuresLabel" xml:space="preserve">
+    <value>Estructuras de soberanía</value>
+  </data>
+  <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
+    <value>No hay estructuras de soberanía en este sistema.</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="VulnerabilityWindowLabel" xml:space="preserve">
+    <value>Ventana de vulnerabilidad</value>
+  </data>
+  <data name="SovereigntyChangesLabel" xml:space="preserve">
+    <value>Cambios de soberanía</value>
+  </data>
+  <data name="NoChangesRecordedInNote" xml:space="preserve">
+    <value>No hay cambios registrados en el periodo guardado.</value>
+  </data>
+  <data name="GatesLabel" xml:space="preserve">
+    <value>Portales</value>
+  </data>
+  <data name="PlayerStructuresLabel" xml:space="preserve">
+    <value>Estructuras de jugadores</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de estructuras</value>
+  </data>
+  <data name="NpcStationsLabel" xml:space="preserve">
+    <value>Estaciones PNJ</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Abrir en Entidades PNJ</value>
+  </data>
+  <data name="TabCelestials" xml:space="preserve">
+    <value>Cuerpos celestiales</value>
+  </data>
+  <data name="LaidOutAsTheNote" xml:space="preserve">
+    <value>Ordenado como está dispuesto el sistema en el espacio: la estrella, los portales y después cada planeta por orden orbital, con sus cinturones, sus lunas y todo lo que haya en ellos anidado debajo.</value>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>Cuerpo celestial</value>
+  </data>
+  <data name="PowerLabel" xml:space="preserve">
+    <value>Energía</value>
+  </data>
+  <data name="WorkforceLabel" xml:space="preserve">
+    <value>Mano de obra</value>
+  </data>
+  <data name="ReagentLabel" xml:space="preserve">
+    <value>Reactivo</value>
+  </data>
+  <data name="TabGraphs" xml:space="preserve">
+    <value>Gráficos</value>
+  </data>
+  <data name="ShipJumpsLabel" xml:space="preserve">
+    <value>Saltos de naves</value>
+  </data>
+  <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
+    <value>Multiplicador de defensa de actividad</value>
+  </data>
+  <data name="IndustryCostIndicesLabel" xml:space="preserve">
+    <value>Índices de coste de industria</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agentes</value>
+  </data>
+  <data name="DivisionLabel" xml:space="preserve">
+    <value>División</value>
+  </data>
+  <data name="LevelLabel" xml:space="preserve">
+    <value>Nivel</value>
+  </data>
+  <data name="LocatorLabel" xml:space="preserve">
+    <value>Localizador</value>
+  </data>
+  <data name="TipOpenTheStationInNpc" xml:space="preserve">
+    <value>Abrir la estación en Entidades PNJ</value>
+  </data>
+  <data name="TabKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="TipDoubleClickToOpen" xml:space="preserve">
+    <value>Haz doble clic para abrir en el explorador de informes de muertes</value>
+  </data>
+  <data name="TabEvents" xml:space="preserve">
+    <value>Eventos</value>
+  </data>
+  <data name="NoEventsRecordedInNote" xml:space="preserve">
+    <value>No hay eventos registrados en el periodo guardado.</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
+  <data name="WhenUtcLabel" xml:space="preserve">
+    <value>Cuándo (UTC)</value>
+  </data>
+  <data name="PilotsLabel" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="NoteLabel" xml:space="preserve">
+    <value>Nota</value>
+  </data>
+  <data name="ReportedByLabel" xml:space="preserve">
+    <value>Notificado por</value>
+  </data>
+  <data name="TipNoVisualReportedPresent" xml:space="preserve">
+    <value>Sin visual: se ha notificado su presencia, pero no se ha visto</value>
+  </data>
+  <data name="TipOpenInPlayerEntities" xml:space="preserve">
+    <value>Abrir en Entidades de jugadores</value>
+  </data>
+  <data name="OverlayLabel" xml:space="preserve">
+    <value>Capa</value>
+  </data>
+  <data name="GoToLabel" xml:space="preserve">
+    <value>Ir a</value>
+  </data>
+  <data name="HintRegionOrSystem" xml:space="preserve">
+    <value>región o sistema</value>
+  </data>
+  <data name="ClickANodeForNote" xml:space="preserve">
+    <value>Haz clic en un nodo para ver sus detalles. Haz doble clic para abrirlo.</value>
+  </data>
+  <data name="LegendLabel" xml:space="preserve">
+    <value>Leyenda</value>
+  </data>
+  <data name="DockingBarAboveTheBoxLabel" xml:space="preserve">
+    <value>Acoplamiento — barra sobre el cuadro</value>
+  </data>
+  <data name="ServicesUnderTheBoxLabel" xml:space="preserve">
+    <value>Servicios — bajo el cuadro</value>
+  </data>
+  <data name="MergedFromNpcStationsNote" xml:space="preserve">
+    <value>Combinado a partir de las estaciones PNJ y las estructuras de jugadores. Una estructura cuyo tipo no hemos resuelto no aporta nada, así que un lado en blanco significa «desconocido» y no «no hay nada».</value>
+  </data>
+  <data name="ScrollToZoomDragNote" xml:space="preserve">
+    <value>Usa la rueda para acercar o alejar y arrastra para desplazarte. Los recuentos de muertes salen de los informes de muertes que ha guardado esta aplicación, no de todo Nuevo Edén.</value>
+  </data>
+  <data name="WaypointDetailHighSec" xml:space="preserve">
+    <value>{0} · {1} · seguridad alta</value>
+  </data>
+  <data name="WaypointDetailPinned" xml:space="preserve">
+    <value>{0} · {1} · escala elegida</value>
+  </data>
+  <data name="StatusAddStartAndDestination" xml:space="preserve">
+    <value>Añade un origen y un destino.</value>
+  </data>
+  <data name="MidpointsAnywhere" xml:space="preserve">
+    <value>En cualquier sitio</value>
+  </data>
+  <data name="MidpointsStationsAndStructures" xml:space="preserve">
+    <value>Estaciones y estructuras</value>
+  </data>
+  <data name="MidpointsCitadelSystems" xml:space="preserve">
+    <value>Sistemas con Fortizar / Keepstar</value>
+  </data>
+  <data name="MidpointsKeepstarSystems" xml:space="preserve">
+    <value>Sistemas con Keepstar</value>
+  </data>
+  <data name="RangePerJump" xml:space="preserve">
+    <value>{0:N2} AL por salto (base {1:N1}, Calibración de motor de salto {2})</value>
+  </data>
+  <data name="StatusLoadHullsFailed" xml:space="preserve">
+    <value>No se han podido cargar los cascos con capacidad de salto: {0}</value>
+  </data>
+  <data name="StatusNotASystem" xml:space="preserve">
+    <value>«{0}» no es un sistema: elige uno de la lista.</value>
+  </data>
+  <data name="StatusAddDestination" xml:space="preserve">
+    <value>Añade un destino.</value>
+  </data>
+  <data name="StatusReadyToPlan" xml:space="preserve">
+    <value>Listo para planificar.</value>
+  </data>
+  <data name="StatusWaypointOrderChanged" xml:space="preserve">
+    <value>Ha cambiado el orden de los puntos de ruta: vuelve a planificar para actualizar la ruta.</value>
+  </data>
+  <data name="CandidateCost" xml:space="preserve">
+    <value>{0:N2} AL · {1:N0} de combustible</value>
+  </data>
+  <data name="CandidateCostVs" xml:space="preserve">
+    <value>{0} AL · {1} de combustible frente a {2}</value>
+  </data>
+  <data name="AlternativesTitle" xml:space="preserve">
+    <value>En lugar de {0}</value>
+  </data>
+  <data name="StatusNoAlternatives" xml:space="preserve">
+    <value>Con este alcance, ningún otro sistema llega a ambos lados de {0}.</value>
+  </data>
+  <data name="StatusMoveCancelled" xml:space="preserve">
+    <value>Movimiento cancelado: suéltalo sobre uno de los sistemas resaltados.</value>
+  </data>
+  <data name="StatusCannotMoveThere" xml:space="preserve">
+    <value>{0} no se puede mover ahí: ese sistema está fuera del alcance de uno de los lados del salto.</value>
+  </data>
+  <data name="StatusRoutingThrough" xml:space="preserve">
+    <value>Trazando la ruta por {0}.</value>
+  </data>
+  <data name="StatusPickShip" xml:space="preserve">
+    <value>Elige una nave.</value>
+  </data>
+  <data name="StatusAddAtLeastStartAndDestination" xml:space="preserve">
+    <value>Añade al menos un origen y un destino.</value>
+  </data>
+  <data name="StatusHighSecUnreachable" xml:space="preserve">
+    <value>{0} es espacio de seguridad alta: un motor de salto no puede ir allí.</value>
+  </data>
+  <data name="StatusLegProblem" xml:space="preserve">
+    <value>De {0} a {1}: {2}</value>
+  </data>
+  <data name="StatusRoutePlanned" xml:space="preserve">
+    <value>Ruta planificada.</value>
+  </data>
+  <data name="StatusPlanFailed" xml:space="preserve">
+    <value>No se ha podido planificar la ruta: {0}</value>
+  </data>
+  <data name="StatusAlternativesOne" xml:space="preserve">
+    <value>{0} sistema podría sustituir a {1}.</value>
+  </data>
+  <data name="StatusAlternativesOther" xml:space="preserve">
+    <value>{0} sistemas podrían sustituir a {1}.</value>
+  </data>
+  <data name="RouteTotalsOne" xml:space="preserve">
+    <value>{0} salto · {1:N3} AL · {2:N0} {3} · alcance de {4:N2} AL</value>
+  </data>
+  <data name="RouteTotalsOther" xml:space="preserve">
+    <value>{0} saltos · {1:N3} AL · {2:N0} {3} · alcance de {4:N2} AL</value>
+  </data>
+  <data name="JumpMapPlanFirst" xml:space="preserve">
+    <value>Planifica una ruta para verla en el mapa.</value>
+  </data>
+  <data name="JumpMapHint" xml:space="preserve">
+    <value>arrastra una escala para moverla · haz clic en una para ver alternativas · usa la rueda para acercar o alejar</value>
+  </data>
+  <data name="TipNoKnownDocking" xml:space="preserve">
+    <value>ninguna estación ni estructura conocida</value>
+  </data>
+  <data name="FittingBandHigh" xml:space="preserve">
+    <value>Superiores</value>
+  </data>
+  <data name="FittingBandMid" xml:space="preserve">
+    <value>Medias</value>
+  </data>
+  <data name="FittingBandLow" xml:space="preserve">
+    <value>Inferiores</value>
+  </data>
+  <data name="FittingBandRigs" xml:space="preserve">
+    <value>Complementos</value>
+  </data>
+  <data name="FittingBandServices" xml:space="preserve">
+    <value>Servicios</value>
+  </data>
+  <data name="FittingBandSubsystems" xml:space="preserve">
+    <value>Subsistemas</value>
+  </data>
+  <data name="FittingNoInfo" xml:space="preserve">
+    <value>No hay información de equipamiento para este tipo.</value>
+  </data>
+  <data name="TipSlotFromAssets" xml:space="preserve">
+    <value>{0}, ranura {1} · de los bienes: aquí manda el juego</value>
+  </data>
+  <data name="TipClickToFitModule" xml:space="preserve">
+    <value>Haz clic para equipar un módulo</value>
+  </data>
+  <data name="TipSlotEnteredByHand" xml:space="preserve">
+    <value>{0}, ranura {1} · introducido a mano</value>
+  </data>
+  <data name="ServiceManufacturing" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="TipServiceManufacturing" xml:space="preserve">
+    <value>Fábrica PNJ, o una planta de fabricación o un astillero Standup</value>
+  </data>
+  <data name="ServiceResearch" xml:space="preserve">
+    <value>Investigación / invención</value>
+  </data>
+  <data name="TipServiceResearch" xml:space="preserve">
+    <value>Laboratorio PNJ, o un laboratorio de investigación o de invención Standup</value>
+  </data>
+  <data name="ServiceReprocessing" xml:space="preserve">
+    <value>Reprocesamiento</value>
+  </data>
+  <data name="TipServiceReprocessing" xml:space="preserve">
+    <value>Planta de reprocesamiento o refinería PNJ, o un centro de reprocesamiento Standup</value>
+  </data>
+  <data name="ServiceReactions" xml:space="preserve">
+    <value>Reacciones</value>
+  </data>
+  <data name="TipServiceReactions" xml:space="preserve">
+    <value>Un reactor Standup. Ninguna estación PNJ hace reacciones, así que siempre es una estructura de jugador</value>
+  </data>
+  <data name="ServiceCloning" xml:space="preserve">
+    <value>Plataforma de clones</value>
+  </data>
+  <data name="TipServiceCloning" xml:space="preserve">
+    <value>Centro PNJ de clonación o de clones de salto, o un centro de clonación Standup</value>
+  </data>
+  <data name="ServiceMarket" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="TipServiceMarket" xml:space="preserve">
+    <value>Mercado PNJ, o un centro mercantil Standup</value>
+  </data>
+  <data name="DockSupers" xml:space="preserve">
+    <value>Superportanaves y titanes — solo Keepstar</value>
+  </data>
+  <data name="TipDockSupers" xml:space="preserve">
+    <value>Aquí hay una Keepstar. Pueden acoplar superportanaves y titanes</value>
+  </data>
+  <data name="DockCapitals" xml:space="preserve">
+    <value>Naves capitales — Fortizar o estación PNJ</value>
+  </data>
+  <data name="TipDockCapitals" xml:space="preserve">
+    <value>Pueden acoplar naves capitales, pero no supercapitales</value>
+  </data>
+  <data name="DockSubcaps" xml:space="preserve">
+    <value>Naves subcapitales — cualquier otra estructura</value>
+  </data>
+  <data name="TipDockSubcaps" xml:space="preserve">
+    <value>Aquí hay algo donde acoplar, pero nada que admita naves capitales</value>
+  </data>
+  <data name="TipDoubleClickToOpenRegion" xml:space="preserve">
+    <value>Haz doble clic para abrir {0}</value>
+  </data>
+  <data name="EmptyHighSlot" xml:space="preserve">
+    <value>Ranura superior vacía</value>
+  </data>
+  <data name="EmptyMidSlot" xml:space="preserve">
+    <value>Ranura media vacía</value>
+  </data>
+  <data name="EmptyLowSlot" xml:space="preserve">
+    <value>Ranura inferior vacía</value>
+  </data>
+  <data name="EmptyRigSlot" xml:space="preserve">
+    <value>Ranura de complemento vacía</value>
+  </data>
+  <data name="EmptyServiceSlot" xml:space="preserve">
+    <value>Ranura de servicio vacía</value>
+  </data>
+  <data name="EmptySubsystemSlot" xml:space="preserve">
+    <value>Ranura de subsistema vacía</value>
+  </data>
+  <data name="StructureKindNpc" xml:space="preserve">
+    <value>PNJ</value>
+  </data>
+  <data name="StructureKindPlayer" xml:space="preserve">
+    <value>Jugador</value>
+  </data>
+  <data name="AgentLocator" xml:space="preserve">
+    <value>Localizador</value>
+  </data>
+  <data name="CorporationNumbered" xml:space="preserve">
+    <value>Corporación {0}</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Alianza {0}</value>
+  </data>
+  <data name="IntelNoVisual" xml:space="preserve">
+    <value>NV</value>
+  </data>
+  <data name="IntelSuperseded" xml:space="preserve">
+    <value>sustituido</value>
+  </data>
+  <data name="IntelStanding" xml:space="preserve">
+    <value>vigente</value>
+  </data>
+  <data name="NoIntelNote" xml:space="preserve">
+    <value>No hay inteligencia registrada para este sistema. Los informes se analizan en los canales marcados como Inteligencia en Ajustes → Registros de chat; usa allí «Analizar el historial guardado» para leer los mensajes que ya están en disco.</value>
+  </data>
+  <data name="ProductionPower" xml:space="preserve">
+    <value>{0:N0} de energía</value>
+  </data>
+  <data name="ProductionWorkforce" xml:space="preserve">
+    <value>{0:N0} de mano de obra</value>
+  </data>
+  <data name="ProductionMagmaticGas" xml:space="preserve">
+    <value>{0:N0}/h de gas magmático</value>
+  </data>
+  <data name="ProductionSuperionicIce" xml:space="preserve">
+    <value>{0:N0}/h de hielo superiónico</value>
+  </data>
+  <data name="SovUnclaimed" xml:space="preserve">
+    <value>Sin reclamar</value>
+  </data>
+  <data name="IntelSummary" xml:space="preserve">
+    <value>{0:N0} informe(s), {1:N0} aún vigente(s). Los informes sustituidos se muestran atenuados.</value>
+  </data>
+  <data name="AgentsNone" xml:space="preserve">
+    <value>No hay agentes en este sistema.</value>
+  </data>
+  <data name="AgentsSummary" xml:space="preserve">
+    <value>{0} agentes en {1} estaciones.</value>
+  </data>
+  <data name="SovHistoryNone" xml:space="preserve">
+    <value>Todavía no hay historial de soberanía guardado.</value>
+  </data>
+  <data name="SovHistoryNote" xml:space="preserve">
+    <value>Obtenido de las instantáneas guardadas desde el {0:yyyy-MM-dd}. Los cambios anteriores sucedieron antes de que esta aplicación empezara a registrar y no se pueden recuperar.</value>
+  </data>
+  <data name="KillsNone" xml:space="preserve">
+    <value>No hay informes de muertes guardados para este sistema.</value>
+  </data>
+  <data name="HourlyNone" xml:space="preserve">
+    <value>Todavía no hay historial por horas guardado.</value>
+  </data>
+  <data name="HourlyNote" xml:space="preserve">
+    <value>Últimas {0:F0} horas, hora a hora. Aumenta «Conservar el detalle por horas» en Ajustes para abarcar más tiempo.</value>
+  </data>
+  <data name="GraphNone" xml:space="preserve">
+    <value>Todavía no hay historial de actividad guardado para este sistema.</value>
+  </data>
+  <data name="GraphNote" xml:space="preserve">
+    <value>Totales diarios, del {0:yyyy-MM-dd} al {1:yyyy-MM-dd}. Cada punto es un día UTC completo; el último puede ser parcial.</value>
+  </data>
+  <data name="SeriesJumps" xml:space="preserve">
+    <value>Saltos</value>
+  </data>
+  <data name="AdmNone" xml:space="preserve">
+    <value>No hay historial de ADM: este sistema no tiene ninguna estructura de soberanía.</value>
+  </data>
+  <data name="AdmNote" xml:space="preserve">
+    <value>ADM máximo diario, del {0:yyyy-MM-dd} al {1:yyyy-MM-dd}.</value>
+  </data>
+  <data name="SeriesAdm" xml:space="preserve">
+    <value>ADM</value>
+  </data>
+  <data name="ActivityTimeEfficiency" xml:space="preserve">
+    <value>Eficiencia temporal</value>
+  </data>
+  <data name="ActivityMaterialEfficiency" xml:space="preserve">
+    <value>Eficiencia de materiales</value>
+  </data>
+  <data name="IndexNone" xml:space="preserve">
+    <value>Todavía no hay historial de índices de coste de industria guardado para este sistema.</value>
+  </data>
+  <data name="IndexNote" xml:space="preserve">
+    <value>Índice de coste diario, del {0:yyyy-MM-dd} al {1:yyyy-MM-dd}. Se muestra como porcentaje, igual que en la ventana de industria.</value>
+  </data>
+  <data name="KillsMostRecent" xml:space="preserve">
+    <value>Los {0} más recientes</value>
+  </data>
+  <data name="KillsMostRecentMore" xml:space="preserve">
+    <value>Los {0} más recientes (hay más)</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invención</value>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Reacción</value>
+  </data>
+  <data name="FittingSourceAssets" xml:space="preserve">
+    <value>bienes</value>
+  </data>
+  <data name="FittingSourceManual" xml:space="preserve">
+    <value>manual</value>
+  </data>
+  <data name="EditLockReason" xml:space="preserve">
+    <value>El nombre, el sistema y el tipo vienen de ESI y no se pueden editar: la próxima resolución los sobrescribiría.</value>
+  </data>
+  <data name="JobCount" xml:space="preserve">
+    <value>{0:N0} trabajo(s)</value>
+  </data>
+  <data name="JobCountFiltered" xml:space="preserve">
+    <value>{0:N0} de {1:N0} trabajo(s)</value>
+  </data>
+  <data name="FittingReadOnlyNote" xml:space="preserve">
+    <value>El equipamiento viene de los bienes: solo lectura</value>
+  </data>
+  <data name="FittingEditableNote" xml:space="preserve">
+    <value>No hay equipamiento en los bienes: haz clic en una ranura para registrar uno</value>
+  </data>
+  <data name="StatusFittingLocked" xml:space="preserve">
+    <value>Este equipamiento se conoce por los bienes y no se puede editar.</value>
+  </data>
+  <data name="StatusModulesFit" xml:space="preserve">
+    <value>{0} módulo(s) caben en esta ranura.</value>
+  </data>
+  <data name="StatusFitted" xml:space="preserve">
+    <value>Se ha equipado {0}.</value>
+  </data>
+  <data name="StatusSlotCleared" xml:space="preserve">
+    <value>Ranura vaciada.</value>
+  </data>
+  <data name="StatusRecordModuleFailed" xml:space="preserve">
+    <value>No se ha podido registrar ese módulo: {0}</value>
+  </data>
+  <data name="StructureStatusOk" xml:space="preserve">
+    <value>Correcto</value>
+  </data>
+  <data name="StructureStatusNoAccess" xml:space="preserve">
+    <value>Sin acceso</value>
+  </data>
+  <data name="StructureStatusGone" xml:space="preserve">
+    <value>Desanclada (ya no existe)</value>
+  </data>
+  <data name="StructureStatusPending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corporación {0}</value>
+  </data>
+  <data name="StructureNumbered" xml:space="preserve">
+    <value>Estructura {0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Tipo {0}</value>
+  </data>
+  <data name="StatusStructures" xml:space="preserve">
+    <value>{0} estructura(s).</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Error al cargar: {0}</value>
+  </data>
+  <data name="ProvenanceNeverWritten" xml:space="preserve">
+    <value>Nunca editado · {0}</value>
+  </data>
+  <data name="ProvenanceLastWritten" xml:space="preserve">
+    <value>Editado por última vez por {0} el {1:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>Personaje {0}</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>División {0}</value>
+  </data>
+  <data name="DivisionWithNumber" xml:space="preserve">
+    <value>{0} (div. {1})</value>
+  </data>
+  <data name="DetailCounts" xml:space="preserve">
+    <value>{0} equipados · {1:N0} almacenados · {2:N0} en bodega · {3:N0} de combustible · {4:N0} cazas · {5:N0} trabajo(s)</value>
+  </data>
+  <data name="StatusDetailLoadFailed" xml:space="preserve">
+    <value>Error al cargar el detalle: {0}</value>
+  </data>
+  <data name="JobActivityTeResearch" xml:space="preserve">
+    <value>Investigación de TE</value>
+  </data>
+  <data name="JobActivityMeResearch" xml:space="preserve">
+    <value>Investigación de ME</value>
+  </data>
+  <data name="JobActivityReactions" xml:space="preserve">
+    <value>Reacciones</value>
+  </data>
+  <data name="JobActivityNumbered" xml:space="preserve">
+    <value>Actividad {0}</value>
+  </data>
+  <data name="EveRefFieldName" xml:space="preserve">
+    <value>nombre</value>
+  </data>
+  <data name="EveRefFieldSystem" xml:space="preserve">
+    <value>sistema</value>
+  </data>
+  <data name="EveRefFieldType" xml:space="preserve">
+    <value>tipo</value>
+  </data>
+  <data name="EveRefFieldOwner" xml:space="preserve">
+    <value>propietario</value>
+  </data>
+  <data name="StatusPickersFailed" xml:space="preserve">
+    <value>No se han podido cargar las listas de selección: {0}</value>
+  </data>
+  <data name="PickNoType" xml:space="preserve">
+    <value>— ninguno —</value>
+  </data>
+  <data name="StatusStructureGone" xml:space="preserve">
+    <value>Esa estructura ya no está en la tabla.</value>
+  </data>
+  <data name="StatusPickSystem" xml:space="preserve">
+    <value>Elige un sistema de la lista o vacía el cuadro para dejarlo sin definir.</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Guardado.</value>
+  </data>
+  <data name="StatusNotesSaved" xml:space="preserve">
+    <value>Notas guardadas (la identidad viene de ESI).</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Error al guardar: {0}</value>
+  </data>
+  <data name="StatusAskingEsi" xml:space="preserve">
+    <value>Consultando a ESI…</value>
+  </data>
+  <data name="PullResolved" xml:space="preserve">
+    <value>Resuelta con ESI.</value>
+  </data>
+  <data name="PullNoAccess" xml:space="preserve">
+    <value>Sin acceso (403): no tienes derechos de acoplamiento en esta estructura.</value>
+  </data>
+  <data name="PullNotFound" xml:space="preserve">
+    <value>No encontrada (404): la estructura se ha desanclado o destruido.</value>
+  </data>
+  <data name="PullNoAnswer" xml:space="preserve">
+    <value>ESI no ha respondido. Consulta el registro de errores.</value>
+  </data>
+  <data name="StatusPullFailed" xml:space="preserve">
+    <value>Error al obtener: {0}</value>
+  </data>
+  <data name="AddEnterNumericId" xml:space="preserve">
+    <value>Introduce un ID de ubicación numérico.</value>
+  </data>
+  <data name="AddAlreadyInTable" xml:space="preserve">
+    <value>Ya está en la tabla.</value>
+  </data>
+  <data name="AddPreviewNoAnswer" xml:space="preserve">
+    <value>ESI no ha respondido: consulta el registro de errores. Aun así se puede añadir y rellenar a mano.</value>
+  </data>
+  <data name="AddStatusNoAnswer" xml:space="preserve">
+    <value>Sin respuesta.</value>
+  </data>
+  <data name="AddPreviewNoAccess" xml:space="preserve">
+    <value>Sin acceso (403): no tienes derechos de acoplamiento en esta estructura. Aun así se puede añadir y rellenar a mano.</value>
+  </data>
+  <data name="AddPreviewNotFound" xml:space="preserve">
+    <value>No encontrada (404): no existe esa estructura o se ha desanclado. Comprueba el ID antes de añadirla.</value>
+  </data>
+  <data name="AddPreviewNothingUsable" xml:space="preserve">
+    <value>ESI no ha devuelto nada útil para este ID.</value>
+  </data>
+  <data name="AddLookupFailed" xml:space="preserve">
+    <value>Error en la consulta: {0}</value>
+  </data>
+  <data name="SystemNumbered" xml:space="preserve">
+    <value>Sistema {0}</value>
+  </data>
+  <data name="PreviewUnknownType" xml:space="preserve">
+    <value>tipo desconocido</value>
+  </data>
+  <data name="PreviewUnknownOwner" xml:space="preserve">
+    <value>propietario desconocido</value>
+  </data>
+  <data name="AddFailed" xml:space="preserve">
+    <value>Error al añadir: {0}</value>
+  </data>
+  <data name="StatusStructuresShown" xml:space="preserve">
+    <value>{0} de {1} estructura(s).</value>
+  </data>
+  <data name="StatusStructuresUnknownHidden" xml:space="preserve">
+    <value>{0} mostradas · {1} desconocidas ocultas.</value>
+  </data>
+  <data name="StatusResolving" xml:space="preserve">
+    <value>Resolviendo estructuras con ESI…</value>
+  </data>
+  <data name="StatusResolveFailed" xml:space="preserve">
+    <value>Error al resolver: {0}</value>
+  </data>
+  <data name="JobStatusAll" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>activo</value>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>cancelado</value>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>entregado</value>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>en pausa</value>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>listo</value>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>revertido</value>
+  </data>
+  <data name="PickerTitleHigh" xml:space="preserve">
+    <value>Ranura superior {0}</value>
+  </data>
+  <data name="PickerTitleMid" xml:space="preserve">
+    <value>Ranura media {0}</value>
+  </data>
+  <data name="PickerTitleLow" xml:space="preserve">
+    <value>Ranura inferior {0}</value>
+  </data>
+  <data name="PickerTitleRig" xml:space="preserve">
+    <value>Ranura de complemento {0}</value>
+  </data>
+  <data name="PickerTitleService" xml:space="preserve">
+    <value>Ranura de servicio {0}</value>
+  </data>
+  <data name="PickerTitleSubsystem" xml:space="preserve">
+    <value>Ranura de subsistema {0}</value>
+  </data>
+  <data name="StatusNothingFitsHigh" xml:space="preserve">
+    <value>Nada cabe en una ranura superior de este casco.</value>
+  </data>
+  <data name="StatusNothingFitsMid" xml:space="preserve">
+    <value>Nada cabe en una ranura media de este casco.</value>
+  </data>
+  <data name="StatusNothingFitsLow" xml:space="preserve">
+    <value>Nada cabe en una ranura inferior de este casco.</value>
+  </data>
+  <data name="StatusNothingFitsRig" xml:space="preserve">
+    <value>Nada cabe en una ranura de complemento de este casco.</value>
+  </data>
+  <data name="StatusNothingFitsService" xml:space="preserve">
+    <value>Nada cabe en una ranura de servicio de este casco.</value>
+  </data>
+  <data name="StatusNothingFitsSubsystem" xml:space="preserve">
+    <value>Nada cabe en una ranura de subsistema de este casco.</value>
+  </data>
+  <data name="ProvenanceWriterUser" xml:space="preserve">
+    <value>usuario</value>
+  </data>
+  <data name="EveRefNote" xml:space="preserve">
+    <value>Estos datos vienen de EVE Ref ({0}): son la observación de un tercero, no algo que haya confirmado ESI, y pueden estar desactualizados.</value>
+  </data>
+  <data name="EveRefNoteRead" xml:space="preserve">
+    <value>Estos datos vienen de EVE Ref ({0}), leídos el {1:yyyy-MM-dd}: son la observación de un tercero, no algo que haya confirmado ESI, y pueden estar desactualizados.</value>
+  </data>
+  <data name="AddAskingEsi" xml:space="preserve">
+    <value>Consultando a ESI sobre {0}…</value>
+  </data>
+  <data name="AddAskingEsiLowId" xml:space="preserve">
+    <value>Consultando a ESI sobre {0} (está por debajo del rango de ID de las estructuras de jugadores, así que es probable un 404)…</value>
+  </data>
+  <data name="AddStatusResolved" xml:space="preserve">
+    <value>Resuelta.</value>
+  </data>
+  <data name="AddStatusNoAccess" xml:space="preserve">
+    <value>Sin acceso.</value>
+  </data>
+  <data name="AddStatusGone" xml:space="preserve">
+    <value>Desanclada (ya no existe).</value>
+  </data>
+  <data name="AddStatusPending" xml:space="preserve">
+    <value>Pendiente.</value>
+  </data>
+  <data name="AddPreviewResolved" xml:space="preserve">
+    <value>{0}
+{1} en {2}
+Propietario: {3}</value>
+  </data>
+  <data name="OverlaySecurity" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="OverlayConstellation" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="OverlaySovereignty" xml:space="preserve">
+    <value>Soberanía</value>
+  </data>
+  <data name="OverlaySovereigntyAdm" xml:space="preserve">
+    <value>ADM de soberanía</value>
+  </data>
+  <data name="OverlayIndustryManufacturing" xml:space="preserve">
+    <value>Industria — fabricación</value>
+  </data>
+  <data name="OverlayIndustryReactions" xml:space="preserve">
+    <value>Industria — reacciones</value>
+  </data>
+  <data name="OverlayIndustryMeResearch" xml:space="preserve">
+    <value>Industria — investigación de ME</value>
+  </data>
+  <data name="OverlayIndustryTeResearch" xml:space="preserve">
+    <value>Industria — investigación de TE</value>
+  </data>
+  <data name="OverlayIndustryCopying" xml:space="preserve">
+    <value>Industria — copia</value>
+  </data>
+  <data name="OverlayIndustryInvention" xml:space="preserve">
+    <value>Industria — invención</value>
+  </data>
+  <data name="OverlayShipKills24h" xml:space="preserve">
+    <value>Naves destruidas (24 h)</value>
+  </data>
+  <data name="OverlayShipKills7d" xml:space="preserve">
+    <value>Naves destruidas (7 d)</value>
+  </data>
+  <data name="OverlayShipKills30d" xml:space="preserve">
+    <value>Naves destruidas (30 d)</value>
+  </data>
+  <data name="OverlayPodKills24h" xml:space="preserve">
+    <value>Cápsulas destruidas (24 h)</value>
+  </data>
+  <data name="OverlayPodKills7d" xml:space="preserve">
+    <value>Cápsulas destruidas (7 d)</value>
+  </data>
+  <data name="OverlayPodKills30d" xml:space="preserve">
+    <value>Cápsulas destruidas (30 d)</value>
+  </data>
+  <data name="OverlayIntel15m" xml:space="preserve">
+    <value>Inteligencia (15 min)</value>
+  </data>
+  <data name="OverlayIntelPaths15m" xml:space="preserve">
+    <value>Rutas de inteligencia (15 min)</value>
+  </data>
+  <data name="OverlayIntelPaths1h" xml:space="preserve">
+    <value>Rutas de inteligencia (1 h)</value>
+  </data>
+  <data name="OverlayIntelPaths24h" xml:space="preserve">
+    <value>Rutas de inteligencia (24 h)</value>
+  </data>
+  <data name="OverlayShipJumps24h" xml:space="preserve">
+    <value>Saltos de naves (24 h)</value>
+  </data>
+  <data name="OverlayShipJumps7d" xml:space="preserve">
+    <value>Saltos de naves (7 d)</value>
+  </data>
+  <data name="OverlayNpcKills24h" xml:space="preserve">
+    <value>PNJ destruidos (24 h)</value>
+  </data>
+  <data name="OverlayFactionWarfare" xml:space="preserve">
+    <value>Guerra de facciones</value>
+  </data>
+  <data name="OverlayIncursions" xml:space="preserve">
+    <value>Incursiones</value>
+  </data>
+  <data name="OverlayPlanetaryPower" xml:space="preserve">
+    <value>Energía planetaria</value>
+  </data>
+  <data name="OverlayPlanetaryWorkforce" xml:space="preserve">
+    <value>Mano de obra planetaria</value>
+  </data>
+  <data name="OverlayStations" xml:space="preserve">
+    <value>Estaciones (PNJ/jugador)</value>
+  </data>
+  <data name="OverlayPlanets" xml:space="preserve">
+    <value>Planetas</value>
+  </data>
+  <data name="OverlayMoons" xml:space="preserve">
+    <value>Lunas</value>
+  </data>
+  <data name="OverlayAsteroidBelts" xml:space="preserve">
+    <value>Cinturones de asteroides</value>
+  </data>
+  <data name="StatusLoadingUniverse" xml:space="preserve">
+    <value>Cargando el universo…</value>
+  </data>
+  <data name="StatusUniverse" xml:space="preserve">
+    <value>{0} regiones · {1:N0} sistemas · acerca la vista para abrir las regiones · haz doble clic en un sistema para ver el detalle</value>
+  </data>
+  <data name="StatusLoadingPlace" xml:space="preserve">
+    <value>Cargando {0}…</value>
+  </data>
+  <data name="StatusPlaceSystems" xml:space="preserve">
+    <value>{0} — {1} sistemas</value>
+  </data>
+  <data name="StatusLoadingSystem" xml:space="preserve">
+    <value>Cargando el sistema…</value>
+  </data>
+  <data name="StatusSystemViewUnavailable" xml:space="preserve">
+    <value>Vista del sistema no disponible</value>
+  </data>
+  <data name="StatusSystemNotFound" xml:space="preserve">
+    <value>Sistema no encontrado</value>
+  </data>
+  <data name="CrumbUniverse" xml:space="preserve">
+    <value>Universo</value>
+  </data>
+  <data name="DetailSystems" xml:space="preserve">
+    <value>Sistemas</value>
+  </data>
+  <data name="DetailConstellations" xml:space="preserve">
+    <value>Constelaciones</value>
+  </data>
+  <data name="DetailNpcStations" xml:space="preserve">
+    <value>Estaciones PNJ</value>
+  </data>
+  <data name="DetailAvgSecurity" xml:space="preserve">
+    <value>Seguridad media</value>
+  </data>
+  <data name="DetailRegionGateways" xml:space="preserve">
+    <value>Accesos a otras regiones</value>
+  </data>
+  <data name="DetailSecurity" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="DetailSecurityClass" xml:space="preserve">
+    <value>Clase de seguridad</value>
+  </data>
+  <data name="DetailStargates" xml:space="preserve">
+    <value>Portales estelares</value>
+  </data>
+  <data name="LegendHighSec" xml:space="preserve">
+    <value>Seguridad alta  1,0 – 0,5</value>
+  </data>
+  <data name="LegendLowSec" xml:space="preserve">
+    <value>Seguridad baja  0,4 – 0,1</value>
+  </data>
+  <data name="LegendNullSec" xml:space="preserve">
+    <value>Seguridad nula  0,0 o menos</value>
+  </data>
+  <data name="NodeSecurityRegionAverage" xml:space="preserve">
+    <value>Seguridad {0:F2} (media de la región)</value>
+  </data>
+  <data name="NodeConstellationSecurity" xml:space="preserve">
+    <value>{0} · seguridad {1:F2}</value>
+  </data>
+  <data name="TipOpenRegionForSovereignty" xml:space="preserve">
+    <value>Abre una región para ver la soberanía</value>
+  </data>
+  <data name="NodeHolderAdm" xml:space="preserve">
+    <value>{0} · ADM {1:F1}</value>
+  </data>
+  <data name="LegendSovSummary" xml:space="preserve">
+    <value>…{0:N0} alianzas, {1:N0} sistemas</value>
+  </data>
+  <data name="LegendUnclaimedNpc" xml:space="preserve">
+    <value>Sin reclamar / PNJ</value>
+  </data>
+  <data name="NodeNoSovStructure" xml:space="preserve">
+    <value>Sin estructura de soberanía</value>
+  </data>
+  <data name="LegendLowest" xml:space="preserve">
+    <value>mínimo</value>
+  </data>
+  <data name="LegendNoData" xml:space="preserve">
+    <value>sin datos</value>
+  </data>
+  <data name="TipOpenRegionForFw" xml:space="preserve">
+    <value>Abre una región para ver la guerra de facciones</value>
+  </data>
+  <data name="NodeNotFwSpace" xml:space="preserve">
+    <value>No es espacio de guerra de facciones</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Facción {0}</value>
+  </data>
+  <data name="LegendNotFwSpace" xml:space="preserve">
+    <value>Sin guerra de facciones</value>
+  </data>
+  <data name="NodeNoIncursion" xml:space="preserve">
+    <value>Sin incursión</value>
+  </data>
+  <data name="LegendNone" xml:space="preserve">
+    <value>ninguno</value>
+  </data>
+  <data name="NodeNoStations" xml:space="preserve">
+    <value>Sin estaciones ni estructuras conocidas</value>
+  </data>
+  <data name="LegendNpcPlayer" xml:space="preserve">
+    <value>PNJ/jugador</value>
+  </data>
+  <data name="LegendMostShown" xml:space="preserve">
+    <value>{0:N0} — máximo en el mapa</value>
+  </data>
+  <data name="LegendHighestShown" xml:space="preserve">
+    <value>{0:N0} — máximo en el mapa</value>
+  </data>
+  <data name="StatusRegionSystems" xml:space="preserve">
+    <value>{0}: {1} sistemas</value>
+  </data>
+  <data name="StatusRegionSystemsAdjacent" xml:space="preserve">
+    <value>{0}: {1} sistemas · {2} sistemas adyacentes en regiones vecinas</value>
+  </data>
+  <data name="CountPlanetsOne" xml:space="preserve">
+    <value>{0:N0} planeta</value>
+  </data>
+  <data name="CountPlanetsOther" xml:space="preserve">
+    <value>{0:N0} planetas</value>
+  </data>
+  <data name="CountMoonsOne" xml:space="preserve">
+    <value>{0:N0} luna</value>
+  </data>
+  <data name="CountMoonsOther" xml:space="preserve">
+    <value>{0:N0} lunas</value>
+  </data>
+  <data name="CountBeltsOne" xml:space="preserve">
+    <value>{0:N0} cinturón de asteroides</value>
+  </data>
+  <data name="CountBeltsOther" xml:space="preserve">
+    <value>{0:N0} cinturones de asteroides</value>
+  </data>
+  <data name="CountPlayersOne" xml:space="preserve">
+    <value>{0:N0} jugador</value>
+  </data>
+  <data name="CountPlayersOther" xml:space="preserve">
+    <value>{0:N0} jugadores</value>
+  </data>
+  <data name="CountPlayersReportedOne" xml:space="preserve">
+    <value>{0:N0} jugador notificado</value>
+  </data>
+  <data name="CountPlayersReportedOther" xml:space="preserve">
+    <value>{0:N0} jugadores notificados</value>
+  </data>
+  <data name="CountPower" xml:space="preserve">
+    <value>{0:N0} de energía</value>
+  </data>
+  <data name="CountWorkforce" xml:space="preserve">
+    <value>{0:N0} de mano de obra</value>
+  </data>
+  <data name="CountPodKillsOne" xml:space="preserve">
+    <value>{0:N0} cápsula destruida</value>
+  </data>
+  <data name="CountPodKillsOther" xml:space="preserve">
+    <value>{0:N0} cápsulas destruidas</value>
+  </data>
+  <data name="CountShipKillsOne" xml:space="preserve">
+    <value>{0:N0} nave destruida</value>
+  </data>
+  <data name="CountShipKillsOther" xml:space="preserve">
+    <value>{0:N0} naves destruidas</value>
+  </data>
+  <data name="CountJumpsOne" xml:space="preserve">
+    <value>{0:N0} salto</value>
+  </data>
+  <data name="CountJumpsOther" xml:space="preserve">
+    <value>{0:N0} saltos</value>
+  </data>
+  <data name="CountNpcKillsOne" xml:space="preserve">
+    <value>{0:N0} PNJ destruido</value>
+  </data>
+  <data name="CountNpcKillsOther" xml:space="preserve">
+    <value>{0:N0} PNJ destruidos</value>
+  </data>
+  <data name="CountNpcStationsOne" xml:space="preserve">
+    <value>{0:N0} estación PNJ</value>
+  </data>
+  <data name="CountNpcStationsOther" xml:space="preserve">
+    <value>{0:N0} estaciones PNJ</value>
+  </data>
+  <data name="CountKnownStructuresOne" xml:space="preserve">
+    <value>{0:N0} estructura de jugador conocida</value>
+  </data>
+  <data name="CountKnownStructuresOther" xml:space="preserve">
+    <value>{0:N0} estructuras de jugadores conocidas</value>
+  </data>
+  <data name="NodeSecurity" xml:space="preserve">
+    <value>Seguridad {0:F2}</value>
+  </data>
+  <data name="NodeAdm" xml:space="preserve">
+    <value>ADM {0:F1}</value>
+  </data>
+  <data name="NodeAdmRegionAverage" xml:space="preserve">
+    <value>ADM {0:F1} (media de la región)</value>
+  </data>
+  <data name="NodeIndex" xml:space="preserve">
+    <value>Índice de {0}: {1:F2} %</value>
+  </data>
+  <data name="NodeIndexRegionAverage" xml:space="preserve">
+    <value>Índice de {0}: {1:F2} % (media de la región)</value>
+  </data>
+  <data name="NodeNoIndex" xml:space="preserve">
+    <value>Sin índice registrado</value>
+  </data>
+  <data name="LegendHighestRegionShown" xml:space="preserve">
+    <value>{0:F2} % — la región más alta del mapa</value>
+  </data>
+  <data name="LegendHighestSystemShown" xml:space="preserve">
+    <value>{0:F2} % — el sistema más alto del mapa</value>
+  </data>
+  <data name="IndexActivityManufacturing" xml:space="preserve">
+    <value>fabricación</value>
+  </data>
+  <data name="IndexActivityReaction" xml:space="preserve">
+    <value>reacción</value>
+  </data>
+  <data name="IndexActivityMeResearch" xml:space="preserve">
+    <value>investigación de eficiencia de materiales</value>
+  </data>
+  <data name="IndexActivityTeResearch" xml:space="preserve">
+    <value>investigación de eficiencia temporal</value>
+  </data>
+  <data name="IndexActivityCopying" xml:space="preserve">
+    <value>copia</value>
+  </data>
+  <data name="IndexActivityInvention" xml:space="preserve">
+    <value>invención</value>
+  </data>
+  <data name="FactionUnknown" xml:space="preserve">
+    <value>Desconocida</value>
+  </data>
+  <data name="NodeVictoryPoints" xml:space="preserve">
+    <value>{0:N0}/{1:N0} PV</value>
+  </data>
+  <data name="FwCaptured" xml:space="preserve">
+    <value>capturado</value>
+  </data>
+  <data name="FwContested" xml:space="preserve">
+    <value>en disputa</value>
+  </data>
+  <data name="FwUncontested" xml:space="preserve">
+    <value>no disputado</value>
+  </data>
+  <data name="FwVulnerable" xml:space="preserve">
+    <value>vulnerable</value>
+  </data>
+  <data name="IncursionEstablished" xml:space="preserve">
+    <value>establecida</value>
+  </data>
+  <data name="IncursionMobilizing" xml:space="preserve">
+    <value>en movilización</value>
+  </data>
+  <data name="IncursionWithdrawing" xml:space="preserve">
+    <value>en retirada</value>
+  </data>
+  <data name="NodeStaging" xml:space="preserve">
+    <value>operaciones</value>
+  </data>
+  <data name="NodeStagingSystem" xml:space="preserve">
+    <value>sistema de operaciones</value>
+  </data>
+  <data name="NodeInfluence" xml:space="preserve">
+    <value>influencia {0:F0} %</value>
+  </data>
+  <data name="NodeBossUp" xml:space="preserve">
+    <value>jefe presente</value>
+  </data>
+  <data name="LegendStagingSystem" xml:space="preserve">
+    <value>Sistema de operaciones</value>
+  </data>
+  <data name="LegendIncursionsActive" xml:space="preserve">
+    <value>{0} activa(s)</value>
+  </data>
+  <data name="SecBandHigh" xml:space="preserve">
+    <value>Seguridad alta</value>
+  </data>
+  <data name="SecBandLow" xml:space="preserve">
+    <value>Seguridad baja</value>
+  </data>
+  <data name="SecBandNull" xml:space="preserve">
+    <value>Seguridad nula</value>
+  </data>
+  <data name="SecurityTip" xml:space="preserve">
+    <value>{0} · seguridad real {1}</value>
+  </data>
+  <data name="GoToRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="AlternativeDetail" xml:space="preserve">
+    <value>{0} · entrada {1:N2} AL · salida {2:N2} AL</value>
+  </data>
+  <data name="FuelIsotopes" xml:space="preserve">
+    <value>Isótopos</value>
+  </data>
+  <data name="BadgeNpcStation" xml:space="preserve">
+    <value>Estación PNJ</value>
+  </data>
+  <data name="BadgePlayerStructuresOne" xml:space="preserve">
+    <value>{0} estructura de jugador</value>
+  </data>
+  <data name="BadgePlayerStructuresOther" xml:space="preserve">
+    <value>{0} estructuras de jugadores</value>
+  </data>
+  <data name="BadgeMoreStructures" xml:space="preserve">
+    <value>+{0} más</value>
+  </data>
+  <data name="RouteStartHighSec" xml:space="preserve">
+    <value>El sistema de origen está en espacio de seguridad alta, vedado a las naves capitales: un motor de salto no puede salir de allí.</value>
+  </data>
+  <data name="RouteDestinationHighSec" xml:space="preserve">
+    <value>No se puede llegar al destino con un motor de salto: el espacio de seguridad alta está vedado a las naves capitales.</value>
+  </data>
+  <data name="RouteSameSystem" xml:space="preserve">
+    <value>El origen y el destino son el mismo sistema.</value>
+  </data>
+  <data name="RouteNoneKeepstar" xml:space="preserve">
+    <value>No hay ruta con {0:N2} AL por salto usando solo sistemas con una Keepstar conocida. Habría que ampliar las escalas permitidas o resolver más estructuras.</value>
+  </data>
+  <data name="RouteNoneStations" xml:space="preserve">
+    <value>No hay ruta con {0:N2} AL por salto usando solo sistemas con estaciones.</value>
+  </data>
+  <data name="RouteNone" xml:space="preserve">
+    <value>No hay ruta con {0:N2} AL por salto. Haría falta un casco de mayor alcance o más nivel de Calibración de motor de salto.</value>
+  </data>
+  <data name="IndexShortManufacturing" xml:space="preserve">
+    <value>Fab.</value>
+  </data>
+  <data name="IndexShortTimeEfficiency" xml:space="preserve">
+    <value>TE</value>
+  </data>
+  <data name="IndexShortMaterialEfficiency" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="IndexShortCopying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="IndexShortInvention" xml:space="preserve">
+    <value>Inv.</value>
+  </data>
+  <data name="IndexShortReaction" xml:space="preserve">
+    <value>Reac.</value>
+  </data>
+  <data name="SovWindow" xml:space="preserve">
+    <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm} ({2:F0} h)</value>
+  </data>
+  <data name="SovStructureFallbackType" xml:space="preserve">
+    <value>Estructura de soberanía</value>
+  </data>
+  <data name="SovHolderNoOne" xml:space="preserve">
+    <value>nadie</value>
+  </data>
+  <data name="FallbackStationType" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="FallbackUnknownType" xml:space="preserve">
+    <value>Tipo desconocido</value>
+  </data>
+  <data name="SovStateVulnerable" xml:space="preserve">
+    <value>Vulnerable</value>
+  </data>
+  <data name="SovStateInvulnerable" xml:space="preserve">
+    <value>Invulnerable</value>
+  </data>
+  <data name="SovStateUnknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="SovEventGained" xml:space="preserve">
+    <value>Soberanía obtenida</value>
+  </data>
+  <data name="SovEventLost" xml:space="preserve">
+    <value>Soberanía perdida</value>
+  </data>
+  <data name="ReagentMagmaticGasPerHour" xml:space="preserve">
+    <value>{0:N0}/h de gas magmático</value>
+  </data>
+  <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
+    <value>{0:N0}/h de hielo superiónico</value>
+  </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Constelación · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>Marcas en directo</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Hostiles situados aquí en los últimos 5 minutos, por inteligencia o por un informe de muertes. Pasa el cursor para ver quiénes son y qué pilotan. «!»: la inteligencia informó de algo aquí (un pico, burbujas, un campeo) pero no contó a nadie.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Tus personajes conectados aquí. Pasa el cursor para ver sus naves y si están acoplados.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Arrastra por la barra para reordenar, o a la mitad derecha para ver dos pestañas lado a lado.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Cerrar esta pestaña</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ Nuevo mapa</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Abrir un mapa de New Eden en una pestaña nueva</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>sistema, constelación o región</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Abre lo que elijas en una pestaña nueva: la página de un sistema, o un mapa centrado en la constelación o la región.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>No hay pestañas abiertas. Añade un mapa con + Nuevo mapa, o busca un sistema, una constelación o una región.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Suelta aquí para ver dos pestañas lado a lado</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Hostiles en {1}: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Tus personajes en {1}: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>nave desconocida</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>ahora mismo</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>hace {0} min</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>informe de muertes</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>inteligencia</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>inteligencia, sin visual</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…y {0} más</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} sin nombre</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>en el espacio</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>acoplado en {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>acoplado</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Personaje {0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Mostrar u ocultar los detalles y la leyenda de la derecha</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Todos los puentes de salto conocidos, de ESI o añadidos a mano, y añadir más</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Mostrar u ocultar los puentes de salto en el mapa</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Puente de salto: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>combustible hasta {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI solo muestra la puerta de {0}</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Añadido a mano</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Puentes de salto: {0} · de ESI: {1} · a mano: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Los puentes de ESI son los Ansiblex de las corporaciones de las que has añadido un token, y van adonde dice su nombre ("A » B"). Añade el resto a mano: los puentes de otras corporaciones y de aliados. Aquí solo se pueden quitar los añadidos a mano.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>Aún no se conoce ningún puente de salto.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>Puertas cuyo nombre no dice adónde van</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (en {1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(sin nombre)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>Combustible</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>Puertas</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, ambas puertas</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, una puerta</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>A mano</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI y a mano</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} días ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Abrir este sistema en una pestaña</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Quitar este puente</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>Añadir un puente</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>un extremo (sistema)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>otro extremo (sistema)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>nota (opcional)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Elige un sistema para cada extremo.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Añadido {0} ⇄ {1}.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>Ese puente ya está en la lista, o los dos extremos son el mismo sistema.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>Pegar una lista</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>Un puente por línea, por ejemplo:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+o como los exporta otra herramienta</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Añadidos {0} · ya conocidos {1} · no leídos {2} (quedan en el cuadro)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Puente de salto: cada mitad en el color de zona de su extremo; más tenue si ESI solo muestra una puerta</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alianza {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zona 1 ({0:0.0} al de la capital), gratis</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zona {0} ({1:0.0} al de la capital), {2}× condensador</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zona desconocida (la alianza no tiene sistema capital)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: nadie tiene la soberanía de {0}, así que nadie puede saltar en este sentido</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>No se ha podido leer quién puede saltar: los datos de soberanía no están disponibles ahora.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Desde el 22 de septiembre de 2026 un puente solo lo puede usar la alianza que tiene la soberanía donde empieza el salto, y no las naves capitales (salvo Rorquals y cargueros). Cada salto gasta condensador del puente, más cuanto más lejos de la capital de esa alianza termina: gratis hasta 5 al (zona 1) y después 2×, 6×, 9× y 15× el coste base de la nave cada 5 al más.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Zonas de soberanía</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zona {1}: {2:0.0} al de la capital, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Sin sistema capital, así que sin zona</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: hasta 5 al, gratis</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 al, 2×</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 al, 6×</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 al, 9×</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: más de 20 al, 15×</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>El titular no tiene sistema capital</value>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>Planificador de rutas</value>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>Planifica una ruta por portales, puentes de salto y Thera o Turnur</value>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>Planificador de saltos</value>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>Planifica la ruta de salto de una nave capital</value>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>Quitar ruta</value>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>Quita las rutas planificadas del mapa</value>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>Personaje</value>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — en {1}</value>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>Su alianza decide qué puentes de salto están abiertos: solo la alianza con la soberanía donde empieza un salto puede usarlo.</value>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>Desde</value>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>Nombre del sistema</value>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>Aquí</value>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>Empezar donde está el personaje</value>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>Intercambiar origen y destino</value>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>Preferir</value>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>Más corta</value>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>Más segura (alta seguridad)</value>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>Menos segura (baja y nula)</value>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>Usar puentes de salto</value>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Usar Thera y Turnur</value>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>Agujeros de gusano listados por EVE-Scout (Ajustes → Datos del mapa)</value>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>Fragata o destructor</value>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>Crucero o crucero de batalla</value>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>Acorazado</value>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>Carguero</value>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>Lista a evitar</value>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>Muestra u oculta los sistemas que las rutas evitan</value>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>Sistemas evitados: {0}</value>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>Añadir un sistema a evitar</value>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>Quitar de la lista a evitar</value>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>Haz clic derecho en un sistema del mapa o de una ruta para añadirlo o quitarlo.</value>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>Añadir {0} a la lista a evitar</value>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>Quitar {0} de la lista a evitar</value>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>Las naves capitales no pueden usar puentes de salto, salvo Rorquals, cargueros y cargueros de salto. El piloto automático del juego recibe cada puente como punto de ruta; los portales intermedios los elige él.</value>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>Mostrar en el mapa</value>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>Fijar destino</value>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>Envía la ruta al piloto automático del juego para el personaje elegido</value>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>Elige un sistema de origen y uno de destino.</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>Sin ruta: los sistemas no están conectados por las vías permitidas, o la lista a evitar cierra todos los caminos.</value>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>{0} saltos — {1} por puente de salto, {2} por agujero de gusano · seguridad mínima {3}</value>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>Algunos puentes de esta ruta no tienen un titular de soberanía conocido, así que no se sabe quién puede usarlos.</value>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>Destino fijado para {0} ({1} puntos de ruta). Cada puente o agujero de gusano lo saltas tú.</value>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>No se fijó el destino: {0}</value>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>Portal</value>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>Puente de salto</value>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>Puente de salto · zona {0}, {1}× condensador</value>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>Agujero de gusano {0} → {1}</value>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>Agujero de gusano</value>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>Vía</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Hostiles</value>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>Muertes (1 h)</value>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Mostrar las conexiones de Thera y Turnur, según EVE-Scout</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Agujero de gusano a Thera (Θ) o Turnur (T); líneas discontinuas desde Turnur. Pasa el ratón para ver las firmas.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Capital</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Agujeros de gusano en {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} aquí, {2} al otro lado · hasta {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Agujeros de gusano desde {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} aquí, {3} al otro lado · hasta {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Agujeros de Thera y Turnur en {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>quedan {0} h</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>queda menos de una hora</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Todos los conectados</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>No hay ningún personaje conectado; el juego solo acepta un destino para un personaje conectado.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Borra la ruta aquí y en el mapa</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Dibuja la ruta en las pestañas del mapa del universo</value>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Zona del Ansiblex</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zona {0} · {1:0.0} al de {2}, la capital · puentes de salto que llegan aquí: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>gratis</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× condensador</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>El titular no tiene sistema capital, así que no hay zona</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Ahora</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} hostiles situados aquí en los últimos 5 minutos: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Tus personajes aquí: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera y Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Lleva a</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Puente aquí</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Quién puede saltar</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Firma aquí</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Otro lado</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Restante</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Soberanía por reputación</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Propia</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Excelente</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Buena</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Mala</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Pésima</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>De los contactos de tus personajes, corporaciones y alianzas; lo que dice la alianza prima sobre la corporación, y esta sobre un personaje.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0} % · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Incursión</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · {1:0} % de influencia · {2} · base en {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>este sistema</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Tormentas</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Mostrar las tormentas metaliminales, según EVE-Scout</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Tormenta metaliminal (⚡), notificada a EVE-Scout. Pasa el ratón para ver su tipo.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Clima en {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Tormentas en {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · aquí desde hace {1} h</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Clima</value>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Campañas de soberanía</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Mostrar campañas de soberanía: ⚔ donde hay una programada, un anillo rojo cuando se está luchando</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Campaña de soberanía (⚔); anillo rojo cuando ha empezado. Pasa el ratón para ver estructura, defensor, inicio y puntuación.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Campañas de soberanía</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Todas las campañas de soberanía en curso y próximas, de ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Centro de soberanía</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Unidad de reclamación territorial</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Puerto franco</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} min</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>en curso desde hace {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>empieza en {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · local {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>defensor {0:0} % · atacantes {1:0} %</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · defendida por {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Campaña de soberanía en {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Campañas de soberanía en {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Todas las regiones</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>No hay campañas de soberanía ahora mismo.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Campañas: {0} · en curso: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>En curso</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Programada</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Cuándo</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Estructura</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Defensor</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Puntuación</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Campaña</value>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Primera línea</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Operaciones de mando</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Retaguardia</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Discontinuo: en disputa ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>pico en local</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>campeo de puerta</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>burbujas</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>riesgo de hotdrop</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>cyno</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>agujero de gusano</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>sondas de combate</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>en el ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>en un skyhook</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>en la puerta a {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Informado en {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Naves: {0}</value>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Alcance de salto</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Todos los sistemas que alcanza un motor de salto desde un personaje o un sistema, marcados en el mapa</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Elegir un personaje toma su sistema, su casco si tiene motor de salto y su Jump Drive Calibration. Después, el alcance le sigue cuando se mueve.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ATERRIZAR EN</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Marcar los sistemas al alcance en las pestañas del mapa del universo</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en alta seguridad, espacio de agujeros de gusano, Pochven ni Zarzakh, así que ninguno de ellos está nunca al alcance. Las distancias son años luz en línea recta.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>AL</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} sistemas a menos de {1} al de {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Siguiendo a {0} mientras se mueve</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en alta seguridad ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en {0}.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>No hay nada al alcance.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>Al alcance de salto del sistema de la pestaña Alcance de salto (el anillo más grueso)</value>
+  </data>
+</root>

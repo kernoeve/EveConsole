@@ -1,0 +1,1807 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporación:</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>Actividad (24 h)</value>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>Jugadores activos:</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>Ingresos:</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>Gastos:</value>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>Matarratas</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Personaje</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Abrir en el explorador de entidades</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Valor</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>Industria</value>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>Minería</value>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>Muertes y pérdidas recientes</value>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>Actividad mensual</value>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>Ingresos totales</value>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>Gastos totales</value>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>Imp. recomp.</value>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>Imp. industrial</value>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>Pagos proyectos</value>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>Valor minado</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>Pérdidas</value>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>Efic. ISK</value>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>Jugadores activos</value>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>Tendencias de ISK (miles de millones)</value>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>Muertes / pérdidas (eficiencia en ISK a la derecha)</value>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>Jugadores activos</value>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>Minería (valor reprocesado)</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Ingresos</value>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>Ingresos por tipo</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Periodo:</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>Recuento</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Detalle</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>contiene…</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>Fecha / hora</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Gastos</value>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>Gastos por tipo</value>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>Impuestos sobre recompensas</value>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>Impuesto sobre recompensas</value>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>Impuesto diario sobre recompensas</value>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>Impuestos industriales</value>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>Impuesto industrial</value>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>Impuesto industrial diario</value>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>Donaciones</value>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>Donaciones</value>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>Donado</value>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>Donaciones diarias</value>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>Donante</value>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>Minería</value>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>Diario de minería</value>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>No hay datos de minería para este periodo. Si ha fallado algún paso, la línea de estado de arriba lo indica.</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>Tipo de mena</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>Valor reprocesado</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>Informes de muertes</value>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>Informes de muertes</value>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>Muertes / pérdidas diarias</value>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>Proyectos</value>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>Activos</value>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>Retribución total:</value>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>Restante:</value>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>No hay proyectos corporativos activos.</value>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>Trayectoria</value>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>Progreso</value>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>Retrib. rest.</value>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>Creador</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>No hay historial de proyectos disponible.</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>Proyectos permanentes</value>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ Añadir proyecto</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Cargando…</value>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>Clonar elemento</value>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>Abrir el objeto en el Explorador de objetos</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Abrir esta estación o estructura</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>Estado del proyecto</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Restante</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>% rest.</value>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>Pago</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>No hay proyectos permanentes definidos. Haz clic en «+ Añadir proyecto» para crear uno.</value>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>Selecciona un proyecto de arriba para ver los detalles.</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>Colaboradores</value>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>Aportado</value>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>% del objetivo</value>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>Listas Top 10</value>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>Top 10 por mes</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Mes:</value>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>Año:</value>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>Cargando…</value>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>Formato usado para Exportar al portapapeles y Publicar en Slack</value>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>Exportar al portapapeles</value>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>Exportar (sin ISK)</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Publicar en Slack</value>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>Minería — unidades extraídas</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>Colaboradores de proyectos</value>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>Resumen mensual</value>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>Resumen mensual</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>Este mes</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Cambio</value>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>Cambio respecto al mes anterior</value>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>Cambio porcentual respecto al mes anterior</value>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>{0:N0} filas</value>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>Actividad corporativa</value>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>Escribe al menos dos caracteres para buscar…</value>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>Busca arriba y elige una entidad para ver sus detalles.</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>Muertes / pérdidas</value>
+  </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>Cargar 200 más de zKillboard</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>Reintentar con zKillboard</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>Pidiendo a zKillboard las muertes que no están guardadas aquí…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>Cargando la página {1} de zKillboard (mostradas: {0:N0}). Si zKillboard no ha servido esa página hace poco, puede tardar un minuto.</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0} — así que solo se muestran las muertes guardadas aquí.</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0} — la página {2} no se ha cargado (mostradas: {1:N0}).</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>No hay informes de muertes de esta entidad, ni aquí ni en zKillboard.</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>Muertes guardadas aquí: {0:N0}; zKillboard no tiene ninguna de esta entidad.</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>Muertes y pérdidas: {0:N0} — todo lo que tiene zKillboard.</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>Muertes y pérdidas: {0:N0} desde el {1:yyyy-MM-dd HH:mm}, completas con los datos de zKillboard (descargadas por no estar guardadas aquí: {2:N0}).</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboard no ofrece nada más antiguo: su límite es de {0} páginas.</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>Error al cargar la página de zKillboard: {0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>Cargando las estadísticas de zKillboard…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}, así que no hay estadísticas que mostrar.</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard no tiene muertes ni pérdidas de esta entidad.</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>Error al cargar las estadísticas de zKillboard: {0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>Todo</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90 días</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7 días</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>Destruido</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>Perdido</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>Puesto</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>Efic.</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>Naves</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>Puntos</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>Puesto n.º {0:N0}</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>Peligroso {0} %</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0} % mimoso</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>En grupo {0} %</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0} % solo</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>media de atacantes: {0:0.#}</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>{0:N0} muertes en solitario</value>
+  </data>
+  <data name="ZkbSoloKillsOne" xml:space="preserve">
+    <value>{0:N0} muerte en solitario</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>{0:N0} pérdidas en solitario</value>
+  </data>
+  <data name="ZkbSoloLossesOne" xml:space="preserve">
+    <value>{0:N0} pérdida en solitario</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>No hay muertes ni pérdidas en los últimos 90 días.</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>No hay muertes ni pérdidas en los últimos 7 días.</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>No hay muertes ni pérdidas en zKillboard.</value>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>Niv.</value>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>División</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>Abrir en la pestaña Estaciones</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>Desde</value>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Duración</value>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>Estaciones</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Seg.</value>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>Agentes</value>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>Pedidos</value>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>Ventas</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>Precio mín.</value>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>Precio máx.</value>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>Compras</value>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>Ofertas de PL</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Cant.</value>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>Requiere</value>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>Guerra de facciones</value>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>Función</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Ocupado por</value>
+  </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>Ocupante</value>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>En disputa</value>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>Puntos</value>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>Límite</value>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>Informes de inteligencia</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>Cuándo</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>Canal</value>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>Informante</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Personaje…</value>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>Corporación…</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Desde:</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Hasta:</value>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>Nave…</value>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>Sistema/región…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Cargar más</value>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>Selecciona un informe de muertes para ver los detalles.</value>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>Abrir en el mapa del universo</value>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>Destruido</value>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>Soltado</value>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>Atacantes</value>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>Informes de muertes</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agentes</value>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporaciones</value>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>Facciones</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>Alianzas</value>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>Proyecto permanente</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>Tipo de proyecto</value>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>Entregar objeto</value>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>Destruir PNJ</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Tipo de objeto</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Buscar tipo de objeto…</value>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>Estación / estructura de destino</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Buscar estación o estructura…</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>Sistema concreto</value>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>Todos los sistemas de una región por debajo del ADM mínimo</value>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>Todos los sistemas de una constelación por debajo del ADM mínimo</value>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>Todos los sistemas donde una alianza tiene la soberanía</value>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>Sistema solar</value>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>Buscar sistema solar…</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>Buscar región…</value>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>ADM mín.:</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>Buscar constelación…</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>No se ha encontrado ninguna alianza en los personajes registrados.</value>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>Todos los sistemas de esta alianza que están por debajo del ADM, estén donde estén. Se vuelve a leer del mapa de soberanía cada vez que se construye la tabla.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>ningún sistema por debajo del ADM mínimo</value>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>el alcance no incluye ningún sistema</value>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>datos de soberanía no disponibles — {0}</value>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>datos de soberanía no disponibles</value>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>ubicación de la oficina no disponible — {0}</value>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>ubicación de la oficina no disponible — los datos de bienes aún se están cargando</value>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>proyecto no activo</value>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>Selecciona una corporación arriba para cargar los datos.</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>Últimos 60 días</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Últimos 90 días</value>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>Últimos 6 meses</value>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>Último año</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Últimos 7 días</value>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>Error del filtro: {0}</value>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>Texto sin formato</value>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>Correo de EVE</value>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>minería</value>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>recompensas</value>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>industria</value>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>donaciones</value>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>muertes</value>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>ingresos</value>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>gastos</value>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>cartera</value>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>gráfico diario</value>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>actividad mensual</value>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>proyectos</value>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>top 10</value>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>resumen mensual</value>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>ingresos por tipo</value>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>gastos por tipo</value>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>actividad de 24 h</value>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>Cargando {0}…</value>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>Aviso: error en {0} — {1}</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Cargado — {0}</value>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>Cargado — {0}, pero ha habido errores en: {1}. Consulta el motivo en el Registro de errores.</value>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>Actualizando {0}…</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Listo</value>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>Aviso: error al recargar {0} — {1}</value>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>mediante webhook</value>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>No hay ningún canal ni webhook de Slack configurado.</value>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>Esta lista Top 10 ya se publicó en Slack {0}.</value>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>¿Publicarla de nuevo?</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Publicación cancelada.</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Publicando en Slack…</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Publicado en {0} — {1:t}</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>No se ha podido publicar en Slack: {0}</value>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>Se han publicado {0} de {1} mensajes en {2}; Slack ha rechazado el siguiente: {3}</value>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>Este resumen mensual ya se publicó en Slack {0}.</value>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>Top 10 — {0} de {1}</value>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0} — Top 10 — {1} de {2}</value>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>Top 10 de recompensas</value>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>Top 10 de industria</value>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>Top 10 de muertes</value>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>Top 10 de mineros</value>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>Top 10 de colaboradores</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>Todos los tipos</value>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>resumen de 24 h</value>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>recompensas de 24 h</value>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>industria de 24 h</value>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>mineros de 24 h</value>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>muertes de 24 h</value>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>Personaje {0}</value>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>Pérdidas</value>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>Trayectoria</value>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>Última modificación</value>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>Creador</value>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>Progreso</value>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>Retribución total</value>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>Retribución restante</value>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>Capturar complejo de guerra de facciones</value>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>Dañar nave</value>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>Defender complejo de guerra de facciones</value>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>Destruir no capsulistas</value>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>Destruir nave</value>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>Ganar puntos de lealtad</value>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>Perder nave</value>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>Fabricar objeto</value>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>Extraer material</value>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>Potenciar escudos remotamente</value>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>Reparar blindaje remotamente</value>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>Recuperar restos</value>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>Escanear señal</value>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>Seguro de nave</value>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Estructura {0}</value>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>Ubicación(es)</value>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>Objeto(s)</value>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>Destino(s)</value>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>Tipo(s) de nave</value>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>Objetivo(s)</value>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>Destruido por</value>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>Tipo de conflicto</value>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>Material(es)</value>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>Tipo(s) de señal</value>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>Facción(es)</value>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>Arquetipo(s)</value>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>Corporación(es)</value>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>Subtipo</value>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>No se han podido cargar los proyectos permanentes: {0}</value>
+  </data>
+  <data name="SlackPostedInPartsOne" xml:space="preserve">
+    <value>Publicado en {1} en {0} mensaje — {2:t}</value>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>Publicado en {1} en {0} mensajes — {2:t}</value>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>¿Seguro que quieres eliminar este proyecto permanente?</value>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>Selecciona un tipo de objeto.</value>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>Selecciona una estación o estructura de destino.</value>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>Selecciona un sistema solar.</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Selecciona una región.</value>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>Selecciona una alianza.</value>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>Selecciona una constelación.</value>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>x{0} destr.</value>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>x{0} solt.</value>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ GD</value>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ MD</value>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0} daño</value>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>Cargando informes de muertes…</value>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>{0:N0} informes de muertes cargados; hay más disponibles, haz clic en Cargar más</value>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>{0:N0} informes de muertes</value>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>Mostrando {0:N0} de {1:N0} coincidencias; sigue escribiendo para acotar la búsqueda.</value>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>Corporaciones miembro</value>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>Historial de empleo</value>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>Historial de alianzas</value>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>{0:N0} estación(es)</value>
+  </data>
+  <data name="CorpStationsOne" xml:space="preserve">
+    <value>{0:N0} estación</value>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
+    <value>{0:N0} estaciones</value>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>No se han encontrado estaciones.</value>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>Sin estaciones: es la corporación de la milicia de {0}, y la tienda de lealtad de una milicia no funciona desde una estación.</value>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>no se han obtenido datos de mercado de ninguna región en la que esta corporación tenga estaciones</value>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>los datos de mercado cubren {0} de sus {1} regiones</value>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>No se han encontrado pedidos: {0}.</value>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>No se han encontrado pedidos en los datos de mercado obtenidos hasta ahora.</value>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>{0:N0} de venta, {1:N0} de compra — {2}</value>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>{0:N0} de venta, {1:N0} de compra</value>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>No se han encontrado ofertas de PL.</value>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>{0:N0} oferta(s) de PL</value>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>No se han encontrado sistemas de guerra de facciones.</value>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>{0:N0} sistema(s) de guerra de facciones</value>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>No se ha devuelto ninguna corporación miembro. ESI solo informa de los miembros actuales.</value>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>No se han encontrado agentes.</value>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>No se han encontrado corporaciones miembro.</value>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>{0:N0} agente(s)</value>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>{0:N0} corporación(es) miembro</value>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>No hay historial de alianzas registrado para esta corporación.</value>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>{0:N0} periodo(s), los más recientes primero</value>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>No hay informes de muertes registrados para esta entidad.</value>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>{0:N0} informe(s) de muertes más reciente(s) (limitado)</value>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>{0:N0} informe(s) de muertes más reciente(s)</value>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>No hay avistamientos. Proceden de los canales de inteligencia a través del importador de registros de chat.</value>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>{0:N0} avistamiento(s)</value>
+  </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack (webhook)</value>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>No hay historial de corporaciones registrado para este personaje.</value>
+  </data>
+  <data name="FallbackSystemName" xml:space="preserve">
+    <value>Sistema {0}</value>
+  </data>
+  <data name="SovAdmNoLevels" xml:space="preserve">
+    <value>el endpoint de soberanía no ha devuelto niveles de ocupación</value>
+  </data>
+  <data name="ScopeRegionAdm" xml:space="preserve">
+    <value>Región: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="ScopeAllianceSov" xml:space="preserve">
+    <value>Sob.: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="ScopeConstellationAdm" xml:space="preserve">
+    <value>Const.: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="RemainingComplete" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="StandingProjectSummary" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="ReportStatusActive" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="ReportStatusAllHealthy" xml:space="preserve">
+    <value>Todo en orden</value>
+  </data>
+  <data name="ReportStatusNoProject" xml:space="preserve">
+    <value>Sin proyecto</value>
+  </data>
+  <data name="ReportStatusNoSystems" xml:space="preserve">
+    <value>Ningún sistema en el alcance</value>
+  </data>
+  <data name="ReportStatusNoOffice" xml:space="preserve">
+    <value>Sin oficina</value>
+  </data>
+  <data name="ReportStatusAdmUnavailable" xml:space="preserve">
+    <value>ADM no disponible</value>
+  </data>
+  <data name="ReportColProject" xml:space="preserve">
+    <value>Proyecto</value>
+  </data>
+  <data name="ReportColStatus" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ReportColRemaining" xml:space="preserve">
+    <value>Restante</value>
+  </data>
+  <data name="ReportColIskLeft" xml:space="preserve">
+    <value>ISK restantes</value>
+  </data>
+  <data name="ReportColLastCompleted" xml:space="preserve">
+    <value>Último completado</value>
+  </data>
+  <data name="PickerScopeRegionAdm" xml:space="preserve">
+    <value>{0} — región, ADM por debajo de {1:0.##}</value>
+  </data>
+  <data name="PickerScopeConstellationAdm" xml:space="preserve">
+    <value>{0} — constelación, ADM por debajo de {1:0.##}</value>
+  </data>
+  <data name="PickerScopeAllianceSov" xml:space="preserve">
+    <value>{0} — soberanía, ADM por debajo de {1:0.##}</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
+    <value>Proyectos de entregar objetos — proyectos ausentes</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
+    <value>Proyectos de destruir PNJ — proyectos ausentes</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
+    <value>Proyectos de entregar objetos — proyectos ausentes y bajos</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
+    <value>Proyectos de destruir PNJ — proyectos ausentes y bajos</value>
+  </data>
+  <data name="ProjectsTitleDeliverAll" xml:space="preserve">
+    <value>Proyectos de entregar objetos</value>
+  </data>
+  <data name="ProjectsTitleDestroyAll" xml:space="preserve">
+    <value>Proyectos de destruir PNJ</value>
+  </data>
+  <data name="Top10TitleRatting" xml:space="preserve">
+    <value>Impuesto sobre recompensas</value>
+  </data>
+  <data name="Top10TitleMining" xml:space="preserve">
+    <value>Minería — valor reprocesado</value>
+  </data>
+  <data name="Top10TitleKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="Top10TitleProjects" xml:space="preserve">
+    <value>Colaboradores de proyectos</value>
+  </data>
+  <data name="Top10TitleIndustry" xml:space="preserve">
+    <value>Impuesto industrial</value>
+  </data>
+  <data name="SummarySectionIncome" xml:space="preserve">
+    <value>Ingresos</value>
+  </data>
+  <data name="SummarySectionExpenses" xml:space="preserve">
+    <value>Gastos</value>
+  </data>
+  <data name="SummarySectionNet" xml:space="preserve">
+    <value>Neto</value>
+  </data>
+  <data name="SummarySectionCombat" xml:space="preserve">
+    <value>Combate</value>
+  </data>
+  <data name="SummarySectionMining" xml:space="preserve">
+    <value>Minería</value>
+  </data>
+  <data name="SummarySectionProjects" xml:space="preserve">
+    <value>Proyectos corporativos</value>
+  </data>
+  <data name="SummarySectionMembers" xml:space="preserve">
+    <value>Miembros</value>
+  </data>
+  <data name="SummaryRowRattingTax" xml:space="preserve">
+    <value>Impuesto sobre recompensas</value>
+  </data>
+  <data name="SummaryRowIndustryTax" xml:space="preserve">
+    <value>Impuesto industrial</value>
+  </data>
+  <data name="SummaryRowDonations" xml:space="preserve">
+    <value>Donaciones</value>
+  </data>
+  <data name="SummaryRowContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="SummaryRowMarket" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="SummaryRowOther" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="SummaryRowTotalIncome" xml:space="preserve">
+    <value>Ingresos totales</value>
+  </data>
+  <data name="SummaryRowProjectPayouts" xml:space="preserve">
+    <value>Pagos de proyectos</value>
+  </data>
+  <data name="SummaryRowWithdrawals" xml:space="preserve">
+    <value>Retiradas</value>
+  </data>
+  <data name="SummaryRowTotalExpenses" xml:space="preserve">
+    <value>Gastos totales</value>
+  </data>
+  <data name="SummaryRowNetPosition" xml:space="preserve">
+    <value>Posición neta</value>
+  </data>
+  <data name="SummaryRowKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="SummaryRowLosses" xml:space="preserve">
+    <value>Pérdidas</value>
+  </data>
+  <data name="SummaryRowIskDestroyed" xml:space="preserve">
+    <value>ISK destruidos</value>
+  </data>
+  <data name="SummaryRowIskLost" xml:space="preserve">
+    <value>ISK perdidos</value>
+  </data>
+  <data name="SummaryRowIskEfficiency" xml:space="preserve">
+    <value>Eficiencia en ISK</value>
+  </data>
+  <data name="SummaryChangePoints" xml:space="preserve">
+    <value>{0}{1:F1} p. p.</value>
+  </data>
+  <data name="SummaryRowUnitsMined" xml:space="preserve">
+    <value>Unidades extraídas</value>
+  </data>
+  <data name="SummaryRowMinedValue" xml:space="preserve">
+    <value>Valor minado</value>
+  </data>
+  <data name="SummaryRowCreated" xml:space="preserve">
+    <value>Creados</value>
+  </data>
+  <data name="SummaryRowCreatedValue" xml:space="preserve">
+    <value>Valor creado</value>
+  </data>
+  <data name="SummaryRowCompleted" xml:space="preserve">
+    <value>Completados</value>
+  </data>
+  <data name="SummaryRowCompletedValue" xml:space="preserve">
+    <value>Valor completado</value>
+  </data>
+  <data name="SummaryRowActivePlayers" xml:space="preserve">
+    <value>Jugadores activos</value>
+  </data>
+  <data name="SummaryExportSubtitle" xml:space="preserve">
+    <value>Las columnas de cambio comparan con el mes anterior.</value>
+  </data>
+  <data name="SummaryColItem" xml:space="preserve">
+    <value>Concepto</value>
+  </data>
+  <data name="SummaryColAmount" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="SummaryHeader" xml:space="preserve">
+    <value>Resumen mensual — {0} de {1}</value>
+  </data>
+  <data name="SummaryHeaderCorp" xml:space="preserve">
+    <value>{0} — Resumen mensual — {1} de {2}</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>Ingresos</value>
+  </data>
+  <data name="SeriesExpenses" xml:space="preserve">
+    <value>Gastos</value>
+  </data>
+  <data name="SeriesRattingTax" xml:space="preserve">
+    <value>Impuesto sobre recompensas</value>
+  </data>
+  <data name="SeriesIndustryTax" xml:space="preserve">
+    <value>Impuesto industrial</value>
+  </data>
+  <data name="SeriesProjPayouts" xml:space="preserve">
+    <value>Pagos proyectos</value>
+  </data>
+  <data name="ChartTitleIskTrends" xml:space="preserve">
+    <value>Tendencias de ISK (miles de millones)</value>
+  </data>
+  <data name="SeriesUnitsMined" xml:space="preserve">
+    <value>Unidades extraídas</value>
+  </data>
+  <data name="ChartTitleActivityTrends" xml:space="preserve">
+    <value>Tendencias de actividad (muertes y pérdidas a la izquierda, unidades extraídas a la derecha)</value>
+  </data>
+  <data name="SeriesIskEfficiency" xml:space="preserve">
+    <value>Eficiencia en ISK</value>
+  </data>
+  <data name="ChartTitleKillTrends" xml:space="preserve">
+    <value>Muertes y pérdidas (eficiencia en ISK a la derecha)</value>
+  </data>
+  <data name="SeriesMinedValue" xml:space="preserve">
+    <value>Valor minado</value>
+  </data>
+  <data name="ChartTitleMining" xml:space="preserve">
+    <value>Minería (valor reprocesado)</value>
+  </data>
+  <data name="ChartPlayersActive" xml:space="preserve">
+    <value>Jugadores activos</value>
+  </data>
+  <data name="SlotShip" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="KillmailItemCopy" xml:space="preserve">
+    <value>{0} (copia)</value>
+  </data>
+  <data name="KillmailGroupOther" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="SlotHigh" xml:space="preserve">
+    <value>Ranuras superiores</value>
+  </data>
+  <data name="SlotMid" xml:space="preserve">
+    <value>Ranuras medias</value>
+  </data>
+  <data name="SlotLow" xml:space="preserve">
+    <value>Ranuras inferiores</value>
+  </data>
+  <data name="SlotRig" xml:space="preserve">
+    <value>Ranuras de complementos</value>
+  </data>
+  <data name="SlotSubsystem" xml:space="preserve">
+    <value>Ranuras de subsistema</value>
+  </data>
+  <data name="SlotDroneBay" xml:space="preserve">
+    <value>Muelle de drones</value>
+  </data>
+  <data name="SlotFighterBay" xml:space="preserve">
+    <value>Plataforma para cazas</value>
+  </data>
+  <data name="SlotFighterTubes" xml:space="preserve">
+    <value>Tubos de lanzamiento de cazas</value>
+  </data>
+  <data name="SlotShipHangar" xml:space="preserve">
+    <value>Hangar de naves</value>
+  </data>
+  <data name="SlotFleetHangar" xml:space="preserve">
+    <value>Hangar de la flota</value>
+  </data>
+  <data name="SlotFuelBay" xml:space="preserve">
+    <value>Almacén de combustible</value>
+  </data>
+  <data name="SlotOreHold" xml:space="preserve">
+    <value>Bodega de mena</value>
+  </data>
+  <data name="SlotIceHold" xml:space="preserve">
+    <value>Bodega de hielo</value>
+  </data>
+  <data name="SlotAsteroidHold" xml:space="preserve">
+    <value>Bodega de asteroides</value>
+  </data>
+  <data name="SlotGasHold" xml:space="preserve">
+    <value>Bodega de gas</value>
+  </data>
+  <data name="SlotMineralHold" xml:space="preserve">
+    <value>Bodega de minerales</value>
+  </data>
+  <data name="SlotSalvageHold" xml:space="preserve">
+    <value>Bodega de restos</value>
+  </data>
+  <data name="SlotShipHold" xml:space="preserve">
+    <value>Bodega de naves</value>
+  </data>
+  <data name="SlotSmallShipHold" xml:space="preserve">
+    <value>Bodega de nave pequeña</value>
+  </data>
+  <data name="SlotMediumShipHold" xml:space="preserve">
+    <value>Bodega de nave mediana</value>
+  </data>
+  <data name="SlotLargeShipHold" xml:space="preserve">
+    <value>Bodega de nave grande</value>
+  </data>
+  <data name="SlotIndustrialShipHold" xml:space="preserve">
+    <value>Bodega de nave industrial</value>
+  </data>
+  <data name="SlotAmmoHold" xml:space="preserve">
+    <value>Arsenal</value>
+  </data>
+  <data name="SlotCargoHold" xml:space="preserve">
+    <value>Bodega de carga</value>
+  </data>
+  <data name="SearchViaEsi" xml:space="preserve">
+    <value>mediante ESI</value>
+  </data>
+  <data name="FactCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="FactAlliance" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="FactSecurityStatus" xml:space="preserve">
+    <value>Estado de seguridad</value>
+  </data>
+  <data name="FactFaction" xml:space="preserve">
+    <value>Facción</value>
+  </data>
+  <data name="FactGender" xml:space="preserve">
+    <value>Sexo</value>
+  </data>
+  <data name="FactRace" xml:space="preserve">
+    <value>Raza</value>
+  </data>
+  <data name="FactBloodline" xml:space="preserve">
+    <value>Linaje</value>
+  </data>
+  <data name="FactAchievementScore" xml:space="preserve">
+    <value>Puntuación de logros</value>
+  </data>
+  <data name="FactBorn" xml:space="preserve">
+    <value>Nacimiento</value>
+  </data>
+  <data name="FactTitle" xml:space="preserve">
+    <value>Cargo</value>
+  </data>
+  <data name="FactTicker" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="FactMembers" xml:space="preserve">
+    <value>Miembros</value>
+  </data>
+  <data name="FactCeo" xml:space="preserve">
+    <value>CEO</value>
+  </data>
+  <data name="FactFounded" xml:space="preserve">
+    <value>Fundación</value>
+  </data>
+  <data name="FactTaxRate" xml:space="preserve">
+    <value>Tasa impositiva</value>
+  </data>
+  <data name="FactWarEligible" xml:space="preserve">
+    <value>Apta para la guerra</value>
+  </data>
+  <data name="FactYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="FactUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="FactCreator" xml:space="preserve">
+    <value>Creador</value>
+  </data>
+  <data name="FactCreatorCorp" xml:space="preserve">
+    <value>Corporación creadora</value>
+  </data>
+  <data name="FactExecutorCorp" xml:space="preserve">
+    <value>Corporación ejecutiva</value>
+  </data>
+  <data name="FallbackCorporationName" xml:space="preserve">
+    <value>Corporación {0}</value>
+  </data>
+  <data name="FallbackAllianceName" xml:space="preserve">
+    <value>Alianza {0}</value>
+  </data>
+  <data name="HistoryNoAlliance" xml:space="preserve">
+    <value>— sin alianza —</value>
+  </data>
+  <data name="HistoryPresent" xml:space="preserve">
+    <value>actualidad</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>{0:N0} día(s)</value>
+  </data>
+  <data name="GenderMale" xml:space="preserve">
+    <value>Hombre</value>
+  </data>
+  <data name="GenderFemale" xml:space="preserve">
+    <value>Mujer</value>
+  </data>
+  <data name="SubtitleOurCharacter" xml:space="preserve">
+    <value>Uno de tus personajes</value>
+  </data>
+  <data name="SubtitlePlayerCharacter" xml:space="preserve">
+    <value>Personaje de jugador</value>
+  </data>
+  <data name="FactCharacterId" xml:space="preserve">
+    <value>ID de personaje</value>
+  </data>
+  <data name="FactLastSeen" xml:space="preserve">
+    <value>Visto por última vez</value>
+  </data>
+  <data name="SubtitleOurCorporation" xml:space="preserve">
+    <value>Una de tus corporaciones</value>
+  </data>
+  <data name="SubtitlePlayerCorporation" xml:space="preserve">
+    <value>Corporación de jugadores</value>
+  </data>
+  <data name="SubtitlePlayerAlliance" xml:space="preserve">
+    <value>Alianza de jugadores</value>
+  </data>
+  <data name="FactCorporationId" xml:space="preserve">
+    <value>ID de corporación</value>
+  </data>
+  <data name="FactAllianceId" xml:space="preserve">
+    <value>ID de alianza</value>
+  </data>
+  <data name="SubtitleAgent" xml:space="preserve">
+    <value>Agente de {1} de nivel {0}</value>
+  </data>
+  <data name="FactAgentId" xml:space="preserve">
+    <value>ID de agente</value>
+  </data>
+  <data name="FactStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="FactDivision" xml:space="preserve">
+    <value>División</value>
+  </data>
+  <data name="FactAgentType" xml:space="preserve">
+    <value>Tipo de agente</value>
+  </data>
+  <data name="FactLocator" xml:space="preserve">
+    <value>Localizador</value>
+  </data>
+  <data name="FactNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="FactHeadquarters" xml:space="preserve">
+    <value>Cuartel general</value>
+  </data>
+  <data name="FactStations" xml:space="preserve">
+    <value>Estaciones</value>
+  </data>
+  <data name="FactAgents" xml:space="preserve">
+    <value>Agentes</value>
+  </data>
+  <data name="FactToJoin" xml:space="preserve">
+    <value>Para unirse</value>
+  </data>
+  <data name="FactToJoinValue" xml:space="preserve">
+    <value>prestigio {0:N1}, seguridad {1:N1} o más</value>
+  </data>
+  <data name="FactLpStore" xml:space="preserve">
+    <value>Tienda de PL</value>
+  </data>
+  <data name="FactLpOffers" xml:space="preserve">
+    <value>{0:N0} oferta(s)</value>
+  </data>
+  <data name="FactLpStoreNone" xml:space="preserve">
+    <value>ninguna</value>
+  </data>
+  <data name="FactYourLp" xml:space="preserve">
+    <value>Tus PL</value>
+  </data>
+  <data name="FactIskPerLp" xml:space="preserve">
+    <value>ISK por PL</value>
+  </data>
+  <data name="FactWebsite" xml:space="preserve">
+    <value>Sitio web</value>
+  </data>
+  <data name="SubtitleNpcCorp" xml:space="preserve">
+    <value>Corporación PNJ</value>
+  </data>
+  <data name="SubtitleFaction" xml:space="preserve">
+    <value>Facción</value>
+  </data>
+  <data name="FactFactionId" xml:space="preserve">
+    <value>ID de facción</value>
+  </data>
+  <data name="FactMilitiaCorp" xml:space="preserve">
+    <value>Corporación de la milicia</value>
+  </data>
+  <data name="FactHomeSystem" xml:space="preserve">
+    <value>Sistema de origen</value>
+  </data>
+  <data name="FactCorporations" xml:space="preserve">
+    <value>Corporaciones</value>
+  </data>
+  <data name="SubtitleNpcStation" xml:space="preserve">
+    <value>Estación PNJ</value>
+  </data>
+  <data name="FactStationId" xml:space="preserve">
+    <value>ID de estación</value>
+  </data>
+  <data name="FactSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="FactConstellation" xml:space="preserve">
+    <value>Constelación</value>
+  </data>
+  <data name="FactRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="FactSecurity" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="FactSecurityValue" xml:space="preserve">
+    <value>{0}  (real {1})</value>
+  </data>
+  <data name="FactType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="FactReprocessing" xml:space="preserve">
+    <value>Reprocesamiento</value>
+  </data>
+  <data name="FactReprocessingValue" xml:space="preserve">
+    <value>{0:0.#} % · {1:0.#} % de impuesto</value>
+  </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Publicar en Discord</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>No hay ningún webhook de Discord configurado para esto: elige uno en Ajustes, Discord.</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>Esta lista Top 10 ya se publicó en Discord {0}.</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>Este resumen mensual ya se publicó en Discord {0}.</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Publicando en Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>No se ha podido publicar en Discord: {0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>Se han publicado {0} de {1} mensajes en {2}; Discord ha rechazado el siguiente: {3}</value>
+  </data>
+</root>

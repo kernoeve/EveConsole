@@ -125,6 +125,119 @@ public class SdeDogmaEffect
     public bool   IsOffensive  { get; set; }
     public bool   IsAssistance { get; set; }
     public bool   Published    { get; set; }
+
+    // ── What the fitting engine runs on ────────────────────────────────────────
+    // 0 passive, 1 active, 2 target, 3 area, 4 online, 5 overload, 6 dungeon, 7 system.
+    public int    EffectCategory           { get; set; }
+    public bool   IsWarpSafe               { get; set; }
+    public bool   DisallowAutoRepeat       { get; set; }
+    // Which of the owning item's attributes hold the cycle time, cap use, optimal, falloff,
+    // tracking and the target resistance the effect is reduced by. Null where it has none.
+    public int?   DurationAttributeId      { get; set; }
+    public int?   DischargeAttributeId     { get; set; }
+    public int?   RangeAttributeId         { get; set; }
+    public int?   FalloffAttributeId       { get; set; }
+    public int?   TrackingSpeedAttributeId { get; set; }
+    public int?   ResistanceAttributeId    { get; set; }
+    public int?   FittingUsageChanceAttributeId { get; set; }
+}
+
+/// <summary>
+/// One entry of a dogma effect's <c>modifierInfo</c>: "while this effect is on, change attribute
+/// X of whatever <see cref="Domain"/> and <see cref="Func"/> select, by attribute Y of the item
+/// carrying the effect, using <see cref="Operation"/>". The fitting engine is these rows run in
+/// order; an effect with none needs code of its own.
+/// </summary>
+/// <summary>
+/// A fighter ability as the game describes it (fighterAbilities.yaml): its name, what it does, and
+/// where it may be used. Which fighter has it, and with how many charges, is
+/// <see cref="SdeFighterTypeAbility"/>. The name and tooltip in other languages are SdeNames and
+/// SdeTexts rows.
+/// </summary>
+public class SdeFighterAbility
+{
+    public int     AbilityId         { get; set; }
+    public string  Name              { get; set; } = "";
+    public string  Tooltip           { get; set; } = "";
+    /// <summary>untargeted, itemTargeted or pointTargeted.</summary>
+    public string  TargetMode        { get; set; } = "";
+    public int?    IconId            { get; set; }
+    public bool    DisallowInHighSec { get; set; }
+    public bool    DisallowInLowSec  { get; set; }
+}
+
+/// <summary>
+/// A fleet buff as the game defines it (dbuffCollections.yaml): what a command burst, a
+/// phenomena generator or a system effect does to the ships it reaches. A burst carries only the
+/// buff's id and a value; this says which attributes the value changes, by which operation, and
+/// how several values for the same buff combine — the strongest (Maximum or Minimum) applies.
+/// Its name in other languages is an SdeNames row.
+/// </summary>
+public class SdeDbuff
+{
+    public int    DbuffId       { get; set; }
+    public string Name          { get; set; } = "";
+    /// <summary>Maximum or Minimum: which of several values for this buff applies.</summary>
+    public string AggregateMode { get; set; } = "";
+    /// <summary>The dogma operation by name: PostPercent, PostMul, ModAdd, …</summary>
+    public string Operation     { get; set; } = "";
+    /// <summary>ShowNormal, ShowInverted or Hide — how the game shows the value.</summary>
+    public string ShowInUi      { get; set; } = "";
+}
+
+/// <summary>
+/// One attribute a fleet buff changes (an entry of a dbuffCollections.yaml modifier list): on the
+/// ship itself ("item"), on everything fitted ("location"), on what is fitted of a group
+/// ("locationGroup"), or on what is fitted that requires a skill ("locationRequiredSkill").
+/// </summary>
+public class SdeDbuffModifier
+{
+    public int    DbuffId     { get; set; }
+    public int    Ordinal     { get; set; }
+    public string Kind        { get; set; } = "";
+    public int    AttributeId { get; set; }
+    public int?   GroupId     { get; set; }
+    public int?   SkillTypeId { get; set; }
+}
+
+/// <summary>
+/// One ability slot of a fighter type (fighterAbilitiesByType.yaml): the ability, and its cooldown
+/// or charges. Slot 0 is the squadron's standing weapon, slot 1 its movement ability, slot 2 its
+/// secondary — the order the game gives them, which is also how they are matched to the dogma
+/// effects that carry their numbers (see FighterAbilities).
+/// </summary>
+public class SdeFighterTypeAbility
+{
+    public int     TypeId          { get; set; }
+    public int     Slot            { get; set; }
+    public int     AbilityId       { get; set; }
+    /// <summary>Seconds before it can be used again, for abilities that have one.</summary>
+    public double? CooldownSeconds { get; set; }
+    /// <summary>Uses before the squadron must rearm, for abilities that have them.</summary>
+    public int?    ChargeCount     { get; set; }
+    /// <summary>Seconds in the tube to rearm each charge.</summary>
+    public double? RearmSeconds    { get; set; }
+}
+
+public class SdeDogmaEffectModifier
+{
+    public int     EffectId             { get; set; }
+    /// <summary>Position within the effect's list, which is the key and nothing more.</summary>
+    public int     Ordinal              { get; set; }
+    /// <summary>ItemModifier, LocationModifier, LocationGroupModifier,
+    /// LocationRequiredSkillModifier, OwnerRequiredSkillModifier or EffectStopper.</summary>
+    public string  Func                 { get; set; } = "";
+    /// <summary>itemID, shipID, charID, otherID, structureID, target or targetID.</summary>
+    public string  Domain               { get; set; } = "";
+    /// <summary>-1 pre-assign, 0 pre-multiply, 2 mod-add, 3 mod-sub, 4 post-multiply,
+    /// 5 post-divide, 6 post-percent, 7 post-assign, 9 skill-level-based. Null for EffectStopper.</summary>
+    public int?    Operation            { get; set; }
+    public int?    ModifiedAttributeId  { get; set; }
+    public int?    ModifyingAttributeId { get; set; }
+    public int?    GroupId              { get; set; }
+    public int?    SkillTypeId          { get; set; }
+    /// <summary>The effect an EffectStopper switches off.</summary>
+    public int?    StoppedEffectId      { get; set; }
 }
 
 public class SdeTypeDogmaAttribute
@@ -283,11 +396,11 @@ public class SdeCorpDivision
 /// planetResources.yaml — the Equinox planetary production figures, per planet.
 ///
 /// The reagent is not named in the file; it is decided by the planet's type, and only two types
-/// carry one at all: Lava planets yield Magmatic Gas, Ice planets yield Sublimated Ice. Verified
-/// across every reagent-bearing planet in the SDE — exactly 2,337 Lava and 1,125 Ice, nothing
-/// else.
+/// carry one at all: Lava planets yield Magmatic Gas (type 81143), Ice planets yield Superionic
+/// Ice (type 81144). Verified across every reagent-bearing planet in the SDE — exactly 2,337 Lava
+/// and 1,125 Ice, nothing else.
 ///
-/// ⚠️ Sublimated Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
+/// ⚠️ Superionic Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
 /// mining anomaly and must not be used to infer one: 54% of known-space systems hold an ice
 /// planet, far more than actually have ice belts.
 /// </summary>
@@ -536,6 +649,29 @@ public class SdePlanetSchematicType
     public int  Quantity    { get; set; }
 }
 
+/// <summary>Which processor types can run a schematic: planetSchematics.yaml's <c>pins</c>.</summary>
+public class SdePlanetSchematicPin
+{
+    public int SchematicId { get; set; }
+    public int PinTypeId   { get; set; }
+}
+
+/// <summary>
+/// A raw (P0) resource a planet type yields.
+///
+/// <para>⚠️ The SDE has no such table. It is derived from the legacy extractor pins (group 1026):
+/// each carries the planet type it may stand on (dogma 1632, planetRestriction) and what it
+/// harvests (dogma 709, harvesterType). Keyed on the planet type id, and carrying ESI's own
+/// <c>planet_type</c> word ("barren", "gas", …) because that is what a colony reports.</para>
+/// </summary>
+public class SdePlanetTypeResource
+{
+    public int    PlanetTypeId   { get; set; }
+    public int    ResourceTypeId { get; set; }
+    /// <summary>ESI's <c>planet_type</c> for this planet type, lower case.</summary>
+    public string PlanetType     { get; set; } = "";
+}
+
 // dogmaUnits.yaml
 public class SdeDogmaUnit
 {
@@ -579,4 +715,114 @@ public class SdeSkinLicense
     public int LicenseTypeId { get; set; }
     public int SkinId        { get; set; }
     public int Duration      { get; set; }
+}
+
+/// <summary>
+/// Which SDE entity an <see cref="SdeName"/> row names — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number. Never renumber or reuse a value: a database written by one build
+/// is read by every other build pointed at it. A new kind takes the next free number. Zero is
+/// deliberately not a kind.</para>
+/// </summary>
+public enum SdeNameKind
+{
+    Type                   = 1,   // SdeTypes.Name
+    Group                  = 2,   // SdeGroups.Name
+    Category               = 3,   // SdeCategories.Name
+    MarketGroup            = 4,   // SdeMarketGroups.Name
+    MetaGroup              = 5,   // SdeMetaGroups.Name
+    DogmaAttribute         = 6,   // SdeDogmaAttributes.DisplayName — the display name, not Name
+    DogmaUnit              = 7,   // SdeDogmaUnits.DisplayName
+    DogmaAttributeCategory = 8,   // SdeDogmaAttributeCategories.Name
+    DogmaEffect            = 9,   // SdeDogmaEffects.DisplayName
+    Region                 = 10,  // SdeRegions.Name
+    Constellation          = 11,  // SdeConstellations.Name
+    SolarSystem            = 12,  // SdeSolarSystems.Name
+    Faction                = 13,  // SdeFactions.Name
+    NpcCorporation         = 14,  // SdeNpcCorporations.Name
+    NpcCorporationDivision = 15,  // SdeCorpDivisions.Name
+    Agent                  = 16,  // SdeAgents.Name
+    Race                   = 17,  // SdeRaces.Name
+    Certificate            = 18,  // SdeCertificates.Name
+    PlanetSchematic        = 19,  // SdePlanetSchematics.Name
+    StationService         = 20,  // SdeStationServices.Name
+    StationOperation       = 21,  // SdeStationOperations.Name
+    // SdeStations.Name, which is ESI's English. ⚠️ The one kind the SDE does not carry: neither it
+    // nor ESI has a station's name in another language, so the import BUILDS those from the
+    // station's parts, the way the game client does — see Localization/LocationNames.cs.
+    Station                = 22,
+    FighterAbility         = 23,  // SdeFighterAbilities.Name
+    Dbuff                  = 24,  // SdeDbuffs.Name
+}
+
+/// <summary>
+/// An SDE name in one of the game client's other languages.
+///
+/// <para>⚠️ A side table, and the English stays where it was. Every Name and DisplayName column
+/// keeps the English, because everything that MATCHES on a name reads those — the agent, parsers,
+/// saved alarm configs, search. These rows are for people to read, on a screen or in a post or
+/// mail, through <c>EveConsole.Localization.SdeNames</c>, which falls back to the English column;
+/// and for text people write back in their game client's language — a pasted list, an alarm's
+/// names, a store order — looked up to the English it stands for.</para>
+///
+/// <para>All seven other languages are stored whatever language anybody's interface is in: several
+/// clients can share one PostgreSQL database, each in its own language, so the choice is made when
+/// reading. Only a name that differs from the English is stored — a ship called the same in every
+/// language costs no rows.</para>
+/// </summary>
+public class SdeName
+{
+    public SdeNameKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Name { get; set; } = "";
+}
+
+/// <summary>
+/// Which SDE text an <see cref="SdeText"/> row holds — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number, as <see cref="SdeNameKind"/> is: never renumber or reuse a value,
+/// and a new kind takes the next free number. Zero is deliberately not a kind.</para>
+/// </summary>
+public enum SdeTextKind
+{
+    TypeDescription           = 1,  // SdeTypes.Description — published types only
+    MarketGroupDescription    = 2,  // SdeMarketGroups.Description
+    FactionDescription        = 3,  // SdeFactions.Description
+    NpcCorporationDescription = 4,  // SdeNpcCorporations.Description
+    RaceDescription           = 5,  // SdeRaces.Description
+    CertificateDescription    = 6,  // SdeCertificates.Description
+    MetaGroupDescription      = 7,  // SdeMetaGroups.Description
+    FighterAbilityTooltip     = 8,  // SdeFighterAbilities.Tooltip
+}
+
+/// <summary>
+/// An SDE description in one of the game client's other languages.
+///
+/// <para>⚠️ A table of its own rather than more rows in <see cref="SdeName"/>, because of its size:
+/// the English type descriptions alone come to 12.5 MB, and the other seven languages to several
+/// times that. <c>SdeNames</c> is loaded whole, one language at a time, and these must never be —
+/// they are read a row at a time, when a screen shows one, through
+/// <c>EveConsole.Localization.SdeTexts</c>.</para>
+///
+/// <para>The same rules as <see cref="SdeName"/> otherwise: display only, the English stays in the
+/// entity's own Description column, every language is stored whatever anybody's interface is in,
+/// and only a text that differs from the English costs a row.</para>
+/// </summary>
+public class SdeText
+{
+    public SdeTextKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Text { get; set; } = "";
 }

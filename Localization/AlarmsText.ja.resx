@@ -1,0 +1,1489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>確認 — サウンドを停止</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>サウンド</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ プレビュー</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>サウンドを追加…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>確認するまで、または状況が自然に解消するまで繰り返す</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>読み上げる文（任意）</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>空欄にすると、チェック項目が作成した文を読み上げます</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>AIアシスタントを介さず、音声合成（TTS）ですぐに読み上げます — 「設定 → アシスタント」でモデルではなく音声を設定する必要があり、AIアシスタントをオフにしていても動作します。アシスタントのウィンドウには、アプリケーション自身の発言として表示されます。プレースホルダー：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>アシスタントへの追加の指示（任意）</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>例：どのシステムかを伝え、短くまとめる</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>AIアシスタントには何が発動したかが伝えられ、アシスタント自身が言葉を選んで伝えます。音声合成を設定していれば読み上げます。AIアシスタントが設定されていない場合は、代わりにアラートとして記録されます。</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>このチェック項目の既定の文言を使用</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>タイトル</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>メッセージ</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>プレースホルダー：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>新しいアラーム</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>このマシンでのサウンド、ダイアログ、AIアシスタントへの通知だけが対象です。アラートはどちらの場合も記録され続け、他のクライアントには影響しません。</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>開発初期段階 — このツールはまだ開発途中で、動作、レイアウト、保存される設定はすべて変更される可能性があります。</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>アシスタント</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>未処理のアラート</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>このアラームの用途は？</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>有効時間帯の開始</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>常時</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>このマシンの時計での時刻です（例：18:00～02:00）。空欄は常時を意味します。時間帯の外では、アラームのチェックは一切行われません。</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>条件</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>チェック項目</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>アイテム名を入力…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>名前を入力して「追加」…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>発動後</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>確認間隔（秒）</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>クールダウン（秒）</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>アラームはまだ知らせていないことだけを知らせるため、条件が満たされ続けても繰り返しません。「継続」は無効にするまで有効のままです。「1回のみ」は一度発動すると自動で無効になります。クールダウンは、さらに最低限の間隔を追加します。</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>アクション</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>アクションを追加</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>経過時間</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>このステージにはアクションがありません — 追加するか、ステージのチェックを外したままにしてください。</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>アラームを選択するか、新しく作成してください。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>サウンドをテスト</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>最近の発動（EVE時間）</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>新しいタスク</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>時刻はEVE時間です</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>タスクを選択するか、新しく作成してください。</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>このタスクの内容は？</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>タスクの種類</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>繰り返し</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>間隔</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>分</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>曜日</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>毎月の日付</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>時刻（HH:MM、EVE時間）</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>当日にアプリが閉じていた場合はスキップ</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>投稿先</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Slackの設定で定義したワークスペースのチャンネルとWebhookを、1つの一覧にまとめています。</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>動的セクションが空の場合は投稿しない</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>オフの場合、データの内容にかかわらずメッセージを投稿します。オンの場合、データを読み取るセクション（テキストセクション以外のすべて）のうち、少なくとも1つに実際に内容があるときだけ投稿し、それ以外は投稿を保留します。</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>セクションを追加</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>投稿せずに、投稿されるとおりにセクションを表示します。</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>まだ内容がありません。セクションの種類を選んで追加してください — セクションはこの順番で1つのメッセージとして投稿されます。</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>投稿する内容。Slackのマークアップが使えます。</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>コーポ</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>含めるリスト</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>ISKではなく、合計に占める割合だけを表示</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>各リストには金額とその割合が表示されます。チェックを入れると金額が表示されなくなります — ただしキルは例外で、その数値は金額ではなく件数です。</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>12か月分の推移を画像として描画し、メッセージの下にアップロードします。</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>このセクションは投稿されません。タスクの投稿先がWebhookで、Webhookでは画像を送れないためです — 上でワークスペースのチャンネルを選択してください。選択しない場合、タスクの実行時にこのセクションはスキップされます。</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>投稿</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>価格と数量は「販売の投稿」ツールの表示とまったく同じです。その投稿ブロックが順番に結合され、この1つのセクションになります。</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>プロジェクトの種類</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>レポート</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>「不足」は、有効なプロジェクトがカバーしていないもの（アプリが確認できなかったものを含む）です。「残りわずか」を選ぶと、残りが10%未満でまもなく置き換えが必要なものも加わります。</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>セクションのタイトル</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>タイトルなし</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>列見出し</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>「残りISK」の列</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>「前回の完了」の列</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>含めるプロジェクト</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>定義したとおり、プロジェクトごとに1行です。リージョンやコンステレーションを対象とするプロジェクトは、ここでは1回だけ表示され、投稿時に該当するシステムごとの行に展開されます。保存時にチェックを入れたものが投稿されます — 後から定義したプロジェクトが自動で加わることはありません。</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>「プレビュー」を押すと、投稿されるとおりにセクションを表示します。</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>アラート</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>見出し</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>空欄にするとタスク名を使用します。</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>テキスト</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>アラートの内容。</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>アラーム自身のアラートと同様に、閉じるまで「概要」と「アラーム」ツールに表示されます。</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>変更を破棄</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>エディターを保存済みの状態に戻します。</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>画面上の内容を実際に実行し、予定された実行として扱います。</value>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>今月</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>先月</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>アイテム配送</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>NPC撃墜</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>不足しているプロジェクト</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>不足・残りわずかのプロジェクト</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>すべてのプロジェクト</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>トップ10リスト</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>コーポの月次概要</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>販売の投稿</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>コーポのISK推移グラフ</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>コーポの活動推移グラフ</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>コーポのキル・ロスグラフ</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>コーポの採掘グラフ</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>テキスト</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>進行中 — {0:yyyy年M月}の現時点の状況です。</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:yyyy年M月}の現時点の状況です。</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>プロジェクトを読み取れませんでした：{0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>このコーポには「アイテム配送」のプロジェクトが定義されていません。</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>このコーポには「NPC撃墜」のプロジェクトが定義されていません。</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>失敗しました：{0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>別のタスクに移動して、変更を破棄しますか？</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Slackに投稿</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>アラートを発生</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>テキスト</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>コーポのトップ10</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>コーポの月次概要</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>販売の投稿</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>コーポのISK推移グラフ</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>コーポの活動推移グラフ</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>コーポのキル・ロスグラフ</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>コーポの採掘グラフ</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>一定間隔</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>曜日指定</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>月1回</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>年1回</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>日曜</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>月曜</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>火曜</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>水曜</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>木曜</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>金曜</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>土曜</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>1月</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>2月</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>3月</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>4月</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>5月</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>6月</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>7月</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>8月</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>9月</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>10月</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>11月</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>12月</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>前回の実行から計測します。アプリが間隔より長く閉じていた場合は、開いたときに1回だけ実行されます — 逃した回数分は実行されません。</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>チェックを入れた曜日ごとに、その日1回実行されます。アプリが閉じている間に過ぎた日は後から実行されないため、深夜0時の直前より直後に設定するほうが確実です。</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>その日時以降、月に1回実行します。短い月の末日を超える日付は月の最終日に実行されるため、31日を指定しても2月に実行されます。</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>その日時以降、年に1回実行します。2月29日は、その日がない4年のうち3年は28日に実行されます。</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>更新して、変更を破棄しますか？</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>（名前なし）</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>未実行</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>前回の実行：{0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>タスク{0}件。</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook：{0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>新しいタスクを開始して、変更を破棄しますか？</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>新しいタスク。</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>このタスク</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>「{0}」には保存されていない変更があります。</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>タスクに名前を付けてください。</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>時刻はHH:mm形式（EVE時間）で入力してください。</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>曜日を1つ以上選択してください。</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>チャンネルもWebhookもまだありません — 「設定」の「Slack」で追加してください。</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>投稿先を選択してください。</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>投稿する内容を追加してください。</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>アラートの内容を入力してください。</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>セクション{0}（{1}）ではコーポを選択する必要があります。</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>セクション{0}（{1}）では投稿を選択する必要があります。</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>セクション{0}（{1}）ではリストを1つ以上選択する必要があります。</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>セクション{0}（{1}）が空です。</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>セクション{0}（{1}）ではプロジェクトを1つ以上チェックする必要があります。</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>保存しました。</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>破棄する変更はありません。</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>破棄しました。</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>削除しました。</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>表示する内容がありません：このタスクにはブロックがありません。</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>表示を作成中…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — スキップ：投稿先がWebhookです]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — 画像としてアップロード]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>（セクションの内容は空でした）</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>表示しましたが、動的セクションに内容がありませんでした — このままでは投稿されません。</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0}文字。</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>プレビューに失敗しました：{0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>実行中…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>今すぐ実行</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0}か月前</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>有効 · {0}回発動</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE時間</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>ローカル時間</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= {0:M月d日（ddd） HH:mm}（ローカル時間）</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= {0:M月d日（ddd） HH:mm}（EVE時間）</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>「{0}」はアプリが認識できる名前ではありません — 一覧から選択してください。</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>そのファイル形式には対応していません。</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>ステージ{0}</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>継続</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>1回のみ</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>アラーム{0}件 · 未処理のアラート{1}件</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>新しいアラーム</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…ここに一致した詳細が入ります</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>このアラーム</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>文言はチェック項目が作成します。</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>例：「{0}」、その下に一致した内容。</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>先にチェック項目を選択してください。</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>アラームに名前を付けてください。</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>「{0}」はアイテムではありません — 一覧から選択してください。</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>「{0}」に1つ以上のエントリーを追加してください。</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>「有効時間帯の開始」には18:00のような時刻を入力してください。</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>「有効時間帯の終了」には18:00のような時刻を入力してください。</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>アラームを作成しました。</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>アラームを保存しました。</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>アラームを削除しました。</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>アラームのサウンドを再生しました。他のアクションをテストするには、先に保存してください。</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>アラーム鳴動中 — {0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>サウンドは確認するまで繰り返されます。</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>アラームのサウンドを選択</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>オーディオ</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>アラーム</value>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>日付・時刻</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>指定した日時に発動し、必要に応じてその後一定の間隔で繰り返します。リマインダーや予定されたものに使います。アプリが閉じている間に時刻を迎えたものは、スキップされずに次回の起動時に発動します。</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>インテル報告</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>監視対象の周辺でパイロットが報告されたときに発動します。対象は、出港中の自分のキャラクター、居場所を問わない自分のキャラクター、またはシステムの一覧で、それぞれにジャンプ範囲を指定します。「設定 → チャットログ」ですでに解析しているインテルチャンネルを読み取ります。</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>攻撃側に敵パイロットがいるキルも対象です。キルは、その攻撃者がそのシステムにいたことを示します。</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>艦船の出港</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>自分のキャラクターのいずれかが出港したときに発動します。必要に応じて、指定したステーション、ストラクチャ、システム、リージョンからの出港、指定した船体や艦船クラスでの出港、特定の状態での出港に限定できます — 装備の有無、ジャンプ燃料が指定値未満かどうか、弾薬が指定値未満かどうか。フィルターはどれも対象を絞り込むため、2つのアラームで同じ出港を二重に扱うのではなく、別々の出港を対象にできます。出港は位置のポーリングにより約10秒以内に検知されます。積んでいたものは、ESIが1時間ごとに更新する最新の資産スナップショットから判断され、一致するたびにそのスナップショットがどれだけ古いかが示されます。</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>出港状態が長すぎる（目覚まし）</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>あなたを起こします。指定した船体または艦船クラスに乗った自分のキャラクターが出港し、一定の秒数が経っても同じシステムにとどまっているときに、最大3段階で発動します — たとえば、パイロットが居眠りしている間にテザリング中の超大型輸送艦やジャンプドライブ搭載型輸送艦です。または「ジャンプでの到着」にチェックを入れると、ジャンプ可能な船体がジャンプドライブやブリッジで到着し、まだ宇宙空間にいるときに発動します — ジャンプ直後の30秒間です。入港、システムからの移動、ログオフで終了します。ダイアログのボタンを押すか、AIアシスタントに何か返信すると、しばらく静かになります。その時間が過ぎても艦船がまだそこにいる場合、ステージは最初からやり直しになります。各ステージには独自のアクションがあります — 「TTSで直接読み上げ」またはAIアシスタントによるステージの文の読み上げ、ダイアログ、確認するまで繰り返すサウンド。繰り返しとクールダウンは適用されません。</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>ストアの注文イベント</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>EVEメールのストアの注文に起きたことに対して発動します：新しい注文（ストア、買い手、アイテム、価格、在庫があるか製造が必要かを含む）、在庫から新たに対応可能になった注文や新たに製造中になった注文、注文に対する契約の発行、契約の受諾（注文の完了）、注文のキャンセル。必要な種類にチェックを入れてください。「注文管理」で手動で追加した注文は報告されません。ストアが注文を登録または更新した時点で実行されます。</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>マーケット・契約の価格</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>アイテムが指定した価格以下で出品されたときに発動します — 対象はマーケット、公開契約、またはその両方です。「設定 → マーケット」で設定したマーケットと、すでに巡回している公開契約を読み取るため、それらの範囲外のものは検知しません。</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>データベースクエリ</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>ローカルのEVE ConsoleデータベースにSELECTを一定間隔で実行し、返された行に対して、または行がないことに対して発動します。目的に合うチェック項目がない場合に使います。使用できるのはSELECTのみです。</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>発動する日時（ISO 8601）。オフセット（例：2026-08-04T18:00:00-05:00）か、UTCを表す末尾のZを含めてください。オフセットのない時刻は、このマシンのローカル時間として解釈されます。</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>繰り返し間隔（秒）</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>任意。最初の発動後、この間隔で繰り返します。1回限りのタイマーにするには、空欄または0にしてください。</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>監視するシステムです（例：{0}、{1}）。1つずつ追加します。ジャンプ数が0の場合は、これらのシステムのみを監視します。</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>ジャンプ数</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>各キャラクターまたはシステムから、スターゲートで何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>最少人数</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>報告されたパイロットがこの人数以上の場合にのみ発動します。既定値は1です。</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>目視なしを無視</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>NV（no visual、目視なし）が付いた報告をスキップします — 実際には見えていない相手を中継している報告です。</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>出港元</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>任意。ステーション、ストラクチャ、ソーラーシステム、リージョンの名前を自由に組み合わせて指定します。いずれかからの出港に一致します。空欄にすると場所を問いません。</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>搭乗艦船</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>任意。船体名（「{0}」）、艦船クラス（「{1}」「{2}」）、または「Pod」を自由に組み合わせて指定します。いずれかに一致すれば対象になります。空欄にするとすべての艦船が対象です。</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>「装備なし」：どのスロットにも何もない状態。「装備あり」：何かを装備している状態。ポッドやシャトルにはスロットがないため、どちらにも一致しません。ESIが1時間ごとにしか更新しない最新の資産スナップショットから判断するため、現在積んでいるものより最大1時間遅れることがあります。</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>ジャンプ燃料</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>ジャンプ可能な船体のみが対象で、それ以外の船体はどちらにも一致しません。単位は、その船体のジャンプドライブが消費する同位体の個数で、燃料ベイとカーゴホールドの合計です — ESIが1時間ごとにしか更新しない最新の資産スナップショット時点の値なので、直近1時間に積んだ燃料はまだ数えられていないことがあります。</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>弾薬</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>装備したタレットまたはランチャーごとに、積んでいる装填可能な弾数（装填済みとカーゴの合計、互換性のあるすべての種類を合算）を数えます。「次の値未満」：いずれかの武器が不足している。「次の値以上」：武器を装備していて、どれも不足していない。エネルギータレットはクリスタル1個で足ります。武器のない艦船はどちらにも一致しません。ESIが1時間ごとにしか更新しない最新の資産スナップショット時点の値なので、直近1時間に積んだ弾薬はまだ数えられていないことがあります。</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>個</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>指定なし</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>装備なし</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>装備あり</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>次の値未満</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>次の値以上</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>出港ではなくジャンプでの到着</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>チェックあり：ジャンプ可能な船体が、元の場所からスターゲートでつながっていないシステムに（ジャンプドライブまたはブリッジで）到着し、まだ宇宙空間にいるときに計測を開始します。ジャンプドライブを持つ船体だけが監視され、「搭乗艦船」の一覧が空ならそのすべてが対象です。チェックなし：出港時に計測を開始し、船体は問いませんが、「搭乗艦船」で監視対象を指定する必要があります。</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>船体名（「{0}」）または艦船クラス（「{1}」「{2}」「{3}」）を自由に組み合わせて指定します。指定したものだけが監視されます — ジャンプでの到着の場合は、空欄にするとジャンプ可能なすべての船体が対象になります。</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>ステージ{0}の経過時間</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>最初の穏やかなステージです。スキップするにはチェックを外してください。</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>スキップするにはチェックを外してください。</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>最後の手段です — 確認するまで繰り返すように設定した「サウンド」アクションと組み合わせてください。スキップするにはチェックを外してください。</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>秒（出港後）</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>確認後の休止時間</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>艦船が出港したままの間、返信やダイアログのボタンでこのアラームを静かにしておく時間です — タイタンのブリッジを待てる程度の長さにしてください。その後、ステージは最初からやり直しになります。</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>分</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>新しい注文</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>ストア、買い手、アイテム、価格、受付時の状態を含みます。</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>在庫から新たに対応可能</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>引き当て処理で在庫が見つかった注文です — 契約を発行してください。</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>新たに製造中</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>その注文のために生産ジョブが割り当てられました。</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>契約の発行</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>注文の品を載せた買い手宛ての契約で、受諾待ちです。</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>契約の受諾 — 注文完了</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>注文のキャンセル</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>買い手からのメール、拒否された契約、または手動によるキャンセルです。</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>ストア</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>任意：名前で指定したストアだけが対象です。空欄にするとすべてのストアが対象です。</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>正確なアイテム名（例：「{0}」「{1}」）。タイプ名と完全に一致する必要があり、解決できない名前は何にも一致しません。</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>最高単価</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>単価がこの値（ISK）以下のときに発動します。</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>最少数量</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>1件の出品でこの数量以上が提供されている場合にのみ発動します。既定値は1です。</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>検索対象</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>検索する場所です。既定値は「両方」です。</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>任意。マーケット側を、名前で指定した設定済みのマーケット1つに限定します（例：「Jita」）。省略するとすべてを監視します。</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>まとめ売りの契約</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>このアイテム以外も含む契約も対象にします。既定ではオフです。その場合、提示価格には他の内容物の分も含まれ、算出される単価が実際の単価にならないためです。</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>両方</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>実行するSELECT文です。使用できるのはSELECT（またはWITH…SELECT）のみです。チェックのたびに実行されるため、小さく保ち、LIMITを付けてください。安定した識別用の列を含め、その列名をkey_columnに指定してください。</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>キー列</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>各行の安定した一意の識別子を持つ列です（Idなど）。これによって同じ行が二度知らされるのを防ぎます。実行のたびに変わる列は決して指定しないでください。指定すると、チェックのたびにアラームが発動します。既定では、クエリにIdという列があればそれを使い、なければ行全体をキーとして使います。</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>ラベル列</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>アラートのテキストとして使う列です（任意）。既定では行全体を使います。</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>「行あり」（既定）は、返された行に対して発動します。「行なし」は、クエリが何も返さないときに発動し、行が戻ると再び有効になります — 起こるはずのことが止まったのを監視するためのものです。</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>行あり</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>行なし</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…ほか{0}件</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>敵の報告</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>敵の報告{0}件</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>{1}で敵{0}人が報告されました。</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>{1}で敵{0}人が報告されました。{2}です。</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>監視中のシステム内</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>{0}ジャンプ先</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>艦船は{0}です。</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0}、ほか{1}人。</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}。</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>キルで確認</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>不明なシステム</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>ポッド</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0}と{1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0}など</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>ほかに{0}件あります。</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0}が{1}で出港</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>出港{0}件</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0}が{2}で{1}から出港しました。</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0}が{2}で{1}から出港しました — {3}。</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>装備なし</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>燃料なし</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>燃料不足</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>弾薬なし</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>弾薬不足</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>{0}、起きてください</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>{0}の{1}は{3}前に{2}に到着し、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>{0}の{1}は{2}で出港してから{3}経ちますが、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}、{1}の{2}は{4}前に{3}に到着し、まだ入港していません。大丈夫ですか？</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>起きてください、{0}。{1}の{2}は到着から{4}経っても、まだ{3}の宇宙空間にいます。今すぐ入港してください。</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}！{1}の{2}は到着から{4}の間、{3}にとどまっています。今すぐ入港してください！</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}、{1}の{2}は{3}で出港してから{4}経っています。大丈夫ですか？</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>起きてください、{0}。{1}の{2}は{4}前に{3}で出港し、まだ入港していません。入港するか、返事をしてください。</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}！{1}の{2}は{4}経っても、まだ{3}で出港したままです。起きて、今すぐ入港してください。</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>ポッド</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>カプセラ</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>ストアの注文イベント{0}件</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>新しい注文：{0}（買い手：{1}）</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>注文{0}：在庫から対応可能になりました</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>注文{0}：製造中になりました</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>注文{0}：契約を発行しました</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>注文{0}：{2:N0}個中{1:N0}個を納品済み</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>注文{0}：完了しました</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>注文{0}：キャンセルされました</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>{0}に新しい注文です：{2}から{1}、{3}。在庫があります — 契約を発行してください。</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>{0}に新しい注文です：{2}から{1}、{3}。製造中です。</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>{0}に新しい注文です：{2}から{1}、{3}。契約は発行済みです。</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>{0}に新しい注文です：{2}から{1}、{3}。在庫も製造中のものもありません — 新たな製造が必要です。</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>{1}の{0}の注文は、在庫から対応できるようになりました。</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>{1}の{0}の注文は、製造中になりました。</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>{1}の{0}の注文：契約を発行し、受諾待ちです。</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>{1}の{0}の注文：{3:N0}個中{2:N0}個の契約を発行し、受諾待ちです。</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0}が{1}の一部の契約を受諾しました：{3:N0}個中{2:N0}個を納品済みです。</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0}が{1}の契約を受諾しました。注文は完了です。</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>{1}の{0}の注文はキャンセルされました。</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##}十億ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##}百万ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##}千ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0}：{1:N0} ISKから</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0}が出品中</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>アラームをミュート</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>アラームのミュートを解除</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>オーディオを使用できません：libvlcを読み込めませんでした。VLCとそのプラグイン（ArchとFedoraでは「vlc」パッケージ、DebianとUbuntuでは「vlc」または「libvlc-dev」）をインストールしてから再起動してください。[{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>オーディオを使用できません：{0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>チャイム — ソフト</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>チャイム — 3和音</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>ピン — ガラス</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>ベル — 真鍮</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>ベル — 低音</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>ゴング — 低音</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>アラート — 2回</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>アラーム — 緊急</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>警告 — 2トーン</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>警告 — クラクション</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>警告 — ブザー</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>警告 — サイレン</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>警告 — ホーン</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>サウンドが選択されていません。</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>カスタムサウンドのファイルが見つかりません：{0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>同梱のサウンドが見つかりません：{0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>{0}を{1}に展開できませんでした：{2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLCで{0}を再生できませんでした。Linuxでは通常、プラグインのパッケージが不足しているか、オーディオ出力がないことが原因です（他のアプリケーションで音が出るか確認してください）。</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>再生に失敗しました：{0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>起きています</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>（AIアシスタントが設定されていないため、アラートとして記録されました。）</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>{0}時間ごと</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>{0}分ごと</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0}の{1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>毎月{0}日の{1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>毎年{0}{1}日の{2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>毎日</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>曜日なし</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>不明なタスクの種類「{0}」です。</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>失敗しました：{0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>投稿する内容がありません：セクションが設定されていません。</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>投稿する内容がありません：セクションの内容が空でした。</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>投稿する内容がありません：動的セクションに内容がありませんでした。</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>投稿しました。</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slackに拒否されました：{0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>{1}件中{0}件のメッセージ（{2:N0}文字）を投稿しましたが、次のメッセージはSlackに拒否されました：{3}。</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>{0:N0}文字を{1}件のメッセージで投稿しました。</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>{0:N0}文字を投稿しました。</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>グラフを{0}件アップロードしました。</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>グラフ{0}件が失敗しました：{1}。</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>グラフのセクション{0}件をスキップしました：Webhookでは画像を送れません。</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>発生させる内容がありません：アラートにテキストがありません。</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>予約アラート</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>アラートを発生させました。</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>Webhookが選択されていません。</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>そのWebhookは削除されています。</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##}億ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##}万ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>SlackまたはDiscordに投稿</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord：{0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>チャンネルもWebhookもまだありません — 「設定」の「Slack」または「Discord」で追加してください。</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>「設定」で設定したSlackのチャンネルとWebhook、続いてDiscordのWebhookを、1つの一覧にまとめています。</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discordに拒否されました：{0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>{1}件中{0}件のメッセージ（{2:N0}文字）を投稿しましたが、次のメッセージはDiscordに拒否されました：{3}。</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>監視の基準</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>出港中のキャラクター：オンラインのキャラクターが宇宙空間にいる場所。ドッキング中のキャラクターは監視しません。キャラクター：オンラインの間、ドッキング中かどうかにかかわらずその居場所。システム：下に並べたシステム。</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>出港中のキャラクター</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>任意。周辺を監視する自分のキャラクターです。空欄にするとすべてのキャラクターが対象です。オンラインのキャラクターのみが対象です。</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>{0}がいるシステム</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{1}から{0}ジャンプ</value>
+  </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>艦船を停止すると終了</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>チェックあり：出港後に艦船を停止すると、その出港のアラームは終了します — 停止した艦船は出港地点から漂流せず、誰かが停止を押したことになります。ゲームログから読み取るため、そのクライアントのゲームログフォルダーが読み込まれている必要があります（設定 → ゲームログ）。読み込まれていない場合、ステージはこれまでどおり進みます。</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>ゲームログのイベント</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>自分のキャラクターのゲームログに、近くの何かによってクロークが解除された、ワープスクランブルやワープ妨害を受けた、攻撃を受けている、と記録されたときに発動します — 自由に組み合わせてチェックできます。スクランブルや攻撃は戦闘ごとに1回発動します：間隔が2分以内の行は同じ戦闘です。そのクライアントのゲームログフォルダーが読み込まれていることが必要です（設定 → ゲームログ）。数秒以内に検知します。</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>クローク解除</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>スターゲート、ストラクチャー、その他クロークを解除するものの近くでクロークが解除されました。</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>ワープスクランブル</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>ワープスクランブラーまたはワープディスラプターを受けました。</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>攻撃を受けている</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>ダメージを受けています。</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>プレイヤーのみ</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>チェックあり：スクランブルや攻撃はプレイヤーからのものだけを数え、NPCからのものは数えません — そうしないとラッティング中ずっと発動してしまいます。</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>任意。監視する自分のキャラクター。空欄にするとすべてのキャラクターが対象です。</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>ゲームログのイベント：{0}件</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0}は{1}の近くでクロークが解除されました。</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}は{1}にワープスクランブルされています。</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0}は{1}に攻撃されています。</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>PIを行うキャラクターのコロニーについて発動します：エクストラクターのプログラムが終了した、または終了間近（正確）、保管施設や発射台が満杯、工場惑星の投入資源が枯渇しつつある（どちらもゲーム内でコロニーを最後に開いた時点からの推定）。各コロニーのイベントは1回だけ発動します。抽出を再開するか、コロニーをもう一度開くと、再び新しい出来事として扱われます。</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>監視対象</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>3つのうちどれで発動するか。</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>事前通知</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>発生するこの時間数前に発動します。0なら発生した時点で発動します。</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>3つすべて</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>エクストラクターの停止</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>保管施設の満杯</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>投入資源の枯渇</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>対応が必要な惑星インダストリーのコロニーが{0}か所あります</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>任意。ゲートの数に関係なく、この光年以内のすべてのシステムも監視します — ジャンプドライブやサイノで届く範囲です。どちらかの範囲に入った報告で発動します。上限は20です。</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{1}から{0}光年</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0}光年先</value>
+  </data>
+</root>

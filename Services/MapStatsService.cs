@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -317,8 +318,11 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     /// </summary>
     /// <summary>State tables kept at one snapshot per day beyond the current day. These back
     /// the daily-cadence datasets, which dominate storage — see MapDataset.DailyCadence.</summary>
-    /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.</summary>
-    public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm);
+    /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.
+    /// <see cref="Holder"/> is empty for a system nobody holds: the overlay names that in the
+    /// interface's own words, so there is no text here to compare against. A faction holder is
+    /// English here and carries <see cref="FactionId"/>, which the overlay shows it by.</summary>
+    public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm, int? FactionId = null);
 
     /// <summary>
     /// Latest sovereignty snapshot joined to the newest ADM reading, with holder names resolved
@@ -361,15 +365,51 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             {
                 var s = kv.Value;
                 var holder = s.AllianceId is { } a
-                    ? names.GetValueOrDefault(a, $"Alliance {a}")
-                    : s.FactionId is { } f ? factions.GetValueOrDefault(f, $"Faction {f}") : "Unclaimed";
+                    ? names.GetValueOrDefault(a, string.Format(MapText.AllianceNumbered, a))
+                    : s.FactionId is { } f ? factions.GetValueOrDefault(f, string.Format(MapText.FactionNumbered, f)) : "";
 
                 // TryGetValue, not GetValueOrDefault: the latter yields 0.0 for a system with
                 // no sovereignty structure, which is a real ADM value and would print "0.0"
                 // under every high-sec system instead of leaving the caption empty.
                 double? admValue = adm.TryGetValue(kv.Key, out var found) ? found : null;
-                return new SovOverlayEntry(s.AllianceId, holder, admValue);
+                return new SovOverlayEntry(s.AllianceId, holder, admValue, s.FactionId);
             });
+    }
+
+    /// <summary>The capsuleer's own alliances and corporations, and their standing towards
+    /// other alliances and corporations.</summary>
+    public sealed record StandingsView(
+        IReadOnlySet<long> OwnAlliances, IReadOnlySet<long> OwnCorporations, IReadOnlyDictionary<long, double> Standing);
+
+    /// <summary>
+    /// What the capsuleer's side thinks of each alliance and corporation, from the contact lists
+    /// polled for every character, corporation and alliance. The highest level that says
+    /// anything wins — an alliance's contacts over a corporation's over a character's, as in the
+    /// game — and where several at that level disagree, the lowest: a sov map coloured blue on
+    /// one pilot's private say-so would be the dangerous mistake.
+    /// </summary>
+    public async Task<StandingsView> GetStandingsAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var chars = await db.Characters.AsNoTracking().Select(c => new { c.CorporationId, c.AllianceId }).ToListAsync(ct);
+        var contacts = await db.EsiContacts.AsNoTracking()
+            .Where(c => c.ContactType == "alliance" || c.ContactType == "corporation")
+            .Select(c => new { c.OwnerType, c.ContactId, c.Standing })
+            .ToListAsync(ct);
+
+        static int Level(string ownerType) => ownerType switch { "alliance" => 0, "corporation" => 1, _ => 2 };
+        var standing = contacts
+            .GroupBy(c => c.ContactId)
+            .ToDictionary(g => g.Key, g =>
+            {
+                var top = g.Min(c => Level(c.OwnerType));
+                return (double)g.Where(c => Level(c.OwnerType) == top).Min(c => c.Standing);
+            });
+
+        return new StandingsView(
+            chars.Where(c => c.AllianceId is > 0).Select(c => (long)c.AllianceId!.Value).ToHashSet(),
+            chars.Where(c => c.CorporationId > 0).Select(c => (long)c.CorporationId).ToHashSet(),
+            standing);
     }
 
     /// <summary>Most recent cost index per system for one industry activity.</summary>
@@ -416,6 +456,18 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     }
 
     /// <summary>Faction id to name, from the SDE.</summary>
+    /// <summary>Where each of these constellations is, and its English name: the region tier of
+    /// the incursion overlay groups incursions by region.</summary>
+    public async Task<Dictionary<int, (int RegionId, string Name)>> GetConstellationPlacesAsync(
+        IReadOnlyCollection<int> constellationIds, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var ids = constellationIds.ToList();
+        return await db.SdeConstellations.AsNoTracking()
+            .Where(c => ids.Contains(c.ConstellationId))
+            .ToDictionaryAsync(c => c.ConstellationId, c => (c.RegionId, c.Name), ct);
+    }
+
     public async Task<Dictionary<int, string>> GetFactionNamesAsync(CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();

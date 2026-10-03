@@ -101,11 +101,25 @@ public static class MapStatsIngest
             NpcKills  = x.NpcKills,
         }).ToList();
 
+    /// <summary>
+    /// Known space ends here: wormhole systems are numbered from 31000000. /sovereignty/systems
+    /// lists known space only, where the retired /sovereignty/map also named the factions of the
+    /// five Drifter wormholes; the archive still has them. Both sources keep known space alone,
+    /// so an hour stored from either is the same rows.
+    /// </summary>
+    private const int FirstWormholeSystemId = 31_000_000;
+
+    /// <summary>The Sovereignty Hub, the only sovereignty structure there is: every row the
+    /// retired /sovereignty/structures returned was this type, and /sovereignty/systems names
+    /// the hub without one.</summary>
+    public const int SovereigntyHubTypeId = 32458;
+
     public static List<MapSovereignty> Sovereignty(string bucket, IEnumerable<EsiSovereigntyEntry> src) =>
         src
             // Systems with no holder at all carry only system_id; storing those would be a row
             // per empty system per hour for no information.
             .Where(x => x.FactionId is not null || x.CorporationId is not null || x.AllianceId is not null)
+            .Where(x => x.SystemId < FirstWormholeSystemId)
             .Select(x => new MapSovereignty
             {
                 Bucket        = bucket,
@@ -113,6 +127,48 @@ public static class MapStatsIngest
                 FactionId     = x.FactionId,
                 CorporationId = x.CorporationId,
                 AllianceId    = x.AllianceId,
+            }).ToList();
+
+    /// <summary>
+    /// Holders from /sovereignty/systems, the route that replaced /sovereignty/map: the same rows
+    /// the archive's copy of the old route gives for the same hour (checked live 2026-09-30:
+    /// 5,378 of 5,378 known-space holders alike).
+    /// </summary>
+    public static List<MapSovereignty> Sovereignty(string bucket, IEnumerable<EveConsole.Api.EsiClient.EsiSovSystem> src) =>
+        src
+            .Where(x => x.SolarSystemId < FirstWormholeSystemId)
+            .Where(x => x.Claim?.Alliance is not null || x.Claim?.Faction is not null)
+            .Select(x => new MapSovereignty
+            {
+                Bucket        = bucket,
+                SystemId      = x.SolarSystemId,
+                FactionId     = x.Claim!.Alliance is null ? x.Claim.Faction!.FactionId : null,
+                CorporationId = x.Claim.Alliance?.CorporationId,
+                AllianceId    = x.Claim.Alliance?.AllianceId,
+            }).ToList();
+
+    /// <summary>
+    /// Hubs from /sovereignty/systems, the route that replaced /sovereignty/structures: one per
+    /// alliance claim, its ADM the system's development (checked live 2026-09-30: 2,712 of 2,712
+    /// hubs alike — id, system, alliance, ADM and window).
+    /// </summary>
+    public static List<MapSovStructure> SovStructures(string bucket, IEnumerable<EveConsole.Api.EsiClient.EsiSovSystem> src) =>
+        src
+            .Where(x => x.Claim?.Alliance?.SovereigntyHub is not null)
+            .Select(x =>
+            {
+                var a = x.Claim!.Alliance!;
+                return new MapSovStructure
+                {
+                    Bucket          = bucket,
+                    StructureId     = a.SovereigntyHub!.Id,
+                    SystemId        = x.SolarSystemId,
+                    AllianceId      = a.AllianceId,
+                    StructureTypeId = SovereigntyHubTypeId,
+                    Adm             = a.Development?.ActivityDefenseMultiplier,
+                    VulnerableStart = a.SovereigntyHub.VulnerabilityWindow?.Start,
+                    VulnerableEnd   = a.SovereigntyHub.VulnerabilityWindow?.End,
+                };
             }).ToList();
 
     public static List<MapSovStructure> SovStructures(string bucket, IEnumerable<EsiSovStructureEntry> src) =>

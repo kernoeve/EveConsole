@@ -6,6 +6,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using EveConsole.ViewModels;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -70,8 +71,15 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
 
     private void OnDetailTabChanged(object? sender, SelectionChangedEventArgs e)
     {
+        // Only the detail tabs' own selection: SelectionChanged bubbles up from every list inside
+        // them — the history's Chart/Grid tabs, its period and region pickers — and each of those
+        // reloaded the history again (the region picker already reloads it; the period filters
+        // what is loaded).
+        if (!ReferenceEquals(e.Source, sender)) return;
+
+        // ⚠️ By the tab itself, not its header: the header is in the interface language.
         if (sender is TabControl tc &&
-            tc.SelectedItem is TabItem { Header: "Price History" } &&
+            ReferenceEquals(tc.SelectedItem, PriceHistoryTab) &&
             DataContext is ItemBrowserViewModel vm)
         {
             _ = vm.LoadPriceHistoryAsync();

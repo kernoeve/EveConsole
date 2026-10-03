@@ -7,6 +7,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -59,17 +60,21 @@ public class KillmailListRowVm : ReactiveObject
         DateText          = r.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd");
         TimeText          = r.KillMailTime.UtcDateTime.ToString("HH:mm");
         TotalIskText      = r.TotalIsk > 0 ? FmtIsk(r.TotalIsk) : "";
-        ShipName          = r.ShipName;
+
+        // The hull and the places in the interface language, and a corporation where it is an
+        // NPC's — a rat's, or a pilot's starter corporation. Only for reading: every link on the
+        // row goes by id. Pilots, their corporations and alliances stay as ESI names them.
+        ShipName          = SdeNames.Type(r.VictimShipTypeId, r.ShipName);
         SystemId          = r.SystemId;
-        SystemName        = r.SystemName;
-        ConstellationName = r.ConstellationName;
+        SystemName        = SdeNames.SolarSystem(r.SystemId, r.SystemName);
+        ConstellationName = SdeNames.Constellation(r.ConstellationId, r.ConstellationName);
         RegionId          = r.RegionId;
-        RegionName        = r.RegionName;
+        RegionName        = SdeNames.Region(r.RegionId, r.RegionName);
         VictimName        = r.VictimName;
-        VictimCorp        = r.VictimCorp;
+        VictimCorp        = SdeNames.NpcCorporation(r.VictimCorpId, r.VictimCorp);
         VictimAlliance    = r.VictimAlliance;
         FbName            = r.FbName;
-        FbCorp            = r.FbCorp;
+        FbCorp            = SdeNames.NpcCorporation(r.FbCorpId, r.FbCorp);
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
         _victimCharId     = r.VictimCharId;
@@ -180,8 +185,8 @@ public class KillmailItemVm : ReactiveObject
         TypeName     = r.TypeName;
         HasDestroyed = r.QtyDestroyed > 0;
         HasDropped   = r.QtyDropped   > 0;
-        QtyDestroyed = r.QtyDestroyed > 0 ? $"x{r.QtyDestroyed} dest" : "";
-        QtyDropped   = r.QtyDropped   > 0 ? $"x{r.QtyDropped} drop" : "";
+        QtyDestroyed = r.QtyDestroyed > 0 ? string.Format(CorpText.KillQtyDestroyed, r.QtyDestroyed) : "";
+        QtyDropped   = r.QtyDropped   > 0 ? string.Format(CorpText.KillQtyDropped, r.QtyDropped) : "";
         EstValueText = r.EstValue > 0 ? FmtIsk(r.EstValue) : "";
     }
 
@@ -261,11 +266,13 @@ public class KillmailAttackerVm : ReactiveObject
 
     public KillmailAttackerVm(KillmailAttackerRow r)
     {
+        // The ship, the weapon and an NPC's corporation in the interface language; the links and
+        // icons go by id. A pilot and their alliance stay as ESI names them.
         CharName      = r.CharName;
-        CorpName      = r.CorpName;
+        CorpName      = SdeNames.NpcCorporation(r.CorporationId, r.CorpName);
         AllianceName  = r.AllianceName;
-        ShipName      = r.ShipName;
-        WeaponName    = r.WeaponName;
+        ShipName      = SdeNames.Type(r.ShipTypeId, r.ShipName);
+        WeaponName    = SdeNames.Type(r.WeaponTypeId, r.WeaponName);
         DamageDone    = r.DamageDone;
         DamageText    = $"{r.DamageDone:N0}";
         FinalBlow     = r.FinalBlow;
@@ -274,7 +281,7 @@ public class KillmailAttackerVm : ReactiveObject
         _allianceId    = r.AllianceId;
         _shipTypeId   = r.ShipTypeId;
         _weaponTypeId = r.WeaponTypeId;
-        if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = Palette.Accent; }
+        if (r.FinalBlow) { RoleLabel = CorpText.RoleFinalBlow; RoleColor = Palette.Accent; }
 
         OpenCharCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _characterId));
         OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _corporationId));
@@ -290,8 +297,8 @@ public class KillmailAttackerVm : ReactiveObject
     public void MarkTopDamage()
     {
         IsTopDamage = true;
-        if (!FinalBlow) { RoleLabel = "▲ TD"; RoleColor = Palette.Good; }
-        else            { RoleLabel = "★ FB  ▲ TD"; }
+        if (!FinalBlow) { RoleLabel = CorpText.RoleTopDamage; RoleColor = Palette.Good; }
+        else            { RoleLabel = CorpText.RoleFinalBlow + "  " + CorpText.RoleTopDamage; }
     }
 
     public Task LoadImagesAsync() => Task.WhenAll(
@@ -354,16 +361,19 @@ public class KillmailDetailVm : ReactiveObject
         _victimAllianceId = d.VictimAllianceId;
         _victimShipTypeId = d.VictimShipTypeId;
 
-        ShipName       = d.ShipName;
+        // The hull, the place and an NPC victim corporation in the interface language. The
+        // nearest-celestial line stays as it is: planets, moons and gates keep their English.
+        var system     = SdeNames.SolarSystem(d.SystemId, d.SystemName);
+        var region     = SdeNames.Region(d.RegionId, d.RegionName);
+        ShipName       = SdeNames.Type(d.VictimShipTypeId, d.ShipName);
         VictimName     = d.VictimName;
-        VictimCorp     = d.VictimCorp;
+        VictimCorp     = SdeNames.NpcCorporation(d.VictimCorpId, d.VictimCorp);
         VictimAlliance = d.VictimAlliance;
         TimeText       = d.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
         SystemId       = d.SystemId;
-        SystemText     = string.IsNullOrEmpty(d.RegionName)
-            ? d.SystemName : $"{d.SystemName}  ({d.RegionName})";
+        SystemText     = string.IsNullOrEmpty(d.RegionName) ? system : $"{system}  ({region})";
         LocationText   = d.LocationText;
-        DamageTakenText= $"{d.VictimDamageTaken:N0} dmg";
+        DamageTakenText= string.Format(CorpText.DamageTaken, d.VictimDamageTaken);
         DestroyedText  = FmtIsk(d.DestroyedIsk);
         DroppedText    = FmtIsk(d.DroppedIsk);
         TotalIskText   = FmtIsk(d.DestroyedIsk + d.DroppedIsk);
@@ -562,16 +572,21 @@ public class KillmailBrowserViewModel : ReactiveObject
     {
         IsLoading   = true;
         StatusColor = Palette.TextFaint;
-        StatusText  = "Loading killmails…";
+        StatusText  = CorpText.StatusLoadingKillmails;
         _offset     = 0;
         HasMore     = false;
         try
         {
+            // The rows name ships, places and NPC corporations in the interface language, and
+            // the filters find those names — so the names are awaited before either.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var page = await _service.GetListAsync(
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem,
+                matchShownNames: true, ct: ct);
 
             var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             KillmailRows.Clear();
@@ -582,7 +597,7 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); StatusColor = Palette.Bad; }
         finally { IsLoading = false; }
     }
 
@@ -601,7 +616,8 @@ public class KillmailBrowserViewModel : ReactiveObject
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem,
+                matchShownNames: true, ct: ct);
 
             var newRows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             foreach (var r in newRows) KillmailRows.Add(r);
@@ -611,15 +627,15 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); StatusColor = Palette.Bad; }
         finally { IsLoadingMore = false; }
     }
 
     private void UpdateStatusText()
     {
         StatusText = HasMore
-            ? $"{KillmailRows.Count:N0} killmails loaded — more available, click Load More"
-            : $"{KillmailRows.Count:N0} killmails";
+            ? string.Format(CorpText.KillmailsLoadedMore, KillmailRows.Count)
+            : string.Format(CorpText.KillmailsCount, KillmailRows.Count);
     }
 
     public void SelectById(int killMailId) => _ = SelectByIdAsync(killMailId);
@@ -654,6 +670,9 @@ public class KillmailBrowserViewModel : ReactiveObject
     {
         try
         {
+            // The item lists are worded and ordered in the service, the header here — both in
+            // the interface language, so the names come first.
+            await SdeNames.EnsureLoadedAsync(ct);
             var data = await _service.GetDetailAsync(killMailId, ct);
             Detail = data is not null ? new KillmailDetailVm(data) : null;
         }

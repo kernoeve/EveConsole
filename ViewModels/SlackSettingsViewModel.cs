@@ -5,6 +5,7 @@ using System.Reactive;
 using EveConsole.Auth;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -55,7 +56,9 @@ public class SlackSettingsViewModel : ReactiveObject
         // database, and the pickers are empty until it returns either way.
         _ = ReloadWebhooksAsync();
 
-        SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
+        _tokenSave           = new AutoSave(SaveTokenAsync,
+            ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        TestCommand          = ReactiveCommand.CreateFromTask(TestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
         ConnectCommand       = ReactiveCommand.CreateFromTask(ConnectAsync);
@@ -64,7 +67,7 @@ public class SlackSettingsViewModel : ReactiveObject
 
         IsConnected = slack.HasToken;
         if (IsConnected && slack.TeamName is { Length: > 0 } team)
-            Status = $"Connected to {team}.";
+            Status = string.Format(SettingsText.SlackConnectedTo, team);
     }
 
     /// <summary>True when this build has a Slack Client ID, so one-click connect is possible.</summary>
@@ -95,17 +98,17 @@ public class SlackSettingsViewModel : ReactiveObject
         _connectCts = cts;
 
         IsBusy = IsConnecting = true;
-        Status = "Waiting for Slack authorization in your browser… (Cancel if you closed it)";
+        Status = SettingsText.SlackWaitingForBrowser;
         try
         {
             var res = await _slack.ConnectAsync(cts.Token);
             IsConnected = res.Ok;
             Status = res.Ok
-                ? $"Connected — posting as {res.User} in {res.Team}."
-                : $"Failed: {res.Error}";
+                ? string.Format(SettingsText.SlackConnectedAs, res.User, res.Team)
+                : string.Format(SettingsText.SlackFailed, res.Error);
             if (res.Ok)
             {
-                Token = _slack.Token ?? "";
+                ShowToken(_slack.Token ?? "");
                 await LoadChannelsAsync();
             }
         }
@@ -120,13 +123,13 @@ public class SlackSettingsViewModel : ReactiveObject
     private void CancelConnect()
     {
         _connectCts?.Cancel();
-        Status = "Connection cancelled.";
+        Status = SettingsText.SlackConnectionCancelled;
     }
 
     private async Task DisconnectAsync()
     {
         await _slack.DisconnectAsync();
-        Token       = "";
+        ShowToken("");
         IsConnected = false;
         Channels.Clear();
         _corpTop10Channel = null;
@@ -135,17 +138,38 @@ public class SlackSettingsViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(CorpMonthlyChannel));
         _salePostingChannel = null;
         this.RaisePropertyChanged(nameof(SalePostingChannel));
-        Status = "Disconnected.";
+        Status = SettingsText.SlackDisconnected;
     }
 
     // ── Token ────────────────────────────────────────────────────────────────
 
     private string _token;
+
+    /// <summary>The token as typed, saved once typing pauses (or the box loses focus, or the
+    /// window closes). Saving it tests nothing: that is the Test button's.</summary>
     public string Token
     {
         get => _token;
-        set => this.RaiseAndSetIfChanged(ref _token, value);
+        set
+        {
+            if (value == _token) return;
+            this.RaiseAndSetIfChanged(ref _token, value);
+            _tokenSave.Typed();
+        }
     }
+
+    /// <summary>A token the service already holds — connected, or disconnected — shown without
+    /// being saved over again.</summary>
+    private void ShowToken(string token)
+    {
+        _token = token;
+        this.RaisePropertyChanged(nameof(Token));
+    }
+
+    private readonly AutoSave _tokenSave;
+
+    /// <summary>Saves a token still waiting — the Settings window, closing.</summary>
+    public Task FlushAsync() => _tokenSave.FlushAsync();
 
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -156,30 +180,44 @@ public class SlackSettingsViewModel : ReactiveObject
     private bool _isConnected;
     public bool IsConnected { get => _isConnected; private set => this.RaiseAndSetIfChanged(ref _isConnected, value); }
 
-    public ReactiveCommand<Unit, Unit> SaveAndTestCommand   { get; }
+    public ReactiveCommand<Unit, Unit> TestCommand          { get; }
     public ReactiveCommand<Unit, Unit> LoadChannelsCommand  { get; }
     public ReactiveCommand<Unit, Unit> OpenSlackAppsCommand { get; }
 
-    private async Task SaveAndTestAsync()
+    /// <summary>
+    /// Writes the token: what the posting buttons and Reload Channels read. Nothing reconnects —
+    /// the next call to Slack uses it.
+    /// </summary>
+    private async Task SaveTokenAsync()
     {
+        var token = Token;   // read on the UI thread, written off it
+        await Task.Run(() => _slack.SetTokenAsync(token));
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            IsConnected = false;
+            Status      = SettingsText.SlackTokenCleared;
+            return;
+        }
+        Status = SettingsText.Saved;
+    }
+
+    /// <summary>Asks Slack whether the saved token works, and lists its channels when it does.</summary>
+    private async Task TestAsync()
+    {
+        // A token still waiting to be saved is the one being tested.
+        await _tokenSave.FlushAsync();
+        if (!_slack.HasToken) { Status = SettingsText.SlackEnterTokenFirst; return; }
+
         IsBusy = true;
-        Status = "Checking token…";
+        Status = SettingsText.SlackCheckingToken;
         try
         {
-            await _slack.SetTokenAsync(Token);
-
-            if (string.IsNullOrWhiteSpace(Token))
-            {
-                IsConnected = false;
-                Status      = "Token cleared.";
-                return;
-            }
-
             var res = await _slack.TestAuthAsync();
             IsConnected = res.Ok;
             Status = res.Ok
-                ? $"Connected — posting as {res.User} in {res.Team}."
-                : $"Failed: {res.Error}";
+                ? string.Format(SettingsText.SlackConnectedAs, res.User, res.Team)
+                : string.Format(SettingsText.SlackFailed, res.Error);
 
             if (res.Ok) await LoadChannelsAsync();
         }
@@ -271,7 +309,7 @@ public class SlackSettingsViewModel : ReactiveObject
         // dropdown, and a row with an empty URL posts nowhere.
         if (name.Length == 0 || !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            WebhookStatus = "A webhook needs a name and an https:// URL.";
+            WebhookStatus = SettingsText.SlackWebhookNeedsNameUrl;
             return;
         }
 
@@ -279,7 +317,7 @@ public class SlackSettingsViewModel : ReactiveObject
         NewWebhookName = "";
         NewWebhookUrl  = "";
         await ReloadWebhooksAsync();
-        WebhookStatus = $"Added \"{name}\".";
+        WebhookStatus = string.Format(SettingsText.SlackWebhookAdded, name);
     }
 
     /// <summary>
@@ -296,20 +334,19 @@ public class SlackSettingsViewModel : ReactiveObject
         if (hook is null) return;
 
         var areas = new List<string>();
-        if (InUseBy(SlackService.AreaCorpTop10,   hook)) areas.Add("Corp Top 10");
-        if (InUseBy(SlackService.AreaCorpMonthly, hook)) areas.Add("Monthly Summary");
-        if (InUseBy(SlackService.AreaSalePosting, hook)) areas.Add("Sale Posting");
+        if (InUseBy(SlackService.AreaCorpTop10,   hook)) areas.Add(SettingsText.SlackAreaCorpTop10);
+        if (InUseBy(SlackService.AreaCorpMonthly, hook)) areas.Add(SettingsText.SlackAreaMonthlySummary);
+        if (InUseBy(SlackService.AreaSalePosting, hook)) areas.Add(SettingsText.SalePosting);
 
         if (areas.Count > 0)
         {
-            WebhookStatus = $"\"{hook.Name}\" is still set for {string.Join(", ", areas)}. "
-                          + "Point those somewhere else first.";
+            WebhookStatus = string.Format(SettingsText.SlackWebhookInUse, hook.Name, string.Join(", ", areas));
             return;
         }
 
         await _slack.RemoveWebhookAsync(id);
         await ReloadWebhooksAsync();
-        WebhookStatus = $"Removed \"{hook.Name}\".";
+        WebhookStatus = string.Format(SettingsText.SlackWebhookRemoved, hook.Name);
     }
 
     /// <summary>
@@ -378,7 +415,7 @@ public class SlackSettingsViewModel : ReactiveObject
 
         foreach (var w in Webhooks)
             Destinations.Add(new SlackDestination(
-                SlackDestination.KindWebhook, w.Id.ToString(), "Webhook: " + w.Name, w.Url));
+                SlackDestination.KindWebhook, w.Id.ToString(), string.Format(SettingsText.SlackWebhookLabel, w.Name), w.Url));
 
         _corpTop10Dest    = Resolve(SlackService.AreaCorpTop10);
         _corpMonthlyDest  = Resolve(SlackService.AreaCorpMonthly);
@@ -469,13 +506,14 @@ public class SlackSettingsViewModel : ReactiveObject
 
     private async Task LoadChannelsAsync()
     {
-        if (!_slack.HasToken) { Status = "Enter a token first."; return; }
+        await _tokenSave.FlushAsync();   // the channels of the token as typed
+        if (!_slack.HasToken) { Status = SettingsText.SlackEnterTokenFirst; return; }
 
         IsBusy = true;
         try
         {
             var (channels, error) = await _slack.ListChannelsAsync();
-            if (error is not null) { Status = $"Could not load channels: {error}"; return; }
+            if (error is not null) { Status = string.Format(SettingsText.SlackChannelsFailed, error); return; }
 
             // Keep the current selections by id — the list is rebuilt from Slack each time.
             var selectedId   = _corpTop10Channel?.Id;
@@ -514,7 +552,7 @@ public class SlackSettingsViewModel : ReactiveObject
             // The pickers list channels and webhooks together, so a channel reload rebuilds both.
             RebuildDestinations();
 
-            Status = $"{Channels.Count:N0} channel(s) available.";
+            Status = string.Format(SettingsText.SlackChannelsAvailable, Channels.Count);
         }
         finally { IsBusy = false; }
     }

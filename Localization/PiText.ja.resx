@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>惑星{0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}日{1}時間</value>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>{0}後</value>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>{0}前</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>更新：{0}</value>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>コロニー{0}か所</value>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>エクストラクター{0}基が停止</value>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>運搬が必要{0}か所</value>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>投入資源の不足{0}か所</value>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>コロニー一覧</value>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>コロニー</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>コロニーを開く</value>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>選択したコロニーの詳細（施設、物の流れ、収支）を表示します。行をダブルクリックしても同じです。</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>コロニーを読み込み直します。開いている間、一覧は1分ごとにも更新されます。新しいコロニーのレイアウトは10分ごとにESIから読み込まれます。</value>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>エクストラクターの時刻は正確です。保管施設と投入資源の時刻は推定値で、各コロニーをゲーム内で最後に開いた時点から再計算したものです。それがどれだけ前かは「データの古さ」列に表示されます。</value>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>表示するコロニーはまだありません。コロニーは「設定 → キャラクター」でPIにチェックを入れたキャラクターについて読み込まれます。コロニーはそのレイアウトがESIから読み込まれると表示されます。これは、ゲーム内でそのコロニーを最後に開いたときに行われます。</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>惑星</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>司令</value>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>抽出終了</value>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>保管満杯</value>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>投入資源切れ</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>データの古さ</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>司令基地のレベルは{0}です。司令基地強化で{1}まで上げられるため、アップグレードできます。</value>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>司令基地のレベルは{0}で、司令基地強化で上げられる上限です。</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>最初のエクストラクターが{0}前（{1}）に停止しました。正確な時刻です：エクストラクターのプログラムの終了時刻は設定した時点で決まります。</value>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>最初のエクストラクターは{0}に停止します。正確な時刻です：エクストラクターのプログラムの終了時刻は設定した時点で決まります。</value>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>このコロニーにはエクストラクターがありません。</value>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>満杯</value>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>{0}から満杯と推定されます。今届く産出物は失われます。ゲーム内でコロニーを最後に開いた時点からの推定です。</value>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>{0}に満杯になると推定されます（ゲーム内でコロニーを最後に開いた時点からの推定）。</value>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>30日以内なし</value>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>推定の対象期間である30日以内には、保管施設は満杯になりません。</value>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>枯渇</value>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>{0}に枯渇したと推定されます。工場は待機中です。ゲーム内でコロニーを最後に開いた時点からの推定です。</value>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>{0}に枯渇すると推定されます（ゲーム内でコロニーを最後に開いた時点からの推定）。</value>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>輸入した投入資源は、推定の対象期間である30日より長く持ちます。</value>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>輸入するものはありません。抽出惑星は自分で原料を作ります。</value>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>要対応</value>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>要注意</value>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0}（古い）</value>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>ゲーム内で最後に開いたのは{0}です。</value>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>ゲーム内で最後に開いたのは{0}です。前すぎるため、推定値は信頼できません。ゲーム内でコロニーを開いて更新してください。</value>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0}/日</value>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>1日あたり、産出物{0}から投入資源{1}と輸出入税{2}を引いたものです（マーケット価格）。</value>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>抽出</value>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>工場</value>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>エクストラクターが停止しました。</value>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>リードタイム内にエクストラクターが停止します。</value>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>保管施設が満杯です（推定）。</value>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>リードタイム内に保管施設が満杯になります（推定）。</value>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>投入資源が枯渇しました（推定）。</value>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>リードタイム内に投入資源が枯渇します（推定）。</value>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>データが古すぎて信頼できません。</value>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>リードタイム内に予定されているものはありません。</value>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>「設定 → キャラクター」でPIにチェックを入れたキャラクターです。コロニーのスロット数は惑星間コンソリデーション、司令基地のレベルは司令基地強化で決まります。</value>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>設定のPIチェック…</value>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>「設定 → キャラクター」を開きます。各キャラクターのPIのチェックで、このツール、そのアラート、ワークリストのタスクの対象にするかを決めます。</value>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>コロニー</value>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>空きスロット</value>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>スキル</value>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>司令基地</value>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>空き{0}</value>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>惑星間コンソリデーション（IC）：コロニー1か所に加え、レベルごとに1か所。司令基地強化（CCU）：司令基地の最高レベル。</value>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}：{1}/{2} ↑</value>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}：{1}/{2}</value>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>「コロニー一覧」タブでコロニーを選んでください — ダブルクリックするか、選択して「コロニーを開く」を押します。</value>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>データは{0}前のものです：ゲーム内で最後に開いたのは{1}です。保管施設、工場、投入資源の数値はその時点からの推定です。</value>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>データは{0}前のものです：ゲーム内で最後に開いたのは{1}で、前すぎるため推定値は信頼できません。ゲーム内でコロニーを開いて更新してください。</value>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>司令基地</value>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>レベル{0}（上限{1}） — CPU {2:N0} tf、パワーグリッド {3:N0} MW。</value>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>エクストラクター（正確）</value>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>産出物が未設定</value>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>抽出ヘッド{0}個</value>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>プログラム：{0}～{1}</value>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>実行中のプログラムなし</value>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>サイクル{0}/{1}（{2}ごと）</value>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>合計{0}個、残り{1}個</value>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>産出量不明：ESIがこのプログラムの数量を返しませんでした。</value>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>{0}に停止</value>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>{0}に停止予定</value>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>予定</value>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0}～{1}</value>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>工場（推定）</value>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>回路図</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>産出物</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>施設</value>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>状態（推定）</value>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>回路図なし</value>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>稼働中</value>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>待機中</value>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>{0}から待機中</value>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>保管施設と発射台（推定）</value>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>使用率</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>満杯</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>保管施設</value>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>発射台</value>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>司令基地</value>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>1日あたりの流れ</value>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>コロニーが今の構成のまま稼働した場合に、1日あたりに作るもの、使うもの、輸入が必要なもの、輸出するために残るものです。</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>ティア</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>生産</value>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>消費</value>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>輸入</value>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>輸出</value>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>1日あたりの収支</value>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>産出物の価値</value>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>投入資源のコスト</value>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>輸出税</value>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>輸入税</value>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>税率</value>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>この惑星の{1}で{0}%（{2}にウォレットのジャーナルから取得）</value>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0}%（「設定 → インダストリー」の{1}の既定値 — この惑星の税率はまだ取得していません）</value>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>税関</value>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>効率</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}：予測は潜在利益{2} ISKのうち{1} ISKです。</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>不足{0} ISK：空きがなく破棄された分が{1} ISK、投入資源待ちの工場が作れなかった分が{2} ISKです。</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}：この期間は利益がないため、予測と比べる基準がありません。</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>エクストラクター停止まで（{0}）</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>今後{0}日間（{1}まで）</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>エクストラクターは停止しています</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>再開するまでは何も抽出されないため、予測するものはありません。</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>潜在利益</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>予測</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>不足額</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>破棄</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>原料あふれ</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>待機中の工場</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>コロニーが期間中ずっと今の構成のまま稼働した場合：産出物をマーケット価格で評価した額から、持ち込む投入資源と輸出入税を引いたものです。</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>シミュレーションした期間に保管施設と発射台へ届くものをマーケット価格で評価した額から、工場が使う投入資源と税を引いたものです。</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · 潜在利益の{2}</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>産出物{0:N0}個</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>潜在{0}個、予測{1}個：{2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}が満杯のため、{3}から破棄</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}にはその送り先のルートがないため、{3}から破棄</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}が{3}から満杯：抽出が工場の処理を上回っています</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0}（{1}）：投入資源待ち{2} — {3}（{4} ISK相当）が未生産</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0}（{1}）：投入資源待ち{2}、うち{3}は、エクストラクターが工場を稼働させ続けられないため見込まれる分 — {4}（{5} ISK相当）が未生産</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>工場{0}基</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>破棄されるものはなく、供給で説明できる以上に投入資源を待つ工場もありません。</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>推定値です。ゲーム内でコロニーを最後に開いた時点から再計算しています。不足額は、おおよそ破棄された分と待機中の工場が作れなかった分の合計です。残りは、途中のサイクルと、期間の終わりに保管施設へ残っている在庫です。</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>{0}から産出物が破棄されます：空きがありません。</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>{0}から原料が保管施設からあふれます：抽出が工場の処理を上回っています。</value>
+  </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>輸入品</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>輸出品</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>搬出待ち (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>搬出待ち (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>惑星外から1日に運び込む量:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>運び込むものはありません。このコロニーの工場が使うものはすべて惑星上で作られています。</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>1日に惑星から運び出す量。惑星上で使われないものだけで、工場が次の工場のために作るものは含みません:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>惑星から運び出すものは残りません。</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: 1日{1}</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>現在保管されていて搬出を待っている輸出品（推定値。ゲーム内でコロニーを最後に開いた時点 {0} から再現）:</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>現在保管されている輸出品はありません（推定値。ゲーム内でコロニーを最後に開いた時点 {0} から再現）。</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³、{3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>搬出待ちの輸出品 {0} m³（{1} ISK 相当）</value>
+  </data>
+</root>

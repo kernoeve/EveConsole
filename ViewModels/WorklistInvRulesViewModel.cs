@@ -7,6 +7,7 @@ using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -43,17 +44,28 @@ public sealed class InvRuleRow : ReactiveObject
     /// was left and re-entered. Binding to the row's own DataContext resolves immediately.</para>
     /// </summary>
     public IEnumerable<InvGroupOption> GroupOptions  { get; }
-    public IReadOnlyList<string>       ActionOptions { get; }
+
+    /// <summary>
+    /// The Action combo's entries, as labels.
+    ///
+    /// <para>⚠️ Labels rather than the <see cref="Choice{T}"/> entries: the grid sorts and copies
+    /// the column by <see cref="Action"/>, and it can only sort a value it can compare. So the row
+    /// shows labels and keeps the saved key to itself.</para>
+    /// </summary>
+    public IReadOnlyList<string> ActionOptions { get; }
+
+    private readonly IReadOnlyList<Choice<string>> _actionChoices;
 
     public InvRuleRow(WorklistInvRule rule, InvGroupOption? group,
-                      IEnumerable<InvGroupOption> groupOptions, IReadOnlyList<string> actionOptions,
+                      IEnumerable<InvGroupOption> groupOptions, IReadOnlyList<Choice<string>> actionChoices,
                       Func<InvRuleRow, Task> save, Func<long, string> altFor)
     {
-        Rule          = rule;
-        GroupOptions  = groupOptions;
-        ActionOptions = actionOptions;
-        _save         = save;
-        _altFor       = altFor;
+        Rule           = rule;
+        GroupOptions   = groupOptions;
+        _actionChoices = actionChoices;
+        ActionOptions  = [.. actionChoices.Select(c => c.Label)];
+        _save          = save;
+        _altFor        = altFor;
 
         _group        = group;
         _action       = rule.Action;
@@ -80,15 +92,27 @@ public sealed class InvRuleRow : ReactiveObject
     }
 
     /// <summary>Sorted and searched on, so the grid keeps working when the cell shows a combo.</summary>
-    public string GroupName => _group?.Name ?? $"Group {Rule.GroupId}";
+    public string GroupName => _group?.Name ?? string.Format(WorklistText.GroupWithId, Rule.GroupId);
 
+    /// <summary>What the rule saves: "Buy" or "Build".</summary>
     private string _action;
+
+    /// <summary>
+    /// The action, as its label.
+    ///
+    /// <para>The combo hands back a label, which is turned back into the key it stands for —
+    /// both come from the one list, built from the resources in this run. A null, or anything not
+    /// on the list, is the combo detaching rather than a choice, and is not saved.</para>
+    /// </summary>
     public string Action
     {
-        get => _action;
+        get => _actionChoices.FirstOrDefault(c => c.Value == _action)?.Label ?? _action;
         set
         {
-            this.RaiseAndSetIfChanged(ref _action, value);
+            var key = _actionChoices.FirstOrDefault(c => c.Label == value)?.Value;
+            if (key is null) { this.RaisePropertyChanged(); return; }
+            _action = key;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(NeedsLocation));
             this.RaisePropertyChanged(nameof(LocationDisplay));
             this.RaisePropertyChanged(nameof(AltText));
@@ -131,12 +155,18 @@ public sealed class InvRuleRow : ReactiveObject
         }
     }
 
+    /// <summary>What the rule saves: the station's English. ⚠️ The cell shows
+    /// <see cref="LocationShown"/>.</summary>
     private string _locationName;
     public string LocationName
     {
         get => _locationName;
         private set => this.RaiseAndSetIfChanged(ref _locationName, value);
     }
+
+    /// <summary>The station as the screen names it, which the cell shows, sorts and copies; a
+    /// structure as its owner named it.</summary>
+    public string LocationShown => SdeNames.Location(Rule.LocationId, _locationName);
 
     /// <summary>
     /// Set from the picker rather than by typing: the id is what the rest of the tool matches on,
@@ -150,6 +180,7 @@ public sealed class InvRuleRow : ReactiveObject
             if (value is null) return;
             Rule.LocationId = value.StationId;
             LocationName    = value.Name;
+            this.RaisePropertyChanged(nameof(LocationShown));
             this.RaisePropertyChanged(nameof(LocationDisplay));
             this.RaisePropertyChanged(nameof(AltText));
             Persist();
@@ -157,11 +188,11 @@ public sealed class InvRuleRow : ReactiveObject
     }
 
     /// <summary>A Build rule's site comes from the park, so there is no station to show or pick.</summary>
-    public bool NeedsLocation => Action != "Build";
+    public bool NeedsLocation => _action != "Build";
 
-    public string LocationDisplay => NeedsLocation ? LocationName : "— from park —";
+    public string LocationDisplay => NeedsLocation ? LocationShown : WorklistText.FromPark;
 
-    public string AltText => Action == "Build" ? "— by skill —" : _altFor(Rule.LocationId);
+    public string AltText => _action == "Build" ? WorklistText.BySkill : _altFor(Rule.LocationId);
 
     private void Persist()
     {
@@ -220,11 +251,13 @@ public class WorklistInvRulesViewModel : ReactiveObject
     /// <summary>Raised after a rule changes so the worklist rebuilds without a manual refresh.</summary>
     public Func<Task>? RulesChanged { get; set; }
 
+    /// <summary>Stations for both pickers, listed in the order of the names shown, which the boxes
+    /// show; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
         {
             var hits = await _stations.SearchSdeStationsAsync(text ?? "", ct);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     private object? _selectedLocation;
@@ -246,16 +279,24 @@ public class WorklistInvRulesViewModel : ReactiveObject
     private string _fill = "100";
     public string Fill { get => _fill; set => this.RaiseAndSetIfChanged(ref _fill, value); }
 
-    /// <summary>Buy places an order for the shortfall; Build starts a job for it.</summary>
-    public IReadOnlyList<string> Actions { get; } = ["Buy", "Build"];
+    /// <summary>Buy places an order for the shortfall; Build starts a job for it. The value is what
+    /// a rule saves and the planner reads; the label is what the combo shows.</summary>
+    public IReadOnlyList<Choice<string>> Actions { get; } =
+    [
+        new("Buy",   WorklistText.RuleActionBuy),
+        new("Build", WorklistText.RuleActionBuild),
+    ];
 
     private string _action = "Buy";
-    public string Action
+    public Choice<string> Action
     {
-        get => _action;
+        get => Actions.FirstOrDefault(o => o.Value == _action) ?? Actions[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _action, value);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _action = value.Value;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(NeedsLocation));
         }
     }
@@ -265,7 +306,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
     /// it. A Build rule's site comes from the Indy Park, which assigns a facility per category,
     /// so asking for one here would collect a value nothing reads.
     /// </summary>
-    public bool NeedsLocation => Action != "Build";
+    public bool NeedsLocation => _action != "Build";
 
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -296,20 +337,20 @@ public class WorklistInvRulesViewModel : ReactiveObject
             .Where(r => r.Enabled && r.Action != "Build" && !altLocations.Contains(r.LocationId))
             .Select(r => new
             {
-                Group = groupNames.GetValueOrDefault(r.GroupId, $"group {r.GroupId}"),
-                Where = r.LocationId == 0 ? "no station set" : r.LocationName,
+                Group = groupNames.GetValueOrDefault(r.GroupId, string.Format(WorklistText.GroupWithIdLower, r.GroupId)),
+                Where = r.LocationId == 0 ? WorklistText.NoStationSet : SdeNames.Location(r.LocationId, r.LocationName),
             })
             .OrderBy(x => x.Group)
             .ToList();
 
         if (offenders.Count == 0) return "";
 
-        var named = string.Join(", ", offenders.Take(4).Select(o => $"{o.Group} → {o.Where}"));
-        var rest  = offenders.Count > 4 ? $", and {offenders.Count - 4} more" : "";
+        var named = string.Join(CommonText.ListSeparator, offenders.Take(4).Select(o => $"{o.Group} → {o.Where}"));
 
-        return $"{offenders.Count} buy rule(s) point at a station with no market alt, so their "
-             + $"purchases have no character to place them and will show as blocked: {named}{rest}. "
-             + "Assign an alt on the Market tab, or re-pick the station on the rule.";
+        // A sentence for each case, rather than ", and N more" dropped into the one.
+        return offenders.Count > 4
+            ? string.Format(WorklistText.AltWarningMore, offenders.Count, named, offenders.Count - 4)
+            : string.Format(WorklistText.AltWarning, offenders.Count, named);
     }
 
     public async Task LoadAsync()
@@ -323,11 +364,15 @@ public class WorklistInvRulesViewModel : ReactiveObject
         var groupNames = groups.ToDictionary(g => g.Id, g => g.Name);
         var options    = groups.Select(g => new InvGroupOption(g.Id, g.Name)).ToList();
 
+        // The rows and the warning name their stations as the screen does, and this first runs at
+        // start: wait for the names once rather than show the English.
+        await SdeNames.EnsureLoadedAsync();
+
         // Surfaced per rule because a Buy rule pointing at a station with no market alt produces
         // blocked items, and this is where that is fixable. A Build rule routes by skills and
         // slots instead, so it has no market alt to show.
         string AltFor(long locationId) =>
-            altMap.TryGetValue(locationId, out var d) ? d.CharacterName : "— unassigned —";
+            altMap.TryGetValue(locationId, out var d) ? d.CharacterName : WorklistText.Unassigned;
 
         var rows = rules
             .OrderBy(r => groupNames.GetValueOrDefault(r.GroupId, ""))
@@ -352,10 +397,10 @@ public class WorklistInvRulesViewModel : ReactiveObject
             foreach (var r in rows) Rules.Add(r);
 
             Status = groups.Count == 0
-                ? "No inventory level groups exist yet — create one in Inventory Levels first."
+                ? WorklistText.RulesNoGroups
                 : rows.Count == 0
-                    ? "No rules yet."
-                    : $"{rows.Count:N0} rule(s)";
+                    ? WorklistText.RulesNone
+                    : string.Format(WorklistText.RulesCount, rows.Count);
 
             AltWarning = BuildAltWarning(rules, groupNames, altMap.Keys.ToHashSet());
             this.RaisePropertyChanged(nameof(HasAltWarning));
@@ -404,26 +449,26 @@ public class WorklistInvRulesViewModel : ReactiveObject
                     .SetProperty(x => x.LocationName,      row.Rule.LocationName)
                     .SetProperty(x => x.IsFinalProduct,    row.Rule.IsFinalProduct));
 
-            Status = "Saved.";
+            Status = WorklistText.StatusSaved;
             if (RulesChanged is not null) await RulesChanged();
         }
         catch (Exception ex)
         {
-            Status = $"Could not save that change: {ex.Message}";
+            Status = string.Format(WorklistText.StatusSaveFailed, ex.Message);
         }
     }
 
     private async Task AddAsync()
     {
-        if (SelectedGroup is null) { Status = "Pick an inventory level group."; return; }
+        if (SelectedGroup is null) { Status = WorklistText.PickInventoryLevelGroup; return; }
 
         // A Build rule has no station of its own — the park decides where the job runs.
         SdeStationResult? loc = SelectedLocation as SdeStationResult;
-        if (NeedsLocation && loc is null) { Status = "Pick a station or structure for the buy order."; return; }
+        if (NeedsLocation && loc is null) { Status = WorklistText.PickStationForBuyOrder; return; }
         if (!double.TryParse(Threshold, out var threshold) || threshold <= 0)
-                                               { Status = "Threshold must be a number above zero."; return; }
+                                               { Status = WorklistText.ThresholdNotPositive; return; }
         if (!double.TryParse(Fill, out var fill) || fill <= 0)
-                                               { Status = "Fill target must be a number above zero."; return; }
+                                               { Status = WorklistText.FillNotPositive; return; }
 
         await using var db = await _dbFactory.CreateDbContextAsync();
         db.WorklistInvRules.Add(new WorklistInvRule
@@ -434,7 +479,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
             LocationId        = loc?.StationId ?? 0,
             LocationName      = loc?.Name ?? "",
             Enabled           = true,
-            Action            = Action,
+            Action            = _action,
         });
         await db.SaveChangesAsync();
 

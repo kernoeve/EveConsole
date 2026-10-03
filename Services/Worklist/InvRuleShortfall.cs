@@ -1,4 +1,5 @@
 using EveConsole.Models;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -42,15 +43,15 @@ public sealed record InvRuleShortfall(long Target, long Have, long Wanted, long 
     }
 
     /// <summary>"stock 5,607 of 10,000 (56.1%)" — the part every row starts with.</summary>
-    public string StockText => $"stock {Have:N0} of {Target:N0} ({Percent:0.#}%)";
+    public string StockText => string.Format(WorklistText.StockOfTarget, Have, Target, Percent);
 
     /// <summary>
     /// "Filling to 110% (11,000)." — empty at exactly 100%, because then the target already
     /// explains the number and repeating it is noise. Anywhere else it is the missing piece that
-    /// makes the shortfall add up.
+    /// makes the shortfall add up. Opens with a space when not empty, since it follows a sentence.
     /// </summary>
     public string FillText(WorklistInvRule rule) =>
         Math.Abs(rule.FillTargetPercent - 100) < 0.05
             ? ""
-            : $" Filling to {rule.FillTargetPercent:0.#}% ({Wanted:N0}).";
+            : " " + string.Format(WorklistText.FillingTo, rule.FillTargetPercent, Wanted);
 }

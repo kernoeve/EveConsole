@@ -48,6 +48,13 @@ public class AppDbContext : DbContext
     public DbSet<KillMailAttacker>           KillMailAttackers       => Set<KillMailAttacker>();
     public DbSet<KillMailItem>               KillMailItems           => Set<KillMailItem>();
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
+    public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
+    public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
+    public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
+    public DbSet<PlanetaryRoute>             EsiPlanetaryRoutes      => Set<PlanetaryRoute>();
+    public DbSet<PlanetaryLink>              EsiPlanetaryLinks       => Set<PlanetaryLink>();
+    public DbSet<PiColonyMovement>           PiColonyMovements       => Set<PiColonyMovement>();
+    public DbSet<PiPlanetTaxRate>            PiPlanetTaxRates        => Set<PiPlanetTaxRate>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
     public DbSet<NpcCorpProfile>             EsiNpcCorpProfiles      => Set<NpcCorpProfile>();
@@ -120,6 +127,9 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
 
     public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
+    public DbSet<ManualJumpBridge>     ManualJumpBridges     => Set<ManualJumpBridge>();
+    public DbSet<EveScoutConnection>   EveScoutConnections   => Set<EveScoutConnection>();
+    public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
@@ -142,6 +152,12 @@ public class AppDbContext : DbContext
     public DbSet<SdeDogmaAttributeCategory> SdeDogmaAttributeCategories => Set<SdeDogmaAttributeCategory>();
     public DbSet<SdeDogmaAttribute>     SdeDogmaAttributes     => Set<SdeDogmaAttribute>();
     public DbSet<SdeDogmaEffect>        SdeDogmaEffects        => Set<SdeDogmaEffect>();
+    public DbSet<SdeDogmaEffectModifier> SdeDogmaEffectModifiers => Set<SdeDogmaEffectModifier>();
+    public DbSet<SdeFighterAbility>     SdeFighterAbilities    => Set<SdeFighterAbility>();
+    public DbSet<SdeFighterTypeAbility> SdeFighterTypeAbilities => Set<SdeFighterTypeAbility>();
+    public DbSet<SdeDbuff>              SdeDbuffs              => Set<SdeDbuff>();
+    public DbSet<SdeDbuffModifier>      SdeDbuffModifiers      => Set<SdeDbuffModifier>();
+    public DbSet<SavedFit>              SavedFits              => Set<SavedFit>();
     public DbSet<SdeTypeDogmaAttribute> SdeTypeDogmaAttributes => Set<SdeTypeDogmaAttribute>();
     public DbSet<SdeTypeDogmaEffect>    SdeTypeDogmaEffects    => Set<SdeTypeDogmaEffect>();
     public DbSet<SdeBlueprint>          SdeBlueprints          => Set<SdeBlueprint>();
@@ -181,12 +197,22 @@ public class AppDbContext : DbContext
     public DbSet<SdeTypeMaterial>       SdeTypeMaterials       => Set<SdeTypeMaterial>();
     public DbSet<SdePlanetSchematic>    SdePlanetSchematics    => Set<SdePlanetSchematic>();
     public DbSet<SdePlanetSchematicType> SdePlanetSchematicTypes => Set<SdePlanetSchematicType>();
+    public DbSet<SdePlanetSchematicPin>  SdePlanetSchematicPins  => Set<SdePlanetSchematicPin>();
+    public DbSet<SdePlanetTypeResource>  SdePlanetTypeResources  => Set<SdePlanetTypeResource>();
     public DbSet<SdeDogmaUnit>          SdeDogmaUnits          => Set<SdeDogmaUnit>();
     public DbSet<SdeIcon>               SdeIcons               => Set<SdeIcon>();
     public DbSet<SdeGraphic>            SdeGraphics            => Set<SdeGraphic>();
     public DbSet<SdeSkin>               SdeSkins               => Set<SdeSkin>();
     public DbSet<SdeSkinType>           SdeSkinTypes           => Set<SdeSkinType>();
     public DbSet<SdeSkinLicense>        SdeSkinLicenses        => Set<SdeSkinLicense>();
+
+    // The SDE's names in the client's other languages, for display. ⚠️ A new table: hand-written
+    // CREATEs in both schema paths (SdeImportService.EnsureSdeSchema, PostgresSchema).
+    public DbSet<SdeName>               SdeNames               => Set<SdeName>();
+
+    // And its descriptions, which are too large to load the way the names are — read a row at a
+    // time. The same two hand-written CREATEs.
+    public DbSet<SdeText>               SdeTexts               => Set<SdeText>();
 
     // ── Which client is doing the background work ────────────────────────────
     public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
@@ -222,6 +248,8 @@ public class AppDbContext : DbContext
     // ── Stores (EVE mail order desk) ────────────────────────────────────────
     public DbSet<Store>       Stores       => Set<Store>();
     public DbSet<SlackWebhook>  SlackWebhooks  => Set<SlackWebhook>();
+    // ⚠️ A new table: hand-written CREATEs in both schema paths (App.axaml.cs, PostgresSchema).
+    public DbSet<DiscordWebhook> DiscordWebhooks => Set<DiscordWebhook>();
     public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
@@ -383,6 +411,29 @@ public class AppDbContext : DbContext
         mb.Entity<SdeDogmaEffect>(e => {
             e.HasKey(x => x.EffectId);
             e.Property(x => x.EffectId).ValueGeneratedNever(); });
+
+        mb.Entity<SavedFit>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ShipTypeId); });
+
+        mb.Entity<SdeFighterAbility>(e => {
+            e.HasKey(x => x.AbilityId);
+            e.Property(x => x.AbilityId).ValueGeneratedNever(); });
+        mb.Entity<SdeFighterTypeAbility>(e => {
+            e.HasKey(x => new { x.TypeId, x.Slot });
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.Property(x => x.Slot).ValueGeneratedNever(); });
+        mb.Entity<SdeDbuff>(e => {
+            e.HasKey(x => x.DbuffId);
+            e.Property(x => x.DbuffId).ValueGeneratedNever(); });
+        mb.Entity<SdeDbuffModifier>(e => {
+            e.HasKey(x => new { x.DbuffId, x.Ordinal });
+            e.Property(x => x.DbuffId).ValueGeneratedNever();
+            e.Property(x => x.Ordinal).ValueGeneratedNever(); });
+        mb.Entity<SdeDogmaEffectModifier>(e => {
+            e.HasKey(x => new { x.EffectId, x.Ordinal });
+            e.Property(x => x.EffectId).ValueGeneratedNever();
+            e.Property(x => x.Ordinal).ValueGeneratedNever(); });
 
         mb.Entity<SdeTypeDogmaAttribute>(e => {
             e.HasKey(x => new { x.TypeId, x.AttributeId });
@@ -549,6 +600,16 @@ public class AppDbContext : DbContext
             e.Property(x => x.SchematicId).ValueGeneratedNever();
             e.Property(x => x.TypeId).ValueGeneratedNever(); });
 
+        mb.Entity<SdePlanetSchematicPin>(e => {
+            e.HasKey(x => new { x.SchematicId, x.PinTypeId });
+            e.Property(x => x.SchematicId).ValueGeneratedNever();
+            e.Property(x => x.PinTypeId).ValueGeneratedNever(); });
+
+        mb.Entity<SdePlanetTypeResource>(e => {
+            e.HasKey(x => new { x.PlanetTypeId, x.ResourceTypeId });
+            e.Property(x => x.PlanetTypeId).ValueGeneratedNever();
+            e.Property(x => x.ResourceTypeId).ValueGeneratedNever(); });
+
         mb.Entity<SdeDogmaUnit>(e => {
             e.HasKey(x => x.UnitId);
             e.Property(x => x.UnitId).ValueGeneratedNever(); });
@@ -573,6 +634,18 @@ public class AppDbContext : DbContext
         mb.Entity<SdeSkinLicense>(e => {
             e.HasKey(x => x.LicenseTypeId);
             e.Property(x => x.LicenseTypeId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeName>(e => {
+            e.HasKey(x => new { x.Kind, x.Id, x.Lang });
+            e.Property(x => x.Kind).ValueGeneratedNever();
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("SdeNames"); });
+
+        mb.Entity<SdeText>(e => {
+            e.HasKey(x => new { x.Kind, x.Id, x.Lang });
+            e.Property(x => x.Kind).ValueGeneratedNever();
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("SdeTexts"); });
 
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });
@@ -820,6 +893,53 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.PlanetId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiPlanetaryColonies"); });
+
+        // Colony layouts, one colony replaced whole at a time. Mirrored by hand in App.axaml.cs
+        // (SQLite) and PostgresSchema — EnsureCreated builds them only into a new database.
+        mb.Entity<PlanetaryLayout>(e => {
+            e.HasKey(x => new { x.CharacterId, x.PlanetId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.ToTable("EsiPlanetaryLayouts"); });
+
+        mb.Entity<PlanetaryPin>(e => {
+            e.HasKey(x => new { x.CharacterId, x.PlanetId, x.PinId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.Property(x => x.PinId).ValueGeneratedNever();
+            e.ToTable("EsiPlanetaryPins"); });
+
+        mb.Entity<PlanetaryPinContent>(e => {
+            e.HasKey(x => new { x.CharacterId, x.PlanetId, x.PinId, x.TypeId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.Property(x => x.PinId).ValueGeneratedNever();
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("EsiPlanetaryPinContents"); });
+
+        mb.Entity<PlanetaryRoute>(e => {
+            e.HasKey(x => new { x.CharacterId, x.PlanetId, x.RouteId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.Property(x => x.RouteId).ValueGeneratedNever();
+            e.ToTable("EsiPlanetaryRoutes"); });
+
+        mb.Entity<PlanetaryLink>(e => {
+            e.HasKey(x => new { x.CharacterId, x.PlanetId, x.SourcePinId, x.DestinationPinId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.Property(x => x.SourcePinId).ValueGeneratedNever();
+            e.Property(x => x.DestinationPinId).ValueGeneratedNever();
+            e.ToTable("EsiPlanetaryLinks"); });
+
+        mb.Entity<PiColonyMovement>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("PiColonyMovements"); });
+
+        mb.Entity<PiPlanetTaxRate>(e => {
+            e.HasKey(x => x.PlanetId);
+            e.Property(x => x.PlanetId).ValueGeneratedNever();
+            e.ToTable("PiPlanetTaxRates"); });
 
         mb.Entity<AgentResearch>(e => {
             e.HasKey(x => new { x.CharacterId, x.AgentId });
@@ -1075,6 +1195,10 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.ToTable("SlackWebhooks"); });
 
+        mb.Entity<DiscordWebhook>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("DiscordWebhooks"); });
+
         mb.Entity<ScheduledTask>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("ScheduledTasks"); });
@@ -1184,6 +1308,21 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
              .HasDatabaseName("IX_IntelReports_System_Time");
             e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
+
+        mb.Entity<EveScoutConnection>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EveScoutConnections"); });
+
+        mb.Entity<EveScoutStorm>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EveScoutStorms"); });
+
+        mb.Entity<ManualJumpBridge>(e => {
+            e.HasKey(x => x.Id);
+            // One row per pair: From is always the lower system id, so the pair entered the other
+            // way round is refused rather than stored twice.
+            e.HasIndex(x => new { x.FromSystemId, x.ToSystemId }).IsUnique()
+             .HasDatabaseName("IX_ManualJumpBridges_Pair"); });
 
         mb.Entity<NameLookupMiss>(e => {
             e.HasKey(x => x.Name);

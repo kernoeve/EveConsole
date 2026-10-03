@@ -3,8 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -15,9 +18,39 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+
+        // Every tab saves as it is changed, and text once typing pauses. Leaving a box saves it
+        // now: a pause is no promise the next thing done is not closing the window, or reading
+        // the setting somewhere else. Handled ones too — a box inside a control (a number picker)
+        // may have its focus events handled by it.
+        AddHandler(LostFocusEvent, OnFieldLostFocus, RoutingStrategies.Bubble, handledEventsToo: true);
+
+        // A pick is saved at once — but some picks land in a text value (a model chosen from a
+        // service's list is the model's name, which can also be typed), and a text value waits for
+        // the typing pause. A pick in any drop-down saves what is waiting.
+        AddHandler(SelectingItemsControl.SelectionChangedEvent, OnPicked, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
-    // Select a tab by its header text (e.g. "Alerts").
+    private void OnFieldLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (e.Source is TextBox && DataContext is SettingsViewModel vm)
+            _ = vm.FlushPendingSavesAsync();
+    }
+
+    private void OnPicked(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.Source is not ComboBox || DataContext is not SettingsViewModel vm) return;
+        // Posted: the event can come before the binding has handed the pick to the view model.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = vm.FlushPendingSavesAsync(),
+                                                    Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    /// <summary>The saves still waiting when the window closed, for the owner to await before it
+    /// reads what was changed.</summary>
+    public Task PendingSaves { get; private set; } = Task.CompletedTask;
+
+    // Select a tab by its header text — pass the same resource the header is built from
+    // (SettingsText.TabAlerts), never the English words, or it finds nothing in any other language.
     public void SelectTab(string header)
     {
         var tab = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => (t.Header as string) == header);
@@ -44,7 +77,7 @@ public partial class SettingsWindow : Window
 
         var confirmHandler = vm.CharacterVm.ConfirmReplaceInteraction.RegisterHandler(async ctx =>
         {
-            var dialog = new ConfirmDialog(ctx.Input) { Title = "Confirm Update" };
+            var dialog = new ConfirmDialog(ctx.Input) { Title = SettingsText.ConfirmUpdateTitle };
             var result = await dialog.ShowDialog<bool>(this);
             ctx.SetOutput(result);
         });
@@ -58,6 +91,8 @@ public partial class SettingsWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _disposables.Dispose();
+        // Before base.OnClosed, which completes ShowDialog: the owner finds it set.
+        if (DataContext is SettingsViewModel vm) PendingSaves = vm.CloseAsync();
         base.OnClosed(e);
     }
 
@@ -123,8 +158,10 @@ public partial class SettingsWindow : Window
 
     private void OnPurgeErrorLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ErrorLog.PurgeNowAsync();
-    private void OnPurgeKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _ = Retention?.Killmails.PurgeNowAsync();
+    private void OnPurgeOurKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OurKillmails.PurgeNowAsync();
+    private void OnPurgeOtherKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OtherKillmails.PurgeNowAsync();
     private void OnPurgePriceHistoryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.PriceHistory.PurgeNowAsync();
     private void OnPurgeGameLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -162,7 +199,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeChoices        =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return file?.TryGetLocalPath();
@@ -178,7 +215,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeFilter =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return files.Count > 0 ? files[0].TryGetLocalPath() : null;
@@ -198,22 +235,17 @@ public partial class SettingsWindow : Window
 
         dbVm.RequestRestart = () =>
         {
-            // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process
-            // is still alive for a moment after Process.Start, so without the release the new
-            // instance sees the lock held, focuses this window and exits — and then this one exits
-            // too, leaving nothing running. The argument makes the newcomer wait for the handover
-            // rather than treat it as a rival.
-            SingleInstance.Release();
-
             // ⚠️ Through AppLauncher rather than MainModule.FileName, which under an AppImage names
             // the binary inside a temporary mount: starting that directly skips the AppImage's own
             // runtime, and the replacement comes up without the environment its bundled libraries
-            // are found through.
-            AppLauncher.Start(SingleInstance.RestartingArgument);
-
-            // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread
-            // and did not come back, leaving a client that ignored SIGTERM too. See AppLauncher.
-            AppLauncher.ExitNow();
+            // are found through. It hands the single-instance lock over and keeps --profile; see
+            // AppLauncher.Restart.
+            //
+            // It used to exit whether or not the replacement started, which left nothing running;
+            // now a failed start stays up and says so. The work is recorded either way and runs at
+            // the next start.
+            if (AppLauncher.Restart() is { } error)
+                dbVm.StatusText = string.Format(SettingsText.DbRestartFailed, error);
         };
     }
 }

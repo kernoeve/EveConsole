@@ -4,6 +4,7 @@ using EveConsole.Models;
 using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -31,12 +32,16 @@ public sealed class IntelService(
     // invisible: there is no way to tell a long backlog apart from a feature that is not
     // working. Surfaced in Settings → Chat Logs and on the Chat Log viewer.
 
-    private string _statusText = "Intel: idle";
+    private string _statusText = DataText.IntelStatusIdle;
     public string StatusText
     {
         get => _statusText;
-        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
+        private set { _statusUntouched = false; this.RaiseAndSetIfChanged(ref _statusText, value); }
     }
+
+    /// <summary>True until anything replaces the opening "idle" line. Asked instead of comparing
+    /// the line with that text, which is translated.</summary>
+    private bool _statusUntouched = true;
 
     private bool _isRunning;
     public bool IsRunning
@@ -60,8 +65,27 @@ public sealed class IntelService(
     /// backfill loops until it runs out.</summary>
     private const int MessageBatch = 2_000;
 
-    private Dictionary<string, int>? _systems;
-    private Dictionary<string, int>? _ships;
+    private IntelVocabulary? _vocabulary;
+
+    /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>A name as ESI spells it, by the name as typed — a character's real capitalisation.</summary>
+    private readonly Dictionary<string, string> _canonical = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Whether a character has ever been on a killmail this app holds, by id.</summary>
+    private readonly Dictionary<long, bool> _onKillmail = [];
+
+    /// <summary>A name ESI said is not a character is asked about again after this long: a
+    /// character created since under that name would otherwise never be recognised.</summary>
+    private static readonly TimeSpan MissRecheck = TimeSpan.FromDays(30);
+
+    /// <summary>How old a pilot's corporation and alliance may be before a new sighting of them
+    /// fetches it again.</summary>
+    private static readonly TimeSpan AffiliationRefresh = TimeSpan.FromDays(7);
+
+    /// <summary>The share of a channel's reports a region needs to count as one it covers.</summary>
+    private const double RegionShare = 0.05;
 
     /// <summary>Name → character id, or null for "asked, and it is not a character". Session
     /// lifetime: the positives are already persisted in UniverseNames, and the negatives are
@@ -84,7 +108,118 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
-        return await RunAsync(channels, once: false, null, ct);
+        // A pass already running (a re-parse from Settings) is doing this work: skip rather than
+        // queue, so the chat import this is hooked to is not held up behind it.
+        if (!await _pass.WaitAsync(0, ct)) return 0;
+        try
+        {
+            return await ProcessNewCoreAsync(channels, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    /// <summary>
+    /// One intel pass at a time. ⚠️ Two passes read the same watermark and the same "already
+    /// parsed" set, then both insert reports for the same messages — the second fails on the
+    /// unique ChatMessageId (seen 2026-09-30: a re-parse from Settings alongside the live pass
+    /// that follows every chat scan).
+    /// </summary>
+    private readonly SemaphoreSlim _pass = new(1, 1);
+
+    private async Task<int> ProcessNewCoreAsync(IReadOnlyList<string> channels, CancellationToken ct)
+    {
+        var written = await RunAsync(channels, once: false, null, ct);
+
+        // Killmails arrive on their own schedule, from another client's background work, so
+        // this cannot wait for new chat the way the chat-to-chat supersede does. Once a minute
+        // is enough: the live map works out who is where itself; this is for the reports' own
+        // "superseded" mark.
+        if (written > 0 || DateTimeOffset.UtcNow - _lastKillSupersede > TimeSpan.FromMinutes(1))
+        {
+            _lastKillSupersede = DateTimeOffset.UtcNow;
+            try
+            {
+                using var db = dbFactory.CreateDbContext();
+                await SupersedeByKillmailsAsync(db, ct);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { errorLogger.Log(nameof(IntelService), "supersede by killmails", ex); }
+        }
+
+        return written;
+    }
+
+    private DateTimeOffset _lastKillSupersede = DateTimeOffset.MinValue;
+
+    /// <summary>How far back a report can still be superseded by a killmail.</summary>
+    private static readonly TimeSpan KillSupersedeWindow = TimeSpan.FromHours(24);
+
+    private sealed class KillSeen
+    {
+        public long           CharacterId  { get; set; }
+        public DateTimeOffset KillMailTime { get; set; }
+    }
+
+    /// <summary>
+    /// A killmail is a sighting too, and a better one than a report: the exact pilot, ship and
+    /// time. So a report whose pilot turns up on a newer killmail — attacking, or losing a ship —
+    /// is superseded exactly as a newer report naming them would supersede it.
+    ///
+    /// <para>Only the last <see cref="KillSupersedeWindow"/> of reports: a day-old sighting is
+    /// history whatever came after it, and the killmail tables are too large to ask about every
+    /// report ever made.</para>
+    ///
+    /// <para>⚠️ The time comparison is made here, not in SQL. Report times are ISO text and
+    /// killmail times a timestamp, stored differently on each engine; comparing them in SQL
+    /// would need a different statement for SQLite and PostgreSQL.</para>
+    /// </summary>
+    private static async Task SupersedeByKillmailsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var since     = DateTimeOffset.UtcNow - KillSupersedeWindow;
+        var sinceText = since.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+
+        var standing = await (
+            from r in db.IntelReports.AsNoTracking()
+            join c in db.IntelReportCharacters.AsNoTracking() on r.Id equals c.IntelReportId
+            where !r.Obsolete && string.Compare(r.ReportedAt, sinceText) >= 0
+            select new { r.Id, r.ReportedAt, c.CharacterId }).ToListAsync(ct);
+        if (standing.Count == 0) return;
+
+        // ⚠️ Ids are longs read from our own table, never text anyone typed, so they are written
+        // into the statement rather than bound one parameter each — a few hundred parameters
+        // would pass PostgreSQL's limit on some passes and gain nothing. The time stays bound.
+        var ids = string.Join(",", standing.Select(s => s.CharacterId).Distinct()
+                                           .Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+        var sql = $$"""
+            SELECT a."CharacterId" AS "CharacterId", d."KillMailTime" AS "KillMailTime"
+            FROM "KillMailAttackers" a
+            JOIN "KillMailDetails" d ON d."KillMailId" = a."KillMailId"
+            WHERE a."CharacterId" IN ({{ids}}) AND d."KillMailTime" >= {0}
+            UNION ALL
+            SELECT d."VictimCharId" AS "CharacterId", d."KillMailTime" AS "KillMailTime"
+            FROM "KillMailDetails" d
+            WHERE d."VictimCharId" IN ({{ids}}) AND d."KillMailTime" >= {0}
+            """;
+        var seen = await db.Database.SqlQueryRaw<KillSeen>(sql, since).ToListAsync(ct);
+        if (seen.Count == 0) return;
+
+        var lastKill = seen.GroupBy(s => s.CharacterId).ToDictionary(g => g.Key, g => g.Max(s => s.KillMailTime));
+
+        var superseded = standing
+            .Where(s => lastKill.TryGetValue(s.CharacterId, out var k)
+                     && LiveIntelService.TryParseReported(s.ReportedAt, out var at) && k > at)
+            .Select(s => s.Id).Distinct().ToList();
+        if (superseded.Count == 0) return;
+
+        var now = DateTimeOffset.UtcNow;
+        await db.IntelReports
+            .Where(r => superseded.Contains(r.Id) && !r.Obsolete)
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
+                                      .SetProperty(r => r.ObsoleteSetOn, now), ct);
     }
 
     /// <summary>
@@ -110,6 +245,21 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
+        // Waits for a live pass to finish (see _pass); the live passes then skip until this is done.
+        await _pass.WaitAsync(ct);
+        try
+        {
+            return await BackfillCoreAsync(channels, progress, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    private async Task<int> BackfillCoreAsync(
+        IReadOnlyList<string> channels, IProgress<string>? progress, CancellationToken ct)
+    {
         using (var db = dbFactory.CreateDbContext())
         {
             // The horizon of what a re-parse can actually reproduce.
@@ -172,17 +322,20 @@ public sealed class IntelService(
                     .CountAsync(m => channels.Contains(m.ChannelName)
                                   && !m.IsSystemMessage && m.Id > after, ct);
 
-            var systems = await SystemsAsync(db, ct);
-            var ships   = await ShipsAsync(db, ct);
-            bool IsSystem(string s) => systems.ContainsKey(s);
-            bool IsShip(string s)   => ships.ContainsKey(s);
+            var vocabulary = await VocabularyAsync(db, ct);
+
+            // One lexicon per channel: a shortened system name is read in the channel's regions.
+            var lexicons = new Dictionary<string, IntelLexicon>(StringComparer.OrdinalIgnoreCase);
+            foreach (var channel in batch.Select(m => m.ChannelName).Distinct(StringComparer.OrdinalIgnoreCase))
+                lexicons[channel] = new IntelLexicon(vocabulary, await HintsAsync(db, vocabulary, channel, ct), IsCharacter);
 
             // One resolution pass for the whole batch, so a busy channel costs a handful of ESI
             // calls rather than one per line.
             var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var m in batch)
             {
-                foreach (var c in IntelRules.NameCandidates(m.Message, IsSystem))
+                var lexicon = lexicons[m.ChannelName];
+                foreach (var c in IntelRules.NameCandidates(m.Message, s => lexicon.System(s) is not null))
                     candidates.Add(c);
                 // The reporter too: their name comes from the log header rather than the text,
                 // so it is never a parse candidate, but it is a character all the same.
@@ -190,8 +343,19 @@ public sealed class IntelService(
             }
 
             await ResolveAsync(db, candidates, ct);
+            await LoadKillmailPresenceAsync(db, candidates, ct);
 
-            bool IsCharacter(string s) => _nameCache.TryGetValue(s, out var id) && id is not null;
+            // A character who has been on a killmail here always counts. Otherwise the name must
+            // be written exactly as the character's own — a pasted link always is — and, when it
+            // has no capital letter at all, start a chunk, where a pasted link starts. Ordinary
+            // words and phrases are real characters often enough ("then", "for now", "1 hour",
+            // "looks like"), long inactive ones that nobody has ever seen fight, and chatter types
+            // them in lower case in the middle of a sentence.
+            bool IsCharacter(string s, bool startsChunk) =>
+                _nameCache.TryGetValue(s, out var id) && id is { } cid
+                && (_onKillmail.GetValueOrDefault(cid)
+                    || (_canonical.TryGetValue(s, out var spelled) && string.Equals(spelled, s, StringComparison.Ordinal)
+                        && (startsChunk || s.Any(char.IsUpper))));
 
             var seenCharacters = new List<long>();
 
@@ -226,19 +390,19 @@ public sealed class IntelService(
 
             foreach (var m in batch)
             {
-                var parsed = IntelRules.Parse(m.Message, IsSystem, IsCharacter, IsShip);
+                var parsed = IntelRules.Parse(m.Message, lexicons[m.ChannelName]);
                 if (parsed is null) continue;
 
                 if (parsed.Kind == IntelRules.IntelKind.Clear)
                 {
-                    if (systems.TryGetValue(parsed.SystemName, out var clearedId) &&
+                    if (vocabulary.Exact(parsed.SystemName) is { Id: var clearedId } &&
                         (!clears.TryGetValue(clearedId, out var prev) ||
                          string.CompareOrdinal(m.OccurredAt, prev) > 0))
                         clears[clearedId] = m.OccurredAt;
                     continue;
                 }
 
-                if (!systems.TryGetValue(parsed.SystemName, out var systemId)) continue;
+                if (vocabulary.Exact(parsed.SystemName) is not { Id: var systemId }) continue;
                 if (already.Contains(m.Id)) continue;
 
                 // Add returns false when this exact report is already stored, or has already
@@ -247,7 +411,7 @@ public sealed class IntelService(
                     continue;
 
                 var built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName,
-                                        systemId, m.Message, parsed, ships);
+                                        systemId, m.Message, parsed);
                 if (built is null) continue;
 
                 pending.Add(built.Value);
@@ -277,8 +441,8 @@ public sealed class IntelService(
             var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
             var left = Backlog;
             StatusText = left > 0
-                ? $"Intel: parsing {day} — {written:N0} sightings, {left:N0} messages to go"
-                : $"Intel: parsing {day} — {written:N0} sightings";
+                ? string.Format(DataText.IntelStatusParsingMore, day, written, left)
+                : string.Format(DataText.IntelStatusParsing, day, written);
             progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
@@ -302,7 +466,7 @@ public sealed class IntelService(
         {
             IsRunning = false;
             Backlog   = 0;
-            if (written > 0 || StatusText == "Intel: idle")
+            if (written > 0 || _statusUntouched)
                 StatusText = await SummaryAsync(ct);
         }
     }
@@ -314,12 +478,12 @@ public sealed class IntelService(
         {
             using var db = dbFactory.CreateDbContext();
             var total = await db.IntelReports.CountAsync(ct);
-            if (total == 0) return "Intel: nothing parsed yet";
+            if (total == 0) return DataText.IntelStatusNothing;
 
             var newest = await db.IntelReports.AsNoTracking()
                 .OrderByDescending(r => r.ReportedAt).Select(r => r.ReportedAt).FirstAsync(ct);
 
-            return $"Intel: up to date — {total:N0} sightings, newest {newest.Replace('T', ' ').TrimEnd('Z')}";
+            return string.Format(DataText.IntelStatusUpToDate, total, newest.Replace('T', ' ').TrimEnd('Z'));
         }
         catch (Exception ex)
         {
@@ -328,7 +492,7 @@ public sealed class IntelService(
             // reassurance the mining tab gave when it blamed a polling setting for a broken
             // query. Say the status could not be read, and log why.
             errorLogger.Log(nameof(IntelService), "status", ex);
-            return "Intel: status unavailable";
+            return DataText.IntelStatusUnavailable;
         }
     }
 
@@ -338,7 +502,7 @@ public sealed class IntelService(
     /// writes a whole batch at once.</summary>
     private (IntelReport Report, List<IntelReportCharacter> Pilots)? BuildReport(
         int chatMessageId, string reportedAt, string channel, string reporter,
-        int systemId, string message, IntelRules.ParsedIntel parsed, Dictionary<string, int> ships)
+        int systemId, string message, IntelRules.ParsedIntel parsed)
     {
         var report = new IntelReport
         {
@@ -354,6 +518,12 @@ public sealed class IntelService(
             Obsolete      = false,
             ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
             ChatMessageId = chatMessageId,
+            Flags         = (int)parsed.Flags,
+            Gate          = parsed.Gate,
+            // The same hull named twice is two of it: "Loki  Loki  Sabre" is "2× Loki, Sabre".
+            Ships         = parsed.Ships.Count == 0 ? null
+                          : string.Join(", ", parsed.Ships.GroupBy(s => s.Name).Select(g => (Name: g.Key, Count: g.Sum(s => s.Count)))
+                                                    .Select(s => s.Count > 1 ? $"{s.Count}× {s.Name}" : s.Name)),
         };
 
         var pilots = new List<IntelReportCharacter>();
@@ -366,7 +536,7 @@ public sealed class IntelService(
             {
                 CharacterId   = id.Value,
                 CharacterName = pilot.Name,
-                ShipTypeId    = pilot.Ship is { } s && ships.TryGetValue(s, out var t) ? t : null,
+                ShipTypeId    = pilot.ShipTypeId,
                 ShipName      = pilot.Ship,
             });
         }
@@ -501,26 +671,42 @@ public sealed class IntelService(
         var wanted = characterIds.Where(i => i > 0).Distinct().ToList();
         if (wanted.Count == 0) return;
 
-        var known = await db.CharacterAffiliations.AsNoTracking()
+        // ⚠️ The age is judged in memory: a DateTimeOffset comparison does not translate on SQLite.
+        var known = await db.CharacterAffiliations
             .Where(a => wanted.Contains(a.CharacterId))
-            .Select(a => a.CharacterId)
             .ToListAsync(ct);
+        var stale = DateTimeOffset.UtcNow - AffiliationRefresh;
 
-        var missing = wanted.Except(known).ToList();
-        if (missing.Count == 0) return;
+        // Never seen, or seen again more than a week after the last look: people change corp,
+        // and a hostile shown under last year's ticker is a wrong call.
+        var fetch = wanted.Except(known.Select(k => k.CharacterId))
+            .Concat(known.Where(k => k.PulledAt < stale).Select(k => k.CharacterId))
+            .ToList();
+        if (fetch.Count == 0) { db.ChangeTracker.Clear(); return; }
 
         try
         {
-            var found = await esi.GetAffiliationsAsync(missing, ct);
-            if (found.Count == 0) return;
+            var found = await esi.GetAffiliationsAsync(fetch, ct);
+            if (found.Count == 0) { db.ChangeTracker.Clear(); return; }
 
-            db.CharacterAffiliations.AddRange(found.Select(f => new CharacterAffiliation
+            var byId = known.ToDictionary(k => k.CharacterId);
+            var now  = DateTimeOffset.UtcNow;
+            foreach (var f in found)
             {
-                CharacterId   = f.CharacterId,
-                CorporationId = f.CorporationId,
-                AllianceId    = f.AllianceId ?? 0,
-                PulledAt      = DateTimeOffset.UtcNow,
-            }));
+                if (byId.TryGetValue(f.CharacterId, out var row))
+                {
+                    row.CorporationId = f.CorporationId;
+                    row.AllianceId    = f.AllianceId ?? 0;
+                    row.PulledAt      = now;
+                }
+                else db.CharacterAffiliations.Add(new CharacterAffiliation
+                {
+                    CharacterId   = f.CharacterId,
+                    CorporationId = f.CorporationId,
+                    AllianceId    = f.AllianceId ?? 0,
+                    PulledAt      = now,
+                });
+            }
 
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();
@@ -534,35 +720,148 @@ public sealed class IntelService(
     // ── Lookups ──────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Published ship hulls, name → type id. A closed set of about 423, which is what makes it
-    /// safe to check before character names — see the ordering note in IntelRules.Parse.
+    /// Systems, published hulls and ship classes, in English and the client's other languages —
+    /// a client running in Chinese pastes its hull names in Chinese. Hulls are a closed set of
+    /// about 423, which is what makes it safe to check them before character names; see the
+    /// ordering note in IntelRules.Parse.
     /// </summary>
-    private async Task<Dictionary<string, int>> ShipsAsync(AppDbContext db, CancellationToken ct)
+    private async Task<IntelVocabulary> VocabularyAsync(AppDbContext db, CancellationToken ct)
     {
-        if (_ships is not null) return _ships;
+        if (_vocabulary is not null) return _vocabulary;
 
-        var rows = await db.SdeTypes.AsNoTracking()
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Select(s => new { s.SolarSystemId, s.Name, s.RegionId }).ToListAsync(ct);
+        var systemNames = await db.SdeNames.AsNoTracking()
+            .Where(n => n.Kind == SdeNameKind.SolarSystem).Select(n => new { n.Id, n.Name }).ToListAsync(ct);
+
+        var hulls = await db.SdeTypes.AsNoTracking()
             .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == 6),
                   t => t.GroupId, g => g.GroupId, (t, g) => t)
             .Where(t => t.Published)
-            .Select(t => new { t.Name, t.TypeId })
+            .Select(t => new { t.TypeId, t.Name })
             .ToListAsync(ct);
+        var hullIds   = hulls.Select(h => (long)h.TypeId).ToList();
+        var hullNames = await db.SdeNames.AsNoTracking()
+            .Where(n => n.Kind == SdeNameKind.Type && hullIds.Contains(n.Id)).Select(n => new { n.Id, n.Name }).ToListAsync(ct);
 
-        _ships = new Dictionary<string, int>(rows.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var r in rows) _ships[r.Name] = r.TypeId;
-        return _ships;
+        var groups = await db.SdeGroups.AsNoTracking()
+            .Where(g => g.CategoryId == 6 && g.Published).Select(g => new { g.GroupId, g.Name }).ToListAsync(ct);
+        var groupIds   = groups.Select(g => (long)g.GroupId).ToList();
+        var groupNames = await db.SdeNames.AsNoTracking()
+            .Where(n => n.Kind == SdeNameKind.Group && groupIds.Contains(n.Id)).Select(n => new { n.Id, n.Name }).ToListAsync(ct);
+        var english = groups.ToDictionary(g => (long)g.GroupId, g => g.Name);
+
+        return _vocabulary = new IntelVocabulary(
+            systems.Select(s => (s.SolarSystemId, s.Name, s.RegionId)),
+            systemNames.Select(n => ((int)n.Id, n.Name)),
+            hulls.Select(h => (h.TypeId, h.Name)),
+            hullNames.Select(n => ((int)n.Id, n.Name)),
+            groups.Select(g => (g.Name, g.Name))
+                  .Concat(groupNames.Where(n => english.ContainsKey(n.Id)).Select(n => (english[n.Id], n.Name))));
     }
 
-    private async Task<Dictionary<string, int>> SystemsAsync(AppDbContext db, CancellationToken ct)
+    /// <summary>
+    /// A channel's regions and how often it has named each system. The regions are the ones set
+    /// for it in Settings, or, when none are, the ones it has been seen to report on.
+    /// </summary>
+    private async Task<IntelChannelHints> HintsAsync(
+        AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
     {
-        if (_systems is not null) return _systems;
+        if (_hints.TryGetValue(channel, out var cached) && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
+            return cached.Hints;
 
-        var rows = await db.SdeSolarSystems.AsNoTracking()
-            .Select(s => new { s.Name, s.SolarSystemId }).ToListAsync(ct);
+        var (frequency, learned) = await LearnAsync(db, vocabulary, channel, ct);
 
-        _systems = new Dictionary<string, int>(rows.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var r in rows) _systems[r.Name] = r.SolarSystemId;
-        return _systems;
+        var regions = learned;
+        if (settings.IntelChannelRegions.TryGetValue(channel, out var named))
+        {
+            var wanted = named.Select(n => n.Trim().ToLowerInvariant()).ToHashSet();
+            regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
+                .Where(r => wanted.Contains(r.Name.ToLowerInvariant())).Select(r => r.RegionId).ToHashSet();
+        }
+
+        var hints = new IntelChannelHints(regions, frequency);
+        _hints[channel] = (DateTimeOffset.UtcNow, hints);
+        return hints;
+    }
+
+    /// <summary>How often a channel has named each system over the last year, and the regions
+    /// holding at least <see cref="RegionShare"/> of that.</summary>
+    private static async Task<(Dictionary<int, int> Frequency, HashSet<int> Regions)> LearnAsync(
+        AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
+    {
+        var since = DateTimeOffset.UtcNow.AddDays(-365).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        var frequency = await db.IntelReports.AsNoTracking()
+            .Where(r => r.ChannelName == channel && string.Compare(r.ReportedAt, since) >= 0)
+            .GroupBy(r => r.SystemId)
+            .Select(g => new { g.Key, N = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.N, ct);
+
+        var total   = frequency.Values.Sum();
+        var regions = frequency.GroupBy(kv => vocabulary.RegionOf(kv.Key))
+            .Where(g => g.Key != 0 && total > 0 && g.Sum(kv => kv.Value) >= RegionShare * total)
+            .Select(g => g.Key).ToHashSet();
+        return (frequency, regions);
+    }
+
+    /// <summary>The regions a channel has been seen to report on, in the interface language —
+    /// what it goes by when none are set for it. Shown in Settings beside the box.</summary>
+    public async Task<IReadOnlyList<string>> LearnedRegionsAsync(string channel, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var (_, regions) = await LearnAsync(db, await VocabularyAsync(db, ct), channel, ct);
+        if (regions.Count == 0) return [];
+        return (await db.SdeRegions.AsNoTracking().Where(r => regions.Contains(r.RegionId))
+                    .Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
+            .Select(r => SdeNames.Region(r.RegionId, r.Name)).Order().ToList();
+    }
+
+    /// <summary>Region names as typed — English or the interface language, any capitals — as
+    /// their English names, and the ones that are no region.</summary>
+    public async Task<(IReadOnlyList<string> English, IReadOnlyList<string> Unknown)> ResolveRegionNamesAsync(
+        IReadOnlyList<string> typed, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var english = await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct);
+        var byName  = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var r in english) byName[r.Name] = r.Name;
+        var ids = english.ToDictionary(r => (long)r.RegionId, r => r.Name);
+        foreach (var n in await db.SdeNames.AsNoTracking().Where(n => n.Kind == SdeNameKind.Region)
+                     .Select(n => new { n.Id, n.Name }).ToListAsync(ct))
+            if (ids.TryGetValue(n.Id, out var en)) byName.TryAdd(n.Name, en);
+
+        var found = new List<string>();
+        var unknown = new List<string>();
+        foreach (var t in typed)
+            if (byName.TryGetValue(t.Trim(), out var en)) { if (!found.Contains(en)) found.Add(en); }
+            else unknown.Add(t.Trim());
+        return (found, unknown);
+    }
+
+    /// <summary>The regions set for a channel changed: re-read them on the next pass.</summary>
+    public void ForgetChannelHints() => _hints.Clear();
+
+    /// <summary>Whether each one-word character among the candidates has ever been on a
+    /// killmail here — as attacker or victim. What decides a name typed in other capitals than
+    /// the character's own.</summary>
+    private async Task LoadKillmailPresenceAsync(AppDbContext db, HashSet<string> candidates, CancellationToken ct)
+    {
+        // Every character among them: the candidates are gathered without regard to case, so
+        // "Lone" and "lone" in one batch arrive as one.
+        var ids = candidates
+            .Where(c => _nameCache.TryGetValue(c, out var id) && id is not null)
+            .Select(c => _nameCache[c]!.Value)
+            .Where(id => !_onKillmail.ContainsKey(id))
+            .Distinct().ToList();
+        if (ids.Count == 0) return;
+
+        var seen = (await db.KillMailAttackers.AsNoTracking()
+                .Where(a => a.CharacterId != null && ids.Contains(a.CharacterId.Value))
+                .Select(a => a.CharacterId!.Value).Distinct().ToListAsync(ct))
+            .Concat(await db.KillMailDetails.AsNoTracking()
+                .Where(k => ids.Contains(k.VictimCharId)).Select(k => k.VictimCharId).Distinct().ToListAsync(ct))
+            .ToHashSet();
+        foreach (var id in ids) _onKillmail[id] = seen.Contains(id);
     }
 
     /// <summary>Fills <see cref="_nameCache"/> for every candidate not already known: the local
@@ -579,14 +878,16 @@ public sealed class IntelService(
             .Select(n => new { n.Name, n.EntityId })
             .ToListAsync(ct);
 
-        foreach (var k in known) _nameCache[k.Name] = k.EntityId;
+        foreach (var k in known) { _nameCache[k.Name] = k.EntityId; _canonical[k.Name] = k.Name; }
 
         // Then the names already asked about and found not to be characters. Without this a
         // re-parse asks ESI again about every ship type, gate name and stray word in the
         // channel history, which is the bulk of what a re-parse costs.
+        // ⚠️ The age is checked in memory: a DateTimeOffset comparison does not translate on SQLite.
+        var fresh = DateTimeOffset.UtcNow - MissRecheck;
         var misses = await db.NameLookupMisses.AsNoTracking()
-            .Where(m => unknown.Contains(m.Name)).Select(m => m.Name).ToListAsync(ct);
-        foreach (var m in misses) _nameCache[m] = null;
+            .Where(m => unknown.Contains(m.Name)).Select(m => new { m.Name, m.CheckedAt }).ToListAsync(ct);
+        foreach (var m in misses.Where(m => m.CheckedAt >= fresh)) _nameCache[m.Name] = null;
 
         var stillUnknown = unknown.Where(u => !_nameCache.ContainsKey(u)).ToList();
         if (stillUnknown.Count == 0) return;
@@ -602,7 +903,10 @@ public sealed class IntelService(
 
                 foreach (var (id, name, category) in found)
                     if (category == "character")
+                    {
                         _nameCache[name] = id;
+                        _canonical[name] = name;
+                    }
 
                 // Everything in the slice that came back as nothing, or as a corporation or an
                 // alliance, is recorded as "not a character" so it is never asked about again.
@@ -622,12 +926,9 @@ public sealed class IntelService(
     }
 
     /// <summary>
-    /// Remembers names ESI said are not characters.
-    ///
-    /// These are recorded per name and never expired. A character created later under a name
-    /// already recorded as a miss would stay unrecognised — accepted deliberately, since the
-    /// alternative is asking ESI about "nv", "gate" and every ship type on every pass forever.
-    /// Clearing the table forces a fresh look.
+    /// Remembers names ESI said are not characters, with when it said so. A name is asked about
+    /// again once <see cref="MissRecheck"/> has passed, so a character created since under that
+    /// name is found; asked again and still nobody, the date moves on.
     /// </summary>
     private static async Task RecordMissesAsync(
         AppDbContext db, List<string> names, CancellationToken ct)
@@ -637,9 +938,14 @@ public sealed class IntelService(
         var existing = await db.NameLookupMisses.AsNoTracking()
             .Where(m => names.Contains(m.Name)).Select(m => m.Name).ToListAsync(ct);
 
+        var now = DateTimeOffset.UtcNow;
+        if (existing.Count > 0)
+            await db.NameLookupMisses.Where(m => existing.Contains(m.Name))
+                .ExecuteUpdateAsync(s => s.SetProperty(m => m.CheckedAt, now), ct);
+
         var fresh = names.Except(existing, StringComparer.Ordinal)
             .Distinct(StringComparer.Ordinal)
-            .Select(n => new NameLookupMiss { Name = n, CheckedAt = DateTimeOffset.UtcNow })
+            .Select(n => new NameLookupMiss { Name = n, CheckedAt = now })
             .ToList();
 
         if (fresh.Count == 0) return;
