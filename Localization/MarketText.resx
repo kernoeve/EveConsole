@@ -820,6 +820,10 @@
     <value>ESI answered HTTP {0} when the items were asked for.</value>
     <comment>Why a contract has no items. {0} is the HTTP status code.</comment>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>It closed before its items were read, and ESI no longer lists them.</value>
+    <comment>Why a public contract has no items: it left the public listing before they were fetched, and the public endpoint refuses it after that.</comment>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESI listed no items for it.</value>
     <comment>Why a contract has no items.</comment>

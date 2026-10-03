@@ -616,6 +616,9 @@
   <data name="ItemsHttpError" xml:space="preserve">
     <value>아이템을 요청하자 ESI가 HTTP {0} 응답을 보냈습니다.</value>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>아이템을 읽기 전에 종료되어 ESI가 더 이상 표시하지 않습니다.</value>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESI가 아이템을 하나도 알려 주지 않았습니다.</value>
   </data>

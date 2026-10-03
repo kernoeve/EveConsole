@@ -616,6 +616,9 @@
   <data name="ItemsHttpError" xml:space="preserve">
     <value>ESI a répondu HTTP {0} à la demande des objets.</value>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>Il a été clos avant que ses objets ne soient lus, et ESI ne les liste plus.</value>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESI n'a listé aucun objet pour ce contrat.</value>
   </data>

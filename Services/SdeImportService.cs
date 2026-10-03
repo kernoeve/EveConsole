@@ -221,15 +221,22 @@ public class SdeImportService
 
             await undo.CommitAsync(ct);
 
+            // Published all the same: worth a look, not a failure.
             foreach (var line in warnings)
-                _errors.Log("SdeImport", "Verification", line);
+                _errors.Warn("SdeImport", "Verification", line);
 
             // A result, not a fault — logged all the same, because the log is what stays: it is how
             // anyone can see which languages the SDE really carried, and how many names came of it.
-            _errors.Log("SdeImport", "Names", namesStored.Summary, namesStored.ByKind);
-            _errors.Log("SdeImport", "Descriptions", textsStored.Summary, textsStored.ByKind);
-            if (stationNames is not null)
-                _errors.Log("SdeImport", "Station names", stationNames.Summary, stationNames.Detail);
+            // Notes, so the log does not show them as errors.
+            // A count that could not be made comes back without its breakdown: that one is a warning.
+            if (namesStored.ByKind is null) _errors.Warn("SdeImport", "Names", namesStored.Summary);
+            else _errors.Note("SdeImport", "Names", namesStored.Summary, namesStored.ByKind);
+            if (textsStored.ByKind is null) _errors.Warn("SdeImport", "Descriptions", textsStored.Summary);
+            else _errors.Note("SdeImport", "Descriptions", textsStored.Summary, textsStored.ByKind);
+            if (stationNames is { AllMatch: true })
+                _errors.Note("SdeImport", "Station names", stationNames.Summary, stationNames.Detail);
+            else if (stationNames is not null)
+                _errors.Warn("SdeImport", "Station names", stationNames.Summary, stationNames.Detail);
             LastNamesByLanguage = namesStored.ByLanguage;
 
             // The names on screen come from what was just replaced: this client's, and on a shared
@@ -1994,7 +2001,9 @@ public class SdeImportService
     // -----------------------------------------------------------------------
 
     /// <summary>What <see cref="ImportStationNamesAsync"/> found, for its line in the log.</summary>
-    private sealed record StationNamesCheck(string Summary, string? Detail);
+    /// <summary>How the rebuilt station names compare with ESI's English. <paramref name="AllMatch"/>
+    /// when every one was built and matched: a note in the log, else a warning.</summary>
+    private sealed record StationNamesCheck(string Summary, string? Detail, bool AllMatch);
 
     private sealed record StationParts(int StationId, string Name, int SolarSystemId, int? CorporationId,
         int? OperationId, bool UseOperationName, long? OrbitId, int? CelestialIndex, int? OrbitIndex);
@@ -2152,7 +2161,8 @@ public class SdeImportService
         return new StationNamesCheck(
             $"Station names rebuilt from their parts: {N(matched)} of {N(stations.Count)} match ESI's English. "
             + "The other languages are built the same way and nothing else checks them: a low number means they are wrong too.",
-            detail.Count == 0 ? null : string.Join("\n", detail));
+            detail.Count == 0 ? null : string.Join("\n", detail),
+            matched == stations.Count && unbuilt == 0);
     }
 
     // -----------------------------------------------------------------------

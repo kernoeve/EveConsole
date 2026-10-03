@@ -398,10 +398,13 @@
     <value>Kontext</value>
   </data>
   <data name="ColInner" xml:space="preserve">
-    <value>Innerer Fehler</value>
+    <value>Details</value>
+  </data>
+  <data name="ColLevel" xml:space="preserve">
+    <value>Stufe</value>
   </data>
   <data name="SelectAnErrorToNote" xml:space="preserve">
-    <value>Wählen Sie einen Fehler aus, um seine Details zu sehen.</value>
+    <value>Wähle einen Eintrag, um seine Details zu sehen.</value>
   </data>
   <data name="EsiTables" xml:space="preserve">
     <value>ESI-Tabellen</value>
@@ -1088,10 +1091,25 @@
     <value>Keine Fehler im Zeitraum.</value>
   </data>
   <data name="ErrorLogCount" xml:space="preserve">
-    <value>{0:N0} Fehler</value>
+    <value>{0:N0} Einträge, {1:N0} Fehler</value>
   </data>
   <data name="ErrorInner" xml:space="preserve">
     <value>Innerer Fehler: {0}</value>
+  </data>
+  <data name="ErrorDetails" xml:space="preserve">
+    <value>Details: {0}</value>
+  </data>
+  <data name="SeverityError" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="SeverityWarning" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="SeverityNote" xml:space="preserve">
+    <value>Hinweis</value>
+  </data>
+  <data name="ErrorsOnly" xml:space="preserve">
+    <value>Nur Fehler</value>
   </data>
   <data name="GameLogAllTypes" xml:space="preserve">
     <value>(alle Typen)</value>

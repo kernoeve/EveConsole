@@ -616,6 +616,9 @@
   <data name="ItemsHttpError" xml:space="preserve">
     <value>ESI hat bei der Abfrage der Gegenstände mit HTTP {0} geantwortet.</value>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>Er wurde geschlossen, bevor seine Gegenstände gelesen wurden, und ESI führt sie nicht mehr auf.</value>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESI hat dafür keine Gegenstände aufgeführt.</value>
   </data>
