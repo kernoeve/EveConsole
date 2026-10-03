@@ -325,10 +325,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             StatusText = MarketText.ErrSameStation;
             return;
         }
-        if (!double.TryParse(CargoM3, out var cargoM3) || cargoM3 <= 0)
+        // Optional, like the ISK cap: left empty, every profitable item is listed at what is on
+        // offer, as Industry Opportunities lists everything worth building.
+        double? cargoM3 = null;
+        if (!string.IsNullOrWhiteSpace(CargoM3))
         {
-            StatusText = MarketText.ErrInvalidCargo;
-            return;
+            if (!double.TryParse(CargoM3, out var cargo) || cargo <= 0)
+            {
+                StatusText = MarketText.ErrInvalidCargo;
+                return;
+            }
+            cargoM3 = cargo;
         }
 
         double? iskCap = null;
@@ -397,7 +404,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
             if (list.Count > 0)
             {
-                SummaryVolume  = $"{totalVol:N1} / {cargoM3:N0} m³";
+                SummaryVolume  = cargoM3 is { } hold ? $"{totalVol:N1} / {hold:N0} m³" : $"{totalVol:N1} m³";
                 SummaryCost    = FormatIsk(totalCost);
                 SummaryProfit  = FormatIsk(totalProfit);
                 HasSummary     = true;
@@ -460,12 +467,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     }
 
     private async Task<List<TradeRow>> BuildShoppingListAsync(
-        List<Candidate> candidates, double cargoM3, double? iskCap,
+        List<Candidate> candidates, double? cargoM3, double? iskCap,
         int? destRegionId, double? minIskVol30d, double? minUnitVol30d)
     {
         var result    = new List<TradeRow>();
-        var remainM3  = cargoM3;
+        var remainM3  = cargoM3 ?? double.MaxValue;
         var remainIsk = iskCap ?? double.MaxValue;
+
+        // Units that fit in what is left; no limit at all when there is none. ⚠️ Not a bare cast:
+        // double.MaxValue over a price is far past long's range.
+        static long Fits(double? limit, double left, double each) =>
+            limit is null || each <= 0 ? long.MaxValue : (long)Math.Floor(left / each);
 
         foreach (var c in candidates)
         {
@@ -482,8 +494,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
             }
 
-            var maxByM3  = (long)Math.Floor(remainM3  / c.M3PerUnit);
-            var maxByIsk = (long)Math.Floor(remainIsk / c.BestSell);
+            var maxByM3  = Fits(cargoM3, remainM3,  c.M3PerUnit);
+            var maxByIsk = Fits(iskCap,  remainIsk, c.BestSell);
             var qty      = Math.Min(c.MaxQty, Math.Min(maxByM3, maxByIsk));
             if (qty <= 0) continue;
 
@@ -511,7 +523,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             remainM3  -= vol;
             remainIsk -= cost;
 
-            if (remainM3 < 1) break; // cargo full
+            if (cargoM3 is not null && remainM3 < 1) break; // cargo full
         }
 
         return result;

@@ -112,6 +112,7 @@
           <TextBlock Text="{x:Static loc:MarketText.CargoM}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding CargoM3}" Width="90" FontSize="12"
+                   Watermark="{x:Static loc:MarketText.HintNoLimit}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
           <TextBlock Text="{x:Static loc:MarketText.IskCap}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
