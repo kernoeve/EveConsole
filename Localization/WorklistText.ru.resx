@@ -2320,4 +2320,10 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Доставка возможна с {0:d MMM HH:mm}</value>
   </data>
+  <data name="InventionHeadCopiesOne" xml:space="preserve">
+    <value>{1}: до уровня запаса не хватает копий: {0:N0}.</value>
+  </data>
+  <data name="InventionHeadCopiesOther" xml:space="preserve">
+    <value>{1}: до уровня запаса не хватает копий: {0:N0}.</value>
+  </data>
 </root>

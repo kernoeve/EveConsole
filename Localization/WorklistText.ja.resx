@@ -2227,4 +2227,7 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>{0:M月d日 HH:mm}から配送できます</value>
   </data>
+  <data name="InventionHeadCopiesOther" xml:space="preserve">
+    <value>{1}：在庫レベルまでコピーが{0:N0}枚足りません。</value>
+  </data>
 </root>

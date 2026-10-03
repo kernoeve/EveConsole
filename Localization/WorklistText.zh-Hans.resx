@@ -2227,4 +2227,7 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>可从 {0:M月d日 HH:mm} 起配送</value>
   </data>
+  <data name="InventionHeadCopiesOther" xml:space="preserve">
+    <value>{1}：距库存水平还差 {0:N0} 份拷贝。</value>
+  </data>
 </root>

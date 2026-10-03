@@ -2260,4 +2260,10 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Livrable à partir du {0:d MMM HH:mm}</value>
   </data>
+  <data name="InventionHeadCopiesOne" xml:space="preserve">
+    <value>{1} : il manque {0:N0} copie pour son niveau de stock.</value>
+  </data>
+  <data name="InventionHeadCopiesOther" xml:space="preserve">
+    <value>{1} : il manque {0:N0} copies pour son niveau de stock.</value>
+  </data>
 </root>

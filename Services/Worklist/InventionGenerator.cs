@@ -74,6 +74,9 @@ public class InventionGenerator(
 
         var inScope = await ScopeStockAsync(db, scope, wrapped, corps, ct);
         var demand  = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, corps, inScope, ct);
+        // And levels of the T2 blueprints themselves, which the gatherer leaves out — see
+        // IndustryDemandService.BlueprintLevelsAsync.
+        foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) demand.TryAdd(typeId, d);
         if (demand.Count == 0) return [];
 
         // Only the invented ones. Everything else is the job generator's business.
@@ -133,7 +136,10 @@ public class InventionGenerator(
                 .ThenBy(c => c.Config.CharacterId)
                 .First();
 
-            var head = string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
+            // A level of the blueprint itself is short in copies; one of the item, in runs of it.
+            var head = recipe.BlueprintTarget
+                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadCopiesOther), d.Units, SdeNames.Type(d.TypeId, name))
+                : string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
                                      timeCtx, best, siteStock, d.Priority, name, head));

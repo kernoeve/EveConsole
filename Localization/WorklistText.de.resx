@@ -2260,4 +2260,10 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Lieferbar ab {0:d. MMM HH:mm}</value>
   </data>
+  <data name="InventionHeadCopiesOne" xml:space="preserve">
+    <value>{1}: {0:N0} Kopie fehlt zum Lagerbestand.</value>
+  </data>
+  <data name="InventionHeadCopiesOther" xml:space="preserve">
+    <value>{1}: {0:N0} Kopien fehlen zum Lagerbestand.</value>
+  </data>
 </root>

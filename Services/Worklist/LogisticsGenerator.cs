@@ -618,8 +618,13 @@ public class LogisticsGenerator(
         var decryptors = await invention.DecryptorsAsync(ct);
         var printsByType = allPrints.GroupBy(p => p.TypeId).ToDictionary(g => g.Key, g => g.ToList());
 
+        // The same blueprint levels the invention generator plans from, so their datacores are
+        // hauled too — added to a copy: the manufacturing hauls below must not see them.
+        var forInvention = new Dictionary<int, BuildDemand>(demand);
+        foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) forInvention.TryAdd(typeId, d);
+
         var needs = await invention.PlanDemandAsync(
-            demand, ctx.BlueprintByProduct, printsByType, owned,
+            forInvention, ctx.BlueprintByProduct, printsByType, owned,
             typeId => InventionService.DecryptorFor(
                           typeId, ctx, decryptors, settings.ShipDecryptor, settings.OtherDecryptor),
             candidates.Select(c => (IReadOnlyDictionary<int, int>)c.Skills).ToList(), ct);
