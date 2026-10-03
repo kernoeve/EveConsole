@@ -621,7 +621,10 @@ public class BuildCostService
                 // on the group name alone. See IndyRigMatching.
                 _ when tg.GroupId == 536                                    => "structure_ammo",
                 _ when gc.Name.Contains("Component")                        => "adv_components",
-                _ when gc.CategoryId is 22 or 65                           => "structure_ammo",
+                // Personal deployables take the equipment rig, Upwell structures the structure
+                // one. See IndyRigMatching.
+                _ when gc.CategoryId == 22                                 => "modules_equipment",
+                _ when gc.CategoryId == 65                                 => "structure_ammo",
                 // R.A.M. items and Data Interfaces are manufactured at standard facilities
                 _ when gc.CategoryId == 17 && gc.Name is "Tool" or "Data Interfaces" => "modules_equipment",
                 _                                                           => ""
