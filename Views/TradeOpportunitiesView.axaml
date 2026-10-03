@@ -112,6 +112,7 @@
           <TextBlock Text="{x:Static loc:MarketText.CargoM}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding CargoM3}" Width="90" FontSize="12"
+                   Watermark="{x:Static loc:MarketText.HintNoLimit}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
           <TextBlock Text="{x:Static loc:MarketText.IskCap}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
@@ -130,6 +131,13 @@
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
                    Watermark="{x:Static loc:MarketText.HintNoFilter}"
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+          <!-- Each buy capped at what the destination sold in this many days; empty for no cap. -->
+          <TextBlock Text="{x:Static loc:MarketText.CapDaysLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MarketText.TipCapDays}" />
+          <TextBox Text="{Binding CapDays}" Width="70" FontSize="12"
+                   Watermark="{x:Static loc:MarketText.HintNoLimit}" ToolTip.Tip="{x:Static loc:MarketText.TipCapDays}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
         </StackPanel>
@@ -172,6 +180,18 @@
                 Padding="8 3" FontSize="11"
                 Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+      </StackPanel>
+
+      <!-- ── Name filter: narrows the list as typed, no recalculation ───────── -->
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{x:Static loc:CommonText.ItemNameFilterLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" />
+        <TextBox Text="{Binding NameFilter.Text}" Width="260" FontSize="12"
+                 Watermark="{x:Static loc:CommonText.ItemNameFilterHint}"
+                 ToolTip.Tip="{x:Static loc:CommonText.TipItemNameFilter}"
+                 Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding NameFilter.Shown}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" />
       </StackPanel>
 
      </StackPanel>
@@ -224,8 +244,9 @@
     <!-- ── Results area ───────────────────────────────────────────────────────── -->
     <Grid>
 
+    <!-- ResultsView, not Results: the name filter narrows what the grid shows through it. -->
     <DataGrid x:CompileBindings="False"
-              ItemsSource="{Binding Results}"
+              ItemsSource="{Binding ResultsView}"
               DoubleTapped="OnGridDoubleTapped"
               AutoGenerateColumns="False"
               IsReadOnly="True"
@@ -330,6 +351,29 @@
             <DataTemplate>
               <TextBlock Text="{Binding TotalProfitDisplay}"
                          Foreground="{DynamicResource GoodBrush}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- What the destination's region traded over 30 days: how much room a sell order has. -->
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDestUnitsSold30d}" Width="140" SortMemberPath="DestUnitVol30d" ClipboardContentBinding="{Binding DestUnitVol30dDisplay}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DestUnitVol30dDisplay}"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDestIskSold30d}" Width="140" SortMemberPath="DestIskVol30d" ClipboardContentBinding="{Binding DestIskVol30dDisplay}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DestIskVol30dDisplay}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>

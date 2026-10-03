@@ -1192,4 +1192,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Все</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Мои корабли…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Все собранные корабли ваших персонажей и личных корпораций, с оснасткой, какой её последний раз видел список имущества. Выбранный откроется в новой вкладке как новая оснастка — чтобы сохранить её, используйте «Сохранить как».</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Мои корабли</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Часть названия корабля, корпуса, системы или владельца</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Стоимость корпуса</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Стоимость оснастки</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Общая стоимость</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Открыть как новую оснастку</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Открывает корабль с оснасткой в новой вкладке, пока нигде не сохранённой: «Сохранить как» сохранит её в EVE Console или в оснастках персонажа.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Читаю ваши корабли…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>Кораблей: {0:N0}</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>В имуществе ваших персонажей и личных корпораций нет собранных кораблей.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Стоимость по {0}. Оснастка — то, что последнее обновление имущества видело установленным: модули, модификаторы, подсистемы, заряженные боеприпасы, дроны и истребители, без грузового отсека.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Нет цен: выберите рынок для оценки имущества в Настройки → Рынок. Оснастка — то, что последнее обновление имущества видело установленным: модули, модификаторы, подсистемы, заряженные боеприпасы, дроны и истребители, без грузового отсека.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Названия некоторых кораблей не удалось прочитать из игры; они показаны только по корпусу.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} открыт как новая оснастка — пока не сохранена; чтобы сохранить, используйте «Сохранить как».</value>
+  </data>
 </root>

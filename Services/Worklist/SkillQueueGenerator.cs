@@ -145,5 +145,6 @@ public class SkillQueueGenerator(IDbContextFactory<AppDbContext> dbFactory) : IW
             CharacterId   = charId,
             CharacterName = charName,
             Priority      = priority,
+            IconUrl       = WorklistIcons.Portrait(charId),
         };
 }

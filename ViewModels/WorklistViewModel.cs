@@ -122,10 +122,13 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public async Task LoadIconAsync()
     {
-        if (_item.TypeId <= 0) return;
+        // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
+        var url = _item.TypeId > 0
+            ? $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32"
+            : _item.IconUrl;
+        if (string.IsNullOrEmpty(url)) return;
 
-        var bmp = await EveImageCache.GetAsync(
-            $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32");
+        var bmp = await EveImageCache.GetAsync(url);
 
         if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
     }

@@ -1440,4 +1440,24 @@
     <value>{0} (first)</value>
     <comment>Standing Buy Orders and the Overview, Expires column, when several orders back one row: {0} is the expiry of the one that lapses first, as in the entries above. Keep {0} first: the column sorts on this text.</comment>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Dest Units Sold 30d</value>
+    <comment>Trade Opportunities, column: units traded in the destination's region over the last 30 days.</comment>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Dest ISK Sold 30d</value>
+    <comment>Trade Opportunities, column: ISK traded in the destination's region over the last 30 days.</comment>
+  </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Max Buy (Days of Dest Sales)</value>
+    <comment>Trade Opportunities, label before a box: each item's buy is capped at what the destination's region sold in this many days.</comment>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>Buys no more of an item than the destination's region sold in this many days — 30 is a month's sales. Leave it empty for no cap. Items whose sales history has not been read yet are not capped.</value>
+    <comment>Trade Opportunities, tooltip on the Max Buy (Days of Dest Sales) box.</comment>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Please enter a whole number of days for Max Buy, or leave it empty for no cap.</value>
+    <comment>Trade Opportunities status line: the Max Buy (Days of Dest Sales) box does not hold a whole number above zero.</comment>
+  </data>
 </root>

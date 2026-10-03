@@ -225,8 +225,11 @@
           </AutoCompleteBox>
           <Button Classes="tool" Content="{x:Static loc:FittingText.PasteEft}" Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
           <!-- Every saved fit, EVE Console's and the game's, in one picker. -->
-          <Button Classes="tool" Content="{x:Static loc:FittingText.OpenFit}" Command="{Binding OpenFitCommand}" Margin="0 0 0 4"
+          <Button Classes="tool" Content="{x:Static loc:FittingText.OpenFit}" Command="{Binding OpenFitCommand}" Margin="0 0 6 4"
                   ToolTip.Tip="{x:Static loc:FittingText.TipOpenFit}" />
+          <!-- The characters' and personal corporations' own ships, as the asset list has them fitted. -->
+          <Button Classes="tool" Content="{x:Static loc:FittingText.ExistingShips}" Command="{Binding OpenShipCommand}" Margin="0 0 0 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipExistingShips}" />
         </WrapPanel>
       </Border>
 

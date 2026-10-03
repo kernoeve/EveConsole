@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:yyyy年M月d日}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>物品名称：</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>名称的全部或一部分</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>只显示名称中包含这段文字的物品，不区分大小写。列表随输入即时缩小，无需重新计算。</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>显示 {0:N0} / {1:N0}</value>
+  </data>
 </root>

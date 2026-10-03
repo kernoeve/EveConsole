@@ -219,6 +219,11 @@ public class App : Application
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
 
+        // A line each time ESI's error budget makes the governor hold background work back further,
+        // saying how much is left and which routes spent it — and one when it lets go.
+        EsiBudget.Shared.LevelChanged += (from, to, why) =>
+            errorLogger.Log("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
+
         // Dates any damage that appears while running, rather than leaving the next launch to
         // find it with no idea when it started. Fifteen minutes is frequent enough to place it
         // against whatever else the log holds, and the check itself is a single small read.
@@ -4179,7 +4184,10 @@ public class App : Application
             // when adopting a newer field, having checked nothing else in that release
             // changes shape underneath us.
             client.DefaultRequestHeaders.Add("X-Compatibility-Date", "2026-08-01");
-        });
+        })
+        // Every response into the shared record of ESI's limits, and background calls held back
+        // by its governor as they run low — see EsiBudget.
+        .AddHttpMessageHandler(() => new EsiBudgetHandler());
 
         // Separate client for the public /status/ check. Kept apart from "esi" on purpose:
         // it is the one call that must still run while everything else is paused for
@@ -4189,7 +4197,9 @@ public class App : Application
             client.BaseAddress = new Uri("https://esi.evetech.net/latest/");
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
             client.Timeout = TimeSpan.FromSeconds(15);
-        });
+        })
+        // Recorded, never governed: this is how downtime is noticed, whatever the budget says.
+        .AddHttpMessageHandler(() => new EsiBudgetHandler(governed: false));
 
         // Named HTTP client for Fuzzwork market aggregates
         services.AddHttpClient("fuzzwork", client =>

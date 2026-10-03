@@ -1174,4 +1174,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Tous</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Vaisseaux existants…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Tous les vaisseaux assemblés de vos personnages et corporations personnelles, avec leur équipement tel que la liste des biens l'a vu en dernier. Celui que vous choisissez s'ouvre dans un nouvel onglet comme un nouvel équipement ; utilisez Enregistrer sous pour le garder.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Vaisseaux existants</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Une partie du nom du vaisseau, de sa coque, de son système ou de son propriétaire</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Vaisseau</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Coque</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Valeur de la coque</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Valeur de l'équipement</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Valeur totale</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Ouvrir comme nouvel équipement</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Ouvre le vaisseau et son équipement dans un nouvel onglet, enregistré nulle part pour l'instant : Enregistrer sous le range dans EVE Console ou dans les équipements d'un personnage.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Lecture de vos vaisseaux…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} vaisseaux</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>Aucun vaisseau assemblé dans les biens de vos personnages ou de vos corporations personnelles.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Valeurs à {0}. L'équipement est ce que la dernière mise à jour des biens a vu monté : modules, rigs, sous-systèmes, munitions chargées, drones et chasseurs — pas la soute.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Pas de prix : choisissez un marché pour la valeur des biens dans Paramètres → Marché. L'équipement est ce que la dernière mise à jour des biens a vu monté : modules, rigs, sous-systèmes, munitions chargées, drones et chasseurs — pas la soute.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Certains noms de vaisseaux n'ont pas pu être lus depuis le jeu ; ceux-là sont listés par leur coque seulement.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} ouvert comme nouvel équipement — pas encore enregistré ; utilisez Enregistrer sous pour le garder.</value>
+  </data>
 </root>

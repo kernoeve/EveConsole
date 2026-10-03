@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -190,7 +191,12 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// </summary>
     private void OnDetailClosed(object? sender, EventArgs e)
     {
-        if (sender is Popup { DataContext: IExpandableRow row } popup && popup.GetVisualRoot() is not null)
+        // Not when the popup was shut for being on a stale row — see RowDetailPopups.Shutting —
+        // and not when its row is leaving the logical tree: the popup closes itself then, while
+        // the view is still on screen, and the item's live row is what shows it now.
+        if (_details.Shutting) return;
+        if (sender is Popup { DataContext: IExpandableRow row } popup && popup.GetVisualRoot() is not null
+            && ((ILogical)popup).IsAttachedToLogicalTree)
             row.IsExpanded = false;
     }
 

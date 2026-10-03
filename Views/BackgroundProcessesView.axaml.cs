@@ -47,6 +47,7 @@ public partial class BackgroundProcessesView : UserControl
         _ = vm.RefreshAlarmsAsync();
         vm.SyncStatusBar();
         vm.SyncBackgroundProcesses();
+        vm.Limits.Refresh();
         _tick  = 0;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _timer.Tick += OnTick;
@@ -80,6 +81,7 @@ public partial class BackgroundProcessesView : UserControl
         {
             vm.SyncStatusBar();
             vm.SyncBackgroundProcesses();
+            vm.Limits.Refresh();
             if (++_tick % 5 == 0)
             {
                 await vm.RefreshHistorySweepAsync();

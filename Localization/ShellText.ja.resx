@@ -647,4 +647,12 @@ PID：{2}
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>惑星インダストリー</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI 調整中</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+クリックで ESI の制限を表示します。</value>
+  </data>
 </root>

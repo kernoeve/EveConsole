@@ -1078,4 +1078,19 @@
   <data name="ExpiryFirst" xml:space="preserve">
     <value>{0} (가장 먼저 만료)</value>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>목적지 30일 판매량</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>목적지 30일 판매액</value>
+  </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>최대 구매(목적지 판매 일수)</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>목적지 지역에서 이 일수 동안 팔린 양보다 많이 사지 않습니다. 30이면 한 달 판매량입니다. 비워 두면 제한이 없습니다. 판매 기록을 아직 읽지 않은 아이템은 제한하지 않습니다.</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>최대 구매에는 일수를 정수로 입력하거나, 제한 없이 하려면 비워 두세요.</value>
+  </data>
 </root>

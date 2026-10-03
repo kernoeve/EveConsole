@@ -1858,20 +1858,11 @@
   <data name="SourceAssetSafety" xml:space="preserve">
     <value>Besitzsicherheit</value>
   </data>
-  <data name="StationWithIdLower" xml:space="preserve">
-    <value>Station {0}</value>
-  </data>
   <data name="UnnamedStructureWithId" xml:space="preserve">
     <value>Unbenannte Struktur {0}</value>
   </data>
   <data name="CharacterWithId" xml:space="preserve">
     <value>Charakter {0}</value>
-  </data>
-  <data name="SafetyChooseDestinationOne" xml:space="preserve">
-    <value>Ziel für {0:N0} Besitzsicherheit-Paket wählen</value>
-  </data>
-  <data name="SafetyChooseDestinationOther" xml:space="preserve">
-    <value>Ziel für {0:N0} Besitzsicherheit-Pakete wählen</value>
   </data>
   <data name="SafetyTypesInOneWrapOne" xml:space="preserve">
     <value>{0:N0} Gegenstandstyp in 1 Paket</value>
@@ -2259,5 +2250,23 @@
   </data>
   <data name="PiOpenDetail" xml:space="preserve">
     <value>Die Daten der Kolonie sind {0} alt, daher ist ihren Schätzungen nicht mehr zu trauen. Das Öffnen der Kolonie im Spiel aktualisiert sie.</value>
+  </data>
+  <data name="SafetyChooseByOne" xml:space="preserve">
+    <value>Ziel für {0:N0} Besitzsicherheit-Paket bis {1:d. MMM HH:mm} wählen</value>
+  </data>
+  <data name="SafetyChooseByOther" xml:space="preserve">
+    <value>Ziel für {0:N0} Besitzsicherheit-Pakete bis {1:d. MMM HH:mm} wählen</value>
+  </data>
+  <data name="SafetyOpensAt" xml:space="preserve">
+    <value>Lieferbar ab {0:d. MMM HH:mm}</value>
+  </data>
+  <data name="InventionHeadRunsOne" xml:space="preserve">
+    <value>{1}: fehlender Durchlauf zum Lagerbestand: {0:N0}.</value>
+  </data>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: fehlende Durchläufe zum Lagerbestand: {0:N0}.</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
   </data>
 </root>

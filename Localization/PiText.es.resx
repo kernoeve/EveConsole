@@ -559,4 +559,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>La materia prima desbordará el almacén desde el {0}: la extracción supera a las fábricas.</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>Importaciones</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>Exportaciones</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>En espera (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>En espera (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>Traído desde fuera del planeta, por día:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>No se trae nada: todo lo que usan las fábricas de esta colonia se produce en el planeta.</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>Sacado del planeta, por día. Solo lo que nada en el planeta usa; lo que una fábrica produce para la siguiente no aparece:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>No sobra nada que sacar del planeta.</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: {1} por día</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>Exportaciones en almacén ahora, esperando a que las recojan; es una estimación, reproducida desde la última visita a la colonia en el juego ({0}):</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>No hay exportaciones en almacén ahora; es una estimación, reproducida desde la última visita a la colonia en el juego ({0}).</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³, {3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ de exportaciones en espera, por valor de {1} ISK</value>
+  </data>
 </root>

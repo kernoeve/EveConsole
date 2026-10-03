@@ -29,8 +29,13 @@ public class ContractsService : ReactiveObject
     // Pace between successive public-list region calls.
     private const int CallDelayMs = 100;
 
-    // Public contract items have no token-bucket limit — pace only to be polite (~6/sec).
-    private const int PublicItemDelayMs = 150;
+    // Public contract items have no token-bucket limit (ESI sends no rate-limit headers for the
+    // route; measured 2026-10-02 at ~165 ms a call). They are pulled this many at a time, with no
+    // pause between successes: one lane, with a 150 ms courtesy pause after each call, managed
+    // about three contracts a second, and a backfill of tens of thousands took hours. Two lanes
+    // fill the background lane of the ESI gate (EsiClient.Background) and no more, so a call
+    // the user is waiting on always has its own slot.
+    private const int PublicItemLanes = 2;
 
     // Character/corp contract items are limited to 600 requests / 15 minutes (a shared token
     // bucket). 1700 ms ≈ 35/min ≈ 529 per 15 min — comfortably under the cap.
@@ -369,10 +374,15 @@ public class ContractsService : ReactiveObject
         int done = 0, refused = 0, skipped = 0, gone = 0;
         _itemsTotal = pending.Count;
         _itemsDone  = 0;
+
+        // First where each contract's items will come from — the same choice as always — then the
+        // calls: the authorised ones one at a time, then the public ones in lanes.
+        var authedPlan = new List<(int ContractId, long OwnerId, string OwnerType)>();
+        var publicPlan = new List<(int ContractId, long OwnerId, string OwnerType)>();
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
-            _itemsDone = done + refused + skipped + gone;
+            _itemsDone = skipped + gone;   // closed contracts settled here count as done
 
             // Prefer the public endpoint (no token bucket, items always visible), then a
             // character token, then a corporation's.
@@ -426,30 +436,58 @@ public class ContractsService : ReactiveObject
                 src = owned;
             }
 
-            while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
-            { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
-            if (ct.IsCancellationRequested) break;
+            (src.OwnerType == "public" ? publicPlan : authedPlan).Add((group.Key, src.OwnerId, src.OwnerType));
+        }
 
-            bool isPublic = src.OwnerType == "public";
-            var (handled, status) = await FetchAndStoreItemsAsync(db, group.Key, src.OwnerId, src.OwnerType, ct);
+        // One contract: wait out an ESI pause, call, and record the answer on every owner row —
+        // the items are the contract's, not the row's. The status ESI gave, 0 when no call was made.
+        async Task<int> PullAsync(AppDbContext ctx, (int ContractId, long OwnerId, string OwnerType) p, CancellationToken token)
+        {
+            while (_esi.IsErrorLimitBlocked && !token.IsCancellationRequested)
+            { try { await Task.Delay(3000, token); } catch (OperationCanceledException) { return 0; } }
+            if (token.IsCancellationRequested) return 0;
+
+            var (handled, status) = await FetchAndStoreItemsAsync(ctx, p.ContractId, p.OwnerId, p.OwnerType, token);
             if (handled)
             {
-                // The answer goes on every owner row: the items are the contract's, not the row's.
-                await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
+                await ctx.EsiContracts.Where(x => x.ContractId == p.ContractId && !x.ItemsPulled)
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true)
-                                              .SetProperty(x => x.ItemsStatus, status), ct);
-                if (status >= 400) refused++; else done++;
+                                              .SetProperty(x => x.ItemsStatus, status), token);
+                if (status >= 400) Interlocked.Increment(ref refused); else Interlocked.Increment(ref done);
             }
+            var finished = Volatile.Read(ref done) + Volatile.Read(ref refused);
+            _itemsDone = finished + skipped + gone;
+            if ((finished & 63) == 0)
+                StatusText = $"Contracts: {Volatile.Read(ref done):N0} pulled, {Volatile.Read(ref refused):N0} refused…";
+            return status;
+        }
 
-            if (((done + refused) & 63) == 0)
-                StatusText = $"Contracts: {done:N0} pulled, {refused:N0} refused…";
-
-            // Authed items share a 600/15min token bucket; public items don't. A refusal spends
-            // from the error budget as well, so it is followed by the longer pause.
-            var pause = status >= 400 ? RefusedItemDelayMs : isPublic ? PublicItemDelayMs : AuthedItemDelayMs;
-            try { await Task.Delay(pause, ct); }
+        // The player's own first, one at a time: character and corporation items share a 600 per
+        // 15 minutes token bucket. A refusal spends from the error budget as well, so it is
+        // followed by the longer pause.
+        foreach (var p in authedPlan)
+        {
+            if (ct.IsCancellationRequested) break;
+            var status = await PullAsync(db, p, ct);
+            try { await Task.Delay(status >= 400 ? RefusedItemDelayMs : AuthedItemDelayMs, ct); }
             catch (OperationCanceledException) { break; }
         }
+
+        // Then the public listings, in lanes, each with its own context (one is not safe to share
+        // between them). Paced only by ESI itself; a refusal still pauses its lane.
+        var queue = new System.Collections.Concurrent.ConcurrentQueue<(int, long, string)>(publicPlan);
+        await Task.WhenAll(Enumerable.Range(0, PublicItemLanes).Select(_ => Task.Run(async () =>
+        {
+            await using var lane = await _dbFactory.CreateDbContextAsync(ct);
+            lane.ChangeTracker.AutoDetectChangesEnabled = false;
+            while (!ct.IsCancellationRequested && queue.TryDequeue(out var p))
+            {
+                var status = await PullAsync(lane, p, ct);
+                if (status >= 400)
+                    try { await Task.Delay(RefusedItemDelayMs, ct); } catch (OperationCanceledException) { break; }
+            }
+        }, ct)));
+
         StatusText = $"Contracts: item pass done ({done:N0} pulled, {refused:N0} refused, "
                    + $"{skipped:N0} skipped, {gone:N0} closed before they were read) — {DateTimeOffset.Now:t}";
     }

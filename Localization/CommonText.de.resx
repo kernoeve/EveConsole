@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:dd. MMM yyyy}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>Artikelname:</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>Ganzer Name oder ein Teil davon</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>Zeigt nur die Artikel, deren Name diesen Text enthält, ohne Rücksicht auf Groß- und Kleinschreibung. Die Liste wird beim Tippen eingegrenzt; eine neue Berechnung ist nicht nötig.</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>{0:N0} von {1:N0} angezeigt</value>
+  </data>
 </root>

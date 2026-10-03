@@ -355,6 +355,59 @@ public class IndustryDemandService(
     /// and never mentioned the fifty-odd component jobs in between — every one of which is real
     /// work someone has to queue.</para>
     /// </summary>
+    /// <summary>
+    /// Inventory levels of T2 blueprints themselves — "five Gaia Blueprints on the shelf" — as
+    /// invention demand, in copy RUNS — the unit every blueprint level is written in. Only Build
+    /// rules, only blueprints that are invented, and the same shortfall rule every other level
+    /// uses (<see cref="InvRuleShortfall"/>): runs on hand and in jobs against the target, fired at
+    /// the rule's threshold, filled to its target.
+    ///
+    /// <para>⚠️ Kept out of <see cref="GatherAsync"/>, which drops anything that is not
+    /// manufactured ("bought, not built") and whose result the job and haul generators build
+    /// from. A blueprint is not manufactured — that is exactly why these levels raised no science
+    /// before — so the invention callers add these to the demand they plan from, and nothing else
+    /// sees them.</para>
+    /// </summary>
+    public async Task<Dictionary<int, BuildDemand>> BlueprintLevelsAsync(AppDbContext db, CancellationToken ct = default)
+    {
+        var rules = await db.WorklistInvRules.AsNoTracking()
+            .Where(r => r.Enabled && r.Action == "Build")
+            .ToListAsync(ct);
+        if (rules.Count == 0) return [];
+
+        var groupIds = rules.Select(r => r.GroupId).Distinct().ToList();
+        var groups   = await db.InvLevelGroups.AsNoTracking().Where(g => groupIds.Contains(g.Id)).ToDictionaryAsync(g => g.Id, ct);
+        var invented = await InventionService.InventedBlueprintIdsAsync(db, ct);
+        var items    = (await db.InvLevelItems.AsNoTracking().Where(i => groupIds.Contains(i.GroupId)).ToListAsync(ct))
+            .Where(i => invented.Contains(i.TypeId))
+            .GroupBy(i => i.GroupId).ToDictionary(g => g.Key, g => g.ToList());
+        if (items.Count == 0) return [];
+
+        var avail = await invLevels.LoadAvailableAsync(
+            items.Where(kv => groups.ContainsKey(kv.Key))
+                 .Select(kv => (groups[kv.Key], (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
+                 .ToList(), ct);
+
+        var result = new Dictionary<int, BuildDemand>();
+        foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
+        {
+            if (!groups.TryGetValue(rule.GroupId, out var group) || !items.TryGetValue(group.Id, out var groupItems)) continue;
+            var groupAvail = avail.GetValueOrDefault(group.Id) ?? [];
+            foreach (var gi in groupItems)
+            {
+                var need = InvRuleShortfall.For(rule, group, gi, groupAvail.GetValueOrDefault(gi.TypeId));
+                if (need is null) continue;
+                // Two rules on one blueprint are two statements of one shelf: the larger asks.
+                if (result.TryGetValue(gi.TypeId, out var had) && had.Units >= need.Shortfall) continue;
+                var band = rule.IsFinalProduct ? WorklistPriority.ForFinalStock(need.Percent) : WorklistPriority.ForStock(need.Percent);
+                result[gi.TypeId] = new BuildDemand(gi.TypeId, need.Shortfall, band,
+                    [$"{group.Name} · {need.StockText}.{need.FillText(rule)}"],
+                    RuleUnits: need.Shortfall, ShelfLevel: need.Wanted, ShelfHave: need.Have);
+            }
+        }
+        return result;
+    }
+
     /// <param name="meOverrides">The efficiency of the print each item would really be built
     /// with, where the caller knows it. Every level of the cascade is then planned at it, so a
     /// child's requirement is what the parent's actual print will take rather than what a

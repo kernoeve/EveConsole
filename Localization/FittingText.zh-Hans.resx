@@ -1165,4 +1165,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>所有人</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>现有舰船…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>你的角色和个人军团拥有的所有已组装舰船，装配为资产列表上次看到的样子。选中的舰船会在新标签页中作为新装配打开——要保留请使用“另存为”。</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>现有舰船</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>舰船名称、舰型、星系或所有者的一部分</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>舰型</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>舰体价值</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>装配价值</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>总价值</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>作为新装配打开</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>在新标签页中打开舰船及其装配，尚未保存在任何地方：用“另存为”保存到 EVE Console 或某个角色的装配中。</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>正在读取你的舰船…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} 艘舰船</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>你的角色和个人军团的资产中没有已组装的舰船。</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>价值按 {0} 计算。装配是上次资产更新时看到的已装配物品：装备、改装件、子系统、已装填弹药、无人机和铁骑舰载机——不含货柜舱。</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>没有价格：请在“设置 → 市场”中选择用于资产估值的市场。装配是上次资产更新时看到的已装配物品：装备、改装件、子系统、已装填弹药、无人机和铁骑舰载机——不含货柜舱。</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>部分舰船名称无法从游戏中读取，这些舰船只按舰型列出。</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>已将 {0} 作为新装配打开——尚未保存；要保留请使用“另存为”。</value>
+  </data>
 </root>

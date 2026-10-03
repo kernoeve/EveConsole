@@ -164,7 +164,7 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
             var t = _pi.Settings.Thresholds;
 
             var rows = colonies
-                .Select(c => new PiColonyRowVm(c, PiColonyAttention.For(c.Forecast, t)))
+                .Select(c => new PiColonyRowVm(c, PiColonyAttention.For(c.Forecast, t), names))
                 // Soonest action first: what has already happened, then what happens next; a colony
                 // with nothing coming due within the horizon last.
                 .OrderBy(r => r.NextActionSort)
@@ -213,9 +213,12 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
             .Concat(f.Period.Losses.SelectMany(l => new[] { l.TypeId, l.PinTypeId }))
             .Concat(f.Period.Idle.Select(i => i.OutputTypeId));
 
-    /// <summary>"22 colonies · 3 extractors stopped · 2 need hauling · 1 inputs low".</summary>
+    /// <summary>"22 colonies · 3 extractors stopped · 2 need hauling · 1 inputs low · 4,210 m³ of
+    /// exports waiting, worth 1.20B ISK".</summary>
     private static string SummaryOf(IReadOnlyList<PiColonyRowVm> rows)
     {
+        var waitingVolume = rows.Sum(r => r.WaitingVolume);
+        var waitingValue  = rows.Sum(r => r.WaitingValue);
         var stopped = rows.Sum(r => r.Colony.Forecast.Extractors.Count(x => x.IsExpired));
         var haul    = rows.Count(r => r.Attention.StorageFull || r.Attention.StorageFilling);
         var inputs  = rows.Count(r => r.Colony.Forecast.Kind == PiColonyKind.Factory && (r.Attention.InputsOut || r.Attention.InputsLow));
@@ -224,7 +227,8 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
             C(nameof(PiText.SummaryColoniesOther), rows.Count),
             C(nameof(PiText.SummaryStoppedOther), stopped),
             C(nameof(PiText.SummaryHaulingOther), haul),
-            C(nameof(PiText.SummaryInputsOther), inputs));
+            C(nameof(PiText.SummaryInputsOther), inputs),
+            string.Format(PiText.SummaryWaiting, waitingVolume.ToString("N0"), MarketFmt.Isk(waitingValue)));
     }
 
     private PiColonyDetailVm BuildDetail(PiColonyRowVm row) => new(row, _static, _typeNames);
@@ -249,6 +253,21 @@ public sealed class PiColonyRowVm : ReactiveObject
     public string SecurityTip   { get; }
     public string PlanetType    { get; }
     public string KindText      { get; }
+
+    /// <summary>What comes from off the planet and what goes off it: the end products only, not
+    /// what one factory makes for the next. Names in the cell, a day's units in the tooltip.</summary>
+    public string ImportsText { get; }
+    public string ImportsTip  { get; }
+    public string ExportsText { get; }
+    public string ExportsTip  { get; }
+
+    /// <summary>Exports in storage now, waiting to be picked up — estimated, like every storage
+    /// figure.</summary>
+    public string WaitingVolumeText { get; }
+    public string WaitingValueText  { get; }
+    public string WaitingTip        { get; }
+    public double WaitingVolume => Colony.WaitingVolume;
+    public double WaitingValue  => Colony.WaitingValue;
 
     private Bitmap? _planetIcon;
     /// <summary>The planet type's icon from EVE's image server, beside the planet's name.</summary>
@@ -303,12 +322,42 @@ public sealed class PiColonyRowVm : ReactiveObject
     private Bitmap? _portrait;
     public Bitmap? Portrait { get => _portrait; private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
 
-    public PiColonyRowVm(PiColonyStatus c, PiColonyAttention a)
+    public PiColonyRowVm(PiColonyStatus c, PiColonyAttention a, IReadOnlyDictionary<int, string> typeNames)
     {
         Colony    = c;
         Attention = a;
         var f   = c.Forecast;
         var now = a.Now;
+        string Name(int typeId) => PiNames.Type(typeId, typeNames.GetValueOrDefault(typeId));
+
+        (ImportsText, ImportsTip) = Listed(f.Imports.Select(x => (x.TypeId, x.ImportedPerDay)).ToList(),
+                                           PiText.TipImports, PiText.TipNoImports);
+        (ExportsText, ExportsTip) = Listed(f.Exports.Select(x => (x.TypeId, x.ExportedPerDay)).ToList(),
+                                           PiText.TipExports, PiText.TipNoExports);
+
+        (string, string) Listed(List<(int TypeId, double PerDay)> flows, string heading, string none)
+        {
+            if (flows.Count == 0) return ("", none);
+            var byRate = flows.OrderByDescending(x => x.PerDay).ToList();
+            return (string.Join(CommonText.ListSeparator, byRate.Select(x => Name(x.TypeId))),
+                    heading + "\n" + string.Join("\n", byRate.Select(x =>
+                        string.Format(PiText.TypePerDay, Name(x.TypeId), x.PerDay >= 100 ? x.PerDay.ToString("N0") : x.PerDay.ToString("N1")))));
+        }
+
+        var visited = PiFormat.When(f.SnapshotAt);
+        if (c.Waiting.Count > 0)
+        {
+            WaitingVolumeText = c.WaitingVolume.ToString("N0");
+            WaitingValueText  = MarketFmt.Isk(c.WaitingValue);
+            WaitingTip = string.Format(PiText.TipWaiting, visited) + "\n" + string.Join("\n", c.Waiting.Select(w =>
+                string.Format(PiText.WaitingLine, w.Units.ToString("N0"), Name(w.TypeId), w.Volume.ToString("N0"), MarketFmt.Isk(w.Value))));
+        }
+        else
+        {
+            WaitingVolumeText = "";
+            WaitingValueText  = "";
+            WaitingTip        = string.Format(PiText.TipNoWaiting, visited);
+        }
 
         PlanetName    = PiNames.Planet(c);
         SystemName    = PiNames.System(c.SolarSystemId, c.SystemName);

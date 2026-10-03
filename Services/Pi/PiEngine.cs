@@ -253,6 +253,14 @@ public sealed class PiColonyForecast
 
     /// <summary>The earliest moment an input runs out.</summary>
     public DateTimeOffset? InputsRunOutAt => Inputs.Where(i => i.RunsOutAt is not null).Min(i => i.RunsOutAt);
+
+    /// <summary>What the colony is built to send off the planet: made on it and used nowhere on
+    /// it. Not everything it makes — what one factory makes for the next is used up on the planet
+    /// — only the end of each chain, and raw material the factories cannot keep up with.</summary>
+    public IEnumerable<PiFlow> Exports => Flows.Where(f => f.ExportedPerDay > 0 && f.ImportedPerDay <= 0);
+
+    /// <summary>What has to come from off the planet: used on it and made nowhere on it.</summary>
+    public IEnumerable<PiFlow> Imports => Flows.Where(f => f.ImportedPerDay > 0);
 }
 
 /// <summary>

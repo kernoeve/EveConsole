@@ -19,11 +19,12 @@ namespace EveConsole.Services.Worklist;
 /// from assets rather than from notifications, which only ever say what happened once. The
 /// notification supplies the clock, because it is the only place ESI puts it.</para>
 ///
-/// <para><b>Only while the choice is still open.</b> A wrap whose full timer has passed has already
-/// been delivered wherever the game decided, and opening it is not a decision anyone can get wrong
-/// — so it raises nothing. What earns a task is the window in between, where a destination can
-/// still be picked and picking it is worth real ISK. That makes this list short by design, and
-/// empty most of the time: it fills when a structure dies, not before.</para>
+/// <para><b>Only wraps still in asset safety</b> (<see cref="SafetyLocationId"/>): a wrap at a station
+/// has been delivered and decides nothing. Each is matched to the owner's own notification for its
+/// deadline (<see cref="Match"/>), and wraps with different deadlines are different tasks. A wrap
+/// with no open window on record is past its deadline and raises nothing: there is nothing left to
+/// decide. That makes this list short by design, and empty most of the time: it fills when a
+/// structure dies.</para>
 /// </summary>
 public class AssetSafetyGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
@@ -37,6 +38,16 @@ public class AssetSafetyGenerator(
     public const int WrapTypeId = 60;
 
     private const string SafetyFlag = "AssetSafety";
+
+    /// <summary>
+    /// Where ESI puts a wrap that is still in asset safety — waiting for its owner to pick a
+    /// destination. ⚠️ Not a station: once delivered, by the owner or by the game, a wrap sits at
+    /// the station it went to (still flagged AssetSafety, until opened into the hangar), and there
+    /// is nothing left to decide. Measured 2026-10-02: the four wraps of the one spill still open
+    /// were all here; 309 older ones were at stations, long delivered. A wrap leaving this location
+    /// is how a destination being picked shows — its task drops off at the next asset refresh.
+    /// </summary>
+    public const long SafetyLocationId = 2004;
 
     /// <summary>
     /// The notification ESI actually sends when a structure spills its contents.
@@ -55,11 +66,12 @@ public class AssetSafetyGenerator(
         var corps = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
 
         // Same ownership rule the rest of the worklist uses: every character always, corporations
-        // only when the user has opted their non-personal ones in.
+        // only when the user has opted their non-personal ones in. And only wraps still IN asset
+        // safety — see SafetyLocationId: a wrap at a station has been delivered there already.
         var wraps = await db.EsiAssets.AsNoTracking()
-            .Where(a => a.TypeId == WrapTypeId && a.LocationFlag == SafetyFlag)
+            .Where(a => a.TypeId == WrapTypeId && a.LocationFlag == SafetyFlag && a.LocationId == SafetyLocationId)
             .Where(a => a.OwnerType != "corporation" || corps == null || corps.Contains(a.OwnerId))
-            .Select(a => new { a.ItemId, a.LocationId, a.OwnerId, a.OwnerType })
+            .Select(a => new { a.ItemId, a.OwnerId, a.OwnerType })
             .ToListAsync(ct);
 
         if (wraps.Count == 0) return [];
@@ -73,30 +85,36 @@ public class AssetSafetyGenerator(
             .GroupBy(a => a.LocationId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var timers    = await TimersAsync(db, ct);
+        var events    = await EventsAsync(db, ct);
+        var corpOf    = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.CorporationId })
+                              .ToDictionaryAsync(c => c.Id, c => (long)c.CorporationId, ct);
         var places    = await PlaceNamesAsync(db, ct);
+        var stationTypes = await db.SdeStations.AsNoTracking().Where(s => s.StationTypeId != null)
+                              .ToDictionaryAsync(s => (long)s.StationId, s => s.StationTypeId!.Value, ct);
         var owners    = await OwnerNamesAsync(db, ct);
         var typeNames = await TypeNamesAsync(db,
             contents.Values.SelectMany(v => v).Select(c => c.TypeId).Distinct().ToList(), ct);
 
+        // Each wrap's own event: see Match.
+        var byOwner = wraps
+            .GroupBy(w => (w.OwnerId, IsCorp: w.OwnerType == "corporation"))
+            .ToDictionary(g => g.Key, g => g.Select(w => w.ItemId).ToList());
+        var matched = Match(byOwner, events, corpOf);
+
         var now   = DateTimeOffset.UtcNow;
         var items = new List<WorklistItem>();
 
-        // One task per owner per station. Grouping any wider would hide that two wraps in the same
-        // station belong to different characters and so are two separate logins, which is the whole
-        // of the work; grouping any narrower would raise three tasks for one trip.
-        foreach (var group in wraps.GroupBy(w => (w.OwnerId, w.OwnerType, w.LocationId)))
+        // One task per owner and deadline. Wraps that went into asset safety at different times
+        // have different deadlines and are different decisions, so they are never one task;
+        // several structures spilling at once share a deadline and are one trip.
+        foreach (var group in wraps.GroupBy(w =>
+                 {
+                     var e = matched.GetValueOrDefault(w.ItemId);
+                     return (w.OwnerId, w.OwnerType, Event: e is not null && now < e.Full ? e : null);
+                 }))
         {
-            var (ownerId, ownerType, locationId) = group.Key;
+            var (ownerId, ownerType, ev) = group.Key;
             var isCorp = ownerType == "corporation";
-
-            // Only while the choice is still open. Before the minimum nothing can be picked; after
-            // the full timer the game has already picked, and a wrap sitting at the station it was
-            // delivered to is not a decision any more — it is just something to go and open, which
-            // is not what this list is for. A wrap with no timer at all predates the notification
-            // history ESI still serves, so it is long past both dates and drops out here too.
-            var timer = BestTimer(timers, locationId, isCorp);
-            if (timer is null || now < timer.Minimum || now >= timer.Full) continue;
 
             var lines = group
                 .SelectMany(w => contents.GetValueOrDefault(w.ItemId) ?? [])
@@ -110,54 +128,45 @@ public class AssetSafetyGenerator(
                 .OrderByDescending(l => l.Quantity)
                 .ToList();
 
-            var place   = places.GetValueOrDefault(locationId, Unnamed(locationId));
             var owner   = owners.GetValueOrDefault(ownerId, string.Format(
                               isCorp ? WorklistText.CorpWithId : WorklistText.CharacterWithId, ownerId));
             var wrapped = group.Count();
+            var count   = wrapped == 1
+                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyTypesInOneWrapOther), lines.Count)
+                : string.Format(WorklistText.SafetyTypesAcrossWraps, lines.Count, wrapped);
 
-            var (what, detail) = Describe(timer, now, owner, wrapped, lines.Count, places);
+            // No open window on record: the deadline has passed (or the notification is older than
+            // anything ESI still serves), and there is no decision left to make — so no task.
+            if (ev is null) continue;
 
+            var dest = places.GetValueOrDefault(ev.Destination, Unnamed(ev.Destination));
+            var left = ev.Full - now;
             items.Add(new WorklistItem
             {
-                // Owner and station only. The wrap ids change every time one is opened, and a key
-                // that moved would lose the snooze and the age with it.
-                Key           = $"asset_safety:{ownerId}:{locationId}",
+                // Owner and deadline: the wrap ids change every time one is opened, and a key that
+                // moved would lose the snooze and the age with it.
+                Key           = $"asset_safety:{ownerId}:{ev.Full.UtcTicks}",
                 Source        = Id,
                 Kind          = WorklistKind.AssetSafety,
-                Title         = $"{place} — {what}",
-                Detail        = detail,
-                Readiness     = WorklistReadiness.Ready,
+                Title         = $"{dest} — " + Plurals.Format(WorklistText.ResourceManager,
+                                    nameof(WorklistText.SafetyChooseByOther), wrapped, ev.Full.ToLocalTime()),
+                Detail        = string.Format(WorklistText.SafetyDetail, owner, count, dest,
+                                              (int)left.TotalDays, left.Hours, ev.Full.ToLocalTime()),
+                // Nothing can be picked for the first five days: listed, with the date it opens.
+                Readiness     = now < ev.Minimum ? WorklistReadiness.Waiting : WorklistReadiness.Ready,
+                BlockedBy     = now < ev.Minimum ? string.Format(WorklistText.SafetyOpensAt, ev.Minimum.ToLocalTime()) : "",
                 CharacterId   = isCorp ? 0 : ownerId,
                 CharacterName = isCorp ? "" : owner,
-                LocationId    = locationId,
-                LocationName  = place,
+                LocationId    = ev.Destination,
+                LocationName  = dest,
                 Lines         = lines,
                 Priority      = WorklistPriority.AssetSafety,
+                // The station the game delivers to if left: what the decision is about.
+                IconUrl       = stationTypes.TryGetValue(ev.Destination, out var st) ? WorklistIcons.Render(st) : WorklistIcons.Type(WrapTypeId),
             });
         }
 
         return items;
-    }
-
-    /// <param name="wrapped">Wraps in the group. Worth saying, because choosing for ten of them at
-    /// one station is a different afternoon from choosing for one.</param>
-    private static (string What, string Detail) Describe(
-        SafetyTimer timer, DateTimeOffset now, string owner, int wrapped, int distinctTypes,
-        IReadOnlyDictionary<long, string> places)
-    {
-        var count = wrapped == 1
-            ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyTypesInOneWrapOther),
-                             distinctTypes)
-            : string.Format(WorklistText.SafetyTypesAcrossWraps, distinctTypes, wrapped);
-
-        var left = timer.Full - now;
-        var dest = places.GetValueOrDefault(timer.Destination,
-                                            string.Format(WorklistText.StationWithIdLower, timer.Destination));
-
-        return (Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyChooseDestinationOther),
-                               wrapped),
-                string.Format(WorklistText.SafetyDetail, owner, count, dest,
-                              (int)left.TotalDays, left.Hours, timer.Full.ToLocalTime()));
     }
 
     /// <summary>
@@ -171,24 +180,52 @@ public class AssetSafetyGenerator(
     private static string Unnamed(long id) =>
         string.Format(id >= 100_000_000_000L ? WorklistText.UnnamedStructureWithId : WorklistText.LocationWithId, id);
 
-    private sealed record SafetyTimer(DateTimeOffset Minimum, DateTimeOffset Full, long Destination);
+    /// <summary>One structure's spill into asset safety, as one owner was told of it.</summary>
+    public sealed record SafetyEvent(long CharacterId, bool IsCorp, DateTimeOffset Sent,
+                                       DateTimeOffset Minimum, DateTimeOffset Full, long Destination, long Structure);
 
     /// <summary>
-    /// Matches a wrap's location to a safety notification, for the deadline only.
+    /// Which event each wrap came from. Nothing ESI returns links the two: the notification names
+    /// the structure and the station, the wrap only its owner and an item id. But item ids are
+    /// handed out in order, so an owner's wraps, newest id first, line up with the owner's events,
+    /// newest first — one wrap per structure per owner, which is how the game wraps them.
     ///
-    /// <para>Keyed on location because that is all the two records share — the notification names
-    /// the structure the items left and the station they are bound for, and a wrap is at one or the
-    /// other. Where several match, the one that expires last wins: it is the only one that could
-    /// still be open, and being early about a deadline is cheaper than being late.</para>
+    /// <para>⚠️ A wrap already delivered has left asset safety, so its event has no wrap here and
+    /// the line-up shifts. Two guards: an event several owners were told of hands its wraps out
+    /// together, so a wrap whose id is far below the others' for the same event is not that
+    /// event's (<see cref="SameEventSpread"/>); and only events still open are worth getting
+    /// right — an older wrap matched to a closed one raises nothing either way.</para>
     /// </summary>
-    private static SafetyTimer? BestTimer(
-        IReadOnlyList<(SafetyTimer Timer, long Structure, bool IsCorp)> timers, long locationId, bool isCorp) =>
-        timers
-            .Where(t => t.IsCorp == isCorp &&
-                        (t.Structure == locationId || t.Timer.Destination == locationId))
-            .OrderByDescending(t => t.Timer.Full)
-            .Select(t => t.Timer)
-            .FirstOrDefault();
+    public static Dictionary<long, SafetyEvent> Match(
+        IReadOnlyDictionary<(long OwnerId, bool IsCorp), List<long>> wrapsByOwner,
+        IReadOnlyList<SafetyEvent> events, IReadOnlyDictionary<long, long> corpOfCharacter)
+    {
+        var matched = new Dictionary<long, SafetyEvent>();
+        foreach (var ((ownerId, isCorp), ids) in wrapsByOwner)
+        {
+            // A corporation hears through its characters: every one of them is told, once each.
+            var own = events
+                .Where(e => e.IsCorp == isCorp && (isCorp ? corpOfCharacter.GetValueOrDefault(e.CharacterId) == ownerId : e.CharacterId == ownerId))
+                .GroupBy(e => (e.Structure, Minute: e.Sent.UtcTicks / TimeSpan.TicksPerMinute))
+                .Select(g => g.First())
+                .OrderByDescending(e => e.Sent)
+                .ToList();
+            var newest = ids.OrderByDescending(id => id).ToList();
+            for (var i = 0; i < newest.Count && i < own.Count; i++) matched[newest[i]] = own[i];
+        }
+
+        // The cross-check: the wraps one event made for different owners carry ids close together.
+        foreach (var g in matched.GroupBy(m => (m.Value.Structure, Minute: m.Value.Sent.UtcTicks / TimeSpan.TicksPerMinute)).Where(g => g.Count() > 1))
+        {
+            var top = g.Max(m => m.Key);
+            foreach (var m in g.Where(m => top - m.Key > SameEventSpread).ToList()) matched.Remove(m.Key);
+        }
+        return matched;
+    }
+
+    /// <summary>How far apart the item ids one event hands out can be. Ids run at some ten million
+    /// a day; the wraps of one spill were measured within ten thousand of each other.</summary>
+    public const long SameEventSpread = 50_000_000;
 
     /// <summary>
     /// When this notification's items stop being the player's problem — the moment the game
@@ -202,32 +239,31 @@ public class AssetSafetyGenerator(
     public static DateTimeOffset? WindowEnd(string? text) =>
         string.IsNullOrEmpty(text) ? null : FileTime(Field(text, "assetSafetyFullTimestamp"));
 
-    private static async Task<List<(SafetyTimer, long, bool)>> TimersAsync(
-        AppDbContext db, CancellationToken ct)
+    /// <summary>Every asset safety notification still held, as events. Read whole: a few hundred
+    /// rows at most, and the dates are compared here rather than in SQL.</summary>
+    public static async Task<List<SafetyEvent>> EventsAsync(AppDbContext db, CancellationToken ct)
     {
         var rows = await db.EsiNotifications.AsNoTracking()
             .Where(n => n.Type == SafetyNotification)
-            .Select(n => n.Text)
+            .Select(n => new { n.CharacterId, n.Timestamp, n.Text })
             .ToListAsync(ct);
 
-        var timers = new List<(SafetyTimer, long, bool)>(rows.Count);
-
-        foreach (var text in rows)
+        var events = new List<SafetyEvent>(rows.Count);
+        foreach (var r in rows)
         {
-            if (string.IsNullOrEmpty(text)) continue;
-
-            var min  = FileTime(Field(text, "assetSafetyMinimumTimestamp"));
-            var full = FileTime(Field(text, "assetSafetyFullTimestamp"));
+            if (string.IsNullOrEmpty(r.Text)) continue;
+            var min  = FileTime(Field(r.Text, "assetSafetyMinimumTimestamp"));
+            var full = FileTime(Field(r.Text, "assetSafetyFullTimestamp"));
             if (min is null || full is null) continue;
 
-            var dest      = (long?)Field(text, "newStationID") ?? 0;
-            var structure = (long?)Field(text, "structureID")  ?? 0;
-            var isCorp    = text.Contains("isCorpOwned: true", StringComparison.Ordinal);
-
-            timers.Add((new SafetyTimer(min.Value, full.Value, dest), structure, isCorp));
+            events.Add(new SafetyEvent(
+                r.CharacterId,
+                r.Text.Contains("isCorpOwned: true", StringComparison.Ordinal),
+                r.Timestamp, min.Value, full.Value,
+                (long?)Field(r.Text, "newStationID") ?? 0,
+                (long?)Field(r.Text, "structureID")  ?? 0));
         }
-
-        return timers;
+        return events;
     }
 
     /// <summary>

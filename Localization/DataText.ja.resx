@@ -227,7 +227,7 @@
     <value>備考</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>アイテムは契約ごとに1回の呼び出しで、1件ずつ取得されます：まず自分の契約、次にその後ろに並ぶ公開契約です。1件の契約は一度取得すれば保持されます。</value>
+    <value>アイテムは契約ごとに1回の呼び出しで取得します。まず自分の契約を1件ずつ、次に公開契約を2件ずつ取得します。各契約は一度取得すれば保持されます。</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>LPストア</value>
@@ -1557,5 +1557,137 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>コロニーのレイアウト</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>ESI の制限</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>エラー許容量</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>残りエラー {0} / {1} · {2} 秒後にリセット</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>満タン：現在の時間枠にエラーはありません</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>この時間枠の消費：このアプリ {0}、同じ回線上の他のもの {1}</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>この時間枠の消費：このアプリ {0}</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>直近1分 — 呼び出し：{0:N0}、エラー：{1:N0} · 直近1時間 — エラー：{2:N0} · 起動以降の拒否 — エラー制限 (420)：{3:N0}、レート制限 (429)：{4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>調整</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>バックグラウンド処理は全速です。</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>バックグラウンドの呼び出しの間隔を空けています：残りエラーが {0} 未満です。</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>バックグラウンド処理を1件ずつ行っています：残りエラーが {0} 未満です。</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>バックグラウンドの呼び出しは時間枠のリセットを待っています：残りエラーが {0} 未満です。</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>残りが少なく、回復の速さに合わせて調整しているレート制限グループ：{0}。</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>レート制限グループ</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>レート制限のあるルートはまだ呼び出されていません。</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>上限</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>ルート</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{1} あたり {0}</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} 分</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} 時間</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>調整中</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>{0} まで拒否</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>ルート別のエラー</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>アプリの起動以降、エラーはありません。</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>ルート</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>直近1分</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>直近1時間</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>起動以降</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>最終</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI はこのインターネット回線上のすべて（他のプログラムやコンピューターを含む）に対して1分あたり約100件の失敗した呼び出しを許し、それを使い切るとすべての呼び出しを拒否します (420)。一部のルートには個別の上限（レート制限グループ）もあり、キャラクターごとに（ログインなしの場合は回線ごとに）別々に管理されます。各グループには最も少ない枠を表示します。制限内に収めるために遅くするのはバックグラウンド処理だけで、自分で行う操作はそのまま通ります。</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>最も少ない枠</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>この回線</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>キャラクター {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0}（{1:N0}件中で最少）</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>間隔調整中 ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>このアプリの消費</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>他所での消費</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>計測中…</value>
   </data>
 </root>

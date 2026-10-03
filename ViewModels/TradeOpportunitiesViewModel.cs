@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Avalonia.Collections;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
@@ -37,15 +38,22 @@ public class TradeRow
     public double TotalVolume   { get; init; }
     public double TotalCost     { get; init; }
     public double TotalProfit   { get; init; }
+    // Units and ISK traded in the destination's region over the last 30 days — how much the
+    // market there takes, for judging how far a sell order will have to undercut. From the
+    // cached history (MarketHistoryService); 0 where none has been read for the type.
+    public double DestUnitVol30d { get; init; }
+    public double DestIskVol30d  { get; init; }
 
     public string BestSellDisplay    => FormatIsk(BestSell);
     public string DestPriceDisplay   => FormatIsk(DestPrice);
     public string ProfitUnitDisplay  => FormatIsk(ProfitPerUnit);
-    public string ProfitM3Display    => $"{ProfitPerM3:N2}";
+    public string ProfitM3Display    => FormatIsk(ProfitPerM3);
     public string QuantityDisplay    => $"{Quantity:N0}";
     public string TotalVolumeDisplay => $"{TotalVolume:N1}";
     public string TotalCostDisplay   => FormatIsk(TotalCost);
     public string TotalProfitDisplay => FormatIsk(TotalProfit);
+    public string DestUnitVol30dDisplay => $"{DestUnitVol30d:N0}";
+    public string DestIskVol30dDisplay  => FormatIsk(DestIskVol30d);
 
     /// <summary>Single-click opens the Item Browser. Double-clicking the row still routes
     /// through the tool's own RequestItemNavigation, which keeps the trade context.</summary>
@@ -132,6 +140,15 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     {
         get => _minUnitVolume;
         set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
+    }
+
+    // Each buy is capped at what the destination's region sold in this many days; empty for no
+    // cap. Thirty to start: a month's sales is about what a sell order there can expect to move.
+    private string _capDays = "30";
+    public string CapDays
+    {
+        get => _capDays;
+        set => this.RaiseAndSetIfChanged(ref _capDays, value);
     }
 
     // ── Excluded market groups (and everything nested under them) ────────────
@@ -221,6 +238,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     public ObservableCollection<TradeRow> Results { get; } = [];
 
+    /// <summary>The results as the grid shows them: filtered by name, sorted by its headers. The
+    /// summary below stays the whole list's — the filter only narrows what is looked at.</summary>
+    public DataGridCollectionView ResultsView { get; }
+
+    /// <summary>Narrows the results to the items whose name contains what was typed, as it is
+    /// typed. See <see cref="ItemNameFilter{T}"/>.</summary>
+    public ItemNameFilter<TradeRow> NameFilter { get; }
+
     // The button is named through its own entry, so the hint cannot drift from its label.
     private string _statusText = string.Format(MarketText.StatusSelectStations, MarketText.Calculate);
     public string StatusText
@@ -255,6 +280,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         _historyService = historyService;
         _batchSvc       = batchSvc;
         _selectedMode   = ModeOptions[0];
+        ResultsView     = new DataGridCollectionView(Results);
+        NameFilter      = new ItemNameFilter<TradeRow>(ResultsView, Results, r => r.TypeName);
+        Results.CollectionChanged += (_, _) => NameFilter.Update();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
@@ -306,10 +334,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             StatusText = MarketText.ErrSameStation;
             return;
         }
-        if (!double.TryParse(CargoM3, out var cargoM3) || cargoM3 <= 0)
+        // Optional, like the ISK cap: left empty, every profitable item is listed at what is on
+        // offer, as Industry Opportunities lists everything worth building.
+        double? cargoM3 = null;
+        if (!string.IsNullOrWhiteSpace(CargoM3))
         {
-            StatusText = MarketText.ErrInvalidCargo;
-            return;
+            if (!double.TryParse(CargoM3, out var cargo) || cargo <= 0)
+            {
+                StatusText = MarketText.ErrInvalidCargo;
+                return;
+            }
+            cargoM3 = cargo;
         }
 
         double? iskCap = null;
@@ -345,6 +380,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             minUnitVol = uv;
         }
 
+        int? capDays = null;
+        if (!string.IsNullOrWhiteSpace(CapDays))
+        {
+            if (!int.TryParse(CapDays, out var days) || days <= 0)
+            {
+                StatusText = MarketText.ErrInvalidCapDays;
+                return;
+            }
+            capDays = days;
+        }
+
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
@@ -357,9 +403,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 SourceStation.LocationId, DestinationStation.LocationId);
 
             bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
-            int? destRegionId = needsVolume
-                ? await GetRegionIdAsync(DestinationStation.LocationId)
-                : null;
+            // Always looked up: the 30-day destination columns show it whether or not a volume
+            // filter is set. Without it the columns read 0, and only a filter makes that an error.
+            int? destRegionId = await GetRegionIdAsync(DestinationStation.LocationId);
 
             if (needsVolume && !destRegionId.HasValue)
             {
@@ -368,7 +414,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             }
 
             await SdeNames.EnsureLoadedAsync();   // the rows carry the names shown
-            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
+            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol, capDays);
             // Default display order — highest total profit first. Column headers allow re-sorting.
             foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
 
@@ -378,7 +424,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
             if (list.Count > 0)
             {
-                SummaryVolume  = $"{totalVol:N1} / {cargoM3:N0} m³";
+                SummaryVolume  = cargoM3 is { } hold ? $"{totalVol:N1} / {hold:N0} m³" : $"{totalVol:N1} m³";
                 SummaryCost    = FormatIsk(totalCost);
                 SummaryProfit  = FormatIsk(totalProfit);
                 HasSummary     = true;
@@ -441,37 +487,42 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     }
 
     private async Task<List<TradeRow>> BuildShoppingListAsync(
-        List<Candidate> candidates, double cargoM3, double? iskCap,
-        int? destRegionId, double? minIskVol30d, double? minUnitVol30d)
+        List<Candidate> candidates, double? cargoM3, double? iskCap,
+        int? destRegionId, double? minIskVol30d, double? minUnitVol30d, int? capDays = 30)
     {
         var result    = new List<TradeRow>();
-        var remainM3  = cargoM3;
+        var remainM3  = cargoM3 ?? double.MaxValue;
         var remainIsk = iskCap ?? double.MaxValue;
+
+        // Units that fit in what is left; no limit at all when there is none. ⚠️ Not a bare cast:
+        // double.MaxValue over a price is far past long's range.
+        static long Fits(double? limit, double left, double each) =>
+            limit is null || each <= 0 ? long.MaxValue : (long)Math.Floor(left / each);
 
         foreach (var c in candidates)
         {
             if (remainM3 < c.M3PerUnit) continue;
             if (remainIsk < c.BestSell) break; // can't afford even 1 unit — done
 
-            // 30-day volume filters read history cached by the background sweep
-            // (MarketHistoryService) — no ESI calls here.
-            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && destRegionId.HasValue)
+            // The destination's 30-day volumes, for the columns and the filters alike — read from
+            // history cached by the background sweep (MarketHistoryService), no ESI calls here.
+            double iskVol = 0, unitVol = 0, capUnits = 0;
+            var known = false;
+            if (destRegionId.HasValue)
             {
-                if (minIskVol30d.HasValue)
-                {
-                    var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
-                    if (iskVol < minIskVol30d.Value) continue;
-                }
-                if (minUnitVol30d.HasValue)
-                {
-                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(destRegionId.Value, c.TypeId);
-                    if (unitVol < minUnitVol30d.Value) continue;
-                }
+                (unitVol, iskVol, known, capUnits) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId, capDays ?? 30);
+                if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
+                if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
             }
 
-            var maxByM3  = (long)Math.Floor(remainM3  / c.M3PerUnit);
-            var maxByIsk = (long)Math.Floor(remainIsk / c.BestSell);
+            var maxByM3  = Fits(cargoM3, remainM3,  c.M3PerUnit);
+            var maxByIsk = Fits(iskCap,  remainIsk, c.BestSell);
             var qty      = Math.Min(c.MaxQty, Math.Min(maxByM3, maxByIsk));
+            // No more than the destination's region took in the days set (30 to start): buying
+            // 1,000 of something that moved 3 a month is stock for years. Only where the history
+            // has been read — an item it has not reached yet is not capped to nothing; one read
+            // with no trades in the window is, and drops out. No days set: no cap.
+            if (known && capDays is not null) qty = Math.Min(qty, (long)capUnits);
             if (qty <= 0) continue;
 
             var vol    = qty * c.M3PerUnit;
@@ -491,12 +542,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 TotalVolume   = vol,
                 TotalCost     = cost,
                 TotalProfit   = profit,
+                DestUnitVol30d = unitVol,
+                DestIskVol30d  = iskVol,
             });
 
             remainM3  -= vol;
             remainIsk -= cost;
 
-            if (remainM3 < 1) break; // cargo full
+            if (cargoM3 is not null && remainM3 < 1) break; // cargo full
         }
 
         return result;

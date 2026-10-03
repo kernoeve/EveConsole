@@ -1882,26 +1882,11 @@
   <data name="SourceAssetSafety" xml:space="preserve">
     <value>Система безопасности активов</value>
   </data>
-  <data name="StationWithIdLower" xml:space="preserve">
-    <value>станция {0}</value>
-  </data>
   <data name="UnnamedStructureWithId" xml:space="preserve">
     <value>Сооружение без названия {0}</value>
   </data>
   <data name="CharacterWithId" xml:space="preserve">
     <value>Персонаж {0}</value>
-  </data>
-  <data name="SafetyChooseDestinationOne" xml:space="preserve">
-    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
-  </data>
-  <data name="SafetyChooseDestinationOther" xml:space="preserve">
-    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
-  </data>
-  <data name="SafetyChooseDestinationFew" xml:space="preserve">
-    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
-  </data>
-  <data name="SafetyChooseDestinationMany" xml:space="preserve">
-    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
   </data>
   <data name="SafetyTypesInOneWrapOne" xml:space="preserve">
     <value>{0:N0} тип предметов в 1 упаковке</value>
@@ -2325,5 +2310,23 @@
   </data>
   <data name="PiOpenDetail" xml:space="preserve">
     <value>Возраст данных — {0}, и оценкам больше нельзя доверять. Если открыть колонию в игре, данные обновятся.</value>
+  </data>
+  <data name="SafetyChooseByOne" xml:space="preserve">
+    <value>до {1:d MMM HH:mm} выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyChooseByOther" xml:space="preserve">
+    <value>до {1:d MMM HH:mm} выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyOpensAt" xml:space="preserve">
+    <value>Доставка возможна с {0:d MMM HH:mm}</value>
+  </data>
+  <data name="InventionHeadRunsOne" xml:space="preserve">
+    <value>{1}: до уровня запаса не хватает прогонов: {0:N0}.</value>
+  </data>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: до уровня запаса не хватает прогонов: {0:N0}.</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
   </data>
 </root>

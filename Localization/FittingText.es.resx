@@ -1174,4 +1174,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Todos</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Naves existentes…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Todas las naves montadas de tus personajes y corporaciones personales, con su equipamiento tal como lo vio por última vez la lista de activos. La que elijas se abre en una pestaña nueva como un equipamiento nuevo; usa Guardar como para conservarlo.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Naves existentes</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Parte del nombre de la nave, su casco, su sistema o su dueño</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Casco</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Dueño</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Valor del casco</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Valor del equipamiento</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Valor total</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Abrir como equipamiento nuevo</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Abre la nave y su equipamiento en una pestaña nueva, sin guardar aún: Guardar como lo guarda en EVE Console o en los equipamientos de un personaje.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Leyendo tus naves…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} naves</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>No hay naves montadas en los activos de tus personajes ni de tus corporaciones personales.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Valores a {0}. El equipamiento es lo que la última actualización de activos vio montado: módulos, rigs, subsistemas, munición cargada, drones y cazas; no la bodega.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Sin precios: elige un mercado para el valor de los activos en Ajustes → Mercado. El equipamiento es lo que la última actualización de activos vio montado: módulos, rigs, subsistemas, munición cargada, drones y cazas; no la bodega.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>No se pudieron leer del juego algunos nombres de naves; esas aparecen solo con su casco.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} abierta como equipamiento nuevo, aún sin guardar; usa Guardar como para conservarlo.</value>
+  </data>
 </root>

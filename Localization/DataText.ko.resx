@@ -227,7 +227,7 @@
     <value>비고</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>아이템은 계약 하나씩, 계약마다 호출 한 번으로 가져옵니다: 먼저 내 계약, 그다음 그 뒤의 공개 계약 목록입니다. 계약은 한 번 가져오면 계속 보관됩니다.</value>
+    <value>아이템은 계약마다 한 번의 호출로 가져옵니다. 먼저 내 계약을 한 번에 하나씩, 그다음 공개 계약을 한 번에 두 개씩 가져옵니다. 계약은 한 번 가져오면 보관됩니다.</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>LP 스토어</value>
@@ -1557,5 +1557,137 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>콜로니 구성</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>ESI 한도</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>오류 허용량</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>오류 {1}개 중 {0}개 남음 · {2}초 후 초기화</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>가득 참: 현재 구간에 오류 없음</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>이번 구간 사용량: 이 앱 {0}, 같은 회선의 다른 것 {1}</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>이번 구간 사용량: 이 앱 {0}</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>최근 1분 — 호출: {0:N0}, 오류: {1:N0} · 최근 1시간 — 오류: {2:N0} · 시작 이후 거부 — 오류 한도(420): {3:N0}, 속도 제한(429): {4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>조절</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>백그라운드 작업이 최고 속도로 진행됩니다.</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>백그라운드 호출 간격을 벌리는 중: 남은 오류가 {0}개 미만입니다.</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>백그라운드 작업을 한 번에 하나씩 진행: 남은 오류가 {0}개 미만입니다.</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>백그라운드 호출이 구간 초기화를 기다리는 중: 남은 오류가 {0}개 미만입니다.</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>남은 양이 적어 회복 속도에 맞춰 조절 중인 속도 제한 그룹: {0}.</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>속도 제한 그룹</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>아직 속도 제한이 있는 경로를 호출하지 않았습니다.</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>한도</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>남음</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>거부</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>경로</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{1}당 {0}</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>조절 중</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>{0}까지 거부</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>경로별 오류</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>앱 시작 이후 오류가 없습니다.</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>경로</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>상태 코드</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>최근 1분</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>최근 1시간</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>시작 이후</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>마지막</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI는 이 인터넷 회선의 모든 것(다른 프로그램과 컴퓨터 포함)에 대해 1분에 약 100건의 실패한 호출을 허용하며, 다 쓰면 모든 호출을 거부합니다(420). 일부 경로에는 별도의 한도(속도 제한 그룹)도 있으며, 캐릭터마다(로그인 없이 호출하면 회선마다) 따로 관리됩니다. 각 그룹에는 가장 적은 한도를 표시합니다. 한도 아래로 유지하기 위해 늦추는 것은 백그라운드 작업뿐이며, 직접 하는 작업은 바로 처리됩니다.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>가장 적은 한도</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>이 회선</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>캐릭터 {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} ({1:N0}개 중 최저)</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>속도 조절 중 ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>이 앱 사용량</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>다른 곳 사용량</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>측정 중…</value>
   </data>
 </root>

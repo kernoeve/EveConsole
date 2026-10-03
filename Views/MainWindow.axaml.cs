@@ -707,6 +707,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void OnServerStatusClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         => OpenInBrowser(EveConsole.Services.UiLinkSettings.ServerStatusUrl);
 
+    private void OnEsiThrottleClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.OpenEsiLimits();
+    }
+
     /// <summary>Opens the release page for whichever version the badge is talking about.</summary>
     private void OnReleaseLinkClick(object? sender, RoutedEventArgs e)
     {

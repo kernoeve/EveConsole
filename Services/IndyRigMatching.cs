@@ -219,7 +219,14 @@ public static class IndyRigMatching
             // the XL is named "Structure and Component Manufacturing Efficiency" outright.
             _ when groupId == 536                                                    => "structure_ammo",
             _ when gc.Name.Contains("Component")                                     => "adv_components",
-            _ when gc.CategoryId is 22 or 65                                         => "structure_ammo",
+            // ⚠️ Personal deployables (22) — mobile depots, tractor units, cyno inhibitors, warp
+            // disruptors — take the EQUIPMENT rig, not the structure one. Every equipment rig, M
+            // to XL, names "ship modules, ship rigs, personal deployables, implants and cargo
+            // containers"; the structure rigs name structures, their modules and rigs, starbase
+            // structures and fuel blocks, and no deployable. Filed with structures, a tractor
+            // unit was sent to the structure yard, and its blueprint hauled there to match.
+            _ when gc.CategoryId == 22                                               => "modules_equipment",
+            _ when gc.CategoryId == 65                                               => "structure_ammo",
             // R.A.M. tools and Data Interfaces are built at standard facilities. This rule
             // was present in both other copies but missing here, so the rig check treated
             // those jobs as uncheckable rather than comparing them against the equipment

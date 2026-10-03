@@ -227,7 +227,7 @@
     <value>Hinweis</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>Die Gegenstände werden Vertrag für Vertrag abgerufen, ein Aufruf je Vertrag: zuerst Ihre eigenen Verträge, danach die öffentlichen Angebote. Ein Vertrag wird einmal abgerufen und behalten.</value>
+    <value>Gegenstände werden mit einem Aufruf pro Vertrag abgerufen: zuerst Ihre eigenen Verträge, einer nach dem anderen, dann die öffentlichen Angebote, zwei gleichzeitig. Ein Vertrag wird einmal abgerufen und behalten.</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>LP-Shop</value>
@@ -1587,5 +1587,137 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>Kolonie-Layouts</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>ESI-Limits</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>Fehlerbudget</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>{0} von {1} Fehlern übrig · das Fenster wird in {2} s zurückgesetzt</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>Voll: keine Fehler im aktuellen Fenster</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>In diesem Fenster verbraucht: {0} von dieser App, {1} von etwas anderem an diesem Anschluss</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>In diesem Fenster verbraucht: {0} von dieser App</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>Letzte Minute – Aufrufe: {0:N0}, Fehler: {1:N0} · letzte Stunde – Fehler: {2:N0} · seit dem Start abgelehnt – Fehlerlimit (420): {3:N0}, Ratenlimit (429): {4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>Drosselung</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>Hintergrundarbeit mit voller Geschwindigkeit.</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>Hintergrundaufrufe mit Abstand: weniger als {0} Fehler übrig.</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>Hintergrundarbeit ein Aufruf nach dem anderen: weniger als {0} Fehler übrig.</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>Hintergrundaufrufe warten auf das Zurücksetzen des Fensters: weniger als {0} Fehler übrig.</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>Knapp werdende Ratenlimit-Gruppen, im Tempo ihres Nachfüllens gedrosselt: {0}.</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>Ratenlimit-Gruppen</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>Noch kein Endpunkt mit Ratenlimit aufgerufen.</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>Limit</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>Übrig</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>Abgelehnt</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>Zustand</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>Endpunkte</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{0} pro {1}</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} Min.</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} Std.</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>Gedrosselt</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>Abgelehnt bis {0}</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>Fehler nach Endpunkt</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>Keine Fehler seit dem Start der App.</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>Endpunkt</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>Letzte Minute</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>Letzte Stunde</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>Seit Start</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>Zuletzt</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI erlaubt etwa 100 fehlgeschlagene Aufrufe pro Minute für alles an diesem Internetanschluss – andere Programme und Computer eingeschlossen – und lehnt danach jeden Aufruf ab (420). Manche Endpunkte haben zusätzlich ein eigenes Kontingent (Ratenlimit-Gruppen), das für jeden Charakter getrennt geführt wird, ohne Anmeldung für den Anschluss; jede Gruppe zeigt ihr niedrigstes. Gedrosselt wird nur die Hintergrundarbeit; was Sie selbst tun, geht sofort durch.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Niedrigstes Kontingent</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Dieser Anschluss</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Charakter {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (niedrigstes von {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Gedrosselt ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Hier verbraucht</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Anderswo verbraucht</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>wird gemessen…</value>
   </data>
 </root>

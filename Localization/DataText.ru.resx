@@ -227,7 +227,7 @@
     <value>Примечание</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>Предметы загружаются по одному контракту за раз, по запросу на каждый: сначала ваши собственные контракты, затем общедоступные. Каждый контракт загружается один раз и сохраняется.</value>
+    <value>Предметы загружаются по одному запросу на контракт: сначала ваши собственные контракты, по одному, затем публичные, по два одновременно. Каждый контракт загружается один раз и сохраняется.</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>Магазин наград</value>
@@ -1647,5 +1647,137 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>Планировка колоний</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>Лимиты ESI</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>Запас ошибок</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>Осталось {0} из {1} ошибок · окно сбросится через {2} с</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>Полный: в текущем окне ошибок нет</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>Израсходовано в этом окне: {0} этим приложением, {1} чем-то ещё на этом подключении</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>Израсходовано в этом окне: {0} этим приложением</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>За минуту — запросов: {0:N0}, ошибок: {1:N0} · за час — ошибок: {2:N0} · отклонено с запуска — лимит ошибок (420): {3:N0}, лимит частоты (429): {4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>Регулятор</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>Фоновая работа на полной скорости.</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>Фоновые запросы идут с интервалом: осталось меньше {0} ошибок.</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>Фоновая работа по одному запросу: осталось меньше {0} ошибок.</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>Фоновые запросы ждут сброса окна: осталось меньше {0} ошибок.</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>Группы с лимитом частоты на исходе, замедлены до скорости восполнения: {0}.</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>Группы с лимитом частоты</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>Маршруты с лимитом частоты ещё не вызывались.</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>Лимит</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>Отклонено</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>Маршруты</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{0} за {1}</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>Замедлено</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>Отклоняется до {0}</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>Ошибки по маршрутам</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>С запуска приложения ошибок не было.</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>Маршрут</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>Код</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>За минуту</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>За час</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>С запуска</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>Последняя</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI допускает около 100 неудачных запросов в минуту на всё это интернет-подключение — включая другие программы и компьютеры — и после этого отклоняет все запросы (420). У некоторых маршрутов есть и собственный лимит (группы с лимитом частоты), который ведётся отдельно для каждого персонажа, а без входа — для подключения; для каждой группы показан наименьший. Чтобы не превышать их, замедляется только фоновая работа; то, что вы делаете сами, проходит сразу.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Наименьший лимит</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Это подключение</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (наименьший из {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Замедлено ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Потрачено здесь</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Потрачено в другом месте</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>измерение…</value>
   </data>
 </root>

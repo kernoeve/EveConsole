@@ -1427,7 +1427,7 @@
     <value>Spielprotokoll-Ereignis</value>
   </data>
   <data name="CheckGameLogEventNote" xml:space="preserve">
-    <value>Löst aus, wenn das Spielprotokoll eines Ihrer Charaktere meldet, dass er durch etwas in der Nähe enttarnt, per Warpstörung festgehalten oder gestört wurde oder angegriffen wird – beliebig ankreuzbar. Eine Warpstörung oder ein Angriff löst einmal pro Kampf aus: Zeilen mit höchstens zwei Minuten Abstand gelten als ein Kampf. Der Spielprotokollordner dieses Clients muss gelesen werden (Einstellungen → Spielprotokolle), und der Spielclient muss auf Englisch laufen; erkannt innerhalb von Sekunden.</value>
+    <value>Löst aus, wenn das Spielprotokoll eines Ihrer Charaktere meldet, dass er durch etwas in der Nähe enttarnt, per Warpstörung festgehalten oder gestört wurde oder angegriffen wird – beliebig ankreuzbar. Eine Warpstörung oder ein Angriff löst einmal pro Kampf aus: Zeilen mit höchstens zwei Minuten Abstand gelten als ein Kampf. Der Spielprotokollordner dieses Clients muss gelesen werden (Einstellungen → Spielprotokolle); erkannt innerhalb von Sekunden.</value>
   </data>
   <data name="GameLogDecloakedLabel" xml:space="preserve">
     <value>Enttarnt</value>

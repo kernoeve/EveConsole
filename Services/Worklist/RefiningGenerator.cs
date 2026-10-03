@@ -172,6 +172,8 @@ public class RefiningGenerator(
             LocationName  = place,
             Priority      = WorklistPriority.Refining,
             Lines         = lines,
+            // The most of what is there: the ore (or compressed ore) the row is mostly about.
+            IconUrl       = lines.Count > 0 ? WorklistIcons.Type(lines[0].TypeId) : null,
         };
     }
 

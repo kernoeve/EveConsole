@@ -610,16 +610,20 @@ public class LogisticsGenerator(
             .Where(c => c.Runs(IndustryPool.Science)).ToList();
         if (candidates.Count == 0) return;
 
-        var lab = await InventionService.LabAsync(
-            db, await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct),
-            InventionService.InventionCategory, ct);
+        var (lab, copyLab) = await InventionService.LabsAsync(
+            db, await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct), ct);
         if (lab is null) return;
 
         var decryptors = await invention.DecryptorsAsync(ct);
         var printsByType = allPrints.GroupBy(p => p.TypeId).ToDictionary(g => g.Key, g => g.ToList());
 
+        // The same blueprint levels the invention generator plans from, so their datacores are
+        // hauled too — added to a copy: the manufacturing hauls below must not see them.
+        var forInvention = new Dictionary<int, BuildDemand>(demand);
+        foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) forInvention.TryAdd(typeId, d);
+
         var needs = await invention.PlanDemandAsync(
-            demand, ctx.BlueprintByProduct, printsByType, owned,
+            forInvention, ctx.BlueprintByProduct, printsByType, owned,
             typeId => InventionService.DecryptorFor(
                           typeId, ctx, decryptors, settings.ShipDecryptor, settings.OtherDecryptor),
             candidates.Select(c => (IReadOnlyDictionary<int, int>)c.Skills).ToList(), ct);
@@ -641,23 +645,31 @@ public class LogisticsGenerator(
             // Source copies are wanted at the lab in their own right. One per concurrent job,
             // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
-            var copies = PrintsWanted(allPrints, owned, printsInAssets,
-                new SdeBlueprintProduct
-                {
-                    TypeId        = n.Recipe.SourceBlueprintTypeId,
-                    Activity      = "manufacturing",
-                    ProductTypeId = n.Recipe.ProductTypeId,
-                    Quantity      = 1,
-                },
-                n.Plan.CopyRunsNeeded);
+            var source = n.Recipe.SourceBlueprintTypeId;
+            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded);
 
             if (copies > 0)
             {
                 var (cOrder, cRule, cParent) = n.Demand.SplitOf(copies);
-                need(lab.Value.Site, n.Recipe.SourceBlueprintTypeId, copies, HaulReason.Unblocking,
+                need(lab.Value.Site, source, copies, HaulReason.Unblocking,
                      n.Demand.Priority, 0, orderJobs: cOrder, jobs: cParent, ruleJobs: cRule,
                      driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
                      driverKind: NeedDriverKind.CopiesForInvention);
+            }
+
+            // And an original where the park copies, when the copies owned fall short and a copy
+            // job has to be run — the invention generator copies only from an original standing
+            // at the copy lab, so one anywhere else needs this trip first.
+            var mine = allPrints.Where(p => p.TypeId == source && owned.Owns(p)).ToList();
+            if (copyLab is { } cl
+                && mine.Any(p => p.IsOriginal)
+                && mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs) < n.Plan.CopyRunsNeeded)
+            {
+                var (oOrder, oRule, oParent) = n.Demand.SplitOf(1);
+                need(cl.Site, source, 1, HaulReason.Unblocking,
+                     n.Demand.Priority, 0, orderJobs: oOrder, jobs: oParent, ruleJobs: oRule,
+                     driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
+                     driverKind: NeedDriverKind.BlueprintFor);
             }
         }
     }
@@ -697,6 +709,39 @@ public class LogisticsGenerator(
         // count here is the count it will actually use.
         long wanted = 0, covered = 0;
         foreach (var copy in mine.OrderByDescending(p => p.Me).ThenByDescending(p => p.Runs))
+        {
+            if (covered >= runsNeeded) break;
+            covered += copy.Runs;
+            wanted++;
+        }
+        return wanted;
+    }
+
+    /// <summary>
+    /// How many copies of an invention source blueprint the lab needs to have.
+    ///
+    /// <para>⚠️ Copies ONLY. <see cref="PrintsWanted"/> answers one for any owned original, which
+    /// is right for a build and wrong here: nothing can be invented from an original, so asking
+    /// the lab for "one print" let the original stand in for the copies, and the copies stayed
+    /// where they were. The original is wanted at the copy lab instead, by the caller.</para>
+    ///
+    /// <para>Zero when only originals are owned — the copies have to be made first.</para>
+    /// </summary>
+    private static long SourceCopiesWanted(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
+        Dictionary<int, int> printsInAssets, int sourceTypeId, long runsNeeded)
+    {
+        var mine = allPrints.Where(p => p.TypeId == sourceTypeId && owned.Owns(p)).ToList();
+
+        // The same fallback as PrintsWanted: no blueprint rows at all, prints only in assets.
+        if (mine.Count == 0)
+        {
+            var inAssets = printsInAssets.GetValueOrDefault(sourceTypeId);
+            return inAssets == 0 ? 0 : Math.Min(inAssets, Math.Max(1, runsNeeded));
+        }
+
+        long wanted = 0, covered = 0;
+        foreach (var copy in mine.Where(p => !p.IsOriginal).OrderByDescending(p => p.Runs))
         {
             if (covered >= runsNeeded) break;
             covered += copy.Runs;

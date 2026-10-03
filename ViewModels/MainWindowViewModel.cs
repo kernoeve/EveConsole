@@ -676,6 +676,29 @@ public class MainWindowViewModel : ReactiveObject
     }
 
 
+    // ── ESI governor (shown beside the Tranquility status while it holds work back) ──
+
+    private bool _esiThrottled;
+    /// <summary>The governor is holding background work back: the error budget is low, or a
+    /// rate-limit group is being paced. See EsiBudget.</summary>
+    public bool EsiThrottled { get => _esiThrottled; private set => this.RaiseAndSetIfChanged(ref _esiThrottled, value); }
+
+    private string _esiThrottleTip = "";
+    public string EsiThrottleTip { get => _esiThrottleTip; private set => this.RaiseAndSetIfChanged(ref _esiThrottleTip, value); }
+
+    /// <summary>Once a second: the ESI limits panel's figures, and the header's word on them.</summary>
+    private void SyncEsiThrottle()
+    {
+        var limits = ActivityVm.Limits;
+        limits.Refresh();
+        var s = EveConsole.Api.EsiBudget.Shared;
+        EsiThrottled   = s.Level != EveConsole.Api.EsiGovernorLevel.Normal || s.Snapshot().Groups.Any(g => g.Paced);
+        EsiThrottleTip = EsiThrottled ? string.Format(ShellText.TipEsiThrottled, limits.GovernorText, limits.BudgetText) : "";
+    }
+
+    /// <summary>The header's "ESI slowed": opens the Background Processes tool on its ESI limits tab.</summary>
+    public void OpenEsiLimits() => OpenBackgroundProcesses(DataText.TabEsiLimits);
+
     private string _buildCostStatusText = ShellText.BuildCostsNotYet;
     public string BuildCostStatusText
     {
@@ -1401,7 +1424,7 @@ public class MainWindowViewModel : ReactiveObject
         // publishes — and at once whenever that worker signals a change (the view model listens).
         Observable.Interval(TimeSpan.FromSeconds(1))
             .ObserveOnUi("MainWindow.BackgroundStatus")
-            .Subscribe(_ => ActivityVm.SyncStatusBar());
+            .Subscribe(_ => { ActivityVm.SyncStatusBar(); SyncEsiThrottle(); });
         ActivityVm.SyncStatusBar();
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.

@@ -1427,7 +1427,7 @@
     <value>Événement du journal de jeu</value>
   </data>
   <data name="CheckGameLogEventNote" xml:space="preserve">
-    <value>Se déclenche quand le journal de jeu d'un de vos personnages indique qu'il a été décamouflé par quelque chose à proximité, brouillé ou perturbé en warp, ou qu'il est attaqué — cochez n'importe quelle combinaison. Un brouillage ou une attaque se déclenche une fois par combat : des lignes séparées de deux minutes au plus forment un même combat. Le dossier des journaux de jeu de ce client doit être lu (Paramètres → Journaux de jeu), et le client du jeu doit être en anglais ; détecté en quelques secondes.</value>
+    <value>Se déclenche quand le journal de jeu d'un de vos personnages indique qu'il a été décamouflé par quelque chose à proximité, brouillé ou perturbé en warp, ou qu'il est attaqué — cochez n'importe quelle combinaison. Un brouillage ou une attaque se déclenche une fois par combat : des lignes séparées de deux minutes au plus forment un même combat. Le dossier des journaux de jeu de ce client doit être lu (Paramètres → Journaux de jeu) ; détecté en quelques secondes.</value>
   </data>
   <data name="GameLogDecloakedLabel" xml:space="preserve">
     <value>Décamouflé</value>

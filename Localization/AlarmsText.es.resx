@@ -1427,7 +1427,7 @@
     <value>Evento del registro de juego</value>
   </data>
   <data name="CheckGameLogEventNote" xml:space="preserve">
-    <value>Se activa cuando el registro de juego de uno de tus personajes indica que algo cercano le quitó el camuflaje, que sufrió una perturbación o interrupción de warp, o que está bajo ataque; marca cualquier combinación. Una perturbación o un ataque se activa una vez por combate: las líneas con no más de dos minutos entre ellas son un mismo combate. Hace falta que se lea la carpeta de registros de juego de ese cliente (Ajustes → Registros de juego) y un cliente del juego en inglés; se detecta en segundos.</value>
+    <value>Se activa cuando el registro de juego de uno de tus personajes indica que algo cercano le quitó el camuflaje, que sufrió una perturbación o interrupción de warp, o que está bajo ataque; marca cualquier combinación. Una perturbación o un ataque se activa una vez por combate: las líneas con no más de dos minutos entre ellas son un mismo combate. Hace falta que se lea la carpeta de registros de juego de ese cliente (Ajustes → Registros de juego); se detecta en segundos.</value>
   </data>
   <data name="GameLogDecloakedLabel" xml:space="preserve">
     <value>Camuflaje perdido</value>

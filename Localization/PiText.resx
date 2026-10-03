@@ -744,4 +744,60 @@
     <value>Raw material will overflow storage from {0}: extraction outpaces the factories.</value>
     <comment>Tooltip line on the PI tool's status chip. {0} is a date and time (estimated).</comment>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>Imports</value>
+    <comment>PI tool, Colonies tab, column header: the items a colony needs brought in from off the planet.</comment>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>Exports</value>
+    <comment>PI tool, Colonies tab, column header: the items a colony makes to be taken off the planet — its end products, not what one factory makes for the next.</comment>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>Waiting (m³)</value>
+    <comment>PI tool, Colonies tab, column header: the m³ of exports in storage now, waiting to be picked up.</comment>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>Waiting (ISK)</value>
+    <comment>PI tool, Colonies tab, column header: the market value of exports in storage now, waiting to be picked up.</comment>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>Brought in from off the planet, a day:</value>
+    <comment>Tooltip in the PI tool, Imports column: its first line. A line per item follows (TypePerDay).</comment>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>Nothing is brought in: everything this colony's factories use is made on the planet.</value>
+    <comment>Tooltip in the PI tool, Imports column, for a colony that needs nothing brought in.</comment>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>Taken off the planet, a day. Only what nothing on the planet uses — what one factory makes for the next is not listed:</value>
+    <comment>Tooltip in the PI tool, Exports column: its first line. A line per item follows (TypePerDay).</comment>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>Nothing is left over to take off the planet.</value>
+    <comment>Tooltip in the PI tool, Exports column, for a colony with nothing to take off.</comment>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: {1} a day</value>
+    <comment>PI tool, a line of the Imports or Exports tooltip. {0} is an item name, {1} the units a day.</comment>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+    <comment>PI tool: a volume. {0} is the number of cubic metres.</comment>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>Exports in storage now, waiting to be picked up — an estimate, replayed from the colony's last visit in the game ({0}):</value>
+    <comment>Tooltip in the PI tool, Waiting columns: its first line. {0} is a date and time. A line per item follows (WaitingLine).</comment>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>No exports in storage now — an estimate, replayed from the colony's last visit in the game ({0}).</value>
+    <comment>Tooltip in the PI tool, Waiting columns, when nothing is waiting. {0} is a date and time.</comment>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³, {3} ISK</value>
+    <comment>PI tool, a line of the Waiting tooltip. {0} is the number of units, {1} an item name, {2} cubic metres, {3} an ISK amount.</comment>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ of exports waiting, worth {1} ISK</value>
+    <comment>PI tool summary line, last part. {0} is cubic metres, {1} an ISK amount.</comment>
+  </data>
 </root>

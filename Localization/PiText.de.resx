@@ -559,4 +559,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>Rohmaterial läuft ab {0} über das Lager hinaus: Die Förderung übersteigt die Kapazität der Fabriken.</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>Exporte</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>Abholbereit (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>Abholbereit (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>Pro Tag von außerhalb des Planeten herangebracht:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>Nichts wird herangebracht: Alles, was die Fabriken dieser Kolonie verbrauchen, entsteht auf dem Planeten.</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>Pro Tag vom Planeten abtransportiert. Nur, was auf dem Planeten nichts mehr verbraucht – was eine Fabrik für die nächste herstellt, fehlt hier:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>Es bleibt nichts zum Abtransport übrig.</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: {1} pro Tag</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>Exporte jetzt im Lager, bereit zur Abholung – geschätzt, nachgespielt ab dem letzten Besuch der Kolonie im Spiel ({0}):</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>Jetzt keine Exporte im Lager – geschätzt, nachgespielt ab dem letzten Besuch der Kolonie im Spiel ({0}).</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³, {3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ Exporte abholbereit, Wert {1} ISK</value>
+  </data>
 </root>

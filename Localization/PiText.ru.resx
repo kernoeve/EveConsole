@@ -613,4 +613,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>Сырьё будет переполнять хранилище с {0}: добыча опережает производство.</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>Ждёт вывоза (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>Ждёт вывоза (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>Ввозится с других планет, в день:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>Ничего не ввозится: всё, что потребляют фабрики этой колонии, производится на планете.</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>Вывозится с планеты, в день. Только то, что на планете больше ничто не потребляет; то, что одна фабрика делает для другой, сюда не входит:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>С планеты нечего вывозить.</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: {1} в день</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>Экспорт на складе сейчас, ждёт вывоза — оценка, воспроизведённая с последнего посещения колонии в игре ({0}):</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>Сейчас на складе нет экспорта — оценка, воспроизведённая с последнего посещения колонии в игре ({0}).</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³, {3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ экспорта ждёт вывоза, на {1} ISK</value>
+  </data>
 </root>

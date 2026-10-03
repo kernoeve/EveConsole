@@ -1846,17 +1846,11 @@
   <data name="SourceAssetSafety" xml:space="preserve">
     <value>アセットセーフティ</value>
   </data>
-  <data name="StationWithIdLower" xml:space="preserve">
-    <value>ステーション{0}</value>
-  </data>
   <data name="UnnamedStructureWithId" xml:space="preserve">
     <value>名前のないストラクチャ{0}</value>
   </data>
   <data name="CharacterWithId" xml:space="preserve">
     <value>キャラクター{0}</value>
-  </data>
-  <data name="SafetyChooseDestinationOther" xml:space="preserve">
-    <value>アセットセーフティラップ{0:N0}個の配送先を選択</value>
   </data>
   <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
     <value>1個のラップにアイテム{0:N0}種類</value>
@@ -2226,5 +2220,17 @@
   </data>
   <data name="PiOpenDetail" xml:space="preserve">
     <value>データが{0}前のもので、推定値はもう信頼できません。ゲーム内でコロニーを開くと更新されます。</value>
+  </data>
+  <data name="SafetyChooseByOther" xml:space="preserve">
+    <value>{1:M月d日 HH:mm}までにアセットセーフティラップ{0:N0}個の配送先を選択</value>
+  </data>
+  <data name="SafetyOpensAt" xml:space="preserve">
+    <value>{0:M月d日 HH:mm}から配送できます</value>
+  </data>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}：在庫レベルまで{0:N0}回分不足しています。</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}を使用。</value>
   </data>
 </root>

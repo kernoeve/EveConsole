@@ -20,8 +20,9 @@ namespace EveConsole.Alarms.Conditions;
 /// <see cref="FightGap"/> between them are one episode, keyed by its first line, and fire once.
 /// A fight that pauses longer than that and starts again is a new one.</para>
 ///
-/// <para>⚠️ The rules that parse the log are English: a client running in another language writes
-/// lines none of them match, and this check hears nothing from it.</para>
+/// <para>The lines it reads are matched in all eight client languages (GameLogRules.Languages.cs),
+/// and the rows keep the English kind, Quality and "you!" this check queries, whatever the
+/// client's language.</para>
 /// </summary>
 public sealed class GameLogEventCondition : IAlarmCondition
 {

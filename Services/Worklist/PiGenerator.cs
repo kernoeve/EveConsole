@@ -205,6 +205,8 @@ public static class PiTaskPlanner
                     CharacterId   = ch.CharacterId,
                     CharacterName = ch.Name,
                     Priority      = WorklistPriority.Housekeeping,
+                    // Whose slots: the character is the whole of the task.
+                    IconUrl       = WorklistIcons.Portrait(ch.CharacterId),
                 });
 
             foreach (var slot in ch.Colonies.Where(s => s.UpgradeHeadroom > 0))
@@ -223,6 +225,7 @@ public static class PiTaskPlanner
                     LocationId    = slot.PlanetId,
                     LocationName  = planet,
                     Priority      = WorklistPriority.Housekeeping,
+                    IconUrl       = PlanetTypeIds.GetValueOrDefault(slot.PlanetType.ToLowerInvariant()) is int pt and > 0 ? WorklistIcons.Type(pt) : null,
                 });
                 tasked.Add((ch.CharacterId, slot.PlanetId));
             }
@@ -258,6 +261,19 @@ public static class PiTaskPlanner
         LocationId    = c.PlanetId,
         LocationName  = PiNames.Planet(c),
         DataAsOf      = c.Forecast.SnapshotAt,
+        // The planet: its own SDE type, so a restart shows the barren rock or the gas giant it is
+        // about. A task carrying an item (an input to bring) shows that instead.
+        IconUrl       = c.PlanetTypeId > 0 ? WorklistIcons.Type(c.PlanetTypeId) : null,
+    };
+
+    /// <summary>
+    /// The planet types by ESI's word for them, for a colony slot, which knows only the word. The
+    /// SDE's own type ids ("Planet (Barren)" and so on); the colony's own type is used where known.
+    /// </summary>
+    private static readonly Dictionary<string, int> PlanetTypeIds = new()
+    {
+        ["temperate"] = 11, ["ice"] = 12, ["gas"] = 13, ["oceanic"] = 2014,
+        ["lava"] = 2015, ["barren"] = 2016, ["storm"] = 2017, ["plasma"] = 2063,
     };
 
     /// <summary>The detail, with a note when the estimates behind it come from old data.</summary>

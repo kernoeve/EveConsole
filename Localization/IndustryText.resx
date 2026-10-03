@@ -970,7 +970,7 @@
   </data>
   <data name="CategoryStructuresFuel" xml:space="preserve">
     <value>Structures, Components and Fuel Blocks</value>
-    <comment>Indy Parks production category (manufacturing): structures, their components, deployables and fuel blocks.</comment>
+    <comment>Indy Parks production category (manufacturing): structures, their components and fuel blocks.</comment>
   </data>
   <data name="CategoryCompositeReactions" xml:space="preserve">
     <value>Composite Reactions</value>

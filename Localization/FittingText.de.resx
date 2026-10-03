@@ -1174,4 +1174,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Alle</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Vorhandene Schiffe…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Alle zusammengesetzten Schiffe Ihrer Charaktere und persönlichen Corporations, mit ihrer Ausrüstung, wie die Asset-Liste sie zuletzt gesehen hat. Das gewählte öffnet sich in einem neuen Tab als neue Ausrüstung – mit „Speichern unter“ behalten Sie es.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Vorhandene Schiffe</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Teil des Schiffsnamens, des Rumpfs, des Systems oder des Besitzers</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Besitzer</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Rumpfwert</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Ausrüstungswert</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Gesamtwert</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Als neue Ausrüstung öffnen</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Öffnet das Schiff mit seiner Ausrüstung in einem neuen Tab, noch nirgends gespeichert: „Speichern unter“ legt es in EVE Console oder in den Ausrüstungen eines Charakters ab.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Ihre Schiffe werden gelesen…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} Schiffe</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>Keine zusammengesetzten Schiffe in den Assets Ihrer Charaktere oder persönlichen Corporations.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Werte zu {0}. Die Ausrüstung ist, was die letzte Asset-Aktualisierung eingebaut gesehen hat: Module, Rigs, Subsysteme, geladene Munition, Drohnen und Jäger – nicht der Frachtraum.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>Keine Preise: Wählen Sie unter Einstellungen → Markt einen Markt für Asset-Werte. Die Ausrüstung ist, was die letzte Asset-Aktualisierung eingebaut gesehen hat: Module, Rigs, Subsysteme, geladene Munition, Drohnen und Jäger – nicht der Frachtraum.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Einige Schiffsnamen konnten nicht aus dem Spiel gelesen werden; diese stehen nur mit ihrem Rumpf in der Liste.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} als neue Ausrüstung geöffnet – noch nicht gespeichert; mit „Speichern unter“ behalten Sie sie.</value>
+  </data>
 </root>

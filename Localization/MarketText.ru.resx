@@ -1087,4 +1087,19 @@
   <data name="ExpiryFirst" xml:space="preserve">
     <value>{0} (ближайший)</value>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Назн. прод. 30 д, ед.</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Назн. прод. 30 д, ISK</value>
+  </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Макс. закупка (дней продаж в пункте назн.)</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>Закупает не больше, чем регион пункта назначения продал за это число дней — 30 означает продажи за месяц. Оставьте пустым, чтобы не ограничивать. Предметы, история продаж которых ещё не загружена, не ограничиваются.</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Укажите целое число дней для «Макс. закупка» или оставьте поле пустым, чтобы не ограничивать.</value>
+  </data>
 </root>

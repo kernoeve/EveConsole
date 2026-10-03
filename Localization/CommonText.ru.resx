@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:dd MMM yyyy}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>Название предмета:</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>Название целиком или его часть</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>Показывает только предметы, в названии которых есть этот текст, без учёта регистра. Список сужается по мере ввода; пересчитывать не нужно.</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>Показано {0:N0} из {1:N0}</value>
+  </data>
 </root>
