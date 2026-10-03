@@ -24,6 +24,10 @@
       <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
     </Style>
+    <!-- Errors red, warnings amber, notes in the plain text colour: a note is not a fault. -->
+    <Style Selector="TextBlock.error, SelectableTextBlock.error"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="TextBlock.warning, SelectableTextBlock.warning"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="TextBlock.note, SelectableTextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,2*,4,1*">
@@ -45,6 +49,8 @@
           <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:DataText.Refresh}" FontSize="10" Padding="8 2"
                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   VerticalAlignment="Center" />
+          <CheckBox IsChecked="{Binding ErrorsOnly}" Content="{x:Static loc:DataText.ErrorsOnly}" FontSize="11"
+                    VerticalAlignment="Center" Margin="8 0 0 0" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -56,6 +62,14 @@
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{x:Static loc:DataText.ColTime}"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
+        <DataGridTemplateColumn Header="{x:Static loc:DataText.ColLevel}" SortMemberPath="Severity" Width="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:ErrorLogRowVm">
+              <TextBlock Text="{Binding SeverityText}" VerticalAlignment="Center" Margin="6 0"
+                         Classes.error="{Binding IsError}" Classes.warning="{Binding IsWarning}" Classes.note="{Binding IsNote}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:DataText.ColClient}"  Binding="{Binding Client}"   Width="150" />
         <DataGridTextColumn Header="{x:Static loc:DataText.ColSource}"  Binding="{Binding Source}"   Width="180" />
         <DataGridTextColumn Header="{x:Static loc:DataText.ColContext}" Binding="{Binding Context}"  Width="180" />
@@ -79,7 +93,8 @@
               <Run Text="{Binding Source}" /><Run Text="  —  " /><Run Text="{Binding Context}" />
             </TextBlock>
             <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
-            <SelectableTextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource BadBrush}"
+            <SelectableTextBlock Text="{Binding Detail}" FontSize="12"
+                                 Classes.error="{Binding IsError}" Classes.warning="{Binding IsWarning}" Classes.note="{Binding IsNote}"
                                  FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>

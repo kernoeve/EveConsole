@@ -398,10 +398,13 @@
     <value>컨텍스트</value>
   </data>
   <data name="ColInner" xml:space="preserve">
-    <value>내부 예외</value>
+    <value>세부 정보</value>
+  </data>
+  <data name="ColLevel" xml:space="preserve">
+    <value>수준</value>
   </data>
   <data name="SelectAnErrorToNote" xml:space="preserve">
-    <value>세부 정보를 보려면 오류를 선택하십시오.</value>
+    <value>세부 정보를 보려면 항목을 선택하세요.</value>
   </data>
   <data name="EsiTables" xml:space="preserve">
     <value>ESI 테이블</value>
@@ -1076,10 +1079,25 @@
     <value>이 기간에 오류가 없습니다.</value>
   </data>
   <data name="ErrorLogCount" xml:space="preserve">
-    <value>오류 {0:N0}개</value>
+    <value>{0:N0}개 항목, 오류 {1:N0}개</value>
   </data>
   <data name="ErrorInner" xml:space="preserve">
     <value>내부 예외: {0}</value>
+  </data>
+  <data name="ErrorDetails" xml:space="preserve">
+    <value>세부 정보: {0}</value>
+  </data>
+  <data name="SeverityError" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="SeverityWarning" xml:space="preserve">
+    <value>경고</value>
+  </data>
+  <data name="SeverityNote" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="ErrorsOnly" xml:space="preserve">
+    <value>오류만</value>
   </data>
   <data name="GameLogAllTypes" xml:space="preserve">
     <value>(모든 유형)</value>
