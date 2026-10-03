@@ -2257,15 +2257,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>choisir une destination pour {0:N0} emballages de sécurité des biens avant le {1:d MMM HH:mm}</value>
   </data>
-  <data name="SafetyPassedTitleOne" xml:space="preserve">
-    <value>Sécurité des biens — {0:N0} emballage attend encore ; le délai pour choisir est passé</value>
-  </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>Sécurité des biens — {0:N0} emballages attendent encore ; le délai pour choisir est passé</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. Toujours en sécurité des biens, sans délai ouvert connu.</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Livrable à partir du {0:d MMM HH:mm}</value>
   </data>

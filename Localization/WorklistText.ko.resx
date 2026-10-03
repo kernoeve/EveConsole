@@ -2224,12 +2224,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>{1:M월 d일 HH:mm}까지 자산 보호 포장 {0:N0}개의 목적지 선택</value>
   </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>자산 보호 — 포장 {0:N0}개가 아직 남아 있습니다. 목적지 선택 기한이 지났습니다</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. 아직 자산 보호 상태이며, 남은 기한 기록이 없습니다.</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>{0:M월 d일 HH:mm}부터 배송 가능</value>
   </data>

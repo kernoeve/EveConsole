@@ -2257,15 +2257,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>Ziel für {0:N0} Besitzsicherheit-Pakete bis {1:d. MMM HH:mm} wählen</value>
   </data>
-  <data name="SafetyPassedTitleOne" xml:space="preserve">
-    <value>Besitzsicherheit – {0:N0} Paket wartet noch; die Frist zur Wahl ist abgelaufen</value>
-  </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>Besitzsicherheit – {0:N0} Pakete warten noch; die Frist zur Wahl ist abgelaufen</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. Noch in der Besitzsicherheit, ohne bekannte offene Frist.</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Lieferbar ab {0:d. MMM HH:mm}</value>
   </data>

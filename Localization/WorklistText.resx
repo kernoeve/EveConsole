@@ -3000,18 +3000,6 @@
     <value>choose a destination for {0:N0} asset safety wraps by {1:d MMM HH:mm}</value>
     <comment>Worklist task title, after the station the game delivers to: items in asset safety, and the deadline to choose where they go. {0} is the number of wraps, {1} the deadline. Lower case.</comment>
   </data>
-  <data name="SafetyPassedTitleOne" xml:space="preserve">
-    <value>Asset safety — {0:N0} wrap still waiting; the deadline to choose has passed</value>
-    <comment>Worklist task title: a wrap still in asset safety whose deadline has passed or is not on record. {0} is the number of wraps.</comment>
-  </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>Asset safety — {0:N0} wraps still waiting; the deadline to choose has passed</value>
-    <comment>Worklist task title: wraps still in asset safety whose deadline has passed or is not on record. {0} is the number of wraps.</comment>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. Still in asset safety, with no open deadline on record.</value>
-    <comment>Worklist task detail. {0} is the owner, {1} what the wraps hold (such as "12 item types across 2 wraps").</comment>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Can be delivered from {0:d MMM HH:mm}</value>
     <comment>Worklist: why an asset safety task waits. {0} is when a destination can first be picked.</comment>

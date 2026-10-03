@@ -2224,12 +2224,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>在 {1:M月d日 HH:mm} 前为 {0:N0} 个资产安全包裹选择目的地</value>
   </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>资产安全 — 仍有 {0:N0} 个包裹待处理；选择目的地的期限已过</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}。{1}。仍在资产安全中，没有记录到未到期的期限。</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>可从 {0:M月d日 HH:mm} 起配送</value>
   </data>

@@ -21,9 +21,10 @@ namespace EveConsole.Services.Worklist;
 ///
 /// <para><b>Only wraps still in asset safety</b> (<see cref="SafetyLocationId"/>): a wrap at a station
 /// has been delivered and decides nothing. Each is matched to the owner's own notification for its
-/// deadline (<see cref="Match"/>), and wraps with different deadlines are different tasks. One
-/// still waiting with no open window on record is listed as past its deadline. That makes this
-/// list short by design, and empty most of the time: it fills when a structure dies.</para>
+/// deadline (<see cref="Match"/>), and wraps with different deadlines are different tasks. A wrap
+/// with no open window on record is past its deadline and raises nothing: there is nothing left to
+/// decide. That makes this list short by design, and empty most of the time: it fills when a
+/// structure dies.</para>
 /// </summary>
 public class AssetSafetyGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
@@ -134,27 +135,9 @@ public class AssetSafetyGenerator(
                 ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyTypesInOneWrapOther), lines.Count)
                 : string.Format(WorklistText.SafetyTypesAcrossWraps, lines.Count, wrapped);
 
-            if (ev is null)
-            {
-                // Still in asset safety with no open window on record: the deadline has passed, or
-                // the notification is older than anything ESI still serves. Still the owner's to
-                // deliver, so still listed — but without a date or a destination it cannot know.
-                items.Add(new WorklistItem
-                {
-                    Key           = $"asset_safety:{ownerId}:passed",
-                    Source        = Id,
-                    Kind          = WorklistKind.AssetSafety,
-                    Title         = Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyPassedTitleOther), wrapped),
-                    Detail        = string.Format(WorklistText.SafetyPassedDetail, owner, count),
-                    Readiness     = WorklistReadiness.Ready,
-                    CharacterId   = isCorp ? 0 : ownerId,
-                    CharacterName = isCorp ? "" : owner,
-                    Lines         = lines,
-                    Priority      = WorklistPriority.AssetSafety,
-                    IconUrl       = WorklistIcons.Type(WrapTypeId),
-                });
-                continue;
-            }
+            // No open window on record: the deadline has passed (or the notification is older than
+            // anything ESI still serves), and there is no decision left to make — so no task.
+            if (ev is null) continue;
 
             var dest = places.GetValueOrDefault(ev.Destination, Unnamed(ev.Destination));
             var left = ev.Full - now;
@@ -211,7 +194,7 @@ public class AssetSafetyGenerator(
     /// the line-up shifts. Two guards: an event several owners were told of hands its wraps out
     /// together, so a wrap whose id is far below the others' for the same event is not that
     /// event's (<see cref="SameEventSpread"/>); and only events still open are worth getting
-    /// right — an older wrap matched to a closed one is listed as past its deadline either way.</para>
+    /// right — an older wrap matched to a closed one raises nothing either way.</para>
     /// </summary>
     public static Dictionary<long, SafetyEvent> Match(
         IReadOnlyDictionary<(long OwnerId, bool IsCorp), List<long>> wrapsByOwner,

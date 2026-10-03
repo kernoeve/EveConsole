@@ -2257,15 +2257,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>elige un destino para {0:N0} paquetes de seguridad de los bienes antes del {1:d MMM HH:mm}</value>
   </data>
-  <data name="SafetyPassedTitleOne" xml:space="preserve">
-    <value>Seguridad de los bienes — {0:N0} paquete sigue esperando; el plazo para elegir ya pasó</value>
-  </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>Seguridad de los bienes — {0:N0} paquetes siguen esperando; el plazo para elegir ya pasó</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. Sigue en la seguridad de los bienes, sin ningún plazo abierto registrado.</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Se puede entregar a partir del {0:d MMM HH:mm}</value>
   </data>

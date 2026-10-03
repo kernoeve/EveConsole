@@ -2317,15 +2317,6 @@
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>до {1:d MMM HH:mm} выберите место назначения для упаковок имущества ({0:N0})</value>
   </data>
-  <data name="SafetyPassedTitleOne" xml:space="preserve">
-    <value>Сохранность имущества — упаковок всё ещё ждёт: {0:N0}; срок выбора истёк</value>
-  </data>
-  <data name="SafetyPassedTitleOther" xml:space="preserve">
-    <value>Сохранность имущества — упаковок всё ещё ждёт: {0:N0}; срок выбора истёк</value>
-  </data>
-  <data name="SafetyPassedDetail" xml:space="preserve">
-    <value>{0}. {1}. Всё ещё в системе сохранности имущества, открытого срока не найдено.</value>
-  </data>
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Доставка возможна с {0:d MMM HH:mm}</value>
   </data>
