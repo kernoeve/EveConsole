@@ -34,6 +34,18 @@ public sealed class RowDetailPopups
     private readonly Dictionary<object, DataGridRow>        _lastLoaded = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<DataGridRow>                   _unloaded   = [];
 
+    /// <summary>
+    /// True while this class is shutting a popup itself. The view's <c>Closed</c> handler must
+    /// leave the item's flag alone then.
+    ///
+    /// <para>⚠️ Every close here is of a STALE row's popup — the item is still expanded and its
+    /// live row shows it. The handler, though, reads any close while the tool is on screen as the
+    /// user dismissing it and clears the flag, so shutting the copy on the old row of a filtered
+    /// item shut the item: its live row never opened, and pressing + did nothing until a refresh
+    /// built new rows.</para>
+    /// </summary>
+    public bool Shutting { get; private set; }
+
     /// <summary>The grid's <c>LoadingRow</c>: this row now shows its item, whatever showed it before.</summary>
     public void RowLoaded(DataGrid grid, DataGridRow row)
     {
@@ -48,7 +60,7 @@ public sealed class RowDetailPopups
     {
         _unloaded.Add(row);
         foreach (var popup in PopupsOf(row))
-            if (popup.IsOpen) popup.SetCurrentValue(Popup.IsOpenProperty, false);
+            if (popup.IsOpen) SetOpen(popup, false);
     }
 
     /// <summary>Settles every popup against its row's state. Called after layout.</summary>
@@ -58,8 +70,15 @@ public sealed class RowDetailPopups
         {
             var wanted = Wanted(row);
             foreach (var popup in PopupsOf(row))
-                if (popup.IsOpen != wanted) popup.SetCurrentValue(Popup.IsOpenProperty, wanted);
+                if (popup.IsOpen != wanted) SetOpen(popup, wanted);
         }
+    }
+
+    private void SetOpen(Popup popup, bool open)
+    {
+        Shutting = true;
+        try { popup.SetCurrentValue(Popup.IsOpenProperty, open); }
+        finally { Shutting = false; }
     }
 
     private bool Wanted(DataGridRow row)
@@ -87,10 +106,16 @@ public sealed class RowDetailPopups
     /// <summary>
     /// The row's popups, found once the row has been laid out — the cell templates that hold them
     /// are not realised before that. A row without any is remembered as such.
+    ///
+    /// <para>⚠️ Found again when the row no longer holds the ones remembered. The grid can rebuild
+    /// a row's cells, and with them its popups; the cached ones were then detached and the new
+    /// ones went unmanaged — open on a hidden spare row beside the item's live one.</para>
     /// </summary>
     private Popup[] PopupsOf(DataGridRow row)
     {
-        if (_popups.TryGetValue(row, out var known) && known is not null) return known;
+        if (_popups.TryGetValue(row, out var known) && known is not null
+            && known.All(p => ReferenceEquals(p.FindAncestorOfType<DataGridRow>(), row)))
+            return known;
         var found = row.GetVisualDescendants().OfType<Popup>().ToArray();
         if (found.Length > 0 || row.Bounds.Height > 0) _popups[row] = found;
         return found;

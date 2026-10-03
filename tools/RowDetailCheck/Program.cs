@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Headless;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -34,6 +35,10 @@ using EveConsole.Views;
 //              in place, still bound.
 //   returns  — the same item filtered back in: its popup must come back.
 //   scrolled — an expanded row scrolled off the screen, then back.
+//   reopen   — the clicked row's popup closed again, the list filtered so its item moves, and
+//              the + pressed again: it must open, and stay open. The view clears the flag when a
+//              popup closes while the tool is on screen, so a popup the reconciler shuts on a
+//              live row loses its flag too — the + then "does nothing" until a refresh.
 
 AppBuilder.Configure<RigApp>().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = true }).SetupWithoutStarting();
 
@@ -44,8 +49,8 @@ foreach (var withFix in new[] { false, true })
 {
     var r = Scenario.Run(withFix, grouped, count);
     var label = $"{count} rows {(grouped ? "grouped" : "flat   ")} {(withFix ? "with fix   " : "without fix")}";
-    var ok = r.Focused == 1 && r.Recycled == 0 && r.Returns == 1 && r.ScrolledOut == 0 && r.ScrolledBack == 1;
-    Console.WriteLine($"{label}: focused-row filter {r.Focused} (want 1) · filtered away {r.Recycled} (want 0) · back {r.Returns} (want 1) · scrolled off {r.ScrolledOut} (want 0) · scrolled back {r.ScrolledBack} (want 1)  {(withFix ? (ok ? "ok" : "FAIL") : (ok ? "(no fault here)" : "fault reproduced"))}");
+    var ok = r.Focused == 1 && r.Recycled == 0 && r.Returns == 1 && r.ScrolledOut == 0 && r.ScrolledBack == 1 && r.Reopened == 1;
+    Console.WriteLine($"{label}: focused-row filter {r.Focused} (want 1) · filtered away {r.Recycled} (want 0) · back {r.Returns} (want 1) · scrolled off {r.ScrolledOut} (want 0) · scrolled back {r.ScrolledBack} (want 1) · reopened after a filter {r.Reopened} (want 1)  {(withFix ? (ok ? "ok" : "FAIL") : (ok ? "(no fault here)" : "fault reproduced"))}");
     if (withFix && !ok) failures++;
 }
 Console.WriteLine(failures == 0 ? "RowDetailPopups: all cases pass" : "RowDetailPopups: FAILED");
@@ -73,7 +78,7 @@ sealed class Row : IExpandableRow, INotifyPropertyChanged
 
 static class Scenario
 {
-    public static (int Focused, int Recycled, int Returns, int ScrolledOut, int ScrolledBack) Run(bool withFix, bool grouped, int count = 60)
+    public static (int Focused, int Recycled, int Returns, int ScrolledOut, int ScrolledBack, int Reopened) Run(bool withFix, bool grouped, int count = 60)
     {
         var items = Enumerable.Range(0, count).Select(n => new Row(n)).ToList();
         var rows  = new BulkObservableCollection<Row>();
@@ -81,6 +86,7 @@ static class Scenario
         var view  = new DataGridCollectionView(rows);
         if (grouped) view.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(Row.Group)));
 
+        var details = new RowDetailPopups();
         var grid = new DataGrid { ItemsSource = view, AutoGenerateColumns = false, IsReadOnly = true, Height = 400, Width = 600 };
         grid.Columns.Add(new DataGridTemplateColumn
         {
@@ -92,13 +98,19 @@ static class Scenario
                 text.Bind(TextBlock.TextProperty, new Binding(nameof(Row.Name)));
                 var popup = new Popup { Placement = PlacementMode.BottomEdgeAlignedLeft, Child = new Border { Width = 200, Height = 80 } };
                 popup.Bind(Popup.IsOpenProperty, new Binding(nameof(Row.IsExpanded)));
+                // As the worklist does: a popup closed while the view is on screen clears the flag.
+                popup.Closed += (_, _) =>
+                {
+                    if (details.Shutting) return;
+                    if (popup.DataContext is Row { } r && popup.GetVisualRoot() is not null
+                        && ((ILogical)popup).IsAttachedToLogicalTree) r.IsExpanded = false;
+                };
                 panel.Children.Add(text);
                 panel.Children.Add(popup);
                 return panel;
             }),
         });
 
-        var details = new RowDetailPopups();
         if (withFix)
         {
             grid.LoadingRow   += (_, e) => details.RowLoaded(grid, e.Row);
@@ -148,9 +160,27 @@ static class Scenario
         Pump();
         var scrolledBack = OpenPopups(window);
 
+        // 5. Click A's + (focus in its row), close it with the + again, filter so A moves, and
+        //    press its + once more.
+        c.IsExpanded = false;
+        rows.ResetTo(items);
+        Pump();
+        RowFor(grid, a).Focus();
+        grid.SelectedItem = a;
+        Pump();
+        a.IsExpanded = true;
+        Pump();
+        a.IsExpanded = false;
+        Pump();
+        rows.ResetTo([b, c, a]);
+        Pump();
+        a.IsExpanded = true;
+        Pump();
+        var reopened = a.IsExpanded ? OpenPopups(window) : 0;
+
         window.Close();
         Pump();
-        return (focused, recycled, returns, scrolledOut, scrolledBack);
+        return (focused, recycled, returns, scrolledOut, scrolledBack, reopened);
     }
 
     static DataGridRow RowFor(DataGrid grid, Row item)
