@@ -440,20 +440,28 @@ public class MarketHistoryService : ReactiveObject
     /// <para><paramref name="Known"/> tells a type that did not trade from one whose history has
     /// not been read: true once the sweep has fetched it for the region (with or without data),
     /// or any history is held. Both read 0 otherwise.</para>
+    ///
+    /// <para><paramref name="DaysUnits"/>: units over the last <paramref name="days"/> calendar
+    /// days instead — the window a buy is capped to, which the user sets.</para>
     /// </summary>
-    public async Task<(double Units, double Isk, bool Known)> Get30DayVolumesAsync(int regionId, int typeId)
+    public async Task<(double Units, double Isk, bool Known, double DaysUnits)> Get30DayVolumesAsync(
+        int regionId, int typeId, int days = 30)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
-        var cutoff = ThirtyDayCutoff();
+        var cutoff     = ThirtyDayCutoff();
+        var daysCutoff = DateTime.UtcNow.AddDays(-Math.Max(1, days)).ToString("yyyy-MM-dd");
+        var from       = string.CompareOrdinal(cutoff, daysCutoff) <= 0 ? cutoff : daysCutoff;   // the earlier of the two
         var recent = await db.MarketTypeHistories
             .Where(h => h.RegionId == regionId && h.TypeId == typeId
-                     && string.Compare(h.Date, cutoff) >= 0)
-            .Select(h => new { h.Volume, h.Average })
+                     && string.Compare(h.Date, from) >= 0)
+            .Select(h => new { h.Date, h.Volume, h.Average })
             .ToListAsync();
+        var in30  = recent.Where(h => string.CompareOrdinal(h.Date, cutoff) >= 0).ToList();
         var known = recent.Count > 0
                  || await db.MarketHistoryFetches.AnyAsync(f => f.RegionId == regionId && f.TypeId == typeId)
                  || await db.MarketTypeHistories.AnyAsync(h => h.RegionId == regionId && h.TypeId == typeId);
-        return (recent.Sum(h => (double)h.Volume), recent.Sum(h => (double)h.Volume * h.Average), known);
+        return (in30.Sum(h => (double)h.Volume), in30.Sum(h => (double)h.Volume * h.Average), known,
+                recent.Where(h => string.CompareOrdinal(h.Date, daysCutoff) >= 0).Sum(h => (double)h.Volume));
     }
 
     /// <summary>

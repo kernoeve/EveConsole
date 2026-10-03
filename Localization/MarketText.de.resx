@@ -1084,4 +1084,13 @@
   <data name="ColDestIskSold30d" xml:space="preserve">
     <value>Ziel Umsatz 30 Tg.</value>
   </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Max. Kauf (Tage Zielverkäufe)</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>Kauft von einem Artikel nicht mehr, als die Region des Ziels in so vielen Tagen verkauft hat – 30 sind die Verkäufe eines Monats. Leer lassen für keine Begrenzung. Artikel, deren Verkaufsverlauf noch nicht gelesen wurde, werden nicht begrenzt.</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Bitte eine ganze Zahl von Tagen für Max. Kauf eingeben oder das Feld für keine Begrenzung leer lassen.</value>
+  </data>
 </root>

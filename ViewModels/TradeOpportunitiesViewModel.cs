@@ -142,6 +142,15 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
     }
 
+    // Each buy is capped at what the destination's region sold in this many days; empty for no
+    // cap. Thirty to start: a month's sales is about what a sell order there can expect to move.
+    private string _capDays = "30";
+    public string CapDays
+    {
+        get => _capDays;
+        set => this.RaiseAndSetIfChanged(ref _capDays, value);
+    }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -371,6 +380,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             minUnitVol = uv;
         }
 
+        int? capDays = null;
+        if (!string.IsNullOrWhiteSpace(CapDays))
+        {
+            if (!int.TryParse(CapDays, out var days) || days <= 0)
+            {
+                StatusText = MarketText.ErrInvalidCapDays;
+                return;
+            }
+            capDays = days;
+        }
+
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
@@ -394,7 +414,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             }
 
             await SdeNames.EnsureLoadedAsync();   // the rows carry the names shown
-            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
+            var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol, capDays);
             // Default display order — highest total profit first. Column headers allow re-sorting.
             foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
 
@@ -468,7 +488,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<TradeRow>> BuildShoppingListAsync(
         List<Candidate> candidates, double? cargoM3, double? iskCap,
-        int? destRegionId, double? minIskVol30d, double? minUnitVol30d)
+        int? destRegionId, double? minIskVol30d, double? minUnitVol30d, int? capDays = 30)
     {
         var result    = new List<TradeRow>();
         var remainM3  = cargoM3 ?? double.MaxValue;
@@ -486,11 +506,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
             // The destination's 30-day volumes, for the columns and the filters alike — read from
             // history cached by the background sweep (MarketHistoryService), no ESI calls here.
-            double iskVol = 0, unitVol = 0;
+            double iskVol = 0, unitVol = 0, capUnits = 0;
             var known = false;
             if (destRegionId.HasValue)
             {
-                (unitVol, iskVol, known) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId);
+                (unitVol, iskVol, known, capUnits) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId, capDays ?? 30);
                 if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
                 if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
             }
@@ -498,11 +518,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             var maxByM3  = Fits(cargoM3, remainM3,  c.M3PerUnit);
             var maxByIsk = Fits(iskCap,  remainIsk, c.BestSell);
             var qty      = Math.Min(c.MaxQty, Math.Min(maxByM3, maxByIsk));
-            // No more than the destination's region took in the last 30 days: buying 1,000 of
-            // something that moved 3 a month is stock for years. Only where the history has been
-            // read — an item it has not reached yet is not capped to nothing; one read with no
-            // trades is, and drops out.
-            if (known) qty = Math.Min(qty, (long)unitVol);
+            // No more than the destination's region took in the days set (30 to start): buying
+            // 1,000 of something that moved 3 a month is stock for years. Only where the history
+            // has been read — an item it has not reached yet is not capped to nothing; one read
+            // with no trades in the window is, and drops out. No days set: no cap.
+            if (known && capDays is not null) qty = Math.Min(qty, (long)capUnits);
             if (qty <= 0) continue;
 
             var vol    = qty * c.M3PerUnit;

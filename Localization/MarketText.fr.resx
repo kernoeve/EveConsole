@@ -1084,4 +1084,13 @@
   <data name="ColDestIskSold30d" xml:space="preserve">
     <value>Dest. ISK vendus 30 j</value>
   </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>Achat max. (jours de ventes dest.)</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>N'achète pas plus d'un objet que ce que la région de destination en a vendu sur ce nombre de jours — 30, ce sont les ventes d'un mois. Laissez vide pour aucune limite. Les objets dont l'historique des ventes n'a pas encore été lu ne sont pas limités.</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>Saisissez un nombre entier de jours pour Achat max., ou laissez vide pour aucune limite.</value>
+  </data>
 </root>

@@ -1081,4 +1081,13 @@
   <data name="ColDestIskSold30d" xml:space="preserve">
     <value>目的地 30 天 ISK 销售额</value>
   </data>
+  <data name="CapDaysLabel" xml:space="preserve">
+    <value>最大买入量（目的地销售天数）</value>
+  </data>
+  <data name="TipCapDays" xml:space="preserve">
+    <value>每种物品的买入量不超过目的地所在星域在这些天内的销量 — 30 即一个月的销量。留空则不限。尚未读取销售历史的物品不受限制。</value>
+  </data>
+  <data name="ErrInvalidCapDays" xml:space="preserve">
+    <value>请为最大买入量输入整数天数，或留空表示不限。</value>
+  </data>
 </root>

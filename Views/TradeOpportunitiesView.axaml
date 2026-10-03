@@ -133,6 +133,13 @@
                    Watermark="{x:Static loc:MarketText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
+          <!-- Each buy capped at what the destination sold in this many days; empty for no cap. -->
+          <TextBlock Text="{x:Static loc:MarketText.CapDaysLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MarketText.TipCapDays}" />
+          <TextBox Text="{Binding CapDays}" Width="70" FontSize="12"
+                   Watermark="{x:Static loc:MarketText.HintNoLimit}" ToolTip.Tip="{x:Static loc:MarketText.TipCapDays}"
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+
         </StackPanel>
       </DockPanel>
 
