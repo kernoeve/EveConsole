@@ -487,9 +487,10 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             // The destination's 30-day volumes, for the columns and the filters alike — read from
             // history cached by the background sweep (MarketHistoryService), no ESI calls here.
             double iskVol = 0, unitVol = 0;
+            var known = false;
             if (destRegionId.HasValue)
             {
-                (unitVol, iskVol) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId);
+                (unitVol, iskVol, known) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId);
                 if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
                 if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
             }
@@ -497,6 +498,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             var maxByM3  = Fits(cargoM3, remainM3,  c.M3PerUnit);
             var maxByIsk = Fits(iskCap,  remainIsk, c.BestSell);
             var qty      = Math.Min(c.MaxQty, Math.Min(maxByM3, maxByIsk));
+            // No more than the destination's region took in the last 30 days: buying 1,000 of
+            // something that moved 3 a month is stock for years. Only where the history has been
+            // read — an item it has not reached yet is not capped to nothing; one read with no
+            // trades is, and drops out.
+            if (known) qty = Math.Min(qty, (long)unitVol);
             if (qty <= 0) continue;
 
             var vol    = qty * c.M3PerUnit;

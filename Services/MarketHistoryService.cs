@@ -436,8 +436,12 @@ public class MarketHistoryService : ReactiveObject
     /// Units and ISK traded over the last 30 calendar days, in one read — what
     /// <see cref="Get30DayUnitVolumeAsync"/> and <see cref="Get30DayIskVolumeAsync"/> give
     /// separately, for a caller that wants both for every row of a list.
+    ///
+    /// <para><paramref name="Known"/> tells a type that did not trade from one whose history has
+    /// not been read: true once the sweep has fetched it for the region (with or without data),
+    /// or any history is held. Both read 0 otherwise.</para>
     /// </summary>
-    public async Task<(double Units, double Isk)> Get30DayVolumesAsync(int regionId, int typeId)
+    public async Task<(double Units, double Isk, bool Known)> Get30DayVolumesAsync(int regionId, int typeId)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         var cutoff = ThirtyDayCutoff();
@@ -446,7 +450,10 @@ public class MarketHistoryService : ReactiveObject
                      && string.Compare(h.Date, cutoff) >= 0)
             .Select(h => new { h.Volume, h.Average })
             .ToListAsync();
-        return (recent.Sum(h => (double)h.Volume), recent.Sum(h => (double)h.Volume * h.Average));
+        var known = recent.Count > 0
+                 || await db.MarketHistoryFetches.AnyAsync(f => f.RegionId == regionId && f.TypeId == typeId)
+                 || await db.MarketTypeHistories.AnyAsync(h => h.RegionId == regionId && h.TypeId == typeId);
+        return (recent.Sum(h => (double)h.Volume), recent.Sum(h => (double)h.Volume * h.Average), known);
     }
 
     /// <summary>
