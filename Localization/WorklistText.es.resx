@@ -2260,10 +2260,13 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Se puede entregar a partir del {0:d MMM HH:mm}</value>
   </data>
-  <data name="InventionHeadCopiesOne" xml:space="preserve">
-    <value>{1}: falta {0:N0} copia para su nivel de inventario.</value>
+  <data name="InventionHeadRunsOne" xml:space="preserve">
+    <value>{1}: falta {0:N0} iteración para su nivel de inventario.</value>
   </data>
-  <data name="InventionHeadCopiesOther" xml:space="preserve">
-    <value>{1}: faltan {0:N0} copias para su nivel de inventario.</value>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: faltan {0:N0} iteraciones para su nivel de inventario.</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
   </data>
 </root>

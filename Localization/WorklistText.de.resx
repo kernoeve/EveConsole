@@ -2260,10 +2260,13 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>Lieferbar ab {0:d. MMM HH:mm}</value>
   </data>
-  <data name="InventionHeadCopiesOne" xml:space="preserve">
-    <value>{1}: {0:N0} Kopie fehlt zum Lagerbestand.</value>
+  <data name="InventionHeadRunsOne" xml:space="preserve">
+    <value>{1}: fehlender Durchlauf zum Lagerbestand: {0:N0}.</value>
   </data>
-  <data name="InventionHeadCopiesOther" xml:space="preserve">
-    <value>{1}: {0:N0} Kopien fehlen zum Lagerbestand.</value>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: fehlende Durchläufe zum Lagerbestand: {0:N0}.</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
   </data>
 </root>

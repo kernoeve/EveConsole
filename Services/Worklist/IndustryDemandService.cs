@@ -357,9 +357,10 @@ public class IndustryDemandService(
     /// </summary>
     /// <summary>
     /// Inventory levels of T2 blueprints themselves — "five Gaia Blueprints on the shelf" — as
-    /// invention demand, in copies. Only Build rules, only blueprints that are invented, and the
-    /// same shortfall rule every other level uses (<see cref="InvRuleShortfall"/>): copies on hand
-    /// and in jobs against the target, fired at the rule's threshold, filled to its target.
+    /// invention demand, in copy RUNS — the unit every blueprint level is written in. Only Build
+    /// rules, only blueprints that are invented, and the same shortfall rule every other level
+    /// uses (<see cref="InvRuleShortfall"/>): runs on hand and in jobs against the target, fired at
+    /// the rule's threshold, filled to its target.
     ///
     /// <para>⚠️ Kept out of <see cref="GatherAsync"/>, which drops anything that is not
     /// manufactured ("bought, not built") and whose result the job and haul generators build

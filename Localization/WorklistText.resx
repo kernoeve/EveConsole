@@ -3004,12 +3004,16 @@
     <value>Can be delivered from {0:d MMM HH:mm}</value>
     <comment>Worklist: why an asset safety task waits. {0} is when a destination can first be picked.</comment>
   </data>
-  <data name="InventionHeadCopiesOne" xml:space="preserve">
-    <value>{1}: {0:N0} copy short of its inventory level.</value>
-    <comment>Start of a Worklist invention or copy job's detail, when the level is for the T2 blueprint itself. {0} is the copies missing, {1} the blueprint.</comment>
+  <data name="InventionHeadRunsOne" xml:space="preserve">
+    <value>{1}: {0:N0} run short of its inventory level.</value>
+    <comment>Start of a Worklist invention or copy job's detail, when the level is for the T2 blueprint itself (counted in blueprint copy runs). {0} is the runs missing, {1} the blueprint.</comment>
   </data>
-  <data name="InventionHeadCopiesOther" xml:space="preserve">
-    <value>{1}: {0:N0} copies short of its inventory level.</value>
-    <comment>Start of a Worklist invention or copy job's detail, when the level is for the T2 blueprint itself. {0} is the copies missing, {1} the blueprint.</comment>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: {0:N0} runs short of its inventory level.</value>
+    <comment>Start of a Worklist invention or copy job's detail, when the level is for the T2 blueprint itself (counted in blueprint copy runs). {0} is the runs missing, {1} the blueprint.</comment>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
+    <comment>Worklist copy job detail: the original to copy from, when it is not yet at the copy lab. {0} describes the blueprint (e.g. BPO ME10/TE20).</comment>
   </data>
 </root>

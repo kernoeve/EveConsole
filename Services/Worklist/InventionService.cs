@@ -32,9 +32,9 @@ public sealed record Decryptor(
 /// <param name="ManufacturedTypeId">What the invented blueprint builds — the same as
 /// <paramref name="ProductTypeId"/> when the demand is for that item; the hull or module when the
 /// demand is for the blueprint itself (<paramref name="BlueprintTarget"/>). Decides the decryptor.</param>
-/// <param name="BlueprintTarget">The demand is for copies of the T2 blueprint — an inventory level
+/// <param name="BlueprintTarget">The demand is for the T2 blueprint itself — an inventory level
 /// of BPCs — rather than for the item it builds: <paramref name="ProductTypeId"/> is then the
-/// blueprint, and the shortfall is counted in copies.</param>
+/// blueprint, and the shortfall is counted in copy RUNS, as every blueprint level is.</param>
 public sealed record InventionRecipe(
     int    SourceBlueprintTypeId,
     string SourceBlueprintName,
@@ -433,15 +433,16 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         {
             if (!recipes.TryGetValue(d.TypeId, out var recipe)) continue;
 
-            // A level of the blueprint itself: the shortfall is copies, already netted against the
-            // copies on the shelf, and each copy is one success at the runs a success yields.
+            // A level of the blueprint itself. ⚠️ Written in RUNS, like every blueprint level
+            // (InvLevelService counts a copy by the runs it carries), and already netted against
+            // the runs on the shelf — so it is T2 runs exactly as a product's shortfall is, and
+            // three runs short is one success when a success yields four, not three successes.
             if (recipe.BlueprintTarget)
             {
                 var bpDecryptor = decryptorFor(recipe.ManufacturedTypeId);
                 var bpSkills    = scientistSkills.OrderByDescending(s => Chance(recipe, bpDecryptor, s)).First();
-                var runsEach    = Math.Max(1, recipe.BaseRunsPerSuccess + bpDecryptor.RunModifier);
-                var bpPlan      = Plan(recipe, bpDecryptor, d.Units * runsEach, bpSkills);
-                if (bpPlan.Attempts > 0) needs.Add(new InventionNeed(d, recipe, bpPlan, d.Units * runsEach));
+                var bpPlan      = Plan(recipe, bpDecryptor, d.Units, bpSkills);
+                if (bpPlan.Attempts > 0) needs.Add(new InventionNeed(d, recipe, bpPlan, d.Units));
                 continue;
             }
 

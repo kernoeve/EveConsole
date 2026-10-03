@@ -136,9 +136,9 @@ public class InventionGenerator(
                 .ThenBy(c => c.Config.CharacterId)
                 .First();
 
-            // A level of the blueprint itself is short in copies; one of the item, in runs of it.
+            // A level of the blueprint itself is short in copy runs; one of the item, in T2 runs.
             var head = recipe.BlueprintTarget
-                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadCopiesOther), d.Units, SdeNames.Type(d.TypeId, name))
+                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, SdeNames.Type(d.TypeId, name))
                 : string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
@@ -406,7 +406,17 @@ public class InventionGenerator(
 
         var copies   = IndustryJobSplit.RunsFor(shortRuns, recipe.MaxCopyRuns);
         var perCopy  = Math.Min(shortRuns, recipe.MaxCopyRuns);
-        var original = all.FirstOrDefault(b => owner.Owns(b) && b.IsOriginal);
+
+        // ⚠️ The original to copy from is looked for where the park does its copying. Taking
+        // the first one owned picked a busy original, or one in another structure, while a free
+        // one sat at the copy lab. Free at the lab first, then busy at the lab (no trip, only a
+        // wait), and only then one elsewhere, which has to be moved.
+        var originals = all.Where(b => owner.Owns(b) && b.IsOriginal).ToList();
+        var original  = originals
+            .OrderByDescending(b => b.LocationId == lab.Site)
+            .ThenBy(b => b.LockedInJob)
+            .ThenBy(b => b.ItemId)
+            .FirstOrDefault();
 
         // For the titles. The rows' TypeName keeps the English.
         var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
@@ -429,6 +439,8 @@ public class InventionGenerator(
             }];
 
         var atCopyLab = original.LocationId == lab.Site;
+        // Busy wherever it is: a running job is the wait, and any move comes after it.
+        var busy      = original.LockedInJob;
 
         var perUnit = IndustryTimeService.PerScienceUnitSeconds(
             timeCtx, recipe.SourceBlueprintTypeId, IndustryTimeService.CopyingActivity,
@@ -447,11 +459,15 @@ public class InventionGenerator(
             Title         = string.Format(WorklistText.CopyTitle, sourceShown, copies, perCopy),
             Quantity      = copies,
             Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
-                          + " " + string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
+                          // "at the lab" only when it is: one elsewhere is what the blocked reason is about.
+                          + " " + (atCopyLab ? string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
+                                             : string.Format(WorklistText.PrintUsing, original.Describe()))
                           + durText,
-            Readiness     = atCopyLab ? WorklistReadiness.Ready : WorklistReadiness.Blocked,
-            BlockedBy     = atCopyLab ? ""
-                          : string.Format(WorklistText.BlockedOriginalNotAt, lab.Name),
+            Readiness     = atCopyLab && !busy ? WorklistReadiness.Ready : WorklistReadiness.Blocked,
+            BlockedBy     = busy       ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
+                          : !atCopyLab ? string.Format(WorklistText.BlockedOriginalNotAt, lab.Name)
+                          : "",
+            BlockedByPrint = busy,
             CharacterId   = best.Config.CharacterId,
             CharacterName = best.Config.CharacterName,
             LocationId    = lab.Site,

@@ -2227,7 +2227,10 @@
   <data name="SafetyOpensAt" xml:space="preserve">
     <value>{0:M월 d일 HH:mm}부터 배송 가능</value>
   </data>
-  <data name="InventionHeadCopiesOther" xml:space="preserve">
-    <value>{1}: 재고 수준까지 사본 {0:N0}개가 부족합니다.</value>
+  <data name="InventionHeadRunsOther" xml:space="preserve">
+    <value>{1}: 재고 수준까지 {0:N0}회분 부족.</value>
+  </data>
+  <data name="PrintUsing" xml:space="preserve">
+    <value>{0}.</value>
   </data>
 </root>
