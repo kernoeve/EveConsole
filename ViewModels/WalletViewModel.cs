@@ -660,7 +660,7 @@ public class WalletViewModel : ReactiveObject
             var pars = ps.ToArray();
             string baseSql = $"SELECT * FROM \"EsiWalletJournal\" WHERE {where}";
 
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             JournalPager.TotalCount = await db.EsiWalletJournal.FromSqlRaw(baseSql, pars).AsNoTracking().CountAsync();
             JournalPager.ClampToRange();
 
@@ -669,7 +669,7 @@ public class WalletViewModel : ReactiveObject
                 : await db.EsiWalletJournal.FromSqlRaw(
                         baseSql + $" ORDER BY {_selectedJournalSort.Sql} LIMIT {GridPager.PageSize} OFFSET {JournalPager.Offset}",
                         pars).AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var names  = await BuildOwnerNamesAsync(db, owner, entries.Select(r => r.OwnerId));
             var divMap = await BuildDivisionMapAsync(db, owner);
@@ -762,7 +762,7 @@ public class WalletViewModel : ReactiveObject
             var pars = ps.ToArray();
             string wrapped = $"SELECT * FROM ({baseInner}) x WHERE {filter}";
 
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             TxnPager.TotalCount = await db.EsiWalletTransactions.FromSqlRaw(wrapped, pars).AsNoTracking().CountAsync();
             TxnPager.ClampToRange();
 
@@ -771,7 +771,7 @@ public class WalletViewModel : ReactiveObject
                 : await db.EsiWalletTransactions.FromSqlRaw(
                         wrapped + $" ORDER BY {_selectedTxnSort.Sql} LIMIT {GridPager.PageSize} OFFSET {TxnPager.Offset}",
                         pars).AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var typeIds   = rows.Select(r => r.TypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))

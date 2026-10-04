@@ -949,7 +949,7 @@ public class OverviewViewModel : ReactiveObject
                 var cutoffStr  = DateTimeOffset.UtcNow.AddHours(-SelectedPeriod.Hours)
                     .UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
                 var charIdList = string.Join(",", charIds);
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
                 totalLosses = await Off(() => _db.Database.SqlQueryRaw<int>($"""
                     SELECT CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Value"
                     FROM "KillMailDetails" d
@@ -971,7 +971,7 @@ public class OverviewViewModel : ReactiveObject
                       AND d."KillMailId" IN (SELECT a."KillMailId" FROM "KillMailAttackers" a
                                              WHERE a."CharacterId" IN ({charIdList}))
                     """).FirstAsync());
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
             }
 
             ShipKillCount = totalKills.ToString("N0");
@@ -1074,7 +1074,7 @@ public class OverviewViewModel : ReactiveObject
             // (previously LIMIT 200 clipped a 30-day view to ~8-9 days for busy corps). It still
             // caps a pathological volume, since the list isn't virtualized and every loaded row is
             // formatted on each refresh.
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             // ⚠️ "Unread if unread for anyone" needs a different function per engine.
             // IsRead is an INTEGER on SQLite, where MIN over 0 and 1 says exactly that; on
             // PostgreSQL it is a real boolean and min(boolean) does not exist. bool_and is the
@@ -1104,7 +1104,7 @@ public class OverviewViewModel : ReactiveObject
                         $"SELECT * FROM \"EsiNotifications\" WHERE \"NotificationId\" IN ({string.Join(",", ids)})")
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var recipientsByNotif = recipients.GroupBy(x => x.NotificationId)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());

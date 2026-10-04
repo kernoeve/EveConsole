@@ -221,6 +221,24 @@ public static class AppDb
             : SqliteMaintenance.ConnectionString(AppConfig.GetDbPath());
 
     /// <summary>
+    /// A list's <c>Contains</c> sent as ONE parameter — a JSON array on SQLite, an array on
+    /// PostgreSQL — as EF Core 8 and 9 did. Passed to every UseSqlite and UseNpgsql.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ EF Core 10 changed the default to one scalar parameter per value. Kept as before so the
+    /// .NET 10 upgrade changes no query: several Contains here run over thousands of ids (assets,
+    /// kills, types), and one parameter per value meets SQLite's 32,766-variable ceiling and
+    /// PostgreSQL's 65,535 long before a JSON array or an array does. Moving to the new default
+    /// is its own change, to be measured on those queries first.
+    /// </remarks>
+    public static void KeepCollectionParameter(Microsoft.EntityFrameworkCore.Infrastructure.SqliteDbContextOptionsBuilder o)
+        => o.UseParameterizedCollectionMode(ParameterTranslationMode.Parameter);
+
+    /// <inheritdoc cref="KeepCollectionParameter(Microsoft.EntityFrameworkCore.Infrastructure.SqliteDbContextOptionsBuilder)"/>
+    public static void KeepCollectionParameter(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder o)
+        => o.UseParameterizedCollectionMode(ParameterTranslationMode.Parameter);
+
+    /// <summary>
     /// The user's connection string, plus the session settings this app's SQL depends on.
     ///
     /// <para>SQLite stores a DateTimeOffset as text and every row in these databases carries

@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk --version 1.2.0
@@ -139,7 +139,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
       # system copy. Needed on the runner so the build's own checks can see it; users install

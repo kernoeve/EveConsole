@@ -1566,7 +1566,7 @@ public class PublicContractsViewModel : ReactiveObject
             // Filter values (type name, region) are passed as parameters via `ps`; only the
             // placeholder string, the fixed sort expression and computed integers are interpolated,
             // so this is not an injection vector despite EF1002.
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             // Count of the WHOLE filtered set (no ORDER BY/LIMIT so EF can wrap it in COUNT).
             int total = await db.EsiContracts
                 .FromSqlRaw($"SELECT * FROM \"EsiContracts\" AS c WHERE {where}", ps)
@@ -1584,7 +1584,7 @@ public class PublicContractsViewModel : ReactiveObject
                         $"SELECT * FROM \"EsiContracts\" AS c WHERE {where} " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {PageSize} OFFSET {offset}", ps)
                     .AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var cids = contracts.Select(c => c.ContractId).Distinct().ToList();
             var items = cids.Count == 0 ? new List<ContractItem>()
