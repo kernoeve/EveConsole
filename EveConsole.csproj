@@ -134,15 +134,6 @@
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
   </ItemGroup>
 
-  <!-- ⚠️ Microsoft.Data.Sqlite 10 reads a stored timestamp with no offset as UTC (it was local
-       time), returns one WITH an offset from GetDateTime as UTC (it was Local), and converts a
-       DateTimeOffset to UTC before writing it to a REAL column. Every one of those changes what an
-       existing SQLite database reads back, so the .NET 10 upgrade keeps the old handling with
-       Microsoft's own switch, and moving off it is its own change, checked against real data. -->
-  <ItemGroup>
-    <RuntimeHostConfigurationOption Include="Microsoft.Data.Sqlite.Pre10TimeZoneHandling" Value="true" />
-  </ItemGroup>
-
   <!-- Developer tooling lives under tools/ with its own project files. This csproj sits at the
        repo root and globs **/*.cs, so without these removals the tools would be compiled into
        the shipped application — a second Main, and code no user should ever receive. -->
