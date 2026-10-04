@@ -19,7 +19,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore
         run: dotnet restore EveConsole.csproj
@@ -126,7 +126,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
       # system copy. release-build.yml installs it on its linux job for the same reason.

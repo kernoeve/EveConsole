@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EveConsole</RootNamespace>
@@ -63,8 +63,8 @@
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
     <PackageReference Include="SharpCompress" Version="0.50.3" />
 
-    <!-- HTTP / JSON -->
-    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+    <!-- HTTP / JSON: System.Net.Http.Json comes with the shared framework, and .NET 10's NuGet
+         asks for the package reference to go (NU1510). -->
 
     <!-- DPAPI, for SecretStore's Windows key protection.
 
@@ -79,10 +79,9 @@
          gated on OperatingSystem.IsWindows(), but a runtime guard does not remove the
          compile-time reference. -->
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
-    <!-- ⚠️ Declared, not left to arrive transitively. It does today, through the two packages
-         above — and ProtectedData did too, until moving one reference changed the graph and took
-         it away. A dependency the code names should be a dependency the project names. -->
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <!-- Microsoft.Win32.Registry is not referenced: it is part of the shared framework on every
+         target, so unlike ProtectedData it cannot drop out of the graph, and .NET 10's NuGet asks
+         for the package reference to go (NU1510). -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
 
     <!-- SQLite / EF Core -->

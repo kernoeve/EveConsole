@@ -223,7 +223,7 @@ Keep in mind this application is still very green.  You are free to play around 
 
 ## Tech stack
 
-- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net9.0`
+- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net10.0`
 - .NET 9, [ReactiveUI](https://www.reactiveui.net/) (MVVM)
 - EF Core 9, with SQLite for local persistence or PostgreSQL for a shared one
 - [LiveChartsCore](https://livecharts.dev/) for charts
