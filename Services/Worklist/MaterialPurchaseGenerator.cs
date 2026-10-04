@@ -39,6 +39,7 @@ public class MaterialPurchaseGenerator(
     IndustryAssignmentService       assignment,
     IndustryBlueprintService        blueprints,
     IndustryDemandService           demands,
+    InventionService                invention,
     MaterialSubstitutionService     substitution,
     ProductionCalculatorService     production,
     WorklistMarketAltService        marketAlts,
@@ -107,7 +108,15 @@ public class MaterialPurchaseGenerator(
         var inScope = await ScopeStock.LoadAsync(db, scope, wrapped, corps, ct);
         var demand  = await demands.GatherAsync(
             db, ctx, rules, groups, scope, wrapped, corps, inScope, ct, meMap);
-        if (demand.Count == 0) return [];
+
+        // ⚠️ Invention is checked before giving up on an empty demand. A level on a T2 blueprint
+        // is invention work with no build behind it, so a park whose only shortfall is "3 runs of
+        // Ymir Blueprint" has no build demand at all and still needs its datacores bought.
+        var inventionNeeds = canInvent
+            ? await InventionNeedsAsync(db, ctx, demand, allPrints, owned, candidates, ct)
+            : [];
+
+        if (demand.Count == 0 && inventionNeeds.Count == 0) return [];
 
         // What those builds consume that is bought: each item's own inputs, for the units the
         // cascade left to build. Its sub-assemblies are rows of the demand in their own right.
@@ -122,6 +131,27 @@ public class MaterialPurchaseGenerator(
             errorLogger.Log(nameof(MaterialPurchaseGenerator), $"Park {parkId}", ex);
             return [];
         }
+
+        // ⚠️ And what invention eats: datacores and decryptors. They are bought exactly as a
+        // mineral is — nothing makes them — but they are not inputs of any build, so the line
+        // above never sees them. The invention rows said "Not at the lab: Datacore …" and the
+        // logistics pass asked for a haul, which raises nothing when none is owned anywhere: the
+        // jobs sat blocked with no task that could ever unblock them. Added here they go through
+        // the same netting as every material below — stock anywhere in reach (a haul's business,
+        // not a purchase), open orders, and the started jobs' takings.
+        foreach (var n in inventionNeeds)
+            foreach (var (typeId, qty) in n.Plan.Materials)
+            {
+                if (qty <= 0) continue;
+                if (!raw.TryGetValue(typeId, out var need))
+                    raw[typeId] = need = new IndustryDemandService.RawNeed();
+                need.Units += qty;
+                need.Consumers.Add(new IndustryDemandService.RawConsumer(
+                    n.Recipe.ProductTypeId,
+                    ctx.TypeNames.GetValueOrDefault(n.Recipe.ProductTypeId,
+                        string.Format(WorklistText.TypeWithId, n.Recipe.ProductTypeId)),
+                    n.Plan.Attempts, qty));
+            }
 
         // Things wanted in their own right — by an order or a tripped rule — are what prints are
         // acquired for here. A sub-assembly's missing print is raised by the job generator on
@@ -642,6 +672,35 @@ public class MaterialPurchaseGenerator(
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The invention the worklist will plan, from the same <see cref="InventionService.PlanDemandAsync"/>
+    /// the invention generator and the logistics pass use — so the datacores bought are the
+    /// datacores the suggested jobs will eat and the hauls will carry, to the unit.
+    /// </summary>
+    private async Task<List<InventionService.InventionNeed>> InventionNeedsAsync(
+        AppDbContext db, ProductionContext ctx, Dictionary<int, BuildDemand> demand,
+        List<BlueprintStock> allPrints, PrintOwnership owned,
+        List<IndustryCandidate> candidates, CancellationToken ct)
+    {
+        var scientists = candidates.Where(c => c.Runs(IndustryPool.Science)).ToList();
+        if (scientists.Count == 0) return [];
+
+        // Plus the levels of T2 blueprints themselves, which the gatherer leaves out — added to a
+        // copy, since the build demand must not see them.
+        var forInvention = new Dictionary<int, BuildDemand>(demand);
+        foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) forInvention.TryAdd(typeId, d);
+        if (forInvention.Count == 0) return [];
+
+        var decryptors   = await invention.DecryptorsAsync(ct);
+        var printsByType = allPrints.GroupBy(p => p.TypeId).ToDictionary(g => g.Key, g => g.ToList());
+
+        return await invention.PlanDemandAsync(
+            forInvention, ctx.BlueprintByProduct, printsByType, owned,
+            typeId => InventionService.DecryptorFor(
+                          typeId, ctx, decryptors, settings.ShipDecryptor, settings.OtherDecryptor),
+            scientists.Select(c => (IReadOnlyDictionary<int, int>)c.Skills).ToList(), ct);
     }
 
     private async Task<HashSet<long>?> ScopeAsync(AppDbContext db, int parkId, CancellationToken ct)
