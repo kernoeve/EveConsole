@@ -78,20 +78,20 @@
          above: the API throws PlatformNotSupportedException off Windows and every call site is
          gated on OperatingSystem.IsWindows(), but a runtime guard does not remove the
          compile-time reference. -->
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.12" />
     <!-- Microsoft.Win32.Registry is not referenced: it is part of the shared framework on every
          target, so unlike ProtectedData it cannot drop out of the graph, and .NET 10's NuGet asks
          for the package reference to go (NU1510). -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
 
     <!-- SQLite / EF Core -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
     <!-- ⚠️ Unconditioned, and must stay that way. Npgsql is cross-platform and everything
          using it — AppDb, DatabaseCopyService, PgDump/PgRestore, SingleInstance — compiles on every
          target. Sitting in the Windows-only group above, it took the linux-x64 build down with
          12 CS0246s while the Windows build stayed green. -->
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -100,9 +100,9 @@
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
 
     <!-- Dependency Injection -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
 
     <!-- Audio playback for alarms and TTS.
          ⚠️ There is no VideoLAN.LibVLC.Linux on nuget — a comment here used to say to add
@@ -132,6 +132,15 @@
 
     <!-- Charting -->
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
+  </ItemGroup>
+
+  <!-- ⚠️ Microsoft.Data.Sqlite 10 reads a stored timestamp with no offset as UTC (it was local
+       time), returns one WITH an offset from GetDateTime as UTC (it was Local), and converts a
+       DateTimeOffset to UTC before writing it to a REAL column. Every one of those changes what an
+       existing SQLite database reads back, so the .NET 10 upgrade keeps the old handling with
+       Microsoft's own switch, and moving off it is its own change, checked against real data. -->
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="Microsoft.Data.Sqlite.Pre10TimeZoneHandling" Value="true" />
   </ItemGroup>
 
   <!-- Developer tooling lives under tools/ with its own project files. This csproj sits at the

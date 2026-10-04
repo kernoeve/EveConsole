@@ -345,7 +345,7 @@ public class NotificationsViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             var (baseWhere, ps) = BuildFilter();
             var where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
 
@@ -373,7 +373,7 @@ public class NotificationsViewModel : ReactiveObject
                     "GROUP BY \"NotificationId\", \"Type\", \"Timestamp\") g" +
                     $") x WHERE x.\"NotificationId\" = {id}", ps)
                 .ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
             Pager.SetPage(position.Count > 0 ? (int)((position[0] - 1) / GridPager.PageSize) + 1 : 1);
         }
         catch (Exception ex)
@@ -481,7 +481,7 @@ public class NotificationsViewModel : ReactiveObject
 
             // The same notification is delivered to multiple characters; the grid shows one row per
             // NotificationId, so counts and paging are over DISTINCT NotificationId.
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             // Unread count = distinct notifications with any unread recipient (ignores the toggle).
             UnreadCount = await db.EsiNotifications
                 .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} AND \"IsRead\" = FALSE", ps)
@@ -525,7 +525,7 @@ public class NotificationsViewModel : ReactiveObject
                         $"AND \"NotificationId\" IN ({string.Join(",", pageIds)})", ps)
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var recipientsByNotif = recipients
                 .GroupBy(x => x.NotificationId)
