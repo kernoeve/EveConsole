@@ -13,7 +13,7 @@ namespace EveConsole.Views;
 public partial class MapPaneView : UserControl
 {
     /// <summary>The drag payload's format. In-process only: the payload is the tab's view model.</summary>
-    public const string TabFormat = "EveConsole.MapTab";
+    public static readonly DataFormat<string> TabFormat = InProcessDrag.Format("EveConsole.MapTab");
 
     private MapTabViewModel? _pressed;
     private Point            _pressedAt;
@@ -58,12 +58,10 @@ public partial class MapPaneView : UserControl
         if (Math.Abs(d.X) < 6 && Math.Abs(d.Y) < 6) return;
 
         _pressed = null;
-        var data = new DataObject();
-        data.Set(TabFormat, tab);
         tab.Tool.IsDraggingTab = true;
         try
         {
-            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+            await InProcessDrag.RunAsync(e, TabFormat, tab, DragDropEffects.Move);
         }
         finally
         {
@@ -72,7 +70,7 @@ public partial class MapPaneView : UserControl
         }
     }
 
-    private static MapTabViewModel? Dragged(DragEventArgs e) => e.Data.Get(TabFormat) as MapTabViewModel;
+    private static MapTabViewModel? Dragged(DragEventArgs e) => InProcessDrag.Get<MapTabViewModel>(e, TabFormat);
 
     private bool OverStrip(DragEventArgs e) =>
         e.GetPosition(Strip) is var p && p.Y >= 0 && p.Y <= Strip.Bounds.Height;

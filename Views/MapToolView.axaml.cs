@@ -16,10 +16,10 @@ public partial class MapToolView : UserControl
         InitializeComponent();
 
         SplitDropZone.AddHandler(DragDrop.DragOverEvent, (_, e) =>
-            e.DragEffects = e.Data.Get(MapPaneView.TabFormat) is MapTabViewModel ? DragDropEffects.Move : DragDropEffects.None);
+            e.DragEffects = InProcessDrag.Get<MapTabViewModel>(e, MapPaneView.TabFormat) is not null ? DragDropEffects.Move : DragDropEffects.None);
         SplitDropZone.AddHandler(DragDrop.DropEvent, (_, e) =>
         {
-            if (Vm is { } vm && e.Data.Get(MapPaneView.TabFormat) is MapTabViewModel tab) vm.MoveTab(tab, vm.RightPane);
+            if (Vm is { } vm && InProcessDrag.Get<MapTabViewModel>(e, MapPaneView.TabFormat) is { } tab) vm.MoveTab(tab, vm.RightPane);
             e.Handled = true;
         });
     }
