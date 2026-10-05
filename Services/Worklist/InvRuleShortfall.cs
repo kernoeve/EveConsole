@@ -36,10 +36,34 @@ public sealed record InvRuleShortfall(long Target, long Have, long Wanted, long 
         var have = Math.Max(0, (avail?.Assets ?? 0) + (avail?.IndustryJobs ?? 0) - claimed);
         if (have >= target * (rule.ThresholdPercent / 100.0)) return null;
 
-        var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
+        var wanted = FillLevel(target, rule.FillTargetPercent);
 
         return new InvRuleShortfall(target, have, wanted, wanted - have,
                                     target > 0 ? have * 100.0 / target : 0);
+    }
+
+    /// <summary>
+    /// The stock a rule fills a level of <paramref name="target"/> up to, at
+    /// <paramref name="fillPercent"/>. Every generator asks this question; this is the one answer.
+    /// </summary>
+    /// <remarks>
+    /// <para>⚠️ Above 100% the percentage is rounded DOWN. Rounded up, it doubled a small level:
+    /// a level of 1 at 110% is 1.1, and the ceiling made it 2 — a second Enhanced Neurolink
+    /// Protection Cell built to sit on the shelf, and its materials bought, for a "10% margin"
+    /// on one unit. Rounded down a fill never adds more than its percentage does, and never
+    /// drops below the level itself: 1 → 1, 10 → 11, 60 → 66.</para>
+    ///
+    /// <para>Below 100% it is rounded up, as before: filling to 80% of 1 still means 1.</para>
+    ///
+    /// <para>Rounded to six places first: 100 × 1.15 is 114.99999999999999 in binary, and a
+    /// floor of that would quietly ask for one fewer than the rule says.</para>
+    /// </remarks>
+    public static long FillLevel(long target, double fillPercent)
+    {
+        var raw = Math.Round(target * (fillPercent / 100.0), 6);
+        return fillPercent >= 100
+            ? Math.Max(target, (long)Math.Floor(raw))
+            : (long)Math.Ceiling(raw);
     }
 
     /// <summary>"stock 5,607 of 10,000 (56.1%)" — the part every row starts with.</summary>

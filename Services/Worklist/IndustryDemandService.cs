@@ -490,7 +490,7 @@ public class IndustryDemandService(
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                 if (target <= 0) continue;
 
-                var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
+                var wanted = InvRuleShortfall.FillLevel(target, rule.FillTargetPercent);
 
                 var g = At(gi.TypeId);
                 // Two rules on one item are two statements of the same shelf, not two shelves.
