@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>已取消</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>访问次数</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>独立访客</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>最近 48 小时：{0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>下方：最近 48 小时内下单、仍在进行中的订单项。</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>下方：最近 48 小时内结束的订单。订单只记录结束的日期（EVE 时间），因此从当天开始计算，最多可能多算一天。</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>买家登录商店网站，或离开一段时间后再次回来。</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>访问中的不同买家，同一买家无论来多少次都只算一位。</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>进行中的订单</value>
   </data>

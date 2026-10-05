@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>キャンセル済み</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>訪問数</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>ユニーク訪問者</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>直近48時間: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>下段: 直近48時間に注文された進行中の品目。</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>下段: 直近48時間に決着した注文。注文には決着した日付（EVE時間）しか記録されないため、その日の始まりから数えます。最大で1日分多く含まれることがあります。</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>買い手がストアのウェブサイトにログインした、またはしばらくして戻ってきた回数。</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>訪問した買い手の人数。同じ買い手は何度訪問しても1人と数えます。</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>進行中の注文</value>
   </data>

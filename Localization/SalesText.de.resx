@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Storniert</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Besuche</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Eindeutige Besucher</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Letzte 48 Std.: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Darunter: aktive Gegenstände, die in den letzten 48 Stunden bestellt wurden.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Darunter: in den letzten 48 Stunden abgeschlossen. Eine Bestellung speichert nur das Datum ihres Abschlusses (EVE-Zeit), daher wird ab Beginn dieses Tages gezählt – bis zu einem Tag mehr ist möglich.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Ein Käufer, der sich auf der Website des Shops anmeldet oder nach einer Weile zurückkehrt.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Verschiedene Käufer unter den Besuchen, egal wie oft jeder kam.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Aktive Bestellungen</value>
   </data>

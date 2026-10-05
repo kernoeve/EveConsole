@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Отменено</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Посещения</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Уникальные посетители</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>За 48 ч: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Ниже: активные позиции, заказанные за последние 48 часов.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Ниже: закрытые за последние 48 часов. Заказ хранит только дату закрытия (время EVE), поэтому счёт идёт с начала того дня и может захватить до суток больше.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Покупатель вошёл на сайт магазина или вернулся после перерыва.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Разные покупатели среди посещений, сколько бы раз каждый ни заходил.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Активные заказы</value>
   </data>

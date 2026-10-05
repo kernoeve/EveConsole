@@ -23,12 +23,16 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
     /// <summary>⚠️ The Order Tracker's format, off the same field, deliberately. Two screens
     /// showing the same order under different dates is a bug report waiting to happen, and the
     /// tracker is the one people check against.</summary>
-    public string Created  => o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
+    public string Created  => CreatedText(o.CreatedAt);
 
-    /// <summary>⚠️ Sorting key for Created, because the column only shows the DATE. Several
-    /// orders placed on the same day are indistinguishable to the displayed text, so ordering
-    /// on it shuffles them arbitrarily; this keeps the real sequence. The Order Tracker keys
-    /// its own created column the same way.</summary>
+    /// <summary>When an order was placed, as both order lists show it: EVE time (UTC), to the
+    /// minute — the same clock as the completed date the tracker shows beside it.</summary>
+    public static string CreatedText(DateTimeOffset createdAt) => createdAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
+
+    /// <summary>⚠️ Sorting key for Created, because the column shows only minutes. Orders placed
+    /// in the same minute are indistinguishable to the displayed text, so ordering on it
+    /// shuffles them arbitrarily; this keeps the real sequence. The Order Tracker keys its own
+    /// created column the same way.</summary>
     public long CreatedSort => o.CreatedAt.UtcTicks;
 
     /// <summary>What the buyer quotes back. Empty on an order entered by hand.</summary>

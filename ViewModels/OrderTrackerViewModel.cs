@@ -210,7 +210,7 @@ public class TrackedOrderRowVm : ReactiveObject
         ContractToType = o.ContractToType;
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
-        CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
+        CreatedText = OrderSummaryRowVm.CreatedText(o.CreatedAt);
         TypeId      = o.TypeId;   Type  = SdeNames.Type(o.TypeId, typeName);
         TypeEnglish = typeName;
         Units       = o.Units;    UnitsText = o.Units.ToString("N0");

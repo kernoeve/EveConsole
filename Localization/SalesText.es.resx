@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelados</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Visitas</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Visitantes únicos</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Últimas 48 h: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Debajo: encargos activos pedidos en las últimas 48 horas.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Debajo: cerrados en las últimas 48 horas. Un pedido solo guarda la fecha en que se cerró (hora de EVE), así que se cuenta desde el comienzo de ese día y puede incluir hasta un día más.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Un comprador que inicia sesión en el sitio web de la tienda, o que vuelve tras un tiempo fuera.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Compradores distintos entre las visitas, sin importar cuántas veces vino cada uno.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Encargos activos</value>
   </data>
