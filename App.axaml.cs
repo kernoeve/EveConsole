@@ -2417,12 +2417,15 @@ public class App : Application
                         "UpdatedAt"       TEXT    NOT NULL DEFAULT '',
                         "IsStatic"        INTEGER NOT NULL DEFAULT 0,
                         "DetailUnavailable" INTEGER NOT NULL DEFAULT 0,
+                        "ContributorsPending" INTEGER NOT NULL DEFAULT 0,
                         "ConfigType"      TEXT,
                         "ConfigurationJson" TEXT,
                         PRIMARY KEY ("CorporationId", "ProjectId")
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "DetailUnavailable" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // Finished projects made static without their contributors. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "ContributorsPending" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "DeniedEndpoints" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
