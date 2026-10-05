@@ -49,6 +49,30 @@
   <data name="ContractsBuying" xml:space="preserve">
     <value>Achats par contrat</value>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>Ordres de vente du marché</value>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>Ventes par contrat</value>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>Les unités encore listées dans vos ordres de vente ouverts comptent comme en stock : elles vous appartiennent jusqu'à leur vente. Désactivé par défaut, pour qu'un niveau se réapprovisionne pendant que son stock est en vente.</value>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>Les objets de vos contrats en cours qui les cèdent comptent comme en stock jusqu'à ce qu'un acheteur accepte. Désactivé par défaut, pour la même raison que les ordres de vente.</value>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>Ord. de vente</value>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>Contrats vente</value>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>Ordres de vente</value>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>Ventes par contrat</value>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>Ne compter que les objets emballés (ignorer les coques assemblées ou équipées)</value>
   </data>
@@ -185,7 +209,7 @@
     <value>Ord. d'achat</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>Contrats</value>
+    <value>Contrats achat</value>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
     <value>Prix marché</value>
@@ -806,10 +830,10 @@ Modifier la liste la fait réapparaître.</value>
     <value>TI</value>
   </data>
   <data name="IncludeOrdersShort" xml:space="preserve">
-    <value>Ordres</value>
+    <value>Ordres d'achat</value>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>Contrats</value>
+    <value>Achats par contrat</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
     <value>emballés uniquement</value>

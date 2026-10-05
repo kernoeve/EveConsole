@@ -64,6 +64,38 @@
     <value>Contracts Buying</value>
     <comment>Button or option in AddEditInvGroupDialog.</comment>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>Market Sell Orders</value>
+    <comment>Inventory Levels group editor, Include list: count units still listed on the player's own open market sell orders.</comment>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>Contracts Selling</value>
+    <comment>Inventory Levels group editor, Include list: count items on the player's own outstanding contracts that hand them over (selling).</comment>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>Units still listed on your open sell orders count as on hand: they are yours until they sell. Off by default, so a level restocks while its stock is listed.</value>
+    <comment>Tooltip on the Market Sell Orders tick box in the Inventory Levels group editor.</comment>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>Items on your outstanding contracts that hand them over count as on hand until a buyer accepts. Off by default, for the same reason as sell orders.</value>
+    <comment>Tooltip on the Contracts Selling tick box in the Inventory Levels group editor.</comment>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>SELL ORDERS</value>
+    <comment>Inventory Levels grid column: units on the player's own open sell orders. Upper case like the other column headers.</comment>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>CONTRACTS SELLING</value>
+    <comment>Inventory Levels grid column: items on the player's own outstanding contracts that hand them over. Upper case like the other column headers.</comment>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>Sell orders</value>
+    <comment>Inventory Levels group row, short list of what the group counts: market sell orders.</comment>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>Contracts selling</value>
+    <comment>Inventory Levels group row, short list of what the group counts: contracts the player sells through.</comment>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>Only count packaged items (skip assembled / fitted hulls)</value>
     <comment>Button or option in AddEditInvGroupDialog.</comment>
@@ -245,7 +277,7 @@
     <comment>Column header in InvLevelView.</comment>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>CONTRACTS</value>
+    <value>CONTRACTS BUYING</value>
     <comment>Column header in InvLevelView.</comment>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
@@ -1070,11 +1102,11 @@ away: Edit list brings it back.</value>
     <comment>Inventory Levels, a group's summary of what it counts: industry jobs (abbreviation of Industry Jobs, keep short).</comment>
   </data>
   <data name="IncludeOrdersShort" xml:space="preserve">
-    <value>Orders</value>
+    <value>Buy orders</value>
     <comment>Inventory Levels, a group's summary of what it counts: market buy orders (keep short).</comment>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>Contracts</value>
+    <value>Contracts buying</value>
     <comment>Inventory Levels, a group's summary of what it counts: contracts buying (keep short).</comment>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">

@@ -29,9 +29,13 @@ public sealed record ShownPlace(string Name, string Region)
 
 public record InvTypeResult(int TypeId, string Name);
 
-public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, long Contracts = 0)
+/// <param name="Contracts">Contracts we are BUYING through: what they ask for.</param>
+/// <param name="SellOrders">Units still listed on our own open sell orders.</param>
+/// <param name="ContractsSelling">What our own outstanding contracts hand over.</param>
+public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, long Contracts = 0,
+                              long SellOrders = 0, long ContractsSelling = 0)
 {
-    public long Total => Assets + IndustryJobs + BuyOrders + Contracts;
+    public long Total => Assets + IndustryJobs + BuyOrders + Contracts + SellOrders + ContractsSelling;
 }
 
 /// <param name="IsBlueprint">⚠️ Which image the icon comes from. EVE's image server serves a
@@ -107,6 +111,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         g.IncludeIndustryJobs    = r.IncludeIndustryJobs;
         g.IncludeMarketBuyOrders = r.IncludeMarketBuyOrders;
         g.IncludeContractsBuying = r.IncludeContractsBuying;
+        g.IncludeMarketSellOrders = r.IncludeMarketSellOrders;
+        g.IncludeContractsSelling = r.IncludeContractsSelling;
         g.PackagedOnly           = r.PackagedOnly;
     }
 
@@ -503,6 +509,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         var anyJobs      = requests.Any(r => r.Group.IncludeIndustryJobs);
         var anyOrders    = requests.Any(r => r.Group.IncludeMarketBuyOrders);
         var anyContracts = requests.Any(r => r.Group.IncludeContractsBuying);
+        var anySells     = requests.Any(r => r.Group.IncludeMarketSellOrders);
+        var anySelling   = requests.Any(r => r.Group.IncludeContractsSelling);
 
         // ── Scope, once per distinct scope rather than per group ────────────
         var scopeFilters = new Dictionary<(string, long?), HashSet<long>?>();
@@ -514,7 +522,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         }
 
         // ── Assets: every row for the union, filtered per group below ───────
-        var bpTypeIds = anyAssets ? await BlueprintTypeIdsAsync(db, allTypes, ct) : [];
+        var bpTypeIds = anyAssets || anySelling ? await BlueprintTypeIdsAsync(db, allTypes, ct) : [];
 
         List<(long ItemId, int TypeId, int Quantity, long RootLocationId, bool IsSingleton)> assetRows = [];
         Dictionary<long, long> runsByItem = [];
@@ -644,6 +652,54 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     .ToList();
         }
 
+        // ── Market sell orders — active, ours ────────────────────────────────
+        // ⚠️ What is still listed, not what was: VolumeRemain. The units sold have left already,
+        // and the units listed have left the hangar into the market's escrow, so no asset row
+        // counts them twice.
+        List<(long OrderId, string OwnerType, int TypeId, int VolumeRemain, long LocationId)> sellRows = [];
+        if (anySells)
+            sellRows = (await db.EsiMarketOrders
+                .Where(o => !o.IsBuyOrder && !o.IsHistory && allTypes.Contains(o.TypeId)
+                         && ownerFilter.Contains(o.OwnerId))
+                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain, o.LocationId })
+                .ToListAsync(ct))
+                .Select(o => (o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain, o.LocationId))
+                .ToList();
+
+        // ── Contracts we are selling through ─────────────────────────────────
+        // The other half of the contracts above: the lines our own outstanding item exchanges and
+        // auctions HAND OVER (IsIncluded). Like a listed sell order, they have left the hangar —
+        // a contract takes its goods out of the asset list the moment it is made — and are ours
+        // until somebody accepts.
+        //
+        // ⚠️ Scoped by the contract's start location, unlike buying: that is where these goods
+        // physically sit, and where a station-scoped group would have counted them before the
+        // contract was made.
+        List<(int TypeId, long Quantity, bool IsSingleton, bool IsCopy, long Runs, long? Site)> sellingLines = [];
+        if (anySelling)
+        {
+            var selling = await db.EsiContracts.AsNoTracking()
+                .Where(c => c.Status == "outstanding"
+                         && (c.Type == "item_exchange" || c.Type == "auction")
+                         && ownerFilter.Contains(c.OwnerId)
+                         && ownerFilter.Contains(c.IssuerId))
+                .Select(c => new { c.ContractId, c.StartLocationId })
+                .ToListAsync(ct);
+            var siteOf = selling.GroupBy(c => c.ContractId).ToDictionary(g => g.Key, g => g.First().StartLocationId);
+            var ids    = siteOf.Keys.ToList();
+
+            if (ids.Count > 0)
+                sellingLines = (await db.EsiContractItems.AsNoTracking()
+                    .Where(i => ids.Contains(i.ContractId)
+                             && i.IsIncluded
+                             && allTypes.Contains(i.TypeId))
+                    .Select(i => new { i.ContractId, i.TypeId, i.Quantity, i.IsSingleton, i.IsBlueprintCopy, i.Runs })
+                    .ToListAsync(ct))
+                    .Select(i => (i.TypeId, i.Quantity, i.IsSingleton, i.IsBlueprintCopy == true,
+                                  (long)(i.Runs ?? 0), siteOf.GetValueOrDefault(i.ContractId)))
+                    .ToList();
+        }
+
         // ── Per group: the same filters the per-group queries applied, in memory ──
         foreach (var (group, typeIds) in requests)
         {
@@ -758,13 +814,52 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 foreach (var g in contractLines.Where(i => wanted.Contains(i.TypeId)).GroupBy(i => i.TypeId))
                     contracts[g.Key] = g.Sum(i => i.Quantity);
 
+            var sells = new Dictionary<int, long>();
+            if (group.IncludeMarketSellOrders)
+            {
+                var rows = sellRows.Where(o => wanted.Contains(o.TypeId));
+                if (stationFilter != null)
+                    rows = rows.Where(o => stationFilter.Contains(o.LocationId));
+
+                // One order, two rows, as with buy orders above: the corporation's row wins.
+                foreach (var g in rows
+                             .GroupBy(o => o.OrderId)
+                             .Select(g => g.Any(o => o.OwnerType == "corporation") ? g.First(o => o.OwnerType == "corporation") : g.First())
+                             .GroupBy(o => o.TypeId))
+                    sells[g.Key] = g.Sum(o => (long)o.VolumeRemain);
+            }
+
+            var selling = new Dictionary<int, long>();
+            if (group.IncludeContractsSelling)
+            {
+                var rows = sellingLines.Where(i => wanted.Contains(i.TypeId));
+                if (stationFilter != null)
+                    rows = rows.Where(i => i.Site is long site && stationFilter.Contains(site));
+
+                // The asset rules: assembled skipped when the group wants packaged only, and a
+                // blueprint counted in the runs its copies carry — an original counts for nothing.
+                foreach (var i in rows)
+                {
+                    long units;
+                    if (bpTypeIds.Contains(i.TypeId))
+                        units = i.IsCopy ? i.Runs * Math.Max(1, i.Quantity) : 0;
+                    else if ((packagedOnly || group.PackagedOnly) && i.IsSingleton)
+                        continue;
+                    else
+                        units = i.Quantity;
+                    selling[i.TypeId] = selling.GetValueOrDefault(i.TypeId) + units;
+                }
+            }
+
             result[group.Id] = typeIds.Distinct().ToDictionary(
                 id => id,
                 id => new InvAvailability(
                     assets.GetValueOrDefault(id),
                     jobs.GetValueOrDefault(id),
                     orders.GetValueOrDefault(id),
-                    contracts.GetValueOrDefault(id)));
+                    contracts.GetValueOrDefault(id),
+                    sells.GetValueOrDefault(id),
+                    selling.GetValueOrDefault(id)));
         }
 
         return result;

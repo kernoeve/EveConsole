@@ -26,6 +26,14 @@ public class InvLevelGroup
     public bool   IncludeMarketBuyOrders { get; set; } = true;
     public bool   IncludeContractsBuying { get; set; }
 
+    /// <summary>Units still listed on our own open market SELL orders. Off by default: listed stock
+    /// is on its way out, and counted as on hand a level would not restock until it sold.</summary>
+    public bool   IncludeMarketSellOrders { get; set; }
+
+    /// <summary>Items our own outstanding contracts hand over — contracts we are selling through.
+    /// Off by default, for the same reason as sell orders.</summary>
+    public bool   IncludeContractsSelling { get; set; }
+
     /// <summary>
     /// Count only PACKAGED items, skipping assembled and fitted hulls.
     ///

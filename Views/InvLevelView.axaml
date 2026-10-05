@@ -409,6 +409,34 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- SELL ORDERS -->
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSellOrders}" Width="90" MinWidth="90" Tag="SellOrders" IsReadOnly="True" ClipboardContentBinding="{Binding SellOrdersText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding SellOrdersText}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- CONTRACTS SELLING -->
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColContractsSelling}" Width="90" MinWidth="90" Tag="ContractsSelling" IsReadOnly="True" ClipboardContentBinding="{Binding ContractsSellingText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding ContractsSellingText}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- MARKET PRICE -->
         <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColMktPrice}" Width="119" MinWidth="119" Tag="MarketPrice" IsReadOnly="True" ClipboardContentBinding="{Binding MarketPriceText}">
           <DataGridTemplateColumn.CellTemplate>

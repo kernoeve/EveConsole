@@ -98,6 +98,14 @@
           <CheckBox x:Name="IncludeContractsBox"
                     Content="{x:Static loc:AssetsText.ContractsBuying}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
+          <CheckBox x:Name="IncludeSellOrdersBox"
+                    Content="{x:Static loc:AssetsText.MarketSellOrders}"
+                    ToolTip.Tip="{x:Static loc:AssetsText.TipMarketSellOrders}"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
+          <CheckBox x:Name="IncludeContractsSellingBox"
+                    Content="{x:Static loc:AssetsText.ContractsSelling}"
+                    ToolTip.Tip="{x:Static loc:AssetsText.TipContractsSelling}"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="PackagedOnlyBox"
                     Content="{x:Static loc:AssetsText.OnlyCountPackagedItems}"
                     ToolTip.Tip="{x:Static loc:AssetsText.TipBlueprintsAreNeverFiltered}"
