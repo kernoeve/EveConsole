@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Pinned to the app's Avalonia: the check drives the real DataGrid, and the fault it
          guards lives in that control's row recycling. -->
-    <PackageReference Include="Avalonia.Headless" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Headless" Version="11.3.22" />
     <ProjectReference Include="..\..\EveConsole.csproj" />
   </ItemGroup>
 
