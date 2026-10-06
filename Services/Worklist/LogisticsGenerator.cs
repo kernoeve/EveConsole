@@ -215,7 +215,99 @@ public class LogisticsGenerator(
             drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId).Where(t => t > 0)
                    .Distinct().ToList(), ct);
 
-        return Tasks(moves, names, places, drivers, driverNames);
+        // Which kind of trip each pair of stations is, and how its lane is set to make it.
+        var trips = await TripsAsync(db,
+            moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To)), systems, ct);
+
+        return Tasks(moves, names, places, drivers, driverNames, trips);
+    }
+
+    /// <summary>
+    /// How one pair of stations is travelled: its lane, the gates between them, and the lane's
+    /// method, lead pilot and ship.
+    /// </summary>
+    private sealed record Trip(
+        HaulLane Lane, int Jumps, HaulMethod Method,
+        long PilotId, string PilotName, int Pilots,
+        int ShipTypeId, string ShipName, double Capacity);
+
+    /// <summary>
+    /// Sorts each pair of stations into its lane and stamps the lane's set-up on it.
+    ///
+    /// <para>Lanes are by gate jumps — jump bridges are not in the gate graph — so a hub a bridge
+    /// brings close still reads by its gate distance. Anything without a known route, an
+    /// unresolved structure or a wormhole, is long distance: a trip whose length nobody can say
+    /// is not one to plan as a quick hop.</para>
+    ///
+    /// <para>⚠️ The current ship is the LEAD pilot's, read from the status the poller keeps: the
+    /// trip is sized for what they are actually sitting in, which is what "use current hull" was
+    /// asked to mean. Someone docked in a capsule sizes nothing, rather than a guess.</para>
+    /// </summary>
+    private async Task<Dictionary<(long From, long To), Trip>> TripsAsync(
+        AppDbContext db, IEnumerable<(long From, long To)> pairs, Dictionary<long, int> systems,
+        CancellationToken ct)
+    {
+        var near  = settings.HaulNearJumps;
+        var lanes = new[] { HaulLane.InSystem, HaulLane.Nearby, HaulLane.LongDistance }
+            .ToDictionary(l => l, settings.HaulLaneFor);
+
+        // Who is set for each lane and still set up here, in the order given.
+        var pilotIds = lanes.Values.SelectMany(l => l.CharacterIds).Distinct().ToList();
+        var known    = await db.Characters.AsNoTracking()
+            .Where(c => pilotIds.Contains(c.Id))
+            .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+        var crew = lanes.ToDictionary(kv => kv.Key, kv => kv.Value.CharacterIds.Where(known.ContainsKey).ToList());
+
+        var leads  = crew.Values.Where(c => c.Count > 0).Select(c => c[0]).Distinct().ToList();
+        var flying = await db.CharacterStatuses.AsNoTracking()
+            .Where(x => leads.Contains(x.CharacterId) && x.ShipTypeId != null)
+            .ToDictionaryAsync(x => x.CharacterId, x => x.ShipTypeId!.Value, ct);
+
+        var hullIds = lanes.Values.Select(l => l.ShipTypeId).Where(t => t > 0).Concat(flying.Values).Distinct().ToList();
+        var hulls   = await db.SdeTypes.AsNoTracking()
+            .Where(t => hullIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => (t.Name, t.Capacity), ct);
+
+        var distances = new Dictionary<int, Dictionary<int, int>>();
+        var trips     = new Dictionary<(long From, long To), Trip>();
+
+        foreach (var (from, to) in pairs.Distinct())
+        {
+            var a = systems.GetValueOrDefault(from);
+            var b = systems.GetValueOrDefault(to);
+
+            int gates;
+            if (a != 0 && a == b)       gates = 0;
+            else if (a == 0 || b == 0)  gates = -1;
+            else
+            {
+                if (!distances.TryGetValue(b, out var d))
+                    distances[b] = d = await jumps.JumpsFromAsync(b, ct: ct);
+                gates = d.TryGetValue(a, out var g) ? g : -1;
+            }
+
+            var lane = gates == 0                 ? HaulLane.InSystem
+                     : gates > 0 && gates <= near ? HaulLane.Nearby
+                     :                              HaulLane.LongDistance;
+
+            var set    = lanes[lane];
+            var pilots = crew[lane];
+            var lead   = pilots.Count > 0 ? pilots[0] : 0;
+
+            var hull = !set.NeedsShip             ? 0
+                     : !set.UsesCurrentShip       ? set.ShipTypeId
+                     : flying.GetValueOrDefault(lead);
+            var (shipName, hold) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
+
+            trips[(from, to)] = new Trip(
+                lane, gates, set.Method,
+                lead, lead > 0 ? known[lead] : "", pilots.Count,
+                hull, shipName,
+                // A hold typed for the lane is the fitted, skilled truth; the SDE's is the bare hull's.
+                set.NeedsShip && set.CargoM3 > 0 ? set.CargoM3 : hold);
+        }
+
+        return trips;
     }
 
     /// <summary>
@@ -1054,7 +1146,8 @@ public class LogisticsGenerator(
     private List<WorklistItem> Tasks(
         List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places,
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
-        Dictionary<int, string> driverNames)
+        Dictionary<int, string> driverNames,
+        Dictionary<(long From, long To), Trip> trips)
     {
         var items = new List<WorklistItem>();
 
@@ -1069,6 +1162,7 @@ public class LogisticsGenerator(
                             .ToList();
             var reason = run.Min(m => m.Reason);   // the best cargo sets the worth of the run
 
+            var trip = trips.GetValueOrDefault(run.Key);
             var from = places.GetValueOrDefault(run.Key.From, string.Format(WorklistText.LocationWithId, run.Key.From));
             var to   = places.GetValueOrDefault(run.Key.To,   string.Format(WorklistText.LocationWithId, run.Key.To));
 
@@ -1111,6 +1205,17 @@ public class LogisticsGenerator(
                 LocationName    = from,
                 DestinationId   = run.Key.To,
                 DestinationName = to,
+                // The lane's lead pilot, so a haul shows under whoever flies it — and is no longer
+                // hidden by a character filter for want of anyone's name on it.
+                CharacterId     = trip?.PilotId ?? 0,
+                CharacterName   = trip?.PilotName ?? "",
+                Lane            = trip?.Lane ?? HaulLane.LongDistance,
+                HaulJumps       = trip?.Jumps ?? -1,
+                HaulMethod      = trip?.Method ?? HaulMethod.Service,
+                HaulShipTypeId  = trip?.ShipTypeId ?? 0,
+                HaulShipName    = trip?.ShipName ?? "",
+                HaulCapacity    = trip?.Capacity ?? 0,
+                HaulPilots      = trip?.Pilots ?? 0,
                 Lines        = cargo
                     .Select(c => new WorklistLine(
                         c.TypeId,

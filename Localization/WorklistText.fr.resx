@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Transport</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Transport — dans le système</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Transport — à proximité</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Transport — longue distance</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Retraitement</value>
   </data>
@@ -1890,6 +1899,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>Pour des travaux prévus à destination.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>Dans le système</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Systèmes proches</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Longue distance</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Service de transport</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Transport de fret par ponts interstellaires</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Transport de fret hyperspatial</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Par les portails stellaires</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Le piloter</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} saut(s)</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>aucun itinéraire par portail</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} chargement(s)</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} chargements, {2:N0} chacun pour {1:N0} pilotes</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Comment ce type de trajet est configuré dans Configuration → Transport : la méthode et les sauts entre systèmes, le vaisseau, et le nombre de soutes que remplit la cargaison. Les chargements sont le volume divisé par la soute, arrondi au supérieur.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Principal</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Déplacer des marchandises entre structures d'un même système au fil des travaux terminés. Planifié depuis la position actuelle du pilote, dans son vaisseau actuel, soute vide.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Trajets vers les systèmes jusqu'à la limite de sauts ci-dessus.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Tout ce qui est plus loin, ou sans itinéraire par portail — en général les places de marché.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Coque {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Vaisseau actuel du pilote</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>soute de {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Comment chaque type de trajet est effectué et qui le pilote. Enregistré à chaque modification ; la liste de travail se reconstruit peu après.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Proche signifie jusqu'à</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>sauts de portail ; au-delà, c'est la longue distance.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Seuls les portails stellaires comptent — pas les ponts interstellaires.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Méthode</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Vaisseau</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Soute (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Celle de la coque</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>Le vaisseau qui sert à dimensionner les trajets. Le vaisseau actuel est lu dans le jeu pour le premier pilote de la liste.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>La soute utilisée pour planifier. Laissez vide pour la soute de base de la coque, sans extensions, modifications, compétences ni hangar de flotte d'un transport.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Pilotes</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Monter dans la liste</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Retirer de ce type de trajet</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Ajouter un pilote…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Remet la station à son niveau.</value>

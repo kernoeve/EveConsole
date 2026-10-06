@@ -154,7 +154,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     public string KindText => _item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,
-        WorklistKind.Haul        => WorklistText.KindHaul,
+        // A heading of its own per kind of trip: the loop flown between structures, a run a few
+        // gates over and an import from the far side of the map are three different errands.
+        WorklistKind.Haul        => _item.Lane switch
+        {
+            HaulLane.InSystem     => WorklistText.KindHaulInSystem,
+            HaulLane.Nearby       => WorklistText.KindHaulNearby,
+            HaulLane.LongDistance => WorklistText.KindHaulLongDistance,
+            _                     => WorklistText.KindHaul,
+        },
         WorklistKind.Refine      => WorklistText.KindRefine,
         WorklistKind.Decompress  => WorklistText.KindDecompress,
         WorklistKind.Job         => WorklistText.KindJob,
@@ -375,6 +383,50 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 
     public string RouteText => $"{_item.LocationName}  →  {_item.DestinationName}";
 
+    /// <summary>
+    /// How the haul's lane will make the trip: the method and the gates for a trip between
+    /// systems, then the ship and how many loads the cargo comes to.
+    ///
+    /// <para>The load count is the volume over the hold, rounded up, shared between the lane's
+    /// pilots when there are several. Left out when either is unknown — a hauling service, a
+    /// pilot in a capsule, a lane with no pilot set — rather than guessed.</para>
+    /// </summary>
+    public string HaulPlanText
+    {
+        get
+        {
+            if (!IsHaul) return "";
+            var parts = new List<string>();
+
+            if (_item.Lane != HaulLane.InSystem)
+            {
+                parts.Add(HaulLaneText.Method(_item.HaulMethod));
+                parts.Add(_item.HaulJumps > 0 ? string.Format(WorklistText.HaulJumps, _item.HaulJumps)
+                                              : WorklistText.HaulNoGateRoute);
+            }
+
+            if (_item.HaulShipName.Length > 0)
+                parts.Add(SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName));
+
+            if (_item.HaulCapacity > 0 && _item.Volume > 0)
+            {
+                var loads = (int)Math.Ceiling(_item.Volume / _item.HaulCapacity);
+
+                // Shared only when there is more than one load to share, and among no more pilots
+                // than there are loads: one load is one pilot's trip however many are listed.
+                var pilots = Math.Min(_item.HaulPilots, loads);
+                parts.Add(pilots > 1
+                    ? string.Format(WorklistText.HaulLoadsShared, loads, pilots,
+                                    (int)Math.Ceiling(loads / (double)pilots))
+                    : string.Format(WorklistText.HaulLoads, loads));
+            }
+
+            return string.Join(" · ", parts);
+        }
+    }
+
+    public bool HasHaulPlan => HaulPlanText.Length > 0;
+
     /// <summary>What the task is worth — the goods hauled, the purchase, the job's output.
     ///
     /// <para>Blank rather than zero when unpriced. Science jobs are the case that matters: a
@@ -410,8 +462,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     ///
     /// <para>Sorted on rather than <see cref="KindText"/> so the groups do not fall into
     /// alphabetical order, which would put Buy before Haul for no reason a reader could name.</para>
+    ///
+    /// <para>Hauls split by lane within their place, in system first.</para>
     /// </summary>
-    public int KindRank => (int)_item.Kind;
+    public int KindRank => (int)_item.Kind * 10 + (int)_item.Lane;
 
     /// <summary>
     /// The row's leading edge bar.
@@ -1587,6 +1641,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>Config → Hauling: how each kind of trip is made, and by whom.</summary>
+    public WorklistHaulingViewModel HaulingVm { get; }
+
     /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
     public WorklistFinalProductsViewModel FinalProductsVm { get; }
 
@@ -1603,6 +1660,7 @@ public class WorklistViewModel : ReactiveObject
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels,
                              WorklistFinalProductsViewModel finalProducts,
+                             WorklistHaulingViewModel hauling,
                              BottleneckService bottlenecks,
                              ItemContentionService itemContention,
                              HaulPressureService   haulPressure)
@@ -1653,6 +1711,8 @@ public class WorklistViewModel : ReactiveObject
         StationLevelsVm = stationLevels;
         FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
+        HaulingVm = hauling;
+        HaulingVm.HaulingChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.

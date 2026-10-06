@@ -278,6 +278,78 @@ public class WorklistSettings(AppPreferencesService prefs)
             ? Math.Clamp(v, 0, 100)
             : 10.0;
 
+    // ── Hauling lanes ─────────────────────────────────────────────────────────
+    //
+    // How each kind of trip is made, and by whom. Shared like the rest of the worklist's settings:
+    // they describe the operation, not the machine the list happens to be read on.
+
+    public const string HaulNearJumpsKey = "worklist.hauling.near_jumps";
+
+    /// <summary>
+    /// The most gates a haul between two systems may take and still count as nearby; anything
+    /// further, or with no gate route known, is long distance. Fifteen by default.
+    /// </summary>
+    public int HaulNearJumps => (int)Math.Clamp(prefs.GetLong(HaulNearJumpsKey, 15), 1, 100);
+
+    public Task SetHaulNearJumpsAsync(int jumps) =>
+        prefs.SetAsync(HaulNearJumpsKey, Math.Clamp(jumps, 1, 100).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    private static string LaneKey(HaulLane lane, string part) => lane switch
+    {
+        HaulLane.InSystem => $"worklist.hauling.in_system.{part}",
+        HaulLane.Nearby   => $"worklist.hauling.nearby.{part}",
+        _                 => $"worklist.hauling.long_distance.{part}",
+    };
+
+    /// <summary>
+    /// One lane's set-up, with the defaults it starts on: in system flown in the pilot's current
+    /// ship, nearby through the gates, long distance by a hauling service.
+    ///
+    /// <para>⚠️ Inside one system the method is always <see cref="HaulMethod.Fly"/>, whatever is
+    /// stored: there is nothing to contract, bridge or jump.</para>
+    /// </summary>
+    public HaulLaneSettings HaulLaneFor(HaulLane lane)
+    {
+        var fallback = lane switch
+        {
+            HaulLane.LongDistance => HaulMethod.Service,
+            HaulLane.Nearby       => HaulMethod.Gating,
+            _                     => HaulMethod.Fly,
+        };
+        var method = lane == HaulLane.InSystem ? HaulMethod.Fly
+                   : Enum.TryParse<HaulMethod>(prefs.Get(LaneKey(lane, "method")), out var m) && m != HaulMethod.Fly ? m
+                   : fallback;
+
+        var cargo = prefs.Get(LaneKey(lane, "cargo_m3")) is { Length: > 0 } c
+                    && double.TryParse(c, System.Globalization.NumberStyles.Float,
+                                       System.Globalization.CultureInfo.InvariantCulture, out var v) && v > 0
+            ? v : 0;
+
+        var chars = (prefs.Get(LaneKey(lane, "characters")) ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => long.TryParse(s, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        return new HaulLaneSettings(lane, method, (int)prefs.GetLong(LaneKey(lane, "ship_type_id"), 0), cargo, chars);
+    }
+
+    public Task SetHaulMethodAsync(HaulLane lane, HaulMethod method) =>
+        prefs.SetAsync(LaneKey(lane, "method"), method.ToString());
+
+    /// <summary>0 plans in whatever the pilot is flying.</summary>
+    public Task SetHaulShipAsync(HaulLane lane, int shipTypeId) =>
+        prefs.SetAsync(LaneKey(lane, "ship_type_id"), Math.Max(0, shipTypeId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>0 takes the hull's own hold.</summary>
+    public Task SetHaulCargoAsync(HaulLane lane, double m3) =>
+        prefs.SetAsync(LaneKey(lane, "cargo_m3"), Math.Max(0, m3).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>In order: the first is the pilot used when only one is needed.</summary>
+    public Task SetHaulCharactersAsync(HaulLane lane, IEnumerable<long> characterIds) =>
+        prefs.SetAsync(LaneKey(lane, "characters"), string.Join(",", characterIds.Where(id => id > 0).Distinct()));
+
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it
     /// is short enough that a split actually happens on the long component runs that prompted

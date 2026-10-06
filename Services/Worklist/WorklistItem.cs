@@ -253,6 +253,30 @@ public sealed record WorklistItem
     public long   DestinationId   { get; init; }
     public string DestinationName { get; init; } = "";
 
+    // ── A haul's kind of trip, and how its lane is set to make it ─────────────
+    //
+    // Stamped by the logistics generator from the lane's settings, so the row can say how the
+    // trip will be made without the list knowing anything about settings.
+
+    /// <summary>In system, nearby or long distance. <see cref="HaulLane.None"/> on anything not a haul.</summary>
+    public HaulLane Lane { get; init; }
+
+    /// <summary>Gates between the two ends: 0 in one system, -1 when no route is known.</summary>
+    public int HaulJumps { get; init; }
+
+    public HaulMethod HaulMethod { get; init; }
+
+    /// <summary>The hull the trip is sized for — the lane's chosen hull or the pilot's current
+    /// one. Empty when there is none to size by: a hauling service, or no pilot set.</summary>
+    public int    HaulShipTypeId { get; init; }
+    public string HaulShipName   { get; init; } = "";
+
+    /// <summary>The hold the trip is sized with, in m³; 0 when unknown.</summary>
+    public double HaulCapacity { get; init; }
+
+    /// <summary>Pilots set for the lane. More than one shares the trips.</summary>
+    public int HaulPilots { get; init; }
+
     public int    TypeId   { get; init; }
     public string TypeName { get; init; } = "";
 

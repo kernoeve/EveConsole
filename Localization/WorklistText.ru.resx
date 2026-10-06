@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Перевозка</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Перевозка — внутри системы</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Перевозка — поблизости</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Перевозка — дальняя</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Переработка</value>
   </data>
@@ -1920,6 +1929,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>Для работ, запланированных в пункте назначения.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>Внутри системы</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Ближние системы</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Дальние перевозки</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Служба перевозок</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Фрейтер через гипермосты</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Джамп-фрейтер</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Через звёздные врата</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Самостоятельно</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>Прыжков: {0:N0}</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>нет маршрута через врата</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>Рейсов: {0:N0}</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>Рейсов: {0:N0}, по {2:N0} на каждого из {1:N0} пилотов</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Как этот вид перевозки настроен в «Настройка → Перевозки»: способ и число прыжков между системами, корабль и сколько полных трюмов занимает груз. Рейсы — объём, делённый на трюм, с округлением вверх.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Основной</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Перемещение грузов между структурами одной системы по мере завершения работ. Планируется от текущего местоположения пилота, на его текущем корабле, с пустым трюмом.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Перевозки в системы в пределах указанного выше лимита прыжков.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Всё, что дальше или без маршрута через врата, — обычно торговые узлы.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Корпус {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Текущий корабль пилота</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>трюм {0:N0} м³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Как выполняется каждый вид перевозки и кто её выполняет. Сохраняется при изменении; рабочий список перестраивается чуть позже.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Поблизости — до</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>прыжков через врата; всё дальше — дальние перевозки.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Считаются только звёздные врата, гипермосты не учитываются.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Способ</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Трюм (м³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Как у корпуса</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>Корабль, по которому считаются рейсы. Текущий корабль берётся из игры для первого пилота в списке.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>Трюм для планирования. Оставьте пустым, чтобы взять базовый трюм корпуса — без расширителей, модификаторов, навыков и флотского ангара транспорта.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Поднять в списке</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Убрать из этого вида перевозок</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Добавить пилота…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Пополняет станцию до её уровня.</value>

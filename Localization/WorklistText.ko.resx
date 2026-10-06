@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>운반</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>운반 — 항성계 내</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>운반 — 근거리</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>운반 — 장거리</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>정제</value>
   </data>
@@ -1875,6 +1884,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>목적지에서 계획된 작업용입니다.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>항성계 내</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>근처 항성계</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>장거리</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>운송 서비스</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>점프 브릿지를 쓰는 프레이터</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>점프 프레이터</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>스타게이트 경유</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>직접 비행</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0}점프</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>게이트 경로 없음</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0}회분</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0}회분, 파일럿 {1:N0}명이 각 {2:N0}회</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>구성 → 운반에서 이 종류의 운반을 어떻게 설정했는지: 항성계 간 방식과 점프 수, 함선, 화물이 화물칸 몇 번 분량인지. 횟수는 부피를 화물칸 용량으로 나눠 올림한 값입니다.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>주</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>작업이 끝나는 대로 한 항성계 안의 구조물 사이에서 물건을 옮깁니다. 파일럿의 현재 위치와 현재 함선에서, 화물칸이 빈 상태로 계획합니다.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>위에서 정한 점프 한도 이내의 항성계로 가는 운반.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>그보다 먼 곳이나 게이트 경로가 없는 곳 — 대개는 거래 허브입니다.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>선체 {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>파일럿의 현재 함선</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>화물칸 {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>운반 종류별 방식과 담당 파일럿. 바꾸는 즉시 저장되며, 잠시 후 작업 목록이 다시 만들어집니다.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>근거리 기준 최대</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>게이트 점프. 그보다 멀면 장거리입니다.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>스타게이트만 셉니다. 점프 브릿지는 포함하지 않습니다.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>방식</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>화물칸 (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>선체 기본값</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>운반 횟수를 계산할 함선. 현재 함선은 목록의 첫 번째 파일럿에 대해 게임에서 읽어옵니다.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>계획에 쓸 화물칸 용량. 비워 두면 선체 기본 화물칸을 씁니다(확장 모듈, 리그, 스킬, 수송함의 함대 격납고는 제외).</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>파일럿</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>위로 이동</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>이 운반에서 제거</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>파일럿 추가…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>정거장을 재고 수준까지 채웁니다.</value>

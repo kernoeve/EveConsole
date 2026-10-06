@@ -1032,6 +1032,18 @@
     <value>Haul</value>
     <comment>Task kind: moving goods to another station. Group heading and filter option on the Worklist, and the task-kind icon's tooltip.</comment>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Haul — in system</value>
+    <comment>Worklist group heading and type filter: hauls with both ends in one solar system.</comment>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Haul — nearby</value>
+    <comment>Worklist group heading and type filter: hauls between systems within the nearby jump limit.</comment>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Haul — long distance</value>
+    <comment>Worklist group heading and type filter: hauls further than the nearby jump limit, or with no gate route.</comment>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Refine</value>
     <comment>Task kind: reprocessing ore. Group heading and filter option on the Worklist.</comment>
@@ -2511,6 +2523,142 @@
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>For work planned at the destination.</value>
     <comment>Worklist haul detail: the cargo is material for builds or invention the worklist plans at the destination; no stopped job is restarted by it alone.</comment>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>In system</value>
+    <comment>Hauling settings: lane title for trips between structures in one system.</comment>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Nearby systems</value>
+    <comment>Hauling settings: lane title for trips to systems within the nearby jump limit.</comment>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Long distance</value>
+    <comment>Hauling settings: lane title for trips beyond the nearby jump limit.</comment>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Hauling service</value>
+    <comment>Hauling method: a courier contract for a player hauling service.</comment>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Bridged freighter</value>
+    <comment>Hauling method: a freighter travelling through jump bridges.</comment>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Jump freighter</value>
+    <comment>Hauling method: a jump freighter.</comment>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Through the gates</value>
+    <comment>Hauling method: flying through stargates.</comment>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Fly it</value>
+    <comment>Hauling method inside one system: a pilot flies the cargo.</comment>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} jump(s)</value>
+    <comment>Haul row: gate jumps between the two ends, {0} = count.</comment>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>no gate route</value>
+    <comment>Haul row: no stargate route is known between the two ends.</comment>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} load(s)</value>
+    <comment>Haul row: how many full holds the cargo comes to, {0} = count.</comment>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} loads, {2:N0} each for {1:N0} pilots</value>
+    <comment>Haul row: {0} = full holds the cargo comes to, {1} = pilots set for the lane, {2} = loads per pilot.</comment>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>How this kind of trip is set up in Config → Hauling: the method and gate jumps between systems, the ship, and how many holds the cargo fills. Loads are the volume over the hold, rounded up.</value>
+    <comment>Tooltip on the haul plan text beside a haul's route.</comment>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Primary</value>
+    <comment>Hauling settings: the first pilot in a lane's list, used when only one is needed.</comment>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Moving things between structures in one system, as jobs finish. Planned from where the pilot is now, in the ship they are in, with an empty hold.</value>
+    <comment>Hauling settings: note under the In system lane.</comment>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Trips to systems up to the jump limit above.</value>
+    <comment>Hauling settings: note under the Nearby systems lane.</comment>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Anything further, or with no gate route — usually the market hubs.</value>
+    <comment>Hauling settings: note under the Long distance lane.</comment>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Hull {0}</value>
+    <comment>Hauling settings: a stored hull with no name in the list, {0} = its type id.</comment>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Pilot's current ship</value>
+    <comment>Hauling settings ship choice: plan in whatever the lead pilot is flying.</comment>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>{0:N0} m³ hold</value>
+    <comment>Hauling settings ship list: the hull's own cargo hold, {0} = m³.</comment>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>How each kind of trip is made and who flies it. Saved as you change it; the worklist rebuilds a moment later.</value>
+    <comment>Hauling settings: introduction at the top of the tab.</comment>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Nearby means up to</value>
+    <comment>Hauling settings: label before the nearby jump limit box.</comment>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>gate jumps; anything further is long distance.</value>
+    <comment>Hauling settings: text after the nearby jump limit box.</comment>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Counted by stargates only — jump bridges are not included.</value>
+    <comment>Tooltip on the nearby jump limit box.</comment>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Method</value>
+    <comment>Hauling settings: label above the method box.</comment>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Hauling settings: label above the ship box.</comment>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Hold (m³)</value>
+    <comment>Hauling settings: label above the cargo hold box.</comment>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Hull's own</value>
+    <comment>Hauling settings: placeholder in the hold box when empty — the hull's own hold is used.</comment>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>The ship to size trips by. The pilot's current ship is read from the game for the first pilot listed.</value>
+    <comment>Tooltip on the hauling ship box.</comment>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>The hold to plan with. Leave empty to use the hull's base cargo hold, which leaves out expanders, rigs, skills and a transport's fleet hangar.</value>
+    <comment>Tooltip on the hauling hold box.</comment>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Hauling settings: label above a lane's list of pilots.</comment>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Move up the list</value>
+    <comment>Hauling settings: tooltip on the button moving a pilot up.</comment>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Remove from this lane</value>
+    <comment>Hauling settings: tooltip on the button removing a pilot from a lane.</comment>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Add a pilot…</value>
+    <comment>Hauling settings: placeholder of the box that adds a pilot to a lane.</comment>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Tops the station up to its level.</value>

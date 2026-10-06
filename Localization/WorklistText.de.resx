@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Transport</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Transport — im System</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Transport — in der Nähe</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Transport — Fernstrecke</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Aufbereiten</value>
   </data>
@@ -1890,6 +1899,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>Für geplante Arbeiten am Zielort.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>Im System</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Nahe Systeme</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Fernstrecke</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Transportdienst</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Frachter über Sprungbrücken</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Sprung-Frachter</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Durch die Sprungtore</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Selbst fliegen</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} Sprung/Sprünge</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>keine Torroute</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} Ladung(en)</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} Ladungen, je {2:N0} für {1:N0} Piloten</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Wie diese Art Fahrt unter Konfiguration → Transport eingerichtet ist: Methode und Sprünge zwischen Systemen, das Schiff und wie viele Laderaumfüllungen die Fracht ergibt. Ladungen sind das Volumen geteilt durch den Laderaum, aufgerundet.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Primär</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Waren zwischen Strukturen in einem System bewegen, sobald Aufträge fertig werden. Geplant ab dem aktuellen Standort des Piloten, im aktuellen Schiff, mit leerem Laderaum.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Fahrten in Systeme bis zur oben eingestellten Sprunggrenze.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Alles Weitere oder ohne Torroute — meist die Handelszentren.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Rumpf {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Aktuelles Schiff des Piloten</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>{0:N0} m³ Laderaum</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Wie jede Art Fahrt erledigt wird und wer sie fliegt. Wird beim Ändern gespeichert; die Arbeitsliste wird kurz danach neu erstellt.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>In der Nähe heißt bis zu</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>Torsprünge; alles Weitere ist Fernstrecke.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Nur Sprungtore zählen — Sprungbrücken nicht.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Methode</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Laderaum (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Rumpfeigener</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>Das Schiff, nach dem die Fahrten bemessen werden. Das aktuelle Schiff wird für den ersten aufgeführten Piloten aus dem Spiel gelesen.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>Der Laderaum für die Planung. Leer lassen für den Grundladeraum des Rumpfes – ohne Erweiterungen, Modifikationen, Fertigkeiten und den Flottenhangar eines Transporters.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>In der Liste nach oben</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Aus dieser Strecke entfernen</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Piloten hinzufügen…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Füllt die Station auf ihren Sollbestand auf.</value>

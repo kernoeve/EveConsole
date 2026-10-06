@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>运送</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>运送 — 星系内</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>运送 — 邻近星系</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>运送 — 长途</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>精炼</value>
   </data>
@@ -1875,6 +1884,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>供目的地计划中的工作使用。</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>星系内</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>邻近星系</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>长途</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>运输服务</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>货舰走跳跃桥接</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>战略货舰</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>走星门</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>自行驾驶</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} 跳</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>无星门航线</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} 趟</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>共 {0:N0} 趟，{1:N0} 名飞行员每人 {2:N0} 趟</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>此类运输在“配置 → 运输”中的设置：星系之间的方式与星门跳数、舰船，以及货物需要装满几次货舱。趟数为体积除以货舱容量后向上取整。</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>主要</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>在同一星系的建筑之间搬运，随任务完成而进行。从飞行员当前位置、当前舰船出发规划，并假定货舱为空。</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>前往上方跳数上限以内的星系。</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>更远的，或没有星门航线的——通常是贸易中心。</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>舰船 {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>飞行员当前舰船</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>货舱 {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>每种运输的方式以及由谁执行。更改即保存；工作清单会在片刻后重建。</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>邻近指最多</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>次星门跳跃；更远的算长途。</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>只计算星门跳跃，不包括跳跃桥接。</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>方式</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>货舱 (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>按舰船自身</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>用来计算趟数的舰船。飞行员当前舰船取自列表中第一位飞行员在游戏中的状态。</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>用于规划的货舱容量。留空则使用舰船的基础货舱，不含扩展装置、改装件、技能以及运输舰的舰队机库。</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>从此类运输中移除</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>添加飞行员…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>把空间站的库存补充到设定水平。</value>

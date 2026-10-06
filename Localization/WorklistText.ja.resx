@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>運搬</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>運搬 — 星系内</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>運搬 — 近隣</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>運搬 — 長距離</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>再処理</value>
   </data>
@@ -1875,6 +1884,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>目的地で予定されている作業用です。</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>星系内</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>近隣の星系</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>長距離</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>輸送サービス</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>ジャンプブリッジ経由の超大型輸送艦</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>ジャンプドライブ搭載型輸送艦</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>スターゲート経由</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>自分で飛ぶ</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0}ジャンプ</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>ゲート経路なし</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0}回分</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0}回分、パイロット{1:N0}人で各{2:N0}回</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>設定 → 運搬 でのこの種類の運搬の設定：星系間の方法とジャンプ数、艦船、積荷が何回分のカーゴになるか。回数は容積をカーゴ容量で割って切り上げた値です。</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>メイン</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>ジョブの完了に合わせて、同じ星系内のストラクチャー間で物を動かします。パイロットの現在地と現在の艦船から、カーゴが空の状態で計画します。</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>上で設定したジャンプ数以内の星系への運搬。</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>それより遠いもの、またはゲート経路のないもの——たいていは交易ハブです。</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>艦船 {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>パイロットの現在の艦船</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>カーゴ {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>運搬の種類ごとの方法と担当パイロット。変更するとすぐ保存され、少し後にワークリストが再作成されます。</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>近隣とする上限</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>ゲートジャンプ。それより遠いものは長距離です。</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>スターゲートのみで数えます。ジャンプブリッジは含みません。</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>方法</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>カーゴ (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>艦船の既定値</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>運搬回数を計算する艦船。現在の艦船は、リストの最初のパイロットについてゲームから読み取ります。</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>計画に使うカーゴ容量。空欄なら艦船の基本カーゴを使います（拡張モジュール、リグ、スキル、輸送艦のフリートハンガーは含みません）。</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>この運搬から外す</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>パイロットを追加…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>ステーションを在庫レベルまで補充します。</value>

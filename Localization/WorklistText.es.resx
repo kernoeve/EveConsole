@@ -775,6 +775,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Transporte</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Transporte — en el sistema</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Transporte — cercano</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Transporte — larga distancia</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Refinado</value>
   </data>
@@ -1890,6 +1899,108 @@
   </data>
   <data name="HaulWhyForWork" xml:space="preserve">
     <value>Para trabajos planificados en el destino.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>En el sistema</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Sistemas cercanos</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Larga distancia</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Servicio de transporte</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Carguero por puentes de salto</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Carguero de salto</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Por los portales estelares</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Pilotarlo</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} salto(s)</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>sin ruta por portales</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} carga(s)</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} cargas, {2:N0} para cada uno de {1:N0} pilotos</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Cómo está configurado este tipo de viaje en Configuración → Transporte: el método y los saltos entre sistemas, la nave y cuántas bodegas llena la carga. Las cargas son el volumen entre la bodega, redondeado hacia arriba.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Principal</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Mover cosas entre estructuras de un mismo sistema a medida que terminan los trabajos. Se planifica desde donde está el piloto ahora, en la nave que pilota, con la bodega vacía.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Viajes a sistemas hasta el límite de saltos indicado arriba.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Todo lo que esté más lejos o sin ruta por portales; normalmente los centros comerciales.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Casco {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Nave actual del piloto</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>bodega de {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Cómo se hace cada tipo de viaje y quién lo pilota. Se guarda al cambiarlo; la lista de trabajo se reconstruye poco después.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Cercano significa hasta</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>saltos por portales; lo que esté más lejos es larga distancia.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Solo cuentan los portales estelares; los puentes de salto no.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Método</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Bodega (m³)</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>La del casco</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>La nave con la que se calculan los viajes. La nave actual se lee del juego para el primer piloto de la lista.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>La bodega con la que planificar. Déjala vacía para usar la bodega base del casco, sin expansores, modificaciones, habilidades ni el hangar de flota de un transporte.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Subir en la lista</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Quitar de este tipo de viaje</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Añadir un piloto…</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Repone la estación hasta su nivel.</value>
