@@ -1495,6 +1495,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>ほかにジョブ{0:N0}件がこの積荷の一部を必要としていますが、この積荷だけでは開始しません。</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>停止中のジョブ{0:N0}件がこの積荷の一部を必要としていますが、この積荷だけでは開始しません。</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>ここにあるほかのアイテム{0:N0}件は、止まっているジョブのない計画中の作業が必要としています。</value>
   </data>
@@ -1869,6 +1872,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>ジョブがこれを待っています。</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>目的地で予定されている作業用です。</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>ステーションを在庫レベルまで補充します。</value>

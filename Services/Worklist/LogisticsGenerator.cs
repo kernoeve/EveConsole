@@ -1123,11 +1123,17 @@ public class LogisticsGenerator(
                 // A run is worth its best cargo, and that now includes whose order the cargo
                 // serves: a trip carrying material for the order due first outranks one carrying
                 // material for the order due next month, though both are Unblocking.
+                //
+                // ⚠️ Job material ranks WITH the work it is for, not above it. Whether this load
+                // actually starts a stopped job is decided after every generator has run — see
+                // PromoteUnblockingHauls — and only that earns HaulUnblocking. Stamped here, it
+                // put every pre-positioning trip for a suggested build level with the few that
+                // restart something.
                 Priority     = Math.Max(
                     run.Max(m => m.Priority),
                     reason switch
                     {
-                        HaulReason.Unblocking => WorklistPriority.HaulUnblocking,
+                        HaulReason.Unblocking => WorklistPriority.HaulForWork,
                         HaulReason.Restock    => WorklistPriority.HaulRestock,
                         HaulReason.Refine     => WorklistPriority.HaulToRefine,
                         _                     => WorklistPriority.HaulSurplus,
@@ -1140,7 +1146,7 @@ public class LogisticsGenerator(
 
     private static string Because(HaulReason r) => r switch
     {
-        HaulReason.Unblocking => WorklistText.HaulWhyUnblocking,
+        HaulReason.Unblocking => WorklistText.HaulWhyForWork,
         HaulReason.Restock    => WorklistText.HaulWhyRestock,
         HaulReason.Refine     => WorklistText.HaulWhyRefine,
         _                     => WorklistText.HaulWhySurplus,

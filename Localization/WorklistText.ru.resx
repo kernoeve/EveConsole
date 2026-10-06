@@ -1513,6 +1513,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>Ещё проектов, которым нужна часть этого груза, но которые не запустятся с этой партией: {0:N0}.</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>Остановленных проектов, которым нужна часть этого груза, но которые не запустятся с этой партией: {0:N0}.</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>Ещё предметов в этом грузе, нужных запланированной работе без собственного остановленного проекта: {0:N0}.</value>
   </data>
@@ -1914,6 +1917,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Этого ждут проекты.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>Для работ, запланированных в пункте назначения.</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Пополняет станцию до её уровня.</value>

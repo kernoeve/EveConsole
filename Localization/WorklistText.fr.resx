@@ -1501,6 +1501,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>{0:N0} autre(s) travail(aux) demandent une partie de cette cargaison mais ne démarreront pas avec ce chargement.</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>{0:N0} travail(aux) à l'arrêt demandent une partie de cette cargaison mais ne démarreront pas avec ce chargement.</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>{0:N0} autre(s) objet(s) de ce chargement sont demandés par du travail planifié qui n'a pas de travail arrêté en propre.</value>
   </data>
@@ -1884,6 +1887,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Des travaux attendent ce transport.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>Pour des travaux prévus à destination.</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Remet la station à son niveau.</value>

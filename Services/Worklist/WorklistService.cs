@@ -221,16 +221,27 @@ public class WorklistService(
                     // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
                     // job this haul only partly serves would rank the trip by work it cannot
                     // release.
+                    //
+                    // A trip that restarts anything goes to the top of the hauling, whatever the
+                    // job's own rank: it turns an idle slot back into work for the price of one
+                    // trip. That is the one thing HaulUnblocking now means — the generator no
+                    // longer gives it to job material by default.
                     Priority = freed.Count > 0
-                        ? Math.Max(haul.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        ? Math.Max(Math.Max(haul.Priority, WorklistPriority.HaulUnblocking),
+                                   freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
                         : haul.Priority,
 
-                    Detail = haul.Detail
+                    // "Jobs are waiting on this" only where it is true. The generator says what
+                    // the cargo is for; this is the place that knows a job is actually stopped.
+                    Detail = (freed.Count > 0 ? WorklistText.HaulWhyUnblocking : haul.Detail)
                            + (freed.Count > 0
                                 ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
                                 : "")
                            + (waiting.Count > freed.Count
-                                ? " " + string.Format(WorklistText.HaulOthersWantPart, waiting.Count - freed.Count)
+                                // "More" only after a list of jobs it does restart.
+                                ? " " + string.Format(freed.Count > 0 ? WorklistText.HaulOthersWantPart
+                                                                      : WorklistText.HaulJobsWantPart,
+                                                      waiting.Count - freed.Count)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or

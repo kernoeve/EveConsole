@@ -1495,6 +1495,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>另有 {0:N0} 个任务需要这批货中的部分物品，但仅靠这一趟无法开始。</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>有 {0:N0} 个停滞的任务需要这批货中的部分物品，但仅靠这一趟无法开始。</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>货物清单上另有 {0:N0} 种物品为已规划的工作所需，这些工作本身还没有停下的任务。</value>
   </data>
@@ -1869,6 +1872,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>有任务在等待这批货。</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>供目的地计划中的工作使用。</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>把空间站的库存补充到设定水平。</value>

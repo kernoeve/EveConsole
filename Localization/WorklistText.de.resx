@@ -1501,6 +1501,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>Weitere Aufträge ({0:N0}) brauchen einen Teil dieser Fracht, starten mit dieser Ladung aber nicht.</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>Gestoppte Aufträge ({0:N0}) brauchen einen Teil dieser Fracht, starten mit dieser Ladung aber nicht.</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>Weitere Gegenstände hier ({0:N0}) werden von geplanter Arbeit gebraucht, die keinen eigenen gestoppten Auftrag hat.</value>
   </data>
@@ -1884,6 +1887,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Aufträge warten darauf.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>Für geplante Arbeiten am Zielort.</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Füllt die Station auf ihren Sollbestand auf.</value>

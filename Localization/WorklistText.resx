@@ -2000,6 +2000,10 @@
     <value>{0:N0} more job(s) want part of this cargo but will not start on this load.</value>
     <comment>Added to a Worklist haul's detail. {0} is the stopped jobs that want some of the cargo and still lack other things.</comment>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>{0:N0} stopped job(s) want part of this cargo but will not start on this load.</value>
+    <comment>Worklist haul detail when the trip restarts no job: {0} = stopped jobs at the destination that need some of this cargo but are still short of something else.</comment>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>{0:N0} more item(s) here are wanted by planned work that has no stopped job of its own.</value>
     <comment>Added to a Worklist haul's detail. {0} is the items on the manifest that planned builds want.</comment>
@@ -2503,6 +2507,10 @@
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Jobs are waiting on this.</value>
     <comment>Worklist haul detail: stopped jobs need this cargo.</comment>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>For work planned at the destination.</value>
+    <comment>Worklist haul detail: the cargo is material for builds or invention the worklist plans at the destination; no stopped job is restarted by it alone.</comment>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Tops the station up to its level.</value>

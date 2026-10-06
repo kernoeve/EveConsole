@@ -1495,6 +1495,9 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>작업 {0:N0}개가 더 이 화물의 일부를 원하지만 이번 적재분으로는 시작되지 않습니다.</value>
   </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>멈춘 작업 {0:N0}개가 이 화물의 일부를 원하지만 이번 적재분으로는 시작되지 않습니다.</value>
+  </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>여기 있는 아이템 {0:N0}개는 멈춘 작업이 따로 없는 계획된 작업이 원하는 것입니다.</value>
   </data>
@@ -1869,6 +1872,9 @@
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>작업들이 이것을 기다리고 있습니다.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>목적지에서 계획된 작업용입니다.</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>정거장을 재고 수준까지 채웁니다.</value>
