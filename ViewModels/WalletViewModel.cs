@@ -220,8 +220,9 @@ public class WalletViewModel : ReactiveObject
 
     // ── Owners ────────────────────────────────────────────────────────────────
 
-    private List<WalletOwnerOption> _owners = [];
-    public IReadOnlyList<WalletOwnerOption> Owners => _owners;
+    /// <summary>Synced in place when characters or corporations change (<see cref="OwnerList"/>),
+    /// so the owner picked stays picked.</summary>
+    public ObservableCollection<WalletOwnerOption> Owners { get; } = [];
 
     private WalletOwnerOption? _selectedOwner;
     public WalletOwnerOption? SelectedOwner
@@ -517,6 +518,12 @@ public class WalletViewModel : ReactiveObject
 
     private async Task InitAsync()
     {
+        OwnerList.Changed += () => _ = LoadOwnersAsync();
+        await LoadOwnersAsync();
+    }
+
+    private async Task LoadOwnersAsync()
+    {
         try
         {
             await using var db   = await _dbFactory.CreateDbContextAsync();
@@ -532,14 +539,18 @@ public class WalletViewModel : ReactiveObject
             foreach (var corp in corps)
                 options.Add(new WalletOwnerOption($"{corp.Name} [{corp.Ticker}]", corp.Id, "corporation", true));
 
-            _owners = options;
-            this.RaisePropertyChanged(nameof(Owners));
-            _selectedOwner = options[0];
-            this.RaisePropertyChanged(nameof(SelectedOwner));
+            ListSync.Sync(Owners, options, o => (o.OwnerType, o.OwnerId));
+            // First load: everybody. After that the selection is the user's; only when the owner
+            // they had picked is gone does it fall back to everybody.
+            if (_selectedOwner is null || !Owners.Contains(_selectedOwner))
+            {
+                _selectedOwner = Owners[0];
+                this.RaisePropertyChanged(nameof(SelectedOwner));
+            }
         }
         catch (Exception ex)
         {
-            _errorLogger.Log("WalletViewModel", "InitAsync", ex);
+            _errorLogger.Log("WalletViewModel", "LoadOwnersAsync", ex);
             StatusText = AppErrorLogger.Line("Error preparing the wallet view", ex);
         }
 

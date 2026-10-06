@@ -3983,6 +3983,7 @@ public class App : Application
                 signals.Received += payload =>
                 {
                     if (activity.TryApplySignal(payload)) return;
+                    if (OwnerList.TryApplySignal(payload)) return;
                     if (SdeNames.TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };

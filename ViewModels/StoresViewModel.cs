@@ -327,6 +327,8 @@ public class StoresViewModel : ReactiveObject
             .ObserveOnUi("Stores.AutoRefresh")
             .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
 
+        OwnerList.Changed += () => _ = RefreshCharacterOptionsAsync();
+
         _ = LoadAsync();
     }
 
@@ -1619,8 +1621,7 @@ public class StoresViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                CharacterOptions.Clear();
-                foreach (var c in chars) CharacterOptions.Add(new CharacterOption(c.Id, c.Name));
+                ListSync.Sync(CharacterOptions, chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList(), c => c.Id);
 
                 PostingOptions.Clear();
                 foreach (var p in postings) PostingOptions.Add(new PostingOption(p.Id, p.Name));
@@ -1644,6 +1645,26 @@ public class StoresViewModel : ReactiveObject
             _errorLogger.Log(nameof(StoresViewModel), nameof(LoadAsync), ex);
             Status = string.Format(SalesText.StatusLoadFailed, ex.Message);
         }
+    }
+
+    /// <summary>
+    /// The mailbox characters alone, for a character added or removed (<see cref="OwnerList"/>).
+    /// ⚠️ Not the full load: that re-reads the editable fields too, and would put back what the
+    /// user is typing. In place (ListSync), so the store's chosen character stays chosen.
+    /// </summary>
+    private async Task RefreshCharacterOptionsAsync()
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var chars = await db.Characters.AsNoTracking()
+                .Where(c => c.RefreshToken != "")
+                .Select(c => new { c.Id, c.Name })
+                .OrderBy(c => c.Name).ToListAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                ListSync.Sync(CharacterOptions, chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList(), c => c.Id));
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), nameof(RefreshCharacterOptionsAsync), ex); }
     }
 
     /// <param name="fields">Whether to fill the editable fields from the database as well as the

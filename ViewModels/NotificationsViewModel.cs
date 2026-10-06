@@ -385,20 +385,34 @@ public class NotificationsViewModel : ReactiveObject
         await ReloadPageAsync();
     }
 
-    private async Task InitAsync()
+    /// <summary>The character filter: all, then each character. Read again, in place, whenever
+    /// characters are added or removed (<see cref="OwnerList"/>), so the filter picked stays picked.</summary>
+    private async Task LoadCharacterOptionsAsync()
     {
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-
             var chars = await db.Characters.OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name }).ToListAsync();
-            Characters.Clear();
-            Characters.Add(new ContractPartyOption(CommsText.AllCharactersLower, null));
-            foreach (var c in chars)
-                Characters.Add(new ContractPartyOption(c.Name, c.Id));
-            _selectedCharacter = Characters.FirstOrDefault();
-            this.RaisePropertyChanged(nameof(SelectedCharacter));
+            var options = new List<ContractPartyOption> { new(CommsText.AllCharactersLower, null) };
+            options.AddRange(chars.Select(c => new ContractPartyOption(c.Name, c.Id)));
+            ListSync.Sync(Characters, options, o => o.Id ?? 0);
+            if (_selectedCharacter is null || !Characters.Contains(_selectedCharacter))
+            {
+                _selectedCharacter = Characters.FirstOrDefault();
+                this.RaisePropertyChanged(nameof(SelectedCharacter));
+            }
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(NotificationsViewModel), nameof(LoadCharacterOptionsAsync), ex); }
+    }
+
+    private async Task InitAsync()
+    {
+        OwnerList.Changed += () => _ = LoadCharacterOptionsAsync();
+        await LoadCharacterOptionsAsync();
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
 
             // By the name each type is shown under, so the list reads like the grid; types
             // that share a name are one choice.
