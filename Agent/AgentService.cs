@@ -241,6 +241,7 @@ public sealed class AgentService : ReactiveObject
             Tool-specific guidance:
             - query_database: Primary tool for any data question — skills, assets, wallet, industry, market, fittings, standings, LP. Compact SELECT queries, explicit LIMIT. Join SdeTypes on TypeId/SkillId for names.
             - get_character_info: Quick character summary — corporation, SP, wallet, training queue.
+            - get_pilot_status: Before saying where any character is, whether they are docked or what they fly. Earlier messages and alarms go stale in minutes.
             - get_industry_jobs: Use status "in_progress" for active jobs; filter by owner_name for character/corp.
             - capture_tab: Only when you must see specific current on-screen values (a chart, a rendered layout) that the data tools cannot give you — NOT to explain what a tool is for. Pass 'current' for the active tab.
             - set_industry_filter, set_asset_filter: Apply visual filters in the Industry or Assets tab.
@@ -370,6 +371,7 @@ public sealed class AgentService : ReactiveObject
         nothing. Everything you write is shown in the chat and read aloud.
 
         Tool-specific guidance:
+        - get_pilot_status: Yours to call, no hand-off — before saying where any character is, whether they are docked or what they fly. Earlier messages and alarms go stale in minutes.
         - capture_tab: Only when you must see specific current on-screen values (a chart, a rendered layout) — NOT to explain what a tool is for. Pass 'current' for the active tab.
         - set_industry_filter, set_asset_filter: Apply visual filters in the Industry or Assets tab.
         - navigate_to_item: Open a specific item in the Item Browser.
@@ -469,6 +471,10 @@ public sealed class AgentService : ReactiveObject
         [
             // ── Generic data access ───────────────────────────────────────────
             new QueryDatabaseTool(dbConnectionString, Schema),
+
+            // Who is on, where and in what. Deliberately NOT one of DataToolNames: the
+            // conversation model gets it too, so it stops answering from stale alarm text.
+            new GetPilotStatusTool(),
 
             // ── Specialised data query tools — WITHDRAWN ──────────────────────
             //
