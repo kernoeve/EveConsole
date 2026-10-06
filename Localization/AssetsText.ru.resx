@@ -49,6 +49,30 @@
   <data name="ContractsBuying" xml:space="preserve">
     <value>Контракты на покупку</value>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>Рыночные ордера на продажу</value>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>Контракты на продажу</value>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>Единицы, ещё выставленные в ваших открытых ордерах на продажу, считаются в наличии: они ваши, пока не проданы. По умолчанию выключено, чтобы уровень пополнялся, пока товар выставлен.</value>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>Предметы в ваших открытых контрактах, которые вы передаёте, считаются в наличии, пока покупатель не примет контракт. По умолчанию выключено по той же причине, что и ордера на продажу.</value>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>Ордера (продажа)</value>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>Контракты (продажа)</value>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>Ордера на продажу</value>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>Контракты на продажу</value>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>Считать только предметы в упаковке (без собранных / оснащённых корпусов)</value>
   </data>
@@ -182,10 +206,10 @@
     <value>Проекты</value>
   </data>
   <data name="ColBuyOrders" xml:space="preserve">
-    <value>Ордера</value>
+    <value>Ордера (покупка)</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>Контракты</value>
+    <value>Контракты (покупка)</value>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
     <value>Рын. цена</value>
@@ -807,10 +831,10 @@ Warrior II 5
     <value>Проекты</value>
   </data>
   <data name="IncludeOrdersShort" xml:space="preserve">
-    <value>Ордера</value>
+    <value>Ордера на покупку</value>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>Контракты</value>
+    <value>Контракты на покупку</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
     <value>только в упаковке</value>

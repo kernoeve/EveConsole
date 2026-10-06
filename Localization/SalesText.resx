@@ -804,6 +804,38 @@
     <value>Cancelled</value>
     <comment>Text in StoresView.</comment>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Visits</value>
+    <comment>Stores Overview count tile: visits to the store's web site (a buyer signing in, or coming back after a while away), all time.</comment>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Unique visitors</value>
+    <comment>Stores Overview count tile: how many different buyers visited the store's web site, all time.</comment>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Last 48 h: {0:N0}</value>
+    <comment>Under each Stores Overview count: the same count over the last 48 hours. {0} is the number.</comment>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Below: active items ordered in the last 48 hours.</value>
+    <comment>Tooltip on the Active items tile of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Below: settled in the last 48 hours. An order keeps only the date it settled (EVE time), so this counts from the start of that day and can include up to a day more.</value>
+    <comment>Tooltip on the Completed and Cancelled tiles of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>A buyer signing in to the store's web site, or coming back after a while away.</value>
+    <comment>Tooltip on the Visits tile of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Different buyers among the visits, however often each came.</value>
+    <comment>Tooltip on the Unique visitors tile of the Stores Overview.</comment>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+    <comment>Stores Overview, web site events, Item column: one ordered line. {0} is the item's name, {1} the units. Several lines are joined with the list separator.</comment>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Active orders</value>
     <comment>Text in StoresView.</comment>

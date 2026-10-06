@@ -596,6 +596,21 @@ Actualiza a la versión {1} el cliente que ejecuta los procesos en segundo plano
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Esta compilación no coincide con la base de datos</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>¿Actualizar la base de datos?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>Esta base de datos se usó por última vez con EVE Console {0}, y esta es la {1}.
+
+Al iniciar se actualizará a {1}. Después, las versiones anteriores ya no podrán abrirla, así que haz una copia de seguridad antes si quizá necesites volver atrás.
+
+Base de datos: {2}
+
+¿Actualizarla e iniciar? No cierra EVE Console y deja la base de datos como está.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>una versión anterior</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Compactando la base de datos (tiempo transcurrido: {0}). Deja la aplicación abierta.</value>
   </data>

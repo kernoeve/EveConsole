@@ -111,7 +111,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreated}"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreated}"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="120" />
         <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColType}" SortMemberPath="Type" Width="230" ClipboardContentBinding="{Binding Type}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
@@ -127,6 +127,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
         <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
@@ -236,7 +237,6 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColEstDate}"      Binding="{Binding EstDate}"     Width="100" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColPri}"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="60" />
-        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColStatus}"         Binding="{Binding Status}"      Width="100" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColCompleted}"      Binding="{Binding CompletedOn}" Width="100" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuildCost}"     Binding="{Binding Build}"       SortMemberPath="BuildRaw"    Width="120" CellStyleClasses="num build" />

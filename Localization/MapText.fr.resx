@@ -1560,6 +1560,9 @@ Propriétaire : {3}</value>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Vos personnages connectés ici. Survolez pour voir leurs vaisseaux et s'ils sont amarrés.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>PNJ officiers vus ici sur un rapport de destruction depuis la maintenance (11:00 EVE), où ils disparaissent. Impossible de savoir si l'un d'eux a été détruit depuis. Survolez pour voir quand chacun a détruit sa dernière cible.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>Faites glisser le long de la barre pour réordonner, ou sur la moitié droite pour voir deux onglets côte à côte.</value>
   </data>
@@ -1622,6 +1625,18 @@ Propriétaire : {3}</value>
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>Officiers vus dans {1} depuis la maintenance : {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — dernière destruction {1} EVE ({2}) · {3} · destructions depuis la maintenance : {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0} : {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>il y a {0} h {1} min</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>dans l'espace</value>

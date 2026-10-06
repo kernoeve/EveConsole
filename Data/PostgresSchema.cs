@@ -595,6 +595,21 @@ public static class PostgresSchema
         ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
         """,
 
+        // Sell orders and contracts we are selling through, off for every existing group.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "IncludeMarketSellOrders" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "IncludeContractsSelling" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+
+        // A finished corp project made static without its contributors, because the corporation's
+        // token could not read them. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "EsiCorpProjects" ADD COLUMN IF NOT EXISTS "ContributorsPending" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+
         // Where an asset's root location IS, filled by AssetLocations on every asset poll. Null
         // until the first poll after this upgrade, and for the few roots nothing can resolve —
         // nullable rather than defaulted so that null keeps meaning "unknown". An older build

@@ -950,6 +950,10 @@ public class CorpProject
     // True when the project appears in the list but its detail endpoint returns 404 (detail not
     // available to us). We keep updating cheap list fields but stop retrying the detail call.
     public bool    DetailUnavailable { get; set; }
+    // True for a finished project made static WITHOUT its contributors, because this
+    // corporation's token could not read them. Fetched once more when it can; see
+    // EsiPollingService.FetchCorpProjectsAsync.
+    public bool    ContributorsPending { get; set; }
     public string? ConfigType        { get; set; }  // e.g. "deliver_item"
     public string? ConfigurationJson { get; set; }
 }

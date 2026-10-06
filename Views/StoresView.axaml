@@ -87,22 +87,37 @@
           <!-- Stats -->
           <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-            <Grid ColumnDefinitions="*,*,*,*">
+            <!-- Each count twice: all time, large, and the last 48 hours beneath it. -->
+            <Grid ColumnDefinitions="*,*,*,*,*,*">
               <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="{x:Static loc:SalesText.Inquiries}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{Binding StatInquiries48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
-              <StackPanel Grid.Column="1" Spacing="2">
+              <StackPanel Grid.Column="1" Spacing="2" ToolTip.Tip="{x:Static loc:SalesText.TipStatActive48h}">
                 <TextBlock Text="{x:Static loc:SalesText.ActiveItems}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="{DynamicResource InfoBrush}" />
+                <TextBlock Text="{Binding StatActive48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
-              <StackPanel Grid.Column="2" Spacing="2">
+              <StackPanel Grid.Column="2" Spacing="2" ToolTip.Tip="{x:Static loc:SalesText.TipStatSettled48h}">
                 <TextBlock Text="{x:Static loc:SalesText.Completed}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatCompleted}" FontSize="18" Foreground="{DynamicResource GoodBrush}" />
+                <TextBlock Text="{Binding StatCompleted48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
-              <StackPanel Grid.Column="3" Spacing="2">
+              <StackPanel Grid.Column="3" Spacing="2" ToolTip.Tip="{x:Static loc:SalesText.TipStatSettled48h}">
                 <TextBlock Text="{x:Static loc:SalesText.Cancelled}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatCancelled}" FontSize="18" Foreground="{DynamicResource BadBrush}" />
+                <TextBlock Text="{Binding StatCancelled48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
+              </StackPanel>
+              <StackPanel Grid.Column="4" Spacing="2" ToolTip.Tip="{x:Static loc:SalesText.TipStatVisits}">
+                <TextBlock Text="{x:Static loc:SalesText.StatVisits}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{Binding StatVisits}" FontSize="18" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{Binding StatVisits48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
+              </StackPanel>
+              <StackPanel Grid.Column="5" Spacing="2" ToolTip.Tip="{x:Static loc:SalesText.TipStatVisitors}">
+                <TextBlock Text="{x:Static loc:SalesText.StatVisitors}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{Binding StatVisitors}" FontSize="18" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{Binding StatVisitors48}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
             </Grid>
           </Border>
@@ -115,7 +130,8 @@
               <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreatedOn}" Binding="{Binding Created}" Width="100" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreatedOn}" Binding="{Binding Created}"
+                                      SortMemberPath="CreatedSort" Width="120" />
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder2}"      Binding="{Binding Ref}"     Width="80" />
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColItem}"       Binding="{Binding Item}"    Width="*" />
                   <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
@@ -181,6 +197,15 @@
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColWhen}"    Binding="{Binding When}"     Width="130" />
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColKind}"    Binding="{Binding Kind}"     Width="70" />
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuyer}"   Binding="{Binding Buyer}"    Width="150" />
+                  <!-- What was ordered, or what the cancelled order was for: the first thing an owner
+                       wants to know about an event and the one thing the row did not say. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColItem}" Width="220" ClipboardContentBinding="{Binding Item}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreWebEventRowVm">
+                        <TextBlock Text="{Binding Item}" TextWrapping="Wrap" FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColOutcome}" Binding="{Binding Outcome}"  Width="120" />
                   <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder2}"   Binding="{Binding OrderRef}" Width="80" />
                   <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColNote}" Width="*" ClipboardContentBinding="{Binding Detail}">

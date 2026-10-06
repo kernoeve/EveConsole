@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Annulés</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Visites</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Visiteurs uniques</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Dernières 48 h : {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>En dessous : objets actifs commandés au cours des dernières 48 heures.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>En dessous : soldés au cours des dernières 48 heures. Une commande ne garde que la date de son règlement (heure EVE) : le compte part du début de ce jour et peut inclure jusqu'à un jour de plus.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Un acheteur qui se connecte au site web de la boutique, ou qui revient après une absence.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Acheteurs différents parmi les visites, quel que soit le nombre de passages de chacun.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Commandes actives</value>
   </data>

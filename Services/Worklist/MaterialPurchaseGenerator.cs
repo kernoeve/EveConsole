@@ -437,7 +437,7 @@ public class MaterialPurchaseGenerator(
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                 if (target <= 0) continue;
 
-                var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
+                var wanted = InvRuleShortfall.FillLevel(target, rule.FillTargetPercent);
                 if (wanted > want.GetValueOrDefault(gi.TypeId)) want[gi.TypeId] = wanted;
             }
         }

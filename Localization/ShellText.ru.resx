@@ -608,6 +608,21 @@ PID: {2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Эта сборка не соответствует базе данных</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>Обновить базу данных?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>Эту базу данных последней использовала EVE Console {0}, а это версия {1}.
+
+При запуске она будет обновлена до {1}. После этого более ранние версии не смогут её открыть, поэтому сначала сделайте резервную копию, если может понадобиться вернуться.
+
+База данных: {2}
+
+Обновить и запустить? «Нет» закроет EVE Console и оставит базу данных без изменений.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>более ранней версии</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Сжатие базы данных — прошло {0}. Пожалуйста, не закрывайте приложение.</value>
   </data>

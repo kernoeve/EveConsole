@@ -1560,6 +1560,9 @@ Propietario: {3}</value>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Tus personajes conectados aquí. Pasa el cursor para ver sus naves y si están acoplados.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>PNJ oficiales vistos aquí en un informe de destrucción desde el periodo de inactividad (11:00 EVE), cuando desaparecen. No se puede saber si alguno ha sido destruido desde entonces. Pasa el cursor para ver cuándo destruyó cada uno por última vez.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>Arrastra por la barra para reordenar, o a la mitad derecha para ver dos pestañas lado a lado.</value>
   </data>
@@ -1622,6 +1625,18 @@ Propietario: {3}</value>
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>Oficiales vistos en {1} desde el periodo de inactividad: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — última destrucción {1} EVE ({2}) · {3} · destrucciones desde el periodo de inactividad: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>hace {0} h {1} min</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>en el espacio</value>

@@ -604,6 +604,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>취소됨</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>방문</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>순 방문자</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>최근 48시간: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>아래: 최근 48시간 동안 주문된 진행 중인 항목.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>아래: 최근 48시간 동안 마무리된 주문. 주문에는 마무리된 날짜(EVE 시간)만 남으므로 그날의 시작부터 세며, 최대 하루가 더 포함될 수 있습니다.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>구매자가 상점 웹사이트에 로그인하거나, 한동안 떠나 있다가 돌아온 경우.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>방문한 서로 다른 구매자 수. 같은 구매자는 몇 번을 와도 한 명으로 셉니다.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>진행 중인 주문</value>
   </data>

@@ -4231,11 +4231,16 @@ public class EsiPollingService : ReactiveObject
                 row.RewardRemaining = project.Reward?.Remaining ?? 0;
                 row.UpdatedAt       = DateTimeOffset.UtcNow;
 
-                // Static = terminal-state project whose detail + contributors were fully fetched.
+                // Static = terminal-state project whose detail + contributors were fully fetched,
+                // or whose contributors this corporation's token cannot read (see below).
                 // DetailUnavailable = listed but its detail endpoint 404s (not visible to us).
                 // Either way the per-project detail/contributor calls are pointless — skip them
                 // (cheap list fields above are still kept current).
-                if (row.IsStatic || row.DetailUnavailable)
+                //
+                // ⚠️ Except a project made static without its contributors, once the token can
+                // read them: fetched one more time to fill them in, then static for good.
+                var contributorsOwed = row.ContributorsPending && !contributorsDenied;
+                if ((row.IsStatic && !contributorsOwed) || row.DetailUnavailable)
                     continue;
             }
 
@@ -4413,8 +4418,27 @@ public class EsiPollingService : ReactiveObject
 
             // Once a terminal-state project has been fully fetched, mark it static so future
             // cycles skip the detail and contributor calls for it entirely.
-            if (project.State != "Active" && allContribsFetched)
-                row.IsStatic = true;
+            //
+            // ⚠️ Also when its contributors are denied to this corporation's token. Waiting for
+            // contributors that cannot be read meant a finished project was never static, and its
+            // detail was asked for again on every poll: one corporation with 316 closed and
+            // completed projects and that denial spent ~318 corp-project calls an hour, against
+            // an allowance of 600 per 15 minutes, and held the bucket in pacing after each poll.
+            // The detail is stored by now; the contributors are owed, and fetched once the token
+            // can read them (ContributorsPending, checked above).
+            if (project.State != "Active")
+            {
+                if (allContribsFetched)
+                {
+                    row.IsStatic            = true;
+                    row.ContributorsPending = false;
+                }
+                else if (contributorsDenied)
+                {
+                    row.IsStatic            = true;
+                    row.ContributorsPending = true;
+                }
+            }
         }
 
         await db.SaveChangesAsync(ct);

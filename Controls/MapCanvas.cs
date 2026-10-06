@@ -30,12 +30,15 @@ public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? De
 /// </summary>
 /// <param name="Reported">Intel said something here — a spike, bubbles — though nobody was
 /// counted: the mark shows "!" instead of a number.</param>
+/// <param name="Officers">Officer NPCs seen on a killmail here since downtime.</param>
 public sealed record MapMarkers(
     int Hostiles, string? HostileTitle, string? HostileDetail,
     int Own,      string? OwnTitle,     string? OwnDetail,
     IReadOnlyList<MapMarkRow>? HostileRows = null,
     IReadOnlyList<MapMarkRow>? OwnRows     = null,
-    bool Reported = false);
+    bool Reported = false,
+    int Officers = 0, string? OfficerTitle = null, string? OfficerDetail = null,
+    IReadOnlyList<MapMarkRow>? OfficerRows = null);
 
 /// <summary>The jump range tab's answer: where it is from, and every system in range.</summary>
 public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
@@ -1295,6 +1298,29 @@ public class MapCanvas : Control
         _badgeTips.Add((rect.Inflate(2), c.Title, c.Detail, null));
     }
 
+    private static readonly ImmutableSolidColorBrush OfficerBrush = new(Color.Parse("#E879F9"));
+    private static readonly IBrush OfficerInk = new ImmutableSolidColorBrush(Color.Parse("#3B0742"));
+
+    /// <summary>
+    /// A fuchsia tag with ★ at the node's lower left — the one corner nothing else uses (the
+    /// storm's is upper left, the wormhole's upper right, the campaign's lower right), on the
+    /// left like the own-character mark. A number after the star when more than one officer has
+    /// been seen. Hover for who and when each last killed.
+    /// </summary>
+    private void DrawOfficers(DrawingContext ctx, MapMarkers m, Rect anchor, bool isBox)
+    {
+        var glyph = m.Officers > 1 ? "★" + m.Officers.ToString(CultureInfo.CurrentCulture) : "★";
+        var text  = new FormattedText(glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, OfficerInk);
+        var w     = Math.Max(13, text.Width + 6);
+        var x     = isBox ? anchor.Left - w / 2 : anchor.Left - w - 1;
+        var y     = isBox ? anchor.Bottom - 6 : anchor.Bottom + 2;
+        var rect  = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(OfficerBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        if (m.OfficerTitle is { } title)
+            _badgeTips.Add((rect.Inflate(2), title, m.OfficerDetail ?? "", m.OfficerRows));
+    }
+
     private static readonly ImmutableSolidColorBrush StormBrush = new(Color.Parse("#F5B83D"));
     private static readonly IBrush StormInk = new ImmutableSolidColorBrush(Color.Parse("#2b1d00"));
 
@@ -1365,6 +1391,8 @@ public class MapCanvas : Control
             if (m.HostileTitle is { } title)
                 _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? "", m.HostileRows));
         }
+
+        if (m.Officers > 0) DrawOfficers(ctx, m, anchor, isBox);
 
         if (m.Own > 0)
         {

@@ -590,6 +590,21 @@ PID：{2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>此版本与数据库不匹配</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>升级数据库？</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>此数据库上次由 EVE Console {0} 使用，当前为 {1}。
+
+启动后会将其升级到 {1}。升级后，较早的版本将无法再打开它；如果可能需要回退，请先备份。
+
+数据库：{2}
+
+升级并启动？选择“否”将关闭 EVE Console，数据库保持不变。</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>较早的版本</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>正在压缩数据库——已用时 {0}。请保持应用程序打开。</value>
   </data>

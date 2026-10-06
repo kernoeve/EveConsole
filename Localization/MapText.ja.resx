@@ -1518,6 +1518,9 @@
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>ここでオンラインのあなたのキャラクターです。カーソルを合わせると、艦船と入港中かどうかを表示します。</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>ダウンタイム（EVE時間11:00）以降にここでキルメールに載った士官NPCです。士官はダウンタイムで消えます。その後撃破されたかどうかはわかりません。カーソルを合わせると、それぞれの最後のキルの時刻を表示します。</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>バーに沿ってドラッグすると並べ替え、右半分にドラッグすると2つのタブを並べて表示します。</value>
   </data>
@@ -1580,6 +1583,18 @@
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>ダウンタイム以降に{1}で確認された士官: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — 最後のキル {1} EVE（{2}）· {3} · ダウンタイム以降のキル: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}、{2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0}時間{1}分前</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>宇宙空間</value>

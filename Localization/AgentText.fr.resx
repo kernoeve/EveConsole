@@ -94,6 +94,9 @@
   <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
     <value>Recherche du personnage…</value>
   </data>
+  <data name="ToolStatusGetPilotStatus" xml:space="preserve">
+    <value>Vérification de la position des pilotes…</value>
+  </data>
   <data name="ToolStatusGetMarketPrices" xml:space="preserve">
     <value>Vérification des prix du marché…</value>
   </data>

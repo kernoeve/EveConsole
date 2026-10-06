@@ -1644,6 +1644,9 @@
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>NPC-офицеры, замеченные здесь на килмейле после перезагрузки сервера (11:00 EVE): с перезагрузкой они исчезают. Уничтожили ли кого-то из них с тех пор, узнать нельзя. Наведите курсор, чтобы увидеть, когда каждый убивал в последний раз.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>Перетащите вдоль полосы, чтобы изменить порядок, или на правую половину, чтобы видеть две вкладки рядом.</value>
   </data>
@@ -1706,6 +1709,18 @@
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>Офицеры в {1} после перезагрузки сервера: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — последний килл {1} EVE ({2}) · {3} · киллов после перезагрузки: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0} ч {1} мин назад</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>в космосе</value>

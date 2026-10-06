@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -131,12 +132,15 @@ public class StoreMailRowVm(StoreMail m)
 }
 
 /// <summary>One thing the web site sent, and what the app did with it.</summary>
-public class StoreWebEventRowVm(StoreWebEvent e)
+/// <param name="item">What it concerns, as the screen names it: an order's lines, or the item of
+/// the order a cancellation is for. Empty for a visit.</param>
+public class StoreWebEventRowVm(StoreWebEvent e, string item = "")
 {
     public int    Id       => e.Id;
     public string When     => e.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
     public string Kind     => e.Kind switch { "order" => SalesText.EventOrder, "cancel" => SalesText.EventCancel, "visit" => SalesText.EventVisit, _ => e.Kind };
     public string Buyer    => e.BuyerName.Length > 0 ? e.BuyerName : e.BuyerId.ToString();
+    public string Item     => item;
     public string Outcome  => e.Outcome switch
     {
         "booked"   => SalesText.OutcomeBooked,
@@ -194,6 +198,8 @@ public class StoresViewModel : ReactiveObject
 
     private bool _showWebVisits = true;
     private List<StoreWebEvent> _webEventRows = [];
+    // What each of those events concerns, by event id — see WebEventItems.
+    private Dictionary<int, string> _webEventItems = [];
 
     /// <summary>Whether visits (a buyer signing in, or back after a while away) sit among the web
     /// site events. They are logged either way; unticked, the list is orders and cancellations.</summary>
@@ -203,12 +209,21 @@ public class StoresViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _showWebVisits, value); FillWebEvents(); }
     }
 
+    /// <summary>The app's id for the order a web cancellation is for, from what the site sent.</summary>
+    private static int? CancelledOrderId(StoreWebEvent e)
+    {
+        if (e.Payload.Length == 0) return null;
+        try { return JsonSerializer.Deserialize<SiteEventDto>(e.Payload, WebStoreProtocol.Json)?.OrderId; }
+        catch (JsonException) { return null; }
+    }
+
     private void FillWebEvents()
     {
         WebEvents.Clear();
         foreach (var e in _webEventRows)
         {
-            if (_showWebVisits || e.Kind != "visit") WebEvents.Add(new StoreWebEventRowVm(e));
+            if (_showWebVisits || e.Kind != "visit")
+                WebEvents.Add(new StoreWebEventRowVm(e, _webEventItems.GetValueOrDefault(e.Id, "")));
         }
     }
 
@@ -311,6 +326,8 @@ public class StoresViewModel : ReactiveObject
         Observable.Interval(TimeSpan.FromSeconds(30))
             .ObserveOnUi("Stores.AutoRefresh")
             .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
+
+        OwnerList.Changed += () => _ = RefreshCharacterOptionsAsync();
 
         _ = LoadAsync();
     }
@@ -1558,6 +1575,20 @@ public class StoresViewModel : ReactiveObject
     public string StatCompleted { get => _statCompleted; private set => this.RaiseAndSetIfChanged(ref _statCompleted, value); }
     public string StatCancelled { get => _statCancelled; private set => this.RaiseAndSetIfChanged(ref _statCancelled, value); }
 
+    private string _statVisits = "0", _statVisitors = "0";
+    public string StatVisits   { get => _statVisits;   private set => this.RaiseAndSetIfChanged(ref _statVisits,   value); }
+    public string StatVisitors { get => _statVisitors; private set => this.RaiseAndSetIfChanged(ref _statVisitors, value); }
+
+    // The same counts over the last 48 hours, each already worded ("Last 48 h: 3").
+    private string _statInquiries48 = "", _statActive48 = "", _statCompleted48 = "", _statCancelled48 = "",
+                   _statVisits48 = "", _statVisitors48 = "";
+    public string StatInquiries48 { get => _statInquiries48; private set => this.RaiseAndSetIfChanged(ref _statInquiries48, value); }
+    public string StatActive48    { get => _statActive48;    private set => this.RaiseAndSetIfChanged(ref _statActive48,    value); }
+    public string StatCompleted48 { get => _statCompleted48; private set => this.RaiseAndSetIfChanged(ref _statCompleted48, value); }
+    public string StatCancelled48 { get => _statCancelled48; private set => this.RaiseAndSetIfChanged(ref _statCancelled48, value); }
+    public string StatVisits48    { get => _statVisits48;    private set => this.RaiseAndSetIfChanged(ref _statVisits48,    value); }
+    public string StatVisitors48  { get => _statVisitors48;  private set => this.RaiseAndSetIfChanged(ref _statVisitors48,  value); }
+
     // ── Load ──────────────────────────────────────────────────────────────────
 
     public async Task LoadAsync()
@@ -1590,8 +1621,7 @@ public class StoresViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                CharacterOptions.Clear();
-                foreach (var c in chars) CharacterOptions.Add(new CharacterOption(c.Id, c.Name));
+                ListSync.Sync(CharacterOptions, chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList(), c => c.Id);
 
                 PostingOptions.Clear();
                 foreach (var p in postings) PostingOptions.Add(new PostingOption(p.Id, p.Name));
@@ -1615,6 +1645,26 @@ public class StoresViewModel : ReactiveObject
             _errorLogger.Log(nameof(StoresViewModel), nameof(LoadAsync), ex);
             Status = string.Format(SalesText.StatusLoadFailed, ex.Message);
         }
+    }
+
+    /// <summary>
+    /// The mailbox characters alone, for a character added or removed (<see cref="OwnerList"/>).
+    /// ⚠️ Not the full load: that re-reads the editable fields too, and would put back what the
+    /// user is typing. In place (ListSync), so the store's chosen character stays chosen.
+    /// </summary>
+    private async Task RefreshCharacterOptionsAsync()
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var chars = await db.Characters.AsNoTracking()
+                .Where(c => c.RefreshToken != "")
+                .Select(c => new { c.Id, c.Name })
+                .OrderBy(c => c.Name).ToListAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                ListSync.Sync(CharacterOptions, chars.Select(c => new CharacterOption(c.Id, c.Name)).ToList(), c => c.Id));
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), nameof(RefreshCharacterOptionsAsync), ex); }
     }
 
     /// <param name="fields">Whether to fill the editable fields from the database as well as the
@@ -1671,7 +1721,23 @@ public class StoresViewModel : ReactiveObject
                 .Where(o => o.StoreId == row.Id)
                 .ToListAsync();
 
-            var orderTypeIds = orders.Select(o => o.TypeId).Distinct().ToList();
+            // What each web event concerns. An order's lines are only in the payload the site
+            // sent; a cancellation names the app's order, whose item is in the list just read.
+            var webOrderLines = new Dictionary<int, List<SiteOrderLineDto>>();
+            foreach (var e in webEvents.Where(e => e.Kind == "order" && e.Payload.Length > 0))
+            {
+                try
+                {
+                    if (JsonSerializer.Deserialize<SiteEventDto>(e.Payload, WebStoreProtocol.Json) is { Lines.Count: > 0 } ev)
+                        webOrderLines[e.Id] = ev.Lines;
+                }
+                catch (JsonException) { }   // a payload this build cannot read names nothing
+            }
+            var ordersById = orders.ToDictionary(o => o.Id);
+
+            var orderTypeIds = orders.Select(o => o.TypeId)
+                .Concat(webOrderLines.Values.SelectMany(l => l).Select(l => l.TypeId))
+                .Distinct().ToList();
             var orderTypeNames = await db.SdeTypes.AsNoTracking()
                 .Where(t => orderTypeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
@@ -1691,7 +1757,62 @@ public class StoresViewModel : ReactiveObject
             var completed = orders.Count(o => o.Status == "completed");
             var cancelled = orders.Count(o => o.Status == "canceled");
 
-            var inquiries = mails.Count(m => m.Direction == "in");
+            // ── The last 48 hours ──
+            //
+            // ⚠️ Dates compared in memory, as above. A settled order keeps only the UTC DATE it
+            // settled (CompletedOn), so those two are counted by day: everything settled on or
+            // after the date 48 hours ago, which can reach back up to a day further. The tile's
+            // tooltip says so.
+            var since      = DateTimeOffset.UtcNow.AddHours(-48);
+            var sinceDay   = since.UtcDateTime.ToString("yyyy-MM-dd");
+            bool SettledSince(TrackedOrder o) => string.CompareOrdinal(o.CompletedOn ?? "", sinceDay) >= 0;
+            var active48    = orders.Count(o => o.Status == "pending" && o.CreatedAt >= since);
+            var completed48 = orders.Count(o => o.Status == "completed" && SettledSince(o));
+            var cancelled48 = orders.Count(o => o.Status == "canceled" && SettledSince(o));
+
+            // ⚠️ Every inquiry, not the 200 latest messages the log shows: the count used to stop
+            // at whatever the log had loaded.
+            var inquiryTimes = await db.StoreMails.AsNoTracking()
+                .Where(m => m.StoreId == row.Id && m.Direction == "in")
+                .Select(m => m.At)
+                .ToListAsync();
+            var inquiries   = inquiryTimes.Count;
+            var inquiries48 = inquiryTimes.Count(at => at >= since);
+
+            // A visit is a buyer signing in to the site, or coming back after a while away; a
+            // visitor is a buyer, however many times they came.
+            var visits = await db.StoreWebEvents.AsNoTracking()
+                .Where(e => e.StoreId == row.Id && e.Kind == "visit")
+                .Select(e => new { e.BuyerId, e.ReceivedAt })
+                .ToListAsync();
+            var visits48   = visits.Where(v => v.ReceivedAt >= since).ToList();
+            var visitors   = visits.Select(v => v.BuyerId).Distinct().Count();
+            var visitors48 = visits48.Select(v => v.BuyerId).Distinct().Count();
+
+            string Last48(int n) => string.Format(SalesText.StatLast48h, n);
+
+            // Lines as "Rhea × 1, Ark × 2", in the interface language.
+            string Named(int typeId) => SdeNames.Type(typeId,
+                orderTypeNames.GetValueOrDefault(typeId, string.Format(SalesText.TypeNumbered, typeId)));
+            var webItems = new Dictionary<int, string>();
+            foreach (var e in webEvents)
+            {
+                if (webOrderLines.TryGetValue(e.Id, out var lines))
+                    webItems[e.Id] = string.Join(CommonText.ListSeparator,
+                        lines.Select(l => string.Format(SalesText.WebEventItem, Named(l.TypeId), l.Units)));
+                else if (e.Kind == "cancel")
+                {
+                    // By the app's order id; a site from before it sent one is matched by the
+                    // order reference instead, which can name several lines.
+                    List<TrackedOrder> forOrders =
+                        CancelledOrderId(e) is int id && ordersById.TryGetValue(id, out var o) ? [o]
+                        : e.OrderRef.Length > 0 ? orders.Where(x => x.OrderRef == e.OrderRef).ToList()
+                        : [];
+                    if (forOrders.Count > 0)
+                        webItems[e.Id] = string.Join(CommonText.ListSeparator,
+                            forOrders.Select(x => string.Format(SalesText.WebEventItem, Named(x.TypeId), x.Units)));
+                }
+            }
 
             // ⚠️ Built from the same list the "Active items" count above is built from, so the
             // number and the rows behind it cannot drift apart.
@@ -1720,13 +1841,23 @@ public class StoresViewModel : ReactiveObject
                 Senders.Clear();
                 foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
 
-                _webEventRows = webEvents;
+                _webEventRows  = webEvents;
+                _webEventItems = webItems;
                 FillWebEvents();
 
                 StatInquiries = inquiries.ToString("N0");
                 StatActive    = active.ToString("N0");
                 StatCompleted = completed.ToString("N0");
                 StatCancelled = cancelled.ToString("N0");
+                StatVisits    = visits.Count.ToString("N0");
+                StatVisitors  = visitors.ToString("N0");
+
+                StatInquiries48 = Last48(inquiries48);
+                StatActive48    = Last48(active48);
+                StatCompleted48 = Last48(completed48);
+                StatCancelled48 = Last48(cancelled48);
+                StatVisits48    = Last48(visits48.Count);
+                StatVisitors48  = Last48(visitors48);
 
                 WebStatusText = DescribeWeb(store);
                 WebHasError   = store.WebEnabled && store.WebLastError.Length > 0;

@@ -1560,6 +1560,9 @@ Besitzer: {3}</value>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ihre Charaktere, die hier online sind. Zeigen Sie darauf, um Schiff und Andockstatus zu sehen.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>Offiziers-NPCs, die seit der Downtime (11:00 EVE) auf einer Abschussmeldung hier aufgetaucht sind; mit der Downtime verschwinden sie. Ob einer seitdem abgeschossen wurde, ist nicht zu sehen. Zeigen Sie darauf, um zu sehen, wann jeder zuletzt einen Abschuss hatte.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>Entlang der Leiste ziehen, um die Reihenfolge zu ändern, oder auf die rechte Hälfte, um zwei Tabs nebeneinander zu sehen.</value>
   </data>
@@ -1622,6 +1625,18 @@ Besitzer: {3}</value>
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} – {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>Offiziere in {1} seit der Downtime: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — letzter Abschuss {1} EVE ({2}) · {3} · Abschüsse seit der Downtime: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>vor {0} Std. {1} Min.</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>im All</value>

@@ -1518,6 +1518,9 @@
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>你在此处在线的角色。悬停查看舰船以及是否停靠。</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>例行维护（EVE 时间 11:00）以来在此处击毁报告中出现的军官 NPC；它们会在例行维护时消失。无法得知之后是否已被击毁。悬停查看每个军官最近一次击杀的时间。</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>沿标签栏拖动可调整顺序，拖到右半边可并排查看两个标签页。</value>
   </data>
@@ -1580,6 +1583,18 @@
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0}——{1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>例行维护以来在 {1} 出现的军官：{0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — 最近击杀 {1} EVE（{2}）· {3} · 例行维护以来击杀：{4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}：{1}，{2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟前</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>在太空中</value>

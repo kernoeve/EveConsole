@@ -554,6 +554,7 @@ public class CharacterViewModel : ReactiveObject
             // Push the fresh token into EsiClient so the polling service picks it up immediately
             // without waiting for an app restart or token expiry.
             _esi.SetCorpTokens(corpEntity.Id, tokens);
+            OwnerList.Announce();
 
             StatusMessage = string.Format(isNew ? OverviewText.TokensCorpAdded : OverviewText.TokensCorpUpdated,
                                           esiCorp.Ticker, esiCorp.Name, charInfo.Name)
@@ -810,6 +811,7 @@ public class CharacterViewModel : ReactiveObject
     {
         _db.Characters.Remove(character);
         await _db.SaveChangesAsync();
+        OwnerList.Announce();
 
         if (SelectedCharacterListItem?.Character == character) SelectedCharacterListItem = null;
         if (SelectedCharacterInSettings == character) SelectedCharacterInSettings = null;
@@ -835,6 +837,7 @@ public class CharacterViewModel : ReactiveObject
 
         _db.Corporations.Remove(toRemove);
         await _db.SaveChangesAsync();
+        OwnerList.Announce();
 
         if (SelectedCorpListItem?.Corp == toRemove) SelectedCorpListItem = null;
         SelectedCorp = null;
@@ -890,6 +893,8 @@ public class CharacterViewModel : ReactiveObject
         }
 
         await _db.SaveChangesAsync();
+        // Added, or back with a working token: either way the lists that offer characters change.
+        OwnerList.Announce();
         return entity;
     }
 }

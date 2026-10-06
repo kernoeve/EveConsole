@@ -2078,6 +2078,10 @@ Owned by {3}</value>
     <value>Your characters online here. Hover for their ships and whether they are docked.</value>
     <comment>Legend beside the blue square mark on the map.</comment>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>Officer NPCs seen on a killmail here since downtime (11:00 EVE), when they despawn. Whether one has been killed since cannot be seen. Hover for when each last killed.</value>
+    <comment>Universe Map legend, LIVE MARKS: what the fuchsia ★ tag at a system's lower left means. Officers are the rare named faction NPCs.</comment>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>Drag along the strip to reorder, or onto the right half to see two tabs side by side.</value>
     <comment>Tooltip on a tab of the map tool.</comment>
@@ -2161,6 +2165,22 @@ Owned by {3}</value>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
     <comment>Map hover, one line per own character. {0} character, {1} ship, {2} where (LiveInSpace, LiveDocked or LiveDockedAt).</comment>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>Officers seen in {1} since downtime: {0}</value>
+    <comment>Universe Map, hover title of the officer ★ tag. {0} how many officers, {1} the system or region.</comment>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — last kill {1} EVE ({2}) · {3} · kills since downtime: {4}</value>
+    <comment>Universe Map, one line of the officer ★ hover. {0} the officer NPC's name, {1} date and time of its latest kill (yyyy-MM-dd HH:mm), {2} how long ago ("12 min ago"), {3} the ship it killed, {4} how many killmails it has been on here since downtime.</comment>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+    <comment>Universe Map, region-level officer hover line. {0} the system, {1} the officer's name, {2} how long ago it last killed.</comment>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0} h {1} min ago</value>
+    <comment>Universe Map hover: how long ago, past the first hour. {0} hours, {1} minutes.</comment>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>in space</value>
