@@ -1216,6 +1216,38 @@
     <value>Notes saved (identity comes from ESI).</value>
     <comment>Structure Browser status line: only the notes could be saved.</comment>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>FACES TOWARD</value>
+    <comment>Structure Browser editor label (uppercase like the others): what the structure's undock points at.</comment>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>Which way this structure's undock points: another structure in this system, or a stargate. In-system hauling orders its stops by it, so a freighter that undocks toward its next stop does not have to turn round. ESI does not provide this. Saved as soon as you pick.</value>
+    <comment>Tooltip on the Faces toward picker in the Structure Browser.</comment>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>Not set</value>
+    <comment>Faces toward picker: no facing recorded.</comment>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+    <comment>Faces toward picker: distance to the option, {0} = kilometres.</comment>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>Stargate to {0}</value>
+    <comment>Faces toward picker: a stargate, {0} = the system it leads to.</comment>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Faces toward picker: a structure with no name yet, {0} = its id.</comment>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (no longer in this system)</value>
+    <comment>Faces toward picker: the stored target is no longer among the choices, {0} = its id.</comment>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>Facing saved.</value>
+    <comment>Structure Browser status after the Faces toward choice is saved.</comment>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>Save failed: {0}</value>
     <comment>Structure Browser status line. {0} is the error.</comment>

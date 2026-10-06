@@ -3352,9 +3352,14 @@ public class App : Application
                         "NearestCelestial"   TEXT    NOT NULL DEFAULT '',
                         "Status"             INTEGER NOT NULL DEFAULT 0,
                         "Notes"              TEXT    NOT NULL DEFAULT '',
+                        "FacesTowardId"      INTEGER NOT NULL DEFAULT 0,
                         "UpdatedBy"          TEXT    NOT NULL DEFAULT 'esi',
                         "UpdatedAt"          TEXT    NOT NULL DEFAULT '2000-01-01 00:00:00+00:00')
                     """,
+                    // Which way a structure faces, added later: 0, not set, for every existing row.
+                    // Throws "duplicate column" where it is already there, which the loop's catch
+                    // takes as success. Mirrored in PostgresSchema.
+                    """ALTER TABLE "Structures" ADD COLUMN "FacesTowardId" INTEGER NOT NULL DEFAULT 0""",
                     """
                     CREATE TABLE IF NOT EXISTS "StructureFittings" (
                         "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

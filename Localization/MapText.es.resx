@@ -913,6 +913,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>Notas guardadas (la identidad viene de ESI).</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>ORIENTADA HACIA</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>Hacia dónde apunta la salida de esta estructura: otra estructura de este sistema o un portal estelar. El transporte dentro del sistema ordena sus paradas según esto, para que un carguero que desatraca hacia su siguiente parada no tenga que dar la vuelta. ESI no proporciona este dato. Se guarda en cuanto lo eliges.</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>Sin definir</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>Portal estelar a {0}</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>Estructura {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (ya no está en este sistema)</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>Orientación guardada.</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>Error al guardar: {0}</value>
   </data>

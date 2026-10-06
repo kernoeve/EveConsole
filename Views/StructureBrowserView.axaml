@@ -375,6 +375,28 @@
                     </StackPanel>
                   </Grid>
 
+                  <!-- Which way the structure faces: outside the identity gate like Notes, since ESI
+                       never says, and saved as soon as it is picked. In-system hauling orders its
+                       stops by it. -->
+                  <StackPanel>
+                    <TextBlock Classes="flabel" Text="{x:Static loc:MapText.FacesTowardLabel}" />
+                    <ComboBox ItemsSource="{Binding FacingOptions}"
+                              SelectedItem="{Binding EditFacing}"
+                              IsEnabled="{Binding CanEditFacing}"
+                              FontSize="11.5" HorizontalAlignment="Stretch"
+                              ToolTip.Tip="{x:Static loc:MapText.TipFacesToward}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FacingOption">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="11.5" />
+                            <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                          </Grid>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                  </StackPanel>
+
                   <!-- Notes sits outside the identity gate on purpose: ESI never supplies it, so
                        there is nothing for a hand-written note to be overwritten by. -->
                   <StackPanel>

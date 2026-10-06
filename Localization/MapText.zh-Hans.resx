@@ -907,6 +907,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>备注已保存（身份信息来自 ESI）。</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>朝向</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>该建筑出站口指向的方向：本星系的另一座建筑，或一座星门。星系内运输按此安排停靠顺序，这样货舰出站后朝向下一站，无需掉头。ESI 不提供此信息。选择后立即保存。</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} 千米</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>通往{0}的星门</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0}（已不在本星系）</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>朝向已保存。</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>保存失败：{0}</value>
   </data>

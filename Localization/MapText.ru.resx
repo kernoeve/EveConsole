@@ -925,6 +925,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>Заметки сохранены (идентификационные данные берутся из ESI).</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>ОБРАЩЕНА К</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>Куда направлен выход из этой структуры: на другую структуру в этой системе или на звёздные врата. Перевозки внутри системы упорядочивают остановки по этому признаку, чтобы грузовику, выходящему в сторону следующей остановки, не приходилось разворачиваться. ESI этого не сообщает. Сохраняется сразу при выборе.</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>Не задано</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} км</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>Звёздные врата: {0}</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>Структура {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (больше не в этой системе)</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>Направление сохранено.</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>Не удалось сохранить: {0}</value>
   </data>

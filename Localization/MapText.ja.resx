@@ -907,6 +907,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>メモを保存しました（識別情報はESIから取得されます）。</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>向いている方向</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>このストラクチャーのアンドック方向：同じ星系内の別のストラクチャー、またはスターゲート。星系内の輸送はこれに従って停泊順を決めるため、次の停泊先に向けてアンドックする貨物船は旋回せずに済みます。ESIはこの情報を提供しません。選択するとすぐに保存されます。</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>{0}へのスターゲート</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>ストラクチャー {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0}（この星系にはもうありません）</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>向きを保存しました。</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>保存に失敗しました：{0}</value>
   </data>

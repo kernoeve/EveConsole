@@ -913,6 +913,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>Notizen gespeichert (die Identität stammt von ESI).</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>AUSGERICHTET AUF</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>Wohin der Abdockpunkt dieser Struktur zeigt: auf eine andere Struktur in diesem System oder ein Sprungtor. Der Transport im System ordnet seine Stopps danach, damit ein Frachter, der in Richtung seines nächsten Stopps abdockt, nicht wenden muss. ESI liefert diese Angabe nicht. Wird sofort bei der Auswahl gespeichert.</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>Nicht festgelegt</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>Sprungtor nach {0}</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>Struktur {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (nicht mehr in diesem System)</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>Ausrichtung gespeichert.</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>Speichern fehlgeschlagen: {0}</value>
   </data>

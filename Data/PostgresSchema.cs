@@ -1032,6 +1032,12 @@ public static class PostgresSchema
         """
         ALTER TABLE "WorklistIndyChars" ADD COLUMN IF NOT EXISTS "PlanetaryIndustry" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+
+        // Which way a structure faces, typed in the Structure Browser; 0 for every existing row.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "Structures" ADD COLUMN IF NOT EXISTS "FacesTowardId" BIGINT NOT NULL DEFAULT 0
+        """,
         // Colony layouts, one colony replaced whole at a time, and what tax learning works from.
         // Entities that arrived after databases existed. Mirrored for SQLite in App.axaml.cs.
         // ⚠️ DOUBLE PRECISION, never REAL: REAL is float4 here and would round a tax rate.

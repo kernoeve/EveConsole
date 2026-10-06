@@ -913,6 +913,30 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>Notes enregistrées (l'identité provient d'ESI).</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>ORIENTÉE VERS</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>Direction de la sortie de cette structure : une autre structure de ce système ou un portail stellaire. Le transport dans le système ordonne ses arrêts en fonction, pour qu'un cargo qui sort face à son prochain arrêt n'ait pas à faire demi-tour. ESI ne fournit pas cette information. Enregistré dès que vous choisissez.</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>Non définie</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>Portail stellaire vers {0}</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>Structure {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (n'est plus dans ce système)</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>Orientation enregistrée.</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>Échec de l'enregistrement : {0}</value>
   </data>

@@ -25,6 +25,17 @@ public sealed record PickOption(int Id, string Label, string English = "", strin
     public override string ToString() => Label;
 }
 
+/// <summary>
+/// One thing a structure's undock can point at: another structure in its system or one of its
+/// stargates, with how far it is. <see cref="Id"/> 0 is "not set".
+/// </summary>
+/// <param name="Detail">Shown to the right of the label — the distance, when both ends have a
+/// position.</param>
+public sealed record FacingOption(long Id, string Label, string Detail = "")
+{
+    public override string ToString() => Label;
+}
+
 public class StructureRow
 {
     public long   StructureId  { get; init; }
@@ -249,6 +260,48 @@ public class StructureBrowserViewModel : ReactiveObject
 
     private string _editNotes = "";
     public string EditNotes { get => _editNotes; set => this.RaiseAndSetIfChanged(ref _editNotes, value); }
+
+    // ── Facing ───────────────────────────────────────────────────────────────
+    //
+    // Outside the identity gate, like Notes: ESI never says which way a structure faces, so there
+    // is nothing to overwrite it. Saved the moment it is picked rather than by the Save button —
+    // it is one choice from a list, and nothing typed is left half-finished by saving it.
+
+    private IReadOnlyList<FacingOption> _facingOptions = [];
+    public IReadOnlyList<FacingOption> FacingOptions
+    {
+        get => _facingOptions;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _facingOptions, value);
+            this.RaisePropertyChanged(nameof(CanEditFacing));
+        }
+    }
+
+    /// <summary>Only with something to face: a structure with no row of its own, or none in its
+    /// system to point at, has nothing to choose from.</summary>
+    public bool CanEditFacing => _facingOptions.Count > 1;
+
+    /// <summary>Set while a selection's choices are being put in place, so filling the box is
+    /// not taken for the user picking.</summary>
+    private bool _loadingFacing;
+
+    private FacingOption? _editFacing;
+    public FacingOption? EditFacing
+    {
+        get => _editFacing;
+        set
+        {
+            // ⚠️ A null is the ComboBox losing its selection while its list is replaced, never a
+            // choice — "not set" is an option of its own. Taken as one, it would clear the facing
+            // of every structure that was merely opened.
+            if (value is null || value == _editFacing) return;
+            this.RaiseAndSetIfChanged(ref _editFacing, value);
+            if (!_loadingFacing) _ = SaveFacingAsync(value.Id);
+        }
+    }
+
+    private static FacingOption NoFacing => new(0, MapText.FacingNotSet);
 
     // ── System / type pickers ────────────────────────────────────────────────
     // Both are chosen from the SDE rather than typed: the row stores ids, and a free-text field
@@ -946,6 +999,8 @@ public class StructureBrowserViewModel : ReactiveObject
             EditName   = s?.Name  ?? "";
             EditNotes  = s?.Notes ?? "";
 
+            await LoadFacingAsync(db, row, s);
+
             // Assigned through the backing fields: the EditType setter reloads the render, which
             // is wasted work when the load above is already fetching the same image.
             //
@@ -1571,6 +1626,107 @@ public class StructureBrowserViewModel : ReactiveObject
         // A replaced list, not a mutated one — the bound controls only notice a new reference.
         replace([.. options, made]);
         return made;
+    }
+
+    /// <summary>
+    /// What this structure could face — every other structure in its system and each of its
+    /// stargates, nearest first — and which of them it is set to.
+    ///
+    /// <para>Structures come from the app's own table, which is where the facing is written, so
+    /// anything offered can itself be given a facing. A stored target no longer offered is kept as
+    /// an entry of its own rather than shown blank, for the same reason as the type and system
+    /// boxes: an empty box cannot be told apart from "not set".</para>
+    /// </summary>
+    private async Task LoadFacingAsync(AppDbContext db, StructureRow row, Structure? s)
+    {
+        var seq     = _detailSeq;
+        var options = new List<FacingOption>();
+
+        if (s is not null && row.SystemId > 0)
+        {
+            var sys    = (int)row.SystemId;
+            var placed = s.X != 0 || s.Y != 0 || s.Z != 0;
+
+            // Metres from this structure, or none when either end has no position.
+            double? Metres(double x, double y, double z) =>
+                !placed || (x == 0 && y == 0 && z == 0) ? null
+                : Math.Sqrt((x - s.X) * (x - s.X) + (y - s.Y) * (y - s.Y) + (z - s.Z) * (z - s.Z));
+            string Away(double? m) => m is { } v ? string.Format(MapText.FacingDistanceKm, v / 1000) : "";
+
+            var others = await db.Structures.AsNoTracking()
+                .Where(x => x.SolarSystemId == sys && x.StructureId != s.StructureId)
+                .Select(x => new { x.StructureId, x.Name, x.X, x.Y, x.Z })
+                .ToListAsync();
+
+            // A gate is named by where it goes, as the game names it.
+            var gates = await (
+                from g  in db.SdeStargates.AsNoTracking()
+                where g.SolarSystemId == sys
+                join c  in db.SdeCelestials.AsNoTracking()   on (long)g.StargateId     equals c.ItemId
+                join d  in db.SdeStargates.AsNoTracking()    on g.DestinationStargateId equals d.StargateId
+                join ds in db.SdeSolarSystems.AsNoTracking() on d.SolarSystemId         equals ds.SolarSystemId
+                select new { g.StargateId, c.X, c.Y, c.Z, ds.SolarSystemId, ds.Name })
+                .ToListAsync();
+
+            options.AddRange(others
+                .Select(o => (Far: Metres(o.X, o.Y, o.Z),
+                              Id: o.StructureId,
+                              Label: o.Name.Length > 0 ? o.Name : string.Format(MapText.FacingStructureNumbered, o.StructureId)))
+                .Concat(gates.Select(g => (Far: Metres(g.X, g.Y, g.Z),
+                                           Id: (long)g.StargateId,
+                                           Label: string.Format(MapText.FacingStargateTo, SdeNames.SolarSystem(g.SolarSystemId, g.Name)))))
+                .OrderBy(x => x.Far ?? double.MaxValue).ThenBy(x => x.Label)
+                .Select(x => new FacingOption(x.Id, x.Label, Away(x.Far))));
+        }
+
+        var stored = s?.FacesTowardId ?? 0;
+        if (stored != 0 && options.All(o => o.Id != stored))
+            options.Add(new FacingOption(stored, string.Format(MapText.FacingElsewhere, stored)));
+
+        // "Not set" heads the list only once there is something else in it, so a structure with
+        // nothing to face shows a disabled, empty box rather than a choice of one.
+        if (options.Count > 0) options.Insert(0, NoFacing);
+
+        // Another structure picked meanwhile: these are its predecessor's choices, and the next
+        // pick would save one of them against the wrong row.
+        if (seq != _detailSeq) return;
+
+        _loadingFacing = true;
+        try
+        {
+            FacingOptions = options;
+            _editFacing   = options.FirstOrDefault(o => o.Id == stored) ?? options.FirstOrDefault();
+            this.RaisePropertyChanged(nameof(EditFacing));
+        }
+        finally { _loadingFacing = false; }
+    }
+
+    /// <summary>
+    /// Writes the facing alone, the moment it is picked.
+    ///
+    /// <para>Not stamped as a user edit: <see cref="Structure.UpdatedBy"/> says who last wrote the
+    /// identity, and choosing a facing says nothing about the name or the system.</para>
+    /// </summary>
+    private async Task SaveFacingAsync(long towardId)
+    {
+        if (Selected is not { } row) return;
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var s = await db.Structures.FindAsync(row.StructureId);
+            if (s is null)
+            {
+                DetailStatus = MapText.StatusStructureGone;
+                return;
+            }
+
+            s.FacesTowardId = towardId;
+            await db.SaveChangesAsync();
+            DetailStatus = MapText.StatusFacingSaved;
+        }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusSaveFailed, ex.Message); }
     }
 
     /// <summary>
