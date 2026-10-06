@@ -590,6 +590,21 @@ PID: {2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>이 빌드가 데이터베이스와 맞지 않습니다</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>데이터베이스를 업그레이드할까요?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>이 데이터베이스를 마지막으로 사용한 것은 EVE Console {0}이며, 이 버전은 {1}입니다.
+
+시작하면 {1}(으)로 업그레이드됩니다. 그 후에는 이전 버전에서 열 수 없으므로, 되돌아갈 수도 있다면 먼저 백업하세요.
+
+데이터베이스: {2}
+
+업그레이드하고 시작할까요? 아니요를 누르면 EVE Console을 닫고 데이터베이스는 그대로 둡니다.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>이전 버전</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>데이터베이스 축소 중 — {0} 경과. 애플리케이션을 닫지 마십시오.</value>
   </data>

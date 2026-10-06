@@ -653,7 +653,92 @@ public class App : Application
         // ⚠️ The RECORDED version, not a live worker's. It names the last build that owned the
         // background processing, which is the build the schema was made by, and that is still the
         // right answer when nothing is running now. It is, in effect, the database's own version.
-        var dbVersion = (await WorkerLease.ReadStatusAsync())?.Version;
+        //
+        // On SQLite there is no lease row; the file records its own version (DatabaseVersion), and
+        // a file from before it did reads as "unrecorded" — older, and asked about below.
+        var workerStatus = await WorkerLease.ReadStatusAsync();
+        string? dbVersion;
+        var unrecorded = false;
+        if (DbEngine.IsPostgres)
+            dbVersion = workerStatus?.Version;
+        else
+        {
+            var lite = DatabaseVersion.ReadSqlite(AppConfig.GetDbPath());
+            dbVersion  = lite?.Version;
+            unrecorded = lite is { Fresh: false, Version: null };
+        }
+
+        // ── An older database is upgraded only when the user says so ──────────
+        //
+        // ⚠️ Asked BEFORE the lease is taken, and that order is the whole point. Winning the lease
+        // stamps this build's version into the database (WorkerLease.ClaimAsync), and every step
+        // after it brings the schema up — so a "no" given any later would leave the database half
+        // moved to a version the user declined. Nothing above this line has written to it.
+        //
+        // Not asked when another client is already running the background work: it keeps the
+        // lease, this client could not upgrade anything, and the version check below stops it.
+        {
+            Version.TryParse(dbVersion ?? "", out var dbOld);
+            Version.TryParse(AppVersion.Number, out var appNow);
+            var older = unrecorded || (dbOld is not null && appNow is not null && dbOld < appNow);
+            var heldElsewhere = workerStatus is not null && WorkerLease.IsLive(workerStatus);
+
+            if (older && !heldElsewhere)
+            {
+                var from  = dbVersion ?? ShellText.DatabaseVersionUnrecorded;
+                var where = DescribeDatabase();
+
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime asking)
+                {
+                    var question = new Views.ConfirmDialog(
+                        string.Format(ShellText.UpgradeDatabaseQuestion, from, AppVersion.Number, where),
+                        title: ShellText.UpgradeDatabaseTitle);
+
+                    if (!await AskAsync(question, splash))
+                    {
+                        // ⚠️ The file log, not the error log: the error log is a table in the very
+                        // database the user just declined to have changed.
+                        ServiceLog.Write($"database upgrade declined — {from} → {AppVersion.Number}, {where}; exiting without changing it");
+                        asking.Shutdown();
+                        return;
+                    }
+                    ServiceLog.Write($"database upgrade confirmed — {from} → {AppVersion.Number}, {where}");
+                }
+                else
+                {
+                    // Headless has nobody to ask. A service is updated unattended, and refusing here
+                    // would stop the background work for good after every update; it goes ahead,
+                    // and says so where its operator will look.
+                    Console.Error.WriteLine($"EVE Console: upgrading the database from {from} to {AppVersion.Number} ({where}).");
+                    ServiceLog.Write($"database upgrade (headless) — {from} → {AppVersion.Number}, {where}");
+                }
+            }
+        }
+
+        // Which database, for the question above: the server and database name on PostgreSQL —
+        // never the password — or the file's path.
+        static string DescribeDatabase()
+        {
+            if (!DbEngine.IsPostgres) return AppConfig.GetDbPath();
+            try
+            {
+                var b = new Npgsql.NpgsqlConnectionStringBuilder(AppConfig.GetPostgresConnection() ?? "");
+                return $"PostgreSQL {b.Host}/{b.Database}";
+            }
+            catch { return "PostgreSQL"; }
+        }
+
+        // A yes/no before the main window exists: over the splash when there is one, on its own
+        // when a tray start has none.
+        static async Task<bool> AskAsync(Views.ConfirmDialog dialog, Avalonia.Controls.Window? owner)
+        {
+            if (owner is not null) return await dialog.ShowDialog<bool>(owner);
+            var closed = new TaskCompletionSource<bool>();
+            dialog.Closed += (_, _) => closed.TrySetResult(dialog.Confirmed);
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen;
+            dialog.Show();
+            return await closed.Task;
+        }
 
         var ownsSchema = await lease.AcquireAsync();
         var skipSchema = !ownsSchema;
@@ -3727,6 +3812,15 @@ public class App : Application
             // is up — the same silent import a first launch gets.
             SdeSchemaGrew  = SchemaFingerprint.ColumnsUnder(db, "Sde")  > sdeBefore;
             HoboSchemaGrew = SchemaFingerprint.ColumnsUnder(db, "Hobo") > hoboBefore;
+
+            // ⚠️ Last, once the schema is this build's: a SQLite file records the version that
+            // brought it up, which is what the next start compares against — to ask before an
+            // upgrade, and to refuse an older build. PostgreSQL records it with the lease.
+            if (!DbEngine.IsPostgres)
+            {
+                try { DatabaseVersion.StampSqlite(db); }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Startup", "recording the database version", ex); }
+            }
         }
         }); // end Task.Run — schema migration complete
 

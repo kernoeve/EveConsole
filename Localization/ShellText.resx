@@ -751,6 +751,24 @@ Update the client running the background processes to {1}, or close it and start
     <value>This build does not match the database</value>
     <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>Upgrade the database?</value>
+    <comment>Title of the question shown at start when the database was last used by an older EVE Console.</comment>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>This database was last used by EVE Console {0}, and this is {1}.
+
+Starting will upgrade it to {1}. After that, earlier versions can no longer open it, so back it up first if you may need to go back.
+
+Database: {2}
+
+Upgrade it and start? No closes EVE Console and leaves the database as it is.</value>
+    <comment>Asked at start, before anything is changed, when the database is older than this build. {0} the version that last used it (or the DatabaseVersionUnrecorded text), {1} this build's version, {2} which database (a file path, or PostgreSQL server/database). Answered with Yes / No.</comment>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>an earlier version</value>
+    <comment>Fills {0} of UpgradeDatabaseQuestion for a database from before EVE Console recorded its version: "last used by EVE Console an earlier version" reads as "… by an earlier version of EVE Console" — word it to fit that sentence in this language.</comment>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Shrinking database — {0} elapsed. Please leave the application open.</value>
     <comment>Splash screen while the database is compacted at startup. {0} is the time taken so far, as minutes:seconds.</comment>

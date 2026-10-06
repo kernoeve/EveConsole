@@ -596,6 +596,21 @@ Aktualisieren Sie den Client mit den Hintergrundprozessen auf {1}, oder schließ
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Diese Version passt nicht zur Datenbank</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>Datenbank aktualisieren?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>Diese Datenbank wurde zuletzt von EVE Console {0} verwendet, dies ist {1}.
+
+Beim Start wird sie auf {1} aktualisiert. Danach können frühere Versionen sie nicht mehr öffnen – sichern Sie sie vorher, falls Sie zurückwechseln möchten.
+
+Datenbank: {2}
+
+Aktualisieren und starten? Nein schließt EVE Console und lässt die Datenbank unverändert.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>einer früheren Version</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Datenbank wird verkleinert – {0} vergangen. Bitte lassen Sie die Anwendung geöffnet.</value>
   </data>

@@ -590,6 +590,21 @@ PID：{2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>このビルドはデータベースと一致しません</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>データベースを更新しますか？</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>このデータベースを最後に使用したのは EVE Console {0} で、これは {1} です。
+
+起動すると {1} に更新されます。更新後は以前のバージョンで開けなくなるため、元に戻す可能性がある場合は先にバックアップしてください。
+
+データベース: {2}
+
+更新して起動しますか？「いいえ」を選ぶと EVE Console を終了し、データベースは変更しません。</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>以前のバージョン</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>データベースを縮小中 — 経過時間{0}。アプリケーションを閉じないでください。</value>
   </data>

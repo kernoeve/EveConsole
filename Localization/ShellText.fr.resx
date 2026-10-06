@@ -596,6 +596,21 @@ Mettez à jour en version {1} le client qui exécute les processus d'arrière-pl
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Cette version ne correspond pas à la base de données</value>
   </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>Mettre à jour la base de données ?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>Cette base de données a été utilisée en dernier par EVE Console {0}, et celle-ci est la {1}.
+
+Le démarrage va la mettre à jour vers {1}. Ensuite, les versions antérieures ne pourront plus l'ouvrir : sauvegardez-la d'abord si vous pourriez devoir revenir en arrière.
+
+Base de données : {2}
+
+La mettre à jour et démarrer ? Non ferme EVE Console et laisse la base de données telle quelle.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>une version antérieure</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Compactage de la base de données — temps écoulé : {0}. Veuillez laisser l'application ouverte.</value>
   </data>
