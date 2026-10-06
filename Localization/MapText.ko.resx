@@ -1518,6 +1518,9 @@
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>일일점검(EVE 11:00) 이후 이곳의 킬메일에 나타난 장교 NPC입니다. 장교는 일일점검 때 사라집니다. 그 뒤에 격파되었는지는 알 수 없습니다. 마우스를 올리면 각 장교의 마지막 킬 시각을 표시합니다.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>막대를 따라 끌면 순서를 바꾸고, 오른쪽 절반으로 끌면 탭 두 개를 나란히 봅니다.</value>
   </data>
@@ -1580,6 +1583,18 @@
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>일일점검 이후 {1}에서 확인된 장교: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — 마지막 킬 {1} EVE ({2}) · {3} · 일일점검 이후 킬: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0}시간 {1}분 전</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>비행 중</value>
