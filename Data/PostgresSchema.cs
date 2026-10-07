@@ -1038,6 +1038,22 @@ public static class PostgresSchema
         """
         ALTER TABLE "Structures" ADD COLUMN IF NOT EXISTS "FacesTowardId" BIGINT NOT NULL DEFAULT 0
         """,
+        // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored for SQLite
+        // in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "HaulMarks" (
+            "Id"          BIGSERIAL   PRIMARY KEY,
+            "PilotId"     BIGINT      NOT NULL DEFAULT 0,
+            "FromId"      BIGINT      NOT NULL DEFAULT 0,
+            "ToId"        BIGINT      NOT NULL DEFAULT 0,
+            "TypeId"      INTEGER     NOT NULL DEFAULT 0,
+            "Units"       BIGINT      NOT NULL DEFAULT 0,
+            "OwnerType"   TEXT        NOT NULL DEFAULT 'character',
+            "OwnerId"     BIGINT      NOT NULL DEFAULT 0,
+            "PickedAt"    TIMESTAMPTZ NOT NULL,
+            "DeliveredAt" TIMESTAMPTZ NULL
+        )
+        """,
         // Colony layouts, one colony replaced whole at a time, and what tax learning works from.
         // Entities that arrived after databases existed. Mirrored for SQLite in App.axaml.cs.
         // ⚠️ DOUBLE PRECISION, never REAL: REAL is float4 here and would round a tax rate.

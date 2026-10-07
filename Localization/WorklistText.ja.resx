@@ -2044,6 +2044,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>{0}から</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}のカーゴ</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ 運搬済み</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>この停泊先を完了としてチェックします。ここで積んだものはカーゴ内、降ろしたものは配送済みとして扱い、周回が進み、待っているジョブも開始できます。次の資産更新で反映されるまで有効です。</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>運搬を記録できませんでした：{0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0}（{1:N0} m³）</value>
   </data>

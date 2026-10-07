@@ -90,6 +90,10 @@ public static class ContractLag
             .ToDictionary(s => s.Owner, s => (s.Type, s.At));
         if (snapshot.Count == 0) return [];
 
+        // Hauls ticked off as delivered move goods just as contracts do, against the same clocks,
+        // so every reader of these moves sees them. See HaulLag.
+        var hauled = await HaulLag.DeliveredMovesAsync(db, snapshot, typeIds, ct);
+
         // ⚠️ Raw SQL for the dates: a DateTimeOffset in a LINQ Where does not translate on SQLite
         // (see OrderFulfilmentService.CandidateIdsAsync, which filters the same way). Only rows
         // polled for these owners — the key leads with the owner, where the dates have no index
@@ -105,7 +109,7 @@ public static class ContractLag
                    OR c."StatusChangedAfter" > {3})
             """;
         var ids = await db.Database.SqlQueryRaw<int>(sql, floor, floor, floor, floor).ToListAsync(ct);
-        if (ids.Count == 0) return [];
+        if (ids.Count == 0) return [.. hauled.OrderByDescending(m => m.Units)];
 
         // ⚠️ Every owner row of each, read together. A contract is a row per owner that can see
         // it, each as fresh as that owner's last poll; the most settled speaks for the contract,
@@ -204,6 +208,7 @@ public static class ContractLag
                 Move(g.Key, c.EndLocationId, issuer, offered: true, +1, delivered);
         }
 
+        moves.AddRange(hauled);
         return moves.OrderByDescending(m => m.Units).ToList();
     }
 

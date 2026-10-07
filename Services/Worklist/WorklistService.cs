@@ -779,6 +779,89 @@ public class WorklistService(
         }
     }
 
+    /// <summary>
+    /// Records a loop's stop as flown: what was picked up there is in the pilot's hold, and what
+    /// was put down there is delivered — until the asset poll shows it. See <see cref="HaulLag"/>.
+    ///
+    /// <para>A drop-off settles the pick-up it belongs to, ticked at an earlier stop; one that was
+    /// never ticked there is recorded as picked up and delivered at once, so ticking only the
+    /// drop-offs still moves the goods. Each mark carries the owner whose hangar the goods sit in
+    /// at the pick-up — the largest holders first — so it is that owner's poll that settles it.</para>
+    /// </summary>
+    /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in.</param>
+    public async Task MarkHauledAsync(long pilotId, WorklistHaulStop stop, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var now = DateTimeOffset.UtcNow;
+
+        // The table is an hour or two of ticks: read whole, and old ones let go of on the way.
+        var marks = await db.HaulMarks.ToListAsync(ct);
+        db.HaulMarks.RemoveRange(marks.Where(m => now - m.PickedAt > HaulLag.KeepFor));
+
+        // Who holds this item at a site, largest first. A job's output delivered since the asset
+        // poll is in nobody's hangar yet as far as the snapshot knows; the pilot stands in for it.
+        async Task<List<(string Type, long Id, long Units)>> HoldersAsync(long site, int typeId) =>
+            site <= 0 ? [] : (await db.EsiAssets.AsNoTracking()
+                    .Where(a => a.RootLocationId == site && a.TypeId == typeId)
+                    .Select(a => new { a.OwnerType, a.OwnerId, a.Quantity })
+                    .ToListAsync(ct))
+                .GroupBy(a => (a.OwnerType, a.OwnerId))
+                .Select(g => (g.Key.OwnerType, g.Key.OwnerId, g.Sum(a => (long)a.Quantity)))
+                .OrderByDescending(h => h.Item3)
+                .ToList();
+
+        async Task PickAsync(long from, long to, int typeId, long units, DateTimeOffset? delivered)
+        {
+            var holders = await HoldersAsync(from, typeId);
+            var left    = units;
+            foreach (var (type, id, held) in holders)
+            {
+                if (left <= 0) break;
+                var take = Math.Min(left, held);
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = from, ToId = to, TypeId = typeId, Units = take,
+                                                OwnerType = type, OwnerId = id, PickedAt = now, DeliveredAt = delivered });
+                left -= take;
+            }
+            if (left > 0)
+            {
+                var (type, id) = holders.Count > 0 ? (holders[0].Type, holders[0].Id) : ("character", pilotId);
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = from, ToId = to, TypeId = typeId, Units = left,
+                                                OwnerType = type, OwnerId = id, PickedAt = now, DeliveredAt = delivered });
+            }
+        }
+
+        foreach (var l in stop.PickUp)
+            await PickAsync(stop.StationId, l.OtherId, l.TypeId, l.Quantity, delivered: null);
+
+        foreach (var l in stop.DropOff)
+        {
+            // What this pilot picked up for here — from where the line says, or out of their hold.
+            var left = l.Quantity;
+            foreach (var m in marks.Where(m => m.DeliveredAt is null && m.ToId == stop.StationId && m.TypeId == l.TypeId
+                                               && (m.FromId == l.OtherId || (l.OtherId < 0 && m.PilotId == -l.OtherId)))
+                                   .OrderBy(m => m.PickedAt).ToList())
+            {
+                if (left <= 0) break;
+                if (m.Units > left)
+                {
+                    // Part of it put down here: the rest stays aboard as a mark of its own.
+                    db.HaulMarks.Add(new HaulMark { PilotId = m.PilotId, FromId = m.FromId, ToId = m.ToId, TypeId = m.TypeId,
+                                                    Units = m.Units - left, OwnerType = m.OwnerType, OwnerId = m.OwnerId,
+                                                    PickedAt = m.PickedAt });
+                    m.Units = left;
+                }
+                m.DeliveredAt = now;
+                left -= m.Units;
+            }
+
+            // Its pick-up was never ticked: picked up and delivered in one.
+            if (left > 0 && l.OtherId > 0)
+                await PickAsync(l.OtherId, stop.StationId, l.TypeId, left, delivered: now);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
     /// <summary>Hides an item until a chosen time. Pass null to un-snooze.</summary>
     public async Task SnoozeAsync(string key, DateTimeOffset? until, CancellationToken ct = default)
     {

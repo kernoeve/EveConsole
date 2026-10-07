@@ -1966,6 +1966,23 @@ public class App : Application
                     )
                     """);
 
+                // ── Hauls ticked off at a loop's stops ──────────────────────────────
+                // Held only until the asset poll catches up. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "HaulMarks" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "PilotId"     INTEGER NOT NULL DEFAULT 0,
+                        "FromId"      INTEGER NOT NULL DEFAULT 0,
+                        "ToId"        INTEGER NOT NULL DEFAULT 0,
+                        "TypeId"      INTEGER NOT NULL DEFAULT 0,
+                        "Units"       INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"   TEXT    NOT NULL DEFAULT 'character',
+                        "OwnerId"     INTEGER NOT NULL DEFAULT 0,
+                        "PickedAt"    TEXT    NOT NULL,
+                        "DeliveredAt" TEXT    NULL
+                    )
+                    """);
+
                 // ── Planetary Industry: colony layouts ──────────────────────────────
                 // One colony replaced whole, in one transaction, whenever the colony list
                 // reports a new last_update. Mirrored for PostgreSQL in PostgresSchema.

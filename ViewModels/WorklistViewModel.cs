@@ -55,11 +55,14 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     private readonly string _childTotals = "";
     private readonly IBrush? _childOtherColor;
     private readonly bool   _childTurn;
+    private readonly WorklistHaulStop? _stop;
 
     private WorklistRowVm(WorklistRowVm parent, int order, ChildKind kind, string label, bool turn = false,
                           int typeId = 0, string action = "", string qty = "", string other = "",
-                          string volume = "", string value = "", string totals = "", IBrush? otherColor = null)
+                          string volume = "", string value = "", string totals = "", IBrush? otherColor = null,
+                          WorklistHaulStop? stop = null)
     {
+        _stop = stop;
         _childOtherColor = otherColor;
         _item        = parent._item;
         Sequence     = parent.Sequence;
@@ -107,6 +110,20 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 
     /// <summary>A stop's totals: what comes off and what goes on, in m³ and ISK.</summary>
     public string ChildTotals => _childTotals;
+
+    /// <summary>The loop stop this row heads, which can be ticked off as hauled.</summary>
+    internal WorklistHaulStop? Stop => _stop;
+
+    private bool _marked;
+    /// <summary>Ticked off already: the button goes, so a second click cannot record it twice
+    /// before the list has been rebuilt without it.</summary>
+    public bool Marked
+    {
+        get => _marked;
+        set { this.RaiseAndSetIfChanged(ref _marked, value); this.RaisePropertyChanged(nameof(CanMarkHauled)); }
+    }
+
+    public bool CanMarkHauled => _stop is not null && !_marked;
 
     /// <summary>The parent's place in the list, shared by its detail rows, so they sort as one.</summary>
     public int FamilyOrder => Sequence;
@@ -157,7 +174,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             }.Where(t => t.Length > 0));
 
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, $"{i + 1}.  {st.StationName}",
-                                       st.TurnBefore, totals: totals));
+                                       st.TurnBefore, totals: totals, stop: st));
 
             void Line(WorklistStopLine l, bool pickUp) =>
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line,
@@ -2424,6 +2441,27 @@ public class WorklistViewModel : ReactiveObject
     /// and the reader who opened a loop halfway down the list would be thrown back to the top.
     /// A loop's stops are tens of rows, not hundreds, which per-row inserts handle.</para>
     /// </summary>
+    /// <summary>
+    /// A loop's stop ticked off as hauled: its pick-ups go into the pilot's hold and its drop-offs
+    /// are delivered, until the asset poll shows them — see HaulLag — and the list is rebuilt with
+    /// that, so the stop leaves the loop and any job it was holding up can start.
+    /// </summary>
+    public async Task MarkHauledAsync(WorklistRowVm stopRow)
+    {
+        if (stopRow.Stop is not { } stop || stopRow.Marked) return;
+        stopRow.Marked = true;
+        try
+        {
+            await Task.Run(() => _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            stopRow.Marked = false;
+            Errors = string.Format(WorklistText.HaulMarkFailed, ex.Message);
+        }
+    }
+
     private void OnRowExpansionChanged(WorklistRowVm row)
     {
         if (row.IsChild || !row.CanExpand) return;

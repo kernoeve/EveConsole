@@ -127,6 +127,13 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenRowItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();
 
+    /// <summary>A loop's stop ticked off as hauled.</summary>
+    private void OnMarkHauled(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: WorklistRowVm row } && DataContext is WorklistViewModel vm)
+            _ = vm.MarkHauledAsync(row);
+    }
+
     /// <summary>The item a detail row names — on a manifest, at a stop, or waiting on this.</summary>
     private void OnOpenChildItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenChildItem();

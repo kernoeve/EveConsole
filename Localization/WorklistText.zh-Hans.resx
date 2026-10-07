@@ -2044,6 +2044,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>来自{0}</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}的货舱</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ 已运送</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>将此停靠点标记为已完成。在此装上的货物视为已在货舱中，在此卸下的视为已送达——环线因此继续，等待这些材料的任务也可以开始——直到下一次资产更新反映出来。</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>无法记录此次运送：{0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0}（{1:N0} m³）</value>
   </data>

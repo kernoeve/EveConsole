@@ -2736,6 +2736,22 @@
     <value>from {0}</value>
     <comment>Loop stop drop-off line: {0} = the structure it came from.</comment>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}'s hold</value>
+    <comment>Hauling loop: where cargo already picked up sits until it is put down. {0} = the pilot.</comment>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Hauled</value>
+    <comment>Button on a hauling loop's stop: mark the stop as flown.</comment>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Tick this stop off as flown. What was picked up here counts as in your hold, and what was dropped off counts as delivered — so the loop moves on and jobs waiting on it can start — until the next asset update shows it.</value>
+    <comment>Tooltip on the Hauled button of a hauling loop's stop.</comment>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Could not record the haul: {0}</value>
+    <comment>Worklist error line when ticking a stop off as hauled fails. {0} = the error.</comment>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} m³)</value>
     <comment>Haul plan text: the ship and the hold the trip is sized with. {0} = hull, {1} = m³ (fitted and skilled).</comment>

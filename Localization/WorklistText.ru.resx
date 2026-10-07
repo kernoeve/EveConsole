@@ -2089,6 +2089,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>из {0}</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>трюм {0}</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Выполнено</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Отметить эту остановку как пройденную. Загруженное здесь считается в трюме, выгруженное — доставленным, так что круг продолжается и ждущие проекты могут запуститься, пока следующее обновление имущества это не покажет.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Не удалось записать перевозку: {0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} м³)</value>
   </data>

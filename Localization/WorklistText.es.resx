@@ -2059,6 +2059,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>de {0}</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>bodega de {0}</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Hecho</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Marca esta parada como hecha. Lo recogido aquí cuenta como en tu bodega y lo descargado como entregado —así el circuito avanza y los trabajos que lo esperan pueden empezar— hasta que la próxima actualización de activos lo refleje.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>No se pudo registrar el transporte: {0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} m³)</value>
   </data>

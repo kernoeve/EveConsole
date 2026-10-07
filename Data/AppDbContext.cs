@@ -49,6 +49,7 @@ public class AppDbContext : DbContext
     public DbSet<KillMailItem>               KillMailItems           => Set<KillMailItem>();
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
+    public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
     public DbSet<PlanetaryRoute>             EsiPlanetaryRoutes      => Set<PlanetaryRoute>();
@@ -893,6 +894,12 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.PlanetId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiPlanetaryColonies"); });
+
+        // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
+        // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<HaulMark>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("HaulMarks"); });
 
         // Colony layouts, one colony replaced whole at a time. Mirrored by hand in App.axaml.cs
         // (SQLite) and PostgresSchema — EnsureCreated builds them only into a new database.

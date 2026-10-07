@@ -2044,6 +2044,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>{0}에서</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}의 화물칸</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ 운반 완료</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>이 정박지를 완료로 표시합니다. 여기서 실은 화물은 화물칸에, 내린 화물은 배송 완료로 간주하여 순환이 진행되고 기다리던 작업도 시작할 수 있습니다. 다음 자산 갱신에 반영될 때까지 유효합니다.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>운반을 기록할 수 없습니다: {0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} m³)</value>
   </data>

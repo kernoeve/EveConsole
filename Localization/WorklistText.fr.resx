@@ -2059,6 +2059,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>de {0}</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>soute de {0}</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Fait</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Cochez cet arrêt comme effectué. Ce qui a été chargé ici compte comme dans votre soute, et ce qui a été déchargé comme livré — la boucle avance et les travaux qui l'attendent peuvent démarrer — jusqu'à ce que la prochaine mise à jour des biens le montre.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Impossible d'enregistrer le transport : {0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} m³)</value>
   </data>

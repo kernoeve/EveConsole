@@ -2059,6 +2059,18 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>aus {0}</value>
   </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>Laderaum von {0}</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Erledigt</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Diesen Halt als geflogen abhaken. Was hier geladen wurde, gilt als im Laderaum, was abgeladen wurde, als geliefert – die Runde geht weiter und wartende Aufträge können starten –, bis die nächste Vermögensaktualisierung es zeigt.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Transport konnte nicht erfasst werden: {0}</value>
+  </data>
   <data name="HaulShipHold" xml:space="preserve">
     <value>{0} ({1:N0} m³)</value>
   </data>

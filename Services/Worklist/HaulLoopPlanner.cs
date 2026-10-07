@@ -29,7 +29,16 @@ namespace EveConsole.Services.Worklist;
 public static class HaulLoopPlanner
 {
     /// <summary>Some of one item, going from one structure to another.</summary>
-    public sealed record Cargo(long From, long To, int TypeId, long Quantity, double UnitM3, int Priority);
+    /// <param name="From">Where it is picked up — or, below zero, already aboard: in the hold of
+    /// the pilot whose id it is the negative of (see <see cref="HoldOf"/>), to be dropped off only.</param>
+    public sealed record Cargo(long From, long To, int TypeId, long Quantity, double UnitM3, int Priority)
+    {
+        public bool Aboard => From < 0;
+    }
+
+    /// <summary>The site that stands for a pilot's hold: cargo picked up and ticked off, not yet
+    /// put down. Negative, so it can never be a station, a structure or a system.</summary>
+    public static long HoldOf(long pilotId) => -pilotId;
 
     /// <summary>What happens at one stop, in flying order.</summary>
     /// <param name="TurnBefore">Reaching this stop meant undocking away from it — a turn of more
@@ -68,8 +77,9 @@ public static class HaulLoopPlanner
         var cap = capacityM3 > 0 ? capacityM3 : double.PositiveInfinity;
 
         // A unit bigger than the hold never fits, whatever the order: set aside rather than looped on.
-        var tooBig = cargo.Where(c => c.UnitM3 > cap).ToList();
-        var work      = cargo.Where(c => c.UnitM3 <= cap && c.Quantity > 0 && c.From != c.To).ToList();
+        // Cargo already aboard fits by definition — it is in the hold.
+        var tooBig = cargo.Where(c => !c.Aboard && c.UnitM3 > cap).ToList();
+        var work   = cargo.Where(c => (c.Aboard || c.UnitM3 <= cap) && c.Quantity > 0 && c.From != c.To).ToList();
 
         var state = new State(work);
 
@@ -175,8 +185,10 @@ public static class HaulLoopPlanner
         public State(IReadOnlyList<Cargo> lines)
         {
             _lines   = lines;
-            _waiting = lines.Select(l => l.Quantity).ToArray();
-            _aboard  = new long[lines.Count];
+            // What the pilot already carries starts in the hold, waiting only to be put down.
+            _waiting = lines.Select(l => l.Aboard ? 0 : l.Quantity).ToArray();
+            _aboard  = lines.Select(l => l.Aboard ? l.Quantity : 0).ToArray();
+            _loadedM3 = lines.Where(l => l.Aboard).Sum(l => l.Quantity * l.UnitM3);
         }
 
         private State(State other)
