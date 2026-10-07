@@ -2002,6 +2002,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>Piloten hinzufügen…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Runde ab {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} Halt(e)</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} Wende(n)</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} Posten lassen sich nicht planen: Eine Einheit ist größer als der Laderaum.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Die ersten {0:N0} Halte sind geplant; weitere {1:N0} m³ brauchen spätere Runden.</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>Halte</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>wenden</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>Die vorherige Struktur ist von dieser abgewandt, also wendet das Schiff nach dem Abdocken – der langsamste Teil einer Frachter-Etappe. Ausrichtungen legst du im Strukturbrowser fest.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Laden</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Abladen</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>für {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>aus {0}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Füllt die Station auf ihren Sollbestand auf.</value>
   </data>

@@ -2002,6 +2002,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>Ajouter un pilote…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Boucle depuis {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} arrêt(s)</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} demi-tour(s)</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} article(s) ne peuvent pas être planifiés : une seule unité dépasse la soute.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Les {0:N0} premiers arrêts sont planifiés ; {1:N0} m³ de plus demandent d'autres boucles.</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>Arrêts</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>demi-tour</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>La structure précédente est orientée à l'opposé de celle-ci : le vaisseau fait demi-tour après la sortie, la partie la plus lente d'un trajet en cargo. Les orientations se règlent dans le navigateur de structures.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Charger</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Décharger</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>pour {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>de {0}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Remet la station à son niveau.</value>
   </data>

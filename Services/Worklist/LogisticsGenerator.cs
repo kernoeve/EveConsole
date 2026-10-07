@@ -219,7 +219,189 @@ public class LogisticsGenerator(
         var trips = await TripsAsync(db,
             moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To)), systems, ct);
 
-        return Tasks(moves, names, places, drivers, driverNames, trips);
+        // Moves inside one system become that system's loop, planned as one errand; the rest stay
+        // one task per pair of stations.
+        bool InSystem(Move m) => trips.TryGetValue((m.From, m.To), out var t) && t.Lane == HaulLane.InSystem;
+        var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
+        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, ct);
+
+        return [.. Tasks(moves.Where(m => !InSystem(m)).ToList(), names, places, drivers, driverNames, trips), .. loops];
+    }
+
+    /// <summary>
+    /// Every move inside one system as a single loop: the stops in the order to fly them, with
+    /// what comes off and goes on at each. See <see cref="HaulLoopPlanner"/> for how the order is
+    /// chosen.
+    ///
+    /// <para>Planned for the lane's lead pilot, from where they are docked now if that is in this
+    /// system, with an empty hold, in the hold the lane resolved — the ship they are in, or the
+    /// one chosen. A second pilot shares the loads in the row's text; the stops are one route.</para>
+    /// </summary>
+    private async Task<List<WorklistItem>> LoopsAsync(
+        AppDbContext db, List<Move> moves, Dictionary<(long From, long To), Trip> trips,
+        Dictionary<long, int> systems, Dictionary<int, string> names, Dictionary<long, string> places,
+        Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, Dictionary<int, string> driverNames,
+        CancellationToken ct)
+    {
+        var items = new List<WorklistItem>();
+        if (moves.Count == 0) return items;
+
+        var (_, volumes) = await PriceAndVolumeAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
+
+        // Where each structure is and what it faces. NPC stations have no position on file, and
+        // are simply charged no turn.
+        var stations = moves.SelectMany(m => new[] { m.From, m.To }).Distinct().ToList();
+        var built = await db.Structures.AsNoTracking()
+            .Where(x => stations.Contains(x.StructureId))
+            .Select(x => new { x.StructureId, x.X, x.Y, x.Z, x.FacesTowardId })
+            .ToListAsync(ct);
+        var positions = built.Where(x => x.X != 0 || x.Y != 0 || x.Z != 0)
+            .ToDictionary(x => x.StructureId, x => (x.X, x.Y, x.Z));
+
+        // A facing names another structure or a stargate; either way it is a point to aim at.
+        var aims = built.Where(x => x.FacesTowardId != 0).Select(x => x.FacesTowardId).Distinct().ToList();
+        var aimAt = (await db.Structures.AsNoTracking()
+                .Where(x => aims.Contains(x.StructureId))
+                .Select(x => new { Id = x.StructureId, x.X, x.Y, x.Z }).ToListAsync(ct))
+            .Concat(await db.SdeCelestials.AsNoTracking()
+                .Where(c => aims.Contains(c.ItemId))
+                .Select(c => new { Id = c.ItemId, c.X, c.Y, c.Z }).ToListAsync(ct))
+            .Where(x => x.X != 0 || x.Y != 0 || x.Z != 0)
+            .GroupBy(x => x.Id)
+            .ToDictionary(g => g.Key, g => (g.First().X, g.First().Y, g.First().Z));
+        var facing = built.Where(x => aimAt.ContainsKey(x.FacesTowardId))
+            .ToDictionary(x => x.StructureId, x => aimAt[x.FacesTowardId]);
+
+        // The lead pilot's dock, which is where the loop starts when it is in the system.
+        var leads  = trips.Values.Where(t => t.Lane == HaulLane.InSystem && t.PilotId > 0).Select(t => t.PilotId).Distinct().ToList();
+        var docked = (await db.CharacterStatuses.AsNoTracking()
+                .Where(x => leads.Contains(x.CharacterId))
+                .Select(x => new { x.CharacterId, x.StationId, x.StructureId })
+                .ToListAsync(ct))
+            .ToDictionary(x => x.CharacterId, x => x.StructureId ?? x.StationId);
+
+        var hullIds = trips.Values.Where(t => t.ShipTypeId > 0).Select(t => t.ShipTypeId).Distinct().ToList();
+        var aligns  = await AlignSecondsAsync(db, hullIds, ct);
+
+        foreach (var sys in moves.GroupBy(m => systems.GetValueOrDefault(m.From)).OrderBy(g => g.Key))
+        {
+            var trip = trips[(sys.First().From, sys.First().To)];
+
+            var cargo = sys
+                .GroupBy(m => (m.From, m.To, m.TypeId))
+                .Select(g => new HaulLoopPlanner.Cargo(g.Key.From, g.Key.To, g.Key.TypeId, g.Sum(m => m.Qty),
+                                                       volumes.GetValueOrDefault(g.Key.TypeId), g.Max(m => m.Priority)))
+                .ToList();
+
+            long? start = docked.GetValueOrDefault(trip.PilotId) is { } at
+                          && systems.GetValueOrDefault(at) == sys.Key ? at : null;
+
+            var plan = HaulLoopPlanner.Make(cargo, positions, facing, start, trip.Capacity,
+                                            aligns.GetValueOrDefault(trip.ShipTypeId, DefaultAlignSeconds));
+
+            string Place(long id) => places.GetValueOrDefault(id, string.Format(WorklistText.LocationWithId, id));
+            string Name(int typeId) => names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId));
+
+            var stops = plan.Stops.Select(st => new WorklistHaulStop(
+                    st.StationId, Place(st.StationId), st.TurnBefore,
+                    st.DropOff.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
+                                                                c.Quantity * c.UnitM3, c.From, Place(c.From))).ToList(),
+                    st.PickUp.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
+                                                               c.Quantity * c.UnitM3, c.To, Place(c.To))).ToList()))
+                .ToList();
+
+            var manifest = sys.GroupBy(m => m.TypeId)
+                .Select(g => (TypeId: g.Key, Qty: g.Sum(m => m.Qty)))
+                .OrderByDescending(x => x.Qty)
+                .ToList();
+
+            // Asked for wherever the loop drops something, as a trip's are at its one destination.
+            var wanters = sys
+                .SelectMany(m => drivers.GetValueOrDefault((m.To, m.TypeId), []))
+                .Where(d => d.DriverTypeId > 0)
+                .GroupBy(d => d.DriverTypeId)
+                .Select(g => new WorklistWaitingJob(
+                    Key: "", Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                    TypeId: g.Key,
+                    TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                    Unblocked: false, StillShortOf: [], WantsUnits: g.Sum(d => d.Qty)))
+                .OrderByDescending(w => w.WantsUnits)
+                .ToList();
+
+            var reason = sys.Min(m => m.Reason);
+            var first  = stops.Count > 0 ? stops[0].StationId : sys.First().From;
+            var later = plan.Later.Sum(c => c.Quantity * c.UnitM3);
+
+            items.Add(new WorklistItem
+            {
+                // Keyed on the system alone: the loop is the same errand however its stops change.
+                Key          = $"haulloop:{sys.Key}",
+                Source       = Id,
+                Kind         = WorklistKind.Haul,
+                Title        = string.Format(WorklistText.HaulTitleItems, manifest.Count),
+                Detail       = Because(reason)
+                             + (later > 0 ? " " + string.Format(WorklistText.HaulLoopMore, stops.Count, later) : "")
+                             + (plan.TooBig.Count > 0 ? " " + string.Format(WorklistText.HaulLoopTooBig, plan.TooBig.Count) : ""),
+                Readiness    = WorklistReadiness.Ready,
+                LocationId   = first,
+                LocationName = Place(first),
+                Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty)).ToList(),
+                Stops        = stops,
+                LoopTurns    = plan.Turns,
+                WaitingJobs  = wanters,
+                TypeId       = manifest[0].TypeId,
+                TypeName     = names.GetValueOrDefault(manifest[0].TypeId, ""),
+                CharacterId    = trip.PilotId,
+                CharacterName  = trip.PilotName,
+                Lane           = HaulLane.InSystem,
+                HaulJumps      = 0,
+                HaulMethod     = trip.Method,
+                HaulShipTypeId = trip.ShipTypeId,
+                HaulShipName   = trip.ShipName,
+                HaulCapacity   = trip.Capacity,
+                HaulPilots     = trip.Pilots,
+                Priority     = Math.Max(
+                    sys.Max(m => m.Priority),
+                    reason switch
+                    {
+                        HaulReason.Unblocking => WorklistPriority.HaulForWork,
+                        HaulReason.Restock    => WorklistPriority.HaulRestock,
+                        HaulReason.Refine     => WorklistPriority.HaulToRefine,
+                        _                     => WorklistPriority.HaulSurplus,
+                    }),
+            });
+        }
+
+        return items;
+    }
+
+    /// <summary>An align time for a ship nobody named, or one the SDE cannot size: roughly an
+    /// industrial's. Only ever compares orders against each other.</summary>
+    private const double DefaultAlignSeconds = 10;
+
+    /// <summary>
+    /// How long each hull takes to align, unskilled: ln 4 × mass × inertia modifier ÷ 10⁶.
+    ///
+    /// <para>The same time is what a full turn costs the loop, which is why it matters here: a
+    /// freighter aligns in tens of seconds and a T1 industrial in a few, so the same structures
+    /// can come out in a different order for each.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, double>> AlignSecondsAsync(
+        AppDbContext db, List<int> hullIds, CancellationToken ct)
+    {
+        if (hullIds.Count == 0) return [];
+
+        const int InertiaModifier = 70;
+        var mass = await db.SdeTypes.AsNoTracking()
+            .Where(t => hullIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Mass, ct);
+        var agility = await db.SdeTypeDogmaAttributes.AsNoTracking()
+            .Where(a => hullIds.Contains(a.TypeId) && a.AttributeId == InertiaModifier)
+            .ToDictionaryAsync(a => a.TypeId, a => a.Value, ct);
+
+        return hullIds
+            .Where(id => mass.GetValueOrDefault(id) > 0 && agility.GetValueOrDefault(id) > 0)
+            .ToDictionary(id => id, id => Math.Log(4) * mass[id] * agility[id] / 1_000_000);
     }
 
     /// <summary>

@@ -2002,6 +2002,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>Añadir un piloto…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Circuito desde {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} parada(s)</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} giro(s)</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} artículo(s) no se pueden planificar: una sola unidad es mayor que la bodega.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Están planificadas las primeras {0:N0} paradas; otros {1:N0} m³ necesitan más circuitos.</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>Paradas</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>dar la vuelta</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>La estructura anterior mira en sentido contrario a esta, así que la nave da la vuelta tras desatracar: la parte más lenta del trayecto de un carguero. Las orientaciones se definen en el explorador de estructuras.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Recoger</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>para {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>de {0}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Repone la estación hasta su nivel.</value>
   </data>

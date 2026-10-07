@@ -1987,6 +1987,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>添加飞行员…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>从{0}开始的环线</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} 站</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} 次掉头</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} 项物品无法规划：单件体积大于货舱。</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>已规划前 {0:N0} 站；还有 {1:N0} m³ 需要后续环线。</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>停靠点</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>需掉头</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>上一座建筑的朝向背离这里，所以出站后需要掉头——这是货舰航段中最慢的部分。可在建筑浏览器中设置朝向。</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>装货</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>卸货</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>送往{0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>来自{0}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>把空间站的库存补充到设定水平。</value>
   </data>

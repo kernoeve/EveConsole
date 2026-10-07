@@ -308,7 +308,17 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     private IReadOnlyList<WorklistLineVm>? _lines;
     public IReadOnlyList<WorklistLineVm> Lines =>
         _lines ??= [.. _item.Lines.Select(l => new WorklistLineVm(l))];
-    public bool HasLines => _item.Lines.Count > 0;
+    /// <summary>⚠️ Not for a loop: its stops list the same cargo where it is actually handled,
+    /// and a manifest beside them would be the whole load stated twice.</summary>
+    public bool HasLines => _item.Lines.Count > 0 && !IsLoop;
+
+    /// <summary>An in-system loop: one errand of several stops rather than one trip.</summary>
+    public bool IsLoop => _item.Stops.Count > 0;
+
+    private IReadOnlyList<WorklistStopVm>? _stops;
+    /// <summary>A loop's stops in flying order.</summary>
+    public IReadOnlyList<WorklistStopVm> Stops =>
+        _stops ??= [.. _item.Stops.Select((st, i) => new WorklistStopVm(st, i + 1))];
 
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
     private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
@@ -326,7 +336,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
     /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
     /// their neighbours opened, which reads as missing data rather than as no data.</summary>
-    public bool CanExpand => HasLines || HasWaitingJobs || HasDetail;
+    public bool CanExpand => HasLines || IsLoop || HasWaitingJobs || HasDetail;
     public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
@@ -381,7 +391,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public string TaskSortText => IsHaul ? RouteText : Title;
 
-    public string RouteText => $"{_item.LocationName}  →  {_item.DestinationName}";
+    /// <summary>A trip's two ends; a loop's first stop, since it has no single far end.</summary>
+    public string RouteText => IsLoop
+        ? string.Format(WorklistText.HaulLoopRoute, _item.LocationName)
+        : $"{_item.LocationName}  →  {_item.DestinationName}";
 
     /// <summary>
     /// How the haul's lane will make the trip: the method and the gates for a trip between
@@ -408,7 +421,13 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
             if (_item.HaulShipName.Length > 0)
                 parts.Add(SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName));
 
-            if (_item.HaulCapacity > 0 && _item.Volume > 0)
+            // A loop says how long it is and how often it turns round; its loads are in its stops.
+            if (IsLoop)
+            {
+                parts.Add(string.Format(WorklistText.HaulLoopStops, _item.Stops.Count));
+                if (_item.LoopTurns > 0) parts.Add(string.Format(WorklistText.HaulLoopTurns, _item.LoopTurns));
+            }
+            else if (_item.HaulCapacity > 0 && _item.Volume > 0)
             {
                 var loads = (int)Math.Ceiling(_item.Volume / _item.HaulCapacity);
 
@@ -860,6 +879,48 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
 /// layer, created fresh on every refresh and immutable — an icon arrives asynchronously and has to
 /// raise a change when it does, which a record cannot.</para>
 /// </summary>
+/// <summary>One stop of an in-system loop, as its row's detail lists it.</summary>
+public sealed class WorklistStopVm(WorklistHaulStop stop, int number)
+{
+    public string Number      => $"{number}.";
+    public string StationName => stop.StationName;
+
+    /// <summary>Said, not drawn: a turn is the slow part of a freighter's leg, and the reason the
+    /// order is what it is.</summary>
+    public bool   TurnBefore  => stop.TurnBefore;
+
+    public IReadOnlyList<WorklistStopLineVm> DropOff { get; } =
+        [.. stop.DropOff.Select(l => new WorklistStopLineVm(l, pickUp: false))];
+    public IReadOnlyList<WorklistStopLineVm> PickUp { get; } =
+        [.. stop.PickUp.Select(l => new WorklistStopLineVm(l, pickUp: true))];
+
+    public bool HasDropOff => stop.DropOff.Count > 0;
+    public bool HasPickUp  => stop.PickUp.Count > 0;
+}
+
+/// <summary>One item handled at a loop stop, with the other end of its trip.</summary>
+public sealed class WorklistStopLineVm(WorklistStopLine line, bool pickUp)
+{
+    public string TypeName => SdeNames.Type(line.TypeId, line.TypeName);
+    public string Quantity => line.Quantity.ToString("N0");
+    public string Action   => pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff;
+
+    /// <summary>"for Large Ships" on a pick-up, "from Cap Parts" on a drop-off. The system is cut
+    /// from the name: every stop of a loop is in the same one.</summary>
+    public string OtherText => string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom,
+                                             Short(line.OtherName));
+
+    /// <summary>Blank below a tenth of a m³ — a blueprint's 0.01 m³ read as "0.0 m³".</summary>
+    public string VolumeText => line.Volume < 0.1 ? ""
+        : line.Volume >= 10 ? $"{line.Volume:N0} m³" : $"{line.Volume:N1} m³";
+
+    private static string Short(string place)
+    {
+        var dash = place.IndexOf(" - ", StringComparison.Ordinal);
+        return dash > 0 ? place[(dash + 3)..] : place;
+    }
+}
+
 public sealed class WorklistLineVm : ReactiveObject
 {
     private readonly WorklistLine _line;

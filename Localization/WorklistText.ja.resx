@@ -1987,6 +1987,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>パイロットを追加…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>{0}から始まる周回</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0}か所</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0}回反転</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0}件は計画できません：1単位がカーゴより大きいためです。</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>最初の{0:N0}か所を計画しました。残り{1:N0} m³は次回以降の周回で運びます。</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>停泊先</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>反転あり</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>前のストラクチャーはこちらと反対を向いているため、アンドック後に反転します。超大型輸送艦では最も時間のかかる部分です。向きはストラクチャーブラウザで設定します。</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>積み込み</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>荷下ろし</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>{0}行き</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>{0}から</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>ステーションを在庫レベルまで補充します。</value>
   </data>

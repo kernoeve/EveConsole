@@ -382,6 +382,66 @@
                         </ItemsControl>
                       </StackPanel>
 
+                      <!-- A loop's stops in the order to fly them: what comes off, then what goes on.
+                           In place of the manifest, which would be the same cargo stated twice. -->
+                      <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding IsLoop}">
+                        <TextBlock Text="{x:Static loc:WorklistText.HaulStopsLabel}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                        <ItemsControl ItemsSource="{Binding Stops}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:WorklistStopVm">
+                              <StackPanel Margin="0 4 0 4" Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <TextBlock Text="{Binding Number}" FontSize="14" MinWidth="22"
+                                             Foreground="{DynamicResource TextMutedBrush}"/>
+                                  <TextBlock Text="{Binding StationName}" FontSize="14" FontWeight="SemiBold"
+                                             Foreground="{DynamicResource TextBrightBrush}"/>
+                                  <TextBlock Text="{x:Static loc:WorklistText.HaulStopTurn}" IsVisible="{Binding TurnBefore}"
+                                             FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"
+                                             ToolTip.Tip="{x:Static loc:WorklistText.TipHaulStopTurn}"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding DropOff}" IsVisible="{Binding HasDropOff}" Margin="30 0 0 0">
+                                  <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:WorklistStopLineVm">
+                                    <Grid ColumnDefinitions="64,*,Auto,Auto,Auto" Margin="0 1">
+                                      <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
+                                                 Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="1" Text="{Binding TypeName}" FontSize="13" Margin="0 0 16 0"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="2" Text="{Binding Quantity}" FontSize="13" MinWidth="60" TextAlignment="Right"
+                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="3" Text="{Binding OtherText}" FontSize="12" Margin="16 0 0 0" MinWidth="140"
+                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="4" Text="{Binding VolumeText}" FontSize="12" MinWidth="76" TextAlignment="Right"
+                                                 Margin="16 0 0 0" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                  </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding PickUp}" IsVisible="{Binding HasPickUp}" Margin="30 0 0 0">
+                                  <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:WorklistStopLineVm">
+                                    <Grid ColumnDefinitions="64,*,Auto,Auto,Auto" Margin="0 1">
+                                      <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
+                                                 Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="1" Text="{Binding TypeName}" FontSize="13" Margin="0 0 16 0"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="2" Text="{Binding Quantity}" FontSize="13" MinWidth="60" TextAlignment="Right"
+                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="3" Text="{Binding OtherText}" FontSize="12" Margin="16 0 0 0" MinWidth="140"
+                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="4" Text="{Binding VolumeText}" FontSize="12" MinWidth="76" TextAlignment="Right"
+                                                 Margin="16 0 0 0" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                  </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                              </StackPanel>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
                       <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding HasLines}">
                         <TextBlock Text="{x:Static loc:WorklistText.ManifestLabel}" FontSize="11" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>

@@ -2032,6 +2032,42 @@
   <data name="HintAddPilot" xml:space="preserve">
     <value>Добавить пилота…</value>
   </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Круг от {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>Остановок: {0:N0}</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>Разворотов: {0:N0}</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>Не удаётся запланировать позиций: {0:N0} — одна единица больше трюма.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Запланированы первые {0:N0} остановок; ещё {1:N0} м³ потребуют следующих кругов.</value>
+  </data>
+  <data name="HaulStopsLabel" xml:space="preserve">
+    <value>Остановки</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>разворот</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>Предыдущая структура обращена в другую сторону, поэтому после выхода корабль разворачивается — самая медленная часть перелёта фрейтера. Направления задаются в обозревателе структур.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Забрать</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Выгрузить</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>для {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>из {0}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Пополняет станцию до её уровня.</value>
   </data>

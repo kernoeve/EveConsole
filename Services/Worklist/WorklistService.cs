@@ -145,7 +145,7 @@ public class WorklistService(
             for (var n = 0; n < section.Items.Count; n++)
             {
                 var haul = section.Items[n];
-                if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
+                if (haul.Kind != WorklistKind.Haul) continue;
 
                 // What this one trip actually puts on the dock, by type and by how much.
                 //
@@ -154,15 +154,22 @@ public class WorklistService(
                 // trips out of several stations, each of them its own row here. A trip carrying 200
                 // of those 5,000 is worth showing against the job, but it does not start it, and a
                 // test on type alone cannot tell the two apart.
-                var cargo = haul.Lines.Count > 0
-                    ? haul.Lines.GroupBy(l => l.TypeId)
-                          .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
-                    : new Dictionary<int, long> { [haul.TypeId] = haul.Quantity };
+                //
+                // By destination: a trip has one, and an in-system loop drops at several. A job is
+                // judged only against what lands where it runs.
+                var drops = haul.Deliveries()
+                    .GroupBy(d => d.Destination)
+                    .ToDictionary(g => g.Key,
+                                  g => g.GroupBy(d => d.TypeId).ToDictionary(x => x.Key, x => x.Sum(d => d.Quantity)));
+                if (drops.Count == 0) continue;
 
-                // Every job at the destination waiting on anything in this cargo. Relevant to the
+                IReadOnlyDictionary<int, long> CargoFor(WorklistItem job) =>
+                    drops.GetValueOrDefault(job.LocationId) ?? new Dictionary<int, long>();
+
+                // Every job at a destination waiting on anything dropped there. Relevant to the
                 // row, but not the same thing as restarted by it.
-                var touched = cargo.Keys
-                    .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
+                var touched = drops
+                    .SelectMany(d => d.Value.Keys.SelectMany(t => stopped.GetValueOrDefault((d.Key, t), [])))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
@@ -185,6 +192,7 @@ public class WorklistService(
                 var waiting = touched
                     .Select(j =>
                     {
+                        var cargo = CargoFor(j);
                         var outstanding = j.Shortages
                             .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
                             .ToList();

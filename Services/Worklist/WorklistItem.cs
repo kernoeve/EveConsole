@@ -143,6 +143,23 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
                                         : $"{v:N0} m³";
 }
 
+/// <summary>One item handled at a loop stop, and the other end of its trip: where it is going
+/// for a pick-up, where it came from for a drop-off.</summary>
+public sealed record WorklistStopLine(int TypeId, string TypeName, long Quantity, double Volume,
+                                      long OtherId, string OtherName)
+{
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+}
+
+/// <summary>
+/// One stop on an in-system loop, in the order to fly it: what comes off, then what goes on.
+/// </summary>
+/// <param name="TurnBefore">Getting here meant undocking away from it and turning round first.</param>
+public sealed record WorklistHaulStop(long StationId, string StationName, bool TurnBefore,
+                                      IReadOnlyList<WorklistStopLine> DropOff,
+                                      IReadOnlyList<WorklistStopLine> PickUp);
+
 /// <summary>
 /// One suggested piece of work.
 ///
@@ -276,6 +293,29 @@ public sealed record WorklistItem
 
     /// <summary>Pilots set for the lane. More than one shares the trips.</summary>
     public int HaulPilots { get; init; }
+
+    /// <summary>
+    /// An in-system loop's stops, in flying order. Empty on every other task, including a haul
+    /// between two systems, which is one trip with one destination.
+    /// </summary>
+    public IReadOnlyList<WorklistHaulStop> Stops { get; init; } = [];
+
+    /// <summary>Of a loop's stops, how many are reached by turning round after undocking.</summary>
+    public int LoopTurns { get; init; }
+
+    /// <summary>
+    /// What this haul puts down, and where.
+    ///
+    /// <para>⚠️ The one reading of "where does this cargo go". A trip has one destination and a
+    /// loop has one per stop; everything judging a delivery against the jobs waiting at its
+    /// destination reads this rather than <see cref="DestinationId"/>, which a loop leaves empty.</para>
+    /// </summary>
+    public IEnumerable<(long Destination, int TypeId, long Quantity)> Deliveries() =>
+        Stops.Count > 0
+            ? Stops.SelectMany(s => s.DropOff.Select(l => (s.StationId, l.TypeId, l.Quantity)))
+            : Kind != WorklistKind.Haul || DestinationId <= 0 ? []
+            : Lines.Count > 0 ? Lines.Select(l => (DestinationId, l.TypeId, l.Quantity))
+            : [(DestinationId, TypeId, Quantity)];
 
     public int    TypeId   { get; init; }
     public string TypeName { get; init; } = "";
