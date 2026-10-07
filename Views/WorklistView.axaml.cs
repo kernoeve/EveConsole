@@ -22,19 +22,10 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         // source.
         AddHandler(GotFocusEvent, OnFieldFocused, RoutingStrategies.Bubble);
         AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Bubble);
-
-        // After every layout, each detail popup is open exactly when its row is live and its item
-        // is expanded — see RowDetailPopups for the two ways a row stays in the tree after it has
-        // left the screen, and why the detach handler below cannot see either of them.
-        LayoutUpdated += (_, _) => _details.Reconcile();
-
-        TaskGrid.LayoutUpdated += PinRowHeight;
     }
 
-    private readonly RowDetailPopups _details = new();
-
     /// <summary>
-    /// Fixes the task grid's row height at what its rows already measure, once.
+    /// Fixes a grid's row height at what its rows already measure, once.
     ///
     /// <para>⚠️ What lets a loop open in the grid without breaking scrolling. A DataGrid prices the
     /// rows it has not drawn from those it has, and scrolling up through rows of different heights
@@ -46,23 +37,37 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// <para>Set through the public property and posted out of the layout pass — nothing here
     /// touches the grid's own bookkeeping, which is what went wrong the last time a fix reached in.</para>
     /// </summary>
-    private void PinRowHeight(object? sender, EventArgs e)
+    private void PinRowHeight(DataGrid grid)
     {
-        if (!double.IsNaN(TaskGrid.RowHeight)) { TaskGrid.LayoutUpdated -= PinRowHeight; return; }
+        if (!_pinning.Contains(grid) || !double.IsNaN(grid.RowHeight)) return;
 
-        var heights = TaskGrid.GetVisualDescendants().OfType<DataGridRow>()
-            .Where(r => r.IsVisible && r.DataContext is WorklistRowVm { IsChild: false } && r.Bounds.Height > 1)
+        var heights = grid.GetVisualDescendants().OfType<DataGridRow>()
+            .Where(r => r.IsVisible && r.DataContext is IFamilyRow { IsChild: false } && r.Bounds.Height > 1)
             .Select(r => r.Bounds.Height)
             .ToList();
         if (heights.Count < 3) return;
 
-        TaskGrid.LayoutUpdated -= PinRowHeight;
+        // Removed from the set rather than unsubscribed: the handler is a closure, and a grid that
+        // has its height needs nothing more from it.
+        _pinning.Remove(grid);
         var height = Math.Ceiling(heights.Max());
-        Dispatcher.UIThread.Post(() => TaskGrid.RowHeight = height);
+        Dispatcher.UIThread.Post(() => grid.RowHeight = height);
     }
 
-    private void OnRowLoading(object? sender, DataGridRowEventArgs e)   => _details.RowLoaded((DataGrid)sender!, e.Row);
-    private void OnRowUnloading(object? sender, DataGridRowEventArgs e) => _details.RowUnloaded(e.Row);
+    private void OnRowLoading(object? sender, DataGridRowEventArgs e)
+    {
+        var grid = (DataGrid)sender!;
+
+        // A detail row draws only in the columns marked for it — see the style at the top of the
+        // view. Set on every load, because a recycled row can change from one to the other.
+        e.Row.Classes.Set("child", e.Row.DataContext is IFamilyRow { IsChild: true });
+
+        if (e.Row.DataContext is IFamilyRow && double.IsNaN(grid.RowHeight) && _pinning.Add(grid))
+            grid.LayoutUpdated += (_, _) => PinRowHeight(grid);
+    }
+
+    /// <summary>Grids whose row height is waiting to be pinned.</summary>
+    private readonly HashSet<DataGrid> _pinning = [];
 
     /// <summary>
     /// Applies a tab the Overview asked for, once this view's own TabControl binding is live.
@@ -73,8 +78,6 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         base.OnLoaded(e);
         if (DataContext is WorklistViewModel vm && vm.TakeRequestedTab() is { } tab)
             vm.OuterTabIndex = tab;
-
-        Dispatcher.UIThread.Post(ReopenPanels, DispatcherPriority.Background);
     }
 
     /// <summary>Set when a click focused a select-all field, so the selection can be reapplied
@@ -124,13 +127,9 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenRowItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();
 
-    /// <summary>A manifest line, which is a WorklistLine rather than a row.</summary>
-    private void OnOpenLineItem(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as WorklistLineVm)?.OpenItem();
-
-    /// <summary>A job waiting on this cargo. Opens the item it would produce.</summary>
-    private void OnOpenWaitingJob(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as WorklistWaitingJobVm)?.OpenItem();
+    /// <summary>The item a detail row names — on a manifest, at a stop, or waiting on this.</summary>
+    private void OnOpenChildItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenChildItem();
 
     private void OnOpenNeedStation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenStation();
@@ -138,8 +137,9 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenNeedItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenItem();
 
+    /// <summary>The item an "asked for by" row names.</summary>
     private void OnOpenNeedDriver(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as NeedDriverRowVm)?.Open();
+        => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenChild();
 
     private void OnOpenPrintProduct(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as PrintPressureRowVm)?.Open();
@@ -147,39 +147,33 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenShortageItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as ItemShortageRowVm)?.Open();
 
-    /// <summary>Opens the "asked for by" panel over a need. Same mechanism as the
-    /// haul manifest above, and for the same reasons — see OnManifestToggle.</summary>
+    /// <summary>Opens a need's "asked for by" rows under it. Same mechanism as the task rows
+    /// above — see OnManifestToggle.</summary>
     private void OnNeedToggle(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: StationNeedRowVm { HasDrivers: true } vm })
             vm.IsExpanded = !vm.IsExpanded;
     }
 
-    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the toggles above it.</summary>
-    /// <summary>
-    /// Opens the tasks behind a contention row's counts.
-    ///
-    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
-    /// that flag, not RowDetails — see the note beside the Popup in the XAML for why the drawer had
-    /// to go, and tools/gridsim for the measurements.</para>
-    /// </summary>
+    /// <summary>Opens a contention row's suggestion and the tasks behind its counts, as rows under
+    /// it. Same shape as the toggles above it — see OnManifestToggle.</summary>
     private void OnShortageToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: ItemShortageRowVm { HasTasks: true } vm })
+        if (sender is Control { DataContext: ItemShortageRowVm { CanExpand: true } vm })
             vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
     private void OnPrintToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: PrintPressureRowVm { HasTasks: true } vm })
+        if (sender is Control { DataContext: PrintPressureRowVm { CanExpand: true } vm })
             vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a Hauling row's counts.</summary>
     private void OnHaulToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: HaulPressureRowVm { HasTasks: true } vm })
+        if (sender is Control { DataContext: HaulPressureRowVm { CanExpand: true } vm })
             vm.IsExpanded = !vm.IsExpanded;
     }
 
@@ -194,12 +188,12 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     }
 
     /// <summary>
-    /// Opens and closes the manifest under a haul row.
+    /// Opens and closes what a task row opens into: its reason, what waits on it, its manifest or
+    /// its stops.
     ///
-    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
-    /// that flag, not RowDetails — a drawer inside the row is what made rows wildly different
-    /// heights, and that is the whole reason scrolling up used to stick and jump. The note beside
-    /// the Popup in the XAML carries the mechanism; tools/gridsim carries the measurements.</para>
+    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else; the view model puts the detail
+    /// rows into the grid under it. Rows of the grid's one height, not a drawer and not a floating
+    /// panel — see IFamilyRow, and tools/gridsim for the measurements.</para>
     ///
     /// <para>⚠️ The flag lives on the item rather than the row because the grid recycles rows: one
     /// keyed to the row would open against whatever item landed in it next.</para>
@@ -208,71 +202,11 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     {
         if (sender is Control { DataContext: WorklistRowVm vm }) vm.IsExpanded = !vm.IsExpanded;
     }
-    /// <summary>
-    /// A detail panel closed. Clears the flag only if this tool is still on screen.
-    ///
-    /// <para>⚠️ Not a TwoWay binding on IsOpen, which is what it looks like it ought to be. Clicking
-    /// an item link switches to the Item Browser tab, and that detaches this view and closes every
-    /// popup with it — a TwoWay binding writes that back, so returning to the Worklist found the
-    /// panel shut. A popup whose row is scrolled out of view closes the same way.</para>
-    ///
-    /// <para>Light dismiss inside the tool still closes it, because the view is attached when that
-    /// happens. That is the whole difference between the two cases.</para>
-    /// </summary>
-    private void OnDetailClosed(object? sender, EventArgs e)
-    {
-        // Not when the popup was shut for being on a stale row — see RowDetailPopups.Shutting —
-        // and not when its row is leaving the logical tree: the popup closes itself then, while
-        // the view is still on screen, and the item's live row is what shows it now.
-        if (_details.Shutting) return;
-        if (sender is Popup { DataContext: IExpandableRow row } popup && popup.GetVisualRoot() is not null
-            && ((ILogical)popup).IsAttachedToLogicalTree)
-            row.IsExpanded = false;
-    }
-
-    /// <summary>
-    /// Reopens what was open, once this view is attached again.
-    ///
-    /// <para>⚠️ Needed because the binding is one-way and its source never changed, so nothing
-    /// tells the popup to come back on its own. Posted rather than run inline, so the grid has
-    /// realised its rows and there are popups to open.</para>
-    /// </summary>
-    private void ReopenPanels()
-    {
-        var opened = new HashSet<string>();
-
-        foreach (var popup in this.GetVisualDescendants().OfType<Popup>())
-            if (popup.DataContext is IExpandableRow { IsExpanded: true, OpensPopup: true } row && opened.Add(row.ExpandKey))
-                popup.SetCurrentValue(Popup.IsOpenProperty, true);
-    }
 
     /// <summary>A summary finding that names an item.</summary>
     private void OnOpenPoint(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: ObservationPointVm vm }) vm.Open();
-    }
-
-    /// <summary>
-    /// The row under a panel went away. Shuts the panel without forgetting it was open.
-    ///
-    /// <para>⚠️ Needed the moment IsOpen stopped being TwoWay. A popup renders in its own overlay,
-    /// so one whose row has been recycled or filtered away does not vanish with it — it hangs
-    /// there at the old anchor, and the binding, which still reads true, keeps it there. Filtering
-    /// the list to one station drew the same manifest twice: once under its row and once where
-    /// that row used to be.</para>
-    ///
-    /// <para>⚠️ Not sufficient on its own, it turned out: the grid keeps a recycled row IN the
-    /// tree, and does not recycle the focused row at all, so this fires for neither — the doubled
-    /// manifest came back with the focused row every time. RowDetailPopups covers those two from
-    /// the grid's own LoadingRow/UnloadingRow events and the parked row's empty clip; this stays
-    /// for the case it does see, a row genuinely removed.</para>
-    ///
-    /// <para>⚠️ SetCurrentValue, not the property. Assigning IsOpen directly would outrank the
-    /// binding and the panel could never come back.</para>
-    /// </summary>
-    private void OnDetailDetached(object? sender, VisualTreeAttachmentEventArgs e)
-    {
-        if (sender is Popup popup) popup.SetCurrentValue(Popup.IsOpenProperty, false);
     }
 
 }
