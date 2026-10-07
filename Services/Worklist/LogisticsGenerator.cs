@@ -191,42 +191,79 @@ public class LogisticsGenerator(
         var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
         if (ctx is null) return [];
 
-        // What pilots are carrying: ticked off as picked up at a loop's stop, not yet put down —
-        // see HaulLag. Off the shelf it came from, and counted as arriving where it is going, so
-        // the plan neither sends a pilot back for it nor sends other stock to cover the same need.
-        // It rides in its pilot's loop below, as cargo already aboard.
-        var carried = await HaulLag.InTransitAsync(db, ct);
-        foreach (var c in carried)
-        {
-            stock[(c.FromId, c.TypeId)] = Math.Max(0, stock.GetValueOrDefault((c.FromId, c.TypeId)) - c.Units);
-            stock[(c.ToId,   c.TypeId)] = stock.GetValueOrDefault((c.ToId, c.TypeId)) + c.Units;
-        }
-
-        var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
-
         var systems = await SystemsAsync(db, ct);
         var places  = await PlaceNamesAsync(db, ct);
 
-        var moves = new List<Move>(refineMoves);
+        // ── The legs ticked off since the asset poll ─────────────────────────────
+        //
+        // ⚠️ Planned as not yet flown, then taken off the plan. Planned from the stock as it now
+        // stands instead — part on a shelf, part in a hold, part delivered — the allocation came
+        // out differently and the loop's stops reshuffled under a pilot who had done exactly what
+        // it asked. See HaulLag.Basis. Rewound, a refresh gives the plan it gave before, less what
+        // has been done, until an asset poll brings in new facts.
+        var ships = (await db.CharacterStatuses.AsNoTracking()
+                .Select(s => new { s.CharacterId, s.ShipItemId, s.ShipTypeId, s.SolarSystemId })
+                .ToListAsync(ct))
+            .ToDictionary(s => s.CharacterId);
+        var basis = await HaulLag.BasisAsync(db, ships.ToDictionary(kv => kv.Key, kv => kv.Value.ShipItemId), ct);
+        foreach (var (site, typeId, units) in basis.Rewind)
+            stock[(site, typeId)] = Math.Max(0, stock.GetValueOrDefault((site, typeId)) + units);
+
+        // What a lane pilot's hauler holds with no tick saying where — loaded without one, or
+        // there before: stock in their hold, which the plan sends wherever it is wanted in the
+        // system they are in before anything is fetched from a shelf. Only the lane's pilots, and
+        // only in a hauler: the ammunition in a combat ship's hold is not freight.
+        var lanePilots = settings.HaulLaneFor(HaulLane.InSystem).CharacterIds.ToHashSet();
+        var hullIds    = ships.Values.Select(s => s.ShipTypeId ?? 0).Where(t => t > 0).Distinct().ToList();
+        var hullGroup  = await db.SdeTypes.AsNoTracking().Where(t => hullIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
+        var loose = basis.Loose
+            .Where(l => lanePilots.Contains(l.PilotId)
+                        && ships.GetValueOrDefault(l.PilotId) is { SolarSystemId: > 0, ShipTypeId: int hull }
+                        && HaulHulls.Groups.Contains(hullGroup.GetValueOrDefault(hull)))
+            .ToList();
+        foreach (var (pilot, typeId, units) in loose)
+        {
+            var hold = HaulLoopPlanner.HoldOf(pilot);
+            stock[(hold, typeId)] = stock.GetValueOrDefault((hold, typeId)) + units;
+            systems[hold] = ships[pilot].SolarSystemId!.Value;
+        }
+
+        var moves = new List<Move>(await RefiningMovesAsync(db, ctx, parkId, stock, ct));
         moves.AddRange(await AllocateAsync(want, stock, systems, ct));
         moves.AddRange(SurplusMoves(await SurplusHomesAsync(db, ct), want, stock));
 
-        // The carried cargo as moves out of each pilot's hold, in the system it is bound for.
-        if (carried.Count > 0)
+        // A hold's cargo nobody wants still takes up room in it: the loop is planned in what is left.
+        var unplanned = new Dictionary<long, double>();
+        if (loose.Count > 0)
         {
-            var holders = carried.Select(c => c.PilotId).Distinct().ToList();
-            var pilots  = await db.Characters.AsNoTracking()
+            var (_, looseVol) = await PriceAndVolumeAsync(db, loose.Select(l => l.TypeId).Distinct().ToList(), ct);
+            foreach (var (pilot, typeId, units) in loose)
+            {
+                var sent = moves.Where(m => m.From == HaulLoopPlanner.HoldOf(pilot) && m.TypeId == typeId).Sum(m => m.Qty);
+                unplanned[pilot] = unplanned.GetValueOrDefault(pilot) + Math.Max(0, units - sent) * looseVol.GetValueOrDefault(typeId);
+            }
+        }
+
+        // Done since the poll: off the plan. Aboard: out of the pilot's hold, to where it is going.
+        moves = TakeOff(moves, basis.Hauled);
+        foreach (var a in basis.Aboard)
+        {
+            var hold = HaulLoopPlanner.HoldOf(a.PilotId);
+            if (!systems.ContainsKey(hold)) systems[hold] = systems.GetValueOrDefault(a.To);
+            moves.Add(new Move(hold, a.To, a.TypeId, a.Units, HaulReason.Unblocking,
+                               want.GetValueOrDefault((a.To, a.TypeId))?.Priority ?? 0));
+        }
+
+        // Each hold named for its pilot.
+        var holders = moves.Where(m => m.From < 0).Select(m => -m.From).Distinct().ToList();
+        if (holders.Count > 0)
+        {
+            var pilots = await db.Characters.AsNoTracking()
                 .Where(c => holders.Contains(c.Id))
                 .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
-            foreach (var c in carried)
-            {
-                var hold = HaulLoopPlanner.HoldOf(c.PilotId);
-                systems[hold] = systems.GetValueOrDefault(c.ToId);
-                places[hold]  = string.Format(WorklistText.HaulInHold,
-                                              pilots.GetValueOrDefault(c.PilotId, c.PilotId.ToString()));
-                moves.Add(new Move(hold, c.ToId, c.TypeId, c.Units, HaulReason.Unblocking,
-                                   want.GetValueOrDefault((c.ToId, c.TypeId))?.Priority ?? 0));
-            }
+            foreach (var id in holders)
+                places[HaulLoopPlanner.HoldOf(id)] = string.Format(WorklistText.HaulInHold, pilots.GetValueOrDefault(id, id.ToString()));
         }
 
         // Named from the moves themselves, not from the demand that produced most of them.
@@ -252,9 +289,35 @@ public class LogisticsGenerator(
         // one task per pair of stations.
         bool InSystem(Move m) => trips.TryGetValue((m.From, m.To), out var t) && t.Lane == HaulLane.InSystem;
         var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
-        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, ct);
+        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, ct);
 
         return [.. Tasks(moves.Where(m => !InSystem(m)).ToList(), names, places, drivers, driverNames, trips), .. loops];
+    }
+
+    /// <summary>
+    /// The plan less the legs already hauled: each taken off the move it was part of — the same
+    /// two places and item — and what is left of it off any other move of that item to the same
+    /// place, the plan having found it a different source since. Never below nothing.
+    /// </summary>
+    private static List<Move> TakeOff(List<Move> moves, IReadOnlyList<HaulLag.Leg> hauled)
+    {
+        if (hauled.Count == 0) return moves;
+        var left = moves.Select(m => m.Qty).ToArray();
+        foreach (var leg in hauled)
+        {
+            var units = leg.Units;
+            foreach (var exact in new[] { true, false })
+                for (var i = 0; i < moves.Count && units > 0; i++)
+                {
+                    var m = moves[i];
+                    if (m.To != leg.To || m.TypeId != leg.TypeId || left[i] <= 0) continue;
+                    if (exact != (m.From == leg.From)) continue;
+                    var take = Math.Min(units, left[i]);
+                    left[i] -= take;
+                    units   -= take;
+                }
+        }
+        return [.. moves.Select((m, i) => m with { Qty = left[i] }).Where(m => m.Qty > 0)];
     }
 
     /// <summary>
@@ -274,13 +337,12 @@ public class LogisticsGenerator(
         AppDbContext db, List<Move> moves, Dictionary<(long From, long To), Trip> trips,
         Dictionary<long, int> systems, Dictionary<int, string> names, Dictionary<long, string> places,
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, Dictionary<int, string> driverNames,
-        CancellationToken ct)
+        IReadOnlyDictionary<long, double> unplannedM3, CancellationToken ct)
     {
         var items = new List<WorklistItem>();
         if (moves.Count == 0) return items;
 
         var (prices, volumes) = await PriceAndVolumeAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
-        var (positions, facing) = await GeometryAsync(db, moves.SelectMany(m => new[] { m.From, m.To }).Distinct().ToList(), ct);
 
         // The lane's pilots: who they are, whether they are on and where, and what they fly.
         //
@@ -294,7 +356,8 @@ public class LogisticsGenerator(
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         var status = (await db.CharacterStatuses.AsNoTracking()
                 .Where(x => ids.Contains(x.CharacterId))
-                .Select(x => new { x.CharacterId, x.Online, x.SolarSystemId, x.StationId, x.StructureId, x.ShipTypeId, x.ShipItemId })
+                .Select(x => new { x.CharacterId, x.Online, x.SolarSystemId, x.StationId, x.StructureId, x.ShipTypeId, x.ShipItemId,
+                                   x.UndockedFromId, x.UndockedSystemId })
                 .ToListAsync(ct))
             .ToDictionary(x => x.CharacterId);
 
@@ -307,6 +370,14 @@ public class LogisticsGenerator(
             .Where(t => hullIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
         var aligns  = await AlignSecondsAsync(db, hullIds, ct);
+
+        // ⚠️ Where the pilots are, as well as where the cargo is: a loop starting from a structure
+        // with nothing left to move there — the stop just ticked off — still turns round to leave
+        // it. Without its position the first leg went free of any turn, and the loop another way.
+        var (positions, facing) = await GeometryAsync(db,
+            moves.SelectMany(m => new[] { m.From, m.To })
+                 .Concat(status.Values.SelectMany(s => new[] { s.StructureId ?? s.StationId ?? 0, s.UndockedFromId ?? 0 }))
+                 .Where(id => id > 0).Distinct().ToList(), ct);
 
         // ⚠️ Sitting in something that hauls. A pilot docked in a shuttle or a combat ship is on
         // and in the system but is not flying this loop, and a share of it planned in a 10 m³
@@ -328,18 +399,27 @@ public class LogisticsGenerator(
                       : await HaulHold.FittedAsync(dbFactory, id, hull, lane.UsesCurrentShip ? st?.ShipItemId : null, ct) ?? bare;
         }
 
+        // ⚠️ Where the loop starts: docked here, or — in space — off the undock of the structure
+        // last left, if that is in this system. In space used to mean "anywhere": the first leg
+        // was charged no turn, so a pilot who undocked from the stop just ticked off was sent on
+        // by a different road from the one the plan had them on.
         LoopPilot Pilot(long id, int sys)
         {
             var st    = status.GetValueOrDefault(id);
             var dock  = st?.StructureId ?? st?.StationId;
             var hull  = lane.UsesCurrentShip ? st?.ShipTypeId ?? 0 : lane.ShipTypeId;
             var (shipName, bare) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
+            var (start, docked) =
+                dock is { } d && st?.SolarSystemId == sys                                       ? (d, true)
+                : dock is null && st?.SolarSystemId == sys && st.UndockedSystemId == sys
+                  && st.UndockedFromId is { } left                                              ? (left, false)
+                :                                                                                 ((long?)null, true);
             return new LoopPilot(
-                id, known.GetValueOrDefault(id, ""),
-                dock is { } d && st?.SolarSystemId == sys ? d : null,
+                id, known.GetValueOrDefault(id, ""), start, docked,
                 hull, shipName,
                 holds.TryGetValue(id, out var hold) ? hold : lane.CargoM3 > 0 ? lane.CargoM3 : bare,
-                aligns.GetValueOrDefault(hull, DefaultAlignSeconds));
+                aligns.GetValueOrDefault(hull, DefaultAlignSeconds),
+                unplannedM3.GetValueOrDefault(id));
         }
 
         string Place(long id) => places.GetValueOrDefault(id, string.Format(WorklistText.LocationWithId, id));
@@ -372,7 +452,7 @@ public class LogisticsGenerator(
                                        && InHauler(id)).ToList();
             var crew = here.Count > 0                ? here.Select(id => Pilot(id, sys.Key)).ToList()
                      : trip.PilotId > 0              ? [Pilot(trip.PilotId, sys.Key)]
-                     :                                 [new LoopPilot(0, "", null, 0, "", 0, DefaultAlignSeconds)];
+                     :                                 [new LoopPilot(0, "", null, true, 0, "", 0, DefaultAlignSeconds, 0)];
 
             // A pilot with cargo aboard for this system flies it, whether or not they would
             // otherwise be on hand: it is in their hold and nobody else can put it down.
@@ -410,7 +490,7 @@ public class LogisticsGenerator(
                 if (mine.Count == 0) continue;
                 var pilot = crew[p];
 
-                var plan  = HaulLoopPlanner.Make(mine, positions, facing, pilot.Start, pilot.Capacity, pilot.Align);
+                var plan  = HaulLoopPlanner.Make(mine, positions, facing, pilot.Start, pilot.Room, pilot.Align, pilot.Docked);
                 var pairs = mine.Select(c => (c.From, c.To)).ToHashSet();
                 var moved = sys.Where(m => pairs.Contains((m.From, m.To))).ToList();
 
@@ -505,8 +585,16 @@ public class LogisticsGenerator(
     }
 
     /// <summary>One pilot of an in-system loop: where they start, and the ship they fly it in.</summary>
+    /// <param name="Docked">At <paramref name="Start"/>, rather than in space off its undock.</param>
+    /// <param name="UnplannedM3">What their hold carries that no stop puts down.</param>
     private sealed record LoopPilot(
-        long Id, string Name, long? Start, int ShipTypeId, string ShipName, double Capacity, double Align);
+        long Id, string Name, long? Start, bool Docked, int ShipTypeId, string ShipName, double Capacity, double Align,
+        double UnplannedM3)
+    {
+        /// <summary>The hold the loop is planned in: the ship's, less what is in it to stay.
+        /// Zero — no hold known — plans without a limit.</summary>
+        public double Room => Capacity > 0 ? Math.Max(1, Capacity - UnplannedM3) : 0;
+    }
 
     /// <summary>
     /// Where each structure is, and the point its undock faces: the facing recorded in the
@@ -602,10 +690,10 @@ public class LogisticsGenerator(
             var mine = pairs.Where((_, k) => owner[k] == p).SelectMany(x => x).ToList();
             if (mine.Count == 0) return 0;
             var pilot = crew[p];
-            var plan  = HaulLoopPlanner.Make(mine, positions, facing, pilot.Start, pilot.Capacity, pilot.Align);
+            var plan  = HaulLoopPlanner.Make(mine, positions, facing, pilot.Start, pilot.Room, pilot.Align, pilot.Docked);
             // Cargo the stops could not reach is not free: a hold's worth is another sitting.
             var later = plan.Later.Sum(c => c.Quantity * c.UnitM3);
-            return plan.Seconds + (pilot.Capacity > 0 ? later / pilot.Capacity * 300 : 0);
+            return plan.Seconds + (pilot.Room > 0 ? later / pilot.Room * 300 : 0);
         }
 
         var costs = Enumerable.Range(0, crew.Count).Select(Cost).ToArray();
@@ -816,7 +904,7 @@ public class LogisticsGenerator(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId))
             // Every personal asset, whoever holds it. The scope is the player's own property, and
             // which characters are set up to run jobs says nothing about what they own — filtering
             // personal stock to the industry list hid 8,985 of 11,624 rows, including blueprints
@@ -1397,7 +1485,7 @@ public class LogisticsGenerator(
         var moves = new List<Move>();
         foreach (var ((station, typeId), qty) in stock)
         {
-            if (qty <= 0) continue;
+            if (qty <= 0 || station < 0) continue;   // a pilot's hold: only ever sent where it is wanted
             if (!routeOf.TryGetValue(typeId, out var key) || key is null) continue;
             if (target.GetValueOrDefault(key) is not { } to) continue;
             if (station == to) continue;   // already where it is processed
@@ -1506,10 +1594,15 @@ public class LogisticsGenerator(
             //    with no use for the item rather than one holding it to a level, since the second
             //    is only spare until its own consumption catches up and the next refresh would
             //    ask for it back.
+            //
+            // 0. Before all of them, a pilot's hold in the same system: it is aboard already. A
+            //    hold serves no other system — the pilot is not going there.
             var need = gap;
             var sources = spare
                 .Where(s => s.Key.TypeId == typeId && s.Key.Station != dest && s.Value > 0)
-                .OrderByDescending(s => s.Value >= need)
+                .Where(s => s.Key.Station > 0 || systems.GetValueOrDefault(s.Key.Station) == destSystem && destSystem != 0)
+                .OrderByDescending(s => s.Key.Station < 0)
+                .ThenByDescending(s => s.Value >= need)
                 .ThenByDescending(s => suppliers.Contains(s.Key.Station))
                 .ThenBy(s => Distance(distances, systems, s.Key.Station))
                 .ThenBy(s => want.ContainsKey((s.Key.Station, typeId)) ? 1 : 0)
@@ -1569,6 +1662,7 @@ public class LogisticsGenerator(
 
         foreach (var ((station, typeId), qty) in stock.OrderBy(s => s.Key.Station).ThenBy(s => s.Key.TypeId))
         {
+            if (station < 0) continue;   // a pilot's hold: only ever sent where it is wanted
             if (!homes.TryGetValue(typeId, out var home)) continue;
             if (station == home.Station) continue;
             if (unmet.GetValueOrDefault(typeId) > 0) continue;

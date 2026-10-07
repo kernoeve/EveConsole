@@ -91,8 +91,9 @@ public static class ContractLag
         if (snapshot.Count == 0) return [];
 
         // Hauls ticked off as delivered move goods just as contracts do, against the same clocks,
-        // so every reader of these moves sees them. See HaulLag.
-        var hauled = await HaulLag.DeliveredMovesAsync(db, snapshot, typeIds, ct);
+        // so every reader of these moves sees them — and goods picked up stay on their shelf in
+        // every count until they are put down. See HaulLag.
+        var hauled = await HaulLag.MovesAsync(db, snapshot, typeIds, ct);
 
         // ⚠️ Raw SQL for the dates: a DateTimeOffset in a LINQ Where does not translate on SQLite
         // (see OrderFulfilmentService.CandidateIdsAsync, which filters the same way). Only rows

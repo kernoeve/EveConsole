@@ -7,9 +7,10 @@ namespace EveConsole.Models;
 /// <para>⚠️ A correction for the asset lag, not a record of history. Assets are polled hourly, and
 /// until the poll sees a haul the planner would send the pilot for cargo already in their hold and
 /// leave the job it was for waiting. A delivered mark moves the goods in every stock count, the way
-/// a contract does (see ContractLag); a mark picked up and not yet delivered is cargo aboard the
-/// pilot's ship, which only the hauling plan uses. Each side stops counting once its owner's asset
-/// poll has run since — the snapshot shows it then.</para>
+/// a contract does (see ContractLag), until the owner's asset poll has run since — the snapshot
+/// shows it then. A mark picked up and not yet delivered is cargo aboard the pilot's ship: on the
+/// shelf it came off in every count but the hauling plan's, until it is put down or the pilot's
+/// own poll shows the ship without it (see HaulLag).</para>
 /// </summary>
 public class HaulMark
 {
@@ -18,8 +19,12 @@ public class HaulMark
     /// <summary>Who hauled it: whose hold it is in between the two ticks.</summary>
     public long PilotId { get; set; }
 
-    /// <summary>The structure or station it was picked up at.</summary>
+    /// <summary>The structure or station it was picked up at — or, below zero, the pilot's hold
+    /// (HaulLoopPlanner.HoldOf): cargo aboard with no pick-up ticked, put down and delivered at once.</summary>
     public long FromId { get; set; }
+
+    /// <summary>Put down out of the hold, with no pick-up ticked for it. Not stored.</summary>
+    public bool FromHold => FromId < 0;
 
     /// <summary>Where it was going, and is put down at delivery.</summary>
     public long ToId { get; set; }

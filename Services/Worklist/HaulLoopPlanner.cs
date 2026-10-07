@@ -23,8 +23,16 @@ namespace EveConsole.Services.Worklist;
 /// line to be fetched on its own afterwards.</para>
 ///
 /// <para><b>The start.</b> Where the pilot is docked, if that is in this system: the plan begins
-/// with what can be done there. Anywhere else, including in space, the first leg is free of any
-/// turn. The hold starts empty — what is in it now is not known freshly enough to plan on.</para>
+/// with what can be done there. In space after undocking from a structure here, from that
+/// structure's undock, turn and all. Anywhere else the first leg is free of any turn. The hold
+/// holds what the caller says is aboard (see <see cref="Cargo.Aboard"/>), and nothing else.</para>
+///
+/// <para><b>⚠️ The same question always gets the same answer.</b> Every choice is a function of
+/// what is left to move and where the pilot is, and nothing else — not the order the cargo came
+/// in, not how a line was split. So a loop half flown, re-planned from where the pilot now is with
+/// what is now left, gives the rest of the plan it started from. Keep it that way: a tie broken by
+/// list position, or a start that differs from the step it stands for, reshuffles the stops under
+/// a pilot who has done exactly what was asked.</para>
 /// </summary>
 public static class HaulLoopPlanner
 {
@@ -65,23 +73,30 @@ public static class HaulLoopPlanner
 
     /// <param name="positions">Where each structure is. One missing is charged no turn.</param>
     /// <param name="facing">The point each structure's undock faces, where one is recorded.</param>
-    /// <param name="start">The structure the pilot is docked in, or null.</param>
+    /// <param name="start">The structure the pilot is docked in or has just undocked from, or null.</param>
+    /// <param name="docked">Docked at <paramref name="start"/>, rather than in space off its undock.</param>
     /// <param name="capacityM3">The hold; 0 or less means unlimited.</param>
     /// <param name="alignSeconds">The ship's align time, which is also what a full turn costs.</param>
     public static Plan Make(
         IReadOnlyList<Cargo> cargo,
         IReadOnlyDictionary<long, (double X, double Y, double Z)> positions,
         IReadOnlyDictionary<long, (double X, double Y, double Z)> facing,
-        long? start, double capacityM3, double alignSeconds)
+        long? start, double capacityM3, double alignSeconds, bool docked = true)
     {
         var cap = capacityM3 > 0 ? capacityM3 : double.PositiveInfinity;
 
         // A unit bigger than the hold never fits, whatever the order: set aside rather than looped on.
         // Cargo already aboard fits by definition — it is in the hold.
         var tooBig = cargo.Where(c => !c.Aboard && c.UnitM3 > cap).ToList();
-        var work   = cargo.Where(c => (c.Aboard || c.UnitM3 <= cap) && c.Quantity > 0 && c.From != c.To).ToList();
+        // One line per item and pair of places, in a fixed order: how the caller happened to list
+        // or split them must not decide a tie.
+        var work   = cargo.Where(c => (c.Aboard || c.UnitM3 <= cap) && c.Quantity > 0 && c.From != c.To)
+            .GroupBy(c => (c.From, c.To, c.TypeId))
+            .Select(g => g.First() with { Quantity = g.Sum(c => c.Quantity), Priority = g.Max(c => c.Priority) })
+            .OrderBy(c => c.From).ThenBy(c => c.To).ThenBy(c => c.TypeId)
+            .ToList();
 
-        var state = new State(work);
+        var state = new State(work, cap);
 
         var stops   = new List<Stop>();
         long? here  = start;
@@ -97,29 +112,33 @@ public static class HaulLoopPlanner
             return FixedLegSeconds + alignSeconds + extra;
         }
 
-        // Docked somewhere with work to do: that work comes first, and costs no leg.
-        if (here is { } s0 && state.HasWorkAt(s0, cap))
-            stops.Add(state.Visit(s0, cap, turnBefore: false));
+        // Docked somewhere with work to do: that work comes first, and costs no leg. Cargo aboard
+        // for here is put down before anything else — before the loop moves on.
+        if (docked && here is { } s0 && state.HasWorkAt(s0))
+            stops.Add(state.Visit(s0, turnBefore: false));
 
         while (!state.Done && stops.Count < MaxStops)
         {
-            var options = state.Candidates(cap).ToList();
+            var options = state.Candidates().ToList();
             if (options.Count == 0) break;
 
+            // Equal within a millisecond is equal, and the lower id wins. Structures in a line
+            // make real ties — three next stops at exactly the same cost — and a tie is broken by
+            // rule, never by the last bits of the arithmetic.
             long  best     = options[0];
             double bestCost = double.PositiveInfinity;
             foreach (var next in options.OrderBy(o => o))
             {
                 var trial = state.Clone();
                 var cost  = Leg(here, next, out _);
-                trial.Visit(next, cap, false);
-                cost += Rollout(trial, next, cap, Leg);
-                if (cost < bestCost - 1e-9) { bestCost = cost; best = next; }
+                trial.Visit(next, false);
+                cost += Rollout(trial, next, Leg);
+                if (cost < bestCost - TieSeconds) { bestCost = cost; best = next; }
             }
 
             secs += Leg(here, best, out var turned);
             if (turned) turns++;
-            stops.Add(state.Visit(best, cap, turned));
+            stops.Add(state.Visit(best, turned));
             here = best;
         }
 
@@ -128,28 +147,31 @@ public static class HaulLoopPlanner
     }
 
     /// <summary>The rest of the loop played out by always taking the cheapest next leg.</summary>
-    private static double Rollout(State state, long here, double cap, LegFn leg)
+    private static double Rollout(State state, long here, LegFn leg)
     {
         double total = 0;
         var guard = 0;
         while (!state.Done && guard++ < MaxStops)
         {
-            var options = state.Candidates(cap).ToList();
+            var options = state.Candidates().ToList();
             if (options.Count == 0) break;
 
             var next = options
-                .Select(o => (o, Cost: leg(here, o, out _)))
-                .OrderBy(x => x.Cost).ThenByDescending(x => state.WorkAt(x.o, cap)).ThenBy(x => x.o)
+                .Select(o => (o, Cost: Math.Round(leg(here, o, out _) / TieSeconds)))
+                .OrderBy(x => x.Cost).ThenByDescending(x => state.WorkAt(x.o)).ThenBy(x => x.o)
                 .First().o;
 
             total += leg(here, next, out _);
-            state.Visit(next, cap, false);
+            state.Visit(next, false);
             here = next;
         }
         return total;
     }
 
     private delegate double LegFn(long? from, long to, out bool turned);
+
+    /// <summary>Costs closer than this are a tie, broken the same way every time.</summary>
+    private const double TieSeconds = 1e-3;
 
     /// <summary>
     /// How much of a turn leaving <paramref name="from"/> for <paramref name="to"/> takes: 0 when
@@ -173,31 +195,53 @@ public static class HaulLoopPlanner
         return (1 - cos) / 2;
     }
 
-    /// <summary>What is still to collect, and what is in the hold.</summary>
+    /// <summary>
+    /// What is still to collect, and what is in the hold.
+    ///
+    /// <para>⚠️ Volumes are counted in whole ten-thousandths of a m³, not as floating point. Added
+    /// up in a different order — the same cargo with one line already dropped, against the same
+    /// cargo dropped along the way — doubles came out a hair apart, a hold that was exactly full
+    /// took one unit more or less, and a re-plan of the same loop went another way round.</para>
+    /// </summary>
     private sealed class State
     {
-        // Per cargo line, by index: units still at the source, units aboard.
+        /// <summary>Volume ticks per m³: fine enough for any item's volume (0.01 m³ and up).</summary>
+        private const double TicksPerM3 = 10_000;
+
+        /// <summary>No hold limit, kept well clear of overflow.</summary>
+        private const long Unlimited = long.MaxValue / 4;
+
+        // Per cargo line, by index: units still at the source, units aboard, and one unit's volume.
         private readonly IReadOnlyList<Cargo> _lines;
         private readonly long[] _waiting;
         private readonly long[] _aboard;
-        private double _loadedM3;
+        private readonly long[] _unit;
+        private readonly long   _cap;
+        private long _loaded;
 
-        public State(IReadOnlyList<Cargo> lines)
+        public State(IReadOnlyList<Cargo> lines, double cap)
         {
             _lines   = lines;
+            _unit    = lines.Select(l => Ticks(l.UnitM3)).ToArray();
+            _cap     = double.IsPositiveInfinity(cap) ? Unlimited : (long)Math.Floor(cap * TicksPerM3);
             // What the pilot already carries starts in the hold, waiting only to be put down.
             _waiting = lines.Select(l => l.Aboard ? 0 : l.Quantity).ToArray();
             _aboard  = lines.Select(l => l.Aboard ? l.Quantity : 0).ToArray();
-            _loadedM3 = lines.Where(l => l.Aboard).Sum(l => l.Quantity * l.UnitM3);
+            _loaded  = Enumerable.Range(0, lines.Count).Sum(i => _aboard[i] * _unit[i]);
         }
 
         private State(State other)
         {
-            _lines    = other._lines;
-            _waiting  = (long[])other._waiting.Clone();
-            _aboard   = (long[])other._aboard.Clone();
-            _loadedM3 = other._loadedM3;
+            _lines   = other._lines;
+            _unit    = other._unit;
+            _cap     = other._cap;
+            _waiting = (long[])other._waiting.Clone();
+            _aboard  = (long[])other._aboard.Clone();
+            _loaded  = other._loaded;
         }
+
+        // Rounded up, so a hold is never planned past full by the rounding.
+        private static long Ticks(double m3) => Math.Max(0, (long)Math.Ceiling(m3 * TicksPerM3 - 1e-6));
 
         public State Clone() => new(this);
 
@@ -205,31 +249,44 @@ public static class HaulLoopPlanner
 
         /// <summary>Somewhere worth docking: something aboard is for it, or something there can
         /// be loaded.</summary>
-        public IEnumerable<long> Candidates(double cap)
+        public IEnumerable<long> Candidates()
         {
-            var free = cap - _loadedM3;
+            var free = _cap - _loaded;
             var set  = new HashSet<long>();
             for (var i = 0; i < _lines.Count; i++)
             {
                 if (_aboard[i] > 0) set.Add(_lines[i].To);
-                if (_waiting[i] > 0 && _lines[i].UnitM3 <= free + 1e-9) set.Add(_lines[i].From);
+                if (_waiting[i] > 0 && _unit[i] <= free) set.Add(_lines[i].From);
             }
             return set;
         }
 
-        public bool HasWorkAt(long station, double cap) => WorkAt(station, cap) > 0;
-
-        /// <summary>m³ that would move at a stop: dropped, plus what fits once it is dropped.</summary>
-        public double WorkAt(long station, double cap)
+        /// <summary>Something would actually move here: aboard for it, or waiting here and fitting
+        /// in the hold. Not merely waiting here for a hold with no room — a stop where nothing
+        /// happens.</summary>
+        public bool HasWorkAt(long station)
         {
-            double drop = 0, free = cap - _loadedM3, pick = 0;
             for (var i = 0; i < _lines.Count; i++)
-                if (_lines[i].To == station) drop += _aboard[i] * _lines[i].UnitM3;
-            free += drop;
+                if (_lines[i].To == station && _aboard[i] > 0) return true;
+            var free = _cap - _loaded;
+            for (var i = 0; i < _lines.Count; i++)
+                if (_lines[i].From == station && _waiting[i] > 0 && _unit[i] <= free)
+                    return true;
+            return false;
+        }
+
+        /// <summary>Volume that would move at a stop: dropped, plus what fits once it is dropped —
+        /// and one tick more where only units without volume would.</summary>
+        public long WorkAt(long station)
+        {
+            long drop = 0, pick = 0;
+            for (var i = 0; i < _lines.Count; i++)
+                if (_lines[i].To == station) drop += _aboard[i] * _unit[i];
+            var free = _cap - _loaded + drop;
             for (var i = 0; i < _lines.Count; i++)
                 if (_lines[i].From == station && _waiting[i] > 0)
-                    pick += Math.Min(_waiting[i] * _lines[i].UnitM3, Math.Max(0, free - pick));
-            return drop + pick + (HasUnitsAt(station) ? 1e-6 : 0);
+                    pick += Math.Min(_waiting[i] * _unit[i], Math.Max(0, free - pick));
+            return drop + pick + (HasUnitsAt(station) ? 1 : 0);
         }
 
         private bool HasUnitsAt(long station)
@@ -245,36 +302,32 @@ public static class HaulLoopPlanner
         /// urgent first, then the largest, so a hold that cannot take everything leaves the
         /// routine and the small for the next lap.
         /// </summary>
-        public Stop Visit(long station, double cap, bool turnBefore)
+        public Stop Visit(long station, bool turnBefore)
         {
             var drops = new List<Cargo>();
             for (var i = 0; i < _lines.Count; i++)
             {
                 if (_lines[i].To != station || _aboard[i] == 0) continue;
                 drops.Add(_lines[i] with { Quantity = _aboard[i] });
-                _loadedM3 -= _aboard[i] * _lines[i].UnitM3;
+                _loaded   -= _aboard[i] * _unit[i];
                 _aboard[i] = 0;
             }
-            if (_loadedM3 < 1e-6) _loadedM3 = 0;
 
             var picks = new List<Cargo>();
             foreach (var i in Enumerable.Range(0, _lines.Count)
                          .Where(i => _lines[i].From == station && _waiting[i] > 0)
                          .OrderByDescending(i => _lines[i].Priority)
-                         .ThenByDescending(i => _waiting[i] * _lines[i].UnitM3)
+                         .ThenByDescending(i => _waiting[i] * _unit[i])
                          .ThenBy(i => i))
             {
-                var unit  = _lines[i].UnitM3;
-                var free  = cap - _loadedM3;
-                var units = unit <= 0 ? _waiting[i]
-                          : double.IsPositiveInfinity(free) ? _waiting[i]
-                          : Math.Min(_waiting[i], (long)Math.Floor((free + 1e-9) / unit));
+                var free  = _cap - _loaded;
+                var units = _unit[i] == 0 ? _waiting[i] : Math.Min(_waiting[i], free / _unit[i]);
                 if (units <= 0) continue;
 
                 picks.Add(_lines[i] with { Quantity = units });
                 _waiting[i] -= units;
                 _aboard[i]  += units;
-                _loadedM3   += units * unit;
+                _loaded     += units * _unit[i];
             }
 
             return new Stop(station, drops, picks, turnBefore);

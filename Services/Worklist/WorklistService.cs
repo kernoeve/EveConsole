@@ -786,7 +786,8 @@ public class WorklistService(
     /// <para>A drop-off settles the pick-up it belongs to, ticked at an earlier stop; one that was
     /// never ticked there is recorded as picked up and delivered at once, so ticking only the
     /// drop-offs still moves the goods. Each mark carries the owner whose hangar the goods sit in
-    /// at the pick-up — the largest holders first — so it is that owner's poll that settles it.</para>
+    /// at the pick-up — the largest holders first — so it is that owner's poll that settles it.
+    /// Cargo that was in the hold with no pick-up ticked at all is put down as the pilot's own.</para>
     /// </summary>
     /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in.</param>
     public async Task MarkHauledAsync(long pilotId, WorklistHaulStop stop, CancellationToken ct = default)
@@ -857,6 +858,13 @@ public class WorklistService(
             // Its pick-up was never ticked: picked up and delivered in one.
             if (left > 0 && l.OtherId > 0)
                 await PickAsync(l.OtherId, stop.StationId, l.TypeId, left, delivered: now);
+
+            // Aboard with no pick-up ticked anywhere — loaded without one, or there before: out
+            // of the pilot's own hold, into their own hangar here.
+            else if (left > 0 && l.OtherId < 0)
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = l.OtherId, ToId = stop.StationId, TypeId = l.TypeId,
+                                                Units = left, OwnerType = "character", OwnerId = pilotId,
+                                                PickedAt = now, DeliveredAt = now });
         }
 
         await db.SaveChangesAsync(ct);
