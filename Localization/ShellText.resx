@@ -751,6 +751,12 @@ Update the client running the background processes to {1}, or close it and start
     <value>This build does not match the database</value>
     <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>This build expects tables the database does not have yet: {0}.
+
+Another client is running the background processes, and only that client may change the schema. Update it to this build, or close it and start this one first so that it takes over and adds them.</value>
+    <comment>Shown before the app stops: a client that may not change the schema found tables missing. {0} = the missing tables' names.</comment>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>Upgrade the database?</value>
     <comment>Title of the question shown at start when the database was last used by an older EVE Console.</comment>

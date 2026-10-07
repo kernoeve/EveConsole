@@ -590,6 +590,11 @@ PID：{2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>このビルドはデータベースと一致しません</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>このビルドには、データベースにまだないテーブルが必要です：{0}。
+
+別のクライアントがバックグラウンド処理を実行しており、スキーマを変更できるのはそのクライアントだけです。そのクライアントをこのビルドに更新するか、閉じてからこちらを先に起動し、こちらが引き継いでテーブルを追加できるようにしてください。</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>データベースを更新しますか？</value>
   </data>

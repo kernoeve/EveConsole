@@ -590,6 +590,11 @@ PID：{2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>此版本与数据库不匹配</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>此版本需要数据库中尚不存在的表：{0}。
+
+另一个客户端正在运行后台进程，只有该客户端可以更改数据库结构。请将其更新到此版本，或关闭它并先启动此客户端，以便由此客户端接管并添加这些表。</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>升级数据库？</value>
   </data>

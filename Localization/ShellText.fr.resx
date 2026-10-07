@@ -596,6 +596,11 @@ Mettez à jour en version {1} le client qui exécute les processus d'arrière-pl
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Cette version ne correspond pas à la base de données</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>Cette version attend des tables que la base de données n'a pas encore : {0}.
+
+Un autre client exécute les processus en arrière-plan, et seul ce client peut modifier le schéma. Mettez-le à jour vers cette version, ou fermez-le et démarrez celui-ci d'abord pour qu'il prenne le relais et les ajoute.</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>Mettre à jour la base de données ?</value>
   </data>

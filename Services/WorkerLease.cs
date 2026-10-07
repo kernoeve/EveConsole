@@ -46,6 +46,16 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     /// </summary>
     private const long AdvisoryLockKey = 0x4556_4543_4F4E_5301;   // "EVECONS" + 1
 
+    /// <summary>
+    /// How long the holder's own session may sit idle before it is taken to be dead and ended.
+    ///
+    /// <para>The holder writes its heartbeat on the very session that holds the lock, every
+    /// <see cref="Tick"/>, so that session going quiet for four ticks is a process that has
+    /// stopped. Measured by the server, from the server's own record of the session, so neither
+    /// machine's clock comes into it.</para>
+    /// </summary>
+    private static readonly TimeSpan DeadAfter = TimeSpan.FromMinutes(2);
+
     private NpgsqlConnection?        _lock;
     private CancellationTokenSource? _cts;
     private DateTimeOffset           _takenUtc;
@@ -92,8 +102,83 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             return true;
         }
 
+        // ⚠️ A dead holder first: losing this question to one costs the start its schema step,
+        // and every table this build adds goes missing until a later start wins it.
+        await EndDeadHolderAsync(ct);
         await ContendAsync(ct);
         return IsHolder;
+    }
+
+    /// <summary>
+    /// Ends the session holding the lease if it has gone quiet for <see cref="DeadAfter"/>.
+    ///
+    /// <para>⚠️ The server does not always notice a client die. A process killed, a machine put to
+    /// sleep or a network path dropped mid-session leaves its connections open on the server until
+    /// TCP keepalive gives up — about two hours on Linux by default — and the lease with them: a
+    /// dead worker held it from 17:06 to past 19:00 while every client that started waited behind
+    /// it, ran no background work, and could not apply its schema. Ending the session is what the
+    /// server would have done had it known, and frees the lease to the queue as a clean exit does.</para>
+    ///
+    /// <para>Ours to end: every client connects as the same role, and a role may end its own
+    /// sessions. A refusal — a role without that right — is logged and left; it is never worse
+    /// than waiting.</para>
+    /// </summary>
+    private async Task EndDeadHolderAsync(CancellationToken ct)
+    {
+        try
+        {
+            var cs = AppConfig.GetPostgresConnection();
+            if (string.IsNullOrWhiteSpace(cs)) return;
+
+            await using var conn = new NpgsqlConnection(AppDb.PostgresConnectionString(cs));
+            await conn.OpenAsync(ct);
+            await using var cmd = conn.CreateCommand();
+
+            // ⚠️ Typed as oid, as pg_locks has them: Npgsql will not guess a type for a uint, and
+            // the low half of a key can have its top bit set, which an int would make negative.
+            cmd.CommandText = EndDeadHolderSql;
+            cmd.Parameters.Add(new NpgsqlParameter("hi", NpgsqlTypes.NpgsqlDbType.Oid) { Value = (uint)(AdvisoryLockKey >> 32) });
+            cmd.Parameters.Add(new NpgsqlParameter("lo", NpgsqlTypes.NpgsqlDbType.Oid) { Value = (uint)(AdvisoryLockKey & 0xFFFF_FFFF) });
+            cmd.Parameters.AddWithValue("dead", DeadAfter);
+
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct))
+            {
+                var line = $"ended the background lease holder's session (pid {r.GetInt32(0)}, {r.GetString(1)} since " +
+                           $"{r.GetFieldValue<DateTimeOffset>(2):u}): it had stopped, and the lease was held for nobody" +
+                           (r.GetBoolean(3) ? "" : " — the server refused");
+                if (AppRuntime.IsHeadless) Console.Error.WriteLine($"EVE Console: {line}");
+                ServiceLog.Write(line);
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex) { errorLogger.Log("WorkerLease", "checking for a dead lease holder", ex); }
+    }
+
+    /// <summary>
+    /// Ends whichever session holds the advisory key <c>@hi</c>/<c>@lo</c> and has been idle
+    /// longer than <c>@dead</c>, and says which. A bigint key is held as its two halves, the high
+    /// in classid and the low in objid, with objsubid 1.
+    /// </summary>
+    internal const string EndDeadHolderSql = """
+        SELECT a.pid, a.state, a.state_change, pg_terminate_backend(a.pid)
+        FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid
+        WHERE l.locktype = 'advisory' AND l.granted AND l.objsubid = 1
+          AND l.classid = @hi AND l.objid = @lo
+          AND a.pid <> pg_backend_pid()
+          AND a.state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)')
+          AND a.state_change < now() - @dead
+        """;
+
+    /// <summary><see cref="EndDeadHolderAsync"/> every tick, for as long as a wait for the lease lasts.</summary>
+    private async Task WatchHolderAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try { await Task.Delay(Tick, ct); }
+            catch (OperationCanceledException) { return; }
+            await EndDeadHolderAsync(ct);
+        }
     }
 
     /// <summary>
@@ -286,7 +371,17 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
                         // into the polling this replaced, with more moving parts.
                         cmd.CommandText    = "SELECT pg_advisory_lock(@k)";
                         cmd.CommandTimeout = 0;
-                        await cmd.ExecuteNonQueryAsync(ct);   // returns when granted
+
+                        // ⚠️ Watched while it waits: a holder that died without the server
+                        // noticing would otherwise be waited on for hours. See EndDeadHolderAsync.
+                        using var watching = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                        var watch = WatchHolderAsync(watching.Token);
+                        try { await cmd.ExecuteNonQueryAsync(ct); }   // returns when granted
+                        finally
+                        {
+                            watching.Cancel();
+                            try { await watch; } catch (OperationCanceledException) { }
+                        }
                     }
                     else
                     {

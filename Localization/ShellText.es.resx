@@ -596,6 +596,11 @@ Actualiza a la versión {1} el cliente que ejecuta los procesos en segundo plano
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Esta compilación no coincide con la base de datos</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>Esta compilación espera tablas que la base de datos aún no tiene: {0}.
+
+Otro cliente está ejecutando los procesos en segundo plano, y solo ese cliente puede cambiar el esquema. Actualízalo a esta compilación, o ciérralo e inicia este primero para que tome el relevo y las añada.</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>¿Actualizar la base de datos?</value>
   </data>

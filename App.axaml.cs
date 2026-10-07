@@ -836,6 +836,57 @@ public class App : Application
             }
         }
 
+        // ⚠️ The same question asked of the tables themselves, by a client that may not change the
+        // schema. Versions only tell builds apart that have been numbered apart: a build from the
+        // same version with a table added — any development build — passed the check above, found
+        // its table missing, and failed inside the worklist generators instead ("relation
+        // CourierCargo does not exist", four of them at once), which is exactly the scattered
+        // breakage the version check exists to prevent. Every table the model maps must be there.
+        if (skipSchema && DbEngine.IsPostgres && await MissingTablesAsync() is { Count: > 0 } missing)
+        {
+            var list = string.Join(", ", missing.Take(8)) + (missing.Count > 8 ? ", …" : "");
+            errorLogger.Log("Startup", "the database lacks tables this build expects",
+                new InvalidOperationException($"missing tables: {string.Join(", ", missing)}"));
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
+            {
+                splash?.ReportProgress(0, ShellText.SplashStoppingMismatch);
+                await ShowAndWaitAsync(new FatalDialog(ShellText.VersionMismatchHeading,
+                                                       string.Format(ShellText.SchemaBehindWorker, list)), splash);
+                stopping.Shutdown();
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    $"EVE Console: this build expects tables the database does not have ({list}). " +
+                    "Another client is running the background processes, and only it may change the schema: " +
+                    "update it to this build, or stop it and start this one first.");
+                Environment.Exit(1);
+            }
+            return;
+        }
+
+        // The model's tables the database does not have. Empty when it cannot be told — the check
+        // itself never stops a start.
+        async Task<List<string>> MissingTablesAsync()
+        {
+            try
+            {
+                using var scope = Services.CreateScope();
+                var db       = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var expected = db.Model.GetEntityTypes().Select(e => e.GetTableName()).OfType<string>().Distinct();
+                var have     = (await db.Database.SqlQueryRaw<string>(
+                        """SELECT table_name AS "Value" FROM information_schema.tables WHERE table_schema = current_schema()""")
+                    .ToListAsync()).ToHashSet();
+                return [.. expected.Where(t => !have.Contains(t)).OrderBy(t => t, StringComparer.Ordinal)];
+            }
+            catch (Exception ex)
+            {
+                errorLogger.Log("Startup", "checking the database's tables", ex);
+                return [];
+            }
+        }
+
         static Task ShowAndWaitAsync(Avalonia.Controls.Window dialog, Avalonia.Controls.Window? owner)
         {
             if (owner is not null) return dialog.ShowDialog(owner);

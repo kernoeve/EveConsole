@@ -596,6 +596,11 @@ Aktualisieren Sie den Client mit den Hintergrundprozessen auf {1}, oder schließ
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Diese Version passt nicht zur Datenbank</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>Dieser Build erwartet Tabellen, die die Datenbank noch nicht hat: {0}.
+
+Ein anderer Client führt die Hintergrundprozesse aus, und nur dieser Client darf das Schema ändern. Aktualisiere ihn auf diesen Build, oder schließe ihn und starte diesen zuerst, damit er übernimmt und sie anlegt.</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>Datenbank aktualisieren?</value>
   </data>

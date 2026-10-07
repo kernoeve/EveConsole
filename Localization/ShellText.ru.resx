@@ -608,6 +608,11 @@ PID: {2}
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Эта сборка не соответствует базе данных</value>
   </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>Этой сборке нужны таблицы, которых в базе данных ещё нет: {0}.
+
+Фоновые процессы выполняет другой клиент, и только он может менять схему. Обновите его до этой сборки или закройте его и запустите сначала этот клиент, чтобы он взял работу на себя и добавил их.</value>
+  </data>
   <data name="UpgradeDatabaseTitle" xml:space="preserve">
     <value>Обновить базу данных?</value>
   </data>
