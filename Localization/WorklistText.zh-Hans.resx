@@ -2083,6 +2083,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>将此趟运输标记为已送达。其货物立即计为已在目的地——等待它的任务可以开始，并会规划从中转或卸货空间站出发的下一段——直到下次资产更新显示为止。</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ 已建合同</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>建好快递合同后勾选此项。其货物计为在途，不会再次购买或运输，并与快递合同一起保存——合同更新看到合同后按起点和终点找到它——可在合同工具中更正。不会添加到你的资产中。</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>无法记录此次运送：{0}</value>
   </data>

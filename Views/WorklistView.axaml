@@ -383,7 +383,7 @@
                              Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                   <!-- Tick a stop off as flown: its pick-ups go into the hold and its drop-offs are
                        delivered, ahead of the asset poll. On a trip's manifest, the whole trip. -->
-                  <Button Content="{x:Static loc:WorklistText.HaulMarkHauled}" Click="OnMarkHauled"
+                  <Button Content="{Binding MarkHauledText}" Click="OnMarkHauled"
                           IsVisible="{Binding CanMarkHauled}"
                           FontSize="11" Padding="8 1" VerticalAlignment="Center"
                           ToolTip.Tip="{Binding MarkHauledTip}"/>

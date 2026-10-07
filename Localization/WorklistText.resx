@@ -2788,6 +2788,14 @@
     <value>Tick this trip off as delivered. Its cargo counts as at the destination at once — jobs waiting on it can start, and the next leg on from a staging or drop-off station is planned — until the next asset update shows it.</value>
     <comment>Tooltip on the Hauled button of a haul between systems (on its manifest heading).</comment>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Contracted</value>
+    <comment>Button on a hauling-service trip: it has been handed to a courier contract.</comment>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Tick this off once the courier contract is made. Its cargo counts as on its way, so nothing is bought or hauled for it again, and it is kept with the courier contract — found by its start and end once the contracts update sees it — where it can be corrected in the Contracts tool. Nothing is added to your assets.</value>
+    <comment>Tooltip on the Contracted button of a hauling-service trip.</comment>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Could not record the haul: {0}</value>
     <comment>Worklist error line when ticking a stop off as hauled fails. {0} = the error.</comment>

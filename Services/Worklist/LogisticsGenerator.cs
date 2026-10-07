@@ -230,9 +230,17 @@ public class LogisticsGenerator(
             systems[hold] = ships[pilot].SolarSystemId!.Value;
         }
 
+        // A courier's cargo counts as in its destination's system, for the allocation's distances.
+        foreach (var site in stock.Keys.Select(k => k.Station).Where(IsInTransit).Distinct().ToList())
+            systems[site] = systems.GetValueOrDefault(ArrivesAt(site));
+
         var moves = new List<Move>(await RefiningMovesAsync(db, ctx, parkId, stock, ct));
         moves.AddRange(await AllocateAsync(want, stock, systems, ct));
         moves.AddRange(SurplusMoves(await SurplusHomesAsync(db, ct), want, stock));
+
+        // Covered by a courier still on its way: nothing to fly until it lands — a want at its
+        // destination is met then, and one further on is a leg from there, planned once it has.
+        moves.RemoveAll(m => IsInTransit(m.From));
 
         // A hold's cargo nobody wants still takes up room in it: the loop is planned in what is left.
         var unplanned = new Dictionary<long, double>();
@@ -998,11 +1006,16 @@ public class LogisticsGenerator(
         // And what contracts have moved since: nothing is hauled from a station for goods already
         // on a contract, and goods a courier has just delivered are not hauled there again. Never
         // below zero. See ContractLag.
+        //
+        // ⚠️ A courier's cargo still on the way is stock at a place of its own beside where it is
+        // going (InTransitTo): it covers wants there — nothing is bought or hauled for it again —
+        // but nothing is ever picked up from it. See CourierCargoLag.
         foreach (var m in await ContractLag.MovesAsync(db, ct))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
-            stock[(m.Site, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((m.Site, m.TypeId)) + m.Units);
+            var site = m.InTransit ? InTransitTo(m.Site) : m.Site;
+            stock[(site, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((site, m.TypeId)) + m.Units);
         }
 
         // The same view of stock the demand service nets against — running jobs included, so a
@@ -1223,6 +1236,17 @@ public class LogisticsGenerator(
     }
 
     /// <summary>One item moving between two stations.</summary>
+    /// <summary>Below every pilot's hold (HaulLoopPlanner.HoldOf): the places courier cargo on
+    /// its way sits, one per destination.</summary>
+    private const long InTransitBase = 4_000_000_000_000_000;
+
+    /// <summary>Where a courier's cargo bound for <paramref name="site"/> is counted until it lands.</summary>
+    private static long InTransitTo(long site) => -(InTransitBase + site);
+
+    private static bool IsInTransit(long id) => id <= -InTransitBase;
+
+    private static long ArrivesAt(long transit) => -transit - InTransitBase;
+
     /// <param name="Bound">Where it is going in the end, when this trip stops short of it at a
     /// staging or drop-off station (see Reroute); 0 when <paramref name="To"/> is the end.</param>
     private sealed record Move(long From, long To, int TypeId, long Qty, HaulReason Reason, int Priority = 0, long Bound = 0)
@@ -1669,11 +1693,14 @@ public class LogisticsGenerator(
             //    ask for it back.
             //
             // 0. Before all of them, a pilot's hold in the same system: it is aboard already. A
-            //    hold serves no other system — the pilot is not going there.
+            //    hold serves no other system — the pilot is not going there. And a courier's cargo
+            //    on its way, wherever it is going: it is coming anyway, and planning from anything
+            //    else would buy or haul the same goods a second time.
             var need = gap;
             var sources = spare
                 .Where(s => s.Key.TypeId == typeId && s.Key.Station != dest && s.Value > 0)
-                .Where(s => s.Key.Station > 0 || systems.GetValueOrDefault(s.Key.Station) == destSystem && destSystem != 0)
+                .Where(s => s.Key.Station > 0 || IsInTransit(s.Key.Station)
+                            || systems.GetValueOrDefault(s.Key.Station) == destSystem && destSystem != 0)
                 .OrderByDescending(s => s.Key.Station < 0)
                 .ThenByDescending(s => s.Value >= need)
                 .ThenByDescending(s => suppliers.Contains(s.Key.Station))

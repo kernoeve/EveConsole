@@ -169,14 +169,61 @@
         <TextBlock Grid.Row="3" Grid.Column="1" Classes="val" Text="{Binding DateCompleted}" />
       </Grid>
 
-      <!-- No items stored: a pull on request, and what ESI answered. -->
-      <StackPanel Spacing="4" IsVisible="{Binding !HasItems}" Margin="0 4 0 0">
+      <!-- No items stored: a pull on request, and what ESI answered. Never on a courier: ESI
+           does not list a courier's cargo. -->
+      <StackPanel Spacing="4" IsVisible="{Binding ShowsPull}" Margin="0 4 0 0">
         <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Content="{x:Static loc:MarketText.PullItemsFromEsi}" Command="{Binding PullItemsAsync}" IsEnabled="{Binding CanPull}"
                   FontSize="11" Padding="10 3"
                   ToolTip.Tip="{x:Static loc:MarketText.TipAskEveryEndpointThis}" />
           <TextBlock Text="{Binding PullMessage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- A courier we made: its cargo, entered by hand — quantities edited in place, lines taken
+           off, and lines added or put in place of the lot from text pasted out of the game. Saved
+           as it is changed. -->
+      <StackPanel Spacing="6" Margin="0 6 0 0" IsVisible="{Binding HasCargo}">
+        <StackPanel Spacing="6" DataContext="{Binding Cargo}" x:DataType="vm:CourierCargoVm">
+          <TextBlock Text="{x:Static loc:MarketText.CourierCargoTitle}" FontSize="11" FontWeight="SemiBold"
+                     Foreground="{DynamicResource GoodBrush}" />
+          <TextBlock Text="{x:Static loc:MarketText.CourierCargoNote}" FontSize="10" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextFaintBrush}" />
+
+          <ItemsControl ItemsSource="{Binding Rows}" IsVisible="{Binding HasRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CourierCargoRowVm">
+                <Grid ColumnDefinitions="*,110,90,Auto" Margin="0 1">
+                  <Button Grid.Column="0" Classes="link" Click="OnOpenCargoItem"
+                          ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
+                    <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="11" TextTrimming="CharacterEllipsis" />
+                  </Button>
+                  <NumericUpDown Grid.Column="1" Value="{Binding Quantity, Mode=TwoWay}" Minimum="0" Increment="1"
+                                 FormatString="N0" ShowButtonSpinner="False" FontSize="11" Margin="6 0"
+                                 ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoQuantity}" />
+                  <TextBlock Grid.Column="2" Text="{Binding VolumeText}" FontSize="11" TextAlignment="Right"
+                             VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                  <Button Grid.Column="3" Content="✕" FontSize="10" Padding="6 1" Margin="8 0 0 0" Click="OnRemoveCargo"
+                          ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoRemove}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{x:Static loc:MarketText.CourierCargoEmpty}" FontSize="11" IsVisible="{Binding !HasRows}"
+                     Foreground="{DynamicResource TextMutedBrush}" />
+          <TextBlock Text="{Binding TotalsText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
+
+          <TextBox Text="{Binding PasteText}" AcceptsReturn="True" TextWrapping="NoWrap" Height="90" FontSize="11"
+                   Watermark="{x:Static loc:MarketText.CourierCargoPasteHint}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{x:Static loc:MarketText.CourierCargoAdd}" Command="{Binding AddPastedAsync}"
+                    FontSize="11" Padding="10 3" ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoAdd}" />
+            <Button Content="{x:Static loc:MarketText.CourierCargoReplace}" Command="{Binding ReplacePastedAsync}"
+                    FontSize="11" Padding="10 3" ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoReplace}" />
+            <TextBlock Text="{Binding Message}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="360" />
+          </StackPanel>
         </StackPanel>
       </StackPanel>
 

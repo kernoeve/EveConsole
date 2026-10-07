@@ -2083,6 +2083,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>이 운송을 배송 완료로 표시합니다. 화물은 즉시 목적지에 있는 것으로 계산되어, 이를 기다리던 작업을 시작할 수 있고 집결 또는 하역 정거장에서 출발하는 다음 구간이 계획됩니다. 다음 자산 업데이트에 반영될 때까지 유지됩니다.</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ 계약함</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>운송 계약을 만든 뒤 체크하세요. 화물은 운송 중으로 계산되어 다시 구매하거나 운송하지 않으며, 운송 계약과 함께 보관됩니다(계약 업데이트에 보이면 출발지와 목적지로 찾음). 계약 도구에서 고칠 수 있습니다. 자산에는 아무것도 추가되지 않습니다.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>운반을 기록할 수 없습니다: {0}</value>
   </data>

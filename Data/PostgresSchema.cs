@@ -1054,6 +1054,21 @@ public static class PostgresSchema
             "DeliveredAt" TIMESTAMPTZ NULL
         )
         """,
+        // What is in our courier contracts, entered by hand — ESI never lists it. Mirrored for
+        // SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "CourierCargo" (
+            "Id"         BIGSERIAL   PRIMARY KEY,
+            "ContractId" INTEGER     NOT NULL DEFAULT 0,
+            "FromId"     BIGINT      NOT NULL DEFAULT 0,
+            "ToId"       BIGINT      NOT NULL DEFAULT 0,
+            "TypeId"     INTEGER     NOT NULL DEFAULT 0,
+            "Quantity"   BIGINT      NOT NULL DEFAULT 0,
+            "OwnerType"  TEXT        NOT NULL DEFAULT 'character',
+            "OwnerId"    BIGINT      NOT NULL DEFAULT 0,
+            "AddedAt"    TIMESTAMPTZ NOT NULL
+        )
+        """,
         // Colony layouts, one colony replaced whole at a time, and what tax learning works from.
         // Entities that arrived after databases existed. Mirrored for SQLite in App.axaml.cs.
         // ⚠️ DOUBLE PRECISION, never REAL: REAL is float4 here and would round a tax rate.
@@ -1186,6 +1201,7 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_In" ON "StoreMails" ("StoreId", "MailId", "Direction")""",
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")""",
         """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Type" ON "EsiLpStoreOffers" ("TypeId")""",
+        """CREATE INDEX IF NOT EXISTS "IX_CourierCargo_ContractId" ON "CourierCargo" ("ContractId")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_EsiCorpMemberSessions_Key" ON "EsiCorpMemberSessions" ("CorporationId", "CharacterId", "LogonDate")""",
         """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",
         """CREATE INDEX IF NOT EXISTS "IX_MarketRawOrders_TypeId" ON "MarketRawOrders" ("ConfigId", "TypeId", "IsBuyOrder")""",

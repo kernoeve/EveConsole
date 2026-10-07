@@ -2098,6 +2098,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>Diese Fahrt als geliefert abhaken. Ihre Fracht zählt sofort als am Ziel – Aufträge, die darauf warten, können starten, und die nächste Etappe ab einer Sammel- oder Abladestation wird geplant –, bis die nächste Aktualisierung der Vermögenswerte es zeigt.</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Auftrag erstellt</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Abhaken, sobald der Kurierauftrag erstellt ist. Die Fracht zählt als unterwegs, also wird dafür nichts erneut gekauft oder transportiert, und sie wird beim Kurierauftrag gespeichert – gefunden über Start und Ziel, sobald die Aktualisierung der Aufträge ihn sieht –, wo sie im Auftragswerkzeug korrigiert werden kann. Zu deinen Vermögenswerten wird nichts hinzugefügt.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Transport konnte nicht erfasst werden: {0}</value>
   </data>

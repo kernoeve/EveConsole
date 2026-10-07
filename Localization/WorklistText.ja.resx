@@ -2083,6 +2083,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>この輸送を配送済みにします。貨物はすぐに目的地にあるものとして扱われ、それを待つジョブを開始でき、中継または荷下ろしステーションからの次の区間が計画されます。次の資産更新で反映されるまで有効です。</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ 契約済み</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>運送契約を作成したらチェックします。貨物は輸送中として扱われるので再び購入・輸送されず、運送契約と一緒に保存されます（契約の更新で見つかり次第、出発地と目的地で特定）。契約ツールで修正できます。資産には何も追加されません。</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>運搬を記録できませんでした：{0}</value>
   </data>

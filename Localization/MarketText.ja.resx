@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>提供アイテム</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>貨物 — 手入力</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI は運送契約の中身を一切返さないため、貨物はここに入力します。ワークリストの輸送で完了にするか、入力または貼り付けます。計画上は、運送中は目的地へ向かう途中として、配送後は目的地にあるものとして、資産更新に反映されるまで数えます。資産に加えられることはありません。</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>まだ何も入力されていません。</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>入力済み {0}／契約 {1}</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>ゲーム内でコピーしたアイテムを貼り付けるか、1行に1つ入力：Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>すべて置換</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>これらを貨物に追加します。既にあるアイテムは数量を合算します。</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>これまでの入力をすべてこれらに置き換えます。作成した契約からコピーした一覧向けです。</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>運送中の数量。入力するたびに保存され、0 でその行を削除します。</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>この行を貨物から削除</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>保存しました。</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>残りは保存しました。認識できません：{0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>追加するものがありません。先にアイテムを貼り付けるか入力してください。</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>運送の貨物を保存できませんでした</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>アイテム</value>
   </data>

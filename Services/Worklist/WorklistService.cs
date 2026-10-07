@@ -794,6 +794,42 @@ public class WorklistService(
     /// </summary>
     /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in. For a
     /// trip, its lead pilot, or 0 for none.</param>
+    /// <summary>
+    /// Records a hauling-service trip as handed to a courier: its manifest is the courier's cargo
+    /// from the trip's start to its end, until the courier turns up in the contracts poll and is
+    /// matched to it — at once, if it already has. See <see cref="CourierCargoLag"/>.
+    ///
+    /// <para>⚠️ Not an asset, and nothing is written to the assets: the goods are in no hangar
+    /// while the courier has them. It is kept with the contract, where it can be corrected.</para>
+    /// </summary>
+    /// <param name="trip">The trip as one stop at its end, its lines coming from its start.</param>
+    public async Task MarkContractedAsync(WorklistHaulStop trip, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var now  = DateTimeOffset.UtcNow;
+        var from = trip.DropOff.Select(l => l.OtherId).FirstOrDefault(id => id > 0);
+        if (from <= 0 || trip.StationId <= 0) return;
+
+        // Whose hangar the goods left: the largest holder of the trip's cargo at its start. The
+        // courier's own issuer takes over once it is matched.
+        var types   = trip.DropOff.Select(l => l.TypeId).Distinct().ToList();
+        var holders = await db.EsiAssets.AsNoTracking()
+            .Where(a => a.RootLocationId == from && types.Contains(a.TypeId))
+            .GroupBy(a => new { a.OwnerType, a.OwnerId })
+            .Select(g => new { g.Key.OwnerType, g.Key.OwnerId, Units = g.Sum(a => (long)a.Quantity) })
+            .ToListAsync(ct);
+        var owner = holders.OrderByDescending(h => h.Units).FirstOrDefault();
+
+        foreach (var l in trip.DropOff.Where(l => l.Quantity > 0).GroupBy(l => l.TypeId))
+            db.CourierCargo.Add(new CourierCargo
+            {
+                FromId = from, ToId = trip.StationId, TypeId = l.Key, Quantity = l.Sum(x => x.Quantity),
+                OwnerType = owner?.OwnerType ?? "character", OwnerId = owner?.OwnerId ?? 0, AddedAt = now,
+            });
+        await db.SaveChangesAsync(ct);
+        await CourierCargoLag.AttachAsync(db, ct);
+    }
+
     public async Task MarkHauledAsync(long pilotId, WorklistHaulStop stop, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

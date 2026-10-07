@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>제공 아이템</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>화물 — 직접 입력</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI는 운송 계약의 내용물을 알려주지 않으므로 화물을 여기에 입력합니다. 작업 목록의 운송에서 체크하거나, 직접 입력하거나 붙여넣습니다. 계획에서는 운송 중에는 목적지로 가는 중으로, 배송되면 목적지에 있는 것으로 계산하며, 자산 업데이트에 반영될 때까지 유지됩니다. 자산에는 절대 추가되지 않습니다.</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>아직 입력된 것이 없습니다.</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>입력 {0} / 계약 {1}</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>게임에서 복사한 아이템을 붙여넣거나 한 줄에 하나씩 입력: Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>모두 바꾸기</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>이것들을 화물에 추가합니다. 이미 있는 아이템은 수량을 합칩니다.</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>지금까지 입력한 전부를 이것들로 바꿉니다. 만든 계약에서 복사한 목록에 사용하세요.</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>운송 중인 수량. 입력하는 대로 저장되며, 0이면 줄을 지웁니다.</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>이 줄을 화물에서 제거</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>저장했습니다.</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>나머지는 저장했습니다. 인식하지 못함: {0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>추가할 것이 없습니다. 먼저 아이템을 붙여넣거나 입력하세요.</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>운송 화물을 저장하지 못했습니다</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>아이템</value>
   </data>

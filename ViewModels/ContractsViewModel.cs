@@ -220,6 +220,14 @@ public class ContractDetailVm : ReactiveObject
     private readonly Func<int, Task<string>>? _pull;
     public bool CanPull => _pull is not null && !HasItems && !IsPulling;
 
+    /// <summary>⚠️ Not on a courier: ESI never lists a courier's cargo, so there is nothing to ask
+    /// for — 142 of ours asked, 19 answered, not one line. Ours are entered by hand instead (<see cref="Cargo"/>).</summary>
+    public bool ShowsPull => !HasItems && !IsCourier;
+
+    /// <summary>The cargo entered by hand, on a courier we made; null on anything else.</summary>
+    public CourierCargoVm? Cargo { get; }
+    public bool HasCargo => Cargo is not null;
+
     private bool _isPulling;
     public bool IsPulling { get => _isPulling; private set { this.RaiseAndSetIfChanged(ref _isPulling, value); this.RaisePropertyChanged(nameof(CanPull)); } }
 
@@ -303,10 +311,12 @@ public class ContractDetailVm : ReactiveObject
         IReadOnlyDictionary<long, string> names,
         IReadOnlyDictionary<long, string> locations,
         ContractItemValues? values = null,
-        Func<int, Task<string>>? pull = null)
+        Func<int, Task<string>>? pull = null,
+        CourierCargoVm? cargo = null)
     {
         values    ??= ContractItemValues.None;
         _pull       = pull;
+        Cargo       = cargo;
         ContractId  = c.ContractId;
         // Why there are no items, when there are none: asked and refused, or not asked yet.
         if (items.Count == 0)
@@ -1229,7 +1239,12 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
+
+        // A courier made by the character or corporation this row is for: its cargo, entered by
+        // hand — not one we were handed to carry.
+        var cargo = c.Type == "courier" && (c.IssuerId == c.OwnerId || c.IssuerCorporationId == c.OwnerId)
+            ? new CourierCargoVm(_dbFactory, c) : null;
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync, cargo);
     }
 }
 

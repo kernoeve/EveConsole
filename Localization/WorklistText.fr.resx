@@ -2098,6 +2098,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>Cocher ce trajet comme livré. Sa cargaison compte aussitôt comme arrivée à destination — les travaux qui l'attendent peuvent démarrer, et l'étape suivante depuis une station de transit ou de dépôt est planifiée — jusqu'à ce que la prochaine mise à jour des actifs le montre.</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Contrat créé</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Cochez une fois le contrat de coursier créé. Sa cargaison compte comme en route, donc rien n'est racheté ni transporté à nouveau, et elle est conservée avec le contrat de coursier — retrouvé par son départ et son arrivée dès que la mise à jour des contrats le voit — où elle peut être corrigée dans l'outil des contrats. Rien n'est ajouté à vos actifs.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Impossible d'enregistrer le transport : {0}</value>
   </data>

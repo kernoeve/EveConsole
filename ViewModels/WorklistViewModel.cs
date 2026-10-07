@@ -125,8 +125,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 
     public bool CanMarkHauled => _stop is not null && !_marked;
 
-    /// <summary>What ticking it off records: a loop's stop, or a whole trip.</summary>
-    public string MarkHauledTip => IsLoop ? WorklistText.TipHaulMarkHauled : WorklistText.TipHaulMarkTrip;
+    /// <summary>A hauling service's trip: ticked off as handed to a courier, not as flown.</summary>
+    internal bool IsCourierTick => !IsLoop && _item.HaulMethod == HaulMethod.Service;
+
+    /// <summary>What ticking it off records: a loop's stop, a whole trip, or a trip handed to a courier.</summary>
+    public string MarkHauledTip => IsLoop ? WorklistText.TipHaulMarkHauled
+                                 : IsCourierTick ? WorklistText.TipHaulMarkContracted
+                                 : WorklistText.TipHaulMarkTrip;
+
+    public string MarkHauledText => IsCourierTick ? WorklistText.HaulMarkContracted : WorklistText.HaulMarkHauled;
 
     /// <summary>The parent's place in the list, shared by its detail rows, so they sort as one.</summary>
     public int FamilyOrder => Sequence;
@@ -220,13 +227,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// so ticking it off records it picked up and delivered at once — see
     /// <see cref="WorklistService.MarkHauledAsync"/>.
     ///
-    /// <para>⚠️ None for a hauling service. Its courier contract is what moves the goods in the
-    /// counts — out when it is made, in when it is completed — and a tick on top would move them
-    /// twice.</para>
+    /// <para>A hauling service's trip is ticked off as Contracted instead: handed to a courier,
+    /// its cargo recorded with the courier contract — see <see cref="WorklistService.MarkContractedAsync"/>.</para>
     /// </summary>
     private WorklistHaulStop? TripStop() =>
         _item.Kind == WorklistKind.Haul && !IsLoop && _item.Lines.Count > 0
-        && _item.LocationId > 0 && _item.DestinationId > 0 && _item.HaulMethod != HaulMethod.Service
+        && _item.LocationId > 0 && _item.DestinationId > 0
             ? new WorklistHaulStop(_item.DestinationId, _item.DestinationName, false,
                   [.. _item.Lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
                                                                    _item.LocationId, _item.LocationName))],
@@ -2473,7 +2479,9 @@ public class WorklistViewModel : ReactiveObject
         stopRow.Marked = true;
         try
         {
-            await Task.Run(() => _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
+            await Task.Run(() => stopRow.IsCourierTick
+                ? _service.MarkContractedAsync(stop)
+                : _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
             await RefreshAsync();
         }
         catch (Exception ex)

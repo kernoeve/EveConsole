@@ -206,8 +206,9 @@ public class OrderFulfilmentService(
         foreach (var d in await DeliveryLag.ItemsAsync(db, ct, typeIds))
             if (Ours(d.OwnerType, d.OwnerId))
                 stock[d.TypeId] = stock.GetValueOrDefault(d.TypeId) + d.Units;
+        // ⚠️ Not what a courier is still carrying: an order is in stock when it can be handed over.
         foreach (var m in await ContractLag.MovesAsync(db, ct, typeIds))
-            if (Ours(m.OwnerType, m.OwnerId))
+            if (!m.InTransit && Ours(m.OwnerType, m.OwnerId))
                 stock[m.TypeId] = Math.Max(0, stock.GetValueOrDefault(m.TypeId) + m.Units);
 
         // What each store sells from, for the orders that came through one — see StoreShelvesAsync.

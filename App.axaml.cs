@@ -1983,6 +1983,25 @@ public class App : Application
                     )
                     """);
 
+                // ── What is in our courier contracts, entered by hand ───────────────
+                // ESI never lists a courier's cargo. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "CourierCargo" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ContractId" INTEGER NOT NULL DEFAULT 0,
+                        "FromId"     INTEGER NOT NULL DEFAULT 0,
+                        "ToId"       INTEGER NOT NULL DEFAULT 0,
+                        "TypeId"     INTEGER NOT NULL DEFAULT 0,
+                        "Quantity"   INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"  TEXT    NOT NULL DEFAULT 'character',
+                        "OwnerId"    INTEGER NOT NULL DEFAULT 0,
+                        "AddedAt"    TEXT    NOT NULL
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_CourierCargo_ContractId" ON "CourierCargo" ("ContractId")
+                    """);
+
                 // ── Planetary Industry: colony layouts ──────────────────────────────
                 // One colony replaced whole, in one transaction, whenever the colony list
                 // reports a new last_update. Mirrored for PostgreSQL in PostgresSchema.

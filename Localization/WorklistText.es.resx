@@ -2098,6 +2098,12 @@
   <data name="TipHaulMarkTrip" xml:space="preserve">
     <value>Marca este viaje como entregado. Su carga cuenta como en el destino de inmediato —los trabajos que la esperan pueden empezar y se planifica el siguiente tramo desde una estación de concentración o de descarga— hasta que la próxima actualización de activos lo muestre.</value>
   </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Contratado</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Márcalo una vez creado el contrato de mensajería. Su carga cuenta como en camino, así que no se vuelve a comprar ni transportar, y se guarda con el contrato de mensajería — encontrado por su origen y destino cuando la actualización de contratos lo ve — donde puede corregirse en la herramienta de contratos. No se añade nada a tus activos.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>No se pudo registrar el transporte: {0}</value>
   </data>

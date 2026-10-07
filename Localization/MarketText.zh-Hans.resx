@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>提供的物品</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>货物——手动录入</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI 从不列出快递合同中的物品，因此在此录入货物：在工作清单上勾选运输行程，或手动输入、粘贴。用于规划时，快递在途期间计为正运往目的地，送达后计为已在目的地，直到资产更新显示为止。它从不计入你的资产。</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>尚未录入任何内容。</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>已录入 {0}，合同总计 {1}</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>粘贴游戏中复制的物品，或每行输入一个：Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>全部替换</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>将这些添加到货物中。已有的物品会合计数量。</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>用这些替换目前录入的全部内容——适用于从已建合同复制的清单。</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>快递中的数量。输入即保存；0 表示移除该行。</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>从货物中移除此行</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>已保存。</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>其余已保存。无法识别：{0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>没有可添加的内容：请先粘贴或输入物品。</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>快递货物未保存</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>物品</value>
   </data>

@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
     public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
+    public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
     public DbSet<PlanetaryRoute>             EsiPlanetaryRoutes      => Set<PlanetaryRoute>();
@@ -900,6 +901,13 @@ public class AppDbContext : DbContext
         mb.Entity<HaulMark>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("HaulMarks"); });
+
+        // What is in our courier contracts, entered by hand — ESI never lists it. Mirrored by hand
+        // in App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<CourierCargo>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ContractId);
+            e.ToTable("CourierCargo"); });
 
         // Colony layouts, one colony replaced whole at a time. Mirrored by hand in App.axaml.cs
         // (SQLite) and PostgresSchema — EnsureCreated builds them only into a new database.
