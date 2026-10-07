@@ -2080,6 +2080,9 @@
   <data name="TipHaulMarkHauled" xml:space="preserve">
     <value>この停泊先を完了としてチェックします。ここで積んだものはカーゴ内、降ろしたものは配送済みとして扱い、周回が進み、待っているジョブも開始できます。次の資産更新で反映されるまで有効です。</value>
   </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>この輸送を配送済みにします。貨物はすぐに目的地にあるものとして扱われ、それを待つジョブを開始でき、中継または荷下ろしステーションからの次の区間が計画されます。次の資産更新で反映されるまで有効です。</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>運搬を記録できませんでした：{0}</value>
   </data>

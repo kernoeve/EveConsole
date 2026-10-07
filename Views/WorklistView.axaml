@@ -382,11 +382,11 @@
                   <TextBlock Text="{Binding ChildTotals}" FontSize="12"
                              Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                   <!-- Tick a stop off as flown: its pick-ups go into the hold and its drop-offs are
-                       delivered, ahead of the asset poll. -->
+                       delivered, ahead of the asset poll. On a trip's manifest, the whole trip. -->
                   <Button Content="{x:Static loc:WorklistText.HaulMarkHauled}" Click="OnMarkHauled"
                           IsVisible="{Binding CanMarkHauled}"
                           FontSize="11" Padding="8 1" VerticalAlignment="Center"
-                          ToolTip.Tip="{x:Static loc:WorklistText.TipHaulMarkHauled}"/>
+                          ToolTip.Tip="{Binding MarkHauledTip}"/>
                 </StackPanel>
                 <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding IsChildText}" Margin="16 0 0 0"
                            FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"

@@ -120,8 +120,13 @@ public static class HaulLag
     /// </summary>
     /// <param name="ships">The ship each pilot whose hold is wanted is sitting in: the lane's
     /// pilots, and whoever has ticked something off. Null where it is not known.</param>
+    /// <param name="replanned">Which delivered legs the plan is rewound for — a loop's, inside
+    /// one system — or null for all. ⚠️ Not a trip between systems: delivered, its cargo is stock
+    /// at the far end at once, and the next leg on from a staging or drop-off station is planned
+    /// from it straight away rather than an hour later, when the asset poll would show it.</param>
     public static async Task<Basis> BasisAsync(
-        AppDbContext db, IReadOnlyDictionary<long, long?> ships, CancellationToken ct)
+        AppDbContext db, IReadOnlyDictionary<long, long?> ships, CancellationToken ct,
+        Func<HaulMark, bool>? replanned = null)
     {
         var now    = DateTimeOffset.UtcNow;
         var marks  = (await db.HaulMarks.AsNoTracking().ToListAsync(ct))
@@ -140,6 +145,7 @@ public static class HaulLag
         foreach (var m in marks.Where(m => m.DeliveredAt is not null))
         {
             if (!clocks.TryGetValue(m.OwnerId, out var at) || m.DeliveredAt <= at) continue;
+            if (replanned is not null && !replanned(m)) continue;
             if (m.FromHold) dropped.Add(m);
             else rewind.Add((m.FromId, m.TypeId, +m.Units));
             rewind.Add((m.ToId, m.TypeId, -m.Units));

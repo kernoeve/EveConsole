@@ -2784,6 +2784,10 @@
     <value>Tick this stop off as flown. What was picked up here counts as in your hold, and what was dropped off counts as delivered — so the loop moves on and jobs waiting on it can start — until the next asset update shows it.</value>
     <comment>Tooltip on the Hauled button of a hauling loop's stop.</comment>
   </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Tick this trip off as delivered. Its cargo counts as at the destination at once — jobs waiting on it can start, and the next leg on from a staging or drop-off station is planned — until the next asset update shows it.</value>
+    <comment>Tooltip on the Hauled button of a haul between systems (on its manifest heading).</comment>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Could not record the haul: {0}</value>
     <comment>Worklist error line when ticking a stop off as hauled fails. {0} = the error.</comment>

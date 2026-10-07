@@ -2095,6 +2095,9 @@
   <data name="TipHaulMarkHauled" xml:space="preserve">
     <value>Diesen Halt als geflogen abhaken. Was hier geladen wurde, gilt als im Laderaum, was abgeladen wurde, als geliefert – die Runde geht weiter und wartende Aufträge können starten –, bis die nächste Vermögensaktualisierung es zeigt.</value>
   </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Diese Fahrt als geliefert abhaken. Ihre Fracht zählt sofort als am Ziel – Aufträge, die darauf warten, können starten, und die nächste Etappe ab einer Sammel- oder Abladestation wird geplant –, bis die nächste Aktualisierung der Vermögenswerte es zeigt.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Transport konnte nicht erfasst werden: {0}</value>
   </data>

@@ -2095,6 +2095,9 @@
   <data name="TipHaulMarkHauled" xml:space="preserve">
     <value>Marca esta parada como hecha. Lo recogido aquí cuenta como en tu bodega y lo descargado como entregado —así el circuito avanza y los trabajos que lo esperan pueden empezar— hasta que la próxima actualización de activos lo refleje.</value>
   </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Marca este viaje como entregado. Su carga cuenta como en el destino de inmediato —los trabajos que la esperan pueden empezar y se planifica el siguiente tramo desde una estación de concentración o de descarga— hasta que la próxima actualización de activos lo muestre.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>No se pudo registrar el transporte: {0}</value>
   </data>

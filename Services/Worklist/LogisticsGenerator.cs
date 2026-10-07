@@ -205,7 +205,8 @@ public class LogisticsGenerator(
                 .Select(s => new { s.CharacterId, s.ShipItemId, s.ShipTypeId, s.SolarSystemId })
                 .ToListAsync(ct))
             .ToDictionary(s => s.CharacterId);
-        var basis = await HaulLag.BasisAsync(db, ships.ToDictionary(kv => kv.Key, kv => kv.Value.ShipItemId), ct);
+        var basis = await HaulLag.BasisAsync(db, ships.ToDictionary(kv => kv.Key, kv => kv.Value.ShipItemId), ct,
+            replanned: m => m.FromHold || systems.GetValueOrDefault(m.FromId) == systems.GetValueOrDefault(m.ToId));
         foreach (var (site, typeId, units) in basis.Rewind)
             stock[(site, typeId)] = Math.Max(0, stock.GetValueOrDefault((site, typeId)) + units);
 

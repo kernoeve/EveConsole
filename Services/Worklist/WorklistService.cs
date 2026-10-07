@@ -788,8 +788,12 @@ public class WorklistService(
     /// drop-offs still moves the goods. Each mark carries the owner whose hangar the goods sit in
     /// at the pick-up — the largest holders first — so it is that owner's poll that settles it.
     /// Cargo that was in the hold with no pick-up ticked at all is put down as the pilot's own.</para>
+    ///
+    /// <para>A trip between systems is ticked off the same way, as one stop at its destination
+    /// with everything on it coming from its source: picked up and delivered at once.</para>
     /// </summary>
-    /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in.</param>
+    /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in. For a
+    /// trip, its lead pilot, or 0 for none.</param>
     public async Task MarkHauledAsync(long pilotId, WorklistHaulStop stop, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

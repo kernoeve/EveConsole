@@ -125,6 +125,9 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 
     public bool CanMarkHauled => _stop is not null && !_marked;
 
+    /// <summary>What ticking it off records: a loop's stop, or a whole trip.</summary>
+    public string MarkHauledTip => IsLoop ? WorklistText.TipHaulMarkHauled : WorklistText.TipHaulMarkTrip;
+
     /// <summary>The parent's place in the list, shared by its detail rows, so they sort as one.</summary>
     public int FamilyOrder => Sequence;
 
@@ -189,6 +192,17 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             foreach (var l in st.PickUp)  Line(l, pickUp: true);
         }
 
+        // A trip's manifest, first: what to load is what the trip is. A loop's cargo is already
+        // listed where it is handled, at its stops. The heading carries the trip's Hauled tick.
+        if (HasLines)
+        {
+            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop()));
+            foreach (var l in _item.Lines)
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, SdeNames.Type(l.TypeId, l.TypeName),
+                                           typeId: l.TypeId, qty: l.Quantity.ToString("N0"),
+                                           volume: l.VolumeText, value: l.ValueText));
+        }
+
         // What is waiting on this, and whether this load releases it.
         if (HasWaitingJobs)
         {
@@ -198,18 +212,26 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
                                            other: w.StatusText, otherColor: w.StatusColor));
         }
 
-        // A trip's manifest. A loop's cargo is already listed where it is handled, at its stops.
-        if (HasLines)
-        {
-            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel));
-            foreach (var l in _item.Lines)
-                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, SdeNames.Type(l.TypeId, l.TypeName),
-                                           typeId: l.TypeId, qty: l.Quantity.ToString("N0"),
-                                           volume: l.VolumeText, value: l.ValueText));
-        }
-
         return rows;
     }
+
+    /// <summary>
+    /// A trip as one stop at its destination, everything on it put down there out of its source,
+    /// so ticking it off records it picked up and delivered at once — see
+    /// <see cref="WorklistService.MarkHauledAsync"/>.
+    ///
+    /// <para>⚠️ None for a hauling service. Its courier contract is what moves the goods in the
+    /// counts — out when it is made, in when it is completed — and a tick on top would move them
+    /// twice.</para>
+    /// </summary>
+    private WorklistHaulStop? TripStop() =>
+        _item.Kind == WorklistKind.Haul && !IsLoop && _item.Lines.Count > 0
+        && _item.LocationId > 0 && _item.DestinationId > 0 && _item.HaulMethod != HaulMethod.Service
+            ? new WorklistHaulStop(_item.DestinationId, _item.DestinationName, false,
+                  [.. _item.Lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
+                                                                   _item.LocationId, _item.LocationName))],
+                  [])
+            : null;
 
     /// <summary>
     /// A paragraph as its sentences. On the full stop, question or exclamation mark followed by a
@@ -247,9 +269,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// is, because "twelve items" and "how many trips is that" are one question when the answer
     /// decides which ship to undock.</para>
     /// </summary>
-    public string Title => _item.Kind == WorklistKind.Haul && _item.Volume > 0
-        ? $"{_item.Title} · {VolumeText}"
-        : _item.Title;
+    public string Title => _item.Kind != WorklistKind.Haul ? _item.Title
+        : string.Join(" · ", new[] { _item.Title, VolumeText, ValueText }.Where(s => s.Length > 0));
     public string Detail        => _item.Detail;
     public string SourceName    => _item.Source;
     public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";

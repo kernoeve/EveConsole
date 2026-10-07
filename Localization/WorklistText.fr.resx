@@ -2095,6 +2095,9 @@
   <data name="TipHaulMarkHauled" xml:space="preserve">
     <value>Cochez cet arrêt comme effectué. Ce qui a été chargé ici compte comme dans votre soute, et ce qui a été déchargé comme livré — la boucle avance et les travaux qui l'attendent peuvent démarrer — jusqu'à ce que la prochaine mise à jour des biens le montre.</value>
   </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Cocher ce trajet comme livré. Sa cargaison compte aussitôt comme arrivée à destination — les travaux qui l'attendent peuvent démarrer, et l'étape suivante depuis une station de transit ou de dépôt est planifiée — jusqu'à ce que la prochaine mise à jour des actifs le montre.</value>
+  </data>
   <data name="HaulMarkFailed" xml:space="preserve">
     <value>Impossible d'enregistrer le transport : {0}</value>
   </data>
