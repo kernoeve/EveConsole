@@ -78,14 +78,6 @@ jobs:
       - name: Web themes check
         run: dotnet run --project tools/WebThemesCheck/WebThemesCheck.csproj -c Release
 
-      # ⚠️ Does a detail popup stay with the row that is showing its item? The DataGrid keeps
-      # rows in the tree after they leave the screen — recycled in place, or parked when they
-      # hold focus — and a popup anchored to one hangs at the old position while the item's new
-      # row opens another. The worklist drew the same manifest twice whenever the clicked row
-      # moved. This drives the real DataGrid, headless, through each way a row can go stale.
-      - name: Row detail check
-        run: dotnet run --project tools/RowDetailCheck/RowDetailCheck.csproj -c Release
-
       # ⚠️ Is every translation safe to show? A translation that drops a placeholder — "{0} jobs"
       # as a sentence without {0} — throws the moment its label is drawn, in that language only,
       # so testing in English never meets it. The build cannot see it either: a translation is

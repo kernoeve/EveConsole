@@ -194,9 +194,6 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// of the grid without rebuilding it — which would lose the scroll position.</summary>
     internal Action<WorklistRowVm>? ExpansionChanged { get; set; }
 
-    /// <summary>Nothing here floats a panel: every row opens in the grid.</summary>
-    public bool OpensPopup => false;
-
     /// <summary>The # column: blank on a detail row, which shares its parent's number.</summary>
     public string SequenceText => IsChild ? "" : Sequence.ToString("N0");
 
@@ -895,7 +892,6 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow, IFamilyR
     public bool IsParent    => !IsChild;
     public int  FamilyOrder { get; }
     public int  ChildOrder  { get; }
-    public bool OpensPopup  => false;
 
     /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
     internal Action<ItemShortageRowVm>? ExpansionChanged { get; set; }
@@ -1211,7 +1207,6 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyR
     public bool IsParent    => !IsChild;
     public int  FamilyOrder { get; }
     public int  ChildOrder  { get; }
-    public bool OpensPopup  => false;
 
     /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
     internal Action<HaulPressureRowVm>? ExpansionChanged { get; set; }
@@ -1356,7 +1351,6 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public bool IsParent    => !IsChild;
     public int  FamilyOrder { get; }
     public int  ChildOrder  { get; }
-    public bool OpensPopup  => false;
 
     /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
     internal Action<PrintPressureRowVm>? ExpansionChanged { get; set; }
@@ -1565,7 +1559,6 @@ public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRo
     /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
     internal Action<StationNeedRowVm>? ExpansionChanged { get; set; }
 
-    public bool   OpensPopup     => false;
     public string ChildKind      => _driver?.Kind  ?? "";
     public string ChildDriver    => _driver?.Label ?? "";
     public bool   ChildHasLink   => _driver is { DriverTypeId: > 0 };
