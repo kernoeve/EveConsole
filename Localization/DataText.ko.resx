@@ -148,6 +148,9 @@
   <data name="Character" xml:space="preserve">
     <value>캐릭터</value>
   </data>
+  <data name="Entity" xml:space="preserve">
+    <value>엔티티</value>
+  </data>
   <data name="Endpoint" xml:space="preserve">
     <value>엔드포인트</value>
   </data>

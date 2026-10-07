@@ -148,6 +148,9 @@
   <data name="Character" xml:space="preserve">
     <value>Персонаж</value>
   </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Субъект</value>
+  </data>
   <data name="Endpoint" xml:space="preserve">
     <value>Конечная точка</value>
   </data>
