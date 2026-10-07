@@ -134,8 +134,13 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         var order = 0;
 
         // The reason, a sentence to a row: a long paragraph in one row would be cut off.
-        foreach (var sentence in Sentences(_item.Detail))
-            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Text, sentence));
+        //
+        // ⚠️ Not on a haul. There the reason is boilerplate ("Jobs are waiting on this", counts the
+        // list below already shows), and four rows of it pushed the stops — the part worth opening
+        // a loop for — down the screen. It stays on the row's ⓘ, as it is for every task.
+        if (_item.Kind != WorklistKind.Haul)
+            foreach (var sentence in Sentences(_item.Detail))
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Text, sentence));
 
         // A loop's stops, in flying order: each stop, then what comes off, then what goes on.
         for (var i = 0; i < _item.Stops.Count; i++)
@@ -512,7 +517,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
     /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
     /// their neighbours opened, which reads as missing data rather than as no data.</summary>
-    public bool CanExpand => !IsChild && (HasLines || IsLoop || HasWaitingJobs || HasDetail);
+    public bool CanExpand => !IsChild && (HasLines || IsLoop || HasWaitingJobs || (HasDetail && !IsHaul));
     public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
