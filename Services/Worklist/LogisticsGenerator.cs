@@ -282,8 +282,17 @@ public class LogisticsGenerator(
                    .Distinct().ToList(), ct);
 
         // Which kind of trip each pair of stations is, and how its lane is set to make it.
-        var trips = await TripsAsync(db,
-            moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To)), systems, ct);
+        IEnumerable<(long, long)> Pairs() => moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To));
+        var trips = await TripsAsync(db, Pairs(), systems, ct);
+
+        // Trips between systems that stop short, at a staging or drop-off station, and the trips
+        // they then are.
+        var routed = Reroute(moves, trips, systems);
+        if (!ReferenceEquals(routed, moves))
+        {
+            moves = routed;
+            trips = await TripsAsync(db, Pairs(), systems, ct);
+        }
 
         // Moves inside one system become that system's loop, planned as one errand; the rest stay
         // one task per pair of stations.
@@ -292,6 +301,63 @@ public class LogisticsGenerator(
         var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, ct);
 
         return [.. Tasks(moves.Where(m => !InSystem(m)).ToList(), names, places, drivers, driverNames, trips), .. loops];
+    }
+
+    /// <summary>
+    /// Trips between systems that do not go all the way to the station that wants the cargo.
+    ///
+    /// <para><b>Long distance</b>, with a station set to deliver to: every source's cargo goes
+    /// there, as one trip — a hub's purchases brought in to one staging station by a service or a
+    /// jump freighter, rather than one trip per structure that asked. Not when the cargo is for
+    /// that station anyway, or already sits in its system.</para>
+    ///
+    /// <para><b>Nearby</b>, into a system with a drop-off station: when one source would call at
+    /// more than one of the system's stations, it all goes to the drop-off instead — bridged or
+    /// jumped to the fortress, and handed out from there by the in-system loop. A source with one
+    /// station to go to there still goes straight to it; a system with no drop-off always does.</para>
+    ///
+    /// <para>Once the cargo lands, it is stock at the staging or drop-off station like any other,
+    /// and the next refresh plans the rest of its way from there. Until then the trip carries
+    /// where each line is bound (<see cref="Move.Bound"/>), for the jobs waiting on it.</para>
+    /// </summary>
+    private List<Move> Reroute(List<Move> moves, Dictionary<(long From, long To), Trip> trips, Dictionary<long, int> systems)
+    {
+        var deliverTo = settings.HaulDeliverTo;
+        var drops     = settings.HaulDropStations;
+        if (deliverTo <= 0 && drops.Count == 0) return moves;
+
+        HaulLane? Lane(Move m) => trips.TryGetValue((m.From, m.To), out var t) ? t.Lane : null;
+        int System(long id) => systems.GetValueOrDefault(id);
+
+        // How many of a system's stations each source's nearby trips would call at.
+        var calls = moves
+            .Where(m => m.Qty > 0 && m.From != m.To && Lane(m) == HaulLane.Nearby)
+            .GroupBy(m => (m.From, System: System(m.To)))
+            .ToDictionary(g => g.Key, g => g.Select(m => m.To).Distinct().Count());
+
+        var changed = false;
+        var routed  = moves.Select(m =>
+        {
+            if (m.Qty <= 0 || m.From == m.To) return m;
+
+            if (Lane(m) == HaulLane.LongDistance && deliverTo > 0 && m.To != deliverTo
+                && (System(deliverTo) == 0 || System(m.From) != System(deliverTo)))
+            {
+                changed = true;
+                return m with { To = deliverTo, Bound = m.To };
+            }
+
+            if (Lane(m) == HaulLane.Nearby
+                && drops.TryGetValue(System(m.To), out var drop) && drop != m.From && m.To != drop
+                && calls.GetValueOrDefault((m.From, System(m.To))) > 1)
+            {
+                changed = true;
+                return m with { To = drop, Bound = m.To };
+            }
+            return m;
+        }).ToList();
+
+        return changed ? routed : moves;
     }
 
     /// <summary>
@@ -1156,7 +1222,13 @@ public class LogisticsGenerator(
     }
 
     /// <summary>One item moving between two stations.</summary>
-    private sealed record Move(long From, long To, int TypeId, long Qty, HaulReason Reason, int Priority = 0);
+    /// <param name="Bound">Where it is going in the end, when this trip stops short of it at a
+    /// staging or drop-off station (see Reroute); 0 when <paramref name="To"/> is the end.</param>
+    private sealed record Move(long From, long To, int TypeId, long Qty, HaulReason Reason, int Priority = 0, long Bound = 0)
+    {
+        /// <summary>The station the cargo is for: the trip's end, or past it.</summary>
+        public long FinalTo => Bound != 0 ? Bound : To;
+    }
 
     // ── Demand ────────────────────────────────────────────────────────────────
 
@@ -1745,8 +1817,11 @@ public class LogisticsGenerator(
             // may never have become a row of its own, which is exactly the case the expansion was
             // silent about. WorklistService replaces any of these it can match to a real stopped
             // job, because that one can say whether this load actually starts it.
-            var wanters = cargo
-                .SelectMany(c => drivers.GetValueOrDefault((run.Key.To, c.TypeId), []))
+            //
+            // A trip stopping short at a staging or drop-off station is still for the jobs at the
+            // stations past it: each line's own end.
+            var wanters = run.Select(m => (m.FinalTo, m.TypeId)).Distinct()
+                .SelectMany(k => drivers.GetValueOrDefault(k, []))
                 .Where(d => d.DriverTypeId > 0)
                 .GroupBy(d => d.DriverTypeId)
                 .Select(g => new WorklistWaitingJob(
@@ -1770,7 +1845,7 @@ public class LogisticsGenerator(
                 Title        = string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
-                Detail       = Because(reason),
+                Detail       = Because(reason) + Onward(run.Select(m => m.FinalTo).Where(t => t != run.Key.To).Distinct(), places),
                 Readiness    = WorklistReadiness.Ready,
                 LocationId      = run.Key.From,
                 LocationName    = from,
@@ -1818,6 +1893,21 @@ public class LogisticsGenerator(
         }
 
         return items;
+    }
+
+    /// <summary>Where a trip that stops short goes on to, as a sentence after its reason; empty
+    /// for a trip that goes all the way.</summary>
+    private static string Onward(IEnumerable<long> beyond, Dictionary<long, string> places)
+    {
+        var names = beyond
+            .Select(id => places.GetValueOrDefault(id, string.Format(WorklistText.LocationWithId, id)))
+            .OrderBy(n => n, StringComparer.CurrentCulture)
+            .ToList();
+        if (names.Count == 0) return "";
+        var list = names.Count <= 3
+            ? string.Join(", ", names)
+            : string.Format(WorklistText.HaulOnwardMore, string.Join(", ", names.Take(3)), names.Count - 3);
+        return " " + string.Format(WorklistText.HaulOnwardTo, list);
     }
 
     private static string Because(HaulReason r) => r switch

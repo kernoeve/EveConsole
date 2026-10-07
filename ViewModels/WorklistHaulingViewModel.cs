@@ -28,6 +28,21 @@ public sealed record HaulMethodOption(HaulMethod Method, string Label)
     public override string ToString() => Label;
 }
 
+/// <summary>A station a haul can be sent to; <see cref="Id"/> 0 is "each item's own station".</summary>
+public sealed record HaulStationOption(long Id, string Name, int SystemId, string SystemName)
+{
+    public override string ToString() => Name;
+}
+
+/// <summary>One system's drop-off station, as set.</summary>
+public sealed class HaulDropRow(HaulLaneVm lane, int systemId, string systemName, HaulStationOption station)
+{
+    public HaulLaneVm        Lane       { get; } = lane;
+    public int               SystemId   { get; } = systemId;
+    public string            SystemName { get; } = systemName;
+    public HaulStationOption Station    { get; } = station;
+}
+
 /// <summary>One pilot in a lane's list, with their place in it.</summary>
 public sealed class HaulPilotRow(HaulLaneVm lane, HaulPilotOption pilot, int position)
 {
@@ -133,6 +148,56 @@ public sealed class HaulLaneVm : ReactiveObject
     public ReactiveCommand<HaulPilotRow, Unit> RemovePilotCommand { get; }
     public ReactiveCommand<HaulPilotRow, Unit> MovePilotUpCommand { get; }
 
+    // ── Where a trip stops short ──────────────────────────────────────────────
+
+    /// <summary>Long distance only: one station every trip goes to, to be taken on from there.</summary>
+    public bool ShowsDeliverTo => Lane == HaulLane.LongDistance;
+
+    /// <summary>Nearby only: each system's drop-off station, for trips with several stops there.</summary>
+    public bool ShowsDropStations => Lane == HaulLane.Nearby;
+
+    private IReadOnlyList<HaulStationOption> _deliverOptions = [];
+    public IReadOnlyList<HaulStationOption> DeliverToOptions { get => _deliverOptions; private set => this.RaiseAndSetIfChanged(ref _deliverOptions, value); }
+
+    private HaulStationOption? _deliverTo;
+    public HaulStationOption? SelectedDeliverTo
+    {
+        get => _deliverTo;
+        set
+        {
+            if (value is null || value == _deliverTo) return;
+            this.RaiseAndSetIfChanged(ref _deliverTo, value);
+            Save(() => _settings.SetHaulDeliverToAsync(value.Id));
+        }
+    }
+
+    public ObservableCollection<HaulDropRow> DropStations { get; } = [];
+
+    private IReadOnlyList<HaulStationOption> _dropOptions = [];
+    /// <summary>Every known station, for the add box; picking one makes it its system's drop-off.</summary>
+    public IReadOnlyList<HaulStationOption> DropOptions { get => _dropOptions; private set => this.RaiseAndSetIfChanged(ref _dropOptions, value); }
+
+    private HaulStationOption? _dropToAdd;
+    /// <summary>Picking one sets it as its system's drop-off — replacing one already set there —
+    /// and the box empties for the next.</summary>
+    public HaulStationOption? DropToAdd
+    {
+        get => _dropToAdd;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _dropToAdd, value);
+            if (value is null || _loading || value.SystemId <= 0) return;
+            _drops[value.SystemId] = value.Id;
+            SaveDrops();
+            Dispatcher.UIThread.Post(() => DropToAdd = null);
+        }
+    }
+
+    public ReactiveCommand<HaulDropRow, Unit> RemoveDropCommand { get; }
+
+    private Dictionary<int, long> _drops = [];
+    private IReadOnlyList<HaulStationOption> _stations = [];
+
     private List<long> _ids = [];
     private IReadOnlyList<HaulPilotOption> _everyone = [];
 
@@ -154,10 +219,16 @@ public sealed class HaulLaneVm : ReactiveObject
             (_ids[at - 1], _ids[at]) = (_ids[at], _ids[at - 1]);
             SavePilots();
         });
+        RemoveDropCommand = ReactiveCommand.Create<HaulDropRow>(r =>
+        {
+            _drops.Remove(r.SystemId);
+            SaveDrops();
+        });
     }
 
     /// <summary>Puts the stored set-up in the boxes, with the choices the page has loaded.</summary>
-    internal void Load(IReadOnlyList<HaulHullOption> hulls, IReadOnlyList<HaulPilotOption> everyone)
+    internal void Load(IReadOnlyList<HaulHullOption> hulls, IReadOnlyList<HaulPilotOption> everyone,
+                       IReadOnlyList<HaulStationOption> stations)
     {
         _loading = true;
         try
@@ -180,12 +251,53 @@ public sealed class HaulLaneVm : ReactiveObject
             _ids      = set.CharacterIds.ToList();
             ShowPilots();
 
+            // A stored station missing from the list keeps an entry of its own, as a hull does.
+            _stations = stations;
+            if (ShowsDeliverTo)
+            {
+                var stored  = _settings.HaulDeliverTo;
+                var options = new List<HaulStationOption> { new(0, WorklistText.HaulDeliverToEach, 0, "") };
+                options.AddRange(stations);
+                if (stored > 0 && stations.All(s => s.Id != stored))
+                    options.Add(new HaulStationOption(stored, string.Format(WorklistText.LocationWithId, stored), 0, ""));
+                DeliverToOptions = options;
+                _deliverTo = options.First(o => o.Id == stored || (stored <= 0 && o.Id == 0));
+            }
+            if (ShowsDropStations)
+            {
+                _drops = _settings.HaulDropStations;
+                ShowDrops();
+            }
+
             this.RaisePropertyChanged(nameof(SelectedMethod));
             this.RaisePropertyChanged(nameof(ShowsShip));
             this.RaisePropertyChanged(nameof(SelectedHull));
             this.RaisePropertyChanged(nameof(CargoM3));
+            this.RaisePropertyChanged(nameof(SelectedDeliverTo));
         }
         finally { _loading = false; }
+    }
+
+    /// <summary>The drop-offs as stored, by system name; the add box offers every station.</summary>
+    private void ShowDrops()
+    {
+        var byId = _stations.ToDictionary(s => s.Id);
+        DropStations.Clear();
+        foreach (var row in _drops
+                     .Select(kv => byId.TryGetValue(kv.Value, out var s)
+                         ? new HaulDropRow(this, kv.Key, s.SystemName, s)
+                         : new HaulDropRow(this, kv.Key, SdeNames.SolarSystem(kv.Key, kv.Key.ToString()),
+                                           new HaulStationOption(kv.Value, string.Format(WorklistText.LocationWithId, kv.Value), kv.Key, "")))
+                     .OrderBy(r => r.SystemName, StringComparer.CurrentCulture))
+            DropStations.Add(row);
+        DropOptions = _stations.Where(s => s.SystemId > 0 && !_drops.ContainsValue(s.Id)).ToList();
+    }
+
+    private void SaveDrops()
+    {
+        ShowDrops();
+        var drops = new Dictionary<int, long>(_drops);
+        Save(() => _settings.SetHaulDropStationsAsync(drops));
     }
 
     /// <summary>
@@ -281,7 +393,7 @@ public sealed class WorklistHaulingViewModel : ReactiveObject
     {
         try
         {
-            var (hulls, pilots) = await Task.Run(async () =>
+            var (hulls, pilots, stations) = await Task.Run(async () =>
             {
                 await using var db = await _dbFactory.CreateDbContextAsync();
 
@@ -302,16 +414,55 @@ public sealed class WorklistHaulingViewModel : ReactiveObject
                     .Select(t => new HaulHullOption(t.TypeId, SdeNames.Type(t.TypeId, t.Name),
                                                     string.Format(WorklistText.HaulHoldM3, t.Capacity))));
 
-                return (hullList, chars.OrderBy(c => c.Name, StringComparer.CurrentCulture).ToList());
+                return (hullList, chars.OrderBy(c => c.Name, StringComparer.CurrentCulture).ToList(),
+                        await StationsAsync(db));
             });
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                foreach (var lane in Lanes) lane.Load(hulls, pilots);
+                foreach (var lane in Lanes) lane.Load(hulls, pilots, stations);
                 _loaded = true;
             });
         }
         catch (Exception ex) { _errorLogger.Log(nameof(WorklistHaulingViewModel), "load", ex); }
+    }
+
+    /// <summary>
+    /// The stations a trip could be sent to: the structures the Structure Browser knows and the
+    /// corporation's own, and the NPC stations something of ours is in. Not every station in New
+    /// Eden — a staging or drop-off station is one the operation already uses.
+    /// </summary>
+    private static async Task<List<HaulStationOption>> StationsAsync(AppDbContext db)
+    {
+        await SdeNames.EnsureLoadedAsync();
+        var found = new Dictionary<long, (string Name, int System)>();
+
+        foreach (var s in await db.Structures.AsNoTracking()
+                     .Where(s => s.Name != "" && s.SolarSystemId != 0)
+                     .Select(s => new { s.StructureId, s.Name, s.SolarSystemId }).ToListAsync())
+            found[s.StructureId] = (s.Name, s.SolarSystemId);
+
+        foreach (var s in await db.EsiCorpStructures.AsNoTracking()
+                     .Where(s => s.Name != "" && s.SystemId != 0)
+                     .Select(s => new { s.StructureId, s.Name, s.SystemId }).ToListAsync())
+            found.TryAdd(s.StructureId, (s.Name, s.SystemId));
+
+        var roots = (await db.EsiAssets.AsNoTracking().Select(a => a.RootLocationId).Distinct().ToListAsync())
+            .Where(id => id is > 0 and < int.MaxValue).Select(id => (int)id).ToList();
+        foreach (var s in await db.SdeStations.AsNoTracking()
+                     .Where(s => roots.Contains(s.StationId))
+                     .Select(s => new { s.StationId, s.Name, s.SolarSystemId }).ToListAsync())
+            found.TryAdd(s.StationId, (SdeNames.Station(s.StationId, s.Name), s.SolarSystemId));
+
+        var systemIds = found.Values.Select(v => v.System).Distinct().ToList();
+        var systems   = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => systemIds.Contains(s.SolarSystemId))
+            .ToDictionaryAsync(s => s.SolarSystemId, s => SdeNames.SolarSystem(s.SolarSystemId, s.Name));
+
+        return found
+            .Select(kv => new HaulStationOption(kv.Key, kv.Value.Name, kv.Value.System, systems.GetValueOrDefault(kv.Value.System, "")))
+            .OrderBy(s => s.Name, StringComparer.CurrentCulture)
+            .ToList();
     }
 
     private CancellationTokenSource? _pending;

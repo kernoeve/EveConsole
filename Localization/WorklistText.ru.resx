@@ -2092,6 +2092,33 @@
   <data name="HaulInHold" xml:space="preserve">
     <value>трюм {0}</value>
   </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Доставлять на</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>Станция каждого предмета</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Все дальние перевозки из одного источника идут на эту станцию одной задачей, а после прибытия груз дальше везут ближние и внутрисистемные перевозки. Оставьте «станцию каждого предмета», чтобы везти прямо туда, где он нужен.</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Станция выгрузки для системы</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>Если у одного источника есть груз для нескольких станций одной системы, он везётся на станцию выгрузки этой системы одной задачей, а дальше его развозит внутрисистемный круг. Груз для одной станции там по-прежнему везётся прямо на неё, а в систему без станции выгрузки — всегда напрямую.</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Назначить станцию точкой выгрузки её системы…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Снова возить прямо на станции этой системы</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Затем оттуда на {0}.</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} и ещё {1}</value>
+  </data>
   <data name="HaulMarkHauled" xml:space="preserve">
     <value>✓ Выполнено</value>
   </data>

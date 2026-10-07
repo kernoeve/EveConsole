@@ -350,6 +350,43 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetHaulCharactersAsync(HaulLane lane, IEnumerable<long> characterIds) =>
         prefs.SetAsync(LaneKey(lane, "characters"), string.Join(",", characterIds.Where(id => id > 0).Distinct()));
 
+    public const string HaulDeliverToKey     = "worklist.hauling.long_distance.deliver_to";
+    public const string HaulDropStationsKey  = "worklist.hauling.drop_stations";
+
+    /// <summary>
+    /// Where every long-distance haul is taken, or 0 for each item's own station.
+    ///
+    /// <para>A haul from a market hub is rarely flown to the structure that wants it: it comes in
+    /// by a service or a jump freighter to one staging station, and goes on from there in a
+    /// different ship. Set, each source's long-distance cargo is one trip to here; the nearby and
+    /// in-system hauls pick it up from here once it has landed.</para>
+    /// </summary>
+    public long HaulDeliverTo => Math.Max(0, prefs.GetLong(HaulDeliverToKey, 0));
+
+    public Task SetHaulDeliverToAsync(long stationId) =>
+        prefs.SetAsync(HaulDeliverToKey, Math.Max(0, stationId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Each system's drop-off station, where one is set: "system=station;…".
+    ///
+    /// <para>A trip from another system bringing cargo for more than one of a system's stations
+    /// goes to its drop-off instead, as one task — bridged or jumped to the fortress, and
+    /// handed out from there by the in-system loop. A system without one, or a trip with only one
+    /// station to go to, is hauled straight to the station.</para>
+    /// </summary>
+    public Dictionary<int, long> HaulDropStations =>
+        (prefs.Get(HaulDropStationsKey) ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Split('='))
+            .Where(p => p.Length == 2 && int.TryParse(p[0], out var s) && s > 0 && long.TryParse(p[1], out var t) && t > 0)
+            .GroupBy(p => int.Parse(p[0]))
+            .ToDictionary(g => g.Key, g => long.Parse(g.First()[1]));
+
+    public Task SetHaulDropStationsAsync(IReadOnlyDictionary<int, long> stations) =>
+        prefs.SetAsync(HaulDropStationsKey, string.Join(";", stations.Where(kv => kv.Key > 0 && kv.Value > 0)
+                                                                    .OrderBy(kv => kv.Key)
+                                                                    .Select(kv => $"{kv.Key}={kv.Value}")));
+
     public const string LoopSharesKey = "worklist.hauling.loop_shares";
 
     /// <summary>

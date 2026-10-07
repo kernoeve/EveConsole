@@ -2394,6 +2394,39 @@
                               ItemsSource="{Binding AvailablePilots}" SelectedItem="{Binding PilotToAdd}"
                               PlaceholderText="{x:Static loc:WorklistText.HintAddPilot}" MaxDropDownHeight="360"/>
                   </StackPanel>
+
+                  <!-- Long distance: one station every trip goes to, taken on from there. -->
+                  <StackPanel Spacing="4" IsVisible="{Binding ShowsDeliverTo}">
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDeliverToLabel}" Classes="fieldLabel"/>
+                    <ComboBox Width="380" FontSize="11" HorizontalAlignment="Left"
+                              ItemsSource="{Binding DeliverToOptions}" SelectedItem="{Binding SelectedDeliverTo}"
+                              MaxDropDownHeight="360" ToolTip.Tip="{x:Static loc:WorklistText.TipHaulDeliverTo}"/>
+                  </StackPanel>
+
+                  <!-- Nearby: each system's drop-off station, for trips with several stops there. -->
+                  <StackPanel Spacing="4" IsVisible="{Binding ShowsDropStations}">
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDropStationsLabel}" Classes="fieldLabel"/>
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDropStationsNote}" FontSize="10"
+                               Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+                    <ItemsControl ItemsSource="{Binding DropStations}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HaulDropRow">
+                          <Grid ColumnDefinitions="110,340,Auto" Margin="0 1">
+                            <TextBlock Grid.Column="0" Text="{Binding SystemName}" FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Station.Name}" FontSize="11" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Button Grid.Column="2" Content="✕" FontSize="10" Padding="6 1"
+                                    Command="{Binding Lane.RemoveDropCommand}" CommandParameter="{Binding}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipHaulDropRemove}"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ComboBox Width="380" FontSize="11" HorizontalAlignment="Left"
+                              ItemsSource="{Binding DropOptions}" SelectedItem="{Binding DropToAdd}"
+                              PlaceholderText="{x:Static loc:WorklistText.HintAddDropStation}" MaxDropDownHeight="360"/>
+                  </StackPanel>
                 </StackPanel>
               </Border>
             </DataTemplate>

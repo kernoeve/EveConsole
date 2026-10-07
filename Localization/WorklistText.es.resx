@@ -2062,6 +2062,33 @@
   <data name="HaulInHold" xml:space="preserve">
     <value>bodega de {0}</value>
   </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Entregar en</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>La estación de cada objeto</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Todos los transportes de larga distancia de un origen van a esta estación como una sola tarea, y los transportes cercanos y dentro del sistema los continúan desde allí cuando llegan. Déjalo en la estación de cada objeto para transportar directamente a donde se necesita.</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Estación de descarga por sistema</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>Cuando un origen tiene carga para más de una estación de un sistema, se transporta a la estación de descarga de ese sistema como una sola tarea, y la ronda dentro del sistema la reparte desde allí. La carga para una sola estación allí sigue yendo directamente, y a un sistema sin estación de descarga siempre se transporta directamente.</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Establecer una estación como descarga de su sistema…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Volver a transportar directamente a las estaciones de este sistema</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Después, desde allí a {0}.</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} y {1} más</value>
+  </data>
   <data name="HaulMarkHauled" xml:space="preserve">
     <value>✓ Hecho</value>
   </data>

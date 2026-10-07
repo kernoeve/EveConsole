@@ -2047,6 +2047,33 @@
   <data name="HaulInHold" xml:space="preserve">
     <value>{0}의 화물칸</value>
   </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>배송지</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>각 아이템의 정거장</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>한 출발지의 모든 장거리 운송은 하나의 작업으로 이 정거장에 운반되며, 도착하면 근거리 운송과 성계 내 운송이 그곳에서 이어받습니다. '각 아이템의 정거장'으로 두면 필요한 곳으로 바로 운송합니다.</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>성계별 하역 정거장</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>한 출발지에서 한 성계의 여러 정거장으로 갈 화물이 있으면, 하나의 작업으로 그 성계의 하역 정거장에 운반하고 성계 내 순환이 그곳에서 나눠 줍니다. 그 성계의 정거장 한 곳으로만 가는 화물은 계속 바로 운반하며, 하역 정거장이 없는 성계는 항상 바로 운송합니다.</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>정거장을 해당 성계의 하역지로 설정…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>이 성계의 정거장으로 다시 바로 운송</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>그다음 그곳에서 {0}(으)로.</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} 외 {1}곳</value>
+  </data>
   <data name="HaulMarkHauled" xml:space="preserve">
     <value>✓ 운반 완료</value>
   </data>

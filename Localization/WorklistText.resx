@@ -2740,6 +2740,42 @@
     <value>{0}'s hold</value>
     <comment>Hauling loop: where cargo already picked up sits until it is put down. {0} = the pilot.</comment>
   </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Deliver to</value>
+    <comment>Config → Hauling, long-distance lane: label of the station every long-distance haul is taken to.</comment>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>Each item's own station</value>
+    <comment>Config → Hauling, 'Deliver to' choice: no staging station; each haul goes straight to the station that wants it.</comment>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Every long-distance haul from a source goes to this station as one task, and the nearby and in-system hauls take it on from there once it has landed. Leave it on each item's own station to haul straight to where it is needed.</value>
+    <comment>Tooltip on the long-distance 'Deliver to' box.</comment>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Drop-off station per system</value>
+    <comment>Config → Hauling, nearby lane: heading of the list of each system's drop-off station.</comment>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>When one source has cargo for more than one station in a system, it is hauled to that system's drop-off station as one task, and the in-system loop hands it out from there. Cargo for a single station there still goes straight to it, and a system without a drop-off is always hauled to directly.</value>
+    <comment>Config → Hauling, explanation under 'Drop-off station per system'.</comment>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Set a station as its system's drop-off…</value>
+    <comment>Placeholder of the box that adds a drop-off station; picking one sets it for the station's own system.</comment>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Haul to this system's stations directly again</value>
+    <comment>Tooltip on the button removing a system's drop-off station.</comment>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Then on from there to {0}.</value>
+    <comment>Haul task detail, after its reason, when the trip stops at a staging or drop-off station. {0} = the stations the cargo goes on to.</comment>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} and {1} more</value>
+    <comment>List of onward stations cut short. {0} = the first three names, {1} = how many more.</comment>
+  </data>
   <data name="HaulMarkHauled" xml:space="preserve">
     <value>✓ Hauled</value>
     <comment>Button on a hauling loop's stop: mark the stop as flown.</comment>

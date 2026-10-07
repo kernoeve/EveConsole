@@ -2047,6 +2047,33 @@
   <data name="HaulInHold" xml:space="preserve">
     <value>{0}的货舱</value>
   </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>送达至</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>各物品自己的空间站</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>来自同一来源的所有远程运输都作为一个任务运到此空间站，货物到达后由附近和星系内运输接着运送。保留“各物品自己的空间站”则直接运到需要的地方。</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>各星系的卸货空间站</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>当同一来源有货物要运往某星系的多个空间站时，会作为一个任务运到该星系的卸货空间站，再由星系内循环分发。只运往其中一个空间站的货物仍直接运过去，没有设置卸货空间站的星系也总是直接运送。</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>将空间站设为其星系的卸货点…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>恢复直接运往该星系的各空间站</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>之后从那里继续运往{0}。</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0}等另外{1}个</value>
+  </data>
   <data name="HaulMarkHauled" xml:space="preserve">
     <value>✓ 已运送</value>
   </data>
