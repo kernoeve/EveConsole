@@ -13,7 +13,8 @@ namespace EveConsole.Services.Worklist;
 /// Undocking points the ship where the structure faces, so a next stop behind it means turning
 /// round first — for a freighter the slowest part of the whole leg. A leg is costed as its fixed
 /// part plus an extra align scaled by how far the ship has to turn: nothing straight ahead, a
-/// whole align time for a full 180°. Without a facing on record, no turn is charged.</para>
+/// whole align time for a full 180°. The caller supplies the facing — recorded, or the closest
+/// gate by default; a structure with none at all is charged no turn.</para>
 ///
 /// <para><b>How it chooses.</b> Greedy with a look-ahead (a "rollout"): for every stop it could
 /// go to next, it plays the rest of the loop out by always taking the cheapest leg, and goes

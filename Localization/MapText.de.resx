@@ -922,6 +922,9 @@
   <data name="FacingNotSet" xml:space="preserve">
     <value>Nicht festgelegt</value>
   </data>
+  <data name="FacingClosestGateDefault" xml:space="preserve">
+    <value>{0} (am nächsten, Standard)</value>
+  </data>
   <data name="FacingDistanceKm" xml:space="preserve">
     <value>{0:N0} km</value>
   </data>

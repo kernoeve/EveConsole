@@ -1228,6 +1228,10 @@
     <value>Not set</value>
     <comment>Faces toward picker: no facing recorded.</comment>
   </data>
+  <data name="FacingClosestGateDefault" xml:space="preserve">
+    <value>{0} (closest, default)</value>
+    <comment>Faces toward picker: the default when nothing is recorded — the closest stargate. {0} = 'Stargate to &lt;system&gt;'.</comment>
+  </data>
   <data name="FacingDistanceKm" xml:space="preserve">
     <value>{0:N0} km</value>
     <comment>Faces toward picker: distance to the option, {0} = kilometres.</comment>

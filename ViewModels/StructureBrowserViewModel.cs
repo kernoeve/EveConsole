@@ -1642,6 +1642,10 @@ public class StructureBrowserViewModel : ReactiveObject
         var seq     = _detailSeq;
         var options = new List<FacingOption>();
 
+        // What "not set" means for this structure: the closest stargate, which the hauling plan
+        // assumes when nothing is recorded — most structures by a gate are anchored facing it.
+        var unset = NoFacing;
+
         if (s is not null && row.SystemId > 0)
         {
             var sys    = (int)row.SystemId;
@@ -1677,6 +1681,15 @@ public class StructureBrowserViewModel : ReactiveObject
                                            Label: string.Format(MapText.FacingStargateTo, SdeNames.SolarSystem(g.SolarSystemId, g.Name)))))
                 .OrderBy(x => x.Far ?? double.MaxValue).ThenBy(x => x.Label)
                 .Select(x => new FacingOption(x.Id, x.Label, Away(x.Far))));
+
+            var byDistance = gates.Select(g => (Gate: g, Far: Metres(g.X, g.Y, g.Z)))
+                .Where(x => x.Far is not null).OrderBy(x => x.Far).ToList();
+            if (byDistance.Count > 0)
+                unset = new FacingOption(0,
+                    string.Format(MapText.FacingClosestGateDefault,
+                        string.Format(MapText.FacingStargateTo,
+                                      SdeNames.SolarSystem(byDistance[0].Gate.SolarSystemId, byDistance[0].Gate.Name))),
+                    Away(byDistance[0].Far));
         }
 
         var stored = s?.FacesTowardId ?? 0;
@@ -1685,7 +1698,7 @@ public class StructureBrowserViewModel : ReactiveObject
 
         // "Not set" heads the list only once there is something else in it, so a structure with
         // nothing to face shows a disabled, empty box rather than a choice of one.
-        if (options.Count > 0) options.Insert(0, NoFacing);
+        if (options.Count > 0) options.Insert(0, unset);
 
         // Another structure picked meanwhile: these are its predecessor's choices, and the next
         // pick would save one of them against the wrong row.

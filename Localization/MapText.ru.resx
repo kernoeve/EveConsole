@@ -934,6 +934,9 @@
   <data name="FacingNotSet" xml:space="preserve">
     <value>Не задано</value>
   </data>
+  <data name="FacingClosestGateDefault" xml:space="preserve">
+    <value>{0} (ближайшие, по умолчанию)</value>
+  </data>
   <data name="FacingDistanceKm" xml:space="preserve">
     <value>{0:N0} км</value>
   </data>

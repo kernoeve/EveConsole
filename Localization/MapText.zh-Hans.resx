@@ -916,6 +916,9 @@
   <data name="FacingNotSet" xml:space="preserve">
     <value>未设置</value>
   </data>
+  <data name="FacingClosestGateDefault" xml:space="preserve">
+    <value>{0}（最近，默认）</value>
+  </data>
   <data name="FacingDistanceKm" xml:space="preserve">
     <value>{0:N0} 千米</value>
   </data>

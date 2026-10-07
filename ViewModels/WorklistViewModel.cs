@@ -409,7 +409,11 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         get
         {
             if (!IsHaul) return "";
+
+            // Who flies it first: with two pilots sharing a system, which loop is whose is the
+            // first thing to know.
             var parts = new List<string>();
+            if (_item.CharacterName.Length > 0) parts.Add(_item.CharacterName);
 
             if (_item.Lane != HaulLane.InSystem)
             {
