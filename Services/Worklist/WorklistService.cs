@@ -138,6 +138,19 @@ public class WorklistService(
 
         if (stopped.Count == 0) return;
 
+        // A system's in-system loops taken together, where its pilots share them: what all of them
+        // put down, by destination. A job one pilot's loop cannot start alone may be started by
+        // the loops between them — and saying "will not start" under each would be wrong twice.
+        var together = all
+            .Where(i => i.Kind == WorklistKind.Haul && i.Stops.Count > 0 && i.LoopSystemId > 0)
+            .GroupBy(i => i.LoopSystemId)
+            .Where(g => g.Count() > 1)
+            .ToDictionary(g => g.Key, g => g
+                .SelectMany(i => i.Deliveries())
+                .GroupBy(d => d.Destination)
+                .ToDictionary(x => x.Key,
+                              x => x.GroupBy(d => d.TypeId).ToDictionary(y => y.Key, y => y.Sum(d => d.Quantity))));
+
         for (var si = 0; si < sections.Count; si++)
         {
             var section = sections[si];
@@ -197,6 +210,13 @@ public class WorklistService(
                             .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
                             .ToList();
 
+                        // Not by this loop alone — but by the system's loops between them?
+                        var shared = haul.LoopSystemId > 0
+                                     && together.TryGetValue(haul.LoopSystemId, out var systemDrops)
+                                     && systemDrops.GetValueOrDefault(j.LocationId) is { } joint
+                                     && outstanding.Count > 0
+                                     && outstanding.All(s => !s.MustBuy && joint.GetValueOrDefault(s.TypeId) >= s.Short);
+
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
                             Unblocked:   outstanding.Count == 0,
@@ -205,14 +225,18 @@ public class WorklistService(
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
                                                          .DistinctBy(s => s.TypeName)
                                                          .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
-                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
+                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)),
+                            WithOtherLoops: shared,
+                            ByLoop: haul.Stops.Count > 0);
                     })
                     .OrderByDescending(w => w.Unblocked)
+                    .ThenByDescending(w => w.WithOtherLoops)
                     .ThenBy(w => w.StillShortOf.Count)
                     .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
+                var jointly = waiting.Count(w => w.WithOtherLoops);
 
                 // ⚠️ Merged, not replaced. A stopped row is the better answer where there is one —
                 // only it can say whether this load actually starts the job — but the planner's
@@ -243,13 +267,19 @@ public class WorklistService(
                     // the cargo is for; this is the place that knows a job is actually stopped.
                     Detail = (freed.Count > 0 ? WorklistText.HaulWhyUnblocking : haul.Detail)
                            + (freed.Count > 0
-                                ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
+                                ? " " + (haul.Stops.Count > 0
+                                    // A loop restarts them when it is done, not when any one load lands.
+                                    ? Listed(WorklistText.HaulLoopRestartsJobs, WorklistText.HaulLoopRestartsJobsMore, freed)
+                                    : Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed))
                                 : "")
-                           + (waiting.Count > freed.Count
+                           + (jointly > 0
+                                ? " " + string.Format(WorklistText.HaulRestartsWithOtherLoops, jointly)
+                                : "")
+                           + (waiting.Count > freed.Count + jointly
                                 // "More" only after a list of jobs it does restart.
                                 ? " " + string.Format(freed.Count > 0 ? WorklistText.HaulOthersWantPart
                                                                       : WorklistText.HaulJobsWantPart,
-                                                      waiting.Count - freed.Count)
+                                                      waiting.Count - freed.Count - jointly)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or

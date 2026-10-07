@@ -1468,6 +1468,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>empieza al llegar</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>empieza cuando también termine el otro circuito</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} más empiezan cuando también termine el otro circuito de este sistema.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>empieza cuando termine el circuito</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Lo que este circuito descarga aquí, en todas sus paradas, cubre lo que le falta al trabajo; empieza cuando termine el circuito.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Reanuda {0:N0} trabajo(s) detenido(s) cuando termine el circuito: {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Reanuda {0:N0} trabajo(s) detenido(s) cuando termine el circuito: {1} y {2:N0} más.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>quiere {0:N0}</value>
   </data>

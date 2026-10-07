@@ -1468,6 +1468,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>startet bei Ankunft</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>startet, sobald auch die andere Runde fertig ist</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} weitere starten, sobald auch die andere Runde in diesem System fertig ist.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>startet, wenn die Runde fertig ist</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Was diese Runde an allen Halten hier ablädt, deckt alles, was dem Auftrag fehlt; er startet, wenn die Runde fertig ist.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Startet nach der Runde gestoppte Aufträge neu ({0:N0}): {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Startet nach der Runde gestoppte Aufträge neu ({0:N0}): {1} und {2:N0} weitere.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>braucht {0:N0}</value>
   </data>

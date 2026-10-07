@@ -1465,6 +1465,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>도착 시 시작</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>다른 순환도 끝나면 시작</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0}개가 더, 이 항성계의 다른 순환도 끝나면 시작됩니다.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>순환이 끝나면 시작</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>이 순환이 모든 정박지에서 이곳에 내려놓는 화물로 작업의 부족분이 모두 채워지므로, 순환이 끝나면 시작됩니다.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>순환이 끝나면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>순환이 끝나면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1} 외 {2:N0}개.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>{0:N0}개 필요</value>
   </data>

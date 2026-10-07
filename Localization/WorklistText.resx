@@ -1956,6 +1956,30 @@
     <value>starts on arrival</value>
     <comment>Beside a job in a Worklist row's "waiting on this" panel: this delivery is all the job lacks. Lower case.</comment>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>starts once the other loop is done too</value>
+    <comment>Waiting-on-this status: the job is started by this hauling loop together with another pilot's loop in the same system, not by this one alone.</comment>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} more start once the other loop in this system is done too.</value>
+    <comment>Hauling loop detail: {0} = stopped jobs this loop starts together with another pilot's loop in the same system.</comment>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>starts when the loop is done</value>
+    <comment>Waiting-on-this status on an in-system hauling loop: everything the loop's stops put down covers what the job is short of.</comment>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Everything this loop puts down here, across all its stops, covers what the job is short of, so it starts when the loop is done.</value>
+    <comment>Tooltip beside a job a hauling loop restarts.</comment>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}.</value>
+    <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} a comma-separated list of what they make.</comment>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}, and {2:N0} more.</value>
+    <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} what the first three make, {2} how many more.</comment>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>wants {0:N0}</value>
     <comment>Beside a planned build in a Worklist row's "waiting on this" panel. {0} is how many units of the cargo it wants. Lower case.</comment>

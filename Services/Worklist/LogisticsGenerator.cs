@@ -270,7 +270,19 @@ public class LogisticsGenerator(
         var hulls   = await db.SdeTypes.AsNoTracking()
             .Where(t => hullIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => (t.Name, t.Capacity), ct);
+        var hullGroups = await db.SdeTypes.AsNoTracking()
+            .Where(t => hullIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
         var aligns  = await AlignSecondsAsync(db, hullIds, ct);
+
+        // ⚠️ Sitting in something that hauls. A pilot docked in a shuttle or a combat ship is on
+        // and in the system but is not flying this loop, and a share of it planned in a 10 m³
+        // hold is work nobody will do. Only when the lane plans in the pilot's current ship — a
+        // hull chosen for the lane is what they would fly, whatever they are in now.
+        bool InHauler(long id) =>
+            !lane.UsesCurrentShip
+            || status.GetValueOrDefault(id)?.ShipTypeId is int hull
+               && HaulHulls.Groups.Contains(hullGroups.GetValueOrDefault(hull));
 
         // Each pilot's hold, once: their ship as it is fitted and as they fly it.
         var holds = new Dictionary<long, double>();
@@ -304,11 +316,12 @@ public class LogisticsGenerator(
         {
             var trip = trips[(sys.First().From, sys.First().To)];
 
-            // On and in this system, in the lane's order. Two or more share the work; otherwise the
-            // one who is here flies it, or failing that the lane's first pilot.
+            // On, in this system and in a hauler, in the lane's order. Two or more share the work;
+            // otherwise the one who is here flies it, or failing that the lane's first pilot.
             var here = ids.Where(id => known.ContainsKey(id)
                                        && status.GetValueOrDefault(id) is { Online: true } s
-                                       && s.SolarSystemId == sys.Key).ToList();
+                                       && s.SolarSystemId == sys.Key
+                                       && InHauler(id)).ToList();
             var crew = here.Count > 0                ? here.Select(id => Pilot(id, sys.Key)).ToList()
                      : trip.PilotId > 0              ? [Pilot(trip.PilotId, sys.Key)]
                      :                                 [new LoopPilot(0, "", null, 0, "", 0, DefaultAlignSeconds)];
@@ -380,6 +393,7 @@ public class LogisticsGenerator(
                     Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty)).ToList(),
                     Stops        = stops,
                     LoopTurns    = plan.Turns,
+                    LoopSystemId = sys.Key,
                     WaitingJobs  = wanters,
                     TypeId       = manifest[0].TypeId,
                     TypeName     = names.GetValueOrDefault(manifest[0].TypeId, ""),

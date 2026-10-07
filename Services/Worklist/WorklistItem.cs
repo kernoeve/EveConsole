@@ -72,10 +72,14 @@ public sealed record WorklistShortage(
 /// an earlier job has already claimed that stock, and this crate came out of the same pile. A
 /// different fact from being short of something else, and the row has to say which or the reader
 /// goes looking for a missing item that is right there on the list.</param>
+/// <param name="WithOtherLoops">Not started by this loop alone, but by it and the other pilots'
+/// loops in the same system together: what it lacks here, one of them drops.</param>
+/// <param name="ByLoop">Judged against an in-system loop's whole run — everything every stop puts
+/// down — so it starts when the loop is done rather than when one load lands.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
     bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
-    long WantsUnits = 0)
+    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false)
 {
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -88,7 +92,8 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? WorklistText.WaitStartsOnArrival
+        Unblocked                 ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
+        : WithOtherLoops          ? WorklistText.WaitStartsWithOtherLoop
         : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
         : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
         : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
@@ -104,7 +109,7 @@ public sealed record WorklistWaitingJob(
 
     public string StatusTip =>
         IsPlanned ? WorklistText.WaitTipPlanned
-        : Unblocked ? WorklistText.WaitTipStarts
+        : Unblocked ? (ByLoop ? WorklistText.WaitTipStartsAfterLoop : WorklistText.WaitTipStarts)
         : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
         : (StillShortOf.Count > 6
               ? string.Format(WorklistText.WaitTipStillShortMore,
@@ -113,7 +118,9 @@ public sealed record WorklistWaitingJob(
           + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
 
     public Avalonia.Media.IBrush StatusColor =>
-        Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;
+        Unblocked      ? EveConsole.Services.Palette.Good
+        : WithOtherLoops ? EveConsole.Services.Palette.Accent
+        :                  EveConsole.Services.Palette.TextFaint;
 }
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
@@ -305,6 +312,10 @@ public sealed record WorklistItem
 
     /// <summary>Of a loop's stops, how many are reached by turning round after undocking.</summary>
     public int LoopTurns { get; init; }
+
+    /// <summary>The system an in-system loop flies in — which its other pilots' loops share. 0 on
+    /// everything else.</summary>
+    public int LoopSystemId { get; init; }
 
     /// <summary>
     /// What this haul puts down, and where.

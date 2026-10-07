@@ -1474,6 +1474,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>начнётся по прибытии</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>запустится, когда завершится и другой круг</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>Ещё {0:N0} запустятся, когда завершится и другой круг в этой системе.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>запустится, когда круг завершится</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Всё, что этот круг выгружает здесь на всех остановках, покрывает нехватку проекта, поэтому он запустится, когда круг завершится.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>После круга запустятся остановленные проекты ({0:N0}): {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>После круга запустятся остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>нужно {0:N0}</value>
   </data>

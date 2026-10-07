@@ -232,23 +232,9 @@ public sealed class WorklistHaulingViewModel : ReactiveObject
     private readonly AppErrorLogger                  _errorLogger;
     private bool _loaded;
 
-    /// <summary>
-    /// The hulls offered: haulers, transports, freighters and the industrial capitals.
-    ///
-    /// <para>By SDE group rather than by cargo hold, because the hold is not the story for half of
-    /// them — a deep space transport's real space is its fleet hangar, which no capacity field
-    /// carries. The hold override is for that.</para>
-    /// </summary>
-    private static readonly int[] HaulerGroups =
-    [
-        28,    // Hauler
-        380,   // Deep Space Transport
-        1202,  // Blockade Runner
-        513,   // Freighter
-        902,   // Jump Freighter
-        941,   // Industrial Command Ship
-        883,   // Capital Industrial Ship
-    ];
+    /// <summary>The hulls offered — see <see cref="HaulHulls"/>. The hold override is for the
+    /// space a hull's capacity does not show.</summary>
+    private static readonly int[] HaulerGroups = HaulHulls.Groups;
 
     public IReadOnlyList<HaulLaneVm> Lanes { get; }
 

@@ -1465,6 +1465,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>到着時に開始</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>もう一方の周回も終わると開始</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>さらに{0:N0}件は、この星系のもう一方の周回も終わると開始します。</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>周回が終わると開始</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>この周回がすべての停泊先でここに降ろす分で、ジョブの不足がすべて満たされるため、周回が終わると開始します。</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>周回が終わると、止まっているジョブ{0:N0}件が再開します：{1}。</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>周回が終わると、止まっているジョブ{0:N0}件が再開します：{1}、ほか{2:N0}件。</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>{0:N0}個必要</value>
   </data>

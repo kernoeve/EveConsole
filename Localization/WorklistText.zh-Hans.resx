@@ -1465,6 +1465,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>送达即开始</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>另一条环线也完成后开始</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>另有 {0:N0} 个任务会在本星系另一条环线也完成后开始。</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>环线完成后开始</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>这条环线在所有停靠点卸在此处的货物，足以补齐该任务的缺口，因此环线完成后即开始。</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>环线完成后会重启 {0:N0} 个停滞的任务：{1}。</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>环线完成后会重启 {0:N0} 个停滞的任务：{1}，另有 {2:N0} 个。</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>需要 {0:N0}</value>
   </data>

@@ -60,6 +60,28 @@ public sealed record HaulLaneSettings(
     public bool NeedsShip => Method != HaulMethod.Service;
 }
 
+/// <summary>
+/// The hulls that haul: haulers, transports, freighters and the industrial capitals.
+///
+/// <para>By SDE group rather than by cargo hold, because the hold is not the story for half of
+/// them — a deep space transport's real space is its fleet hangar, which no capacity field
+/// carries. The settings offer these as lane ships, and an in-system loop is shared only among
+/// pilots sitting in one.</para>
+/// </summary>
+public static class HaulHulls
+{
+    public static readonly int[] Groups =
+    [
+        28,    // Hauler
+        380,   // Deep Space Transport
+        1202,  // Blockade Runner
+        513,   // Freighter
+        902,   // Jump Freighter
+        941,   // Industrial Command Ship
+        883,   // Capital Industrial Ship
+    ];
+}
+
 /// <summary>The words for lanes and methods, in one place for the list and the settings.</summary>
 public static class HaulLaneText
 {

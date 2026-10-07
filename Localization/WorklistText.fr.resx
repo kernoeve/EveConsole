@@ -1468,6 +1468,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>démarre à l'arrivée</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>démarre une fois l'autre boucle terminée aussi</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} autres démarrent une fois l'autre boucle de ce système terminée aussi.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>démarre une fois la boucle terminée</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Ce que cette boucle dépose ici, sur l'ensemble de ses arrêts, couvre ce qui manque au travail ; il démarre une fois la boucle terminée.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Relance {0:N0} travail(aux) à l'arrêt une fois la boucle terminée : {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Relance {0:N0} travail(aux) à l'arrêt une fois la boucle terminée : {1}, et {2:N0} de plus.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>en demande {0:N0}</value>
   </data>
