@@ -113,7 +113,7 @@ public class IndustryJobGenerator(
                 .Where(a => siteIds.Contains(a.RootLocationId))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId) && Ours(a.OwnerType, a.OwnerId))
             .ToList();
 
         // How far to look before calling something missing. Stock outside this counts as absent,

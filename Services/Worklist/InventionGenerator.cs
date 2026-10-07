@@ -496,7 +496,7 @@ public class InventionGenerator(
                 .Where(a => sites.Contains(a.RootLocationId))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                      && (a.OwnerType != "corporation" || corps is null || corps.Contains(a.OwnerId)))
             .GroupBy(a => (a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
@@ -510,7 +510,7 @@ public class InventionGenerator(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                      && (a.OwnerType != "corporation" || corps is null || corps.Contains(a.OwnerId)))
             .ToList();
 

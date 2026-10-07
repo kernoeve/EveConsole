@@ -200,7 +200,7 @@ public sealed record ScopeStock(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId) && Ours(a.OwnerType, a.OwnerId))
             .GroupBy(a => (a.TypeId, a.OwnerType, a.OwnerId))
             .Select(g => new { g.Key.TypeId, g.Key.OwnerType, g.Key.OwnerId,
                                Qty = g.Sum(a => (long)a.Quantity) })
@@ -803,7 +803,7 @@ public class IndustryDemandService(
                 .Where(a => wanted.Contains(a.TypeId))
                 .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                         && (scope is null || scope.Contains(a.RootLocationId))
                         && (a.OwnerType != "corporation"
                             || corps is null || corps.Contains(a.OwnerId)))

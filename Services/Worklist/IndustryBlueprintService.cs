@@ -89,7 +89,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                     b.LocationId, b.OwnerType, b.OwnerId,
                 })
                 .ToListAsync(ct))
-            .Where(b => !wrapped.Contains(b.ItemId) && !wrapped.Contains(b.LocationId))
+            .Where(b => !wrapped.Excludes(b.ItemId, b.OwnerId) && !wrapped.Contains(b.LocationId))
             .ToList();
 
         // Container item id → the station or structure it is ultimately in. Only the locations

@@ -1220,7 +1220,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         /// <summary>The same test, plus whose it is. Corp-owned stock only counts for a
         /// corporation the player actually builds out of.</summary>
         public bool Counts(long itemId, long rootLocationId, string ownerType, long ownerId) =>
-            Counts(itemId, rootLocationId)
+            Counts(itemId, rootLocationId) && (Excluded is null || !Excluded.Excludes(itemId, ownerId))
             && (ownerType != "corporation" || Corporations is null || Corporations.Contains(ownerId));
     }
 

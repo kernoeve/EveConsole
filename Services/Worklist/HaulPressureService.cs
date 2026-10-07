@@ -129,9 +129,9 @@ public class HaulPressureService(
 
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId) && a.Quantity > 0)
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.OwnerId, a.TypeId, a.RootLocationId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                         && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(
