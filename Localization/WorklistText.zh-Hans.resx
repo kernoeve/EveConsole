@@ -2020,6 +2020,15 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>来自{0}</value>
   </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0}（{1:N0} m³）</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>卸货 {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>装货 {0} · {1}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>把空间站的库存补充到设定水平。</value>
   </data>

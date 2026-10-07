@@ -485,6 +485,8 @@
                   <TextBlock Text="{x:Static loc:WorklistText.HaulStopTurn}" IsVisible="{Binding ChildTurn}"
                              FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"
                              ToolTip.Tip="{x:Static loc:WorklistText.TipHaulStopTurn}"/>
+                  <TextBlock Text="{Binding ChildTotals}" FontSize="12"
+                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsChildLine}" Margin="40 0 0 0">
                   <TextBlock Text="{Binding ChildAction}" FontSize="12" MinWidth="64"

@@ -2704,6 +2704,18 @@
     <value>from {0}</value>
     <comment>Loop stop drop-off line: {0} = the structure it came from.</comment>
   </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} m³)</value>
+    <comment>Haul plan text: the ship and the hold the trip is sized with. {0} = hull, {1} = m³ (fitted and skilled).</comment>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>drop off {0} · {1}</value>
+    <comment>Loop stop row: total unloaded here. {0} = m³, {1} = ISK value.</comment>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>pick up {0} · {1}</value>
+    <comment>Loop stop row: total loaded here. {0} = m³, {1} = ISK value.</comment>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Tops the station up to its level.</value>
     <comment>Worklist haul detail: the trip refills a station level (Station Levels tab).</comment>

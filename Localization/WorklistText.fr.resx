@@ -2035,6 +2035,15 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>de {0}</value>
   </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} m³)</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>décharger {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>charger {0} · {1}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Remet la station à son niveau.</value>
   </data>

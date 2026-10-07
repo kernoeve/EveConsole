@@ -2020,6 +2020,15 @@
   <data name="HaulStopFrom" xml:space="preserve">
     <value>{0}에서</value>
   </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} m³)</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>하역 {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>적재 {0} · {1}</value>
+  </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>정거장을 재고 수준까지 채웁니다.</value>
   </data>

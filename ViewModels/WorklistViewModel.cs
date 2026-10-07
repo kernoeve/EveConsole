@@ -54,13 +54,17 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     private readonly string _childQty    = "";
     private readonly string _childOther  = "";
     private readonly string _childVolume = "";
+    private readonly string _childValue  = "";
+    private readonly string _childTotals = "";
     private readonly bool   _childTurn;
     private readonly bool   _childIsStop;
 
     private WorklistRowVm(WorklistRowVm parent, int order, bool isStop, string label, bool turn,
                           int typeId = 0, string action = "", string qty = "", string other = "",
-                          string volume = "")
+                          string volume = "", string value = "", string totals = "")
     {
+        _childValue  = value;
+        _childTotals = totals;
         _item        = parent._item;
         Sequence     = parent.Sequence;
         _parent      = parent;
@@ -90,6 +94,9 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     public string ChildOther  => _childOther;
     public bool   ChildTurn   => _childTurn;
 
+    /// <summary>A stop's totals: what comes off and what goes on, in m³ and ISK.</summary>
+    public string ChildTotals => _childTotals;
+
     /// <summary>The loop's place in the list, shared by its stop rows, so they sort as one.</summary>
     public int FamilyOrder => Sequence;
 
@@ -117,7 +124,19 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         for (var i = 0; i < _item.Stops.Count; i++)
         {
             var st = _item.Stops[i];
-            rows.Add(new WorklistRowVm(this, ++order, isStop: true, $"{i + 1}.  {st.StationName}", st.TurnBefore));
+
+            // What comes off and what goes on here, each as m³ and ISK.
+            string Total(IReadOnlyList<WorklistStopLine> lines, string format) => lines.Count == 0 ? ""
+                : string.Format(format, M3(lines.Sum(l => l.Volume)) is { Length: > 0 } m ? m : "0 m³",
+                                StationNeedRowVm.Isk(lines.Sum(l => l.Value)));
+            var totals = string.Join("     ", new[]
+            {
+                Total(st.DropOff, WorklistText.HaulStopDropTotal),
+                Total(st.PickUp,  WorklistText.HaulStopPickTotal),
+            }.Where(t => t.Length > 0));
+
+            rows.Add(new WorklistRowVm(this, ++order, isStop: true, $"{i + 1}.  {st.StationName}", st.TurnBefore,
+                                       totals: totals));
 
             void Line(WorklistStopLine l, bool pickUp) =>
                 rows.Add(new WorklistRowVm(this, ++order, isStop: false,
@@ -125,7 +144,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
                     pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff,
                     l.Quantity.ToString("N0"),
                     string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom, Short(l.OtherName)),
-                    M3(l.Volume)));
+                    M3(l.Volume),
+                    l.Value > 0 ? StationNeedRowVm.Isk(l.Value) : ""));
 
             foreach (var l in st.DropOff) Line(l, pickUp: false);
             foreach (var l in st.PickUp)  Line(l, pickUp: true);
@@ -549,8 +569,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
                                               : WorklistText.HaulNoGateRoute);
             }
 
+            // The hold beside the hull: what the trip was sized with, so a plan that looks short of
+            // room can be checked against the game at a glance.
             if (_item.HaulShipName.Length > 0)
-                parts.Add(SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName));
+                parts.Add(_item.HaulCapacity > 0
+                    ? string.Format(WorklistText.HaulShipHold, SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName), _item.HaulCapacity)
+                    : SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName));
 
             // A loop says how long it is and how often it turns round; its loads are in its stops.
             if (IsLoop)
@@ -582,7 +606,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// <para>Blank rather than zero when unpriced. Science jobs are the case that matters: a
     /// blueprint copy has no stored value per ME level, so the honest answer is nothing at all
     /// rather than a confident 0 ISK.</para></summary>
-    public string ValueText => IsChild ? "" : _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
+    public string ValueText => IsChild ? _childValue : _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
 
     /// <summary>
     /// Everything the row knows that is not worth a line of its own, gathered for one tooltip.

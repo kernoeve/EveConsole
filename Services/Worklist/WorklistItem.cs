@@ -148,6 +148,9 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 public sealed record WorklistStopLine(int TypeId, string TypeName, long Quantity, double Volume,
                                       long OtherId, string OtherName)
 {
+    /// <summary>What it is worth, at the prices the rest of the list uses; 0 when unpriced.</summary>
+    public double Value { get; init; }
+
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 }

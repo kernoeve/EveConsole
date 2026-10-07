@@ -250,7 +250,7 @@ public class LogisticsGenerator(
         var items = new List<WorklistItem>();
         if (moves.Count == 0) return items;
 
-        var (_, volumes) = await PriceAndVolumeAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
+        var (prices, volumes) = await PriceAndVolumeAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
         var (positions, facing) = await GeometryAsync(db, moves.SelectMany(m => new[] { m.From, m.To }).Distinct().ToList(), ct);
 
         // The lane's pilots: who they are, whether they are on and where, and what they fly.
@@ -261,7 +261,7 @@ public class LogisticsGenerator(
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         var status = (await db.CharacterStatuses.AsNoTracking()
                 .Where(x => ids.Contains(x.CharacterId))
-                .Select(x => new { x.CharacterId, x.Online, x.SolarSystemId, x.StationId, x.StructureId, x.ShipTypeId })
+                .Select(x => new { x.CharacterId, x.Online, x.SolarSystemId, x.StationId, x.StructureId, x.ShipTypeId, x.ShipItemId })
                 .ToListAsync(ct))
             .ToDictionary(x => x.CharacterId);
 
@@ -272,17 +272,28 @@ public class LogisticsGenerator(
             .ToDictionaryAsync(t => t.TypeId, t => (t.Name, t.Capacity), ct);
         var aligns  = await AlignSecondsAsync(db, hullIds, ct);
 
+        // Each pilot's hold, once: their ship as it is fitted and as they fly it.
+        var holds = new Dictionary<long, double>();
+        foreach (var id in ids.Where(known.ContainsKey))
+        {
+            var st   = status.GetValueOrDefault(id);
+            var hull = lane.UsesCurrentShip ? st?.ShipTypeId ?? 0 : lane.ShipTypeId;
+            var bare = hull > 0 && hulls.TryGetValue(hull, out var hb) ? hb.Capacity : 0;
+            holds[id] = lane.CargoM3 > 0 ? lane.CargoM3
+                      : await HaulHold.FittedAsync(dbFactory, id, hull, lane.UsesCurrentShip ? st?.ShipItemId : null, ct) ?? bare;
+        }
+
         LoopPilot Pilot(long id, int sys)
         {
             var st    = status.GetValueOrDefault(id);
             var dock  = st?.StructureId ?? st?.StationId;
             var hull  = lane.UsesCurrentShip ? st?.ShipTypeId ?? 0 : lane.ShipTypeId;
-            var (shipName, hold) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
+            var (shipName, bare) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
             return new LoopPilot(
                 id, known.GetValueOrDefault(id, ""),
                 dock is { } d && st?.SolarSystemId == sys ? d : null,
                 hull, shipName,
-                lane.CargoM3 > 0 ? lane.CargoM3 : hold,
+                holds.TryGetValue(id, out var hold) ? hold : lane.CargoM3 > 0 ? lane.CargoM3 : bare,
                 aligns.GetValueOrDefault(hull, DefaultAlignSeconds));
         }
 
@@ -323,9 +334,11 @@ public class LogisticsGenerator(
                 var stops = plan.Stops.Select(st => new WorklistHaulStop(
                         st.StationId, Place(st.StationId), st.TurnBefore,
                         st.DropOff.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
-                                                                    c.Quantity * c.UnitM3, c.From, Place(c.From))).ToList(),
+                                                                    c.Quantity * c.UnitM3, c.From, Place(c.From))
+                                               { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList(),
                         st.PickUp.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
-                                                                   c.Quantity * c.UnitM3, c.To, Place(c.To))).ToList()))
+                                                                   c.Quantity * c.UnitM3, c.To, Place(c.To))
+                                              { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList()))
                     .ToList();
 
                 var manifest = moved.GroupBy(m => m.TypeId)
@@ -595,14 +608,35 @@ public class LogisticsGenerator(
         var crew = lanes.ToDictionary(kv => kv.Key, kv => kv.Value.CharacterIds.Where(known.ContainsKey).ToList());
 
         var leads  = crew.Values.Where(c => c.Count > 0).Select(c => c[0]).Distinct().ToList();
-        var flying = await db.CharacterStatuses.AsNoTracking()
+        var aboard = await db.CharacterStatuses.AsNoTracking()
             .Where(x => leads.Contains(x.CharacterId) && x.ShipTypeId != null)
-            .ToDictionaryAsync(x => x.CharacterId, x => x.ShipTypeId!.Value, ct);
+            .Select(x => new { x.CharacterId, x.ShipTypeId, x.ShipItemId })
+            .ToListAsync(ct);
+        var flying   = aboard.ToDictionary(x => x.CharacterId, x => x.ShipTypeId!.Value);
+        var shipItem = aboard.ToDictionary(x => x.CharacterId, x => x.ShipItemId);
 
         var hullIds = lanes.Values.Select(l => l.ShipTypeId).Where(t => t > 0).Concat(flying.Values).Distinct().ToList();
         var hulls   = await db.SdeTypes.AsNoTracking()
             .Where(t => hullIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => (t.Name, t.Capacity), ct);
+
+        // Each lane's hold, once: the lead pilot's ship as it is fitted and as they fly it.
+        var laneHull = new Dictionary<HaulLane, (int Hull, string Name, double Hold)>();
+        foreach (var (lane, set) in lanes)
+        {
+            var lead = crew[lane].Count > 0 ? crew[lane][0] : 0;
+            var hull = !set.NeedsShip       ? 0
+                     : !set.UsesCurrentShip ? set.ShipTypeId
+                     : flying.GetValueOrDefault(lead);
+            var (shipName, bare) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
+
+            // A hold typed for the lane wins; then the fitted, skilled ship; the bare hull last.
+            var hold = !set.NeedsShip      ? 0
+                     : set.CargoM3 > 0     ? set.CargoM3
+                     : await HaulHold.FittedAsync(dbFactory, lead, hull,
+                           set.UsesCurrentShip ? shipItem.GetValueOrDefault(lead) : null, ct) ?? bare;
+            laneHull[lane] = (hull, shipName, hold);
+        }
 
         var distances = new Dictionary<int, Dictionary<int, int>>();
         var trips     = new Dictionary<(long From, long To), Trip>();
@@ -630,17 +664,12 @@ public class LogisticsGenerator(
             var pilots = crew[lane];
             var lead   = pilots.Count > 0 ? pilots[0] : 0;
 
-            var hull = !set.NeedsShip             ? 0
-                     : !set.UsesCurrentShip       ? set.ShipTypeId
-                     : flying.GetValueOrDefault(lead);
-            var (shipName, hold) = hull > 0 && hulls.TryGetValue(hull, out var h) ? h : ("", 0d);
+            var (hull, shipName, hold) = laneHull[lane];
 
             trips[(from, to)] = new Trip(
                 lane, gates, set.Method,
                 lead, lead > 0 ? known[lead] : "", pilots.Count,
-                hull, shipName,
-                // A hold typed for the lane is the fitted, skilled truth; the SDE's is the bare hull's.
-                set.NeedsShip && set.CargoM3 > 0 ? set.CargoM3 : hold);
+                hull, shipName, hold);
         }
 
         return trips;
