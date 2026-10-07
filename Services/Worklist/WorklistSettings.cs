@@ -350,6 +350,27 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetHaulCharactersAsync(HaulLane lane, IEnumerable<long> characterIds) =>
         prefs.SetAsync(LaneKey(lane, "characters"), string.Join(",", characterIds.Where(id => id > 0).Distinct()));
 
+    public const string LoopSharesKey = "worklist.hauling.loop_shares";
+
+    /// <summary>
+    /// Which pilot each leg of an in-system loop is pinned to: "system:from:to" to a character id.
+    ///
+    /// <para>⚠️ Shared, like the rest of the hauling set-up, and kept across restarts: a pilot two
+    /// stops into a loop must find the rest of it still theirs after a refresh, on this client or
+    /// another. See LogisticsGenerator.LoopsAsync for how a leg is pinned and let go.</para>
+    /// </summary>
+    public Dictionary<string, long> LoopShares =>
+        (prefs.Get(LoopSharesKey) ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Split('='))
+            .Where(p => p.Length == 2 && long.TryParse(p[1], out _))
+            .GroupBy(p => p[0])
+            .ToDictionary(g => g.Key, g => long.Parse(g.First()[1]));
+
+    public Task SetLoopSharesAsync(IReadOnlyDictionary<string, long> shares) =>
+        prefs.SetAsync(LoopSharesKey, string.Join(";", shares.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                                                              .Select(kv => $"{kv.Key}={kv.Value}")));
+
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it
     /// is short enough that a split actually happens on the long component runs that prompted

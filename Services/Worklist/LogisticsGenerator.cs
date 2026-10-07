@@ -316,6 +316,21 @@ public class LogisticsGenerator(
         string Place(long id) => places.GetValueOrDefault(id, string.Format(WorklistText.LocationWithId, id));
         string Name(int typeId) => names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId));
 
+        // ── Each leg stays with the pilot it was given ──────────────────────────
+        //
+        // ⚠️ A leg — everything from one structure to another — is pinned to its pilot until its
+        // cargo stops appearing, which is the loop being done for that leg: no "loop finished" has
+        // to be detected, and a loop left half flown keeps its other half with the same pilot. A
+        // pilot two stops in used to find, after a refresh, the rest of their loop reshuffled with
+        // the other pilot's — the split had been made afresh from where everyone then was.
+        //
+        // New legs (fresh job output) are placed on whoever finishes soonest with them, alongside
+        // what each already has. A leg whose pilot is no longer on hand — offline, out of the
+        // system, out of a hauler — goes to one who is. ⚠️ A hauled leg lingers until the asset
+        // list sees it moved, up to an hour; until then it stays in its pilot's loop.
+        var pins    = settings.LoopShares;
+        var newPins = new Dictionary<string, long>();
+
         foreach (var sys in moves.GroupBy(m => systems.GetValueOrDefault(m.From)).OrderBy(g => g.Key))
         {
             var trip = trips[(sys.First().From, sys.First().To)];
@@ -336,7 +351,16 @@ public class LogisticsGenerator(
                                                        volumes.GetValueOrDefault(g.Key.TypeId), g.Max(m => m.Priority)))
                 .ToList();
 
-            var shares = Share(cargo, crew, positions, facing);
+            var pinned = cargo.Select(c => (c.From, c.To)).Distinct()
+                .Where(k => pins.ContainsKey($"{sys.Key}:{k.From}:{k.To}"))
+                .ToDictionary(k => k, k => pins[$"{sys.Key}:{k.From}:{k.To}"]);
+
+            var shares = Share(cargo, crew, positions, facing, pinned);
+
+            for (var p = 0; p < crew.Count; p++)
+                if (crew[p].Id > 0)
+                    foreach (var (from, to) in shares[p].Select(c => (c.From, c.To)).Distinct())
+                        newPins[$"{sys.Key}:{from}:{to}"] = crew[p].Id;
 
             for (var p = 0; p < crew.Count; p++)
             {
@@ -423,6 +447,18 @@ public class LogisticsGenerator(
             }
         }
 
+        // Written only when something changed: a refresh that moves nothing writes nothing. Legs
+        // no longer on the list fall out here, which is how a finished leg lets go of its pilot.
+        //
+        // A failed write is logged, not thrown: the pins are already in the preferences held in
+        // memory, so this session keeps them, and losing a hauling plan over one is the wrong trade.
+        if (!newPins.OrderBy(kv => kv.Key).SequenceEqual(pins.OrderBy(kv => kv.Key)))
+        {
+            try { await settings.SetLoopSharesAsync(newPins); }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { errorLogger.Log(nameof(LogisticsGenerator), "loop shares", ex); }
+        }
+
         return items;
     }
 
@@ -490,11 +526,15 @@ public class LogisticsGenerator(
     /// together. Largest pairs are placed first on whoever would finish soonest with them, then
     /// single pairs are moved across while that helps. Every guess is priced by planning the loop
     /// for real, which at a dozen structures is cheap.</para>
+    ///
+    /// <para>⚠️ A pair in <paramref name="pinned"/> whose pilot is on hand stays theirs and is
+    /// never moved: only new pairs, and those whose pilot has gone, are placed.</para>
     /// </summary>
     private static List<List<HaulLoopPlanner.Cargo>> Share(
         List<HaulLoopPlanner.Cargo> cargo, List<LoopPilot> crew,
         IReadOnlyDictionary<long, (double X, double Y, double Z)> positions,
-        IReadOnlyDictionary<long, (double X, double Y, double Z)> facing)
+        IReadOnlyDictionary<long, (double X, double Y, double Z)> facing,
+        IReadOnlyDictionary<(long From, long To), long> pinned)
     {
         if (crew.Count <= 1) return [cargo];
 
@@ -504,6 +544,16 @@ public class LogisticsGenerator(
             .ThenBy(g => g[0].From).ThenBy(g => g[0].To)
             .ToList();
         var owner = Enumerable.Repeat(-1, pairs.Count).ToArray();
+
+        // Pinned pairs first, with the pilot they were given, where that pilot is still flying.
+        var held = new bool[pairs.Count];
+        for (var k = 0; k < pairs.Count; k++)
+            if (pinned.TryGetValue((pairs[k][0].From, pairs[k][0].To), out var pilotId)
+                && crew.FindIndex(c => c.Id == pilotId) is var at and >= 0)
+            {
+                owner[k] = at;
+                held[k]  = true;
+            }
 
         double Cost(int p)
         {
@@ -516,9 +566,10 @@ public class LogisticsGenerator(
             return plan.Seconds + (pilot.Capacity > 0 ? later / pilot.Capacity * 300 : 0);
         }
 
-        var costs = new double[crew.Count];
+        var costs = Enumerable.Range(0, crew.Count).Select(Cost).ToArray();
         for (var k = 0; k < pairs.Count; k++)
         {
+            if (held[k]) continue;
             int best = 0; double bestEnd = double.PositiveInfinity;
             for (var p = 0; p < crew.Count; p++)
             {
@@ -536,6 +587,7 @@ public class LogisticsGenerator(
             var improved = false;
             for (var k = 0; k < pairs.Count; k++)
             {
+                if (held[k]) continue;
                 var from = owner[k];
                 for (var p = 0; p < crew.Count; p++)
                 {
