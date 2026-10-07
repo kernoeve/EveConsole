@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>Actualiser</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Actualisation auto</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Reconstruit la liste toutes les quelques minutes. Désactivez-le pendant une boucle de transport, pour que le plan ne change pas en cours de route : une reconstruction replanifie depuis la position actuelle de chaque pilote. Actualiser la reconstruit toujours.</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>prêtes maintenant</value>
   </data>

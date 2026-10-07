@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>更新</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>自動更新</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>数分ごとにリストを作り直します。運搬の周回中はオフにしてください。作り直すと各パイロットの現在地から計画し直すため、途中で計画が変わります。「更新」ボタンでは引き続き作り直せます。</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>今すぐ実行可能</value>
   </data>

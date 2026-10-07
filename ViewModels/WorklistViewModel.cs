@@ -2276,9 +2276,29 @@ public class WorklistViewModel : ReactiveObject
     /// the user may not be looking at, so the sections accept data that is a few minutes old.</para>
     /// </summary>
     public Task RefreshIfStaleAsync(TimeSpan maxAge)
-        => _lastRefreshUtc is { } last && DateTimeOffset.UtcNow - last < maxAge
+        => _lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge)
             ? Task.CompletedTask
             : RefreshAsync();
+
+    private bool _autoRefresh = UiState.GetBool(UiState.WorklistAutoRefresh, true);
+
+    /// <summary>
+    /// Whether the list rebuilds itself every few minutes, or only when asked.
+    ///
+    /// <para>⚠️ Off is for working a plan. A rebuild replans from the live state — where each pilot
+    /// is now, which loop gets which cargo — so a hauling loop two stops in came back with its
+    /// items reshuffled between the pilots flying it. Refresh, a snooze and a settings change
+    /// still rebuild it, since the user asked for each of those.</para>
+    /// </summary>
+    public bool AutoRefresh
+    {
+        get => _autoRefresh;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoRefresh, value);
+            UiState.SetBool(UiState.WorklistAutoRefresh, value);
+        }
+    }
     private string _hiddenTail = "";
 
     public ObservableCollection<string> StateOptions     { get; } = [];

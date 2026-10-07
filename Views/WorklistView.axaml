@@ -70,6 +70,10 @@
            for the same numbers to be read and reconciled. -->
       <Button Content="{x:Static loc:WorklistText.Refresh}" Command="{Binding RefreshCommand}"
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
+      <!-- Off while flying a plan: a rebuild replans from where everyone is now. -->
+      <CheckBox Content="{x:Static loc:WorklistText.AutoRefresh}" IsChecked="{Binding AutoRefresh}"
+                FontSize="11" VerticalAlignment="Center"
+                ToolTip.Tip="{x:Static loc:WorklistText.TipAutoRefresh}"/>
       <!-- When the run happened. The rows carry their own data age, but nothing said when the list
            itself was last built. -->
       <TextBlock Text="{Binding RefreshedText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"

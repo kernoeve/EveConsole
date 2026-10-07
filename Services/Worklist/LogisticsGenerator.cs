@@ -254,6 +254,10 @@ public class LogisticsGenerator(
         var (positions, facing) = await GeometryAsync(db, moves.SelectMany(m => new[] { m.From, m.To }).Distinct().ToList(), ct);
 
         // The lane's pilots: who they are, whether they are on and where, and what they fly.
+        //
+        // ⚠️ ONLY the pilots listed for the lane in Config → Hauling. A character who happens to be
+        // online in the system and sitting in a freighter is not flying this loop unless the user
+        // said so; every pilot below is drawn from this list.
         var lane   = settings.HaulLaneFor(HaulLane.InSystem);
         var ids    = lane.CharacterIds.ToList();
         var known  = await db.Characters.AsNoTracking()

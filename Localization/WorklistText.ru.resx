@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Автообновление</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Перестраивает список каждые несколько минут. Отключите, пока летите по кругу перевозок, чтобы план не менялся на ходу: перестройка планирует заново от текущего положения каждого пилота. Кнопка «Обновить» по-прежнему перестраивает список.</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>готовы сейчас</value>
   </data>

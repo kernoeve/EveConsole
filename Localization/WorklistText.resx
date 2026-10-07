@@ -16,6 +16,14 @@
     <value>Refresh</value>
     <comment>Button or option in WorklistView.</comment>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Auto refresh</value>
+    <comment>Worklist: checkbox beside Refresh — whether the list rebuilds itself every few minutes.</comment>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Rebuild the list every few minutes. Turn off while flying a hauling loop, so the plan does not change under you — a rebuild replans from where every pilot is now. Refresh still rebuilds it.</value>
+    <comment>Tooltip on the Worklist's auto refresh checkbox.</comment>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>ready now</value>
     <comment>Text in WorklistView.</comment>

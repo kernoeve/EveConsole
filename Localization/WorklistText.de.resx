@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Automatisch aktualisieren</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Baut die Liste alle paar Minuten neu auf. Schalte es aus, während du eine Transportrunde fliegst, damit sich der Plan nicht unterwegs ändert – ein Neuaufbau plant vom aktuellen Standort jedes Piloten aus neu. Aktualisieren baut sie weiterhin neu auf.</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>jetzt bereit</value>
   </data>
