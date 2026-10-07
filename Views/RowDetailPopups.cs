@@ -83,7 +83,7 @@ public sealed class RowDetailPopups
 
     private bool Wanted(DataGridRow row)
     {
-        if (row.DataContext is not IExpandableRow { IsExpanded: true } item) return false;
+        if (row.DataContext is not IExpandableRow { IsExpanded: true, OpensPopup: true } item) return false;
         if (_unloaded.Contains(row) || IsParked(row)) return false;
         if (!_lastLoaded.TryGetValue(item, out var latest) || !ReferenceEquals(latest, row)) return false;
 

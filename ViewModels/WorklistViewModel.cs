@@ -31,6 +31,124 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         Sequence = sequence;
     }
 
+    // ── A loop's stops, as rows of their own ──────────────────────────────────
+    //
+    // ⚠️ Why rows, and not a drawer under the loop. A DataGrid prices the rows it has not drawn
+    // from the ones it has, and rows of very different heights make that guess wrong as you
+    // scroll up: the view flickers backwards and the scrollbar resizes. RowDetails did it, and so
+    // does a drawer inside the cell, capped or not — tools/gridsim measures each. Detail lines as
+    // rows of the SAME height as every other row leave nothing to guess: the rig scores them
+    // perfect, better than the grid with nothing open. So a loop expands into one row per stop
+    // and one per item handled there, all at the grid's one row height (see WorklistView, which
+    // pins it).
+    //
+    // ⚠️ A stop row carries its LOOP's item, so every sort key, the group and the readiness rail
+    // are the loop's: whatever column the list is sorted on, the stops stay under their loop.
+    // FamilyOrder and ChildOrder, kept last in the sort, put them in flying order beneath it.
+
+    private readonly WorklistRowVm? _parent;
+    private readonly int    _childOrder;
+    private readonly int    _childTypeId;
+    private readonly string _childLabel  = "";
+    private readonly string _childAction = "";
+    private readonly string _childQty    = "";
+    private readonly string _childOther  = "";
+    private readonly string _childVolume = "";
+    private readonly bool   _childTurn;
+    private readonly bool   _childIsStop;
+
+    private WorklistRowVm(WorklistRowVm parent, int order, bool isStop, string label, bool turn,
+                          int typeId = 0, string action = "", string qty = "", string other = "",
+                          string volume = "")
+    {
+        _item        = parent._item;
+        Sequence     = parent.Sequence;
+        _parent      = parent;
+        _childOrder  = order;
+        _childIsStop = isStop;
+        _childLabel  = label;
+        _childTurn   = turn;
+        _childTypeId = typeId;
+        _childAction = action;
+        _childQty    = qty;
+        _childOther  = other;
+        _childVolume = volume;
+    }
+
+    /// <summary>One of a loop's stop rows rather than a task.</summary>
+    public bool IsChild => _parent is not null;
+
+    /// <summary>A stop's own heading row: its number, the structure, and whether it means a turn.</summary>
+    public bool IsChildStop => IsChild && _childIsStop;
+
+    /// <summary>An item dropped off or picked up at the stop above it.</summary>
+    public bool IsChildLine => IsChild && !_childIsStop;
+
+    public string ChildLabel  => _childLabel;
+    public string ChildAction => _childAction;
+    public string ChildQty    => _childQty;
+    public string ChildOther  => _childOther;
+    public bool   ChildTurn   => _childTurn;
+
+    /// <summary>The loop's place in the list, shared by its stop rows, so they sort as one.</summary>
+    public int FamilyOrder => Sequence;
+
+    /// <summary>0 on the loop itself, then the stop rows in flying order.</summary>
+    public int ChildOrder => _childOrder;
+
+    private IReadOnlyList<WorklistRowVm>? _children;
+
+    /// <summary>A loop's stop rows: each stop, then what comes off there, then what goes on.</summary>
+    public IReadOnlyList<WorklistRowVm> Children => _children ??= BuildChildren();
+
+    private IReadOnlyList<WorklistRowVm> BuildChildren()
+    {
+        if (!IsLoop || IsChild) return [];
+
+        static string Short(string place)
+        {
+            var dash = place.IndexOf(" - ", StringComparison.Ordinal);
+            return dash > 0 ? place[(dash + 3)..] : place;
+        }
+        static string M3(double v) => v < 0.1 ? "" : v >= 10 ? $"{v:N0} m³" : $"{v:N1} m³";
+
+        var rows  = new List<WorklistRowVm>();
+        var order = 0;
+        for (var i = 0; i < _item.Stops.Count; i++)
+        {
+            var st = _item.Stops[i];
+            rows.Add(new WorklistRowVm(this, ++order, isStop: true, $"{i + 1}.  {st.StationName}", st.TurnBefore));
+
+            void Line(WorklistStopLine l, bool pickUp) =>
+                rows.Add(new WorklistRowVm(this, ++order, isStop: false,
+                    SdeNames.Type(l.TypeId, l.TypeName), turn: false, l.TypeId,
+                    pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff,
+                    l.Quantity.ToString("N0"),
+                    string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom, Short(l.OtherName)),
+                    M3(l.Volume)));
+
+            foreach (var l in st.DropOff) Line(l, pickUp: false);
+            foreach (var l in st.PickUp)  Line(l, pickUp: true);
+        }
+        return rows;
+    }
+
+    /// <summary>Told when this row opens or closes, so a loop's stop rows can be put in or taken
+    /// out of the grid without rebuilding it — which would lose the scroll position.</summary>
+    internal Action<WorklistRowVm>? ExpansionChanged { get; set; }
+
+    /// <summary>A loop opens in the grid; its stop rows open nothing.</summary>
+    public bool OpensPopup => !IsLoop && !IsChild;
+
+    /// <summary>What the floating panel binds to: expanded, and a row that floats one.</summary>
+    public bool IsPopupOpen => IsExpanded && OpensPopup;
+
+    /// <summary>The # column: blank on a stop row, which shares its loop's number.</summary>
+    public string SequenceText => IsChild ? "" : Sequence.ToString("N0");
+
+    /// <summary>The kind glyph, which a stop row leaves to its loop.</summary>
+    public bool ShowsKindGlyph => !IsChild;
+
     /// <summary>
     /// This row's place in the default priority order, numbered from one.
     ///
@@ -122,6 +240,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public async Task LoadIconAsync()
     {
+        // A stop row: the item handled, or nothing on the stop's own heading.
+        if (IsChild)
+        {
+            if (_childTypeId <= 0) return;
+            var line = await EveImageCache.GetAsync($"https://images.evetech.net/types/{_childTypeId}/icon?size=32");
+            if (line is not null) Dispatcher.UIThread.Post(() => Icon = line);
+            return;
+        }
+
         // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
         var url = _item.TypeId > 0
             ? $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32"
@@ -300,7 +427,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// Rounded to whole cubic metres above a thousand — nobody loads a hauler to the decimal, and
     /// the column is read to judge how many trips it is.
     /// </summary>
-    public string VolumeText => _item.Volume <= 0 ? ""
+    public string VolumeText => IsChild ? _childVolume
+        : _item.Volume <= 0 ? ""
         : _item.Volume >= 1000 ? $"{_item.Volume:N0} m³"
         : $"{_item.Volume:N1} m³";
 
@@ -310,15 +438,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         _lines ??= [.. _item.Lines.Select(l => new WorklistLineVm(l))];
     /// <summary>⚠️ Not for a loop: its stops list the same cargo where it is actually handled,
     /// and a manifest beside them would be the whole load stated twice.</summary>
-    public bool HasLines => _item.Lines.Count > 0 && !IsLoop;
+    public bool HasLines => _item.Lines.Count > 0 && !IsLoop && !IsChild;
 
     /// <summary>An in-system loop: one errand of several stops rather than one trip.</summary>
     public bool IsLoop => _item.Stops.Count > 0;
-
-    private IReadOnlyList<WorklistStopVm>? _stops;
-    /// <summary>A loop's stops in flying order.</summary>
-    public IReadOnlyList<WorklistStopVm> Stops =>
-        _stops ??= [.. _item.Stops.Select((st, i) => new WorklistStopVm(st, i + 1))];
 
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
     private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
@@ -336,7 +459,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
     /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
     /// their neighbours opened, which reads as missing data rather than as no data.</summary>
-    public bool CanExpand => HasLines || IsLoop || HasWaitingJobs || HasDetail;
+    public bool CanExpand => !IsChild && (HasLines || IsLoop || HasWaitingJobs || HasDetail);
     public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
@@ -350,8 +473,11 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         get => _isExpanded;
         set
         {
+            if (_isExpanded == value) return;
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpandGlyph));
+            this.RaisePropertyChanged(nameof(IsPopupOpen));
+            ExpansionChanged?.Invoke(this);
         }
     }
 
@@ -371,14 +497,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     // presentation has to happen inside the cell — one panel per kind, only one of them visible.
     // Selection by kind rather than by CLR type because every row is the same class; splitting the
     // view model per kind would mean four near-identical types to keep in step.
-    public bool IsHaul  => _item.Kind == WorklistKind.Haul;
-    public bool IsJob   => _item.Kind == WorklistKind.Job;
-    public bool IsBuy   => _item.Kind == WorklistKind.Buy;
+    // ⚠️ Each false on a stop row, which carries its loop's item: the stop draws its own content.
+    public bool IsHaul  => !IsChild && _item.Kind == WorklistKind.Haul;
+    public bool IsJob   => !IsChild && _item.Kind == WorklistKind.Job;
+    public bool IsBuy   => !IsChild && _item.Kind == WorklistKind.Buy;
     /// <summary>Reprocessing and decompressing share a shape: what to do, and the one station to
     /// do it at.</summary>
-    public bool IsRefining => _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
+    public bool IsRefining => !IsChild && _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
 
-    public bool IsOther => !IsHaul && !IsJob && !IsBuy && !IsRefining;
+    public bool IsOther => !IsChild && !IsHaul && !IsJob && !IsBuy && !IsRefining;
 
     /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
     /// independent facts.</summary>
@@ -389,7 +516,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// its title — so sorting on Title alone rearranged haul rows by text the user could not see.
     /// Sorting has to follow what is on screen or it looks random.</para>
     /// </summary>
-    public string TaskSortText => IsHaul ? RouteText : Title;
+    public string TaskSortText => _parent is { } loop ? loop.TaskSortText : IsHaul ? RouteText : Title;
 
     /// <summary>A trip's two ends; a loop's first stop, since it has no single far end.</summary>
     public string RouteText => IsLoop
@@ -455,7 +582,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// <para>Blank rather than zero when unpriced. Science jobs are the case that matters: a
     /// blueprint copy has no stored value per ME level, so the honest answer is nothing at all
     /// rather than a confident 0 ISK.</para></summary>
-    public string ValueText => _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
+    public string ValueText => IsChild ? "" : _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
 
     /// <summary>
     /// Everything the row knows that is not worth a line of its own, gathered for one tooltip.
@@ -477,7 +604,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         }
     }
 
-    public bool HasDetailTip => DetailTip.Length > 0;
+    public bool HasDetailTip => !IsChild && DetailTip.Length > 0;
 
     /// <summary>
     /// Where this row's task sits in the group order — the declaration order of
@@ -883,48 +1010,6 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
 /// layer, created fresh on every refresh and immutable — an icon arrives asynchronously and has to
 /// raise a change when it does, which a record cannot.</para>
 /// </summary>
-/// <summary>One stop of an in-system loop, as its row's detail lists it.</summary>
-public sealed class WorklistStopVm(WorklistHaulStop stop, int number)
-{
-    public string Number      => $"{number}.";
-    public string StationName => stop.StationName;
-
-    /// <summary>Said, not drawn: a turn is the slow part of a freighter's leg, and the reason the
-    /// order is what it is.</summary>
-    public bool   TurnBefore  => stop.TurnBefore;
-
-    public IReadOnlyList<WorklistStopLineVm> DropOff { get; } =
-        [.. stop.DropOff.Select(l => new WorklistStopLineVm(l, pickUp: false))];
-    public IReadOnlyList<WorklistStopLineVm> PickUp { get; } =
-        [.. stop.PickUp.Select(l => new WorklistStopLineVm(l, pickUp: true))];
-
-    public bool HasDropOff => stop.DropOff.Count > 0;
-    public bool HasPickUp  => stop.PickUp.Count > 0;
-}
-
-/// <summary>One item handled at a loop stop, with the other end of its trip.</summary>
-public sealed class WorklistStopLineVm(WorklistStopLine line, bool pickUp)
-{
-    public string TypeName => SdeNames.Type(line.TypeId, line.TypeName);
-    public string Quantity => line.Quantity.ToString("N0");
-    public string Action   => pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff;
-
-    /// <summary>"for Large Ships" on a pick-up, "from Cap Parts" on a drop-off. The system is cut
-    /// from the name: every stop of a loop is in the same one.</summary>
-    public string OtherText => string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom,
-                                             Short(line.OtherName));
-
-    /// <summary>Blank below a tenth of a m³ — a blueprint's 0.01 m³ read as "0.0 m³".</summary>
-    public string VolumeText => line.Volume < 0.1 ? ""
-        : line.Volume >= 10 ? $"{line.Volume:N0} m³" : $"{line.Volume:N1} m³";
-
-    private static string Short(string place)
-    {
-        var dash = place.IndexOf(" - ", StringComparison.Ordinal);
-        return dash > 0 ? place[(dash + 3)..] : place;
-    }
-}
-
 public sealed class WorklistLineVm : ReactiveObject
 {
     private readonly WorklistLine _line;
@@ -2028,15 +2113,76 @@ public class WorklistViewModel : ReactiveObject
     /// <see cref="WorklistRowVm.KindRank"/> defines whatever else is being sorted on.</summary>
     private bool _pinningGroupOrder;
 
+    /// <summary>
+    /// The group key first, and a loop's family last: <see cref="WorklistRowVm.FamilyOrder"/>
+    /// then <see cref="WorklistRowVm.ChildOrder"/>.
+    ///
+    /// <para>⚠️ The tail is what keeps a loop's stop rows under it. They carry the loop's own
+    /// values for every column, so they tie with it — and with any other row that happens to
+    /// share the value sorted on. Last in the sort, the loop's number keeps two families from
+    /// interleaving and the child order puts the stops in flying order beneath their loop. A
+    /// header click replaces the sort wholesale, so this runs again and puts both back at the end.</para>
+    /// </summary>
     private void PinGroupOrder()
     {
-        if (_pinningGroupOrder) return;              // the insert below re-raises this
+        if (_pinningGroupOrder) return;              // the edits below re-raise this
         var sorts = RowsView.SortDescriptions;
-        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(WorklistRowVm.KindRank)) return;
+
+        var headOk = sorts.Count > 0 && sorts[0].PropertyPath == nameof(WorklistRowVm.KindRank);
+        var tailOk = sorts.Count >= 3
+                     && sorts[^2].PropertyPath == nameof(WorklistRowVm.FamilyOrder)
+                     && sorts[^1].PropertyPath == nameof(WorklistRowVm.ChildOrder);
+        if (headOk && tailOk) return;
 
         _pinningGroupOrder = true;
-        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(WorklistRowVm.KindRank))); }
+        try
+        {
+            if (!headOk) sorts.Insert(0, DataGridSortDescription.FromPath(nameof(WorklistRowVm.KindRank)));
+
+            for (var i = sorts.Count - 1; i >= 0; i--)
+                if (sorts[i].PropertyPath is nameof(WorklistRowVm.FamilyOrder) or nameof(WorklistRowVm.ChildOrder))
+                    sorts.RemoveAt(i);
+            sorts.Add(DataGridSortDescription.FromPath(nameof(WorklistRowVm.FamilyOrder)));
+            sorts.Add(DataGridSortDescription.FromPath(nameof(WorklistRowVm.ChildOrder)));
+        }
         finally { _pinningGroupOrder = false; }
+    }
+
+    /// <summary>A row, and after it its stop rows when it is an open loop.</summary>
+    private static IEnumerable<WorklistRowVm> WithStops(WorklistRowVm row)
+    {
+        yield return row;
+        if (!row.IsLoop || !row.IsExpanded) yield break;
+        foreach (var stop in row.Children) yield return stop;
+        _ = Task.WhenAll(row.Children.Select(c => c.LoadIconAsync()));
+    }
+
+    /// <summary>
+    /// A loop opened or closed: its stop rows go into the grid under it, or come out.
+    ///
+    /// <para>⚠️ One at a time rather than a Reset of the whole list. A Reset recycles every row,
+    /// and the reader who opened a loop halfway down the list would be thrown back to the top.
+    /// A loop's stops are tens of rows, not hundreds, which per-row inserts handle.</para>
+    /// </summary>
+    private void OnRowExpansionChanged(WorklistRowVm row)
+    {
+        if (!row.IsLoop || row.IsChild) return;
+
+        var at = Rows.IndexOf(row);
+        if (at < 0) return;   // not on screen: ApplyFilters adds them when it is
+
+        if (row.IsExpanded)
+        {
+            if (row.Children.Count == 0 || Rows.Contains(row.Children[0])) return;
+            for (var i = 0; i < row.Children.Count; i++) Rows.Insert(at + 1 + i, row.Children[i]);
+            _ = Task.WhenAll(row.Children.Select(c => c.LoadIconAsync()));
+        }
+        else
+        {
+            foreach (var stop in row.Children) Rows.Remove(stop);
+        }
+
+        UpdateStatus();
     }
 
     private bool _pinningNeedsGroupOrder;
@@ -2074,8 +2220,9 @@ public class WorklistViewModel : ReactiveObject
 
     private void ApplyFilters()
     {
-        // One notification, not one per row: this is the grid's ItemsSource.
-        Rows.ResetTo(_pool.Where(Matches));
+        // One notification, not one per row: this is the grid's ItemsSource. An open loop brings
+        // its stop rows with it.
+        Rows.ResetTo(_pool.Where(Matches).SelectMany(WithStops));
 
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
@@ -2209,7 +2356,8 @@ public class WorklistViewModel : ReactiveObject
     {
         ReadyCountText = _readyTotal.ToString("N0");
 
-        var shown = Rows.Count;
+        // Tasks, not grid rows: an open loop's stop rows are its detail.
+        var shown = Rows.Count(r => !r.IsChild);
 
         // "Shown" is only worth saying when it differs from the ready count — otherwise the two
         // numbers are the same fact stated twice.
@@ -2279,7 +2427,8 @@ public class WorklistViewModel : ReactiveObject
                 // Numbered here, off the ordered list, so the sequence is the default order itself
                 // rather than a second guess at it. Built off-thread with everything else — the
                 // rows are plain view models until something binds to them.
-                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1) { ExpansionChanged = OnRowExpansionChanged })
+                                  .ToList();
 
                 // Icons fetched together rather than one per row as the grid realises them: they
                 // come from a cache that dedupes across refreshes, so a rebuild costs nothing

@@ -17,6 +17,12 @@ public interface IExpandableRow
     string ExpandKey { get; }
 
     bool IsExpanded { get; set; }
+
+    /// <summary>
+    /// Whether expanding floats a detail panel over the grid. Not for a row that expands IN the
+    /// grid — a hauling loop, whose stops are rows of their own — nor for one of those rows.
+    /// </summary>
+    bool OpensPopup => true;
 }
 
 public static class RowExpansion

@@ -2017,9 +2017,6 @@
   <data name="HaulLoopMore" xml:space="preserve">
     <value>Están planificadas las primeras {0:N0} paradas; otros {1:N0} m³ necesitan más circuitos.</value>
   </data>
-  <data name="HaulStopsLabel" xml:space="preserve">
-    <value>Paradas</value>
-  </data>
   <data name="HaulStopTurn" xml:space="preserve">
     <value>dar la vuelta</value>
   </data>

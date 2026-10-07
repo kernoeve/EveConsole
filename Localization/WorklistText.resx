@@ -2680,10 +2680,6 @@
     <value>The first {0:N0} stops are planned; {1:N0} m³ more needs further loops.</value>
     <comment>Detail of an in-system loop too big for one plan: {0} = stops planned, {1} = m³ left for later loops.</comment>
   </data>
-  <data name="HaulStopsLabel" xml:space="preserve">
-    <value>STOPS</value>
-    <comment>Heading over an in-system loop's stops in the row detail (uppercase, like MANIFEST).</comment>
-  </data>
   <data name="HaulStopTurn" xml:space="preserve">
     <value>turn round</value>
     <comment>Beside a loop stop reached by undocking away from it and turning round first.</comment>

@@ -2017,9 +2017,6 @@
   <data name="HaulLoopMore" xml:space="preserve">
     <value>Les {0:N0} premiers arrêts sont planifiés ; {1:N0} m³ de plus demandent d'autres boucles.</value>
   </data>
-  <data name="HaulStopsLabel" xml:space="preserve">
-    <value>Arrêts</value>
-  </data>
   <data name="HaulStopTurn" xml:space="preserve">
     <value>demi-tour</value>
   </data>

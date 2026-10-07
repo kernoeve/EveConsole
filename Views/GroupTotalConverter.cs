@@ -25,7 +25,8 @@ public sealed class GroupTotalConverter : IValueConverter
     {
         if (value is not IEnumerable items) return "";
 
-        var rows = items.OfType<WorklistRowVm>().ToList();
+        // A loop's stop rows are its detail, not tasks: counted, they would multiply the totals.
+        var rows = items.OfType<WorklistRowVm>().Where(r => !r.IsChild).ToList();
         if (rows.Count == 0) return "";
 
         return (parameter as string) switch

@@ -27,9 +27,39 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         // is expanded — see RowDetailPopups for the two ways a row stays in the tree after it has
         // left the screen, and why the detach handler below cannot see either of them.
         LayoutUpdated += (_, _) => _details.Reconcile();
+
+        TaskGrid.LayoutUpdated += PinRowHeight;
     }
 
     private readonly RowDetailPopups _details = new();
+
+    /// <summary>
+    /// Fixes the task grid's row height at what its rows already measure, once.
+    ///
+    /// <para>⚠️ What lets a loop open in the grid without breaking scrolling. A DataGrid prices the
+    /// rows it has not drawn from those it has, and scrolling up through rows of different heights
+    /// lands in the wrong place — the flicker the old drawers had. A loop's stops are rows of their
+    /// own, and with every row the SAME height there is nothing to price: tools/gridsim scores that
+    /// perfect. Measured rather than written down, so it holds at any font and UI scale; the tasks'
+    /// rows are single lines by design, so the tallest one realised is the height of them all.</para>
+    ///
+    /// <para>Set through the public property and posted out of the layout pass — nothing here
+    /// touches the grid's own bookkeeping, which is what went wrong the last time a fix reached in.</para>
+    /// </summary>
+    private void PinRowHeight(object? sender, EventArgs e)
+    {
+        if (!double.IsNaN(TaskGrid.RowHeight)) { TaskGrid.LayoutUpdated -= PinRowHeight; return; }
+
+        var heights = TaskGrid.GetVisualDescendants().OfType<DataGridRow>()
+            .Where(r => r.IsVisible && r.DataContext is WorklistRowVm { IsChild: false } && r.Bounds.Height > 1)
+            .Select(r => r.Bounds.Height)
+            .ToList();
+        if (heights.Count < 3) return;
+
+        TaskGrid.LayoutUpdated -= PinRowHeight;
+        var height = Math.Ceiling(heights.Max());
+        Dispatcher.UIThread.Post(() => TaskGrid.RowHeight = height);
+    }
 
     private void OnRowLoading(object? sender, DataGridRowEventArgs e)   => _details.RowLoaded((DataGrid)sender!, e.Row);
     private void OnRowUnloading(object? sender, DataGridRowEventArgs e) => _details.RowUnloaded(e.Row);
@@ -212,7 +242,7 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         var opened = new HashSet<string>();
 
         foreach (var popup in this.GetVisualDescendants().OfType<Popup>())
-            if (popup.DataContext is IExpandableRow { IsExpanded: true } row && opened.Add(row.ExpandKey))
+            if (popup.DataContext is IExpandableRow { IsExpanded: true, OpensPopup: true } row && opened.Add(row.ExpandKey))
                 popup.SetCurrentValue(Popup.IsOpenProperty, true);
     }
 

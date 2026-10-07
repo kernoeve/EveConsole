@@ -2002,9 +2002,6 @@
   <data name="HaulLoopMore" xml:space="preserve">
     <value>처음 {0:N0}곳을 계획했습니다. 나머지 {1:N0} m³는 이후 순환에서 옮깁니다.</value>
   </data>
-  <data name="HaulStopsLabel" xml:space="preserve">
-    <value>정박지</value>
-  </data>
   <data name="HaulStopTurn" xml:space="preserve">
     <value>선회 필요</value>
   </data>

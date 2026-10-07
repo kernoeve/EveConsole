@@ -96,4 +96,22 @@ the list to keep scoring zero, as a reminder that a green line here is not a saf
 | `estimates pinned` | **shipped.** Fixes the extent: `badEst` 40 → 0, `clamp` 20 → 0. Leaves the landing fault |
 | `+ takeover [REJ]` | scores clean here, destroyed the app. Permanently rejected |
 | `whenSelected` | `VisibleWhenSelected` skips Avalonia's large-jump shortcut. Measured: no better than pinned, in any mode |
-| `uniform drawers` | a fixed-height drawer scrolling inside. Measured: **worse** — 13 reverse steps against 3. The look that was rejected would not have fixed this either |
+| `uniform drawers` | a fixed-height drawer scrolling inside. Still faulty — 13 reverse steps. ⚠️ The figures first recorded here were measured against the UNCAPPED heights (see `Row.Cap`); corrected 2026-10-06, the verdict stands |
+| `in-cell drawer` | no RowDetails: the drawer inside the cell, so an open row is a taller row. **Worse** — 42 reverse steps. The fault is rows of different heights, not the details machinery |
+| `in-cell capped` | the same, capped at 320px and scrolling inside. 13 reverse steps — no better than `uniform drawers` |
+| `child rows` | every drawer line a row of its own (32px) under its parent, no drawer at all. No reverse steps, but the extent drifts ~1000px: rows still differ in height (32 against 43/55) |
+| `none open (today)` | the baseline — fifty rows, nothing open. Near-clean |
+| `child rows, even` | **the one to use.** Detail lines as rows, and every row the same height. **Zero faults in every mode** — extent and drift under 1px, every step exactly the ask |
+
+## 2026-10-06: detail in the grid, as rows of one height
+
+Avalonia 11.3.22 / DataGrid 11.3.13 still fail exactly as 11.2.3 did, and the in-cell variants show
+why no drawer can work: the grid prices rows it has not drawn from those it has, and any spread in
+row height turns scrolling up into a fight. With every row the same height there is nothing to price.
+
+So the worklist opens a hauling loop IN the grid by inserting its stops as rows of their own — each
+stop, then each item handled there — and `WorklistView.PinRowHeight` fixes the grid's `RowHeight`
+at what its rows measure, once, through the public property. A stop row carries its loop's item, so
+it sorts and groups with it; `FamilyOrder` then `ChildOrder`, kept last in the sort, keep the family
+together and in flying order under any column sort (checked over 560 sorted, grouped lists, and
+mutation-checked).

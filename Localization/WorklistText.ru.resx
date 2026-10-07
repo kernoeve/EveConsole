@@ -2047,9 +2047,6 @@
   <data name="HaulLoopMore" xml:space="preserve">
     <value>Запланированы первые {0:N0} остановок; ещё {1:N0} м³ потребуют следующих кругов.</value>
   </data>
-  <data name="HaulStopsLabel" xml:space="preserve">
-    <value>Остановки</value>
-  </data>
   <data name="HaulStopTurn" xml:space="preserve">
     <value>разворот</value>
   </data>
