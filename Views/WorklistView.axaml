@@ -397,7 +397,7 @@
                   <TextBlock Text="{Binding ChildQty}" FontSize="14"
                              Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                   <TextBlock Text="{Binding ChildOther}" FontSize="12"
-                             Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                             Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Haul: where from, where to, and how much of it. -->

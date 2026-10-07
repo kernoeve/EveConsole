@@ -53,12 +53,14 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     private readonly string _childVolume = "";
     private readonly string _childValue  = "";
     private readonly string _childTotals = "";
+    private readonly IBrush? _childOtherColor;
     private readonly bool   _childTurn;
 
     private WorklistRowVm(WorklistRowVm parent, int order, ChildKind kind, string label, bool turn = false,
                           int typeId = 0, string action = "", string qty = "", string other = "",
-                          string volume = "", string value = "", string totals = "")
+                          string volume = "", string value = "", string totals = "", IBrush? otherColor = null)
     {
+        _childOtherColor = otherColor;
         _item        = parent._item;
         Sequence     = parent.Sequence;
         _parent      = parent;
@@ -92,6 +94,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     public string ChildAction => _childAction;
     public string ChildQty    => _childQty;
     public string ChildOther  => _childOther;
+
+    /// <summary>The colour of <see cref="ChildOther"/>: a waiting job's verdict in its own colour —
+    /// green where this trip starts it — and the muted text of a note everywhere else.</summary>
+    public IBrush ChildOtherColor => _childOtherColor ?? Palette.TextDim;
     public bool   ChildTurn   => _childTurn;
 
     /// <summary>The item a detail row names, opened in the Item Browser.</summary>
@@ -167,7 +173,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.WaitingOnThisLabel));
             foreach (var w in WaitingJobs)
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId,
-                                           other: w.StatusText));
+                                           other: w.StatusText, otherColor: w.StatusColor));
         }
 
         // A trip's manifest. A loop's cargo is already listed where it is handled, at its stops.
