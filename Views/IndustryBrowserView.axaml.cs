@@ -549,6 +549,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
         if (ViewModel?.SelectedRow != row) return;
 
+        // A reaction's formula is no blueprint, though the image server draws it as one.
+        if (actId is 9 or 11 && prodImg is not null) bpImg = ViewModels.FormulaPicture.Compose(prodImg);
+
         BlueprintImage.Source = bpImg;
         ProductImage.Source   = prodImg;
         FacilityImage.Source  = facImg;

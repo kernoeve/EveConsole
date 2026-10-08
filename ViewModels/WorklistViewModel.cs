@@ -1186,7 +1186,15 @@ public sealed class ObservationPointVm : ReactiveObject
     public Avalonia.Media.Imaging.Bitmap? Icon
     {
         get => _icon;
-        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _icon, value);
+            // ⚠️ HasIcon too: the picture always lands after the card is built, and the bullet it
+            // replaces reads HasIcon. Without this, only cards drawn after their pictures had
+            // arrived ever showed them, and a refresh while the tab was open turned them all back
+            // into bullets.
+            this.RaisePropertyChanged(nameof(HasIcon));
+        }
     }
 
     /// <summary>⚠️ Only once the picture is actually here. Reserving the space up front leaves a
@@ -1439,10 +1447,12 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
         FamilyOrder = order;
         Tasks = [.. p.Tasks.Select(t => new ShortageTaskRowVm(t))];
 
-        // ⚠️ The PRODUCT's icon, not a blueprint one. This grid is named for the print but every
-        // row is identified by what it makes, and the image server has no blueprint art for a
-        // product id — asking for one returns nothing at all.
-        _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
+        // The print the row is about: the blueprint original, or for a reaction the formula —
+        // which the image server draws as a blueprint, so it is drawn here (FormulaPicture). The
+        // product's own icon only where the blueprint is not known.
+        if (p.IsReaction)               _ = ItemIcons.LoadFormulaAsync(p.ProductTypeId, b => Icon = b);
+        else if (p.BlueprintTypeId > 0) _ = ItemIcons.LoadAsync(p.BlueprintTypeId, b => Icon = b, blueprint: true);
+        else                            _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
     }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
