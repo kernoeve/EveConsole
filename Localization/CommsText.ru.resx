@@ -324,6 +324,9 @@
   <data name="NotifTitleStructureLostShields" xml:space="preserve">
     <value>Сооружение потеряло щиты</value>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>Время укрепления изменено</value>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>Сооружение потеряло броню</value>
   </data>
@@ -750,6 +753,21 @@
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>Укреплённый режим до</value>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>Изменённые сооружения</value>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>Сооружение</value>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>Час укрепления</value>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>День укрепления</value>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>Вступает в силу</value>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>Начало битвы</value>
   </data>
@@ -761,6 +779,15 @@
   </data>
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>К учётной записи добавлено игровое время.</value>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>{0} по времени EVE (±3 часа)</value>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>Время укрепления {1:N0} сооружений переносится на {0} по времени EVE (±3 часа).</value>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>Время укрепления {1:N0} сооружений переносится на {0} по времени EVE (±3 часа) с {2} или, если сооружение повреждено, при первой возможности после этого, когда оно цело.</value>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>Подробности</value>

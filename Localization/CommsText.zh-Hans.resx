@@ -315,6 +315,9 @@
   <data name="NotifTitleStructureLostShields" xml:space="preserve">
     <value>建筑失去护盾</value>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>增强时间已更改</value>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>建筑失去装甲</value>
   </data>
@@ -741,6 +744,21 @@
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>增强结束时间</value>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>已更改的建筑</value>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>增强时段</value>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>增强日</value>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>生效时间</value>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>开战时间</value>
   </data>
@@ -752,6 +770,15 @@
   </data>
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>已为账户添加游戏时间。</value>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>EVE 时间 {0}（±3 小时）</value>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>{1:N0} 座建筑的增强时间改为 EVE 时间 {0}（±3 小时）。</value>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>{1:N0} 座建筑的增强时间将于 {2} 起改为 EVE 时间 {0}（±3 小时）；若届时受损，则在其恢复完好后的第一时间生效。</value>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>详情</value>

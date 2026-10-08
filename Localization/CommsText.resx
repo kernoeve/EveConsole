@@ -422,6 +422,10 @@
     <value>Structure lost shields</value>
     <comment>What the notification type StructureLostShields is called.</comment>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>Reinforcement time changed</value>
+    <comment>Title of the notice that a corporation's structures were moved to a new reinforcement hour.</comment>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>Structure lost armor</value>
     <comment>What the notification type StructureLostArmor is called.</comment>
@@ -990,6 +994,26 @@
     <value>Reinforced until</value>
     <comment>Label of a field in a notification's details.</comment>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>Structures changed</value>
+    <comment>Heading of the list of structures whose reinforcement time was changed.</comment>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Column heading in a notification's list of structures.</comment>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>Reinforcement hour</value>
+    <comment>Field label: the hour structures now come out of reinforcement.</comment>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>Reinforcement day</value>
+    <comment>Field label: the weekday of a structure's reinforcement, when the notice gives one.</comment>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>Takes effect</value>
+    <comment>Field label: when a change applies.</comment>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>Fighting starts</value>
     <comment>Label of a field in a notification's details.</comment>
@@ -1005,6 +1029,18 @@
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>Game time was added to the account.</value>
     <comment>The whole text of a GameTimeAdded notification.</comment>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>{0} EVE time (±3 hours)</value>
+    <comment>A reinforcement hour. {0} = the hour, e.g. 18:00.</comment>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>Reinforcement time moves to {0} EVE time (±3 hours) for {1:N0} structure(s).</value>
+    <comment>Summary of the notice. {0} = the new hour, e.g. 18:00; {1} = how many structures.</comment>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>Reinforcement time moves to {0} EVE time (±3 hours) for {1:N0} structure(s) from {2}, or the first time after that each one is undamaged.</value>
+    <comment>Summary of the notice. {0} = the new hour, e.g. 18:00; {1} = how many structures; {2} = the date and time it takes effect.</comment>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>Details</value>

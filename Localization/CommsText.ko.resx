@@ -315,6 +315,9 @@
   <data name="NotifTitleStructureLostShields" xml:space="preserve">
     <value>구조물 실드 소실</value>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>강화 시간 변경</value>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>구조물 장갑 소실</value>
   </data>
@@ -741,6 +744,21 @@
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>강화 종료 시각</value>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>변경된 구조물</value>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>강화 시각</value>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>강화 요일</value>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>적용 시각</value>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>교전 시작</value>
   </data>
@@ -752,6 +770,15 @@
   </data>
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>계정에 게임 시간이 추가되었습니다.</value>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>EVE 시간 {0} (±3시간)</value>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>구조물 {1:N0}개의 강화 시간이 EVE 시간 {0}(±3시간)으로 바뀝니다.</value>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>구조물 {1:N0}개의 강화 시간이 {2}부터 EVE 시간 {0}(±3시간)으로 바뀝니다. 그때 손상된 구조물은 이후 처음으로 손상이 없을 때 바뀝니다.</value>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>세부 정보</value>
