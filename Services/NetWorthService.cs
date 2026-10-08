@@ -6,8 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
+public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
 {
+    /// <summary>The last failure logged, so a recalculation failing the same way every poll
+    /// cycle is reported once, not once per owner per cycle.</summary>
+    private string? _lastFailure;
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     public async Task RecalculateAsync(long ownerId, string ownerType, CancellationToken ct = default)
@@ -70,9 +74,19 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
             }
 
             await db.SaveChangesAsync(ct);
+            _lastFailure = null;
         }
         catch (OperationCanceledException) { throw; }
-        catch { /* non-fatal — next cycle will retry */ }
+        catch (Exception ex)
+        {
+            // Non-fatal — the next cycle retries. ⚠️ But never silent: swallowed whole, a query
+            // PostgreSQL refused kept every owner's daily snapshot from being written for a month,
+            // and nothing anywhere said so.
+            var key = $"{ex.GetType().Name}: {ex.Message}";
+            if (key == _lastFailure) return;
+            _lastFailure = key;
+            errorLogger.Log("NetWorth", $"recalculating {ownerType} {ownerId}", ex);
+        }
     }
 
     // ── Scalar query helper ───────────────────────────────────────────────────
@@ -169,9 +183,16 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
               AND ebp."OwnerType" = j."OwnerType"
         LEFT JOIN "SdeTypes" bt
                ON bt."TypeId" = j."BlueprintTypeId"
+        -- ⚠️ The SDE names its activities; a job numbers them. Compared as they were, the text
+        -- against the number, PostgreSQL refused the whole query, and SQLite matched nothing and
+        -- counted every run as making one item — a fuel block job at a fortieth of its output.
         LEFT JOIN "SdeBlueprintProducts" bp
                ON bp."TypeId"        = j."BlueprintTypeId"
-              AND bp."Activity"      = j."ActivityId"
+              AND bp."Activity"      = CASE j."ActivityId"
+                                           WHEN 1  THEN 'manufacturing'
+                                           WHEN 9  THEN 'reaction'
+                                           WHEN 11 THEN 'reaction'
+                                       END
               AND bp."ProductTypeId" = j."ProductTypeId"
         LEFT JOIN "MarketDefaultSettings" mds ON mds."Id" = 1
         LEFT JOIN "MarketItemPrices" p
