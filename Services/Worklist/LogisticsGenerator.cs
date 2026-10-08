@@ -309,7 +309,10 @@ public class LogisticsGenerator(
         var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
         var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, ct);
 
-        return [.. Tasks(moves.Where(m => !InSystem(m)).ToList(), names, places, drivers, driverNames, trips), .. loops];
+        // A service's trip is sized by the contract, and that by its volume.
+        var between = moves.Where(m => !InSystem(m)).ToList();
+        var (_, tripVolumes) = await PriceAndVolumeAsync(db, between.Select(m => m.TypeId).Distinct().ToList(), ct);
+        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes), .. loops];
     }
 
     /// <summary>
@@ -850,10 +853,11 @@ public class LogisticsGenerator(
     /// How one pair of stations is travelled: its lane, the gates between them, and the lane's
     /// method, lead pilot and ship.
     /// </summary>
+    /// <param name="ContractM3">For a service: the most one courier contract may hold.</param>
     private sealed record Trip(
         HaulLane Lane, int Jumps, HaulMethod Method,
         long PilotId, string PilotName, int Pilots,
-        int ShipTypeId, string ShipName, double Capacity);
+        int ShipTypeId, string ShipName, double Capacity, double ContractM3);
 
     /// <summary>
     /// Sorts each pair of stations into its lane and stamps the lane's set-up on it.
@@ -944,7 +948,7 @@ public class LogisticsGenerator(
             trips[(from, to)] = new Trip(
                 lane, gates, set.Method,
                 lead, lead > 0 ? known[lead] : "", pilots.Count,
-                hull, shipName, hold);
+                hull, shipName, hold, set.ContractM3);
         }
 
         return trips;
@@ -1818,14 +1822,23 @@ public class LogisticsGenerator(
         List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places,
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
         Dictionary<int, string> driverNames,
-        Dictionary<(long From, long To), Trip> trips)
+        Dictionary<(long From, long To), Trip> trips,
+        Dictionary<int, double> volumes)
     {
         var items = new List<WorklistItem>();
 
-        foreach (var run in moves
+        // A service's trip too big for one contract is one task per contract.
+        foreach (var (run, part, parts) in moves
                      .Where(m => m.From != m.To && m.Qty > 0)
                      .GroupBy(m => (m.From, m.To))
-                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To))
+                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To)
+                     .SelectMany(g =>
+                     {
+                         List<List<Move>> split = trips.GetValueOrDefault(g.Key) is { Method: HaulMethod.Service, ContractM3: > 0 } t
+                             ? Contracts([.. g], volumes, t.ContractM3)
+                             : [[.. g]];
+                         return split.Select((p, i) => (Run: p.GroupBy(m => (m.From, m.To)).Single(), Part: i, Parts: split.Count));
+                     }))
         {
             var cargo  = run.GroupBy(m => m.TypeId)
                             .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty)))
@@ -1866,11 +1879,13 @@ public class LogisticsGenerator(
             items.Add(new WorklistItem
             {
                 // Keyed on the pair, not the cargo: it is one trip, and a key that changed as
-                // items were added or removed would reset its age every refresh.
-                Key          = $"haul:{run.Key.From}:{run.Key.To}",
+                // items were added or removed would reset its age every refresh. A contract after
+                // a service's first is keyed by its place in line.
+                Key          = part == 0 ? $"haul:{run.Key.From}:{run.Key.To}" : $"haul:{run.Key.From}:{run.Key.To}:{part + 1}",
                 Source       = Id,
                 Kind         = WorklistKind.Haul,
-                Title        = string.Format(WorklistText.HaulTitleItems, cargo.Count),
+                Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContract, cargo.Count, part + 1, parts)
+                                         : string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
                 Detail       = Because(reason) + Onward(run.Select(m => m.FinalTo).Where(t => t != run.Key.To).Distinct(), places),
@@ -1921,6 +1936,55 @@ public class LogisticsGenerator(
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// A service's trip as the contracts it takes, none holding more than <paramref name="most"/>
+    /// m³: the cargo that matters most first, so the first contract made carries it, and a line
+    /// that does not fit whole cut where the contract fills.
+    ///
+    /// <para>Filled in turn rather than packed: as few contracts as the volume allows, and the
+    /// same cargo in the same contract on every refresh. An item bigger than a contract on its
+    /// own — which no service would take — goes alone, whole, last, for the reader to see.</para>
+    /// </summary>
+    private static List<List<Move>> Contracts(List<Move> run, IReadOnlyDictionary<int, double> volumes, double most)
+    {
+        var lines = run
+            .GroupBy(m => m.TypeId)
+            .Select(g => (TypeId: g.Key, Moves: g.ToList(), Unit: volumes.GetValueOrDefault(g.Key),
+                          Reason: g.Min(m => m.Reason), Priority: g.Max(m => m.Priority), Qty: g.Sum(m => m.Qty)))
+            .OrderBy(l => l.Reason).ThenByDescending(l => l.Priority)
+            .ThenByDescending(l => l.Qty * l.Unit).ThenBy(l => l.TypeId)
+            .ToList();
+        if (lines.Sum(l => l.Qty * l.Unit) <= most) return [run];
+
+        var parts = new List<List<Move>> { new() };
+        var alone = new List<List<Move>>();
+        var room  = most;
+        foreach (var line in lines)
+        {
+            if (line.Unit > most) { alone.Add(line.Moves); continue; }
+            foreach (var m in line.Moves)
+            {
+                var left = m.Qty;
+                while (left > 0)
+                {
+                    // ⚠️ The epsilon: 350,000 m³ of 0.01 m³ items is a whole number of them, which
+                    // a floating-point quotient can land a hair under.
+                    var fits = line.Unit <= 0 ? left : Math.Min(left, (long)Math.Floor(room / line.Unit + 1e-9));
+                    if (fits <= 0)
+                    {
+                        parts.Add([]);
+                        room = most;
+                        continue;
+                    }
+                    parts[^1].Add(m with { Qty = fits });
+                    room -= fits * line.Unit;
+                    left -= fits;
+                }
+            }
+        }
+        return [.. parts.Where(p => p.Count > 0), .. alone];
     }
 
     /// <summary>Where a trip that stops short goes on to, as a sentence after its reason; empty

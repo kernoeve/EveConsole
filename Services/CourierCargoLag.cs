@@ -45,7 +45,11 @@ public static class CourierCargoLag
     /// <summary>A courier of ours as the contracts poll has it, the most settled owner row speaking.</summary>
     internal sealed record Contract(
         int ContractId, long From, long To, string OwnerType, long OwnerId, string Status,
-        DateTimeOffset IssuedAt, DateTimeOffset? ExpiresAt, DateTimeOffset? CompletedAt);
+        DateTimeOffset IssuedAt, DateTimeOffset? ExpiresAt, DateTimeOffset? CompletedAt)
+    {
+        /// <summary>The contract's volume as ESI gives it; 0 when it does not.</summary>
+        public double Volume { get; init; }
+    }
 
     /// <summary>
     /// The goods' moves since the issuer's asset poll, as ContractLag's own moves.
@@ -87,7 +91,7 @@ public static class CourierCargoLag
 
         var now      = DateTimeOffset.UtcNow;
         var couriers = await CouriersAsync(db, cargo, ct);
-        var matched  = Match(cargo, couriers.Values, now);
+        var matched  = Match(cargo, couriers.Values, now, await UnitVolumesAsync(db, cargo, ct));
 
         var runs = new List<Run>();
         foreach (var g in cargo.GroupBy(c => c.ContractId != 0 ? c.ContractId : matched.GetValueOrDefault(c.Id)))
@@ -120,12 +124,20 @@ public static class CourierCargoLag
 
     /// <summary>
     /// Which courier each tick waiting for one belongs to, by line id: the one of ours from the
-    /// same start to the same end, made nearest the tick — from <see cref="MadeBefore"/> before it
-    /// to <see cref="MatchWindow"/> after — and not holding cargo of its own already. Ticks are
-    /// matched oldest first, so two ticks for the same run take two couriers in the order made.
+    /// same start to the same end, made from <see cref="MadeBefore"/> before the tick to
+    /// <see cref="MatchWindow"/> after, and not holding cargo of its own already — of those, one
+    /// whose volume agrees with the tick's cargo first, then the one made nearest the tick. Ticks
+    /// are matched oldest first.
+    ///
+    /// <para>⚠️ Volume before time: a trip too big for one contract is made as several, all on
+    /// one route within a minute or two, and ticked off one by one after. Nearest in time alone
+    /// pairs the first tick with the LAST contract made; the cargo the tick was corrected to is
+    /// what tells them apart.</para>
     /// </summary>
+    /// <param name="unitM3">Each item's volume, to size a tick's cargo; without it, time alone.</param>
     internal static Dictionary<long, int> Match(
-        IReadOnlyList<CourierCargo> cargo, IEnumerable<Contract> couriers, DateTimeOffset now)
+        IReadOnlyList<CourierCargo> cargo, IEnumerable<Contract> couriers, DateTimeOffset now,
+        IReadOnlyDictionary<int, double>? unitM3 = null)
     {
         var taken = cargo.Where(c => c.ContractId != 0).Select(c => c.ContractId).ToHashSet();
         var open  = couriers.Where(k => k.Status is not ("deleted" or "rejected" or "failed")).ToList();
@@ -136,16 +148,35 @@ public static class CourierCargoLag
                                   .OrderBy(t => t.Key.AddedAt).ThenBy(t => t.Min(c => c.Id)))
         {
             var (from, to, at) = tick.Key;
+            var m3  = unitM3 is null ? 0 : tick.Sum(c => c.Quantity * unitM3.GetValueOrDefault(c.TypeId));
             var hit = open
                 .Where(k => k.From == from && k.To == to && !taken.Contains(k.ContractId)
                             && k.IssuedAt >= at - MadeBefore && k.IssuedAt <= at + MatchWindow)
-                .OrderBy(k => Math.Abs((k.IssuedAt - at).Ticks)).ThenBy(k => k.ContractId)
+                .OrderBy(k => Agrees(m3, k.Volume) ? 0 : 1)
+                .ThenBy(k => Math.Abs((k.IssuedAt - at).Ticks)).ThenBy(k => k.ContractId)
                 .FirstOrDefault();
             if (hit is null) continue;
             taken.Add(hit.ContractId);
             foreach (var c in tick) found[c.Id] = hit.ContractId;
         }
         return found;
+    }
+
+    /// <summary>A tick's cargo and a contract the same size, to within a cubic metre or a
+    /// hundredth — ESI rounds a contract's volume, and an item's may be off a little.</summary>
+    private static bool Agrees(double tick, double contract) =>
+        tick > 0 && contract > 0 && Math.Abs(tick - contract) <= Math.Max(1, contract * 0.01);
+
+    /// <summary>The packaged volume of each item in the cargo, as everywhere else that hauls.</summary>
+    private static async Task<Dictionary<int, double>> UnitVolumesAsync(
+        AppDbContext db, IReadOnlyList<CourierCargo> cargo, CancellationToken ct)
+    {
+        var ids = cargo.Where(c => c.ContractId == 0).Select(c => c.TypeId).Distinct().ToList();
+        if (ids.Count == 0) return [];
+        return await db.SdeTypes.AsNoTracking()
+            .Where(t => ids.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.PackagedVolume, t.Volume })
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
     }
 
     /// <summary>
@@ -159,7 +190,7 @@ public static class CourierCargoLag
         if (cargo.All(c => c.ContractId != 0)) return 0;
 
         var now     = DateTimeOffset.UtcNow;
-        var matched = Match(cargo, (await CouriersAsync(db, cargo, ct)).Values, now);
+        var matched = Match(cargo, (await CouriersAsync(db, cargo, ct)).Values, now, await UnitVolumesAsync(db, cargo, ct));
         foreach (var c in cargo.Where(c => c.ContractId == 0))
         {
             if (matched.TryGetValue(c.Id, out var id)) c.ContractId = id;
@@ -184,7 +215,7 @@ public static class CourierCargoLag
             .Select(c => new
             {
                 c.ContractId, c.Status, c.ForCorporation, c.IssuerId, c.IssuerCorporationId,
-                c.StartLocationId, c.EndLocationId, c.DateIssued, c.DateExpired, c.DateCompleted,
+                c.StartLocationId, c.EndLocationId, c.DateIssued, c.DateExpired, c.DateCompleted, c.Volume,
             })
             .ToListAsync(ct);
 
@@ -195,7 +226,10 @@ public static class CourierCargoLag
                 g.Key, c.StartLocationId ?? 0, c.EndLocationId ?? 0,
                 c.ForCorporation ? "corporation" : "character",
                 c.ForCorporation ? c.IssuerCorporationId : c.IssuerId,
-                c.Status, c.DateIssued, g.Max(r => r.DateExpired), g.Max(r => r.DateCompleted));
+                c.Status, c.DateIssued, g.Max(r => r.DateExpired), g.Max(r => r.DateCompleted))
+            {
+                Volume = (double)g.Max(r => r.Volume),
+            };
         });
     }
 }

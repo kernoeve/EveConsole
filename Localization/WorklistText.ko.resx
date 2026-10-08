@@ -1903,6 +1903,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>아이템 {0}종</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>아이템 {0}종, 계약 {1}/{2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>작업들이 이것을 기다리고 있습니다.</value>
   </data>
@@ -1989,6 +1992,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>화물칸 (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>계약당 (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>운송 계약 하나에 담을 수 있는 최대량입니다. 이보다 큰 운송은 계약마다 작업 하나로 나뉘며, 가장 필요한 화물이 첫 계약에 들어갑니다. 비워 두면 350,000 m³입니다.</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>선체 기본값</value>
@@ -2085,6 +2097,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ 계약함</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>계약함</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>운송 계약에 실제로 넣은 것입니다. 처음에는 계획대로입니다. 수량을 바꾸거나, 넣지 않은 것을 빼거나, 게임에서 복사한 계약 아이템을 붙여 넣어 목록을 바꾸세요. 여기 있는 것만 기록되어 운송 중으로 계산되고, 나머지는 작업 목록에 남습니다.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} 기재됨</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} 기재됨, 계약 하나에 담을 수 있는 {1}보다 많습니다</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>기재된 것이 없습니다. 계약 아이템을 붙여 넣거나 취소하세요.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>인식하지 못해 목록에 넣지 않았습니다: {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>기록</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>붙여 넣은 아이템을 목록에 추가합니다. 이미 있는 아이템은 수량을 합칩니다.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>붙여 넣은 아이템으로 목록 전체를 바꿉니다. 게임에서 복사한 계약 아이템을 붙여 넣으면 내용을 정확히 기록합니다.</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>운송 계약을 만든 뒤 체크하세요. 화물은 운송 중으로 계산되어 다시 구매하거나 운송하지 않으며, 운송 계약과 함께 보관됩니다(계약 업데이트에 보이면 출발지와 목적지로 찾음). 계약 도구에서 고칠 수 있습니다. 자산에는 아무것도 추가되지 않습니다.</value>

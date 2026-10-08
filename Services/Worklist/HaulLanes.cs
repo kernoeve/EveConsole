@@ -58,6 +58,15 @@ public sealed record HaulLaneSettings(
 
     /// <summary>A service carries it: no pilot of ours, so no ship to size it by.</summary>
     public bool NeedsShip => Method != HaulMethod.Service;
+
+    /// <summary>
+    /// The most one courier contract may hold, for a lane a service carries: a trip bigger than
+    /// this is split into one task per contract. <see cref="DefaultContractM3"/> unless set.
+    /// </summary>
+    public double ContractM3 { get; init; } = DefaultContractM3;
+
+    /// <summary>What the common hauling services take in one contract.</summary>
+    public const double DefaultContractM3 = 350_000;
 }
 
 /// <summary>

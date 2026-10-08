@@ -1903,6 +1903,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} 种物品</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} 种物品，第 {1}/{2} 份合同</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>有任务在等待这批货。</value>
   </data>
@@ -1989,6 +1992,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>货舱 (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>每份合同 (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>一份快递合同最多可容纳的体积。超过此体积的运输会拆分为每份合同一个任务，最急需的货物放在第一份。留空则为 350,000 m³。</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>按舰船自身</value>
@@ -2085,6 +2097,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ 已建合同</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>已建合同</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>快递合同里实际放入的物品。初始为计划内容：修改数量、移除未放入的物品，或粘贴从游戏中复制的合同物品并替换列表。只有列出的物品会被记录并计为在途；其余的仍留在工作清单上。</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>已列出 {0}</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>已列出 {0}，超过一份合同可容纳的 {1}</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>未列出任何物品。请粘贴合同物品，或取消。</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>无法识别，未加入列表：{0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>记录</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>将粘贴的物品加入列表。已在列表中的物品会合计数量。</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>用粘贴的物品替换整个列表。粘贴从游戏中复制的合同物品，即可准确记录合同内容。</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>建好快递合同后勾选此项。其货物计为在途，不会再次购买或运输，并与快递合同一起保存——合同更新看到合同后按起点和终点找到它——可在合同工具中更正。不会添加到你的资产中。</value>

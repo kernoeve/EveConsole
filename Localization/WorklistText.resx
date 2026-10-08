@@ -2548,6 +2548,10 @@
     <value>{0} item(s)</value>
     <comment>Worklist haul title: how many kinds of item the trip carries. {0} is the number; the route is shown beside it.</comment>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} item(s), contract {1} of {2}</value>
+    <comment>Title of a hauling-service trip split across contracts. {0} = item types on it, {1} = which contract, {2} = how many contracts.</comment>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Jobs are waiting on this.</value>
     <comment>Worklist haul detail: stopped jobs need this cargo.</comment>
@@ -2663,6 +2667,18 @@
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>Hold (m³)</value>
     <comment>Hauling settings: label above the cargo hold box.</comment>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Per contract (m³)</value>
+    <comment>Lane settings, hauling service only: label over the most one courier contract may hold.</comment>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+    <comment>Watermark in the empty per-contract box: the default, 350000, formatted as numbers are in this language.</comment>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>The most one courier contract may hold. A trip bigger than this is split into one task per contract, with the cargo needed most in the first. Leave empty for 350,000 m³.</value>
+    <comment>Tooltip on the per-contract box in a hauling-service lane.</comment>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>Hull's own</value>
@@ -2791,6 +2807,46 @@
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ Contracted</value>
     <comment>Button on a hauling-service trip: it has been handed to a courier contract.</comment>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Contracted</value>
+    <comment>Title of the dialog shown when a hauling-service trip is ticked off as contracted.</comment>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+    <comment>Heading of the Contracted dialog. {0} = where the trip starts, {1} = where it goes.</comment>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>What went into the courier contract. This starts as the plan: change quantities, take off what you left out, or paste the contract's items copied in game and replace the list. Only what is listed is recorded and counted as on its way; the rest stays on the worklist.</value>
+    <comment>Explanation under the heading of the Contracted dialog.</comment>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} listed</value>
+    <comment>Under the Contracted dialog's list. {0} = the listed cargo's volume, e.g. 39,347 m³.</comment>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} listed, more than the {1} one contract may hold</value>
+    <comment>Warning under the Contracted dialog's list. {0} = the listed volume, {1} = the lane's per-contract limit.</comment>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Nothing listed. Paste the contract's items, or cancel.</value>
+    <comment>In the Contracted dialog when every line has been taken off.</comment>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Not recognised, left off the list: {0}</value>
+    <comment>In the Contracted dialog after a paste, for names that match no item. {0} = those names, separated by commas.</comment>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Record</value>
+    <comment>Button in the Contracted dialog: records the listed cargo as the courier's.</comment>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Adds the pasted items to the list. An item already on it has the quantities added together.</value>
+    <comment>Tooltip on the Add button in the Contracted dialog.</comment>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Puts the pasted items in place of the whole list. Paste the contract's items copied in game to record exactly what is in it.</value>
+    <comment>Tooltip on the Replace all button in the Contracted dialog.</comment>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>Tick this off once the courier contract is made. Its cargo counts as on its way, so nothing is bought or hauled for it again, and it is kept with the courier contract — found by its start and end once the contracts update sees it — where it can be corrected in the Contracts tool. Nothing is added to your assets.</value>

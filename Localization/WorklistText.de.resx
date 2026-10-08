@@ -1918,6 +1918,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} Gegenstandstyp(en)</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} Gegenstandstyp(en), Auftrag {1} von {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Aufträge warten darauf.</value>
   </data>
@@ -2004,6 +2007,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>Laderaum (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Pro Auftrag (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350.000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Das meiste, was ein Kurierauftrag fassen darf. Ein größerer Transport wird in eine Aufgabe pro Auftrag aufgeteilt, die dringendste Fracht im ersten. Leer lassen für 350.000 m³.</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>Rumpfeigener</value>
@@ -2100,6 +2112,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ Auftrag erstellt</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Auftrag erstellt</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Was in den Kurierauftrag gegangen ist. Zu Beginn steht hier der Plan: Mengen ändern, Weggelassenes entfernen oder die im Spiel kopierten Gegenstände des Auftrags einfügen und die Liste ersetzen. Nur was hier steht, wird erfasst und als unterwegs gezählt; der Rest bleibt auf der Arbeitsliste.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} aufgeführt</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} aufgeführt, mehr als die {1}, die ein Auftrag fassen darf</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Nichts aufgeführt. Füge die Gegenstände des Auftrags ein oder brich ab.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Nicht erkannt, nicht in die Liste aufgenommen: {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Erfassen</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Fügt die eingefügten Gegenstände der Liste hinzu. Bei einem schon aufgeführten werden die Mengen addiert.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Ersetzt die ganze Liste durch die eingefügten Gegenstände. Füge die im Spiel kopierten Gegenstände des Auftrags ein, um genau dessen Inhalt zu erfassen.</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>Abhaken, sobald der Kurierauftrag erstellt ist. Die Fracht zählt als unterwegs, also wird dafür nichts erneut gekauft oder transportiert, und sie wird beim Kurierauftrag gespeichert – gefunden über Start und Ziel, sobald die Aktualisierung der Aufträge ihn sieht –, wo sie im Auftragswerkzeug korrigiert werden kann. Zu deinen Vermögenswerten wird nichts hinzugefügt.</value>

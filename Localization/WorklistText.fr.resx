@@ -1918,6 +1918,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} objet(s)</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} objet(s), contrat {1} sur {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Des travaux attendent ce transport.</value>
   </data>
@@ -2004,6 +2007,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>Soute (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Par contrat (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350 000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Le maximum qu'un contrat de transport peut contenir. Un transport plus grand est divisé en une tâche par contrat, la cargaison la plus nécessaire dans le premier. Laissez vide pour 350 000 m³.</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>Celle de la coque</value>
@@ -2100,6 +2112,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ Contrat créé</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Contrat créé</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Ce qui est entré dans le contrat de transport. Au départ, c'est le plan : modifiez les quantités, retirez ce que vous avez laissé, ou collez les objets du contrat copiés en jeu et remplacez la liste. Seul ce qui est listé est enregistré et compté comme en route ; le reste reste sur la liste de travail.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} listés</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} listés, plus que les {1} qu'un contrat peut contenir</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Rien n'est listé. Collez les objets du contrat, ou annulez.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Non reconnu, non ajouté à la liste : {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Ajoute les objets collés à la liste. Pour un objet déjà présent, les quantités sont additionnées.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Remplace toute la liste par les objets collés. Collez les objets du contrat copiés en jeu pour enregistrer exactement son contenu.</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>Cochez une fois le contrat de coursier créé. Sa cargaison compte comme en route, donc rien n'est racheté ni transporté à nouveau, et elle est conservée avec le contrat de coursier — retrouvé par son départ et son arrivée dès que la mise à jour des contrats le voit — où elle peut être corrigée dans l'outil des contrats. Rien n'est ajouté à vos actifs.</value>

@@ -2335,7 +2335,7 @@
                   <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                   <TextBlock Text="{Binding Note}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
 
-                  <Grid ColumnDefinitions="Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                  <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:WorklistText.HaulMethodLabel}" Classes="fieldLabel"
                                IsVisible="{Binding ShowsMethod}"/>
                     <ComboBox Grid.Row="1" Grid.Column="0" Width="190" Margin="0 0 12 0" FontSize="11"
@@ -2367,6 +2367,16 @@
                                    IsVisible="{Binding ShowsShip}"
                                    Watermark="{x:Static loc:WorklistText.HintHullsOwnHold}"
                                    ToolTip.Tip="{x:Static loc:WorklistText.TipHaulHold}"/>
+
+                    <!-- A hauling service: the most one contract takes, a bigger trip split by it. -->
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="{x:Static loc:WorklistText.HaulContractLabel}" Classes="fieldLabel"
+                               IsVisible="{Binding ShowsContract}"/>
+                    <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding ContractM3, Mode=TwoWay}"
+                                   Minimum="0" Maximum="100000000" Increment="10000" FormatString="N0"
+                                   ShowButtonSpinner="False" Width="140" FontSize="11"
+                                   IsVisible="{Binding ShowsContract}"
+                                   Watermark="{x:Static loc:WorklistText.HintContractDefault}"
+                                   ToolTip.Tip="{x:Static loc:WorklistText.TipHaulContract}"/>
                   </Grid>
 
                   <StackPanel Spacing="4">

@@ -2473,15 +2473,38 @@ public class WorklistViewModel : ReactiveObject
     /// are delivered, until the asset poll shows them — see HaulLag — and the list is rebuilt with
     /// that, so the stop leaves the loop and any job it was holding up can start.
     /// </summary>
-    public async Task MarkHauledAsync(WorklistRowVm stopRow)
+    public Task MarkHauledAsync(WorklistRowVm stopRow) =>
+        RecordAsync(stopRow, stop => stopRow.IsCourierTick
+            ? _service.MarkContractedAsync(stop)
+            : _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
+
+    /// <summary>
+    /// A hauling-service trip's cargo to correct before it is recorded as contracted: the trip's
+    /// manifest to start from, and the most its lane's contracts may hold. Null for a row that is
+    /// not such a trip, or is ticked already. See <see cref="ContractedCargoVm"/>.
+    /// </summary>
+    public ContractedCargoVm? ContractedEditor(WorklistRowVm stopRow)
+    {
+        if (!stopRow.IsCourierTick || stopRow.Stop is not { } stop || stopRow.Marked) return null;
+        var item = stopRow.Item;
+        return new ContractedCargoVm(
+            _service.DbFactory,
+            string.Format(WorklistText.ContractedRoute, item.LocationName, item.DestinationName),
+            _service.Settings.HaulLaneFor(item.Lane).ContractM3,
+            stop.DropOff.Where(l => l.Quantity > 0).Select(l => (l.TypeId, SdeNames.Type(l.TypeId, l.TypeName), l.Quantity)));
+    }
+
+    /// <summary>A hauling-service trip ticked off as contracted, with the cargo the reader confirmed.</summary>
+    public Task MarkContractedAsync(WorklistRowVm stopRow, IReadOnlyList<(int TypeId, long Quantity)> cargo) =>
+        RecordAsync(stopRow, stop => _service.MarkContractedAsync(stop, cargo));
+
+    private async Task RecordAsync(WorklistRowVm stopRow, Func<WorklistHaulStop, Task> record)
     {
         if (stopRow.Stop is not { } stop || stopRow.Marked) return;
         stopRow.Marked = true;
         try
         {
-            await Task.Run(() => stopRow.IsCourierTick
-                ? _service.MarkContractedAsync(stop)
-                : _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
+            await Task.Run(() => record(stop));
             await RefreshAsync();
         }
         catch (Exception ex)

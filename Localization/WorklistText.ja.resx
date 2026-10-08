@@ -1903,6 +1903,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>アイテム{0}種類</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} 種類のアイテム、契約 {1}/{2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>ジョブがこれを待っています。</value>
   </data>
@@ -1989,6 +1992,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>カーゴ (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>契約あたり (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>1件の輸送契約に入れられる最大量です。これを超える輸送は契約ごとに1つのタスクに分けられ、最も必要な貨物が最初の契約に入ります。空欄なら 350,000 m³ です。</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>艦船の既定値</value>
@@ -2085,6 +2097,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ 契約済み</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>契約済み</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>輸送契約に実際に入れたものです。最初は計画どおりの内容です。数量を変える、入れなかったものを外す、またはゲーム内でコピーした契約のアイテムを貼り付けて一覧を置き換えてください。ここにあるものだけが記録され、輸送中として数えられます。残りは作業リストに残ります。</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} を記載</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} を記載。1件の契約に入る {1} を超えています</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>何も記載されていません。契約のアイテムを貼り付けるか、キャンセルしてください。</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>認識できず、一覧に追加していません：{0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>記録</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>貼り付けたアイテムを一覧に追加します。すでにあるアイテムは数量を合算します。</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>貼り付けたアイテムで一覧全体を置き換えます。ゲーム内でコピーした契約のアイテムを貼り付ければ、中身をそのまま記録できます。</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>運送契約を作成したらチェックします。貨物は輸送中として扱われるので再び購入・輸送されず、運送契約と一緒に保存されます（契約の更新で見つかり次第、出発地と目的地で特定）。契約ツールで修正できます。資産には何も追加されません。</value>

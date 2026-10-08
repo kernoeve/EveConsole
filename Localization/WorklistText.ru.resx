@@ -1948,6 +1948,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>Предметов: {0}</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>Предметов: {0}, контракт {1} из {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Этого ждут проекты.</value>
   </data>
@@ -2034,6 +2037,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>Трюм (м³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>На контракт (м³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350 000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Наибольший объём, который вмещает один курьерский контракт. Перевозка больше этого делится на задачи по одной на контракт, самый нужный груз — в первой. Оставьте пустым для 350 000 м³.</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>Как у корпуса</value>
@@ -2130,6 +2142,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ Контракт создан</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Контракт создан</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Что попало в курьерский контракт. Сначала здесь план: измените количества, уберите то, что не положили, или вставьте скопированные в игре предметы контракта и замените список. Записывается и считается в пути только то, что здесь есть; остальное остаётся в списке задач.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>В списке: {0}</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>В списке: {0} — больше {1}, которые вмещает один контракт</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Список пуст. Вставьте предметы контракта или отмените.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Не распознано, в список не добавлено: {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Записать</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Добавляет вставленные предметы в список. Для уже имеющегося количества складываются.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Заменяет весь список вставленными предметами. Вставьте скопированные в игре предметы контракта, чтобы записать точно то, что в нём.</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>Отметьте, когда курьерский контракт создан. Его груз считается в пути, поэтому повторно не покупается и не перевозится, и хранится вместе с курьерским контрактом — найденным по началу и концу, как только обновление контрактов его увидит, — где его можно исправить в инструменте контрактов. В ваше имущество ничего не добавляется.</value>

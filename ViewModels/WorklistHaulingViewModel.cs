@@ -88,6 +88,7 @@ public sealed class HaulLaneVm : ReactiveObject
             if (value is null || value == _method) return;
             this.RaiseAndSetIfChanged(ref _method, value);
             this.RaisePropertyChanged(nameof(ShowsShip));
+            this.RaisePropertyChanged(nameof(ShowsContract));
             Save(() => _settings.SetHaulMethodAsync(Lane, value.Method));
         }
     }
@@ -120,6 +121,23 @@ public sealed class HaulLaneVm : ReactiveObject
             if (value == _cargo) return;
             this.RaiseAndSetIfChanged(ref _cargo, value);
             Save(() => _settings.SetHaulCargoAsync(Lane, (double)(value ?? 0)));
+        }
+    }
+
+    /// <summary>A hauling service's lane: how much one of its contracts may hold.</summary>
+    public bool ShowsContract => Lane != HaulLane.InSystem && _method?.Method == HaulMethod.Service;
+
+    private decimal? _contract;
+    /// <summary>The most one courier contract may hold; a bigger trip is split into one task per
+    /// contract. Empty takes <see cref="HaulLaneSettings.DefaultContractM3"/>.</summary>
+    public decimal? ContractM3
+    {
+        get => _contract;
+        set
+        {
+            if (value == _contract) return;
+            this.RaiseAndSetIfChanged(ref _contract, value);
+            Save(() => _settings.SetHaulContractM3Async(Lane, (double)(value ?? 0)));
         }
     }
 
@@ -247,6 +265,10 @@ public sealed class HaulLaneVm : ReactiveObject
 
             _cargo = set.CargoM3 > 0 ? (decimal)set.CargoM3 : null;
 
+            // The default shown as the default — the box empty over it — so a later change to it
+            // reaches a lane that never chose its own.
+            _contract = set.ContractM3 != HaulLaneSettings.DefaultContractM3 ? (decimal)set.ContractM3 : null;
+
             _everyone = everyone;
             _ids      = set.CharacterIds.ToList();
             ShowPilots();
@@ -273,6 +295,8 @@ public sealed class HaulLaneVm : ReactiveObject
             this.RaisePropertyChanged(nameof(ShowsShip));
             this.RaisePropertyChanged(nameof(SelectedHull));
             this.RaisePropertyChanged(nameof(CargoM3));
+            this.RaisePropertyChanged(nameof(ShowsContract));
+            this.RaisePropertyChanged(nameof(ContractM3));
             this.RaisePropertyChanged(nameof(SelectedDeliverTo));
         }
         finally { _loading = false; }

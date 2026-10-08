@@ -332,7 +332,15 @@ public class WorklistSettings(AppPreferencesService prefs)
             .Distinct()
             .ToList();
 
-        return new HaulLaneSettings(lane, method, (int)prefs.GetLong(LaneKey(lane, "ship_type_id"), 0), cargo, chars);
+        var contract = prefs.Get(LaneKey(lane, "contract_m3")) is { Length: > 0 } k
+                       && double.TryParse(k, System.Globalization.NumberStyles.Float,
+                                          System.Globalization.CultureInfo.InvariantCulture, out var km) && km > 0
+            ? km : HaulLaneSettings.DefaultContractM3;
+
+        return new HaulLaneSettings(lane, method, (int)prefs.GetLong(LaneKey(lane, "ship_type_id"), 0), cargo, chars)
+        {
+            ContractM3 = contract,
+        };
     }
 
     public Task SetHaulMethodAsync(HaulLane lane, HaulMethod method) =>
@@ -345,6 +353,10 @@ public class WorklistSettings(AppPreferencesService prefs)
     /// <summary>0 takes the hull's own hold.</summary>
     public Task SetHaulCargoAsync(HaulLane lane, double m3) =>
         prefs.SetAsync(LaneKey(lane, "cargo_m3"), Math.Max(0, m3).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>0 goes back to the default (<see cref="HaulLaneSettings.DefaultContractM3"/>).</summary>
+    public Task SetHaulContractM3Async(HaulLane lane, double m3) =>
+        prefs.SetAsync(LaneKey(lane, "contract_m3"), Math.Max(0, m3).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
 
     /// <summary>In order: the first is the pilot used when only one is needed.</summary>
     public Task SetHaulCharactersAsync(HaulLane lane, IEnumerable<long> characterIds) =>

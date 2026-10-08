@@ -1918,6 +1918,9 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} objeto(s)</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} artículo(s), contrato {1} de {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Hay trabajos esperando esto.</value>
   </data>
@@ -2004,6 +2007,15 @@
   </data>
   <data name="HaulHoldLabel" xml:space="preserve">
     <value>Bodega (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Por contrato (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350.000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Lo máximo que puede llevar un contrato de mensajería. Un transporte mayor se divide en una tarea por contrato, con la carga más necesaria en el primero. Déjalo vacío para 350.000 m³.</value>
   </data>
   <data name="HintHullsOwnHold" xml:space="preserve">
     <value>La del casco</value>
@@ -2100,6 +2112,36 @@
   </data>
   <data name="HaulMarkContracted" xml:space="preserve">
     <value>✓ Contratado</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Contratado</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Lo que entró en el contrato de mensajería. Empieza siendo el plan: cambia cantidades, quita lo que dejaste fuera o pega los artículos del contrato copiados en el juego y reemplaza la lista. Solo lo que aparece aquí se registra y cuenta como en camino; el resto sigue en la lista de trabajo.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} en la lista</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} en la lista, más de los {1} que admite un contrato</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>No hay nada en la lista. Pega los artículos del contrato o cancela.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>No reconocido, no se añadió a la lista: {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Registrar</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Añade los artículos pegados a la lista. Si un artículo ya está, se suman las cantidades.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Sustituye toda la lista por los artículos pegados. Pega los artículos del contrato copiados en el juego para registrar exactamente lo que contiene.</value>
   </data>
   <data name="TipHaulMarkContracted" xml:space="preserve">
     <value>Márcalo una vez creado el contrato de mensajería. Su carga cuenta como en camino, así que no se vuelve a comprar ni transportar, y se guarda con el contrato de mensajería — encontrado por su origen y destino cuando la actualización de contratos lo ve — donde puede corregirse en la herramienta de contratos. No se añade nada a tus activos.</value>

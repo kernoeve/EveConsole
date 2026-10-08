@@ -127,11 +127,21 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenRowItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();
 
-    /// <summary>A loop's stop ticked off as hauled.</summary>
+    /// <summary>A loop's stop or a trip ticked off as hauled — or a hauling service's trip as
+    /// contracted, once its cargo has been corrected to what went into the contract.</summary>
     private void OnMarkHauled(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: WorklistRowVm row } && DataContext is WorklistViewModel vm)
-            _ = vm.MarkHauledAsync(row);
+        if (sender is not Control { DataContext: WorklistRowVm row } || DataContext is not WorklistViewModel vm) return;
+        if (vm.ContractedEditor(row) is { } editor) _ = ContractedAsync(vm, row, editor);
+        else if (!row.IsCourierTick) _ = vm.MarkHauledAsync(row);
+    }
+
+    private async Task ContractedAsync(WorklistViewModel vm, WorklistRowVm row, ContractedCargoVm editor)
+    {
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+        var cargo = await new ContractedDialog { DataContext = editor }
+            .ShowDialog<IReadOnlyList<(int TypeId, long Quantity)>?>(owner);
+        if (cargo is { Count: > 0 }) await vm.MarkContractedAsync(row, cargo);
     }
 
     /// <summary>The item a detail row names — on a manifest, at a stop, or waiting on this.</summary>
