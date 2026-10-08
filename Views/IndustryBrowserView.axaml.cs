@@ -535,9 +535,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         // (3/4) outputs the original blueprint; everything else is a normal item.
         var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };
 
+        // The print the job was started with, an original or a copy.
+        var bpVariant = row[IndustryBrowserViewModel.ColBlueprintIsCopy] == "1" ? "bpc" : "bp";
+
         var tasks = new[]
         {
-            EveImageLoader.LoadTypeAsync(bpTypeId,  "bp"),
+            EveImageLoader.LoadTypeAsync(bpTypeId,  bpVariant),
             EveImageLoader.LoadTypeAsync(prodTypeId, prodVariant),
             EveImageLoader.LoadTypeAsync(facTypeId,  "render"),
         };

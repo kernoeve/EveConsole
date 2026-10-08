@@ -123,6 +123,8 @@ public class IndustryBrowserViewModel : ReactiveObject
     public const string ColTE               = "TE";
     public const string ColCompletedBy      = "Completed By";
     public const string ColActivityId       = "Activity Id";
+    /// <summary>1 when the job was started with a copy, else 0. See the query.</summary>
+    public const string ColBlueprintIsCopy  = "Blueprint Is Copy";
 
     // What each name on a row opens. Hidden like the ids above — the grid never shows these,
     // they exist so the visible text can be a link.
@@ -765,6 +767,11 @@ public class IndustryBrowserViewModel : ReactiveObject
                 COALESCE(st."StationTypeId", cs."TypeId")                                        AS "Facility Type Id",
                 COALESCE(bl."MaterialEfficiency", 0)                                           AS "ME",
                 COALESCE(bl."TimeEfficiency", 0)                                               AS "TE",
+                -- Started with a copy: the print's own row says so (ESI's quantity -2) for as long
+                -- as the job holds it, which is every live job. Invention takes nothing else. A
+                -- finished job whose copy was used up has no row left to ask, and reads as an
+                -- original, as before.
+                CASE WHEN bl."Quantity" = -2 OR j."ActivityId" = 8 THEN 1 ELSE 0 END             AS "Blueprint Is Copy",
                 COALESCE(ch_comp."Name", '')                                                   AS "Completed By",
                 j."ActivityId"                                                                  AS "Activity Id",
                 j."Probability"                                                                 AS "Probability",
