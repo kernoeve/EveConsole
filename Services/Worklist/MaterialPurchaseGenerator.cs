@@ -559,6 +559,8 @@ public class MaterialPurchaseGenerator(
                 Kind          = WorklistKind.Buy,
                 Title         = string.Format(WorklistText.PrintTitle, SdeNames.Type(bpTypeId, bpName), stillNeeded),
                 TitleTag      = "BPO/BPC",
+                // Runs are what is short, and runs are bought as copies: the copy's picture.
+                TypeImage     = "bpc",
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
                 Detail        = $"{string.Join(" + ", parts)}{haveText} — "
