@@ -80,6 +80,46 @@ public static class FamilyRows
             if (s.Trim() is { Length: > 0 } sentence) yield return sentence;
     }
 
+    /// <summary>
+    /// A paragraph as a few rows: its sentences run on, as many to a row as fit in
+    /// <paramref name="width"/> characters, a row starting where the next sentence would not fit.
+    ///
+    /// <para>⚠️ Rows, not wrapped text: every detail row is one line high, because rows of mixed
+    /// heights wreck the grid's upward scroll. A sentence a row read as five rows for a short
+    /// job reason; this reads as one or two. A row that still runs past the column is cut with an
+    /// ellipsis, and its tooltip has it whole.</para>
+    /// </summary>
+    public static IEnumerable<string> Lines(string text, int width = 120)
+    {
+        var line = new System.Text.StringBuilder();
+        var used = 0;
+        foreach (var sentence in Sentences(text))
+        {
+            // Full-width stops take no space after them; everything else one.
+            var gap  = line.Length == 0 || line[^1] is '。' or '！' or '？' ? "" : " ";
+            var wide = Width(sentence);
+            if (line.Length > 0 && used + gap.Length + wide > width)
+            {
+                yield return line.ToString();
+                line.Clear();
+                used = 0;
+                gap  = "";
+            }
+            line.Append(gap).Append(sentence);
+            used += gap.Length + wide;
+        }
+        if (line.Length > 0) yield return line.ToString();
+    }
+
+    /// <summary>How wide text reads, in Latin letters: a Chinese, Japanese or Korean character is
+    /// set about twice as wide, and counted as two.</summary>
+    private static int Width(string text)
+    {
+        var n = 0;
+        foreach (var c in text) n += c >= '\u2E80' && c <= '\uFFEF' && !(c >= '\uFF61' && c <= '\uFFDC') ? 2 : 1;
+        return n;
+    }
+
     /// <summary>The rows, each followed by its children when it is open.</summary>
     public static IEnumerable<T> WithChildren<T>(IEnumerable<T> rows, System.Func<T, bool> open,
                                                  System.Func<T, IReadOnlyList<T>> children)

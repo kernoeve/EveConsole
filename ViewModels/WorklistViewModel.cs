@@ -160,14 +160,14 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         var rows  = new List<WorklistRowVm>();
         var order = 0;
 
-        // The reason, a sentence to a row: a long paragraph in one row would be cut off.
+        // The reason, in as few one-line rows as it fits: see FamilyRows.Lines.
         //
         // ⚠️ Not on a haul. There the reason is boilerplate ("Jobs are waiting on this", counts the
         // list below already shows), and four rows of it pushed the stops — the part worth opening
         // a loop for — down the screen. It stays on the row's ⓘ, as it is for every task.
         if (_item.Kind != WorklistKind.Haul)
-            foreach (var sentence in Sentences(_item.Detail))
-                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Text, sentence));
+            foreach (var line in FamilyRows.Lines(_item.Detail))
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Text, line));
 
         // A loop's stops, in flying order: each stop, then what comes off, then what goes on.
         for (var i = 0; i < _item.Stops.Count; i++)
@@ -238,13 +238,6 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
                                                                    _item.LocationId, _item.LocationName))],
                   [])
             : null;
-
-    /// <summary>
-    /// A paragraph as its sentences. On the full stop, question or exclamation mark followed by a
-    /// space, and after a full-width stop, which takes none — so "1.5" and "e.g." mid-number stay
-    /// whole, and Japanese and Chinese split where they should.
-    /// </summary>
-    private static IEnumerable<string> Sentences(string text) => FamilyRows.Sentences(text);
 
     /// <summary>Told when this row opens or closes, so its detail rows can be put in or taken out
     /// of the grid without rebuilding it — which would lose the scroll position.</summary>
@@ -332,11 +325,11 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     }
 
     /// <summary>
-    /// ⚠️ Blueprints have their own render, reached by a path segment rather than a parameter —
-    /// asking for /icon on a blueprint returns the generic paper sheet, so every print in a buy
-    /// list would look like every other print.
+    /// ⚠️ Blueprints have their own pictures, reached by a path segment rather than a parameter:
+    /// /bp for an original and /bpc for a copy. The image server refuses a blueprint's /icon. A
+    /// print to buy shows the copy, since runs are what is short and runs are bought as copies.
     /// </summary>
-    private string IconVariant => _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bp" : "icon");
+    private string IconVariant => _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bpc" : "icon");
 
     /// <summary>
     /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
