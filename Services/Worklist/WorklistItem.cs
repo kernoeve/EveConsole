@@ -469,12 +469,21 @@ public sealed record WorklistItem
     /// A task with a <see cref="TypeId"/> shows that type instead: what it moves or makes.
     /// </summary>
     public string? IconUrl { get; init; }
+
+    /// <summary>
+    /// Which of <see cref="TypeId"/>'s pictures the row shows: null for its icon, "bp" or "bpc"
+    /// for a blueprint's original or copy — a blueprint has no icon, and the image server refuses
+    /// one. Set where the generator knows; a blueprint it did not is caught by the row falling back.
+    /// </summary>
+    public string? TypeImage { get; init; }
 }
 
 /// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>
 public static class WorklistIcons
 {
     public static string Type(int typeId)            => $"https://images.evetech.net/types/{typeId}/icon?size=32";
+    /// <summary>A blueprint's picture, an original's or a copy's: blueprints have no icon.</summary>
+    public static string Blueprint(int typeId, bool copy) => $"https://images.evetech.net/types/{typeId}/{(copy ? "bpc" : "bp")}?size=32";
     /// <summary>A station or structure type's picture: the render, not the generic station glyph.</summary>
     public static string Render(int typeId)          => $"https://images.evetech.net/types/{typeId}/render?size=32";
     public static string Portrait(long characterId)  => $"https://images.evetech.net/characters/{characterId}/portrait?size=32";

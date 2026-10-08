@@ -435,6 +435,7 @@ public class InventionGenerator(
                 BlockedByPrint = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
+                TypeImage = "bpc",   // what the job makes: copies
                 Priority  = priority,
             }];
 
@@ -474,6 +475,7 @@ public class InventionGenerator(
             LocationName  = lab.Name,
             TypeId        = recipe.SourceBlueprintTypeId,
             TypeName      = recipe.SourceBlueprintName,
+            TypeImage     = "bpc",   // what the job makes: copies
             Priority      = priority,
         }];
     }

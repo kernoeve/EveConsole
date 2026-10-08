@@ -336,7 +336,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// asking for /icon on a blueprint returns the generic paper sheet, so every print in a buy
     /// list would look like every other print.
     /// </summary>
-    private string IconVariant => _item.TitleTag == "BPO/BPC" ? "bp" : "icon";
+    private string IconVariant => _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bp" : "icon");
 
     /// <summary>
     /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
@@ -350,21 +350,29 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         if (IsChild)
         {
             if (_childTypeId <= 0) return;
-            var line = await EveImageCache.GetAsync($"https://images.evetech.net/types/{_childTypeId}/icon?size=32");
+            var line = await TypePictureAsync(_childTypeId, "icon");
             if (line is not null) Dispatcher.UIThread.Post(() => Icon = line);
             return;
         }
 
         // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
-        var url = _item.TypeId > 0
-            ? $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32"
-            : _item.IconUrl;
-        if (string.IsNullOrEmpty(url)) return;
-
-        var bmp = await EveImageCache.GetAsync(url);
+        var bmp = _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
+                : !string.IsNullOrEmpty(_item.IconUrl) ? await EveImageCache.GetAsync(_item.IconUrl)
+                : null;
 
         if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
     }
+
+    /// <summary>
+    /// A type's picture, and a blueprint's when its icon is refused: a blueprint has none — the
+    /// image server answers its /icon with an error — and nothing on a manifest line, or on a row
+    /// whose generator did not say, tells a blueprint from anything else. The refusal is kept for
+    /// the session (<see cref="EveImageCache"/>), so this costs the one request.
+    /// </summary>
+    private static async Task<Bitmap?> TypePictureAsync(int typeId, string variant) =>
+        await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/{variant}?size=32")
+        ?? (variant == "icon" ? await EveImageCache.GetAsync(WorklistIcons.Blueprint(typeId, copy: false)) : null);
+
     public int    Priority      => _item.Priority;
 
     /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
