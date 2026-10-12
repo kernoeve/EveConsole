@@ -81,6 +81,13 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
 
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
 
+        // ⚠️ One item can be in two owners' snapshots at once — a ship's cargo, a container, a
+        // print — when it changed hands, or the ship it sits in moved, between their polls. Keyed
+        // by item, the second copy threw ("an item with the same key has already been added") and
+        // took the industry, invention, purchase and inventory sections down with it. The owner
+        // polled last has the item where it is now; that copy is the one kept.
+        var clocks = await HaulLag.AssetClocksAsync(db, ct);
+
         var rows = (await db.EsiBlueprints.AsNoTracking()
                 .Where(b => blueprintTypeIds.Contains(b.TypeId) && b.LocationFlag != AssetSafetyFlag)
                 .Select(b => new
@@ -90,16 +97,20 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 })
                 .ToListAsync(ct))
             .Where(b => !wrapped.Excludes(b.ItemId, b.OwnerId) && !wrapped.Contains(b.LocationId))
+            .GroupBy(b => b.ItemId)
+            .Select(g => g.OrderByDescending(b => clocks.GetValueOrDefault(b.OwnerId)).First())
             .ToList();
 
         // Container item id → the station or structure it is ultimately in. Only the locations
         // actually referenced are looked up, which is a handful of rows rather than the assets
         // table; a blueprint whose location matches no asset is already sitting in a station.
         var locIds = rows.Select(r => r.LocationId).Distinct().ToList();
-        var containerRoots = await db.EsiAssets.AsNoTracking()
-            .Where(a => locIds.Contains(a.ItemId))
-            .Select(a => new { a.ItemId, a.RootLocationId })
-            .ToDictionaryAsync(a => a.ItemId, a => a.RootLocationId, ct);
+        var containerRoots = (await db.EsiAssets.AsNoTracking()
+                .Where(a => locIds.Contains(a.ItemId))
+                .Select(a => new { a.ItemId, a.RootLocationId, a.OwnerId })
+                .ToListAsync(ct))
+            .GroupBy(a => a.ItemId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(a => clocks.GetValueOrDefault(a.OwnerId)).First().RootLocationId);
 
         // Prints locked in a job right now. The same live statuses used for slot counting:
         // "ready" holds its print as firmly as "active" does, since the job has not been

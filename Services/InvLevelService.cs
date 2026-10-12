@@ -441,6 +441,20 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>Asked as "does anything have a blueprint activity" rather than by category, because
     /// that is the same table every other blueprint decision in the app is made from.</para>
     /// </summary>
+    /// <summary>Runs left on each copy of these blueprint types, one entry per print: a print in
+    /// two owners' snapshots takes the runs of the owner polled last.</summary>
+    private static async Task<Dictionary<long, long>> RunsByItemAsync(
+        AppDbContext db, IReadOnlyCollection<int> bpTypeIds, CancellationToken ct)
+    {
+        var clocks = await HaulLag.AssetClocksAsync(db, ct);
+        return (await db.EsiBlueprints.AsNoTracking()
+                .Where(b => bpTypeIds.Contains(b.TypeId) && b.Runs > 0)
+                .Select(b => new { b.ItemId, b.OwnerId, b.Runs })
+                .ToListAsync(ct))
+            .GroupBy(b => b.ItemId)
+            .ToDictionary(g => g.Key, g => (long)g.OrderByDescending(b => clocks.GetValueOrDefault(b.OwnerId)).First().Runs);
+    }
+
     private static async Task<HashSet<int>> BlueprintTypeIdsAsync(
         AppDbContext db, IReadOnlyList<int> typeIds, CancellationToken ct) =>
         [.. await db.SdeBlueprintProducts.AsNoTracking()
@@ -550,9 +564,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             // answer — the same reason the purchase pass counts only copies against a shelf.
             runsByItem = bpTypeIds.Count == 0
                 ? []
-                : await db.EsiBlueprints.AsNoTracking()
-                    .Where(b => bpTypeIds.Contains(b.TypeId) && b.Runs > 0)
-                    .ToDictionaryAsync(b => b.ItemId, b => (long)b.Runs, ct);
+                // ⚠️ By item, one copy each: a print in two owners' snapshots (it changed hands
+                // between their polls) is one print, and keyed straight it threw. The owner polled
+                // last has its runs as they are now.
+                : await RunsByItemAsync(db, bpTypeIds, ct);
 
             // ⚠️ Plus what delivered jobs have put in hangars that the asset and blueprint polls
             // have not seen yet. A delivered job stops counting under Industry Jobs within

@@ -173,16 +173,11 @@ public class LogisticsGenerator(
         var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
         if (parkId <= 0) return [];
 
-        try
-        {
-            return await BuildAsync(db, parkId, ct);
-        }
-        catch (OperationCanceledException) { throw; }
-        catch (Exception ex)
-        {
-            errorLogger.Log(nameof(LogisticsGenerator), $"Park {parkId}", ex);
-            return [];
-        }
+        // ⚠️ Not caught here. Caught, logged and answered with nothing, a failure took every haul
+        // off the list without a word on screen — a duplicated container in a hold emptied it for
+        // hours while the four sections beside it said why. WorklistService logs a generator that
+        // throws and names it at the top of the list, as it does for the rest.
+        return await BuildAsync(db, parkId, ct);
     }
 
     private async Task<List<WorklistItem>> BuildAsync(

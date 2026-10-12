@@ -211,15 +211,25 @@ public static class HaulLag
     private static async Task<List<(long Ship, int TypeId, long Units)>> ShipCargoAsync(
         AppDbContext db, List<long> ships, CancellationToken ct)
     {
-        var top = await db.EsiAssets.AsNoTracking()
-            .Where(a => ships.Contains(a.LocationId) && a.LocationFlag == CargoFlag)
-            .Select(a => new { a.ItemId, a.LocationId, a.TypeId, a.Quantity })
-            .ToListAsync(ct);
+        // ⚠️ A hold, or a container in it, can be in two owners' snapshots at once when the ship
+        // or what is in it changed hands between their polls. Each item is counted once, from the
+        // owner polled last — keyed straight, the second copy threw, and summed it was cargo twice.
+        var clocks = await AssetClocksAsync(db, ct);
+        var top = (await db.EsiAssets.AsNoTracking()
+                .Where(a => ships.Contains(a.LocationId) && a.LocationFlag == CargoFlag)
+                .Select(a => new { a.ItemId, a.OwnerId, a.LocationId, a.TypeId, a.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(a => a.ItemId)
+            .Select(g => g.OrderByDescending(a => clocks.GetValueOrDefault(a.OwnerId)).First())
+            .ToList();
         var boxes = top.Select(a => a.ItemId).ToList();
-        var inner = boxes.Count == 0 ? [] : await db.EsiAssets.AsNoTracking()
-            .Where(a => boxes.Contains(a.LocationId))
-            .Select(a => new { a.LocationId, a.TypeId, a.Quantity })
-            .ToListAsync(ct);
+        var boxOwner = top.ToDictionary(a => a.ItemId, a => a.OwnerId);
+        var inner = boxes.Count == 0 ? [] : (await db.EsiAssets.AsNoTracking()
+                .Where(a => boxes.Contains(a.LocationId))
+                .Select(a => new { a.OwnerId, a.LocationId, a.TypeId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => boxOwner[a.LocationId] == a.OwnerId)   // the contents of the copy kept
+            .ToList();
         var shipOf = top.ToDictionary(a => a.ItemId, a => a.LocationId);
 
         return [.. top.Select(a => (a.LocationId, a.TypeId, (long)a.Quantity)),
