@@ -314,10 +314,88 @@
     <value>加入队列</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>计入最终产品的 BPC 成本</value>
+    <value>计入 BPC 成本</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>清空队列中的所有物品，并清除结果。</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>要生产的数量。在此修改后，再次计算即可看到新数字。</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>用于生产该物品的蓝图的材料效率。</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>从队列中移除</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>计算这些结果后，队列已发生变化。</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>重新计算</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>净成本</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>市场价值</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>原材料体积</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>作业时间</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>大数字是必须依次运行的最长作业链：在每个作业都有槽位的情况下，计划最快多久完成。下方是所有作业时间之和。假定所有技能为 V，TE 为 ME 的两倍（上限 20），并在计划为各作业安排的建筑中进行。</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>所有作业合计 {0}</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>未计入的蓝图拷贝成本（{0}）</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>“计入 BPC 成本”已关闭，因此这些物品按不含所需拷贝价格计算，总计中也不包含这些拷贝。</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0}（蓝图拷贝）</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>产出价值</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>作业的全部产出，按制造价值计：已存储的制造成本，没有制造成本的物品则按市场价格。</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>时间：{0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>此作业的所有流程，假定所有技能为 V、TE 为 ME 的两倍（上限 20），在计划安排的建筑中进行。</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0}天 {1}小时</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0}小时 {1}分</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0}分</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>将最终产品的蓝图拷贝（按合同价格）作为一项投入计入。势力物品 / 仅有蓝图拷贝的物品始终计入；标准蓝图原件物品则为可选。</value>
+    <value>将蓝图拷贝（按合同价格）作为投入计入：包括最终产品的拷贝，以及只能用拷贝生产的物品的拷贝。加入此类物品时会自动勾选；取消勾选可查看不含任何拷贝的制造成本。</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>在物品浏览器中打开</value>

@@ -18,6 +18,28 @@ public partial class ProductionCalculatorView : UserControl
 
     // ── DataGrid double-click → Item Browser ─────────────────────────────
 
+    /// <summary>The search box: arrows move through the results, Enter picks one — or, with one
+    /// picked, queues it — and Escape closes the list.</summary>
+    private void OnSearchKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not ProductionCalculatorViewModel vm) return;
+        switch (e.Key)
+        {
+            case Key.Down:   vm.MoveHighlight(+1); e.Handled = true; break;
+            case Key.Up:     vm.MoveHighlight(-1); e.Handled = true; break;
+            case Key.Enter:  vm.AcceptSearch();    e.Handled = true; break;
+        }
+    }
+
+    /// <summary>Enter in the quantity or ME box queues the item picked.</summary>
+    private void OnAddFieldKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || DataContext is not ProductionCalculatorViewModel vm || !vm.CanAdd) return;
+        vm.AcceptSearch();
+        e.Handled = true;
+        this.FindControl<TextBox>("SearchBox")?.Focus();
+    }
+
     private void OnDataGridDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is not ProductionCalculatorViewModel vm) return;

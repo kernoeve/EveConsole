@@ -27,6 +27,22 @@ public class PlanJob
 
     public bool    IsReaction      { get; set; }
     public int     MeLevel         { get; set; }
+
+    /// <summary>The blueprint or formula the job runs from.</summary>
+    public int     BlueprintTypeId { get; set; }
+
+    /// <summary>The park structure the job was planned in, and the item category its rigs were
+    /// matched against — what the job's duration is worked out from. Null for a job planned in
+    /// no structure.</summary>
+    public IndyStructure? Structure { get; set; }
+    public string  CategoryKey     { get; set; } = "";
+
+    /// <summary>How long the job takes, all runs; null where the blueprint has no base time on
+    /// record. See ProductionCalculatorService.ApplyDurationsAsync for what it assumes.</summary>
+    public double? DurationSeconds { get; set; }
+    public string  DurationText    => DurationSeconds is { } s ? PlanTime.Format(s) : "";
+    public bool    HasDuration     => DurationSeconds is > 0;
+
     public long    QuantityNeeded  { get; set; }
     public int     QuantityPerRun  { get; set; }   // portion size from the SDE; single digits
     public long    Runs            { get; set; }
@@ -211,7 +227,11 @@ public class PlanIntermediate
     public long    QuantityNeeded   { get; set; }
     public long    QuantityProduced { get; set; }
     public long    Leftover         { get; set; }
-    public decimal MarketUnitPrice  { get; set; }
+
+    /// <summary>One unit at its build value: the stored build cost, or the market price for an
+    /// item with none.</summary>
+    public decimal BuildUnitValue   { get; set; }
+    public decimal ProducedValue    => QuantityProduced * BuildUnitValue;
     public decimal LeftoverValue    { get; set; }
 }
 
@@ -277,6 +297,26 @@ public class ProductionPlan
     /// </summary>
     public List<PlanItemNote> PricingWarnings { get; set; } = [];
 
+    /// <summary>
+    /// Blueprint copies a BPC-only item needs whose cost was left out because the user unticked
+    /// "include BPC cost". The totals are without them; this says which.
+    /// </summary>
+    public List<PlanItemNote> SkippedBpcs { get; set; } = [];
+
+    /// <summary>Every job's duration added up: the slot time the plan takes.</summary>
+    public double  TotalJobSeconds      { get; set; }
+
+    /// <summary>The longest chain of jobs that must run one after another, each waiting on the
+    /// last: how soon the plan could finish with a slot for every job.</summary>
+    public double  LongestChainSeconds  { get; set; }
+
+    public decimal TotalMarketValue => FinalProducts.Sum(f => f.MarketTotalValue);
+
+    /// <summary>⚠️ Against the plan's net cost, not the products' own costs added up: a component
+    /// two products share is in each one's cost in full, so their sum counts it twice.</summary>
+    public decimal TotalProfit      => TotalMarketValue - NetCost;
+    public decimal TotalMargin      => TotalMarketValue > 0 ? TotalProfit / TotalMarketValue * 100m : 0m;
+
     public decimal TotalRawMaterialCost { get; set; }
 
     /// <summary>Packed volume of everything on the shopping list, m ³. Intermediates are
@@ -285,6 +325,18 @@ public class ProductionPlan
     public decimal TotalJobCost         { get; set; }
     public decimal TotalLeftoverValue   { get; set; }
     public decimal NetCost              { get; set; }
+}
+
+/// <summary>A job time as the calculator shows it: "2d 4h", "5h 30m", "45m".</summary>
+public static class PlanTime
+{
+    public static string Format(double seconds)
+    {
+        var t = TimeSpan.FromSeconds(Math.Max(0, seconds));
+        return t.TotalDays >= 1 ? string.Format(IndustryText.FmtDaysHours, (int)t.TotalDays, t.Hours)
+             : t.TotalHours >= 1 ? string.Format(IndustryText.FmtHoursMinutes, (int)t.TotalHours, t.Minutes)
+             : string.Format(IndustryText.FmtMinutes, Math.Max(1, (int)Math.Ceiling(t.TotalMinutes)));
+    }
 }
 
 /// <summary>

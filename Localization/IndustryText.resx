@@ -417,11 +417,115 @@
     <comment>Button or option in ProductionCalculatorView.</comment>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Include final BPC cost</value>
+    <value>Include BPC cost</value>
     <comment>Button or option in ProductionCalculatorView.</comment>
   </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Take every item off the queue, and the results with them.</value>
+    <comment>Tooltip on the queue's Clear button.</comment>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>How many to build. Change it here; Calculate again to see the new figures.</value>
+    <comment>Tooltip on a queued item's quantity box.</comment>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Material efficiency of the blueprint this item is built from.</value>
+    <comment>Tooltip on a queued item's ME box.</comment>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+    <comment>Column heading and label: material efficiency.</comment>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Remove from the queue</value>
+    <comment>Tooltip on a queued item's remove button.</comment>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>The queue has changed since these results were calculated.</value>
+    <comment>Note above the results when the queue, park or BPC choice changed after calculating.</comment>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalculate</value>
+    <comment>Button: calculate the results again.</comment>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Net cost</value>
+    <comment>Summary figure: what the build costs after leftovers.</comment>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Summary figure: what the products sell for.</comment>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Summary figure: market value less cost.</comment>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Raw material volume</value>
+    <comment>Summary figure: volume of everything to buy.</comment>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Job time</value>
+    <comment>Summary figure: how long the jobs take.</comment>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>The large figure is the longest chain of jobs that must run one after another: how soon the plan could be done with a slot for every job. Below it, every job's time added up. Assumes all-V skills and TE twice the ME, up to 20, in the structures the plan placed each job in.</value>
+    <comment>Tooltip on the job time summary figure.</comment>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>{0} of jobs in all</value>
+    <comment>Under the job time figure. {0} = every job's time added up, e.g. 12d 4h.</comment>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Blueprint copy costs left out ({0})</value>
+    <comment>Heading of the list of BPC-only items whose copy cost was not counted. {0} = how many.</comment>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>Include BPC cost is off, so these items are built without the price of the copies they need, and the totals do not include them.</value>
+    <comment>Explanation under the skipped BPC list.</comment>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (blueprint copy)</value>
+    <comment>A line in the skipped BPC list. {0} = the blueprint's name.</comment>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+    <comment>An ISK amount. {0} = the amount.</comment>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+    <comment>A blueprint's material efficiency. {0} = the level, e.g. ME10.</comment>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Produced value</value>
+    <comment>Column: everything a job makes, at build value.</comment>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Everything the job makes, at build value: the stored build cost, or the market price for an item with none.</value>
+    <comment>Tooltip on the Produced value column.</comment>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Time: {0}</value>
+    <comment>On a job in the Jobs tab. {0} = how long the job takes, e.g. 2d 4h.</comment>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>All runs of this job, assuming all-V skills and TE twice the ME (up to 20), in the structure the plan placed it in.</value>
+    <comment>Tooltip on a job's time.</comment>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>A duration. {0} = days, {1} = hours.</comment>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+    <comment>A duration. {0} = hours, {1} = minutes.</comment>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>A duration in minutes.</comment>
+  </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items.</value>
+    <value>Count blueprint copies (contract price) as an input: the final product's, and those of items that can only be built from a copy. Ticked when such an item is queued; untick it to see the build without any copies.</value>
     <comment>Tooltip in ProductionCalculatorView.</comment>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">

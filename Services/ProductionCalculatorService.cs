@@ -286,8 +286,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         List<ProductionQueueEntry> requests,
         int parkId,
         bool includeBpcCost = false,
-        CancellationToken ct = default)
-        => Calculate(requests, await LoadContextAsync(parkId, ct), includeBpcCost);
+        CancellationToken ct = default,
+        bool bpcFollowsToggle = false)
+        => Calculate(requests, await LoadContextAsync(parkId, ct), includeBpcCost, bpcFollowsToggle: bpcFollowsToggle);
 
     /// <summary>
     /// Plans a queue against an already-loaded context. Pure computation — no database access —
@@ -310,7 +311,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         List<ProductionQueueEntry> requests,
         ProductionContext ctx,
         bool includeBpcCost = false,
-        IReadOnlyDictionary<int, int>? meOverrides = null)
+        IReadOnlyDictionary<int, int>? meOverrides = null,
+        bool bpcFollowsToggle = false)
     {
         // Bound back to the names the body below already uses, so the planning logic is the same
         // code it was when it and the loading lived in one method.
@@ -590,6 +592,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // Sorted and de-duplicated the same way, since one BPC can be reached many times.
         var bpcPriceNotes = new SortedDictionary<string, PlanItemNote>();
 
+        // BPC-only items whose copy was left out at the user's word (bpcFollowsToggle).
+        var skippedBpcs = new SortedDictionary<string, PlanItemNote>();
+
         static void Note(SortedDictionary<string, PlanItemNote> notes, PlanItemNote note) =>
             notes.TryAdd(note.Text, note);
 
@@ -734,6 +739,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     OutputTypeName = typeNames.GetValueOrDefault(typeId, string.Format(CommonText.TypeNumbered, typeId)),
                     IsReaction     = isReaction,
                     MeLevel        = meLevel,
+                    BlueprintTypeId = bpProd.TypeId,
+                    Structure      = structure,
+                    CategoryKey    = catKey,
                     QuantityNeeded = qty,
                     QuantityPerRun = bpProd.Quantity,
                     Runs           = runs,
@@ -786,7 +794,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // build-cost pass sets it; on this screen the checkbox is the user's to tick.
                 bool alwaysBpc = !isReaction && ctx.AlwaysBpcTypes.Contains(typeId);
 
-                if (bpcOnly || alwaysBpc || (!isReaction && isFinal && includeBpcCost))
+                // ⚠️ On the Production Calculator the checkbox decides for BPC-only items too
+                // (bpcFollowsToggle): ticked when such an item is queued, and the user's to untick
+                // to see the build without the copies. Everywhere else — the stored build cost,
+                // the worklist — a BPC-only item always pays for its copy, as it must in fact.
+                bool wantsBpc = bpcFollowsToggle
+                    ? alwaysBpc || (!isReaction && includeBpcCost && (bpcOnly || isFinal))
+                    : bpcOnly || alwaysBpc || (!isReaction && isFinal && includeBpcCost);
+                if (bpcOnly && !wantsBpc)
+                {
+                    var leftOut = typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId));
+                    Note(skippedBpcs, new PlanItemNote(IndustryText.BpcCostLeftOut, bpProd.TypeId, leftOut));
+                }
+
+                if (wantsBpc)
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
@@ -890,7 +911,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .ToList();
 
         // ── Build intermediates list ────────────────────────────────────────
-        // MarketUnitPrice here is set to build cost (more accurate for leftover valuation).
+        // Valued at build cost, the market price only for an item with none: more accurate for
+        // what a component is worth to the builder than what it fetches.
         var intermediates = jobPool.Values
             .Where(j => !j.IsFinalProduct)
             .Select(j =>
@@ -904,7 +926,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     QuantityNeeded   = j.QuantityNeeded,
                     QuantityProduced = j.QuantityProduced,
                     Leftover         = j.Leftover,
-                    MarketUnitPrice  = buildVal,
+                    BuildUnitValue   = buildVal,
                     LeftoverValue    = j.Leftover * buildVal,
                 };
             })
@@ -912,37 +934,62 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .ToList();
 
         // ── Build final products summary ────────────────────────────────────
-        // Walk the subtree for each final product, summing only raw-material costs
-        // (IsBought=true) and all job costs. Summing job.MaterialCost directly would
-        // double-count intermediates that have market prices but are also produced.
+        // Each product is charged its share of every job beneath it: raw-material costs
+        // (IsBought=true) and job costs. Summing job.MaterialCost directly would double-count
+        // intermediates that have market prices but are also produced.
         var leftoverValueByType = intermediates
             .Where(i => i.Leftover > 0)
             .ToDictionary(i => i.TypeId, i => i.LeftoverValue);
 
+        // ⚠️ Shared, not whole. A component two products both use is one job, and each product
+        // was charged all of it: a Phoenix Navy Issue queued beside three Rorquals carried every
+        // capital component they share, and read 7.6B and -79% where on its own it costs 3.1B.
+        // A job is now split between the products by how much of its output each one draws,
+        // following the demand down the tree; the shares of every job add up to one, so the
+        // products' costs add up to the plan's. A product queued alone draws the whole of every
+        // job beneath it, and its figures are what they always were.
+        var demand = requests.GroupBy(r => r.TypeId).ToDictionary(g => g.Key, g => g.Sum(r => r.Quantity));
+        var shares = new Dictionary<int, Dictionary<int, double>>();   // job → product → share
+        Dictionary<int, double> SharesOf(int tid, HashSet<int> path)
+        {
+            if (shares.TryGetValue(tid, out var known)) return known;
+            var drawn = new Dictionary<int, double>();
+            if (!path.Add(tid)) return drawn;   // a cycle in the tree: nothing more to follow
+            if (demand.TryGetValue(tid, out var asked)) drawn[tid] = asked;
+            if (jobPool.TryGetValue(tid, out var self))
+                foreach (var parentId in self.ParentTypeIds.Distinct())
+                {
+                    if (!jobPool.TryGetValue(parentId, out var parent)) continue;
+                    var used = parent.Materials.Where(m => m.MaterialTypeId == tid).Sum(m => (double)m.TotalQty);
+                    if (used <= 0) continue;
+                    foreach (var (product, share) in SharesOf(parentId, path))
+                        drawn[product] = drawn.GetValueOrDefault(product) + used * share;
+                }
+            path.Remove(tid);
+            var total = drawn.Values.Sum();
+            return shares[tid] = total > 0 ? drawn.ToDictionary(kv => kv.Key, kv => kv.Value / total) : drawn;
+        }
+
         var finalProducts = requests.Select(req =>
         {
             var rootJob = jobPool.GetValueOrDefault(req.TypeId);
-            var seen    = new HashSet<int>();
             decimal subtreeRawMat   = 0;
             decimal subtreeJobCost  = 0;
             decimal subtreeLeftover = 0;
 
-            void WalkSubtree(int tid)
+            foreach (var (tid, j) in jobPool)
             {
-                if (!seen.Add(tid) || !jobPool.TryGetValue(tid, out var j)) return;
-                subtreeJobCost += j.JobCost;
+                var share = (decimal)SharesOf(tid, []).GetValueOrDefault(req.TypeId);
+                if (share <= 0) continue;
+                subtreeJobCost += j.JobCost * share;
                 foreach (var mat in j.Materials)
-                    if (mat.IsBought) subtreeRawMat += mat.TotalQty * mat.UnitPrice;
+                    if (mat.IsBought) subtreeRawMat += mat.TotalQty * mat.UnitPrice * share;
 
                 // Over-production of a sub-component is stock, not cost. Excludes the product
                 // itself, whose surplus is counted as produced units rather than as leftovers.
                 if (tid != req.TypeId && leftoverValueByType.TryGetValue(tid, out var lv))
-                    subtreeLeftover += lv;
-
-                foreach (var childId in j.ChildTypeIds)
-                    WalkSubtree(childId);
+                    subtreeLeftover += lv * share;
             }
-            if (rootJob is not null) WalkSubtree(req.TypeId);
 
             // Net of leftovers, matching the Cost Summary's Net Cost. Charging the gross would
             // bill this run for components it did not consume and still has on the shelf.
@@ -973,7 +1020,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 TypeId     = interm.TypeId,
                 TypeName   = interm.TypeName,
                 Quantity   = interm.Leftover,
-                UnitPrice  = interm.MarketUnitPrice, // already set to build cost above
+                UnitPrice  = interm.BuildUnitValue,
                 TotalValue = interm.LeftoverValue,
                 Source     = IndustryText.SourceIntermediate,
             });
@@ -1020,6 +1067,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
             Warnings             = planWarnings,
             PricingWarnings      = bpcPriceNotes.Values.ToList(),
+            SkippedBpcs          = skippedBpcs.Values.ToList(),
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,
@@ -1059,12 +1107,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     // override it. ⚠️ Four queries — for one item from the calculator screen. Anything with a
     // ProductionContext in hand uses DefaultMe above.
     public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
+        => (await QueueDefaultsAsync(productTypeId, ct)).Me;
+
+    /// <summary>
+    /// What an item starts with when it is queued: its default ME, and whether building it needs a
+    /// blueprint copy because no original can be had — by the same test the plan applies to the
+    /// item, so a queued item that will cost a copy turns "include BPC cost" on.
+    /// </summary>
+    public async Task<(int Me, bool NeedsBpc)> QueueDefaultsAsync(int productTypeId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var bp = await db.SdeBlueprintProducts.AsNoTracking()
             .FirstOrDefaultAsync(p => p.ProductTypeId == productTypeId
                 && (p.Activity == MfgActivity || p.Activity == RxnActivity), ct);
-        if (bp is null) return 10;
+        if (bp is null) return (10, false);
         bool isReaction = bp.Activity == RxnActivity;
 
         var prod = await db.SdeTypes.AsNoTracking()
@@ -1089,7 +1145,47 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             || group == IndustryMe.SuperGroupId
                             || productTypeId == IndustryMe.KeepstarTypeId
                             || productTypeId == IndustryMe.FortizarTypeId;
-        return IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar);
+        // ⚠️ The plan's own test, not bpcOnly above: that one counts the faction and loot tiers
+        // in for the ME default, while the plan charges a copy only where no original is sourced.
+        bool needsBpc = !isReaction && !(bpHasMarket || inventedFromMarket);
+        return (IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar), needsBpc);
+    }
+
+    /// <summary>All-V skills, which the durations assume: the calculator plans for no character.</summary>
+    private static readonly Dictionary<int, int> SkillsAtFive = new() { [3380] = 5, [3388] = 5, [45746] = 5 };
+
+    /// <summary>
+    /// Each job's duration, and the plan's slot time and longest chain.
+    ///
+    /// <para>The calculator plans for no particular character or print, so it assumes all-V skills
+    /// and the usual research pairing, TE = 2 × ME up to 20 (ME10 / TE20), in the structure and
+    /// with the rigs the plan placed each job in. The worklist's own timings, which know the
+    /// character and the print, are the same formula.</para>
+    /// </summary>
+    public async Task ApplyDurationsAsync(ProductionPlan plan, int parkId, CancellationToken ct = default)
+    {
+        var time = await new EveConsole.Services.Worklist.IndustryTimeService(dbFactory).LoadAsync(parkId, ct);
+        foreach (var job in plan.AllJobs)
+        {
+            var te  = job.IsReaction ? 0 : Math.Clamp(job.MeLevel * 2, 0, 20);
+            var per = EveConsole.Services.Worklist.IndustryTimeService.PerRunSeconds(
+                time, job.BlueprintTypeId, job.IsReaction, te, job.Structure, job.CategoryKey, SkillsAtFive);
+            job.DurationSeconds = per is { } s ? s * job.Runs : null;
+        }
+
+        var byType = plan.AllJobs.ToDictionary(j => j.OutputTypeId);
+        var chain  = new Dictionary<int, double>();
+        double Chain(int typeId, HashSet<int> path)
+        {
+            if (chain.TryGetValue(typeId, out var known)) return known;
+            if (!byType.TryGetValue(typeId, out var job) || !path.Add(typeId)) return 0;
+            var below = job.ChildTypeIds.Select(c => Chain(c, path)).DefaultIfEmpty(0).Max();
+            path.Remove(typeId);
+            return chain[typeId] = (job.DurationSeconds ?? 0) + below;
+        }
+
+        plan.TotalJobSeconds     = plan.AllJobs.Sum(j => j.DurationSeconds ?? 0);
+        plan.LongestChainSeconds = plan.AllJobs.Select(j => Chain(j.OutputTypeId, [])).DefaultIfEmpty(0).Max();
     }
 
     // ── Batch-add helpers: direct materials (single blueprint) ────────────────

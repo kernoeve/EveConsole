@@ -314,10 +314,88 @@
     <value>キューに追加</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>最終製品のBPCコストを含める</value>
+    <value>BPCコストを含める</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>キューのアイテムをすべて外し、結果も消します。</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>生産する数です。ここで変更し、もう一度計算すると新しい数値が出ます。</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>このアイテムを作るブループリントの材料効率です。</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>キューから外す</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>この結果を計算した後にキューが変わりました。</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>再計算</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>正味コスト</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>市場価値</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>原材料の体積</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>ジョブ時間</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>大きい数字は、順番に実行しなければならない最長のジョブの連鎖です。すべてのジョブにスロットがある場合に計画が終わる最短時間です。その下はすべてのジョブ時間の合計です。全スキルV、TEはMEの2倍（最大20）、計画が各ジョブを割り当てたストラクチャでの時間を想定しています。</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>全ジョブ合計 {0}</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>含めていないブループリントコピーのコスト（{0}）</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>「BPCコストを含める」がオフのため、これらのアイテムは必要なコピーの価格なしで計算され、合計にも含まれません。</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0}（ブループリントコピー）</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>生産価値</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>ジョブが作るすべてを製造価値で示します。保存された製造コスト、ない場合は市場価格です。</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>時間：{0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>このジョブの全実行分です。全スキルV、TEはMEの2倍（最大20）、計画が割り当てたストラクチャでの時間を想定しています。</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0}日 {1}時間</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0}時間 {1}分</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0}分</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>最終製品のブループリントコピー（契約価格）を投入物として加えます。勢力アイテムやBPC専用のアイテムでは常に含まれ、通常のBPOアイテムでは任意です。</value>
+    <value>ブループリントコピー（契約価格）を投入物として数えます。最終製品のもの、およびコピーからしか作れないアイテムのものです。そのようなアイテムをキューに入れると自動でオンになります。オフにするとコピーなしの製造を確認できます。</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>アイテムブラウザで開きます</value>

@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -13,10 +11,14 @@ using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
-public class ProdTypeSearchResult
+public class ProdTypeSearchResult : ReactiveObject
 {
     public int    TypeId   { get; set; }
     public string TypeName { get; set; } = "";
+
+    private bool _isHighlighted;
+    /// <summary>The one the arrow keys are on: Enter picks it.</summary>
+    public bool IsHighlighted { get => _isHighlighted; set => this.RaiseAndSetIfChanged(ref _isHighlighted, value); }
 
     /// <summary>The name the list shows, in the interface language; TypeName stays English.</summary>
     public string DisplayName => SdeNames.Type(TypeId, TypeName);
@@ -29,17 +31,13 @@ public class ProductionQueueVm : ReactiveObject
     public string TypeName { get; set; } = "";
     public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
+    // Edited in place in the queue. A cleared box keeps the last value: a row of nothing to build
+    // is what the remove button is for.
     private int _quantity = 1;
-    public int Quantity { get => _quantity; set => this.RaiseAndSetIfChanged(ref _quantity, value); }
+    public int Quantity { get => _quantity; set => this.RaiseAndSetIfChanged(ref _quantity, Math.Max(1, value)); }
 
     private int _meLevel = 10;
-    public int MeLevel { get => _meLevel; set => this.RaiseAndSetIfChanged(ref _meLevel, value); }
-
-    private Bitmap? _icon;
-    public Bitmap? Icon { get => _icon; set => this.RaiseAndSetIfChanged(ref _icon, value); }
-
-    public string MeBadge   => $"ME{MeLevel}";
-    public string QtyDisplay => $"×{Quantity:N0}";
+    public int MeLevel { get => _meLevel; set => this.RaiseAndSetIfChanged(ref _meLevel, Math.Clamp(value, 0, 10)); }
 
     // Set by ProductionCalculatorViewModel.AddToQueue so compiled DataTemplates
     // can bind directly without traversing to the parent DataContext.
@@ -82,8 +80,6 @@ public class ProductionCalculatorViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ProductionCalculatorService     _service;
-    private static readonly HttpClient               _http = new();
-    private readonly Dictionary<int, Bitmap?>        _iconCache = [];
 
     // ── Search ────────────────────────────────────────────────────────────
     private string _searchText = "";
@@ -115,6 +111,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
     public bool CanAdd => _pendingType is not null;
 
+    /// <summary>The pending item will cost a blueprint copy: queuing it ticks "include BPC cost".</summary>
+    private bool _pendingNeedsBpc;
+
     // ── New item settings ─────────────────────────────────────────────────
     private int _newQuantity = 1;
     public int NewQuantity { get => _newQuantity; set => this.RaiseAndSetIfChanged(ref _newQuantity, value); }
@@ -124,6 +123,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
     // ── Queue ─────────────────────────────────────────────────────────────
     public ObservableCollection<ProductionQueueVm> Queue { get; } = [];
+
+    /// <summary>Something is queued: the Clear button shows.</summary>
+    public bool HasQueue => Queue.Count > 0;
 
     private ProdTypeSearchResult? _selectedSearchResult;
     public ProdTypeSearchResult? SelectedSearchResult
@@ -140,12 +142,43 @@ public class ProductionCalculatorViewModel : ReactiveObject
     public ObservableCollection<ParkOption> Parks { get; } = [];
 
     private ParkOption? _selectedPark;
-    public ParkOption? SelectedPark { get => _selectedPark; set => this.RaiseAndSetIfChanged(ref _selectedPark, value); }
+    public ParkOption? SelectedPark
+    {
+        get => _selectedPark;
+        set
+        {
+            if (ReferenceEquals(value, _selectedPark)) return;
+            var changed = value?.Id != _selectedPark?.Id;
+            this.RaiseAndSetIfChanged(ref _selectedPark, value);
+            if (changed) MarkStale();
+        }
+    }
 
-    // Include the final product's blueprint copy (contract price) as an input. Always applied for
-    // non-BPO (BPC-only) items regardless of this toggle; optional for standard BPO items.
+    // Include blueprint copies (contract price) as an input: the final product's, and every
+    // BPC-only item's at any depth. Ticked when a BPC-only item is queued; unticked, no copy is
+    // costed at all — the build without the copies, which the stored build cost never shows.
     private bool _includeBpcCost;
-    public bool IncludeBpcCost { get => _includeBpcCost; set => this.RaiseAndSetIfChanged(ref _includeBpcCost, value); }
+    public bool IncludeBpcCost
+    {
+        get => _includeBpcCost;
+        set
+        {
+            if (value == _includeBpcCost) return;
+            this.RaiseAndSetIfChanged(ref _includeBpcCost, value);
+            MarkStale();
+        }
+    }
+
+    // ── Out of date ───────────────────────────────────────────────────────
+    private bool _isStale;
+    /// <summary>The queue, park or BPC choice changed since the results were worked out: they
+    /// still show, under a note saying so, until the next Calculate.</summary>
+    public bool IsStale { get => _isStale; private set => this.RaiseAndSetIfChanged(ref _isStale, value); }
+
+    private void MarkStale()
+    {
+        if (_plan is not null) IsStale = true;
+    }
 
     // ── Missing-stock mode (Raw Materials tab) ────────────────────────────
     // Station mode asks "what do I still have to haul in", asset mode asks "what do I
@@ -207,8 +240,29 @@ public class ProductionCalculatorViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(HasPricingWarnings));
             this.RaisePropertyChanged(nameof(PricingWarningHeader));
             this.RaisePropertyChanged(nameof(PricingWarningLines));
+            this.RaisePropertyChanged(nameof(HasSkippedBpcs));
+            this.RaisePropertyChanged(nameof(SkippedBpcHeader));
+            this.RaisePropertyChanged(nameof(SkippedBpcLines));
+            this.RaisePropertyChanged(nameof(LongestChainText));
+            this.RaisePropertyChanged(nameof(SlotTimeText));
         }
     }
+
+    /// <summary>How soon the plan could be done with a slot for every job; see ApplyDurationsAsync.</summary>
+    public string LongestChainText => _plan is { LongestChainSeconds: > 0 } p ? PlanTime.Format(p.LongestChainSeconds) : "—";
+
+    /// <summary>Every job's time added up, under the longest chain.</summary>
+    public string SlotTimeText => _plan is { TotalJobSeconds: > 0 } p
+        ? string.Format(IndustryText.FmtSlotTime, PlanTime.Format(p.TotalJobSeconds))
+        : "";
+
+    public bool HasSkippedBpcs => _plan?.SkippedBpcs.Count > 0;
+
+    public string SkippedBpcHeader => _plan is null || _plan.SkippedBpcs.Count == 0
+        ? ""
+        : string.Format(IndustryText.CalcSkippedBpcs, _plan.SkippedBpcs.Count);
+
+    public List<string> SkippedBpcLines => ShownLines(_plan?.SkippedBpcs);
 
     public bool HasPlanWarnings => _plan?.Warnings.Count > 0;
 
@@ -343,6 +397,18 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 _ = SearchAsync(t);
             });
 
+        // Any change to what is queued puts results already shown out of date.
+        Queue.CollectionChanged += (_, e) =>
+        {
+            foreach (var item in e.NewItems?.OfType<ProductionQueueVm>() ?? [])
+                item.PropertyChanged += (_, p) =>
+                {
+                    if (p.PropertyName is nameof(ProductionQueueVm.Quantity) or nameof(ProductionQueueVm.MeLevel)) MarkStale();
+                };
+            this.RaisePropertyChanged(nameof(HasQueue));
+            MarkStale();
+        };
+
         _ = LoadParksAsync();
     }
 
@@ -406,9 +472,35 @@ public class ProductionCalculatorViewModel : ReactiveObject
         ShowResults = SearchResults.Count > 0;
     }
 
+    /// <summary>Arrow keys in the search box: move the highlight through the results.</summary>
+    public void MoveHighlight(int delta)
+    {
+        if (SearchResults.Count == 0) return;
+        var at   = SearchResults.ToList().FindIndex(r => r.IsHighlighted);
+        var next = at < 0 ? (delta > 0 ? 0 : SearchResults.Count - 1)
+                          : Math.Clamp(at + delta, 0, SearchResults.Count - 1);
+        if (at >= 0) SearchResults[at].IsHighlighted = false;
+        SearchResults[next].IsHighlighted = true;
+    }
+
+    /// <summary>
+    /// Enter: picks the highlighted result — the first, if none is — or, once an item is picked
+    /// and the list is closed, queues it.
+    /// </summary>
+    public void AcceptSearch()
+    {
+        if (ShowResults && SearchResults.Count > 0)
+            SelectResult(SearchResults.FirstOrDefault(r => r.IsHighlighted) ?? SearchResults[0]);
+        else if (CanAdd)
+            AddToQueue();
+    }
+
     private async void SelectResult(ProdTypeSearchResult result)
     {
-        _suppressSearchCount++;          // block the debounced search that this assignment triggers
+        // ⚠️ Blocks the debounced search this assignment triggers — only when it triggers one. Text
+        // that already reads the name changes nothing, and a count taken anyway was spent on the
+        // next search typed, which then showed nothing.
+        if (SearchText != result.DisplayName) _suppressSearchCount++;
         PendingType           = result;
         SearchText            = result.DisplayName;
         ShowResults           = false;
@@ -416,27 +508,44 @@ public class ProductionCalculatorViewModel : ReactiveObject
         _selectedSearchResult = null;
         this.RaisePropertyChanged(nameof(SelectedSearchResult));
 
-        // Pre-select the default ME for this item (user can still change it before adding).
-        try { NewMeLevel = await _service.GetDefaultMeAsync(result.TypeId); }
+        _pendingNeedsBpc = false;
+        // Pre-select the default ME for this item (user can still change it before adding), and
+        // note whether it will cost a copy.
+        try
+        {
+            var (me, needsBpc) = await _service.QueueDefaultsAsync(result.TypeId);
+            NewMeLevel       = me;
+            _pendingNeedsBpc = needsBpc;
+        }
         catch { /* leave NewMeLevel as-is on lookup failure */ }
     }
 
     private void AddToQueue()
     {
         if (PendingType is null) return;
-        var entry = new ProductionQueueVm
+
+        // ⚠️ Into the row already there, not a second one: the plan takes one ME per item, so two
+        // rows of one item were never two builds. The row keeps its own ME, which may have been
+        // edited since it was queued.
+        if (Queue.FirstOrDefault(q => q.TypeId == PendingType.TypeId) is { } queued)
+            queued.Quantity += NewQuantity;
+        else
         {
-            TypeId   = PendingType.TypeId,
-            TypeName = PendingType.TypeName,
-            Quantity = NewQuantity,
-            MeLevel  = NewMeLevel,
-        };
-        entry.RemoveCommand   = ReactiveCommand.Create(() => { Queue.Remove(entry); });
-        entry.NavigateCommand = OpenInItemBrowserCommand;
-        Queue.Add(entry);
-        _ = LoadIconAsync(entry);
+            var entry = new ProductionQueueVm
+            {
+                TypeId   = PendingType.TypeId,
+                TypeName = PendingType.TypeName,
+                Quantity = NewQuantity,
+                MeLevel  = NewMeLevel,
+            };
+            entry.RemoveCommand   = ReactiveCommand.Create(() => { Queue.Remove(entry); });
+            entry.NavigateCommand = OpenInItemBrowserCommand;
+            Queue.Add(entry);
+        }
+        if (_pendingNeedsBpc) IncludeBpcCost = true;
+        _pendingNeedsBpc = false;
         // Reset for next item — suppress the debounced search triggered by clearing SearchText
-        _suppressSearchCount++;
+        if (SearchText.Length > 0) _suppressSearchCount++;
         SearchText  = "";
         PendingType = null;
         NewQuantity = 1;
@@ -448,23 +557,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
     private void ClearQueue()
     {
         Queue.Clear();
-        Plan   = null;
-        Status = "";
-    }
-
-    private async Task LoadIconAsync(ProductionQueueVm entry)
-    {
-        if (_iconCache.TryGetValue(entry.TypeId, out var cached)) { entry.Icon = cached; return; }
-        try
-        {
-            var url   = $"https://images.evetech.net/types/{entry.TypeId}/icon?size=32";
-            var bytes = await _http.GetByteArrayAsync(url);
-            using var ms = new System.IO.MemoryStream(bytes);
-            var bmp   = new Bitmap(ms);
-            _iconCache[entry.TypeId] = bmp;
-            await Dispatcher.UIThread.InvokeAsync(() => entry.Icon = bmp);
-        }
-        catch { _iconCache[entry.TypeId] = null; }
+        Plan    = null;
+        IsStale = false;
+        Status  = "";
     }
 
     private async Task CalculateAsync()
@@ -483,10 +578,11 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 MeLevel  = q.MeLevel,
             }).ToList();
 
-            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost);
-            // Before assigning, so the job rows arrive with their Missing values already
-            // filled — PlanJobMaterial has no change notification.
+            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost, bpcFollowsToggle: true);
+            // Before assigning, so the job rows arrive with their Missing values and durations
+            // already filled — PlanJob and PlanJobMaterial have no change notification.
             await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
+            await _service.ApplyDurationsAsync(plan, SelectedPark.Id);
 
             // The rows show their names in the interface language, looked up as they are drawn,
             // so the names are waited for once rather than shown in English first. The
@@ -494,8 +590,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
             // is sorted by the name shown.
             await SdeNames.EnsureLoadedAsync();
             plan.Intermediates = [.. plan.Intermediates.OrderBy(i => i.DisplayName, StringComparer.CurrentCulture)];
-            Plan   = plan;
-            Status = string.Format(IndustryText.CalcStatusDone, plan.AllJobs.Count, plan.RawMaterials.Count);
+            Plan    = plan;
+            IsStale = false;
+            Status  = string.Format(IndustryText.CalcStatusDone, plan.AllJobs.Count, plan.RawMaterials.Count);
         }
         catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         finally { IsBusy = false; }

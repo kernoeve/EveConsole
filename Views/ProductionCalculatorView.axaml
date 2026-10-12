@@ -31,6 +31,32 @@
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
+
+    <!-- The search result the arrow keys are on. -->
+    <Style Selector="Border.highlighted">
+      <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
+    </Style>
+
+    <!-- The Summary's headline figures: a label over a number, side by side. -->
+    <Style Selector="Border.kpi">
+      <Setter Property="Background"      Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius"    Value="4" />
+      <Setter Property="Padding"         Value="12 8" />
+      <Setter Property="Margin"          Value="0 0 8 8" />
+      <Setter Property="MinWidth"        Value="140" />
+    </Style>
+    <Style Selector="TextBlock.kpiLabel">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.kpiValue">
+      <Setter Property="FontSize"   Value="16" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="Margin"     Value="0 2 0 0" />
+    </Style>
   </UserControl.Styles>
 
   <Grid ColumnDefinitions="320,8,*" Background="{DynamicResource SurfaceBaseBrush}">
@@ -39,8 +65,13 @@
     <Border Grid.Column="0" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="12">
       <DockPanel>
 
-        <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:IndustryText.ProductionQueue}"
-                   FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 10"/>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0 0 0 10">
+          <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.ProductionQueue}" VerticalAlignment="Center"
+                     FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AccentBrush}"/>
+          <Button Grid.Column="1" Content="{x:Static loc:IndustryText.Clear}" Command="{Binding ClearQueueCommand}"
+                  IsVisible="{Binding HasQueue}" Padding="8 2" FontSize="11"
+                  ToolTip.Tip="{x:Static loc:IndustryText.TipClearQueue}"/>
+        </Grid>
 
         <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0 0 0 8">
           <TextBlock Text="{x:Static loc:IndustryText.IndyPark}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
@@ -50,8 +81,8 @@
 
         <StackPanel DockPanel.Dock="Top" Spacing="0" Margin="0 0 0 4">
           <TextBlock Text="{x:Static loc:IndustryText.AddItem}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 0 0 4"/>
-          <TextBox Text="{Binding SearchText}" Watermark="{x:Static loc:IndustryText.HintTypeToSearchItems}"
-                   HorizontalAlignment="Stretch"/>
+          <TextBox x:Name="SearchBox" Text="{Binding SearchText}" Watermark="{x:Static loc:IndustryText.HintTypeToSearchItems}"
+                   HorizontalAlignment="Stretch" KeyDown="OnSearchKeyDown"/>
           <Border IsVisible="{Binding ShowResults}"
                   Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   MaxHeight="200" CornerRadius="0 0 4 4">
@@ -60,7 +91,13 @@
                      Background="Transparent" BorderThickness="0" SelectionMode="Single">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ProdTypeSearchResult">
-                  <TextBlock Text="{Binding DisplayName}" Foreground="{DynamicResource TextPrimaryBrush}" Padding="8 4" FontSize="12"/>
+                  <Border Classes.highlighted="{Binding IsHighlighted}" CornerRadius="2">
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="6 3">
+                      <views:TypeIcon TypeId="{Binding TypeId}" Width="18" Height="18" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding DisplayName}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                                 VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Border>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
@@ -71,12 +108,12 @@
           <StackPanel Grid.Column="0" Spacing="3">
             <TextBlock Text="{x:Static loc:IndustryText.Quantity}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
             <NumericUpDown Value="{Binding NewQuantity}" Minimum="1" Maximum="9999999"
-                           FormatString="N0" HorizontalAlignment="Stretch"/>
+                           FormatString="N0" HorizontalAlignment="Stretch" KeyDown="OnAddFieldKeyDown"/>
           </StackPanel>
           <StackPanel Grid.Column="2" Spacing="3">
             <TextBlock Text="{x:Static loc:IndustryText.MeLevel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
             <NumericUpDown Value="{Binding NewMeLevel}" Minimum="0" Maximum="10"
-                           Increment="1" FormatString="0" HorizontalAlignment="Stretch"/>
+                           Increment="1" FormatString="0" HorizontalAlignment="Stretch" KeyDown="OnAddFieldKeyDown"/>
           </StackPanel>
         </Grid>
 
@@ -105,9 +142,9 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:ProductionQueueVm">
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="4 6">
-                  <Grid ColumnDefinitions="36,8,*,Auto,Auto">
-                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Center"/>
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                  <Grid ColumnDefinitions="36,8,*,Auto">
+                    <views:TypeIcon Grid.Column="0" TypeId="{Binding TypeId}" Width="32" Height="32" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="3">
                       <Button Content="{Binding DisplayName}"
                               Command="{Binding NavigateCommand}"
                               CommandParameter="{Binding TypeId}"
@@ -115,15 +152,23 @@
                               FontSize="12" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                               HorizontalContentAlignment="Left"
                               ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
+                      <!-- Edited in place: no removing and adding again to change a number. -->
                       <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="{Binding QtyDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                        <TextBlock Text="{Binding MeBadge}"    FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="×" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="9999999" FormatString="N0"
+                                       ShowButtonSpinner="False" Width="90" Height="26" FontSize="11" VerticalContentAlignment="Center"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipQueueQuantity}"/>
+                        <TextBlock Text="{x:Static loc:IndustryText.ColMe}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                        <NumericUpDown Value="{Binding MeLevel}" Minimum="0" Maximum="10" Increment="1" FormatString="0"
+                                       ShowButtonSpinner="False" Width="44" Height="26" FontSize="11" VerticalContentAlignment="Center"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipQueueMe}"/>
                       </StackPanel>
                     </StackPanel>
-                    <Button Grid.Column="4" Content="x"
+                    <Button Grid.Column="3" Content="✕" VerticalAlignment="Top"
                             Command="{Binding RemoveCommand}"
-                            Padding="5 2" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                            Background="Transparent" BorderThickness="0"/>
+                            Padding="6 1" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                            Background="Transparent" BorderThickness="0"
+                            ToolTip.Tip="{x:Static loc:IndustryText.TipRemoveFromQueue}"/>
                   </Grid>
                 </Border>
               </DataTemplate>
@@ -141,12 +186,88 @@
                  HorizontalAlignment="Center" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextFaintBrush}" FontSize="14"/>
 
-      <TabControl IsVisible="{Binding HasResults}" Padding="0">
+      <DockPanel IsVisible="{Binding HasResults}">
+      <!-- What is shown was worked out for a queue that has since changed. -->
+      <Border DockPanel.Dock="Top" IsVisible="{Binding IsStale}" Margin="8 8 8 0"
+              Background="{DynamicResource AccentSurfaceBrush}" BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1"
+              CornerRadius="4" Padding="10 6">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.CalcResultsStale}" VerticalAlignment="Center"
+                     Foreground="{DynamicResource WarnBrush}" FontSize="12" TextWrapping="Wrap"/>
+          <Button Grid.Column="1" Content="{x:Static loc:IndustryText.Recalculate}" Command="{Binding CalculateCommand}"
+                  Padding="10 3" FontSize="11" Margin="10 0 0 0"/>
+        </Grid>
+      </Border>
+      <TabControl Padding="0">
 
         <!-- ── Summary ────────────────────────────────────────────────────── -->
         <TabItem Header="{x:Static loc:IndustryText.TabSummary}">
           <ScrollViewer Padding="16">
             <StackPanel Spacing="12" Margin="0 0 0 16">
+
+              <!-- The answer first: what it costs, what it is worth, what it makes, how long. -->
+              <WrapPanel Orientation="Horizontal" Margin="0 0 0 -8">
+                <Border Classes="kpi">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.KpiNetCost}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding Plan.NetCost, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"/>
+                  </StackPanel>
+                </Border>
+                <Border Classes="kpi">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.KpiMarketValue}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding Plan.TotalMarketValue, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"
+                               Foreground="{DynamicResource GoodBrush}"/>
+                  </StackPanel>
+                </Border>
+                <Border Classes="kpi">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.KpiProfit}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding Plan.TotalProfit, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"
+                               Foreground="{Binding Plan.TotalProfit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
+                  </StackPanel>
+                </Border>
+                <Border Classes="kpi">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.ColMargin}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding Plan.TotalMargin, StringFormat='{}{0:F1}%'}"
+                               Foreground="{Binding Plan.TotalProfit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
+                  </StackPanel>
+                </Border>
+                <Border Classes="kpi" ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeOfThe}">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.KpiRawVolume}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding Plan.TotalRawMaterialVolume, StringFormat='{}{0:N0} m³'}"/>
+                  </StackPanel>
+                </Border>
+                <Border Classes="kpi" ToolTip.Tip="{x:Static loc:IndustryText.TipJobTime}">
+                  <StackPanel>
+                    <TextBlock Classes="kpiLabel" Text="{x:Static loc:IndustryText.KpiJobTime}"/>
+                    <TextBlock Classes="kpiValue" Text="{Binding LongestChainText}"/>
+                    <TextBlock FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Text="{Binding SlotTimeText}"/>
+                  </StackPanel>
+                </Border>
+              </WrapPanel>
+
+              <!-- Copies left out at the user's word: the totals are without them. -->
+              <Border IsVisible="{Binding HasSkippedBpcs}"
+                      Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="10 8">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding SkippedBpcHeader}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Text="{x:Static loc:IndustryText.CalcSkippedBpcsNote}" FontSize="11" TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextMutedBrush}"/>
+                  <ItemsControl ItemsSource="{Binding SkippedBpcLines}" Margin="0 2 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0 1"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
 
               <!-- Items no category assignment covered. The plan is complete — these were
                    costed in the park's catch-all facility — but without a rig bonus they
@@ -196,17 +317,17 @@
               <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:IndustryText.RawMaterialsLabel}"  Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
-                           Text="{Binding Plan.TotalRawMaterialCost, StringFormat='{}{0:N0} ISK'}"/>
+                           Text="{Binding Plan.TotalRawMaterialCost, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:IndustryText.JobCostsLabel}"      Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
-                           Text="{Binding Plan.TotalJobCost, StringFormat='{}{0:N0} ISK'}"/>
+                           Text="{Binding Plan.TotalJobCost, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:IndustryText.LeftoverValueLabel}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource GoodBrush}" FontSize="12"
-                           Text="{Binding Plan.TotalLeftoverValue, StringFormat='{}{0:N0} ISK'}"/>
+                           Text="{Binding Plan.TotalLeftoverValue, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"/>
                 <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0 4" Background="{DynamicResource BorderDefaultBrush}"/>
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:IndustryText.NetCostLabel}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"/>
                 <TextBlock Grid.Row="4" Grid.Column="1" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"
-                           Text="{Binding Plan.NetCost, StringFormat='{}{0:N0} ISK'}"/>
+                           Text="{Binding Plan.NetCost, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"/>
 
                 <TextBlock Grid.Row="5" Grid.Column="0" Text="{x:Static loc:IndustryText.RawMaterialVolumeLabel}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 8 0 0"/>
                 <TextBlock Grid.Row="5" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 8 0 0"
@@ -231,7 +352,7 @@
                                     Padding="0" FontSize="13" FontWeight="SemiBold"
                                     Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                     ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
-                            <TextBlock Text="{Binding MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="12">
                             <TextBlock Text="{Binding QuantityRequested, StringFormat={x:Static loc:IndustryText.FmtRequested}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
@@ -251,9 +372,9 @@
                           </StackPanel>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12 0 0 0" Spacing="2">
-                          <TextBlock Text="{Binding TotalCost,        StringFormat='{}{0:N0} ISK'}"
+                          <TextBlock Text="{Binding TotalCost,        StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"
                                      FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"/>
-                          <TextBlock Text="{Binding MarketTotalValue, StringFormat='{}{0:N0} ISK'}"
+                          <TextBlock Text="{Binding MarketTotalValue, StringFormat={x:Static loc:IndustryText.FmtIskAmount}}"
                                      FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right"/>
                           <TextBlock Text="{x:Static loc:IndustryText.BuildMarket}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
                         </StackPanel>
@@ -306,6 +427,14 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="26" CanUserSort="False" CanUserResize="False" IsReadOnly="True">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <views:TypeIcon TypeId="{Binding TypeId}" BlueprintPicture="bpc" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMaterial}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
@@ -369,6 +498,14 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="26" CanUserSort="False" CanUserResize="False" IsReadOnly="True">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanIntermediate">
+                      <views:TypeIcon TypeId="{Binding TypeId}" BlueprintPicture="bpc" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
@@ -408,10 +545,11 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildValue}" Width="90" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProducedValue}" Width="110" SortMemberPath="ProducedValue" ClipboardContentBinding="{Binding ProducedValue, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
-                      <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
+                      <TextBlock Text="{Binding ProducedValue, StringFormat=N0}" FontSize="10"
+                                 ToolTip.Tip="{x:Static loc:IndustryText.TipProducedValue}"
                                  TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
@@ -440,6 +578,14 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="26" CanUserSort="False" CanUserResize="False" IsReadOnly="True">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanLeftoverItem">
+                      <views:TypeIcon TypeId="{Binding TypeId}" BlueprintPicture="bpc" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
@@ -497,6 +643,14 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="26" CanUserSort="False" CanUserResize="False" IsReadOnly="True">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanFinalProduct">
+                      <views:TypeIcon TypeId="{Binding TypeId}" BlueprintPicture="bpc" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
@@ -528,7 +682,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="ME" Width="40" SortMemberPath="MeLevel" ClipboardContentBinding="{Binding MeLevel}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMe}" Width="50" SortMemberPath="MeLevel" ClipboardContentBinding="{Binding MeLevel}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding MeLevel}" FontSize="10"
@@ -580,6 +734,7 @@
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding Profit, StringFormat=N0}" FontSize="10"
+                                 Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"
                                  TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
@@ -588,6 +743,7 @@
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}" FontSize="10"
+                                 Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"
                                  TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"/>
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
@@ -620,10 +776,13 @@
                                     Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                     HorizontalContentAlignment="Left"
                                     ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
-                            <TextBlock Text="{Binding Job.MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Job.MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="{Binding Job.Runs,            StringFormat={x:Static loc:IndustryText.FmtRuns}}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Job.DurationText, StringFormat={x:Static loc:IndustryText.FmtJobTime}}" FontSize="11"
+                                       Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding Job.HasDuration}"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipJobDuration}"/>
                             <TextBlock Text="{Binding Job.QuantityProduced, StringFormat={x:Static loc:IndustryText.FmtOut}}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                             <TextBlock Text="{Binding Job.Leftover,         StringFormat={x:Static loc:IndustryText.FmtLeftover}}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
                             <TextBlock Text="{Binding Job.InputVolume,  StringFormat={x:Static loc:IndustryText.FmtInM}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
@@ -731,6 +890,7 @@
         </TabItem>
 
       </TabControl>
+      </DockPanel>
     </Grid>
   </Grid>
 </UserControl>

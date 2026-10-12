@@ -314,10 +314,88 @@
     <value>Добавить в очередь</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Учитывать стоимость BPC конечной продукции</value>
+    <value>Учитывать стоимость BPC</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Убрать все предметы из очереди вместе с результатами.</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>Сколько строить. Измените здесь и снова нажмите «Рассчитать», чтобы увидеть новые цифры.</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Эффективность материалов чертежа, по которому строится предмет.</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Убрать из очереди</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>Очередь изменилась после расчёта этих результатов.</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Пересчитать</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Чистая стоимость</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Объём сырья</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Время работ</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>Крупная цифра — самая длинная цепочка работ, которые идут одна за другой: как быстро можно выполнить план, если у каждой работы есть слот. Ниже — время всех работ в сумме. Предполагаются все навыки на V и TE, равная удвоенной ME (не более 20), в сооружениях, куда план поставил каждую работу.</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>Всего работ: {0}</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Не учтённые копии чертежей ({0})</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>«Учитывать стоимость BPC» выключено, поэтому эти предметы считаются без цены нужных им копий, и в итоги копии не входят.</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (копия чертежа)</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Стоимость выпуска</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Всё, что производит работа, по стоимости производства: сохранённая себестоимость, а если её нет — рыночная цена.</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Время: {0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>Все прогоны этой работы при навыках на V и TE, равной удвоенной ME (не более 20), в сооружении, куда её поставил план.</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0} мин</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Добавить копию чертежа конечной продукции (по цене в контрактах) как затрату. Для фракционных предметов и предметов, доступных только по BPC, учитывается всегда; для обычных предметов с BPO — по желанию.</value>
+    <value>Учитывать копии чертежей (по цене в контрактах) как затрату: копию конечной продукции и копии предметов, которые строятся только из копии. Включается, когда такой предмет добавлен в очередь; выключите, чтобы увидеть производство без копий.</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>Открыть в разделе «Просмотр предметов»</value>

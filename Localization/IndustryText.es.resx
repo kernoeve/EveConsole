@@ -314,10 +314,88 @@
     <value>Añadir a la cola</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Incluir el coste de la BPC final</value>
+    <value>Incluir el coste de BPC</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Quita todos los objetos de la cola y, con ellos, los resultados.</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>Cuántos fabricar. Cámbialo aquí; vuelve a calcular para ver las nuevas cifras.</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Eficiencia de materiales del plano con el que se fabrica este objeto.</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Quitar de la cola</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>La cola ha cambiado desde que se calcularon estos resultados.</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalcular</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Coste neto</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Valor de mercado</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Beneficio</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Volumen de materias primas</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Tiempo de trabajos</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>La cifra grande es la cadena más larga de trabajos que deben hacerse uno tras otro: lo pronto que podría terminarse el plan con una ranura para cada trabajo. Debajo, el tiempo de todos los trabajos sumado. Supone todas las habilidades en V y una TE del doble de la ME, hasta 20, en las estructuras donde el plan colocó cada trabajo.</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>{0} de trabajos en total</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Costes de copias de plano no incluidos ({0})</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>«Incluir el coste de BPC» está desactivado, así que estos objetos se calculan sin el precio de las copias que necesitan y los totales no las incluyen.</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (copia de plano)</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Valor producido</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Todo lo que fabrica el trabajo, a valor de fabricación: el coste de fabricación guardado o, si no lo hay, el precio de mercado.</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Tiempo: {0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>Todas las ejecuciones de este trabajo, suponiendo habilidades en V y una TE del doble de la ME (hasta 20), en la estructura donde lo colocó el plan.</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Añade como insumo la copia del plano del producto final (a precio de contrato). Se incluye siempre en los objetos de facción o solo de BPC; es opcional en los objetos con BPO estándar.</value>
+    <value>Cuenta las copias de plano (a precio de contrato) como insumo: la del producto final y las de los objetos que solo se pueden fabricar desde una copia. Se marca al poner en cola uno de esos objetos; desmárcalo para ver la fabricación sin copias.</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>Abrir en el Explorador de objetos</value>
