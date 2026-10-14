@@ -709,6 +709,72 @@
   <data name="Listings" xml:space="preserve">
     <value>リスト</value>
   </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ 場所</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>アイテムを1つずつ選ぶ代わりに、選んだステーション、ハンガー、部署、コンテナにあるものを、出品を作成した時点の内容ですべて一覧にします。</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>アイテムは「出品」タブに表示されます</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>セクション見出し</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>アイテムを一覧にする場所</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>ステーションやストラクチャー、そこにいる所有者、ハンガーやコーポレーションの部署、その中のコンテナなど、どの階層でも選んで追加できます。出品を作成するたびに、それらの場所にあるものが一覧になります。アイテムは表ではなく「出品」タブに表示されます。艦船は選べず、その中のものも一覧にはなりません。</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>絞り込み：ステーション、所有者、部門、コンテナ</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} 個</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>追加 →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>この出品が一覧にする場所</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>キャラクターやコーポレーションのいずれも、ステーションやストラクチャーに何も持っていません。</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>場所を読み込めませんでした：{0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>場所 {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0}（個人）</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0}（コーポレーション）</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>アイテムハンガー</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>デリバリーズ</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>部門 {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>部門 {0}：{1}</value>
+  </data>
   <data name="ListingSell" xml:space="preserve">
     <value>販売</value>
   </data>

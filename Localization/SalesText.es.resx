@@ -709,6 +709,75 @@
   <data name="Listings" xml:space="preserve">
     <value>Listados</value>
   </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Lugares</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>Lista todo lo que haya en las estaciones, hangares, divisiones o contenedores elegidos, tal como esté al generar la publicación, en lugar de objetos elegidos uno a uno.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>sus objetos aparecen en la pestaña Publicación</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>encabezado de la sección</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Lugares de los que listar objetos</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Elige cualquier nivel —una estación o estructura, un propietario en ella, un hangar o división de corporación, o un contenedor dentro— y añádelo. La publicación lista lo que haya en esos lugares cada vez que se genera: sus objetos aparecen en la pestaña Publicación, no en la tabla. No se ofrecen naves, y no se lista nada de su interior.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Filtrar: una estación, un propietario, una división o un contenedor</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} objeto</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} objetos</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Añadir →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Lugares que lista esta publicación</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>Ninguno de nuestros personajes ni corporaciones tiene nada en una estación o estructura.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>No se pudieron leer los lugares: {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Lugar {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (personal)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (corporación)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Hangar de objetos</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Entregas</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>División {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>División {0}: {1}</value>
+  </data>
   <data name="ListingSell" xml:space="preserve">
     <value>Venta</value>
   </data>

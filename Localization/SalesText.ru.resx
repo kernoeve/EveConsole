@@ -709,6 +709,81 @@
   <data name="Listings" xml:space="preserve">
     <value>Списки</value>
   </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Места</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>Перечисляет всё, что лежит в выбранных станциях, ангарах, отделах или контейнерах, — как есть на момент создания объявления, — вместо предметов, выбранных по одному.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>предметы показаны на вкладке «Объявление»</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>заголовок раздела</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Места, из которых перечислять предметы</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Выберите любой уровень — станцию или сооружение, владельца на ней, ангар или отдел корпорации, контейнер внутри — и добавьте его. Объявление при каждом создании перечисляет то, что лежит в этих местах: предметы показаны на вкладке «Объявление», а не в таблице. Корабли не предлагаются, и ничего внутри них не перечисляется.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Фильтр: станция, владелец, подразделение или контейнер</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} предмет</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="PlacesItemsFew" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="PlacesItemsMany" xml:space="preserve">
+    <value>{0:N0} предметов</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Добавить →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Места этого объявления</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>Ни у одного из наших персонажей и корпораций нет ничего на станциях или в сооружениях.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Не удалось прочитать места: {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Место {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (личное)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (корпорация)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Поставки</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Подразделение {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Подразделение {0}: {1}</value>
+  </data>
   <data name="ListingSell" xml:space="preserve">
     <value>Продажа</value>
   </data>

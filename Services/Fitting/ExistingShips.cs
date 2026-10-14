@@ -132,8 +132,9 @@ public static class ExistingShips
     private static bool NameKnown(long itemId) { lock (NameLock) return NameCache.ContainsKey(itemId); }
 
     /// <summary>The names owners gave their ships, asked of ESI once a session per ship: by each
-    /// owner, a thousand at a time. A ship whose name could not be asked has none here.</summary>
-    private static async Task<Dictionary<long, string>> NamesAsync(EsiClient? esi,
+    /// owner, a thousand at a time. A ship whose name could not be asked has none here. Any item
+    /// can be asked about — the places picker asks it for containers.</summary>
+    internal static async Task<Dictionary<long, string>> NamesAsync(EsiClient? esi,
         List<(long OwnerId, bool Corporation, long ItemId)> ships, CancellationToken ct)
     {
         var found = new Dictionary<long, string>();

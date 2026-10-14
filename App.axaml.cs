@@ -1453,6 +1453,22 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "FooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
+                // Places a posting lists whatever is found in. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SalePostingLocations" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "PostingId"   INTEGER NOT NULL DEFAULT 0,
+                        "Ordinal"     INTEGER NOT NULL DEFAULT 0,
+                        "StationId"   INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"   TEXT    NOT NULL DEFAULT '',
+                        "OwnerId"     INTEGER NOT NULL DEFAULT 0,
+                        "Flag"        TEXT    NOT NULL DEFAULT '',
+                        "ContainerId" INTEGER NOT NULL DEFAULT 0,
+                        "Path"        TEXT    NOT NULL DEFAULT '',
+                        "Title"       TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+
                 // Market price history — on-demand ESI fetch cache
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "MarketTypeHistories" (

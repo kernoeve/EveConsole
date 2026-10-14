@@ -169,6 +169,13 @@
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
                           BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
+                  <!-- Places: list whatever a station, hangar or container holds, as it is now,
+                       instead of items picked one by one. -->
+                  <Button Command="{Binding PlacesCommand}" Content="{x:Static loc:SalesText.Places}"
+                          ToolTip.Tip="{x:Static loc:SalesText.TipPlaces}"
+                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                          BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding EditCommand}" Content="{x:Static loc:SalesText.Edit}"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                           BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -228,6 +235,19 @@
                              VerticalAlignment="Center" Margin="8 0 0 0" />
                 </StackPanel>
 
+                <!-- Place row: where the items come from; they show on the Posting tab. -->
+                <StackPanel IsVisible="{Binding IsLocation}" Orientation="Horizontal" Spacing="6"
+                            Canvas.Left="20" Canvas.Top="2">
+                  <TextBlock Text="⌂" FontSize="12" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
+                  <Button Command="{Binding DeleteCommand}" Content="{x:Static loc:SalesText.Remove}"
+                          Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                          BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
+                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
+                  <TextBlock Text="{x:Static loc:SalesText.PlaceRowNote}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                             VerticalAlignment="Center" Margin="8 0 0 0" />
+                </StackPanel>
+
                 <!-- Item row -->
                 <!-- ⚠️ Canvas.Left/Top go on the Button, not the inner TextBlock: the Canvas
                      positions its direct children, and leaving them on the text would stack every
@@ -247,10 +267,17 @@
         <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColNameOverride}" Width="150" MinWidth="120" ClipboardContentBinding="{Binding NameOverride}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <TextBox x:CompileBindings="False" Classes="cell"
-                       IsVisible="{Binding IsItem}"
-                       Watermark="—"
-                       Text="{Binding NameOverride, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+              <!-- On a place row, its section's heading: empty for the last step of the path. -->
+              <Panel x:CompileBindings="False">
+                <TextBox Classes="cell"
+                         IsVisible="{Binding IsItem}"
+                         Watermark="—"
+                         Text="{Binding NameOverride, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                <TextBox Classes="cell"
+                         IsVisible="{Binding IsLocation}"
+                         Watermark="{x:Static loc:SalesText.PlaceHeadingWatermark}"
+                         Text="{Binding NameOverride, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

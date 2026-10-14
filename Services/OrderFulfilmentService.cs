@@ -1025,10 +1025,13 @@ public class OrderFulfilmentService(
         var storeIds = orders.Where(o => o.StoreId != 0).Select(o => o.StoreId).Distinct().ToList();
         if (storeIds.Count == 0) return none;
 
+        // The listing each order was placed against; an order from before listings, its store's
+        // first Sell listing.
         var postingByStore = await db.Stores.AsNoTracking()
             .Where(s => storeIds.Contains(s.Id) && s.PostingId != 0)
             .ToDictionaryAsync(s => s.Id, s => s.PostingId, ct);
-        var postingIds = postingByStore.Values.Distinct().ToList();
+        int PostingOf(TrackedOrder o) => o.PostingId != 0 ? o.PostingId : postingByStore.GetValueOrDefault(o.StoreId);
+        var postingIds = orders.Where(o => o.StoreId != 0 && !o.IsBuy).Select(PostingOf).Where(id => id != 0).Distinct().ToList();
         if (postingIds.Count == 0) return none;
 
         var postings = await db.SalePostings.AsNoTracking()
@@ -1048,14 +1051,37 @@ public class OrderFulfilmentService(
         foreach (var i in items)
             listing.TryAdd((sections[i.SectionId].PostingId, i.TypeId), i);
 
+        // ⚠️ A posting's places are its shelf too: what is in them, and nowhere else. Without this an
+        // order for something a posting lists from a container read "in stock" off the same item
+        // in any hangar.
+        var places = await db.SalePostingLocations.AsNoTracking()
+            .Where(l => postingIds.Contains(l.PostingId)).OrderBy(l => l.Ordinal).ThenBy(l => l.Id).ToListAsync(ct);
         var keyByOrder = new Dictionary<int, string>();
+        var units      = new Dictionary<string, Dictionary<int, long>>();
+        foreach (var byPosting in places.GroupBy(l => l.PostingId))
+        {
+            if (!postings.TryGetValue(byPosting.Key, out var placed)) continue;
+            var held = await PostingLocations.ContentsAsync(db, byPosting.ToList(), placed.OnlyPackaged, ct);
+            var shelf = new Dictionary<int, long>();
+            foreach (var (typeId, n) in held.Values.SelectMany(h => h))
+                shelf[typeId] = shelf.GetValueOrDefault(typeId) + n;
+            units[$"places|{byPosting.Key}"] = shelf;
+        }
+
         var wanted     = new Dictionary<string, (SalePosting Settings, int? Ceiling, HashSet<int> Types)>();
         foreach (var o in orders)
         {
-            if (!postingByStore.TryGetValue(o.StoreId, out var postingId)
-                || !postings.TryGetValue(postingId, out var posting)
-                || !listing.TryGetValue((postingId, o.TypeId), out var item))
+            if (o.IsBuy) continue;
+            var postingId = PostingOf(o);
+            if (!postings.TryGetValue(postingId, out var posting)) continue;
+            if (!listing.TryGetValue((postingId, o.TypeId), out var item))
+            {
+                // Not a listed item: from the posting's places, when it has them — none there is
+                // none on its shelf, whatever another hangar holds.
+                if (units.ContainsKey($"places|{postingId}"))
+                    keyByOrder[o.Id] = $"places|{postingId}";
                 continue;
+            }
 
             var settings = SalePostingService.EffectiveFor(posting, sections[item.SectionId]);
             var key = FormattableString.Invariant(
@@ -1065,10 +1091,9 @@ public class OrderFulfilmentService(
                 wanted[key] = shelf = (settings, item.InStockOverride, []);
             shelf.Types.Add(o.TypeId);
         }
-        if (wanted.Count == 0) return none;
+        if (wanted.Count == 0 && keyByOrder.Count == 0) return none;
 
         // One load per packaging rule, every shelf with that rule in it.
-        var units = new Dictionary<string, Dictionary<int, long>>();
         foreach (var byPackaging in wanted.GroupBy(w => w.Value.Settings.OnlyPackaged))
         {
             var shelfList = byPackaging.ToList();

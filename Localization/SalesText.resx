@@ -944,6 +944,98 @@
     <value>Listings</value>
     <comment>Stores screen, General tab: the label beside the store's listings — the sale postings it sends as price lists and shows as tabs on its web site.</comment>
   </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Places</value>
+    <comment>Sale Posting tool, a posting's row: the button that picks places (stations, hangars, containers) whose contents the posting lists. Short, like the "+ Section" button beside it.</comment>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>List whatever is in chosen stations, hangars, divisions or containers, as it is when the posting is rendered, instead of items picked one by one.</value>
+    <comment>Tooltip of the Places button.</comment>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>its items show on the Posting tab</value>
+    <comment>Sale Posting tool, after a place's path on the definitions grid: the place has no item rows here; what it holds is listed when the posting is rendered.</comment>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>section heading</value>
+    <comment>Sale Posting tool: the hint in a place row's heading box; empty uses the last step of the place's path.</comment>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Places to list items from</value>
+    <comment>Title of the window that picks a posting's places.</comment>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Pick any step — a station or structure, an owner there, a hangar or corporation division, or a container in it — and add it. The posting lists whatever those places hold each time it is rendered: their items show on the Posting tab, not in the grid. Ships are not offered, and nothing inside one is listed.</value>
+    <comment>The places window, at the top.</comment>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Filter: a station, an owner, a division or a container</value>
+    <comment>The places window: the hint in the box that narrows the tree.</comment>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>The places window: a container, {0} its type ("Station Container"), {1} how much is in it (PlacesItems).</comment>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} item</value>
+    <comment>The places window: how many stacks of items a container holds, one. A language that needs other forms by count adds them (…Few, …Many).</comment>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} items</value>
+    <comment>The places window: how many stacks of items a container holds. {0} is the number.</comment>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Add →</value>
+    <comment>The places window: the button that adds the step picked in the tree to the list on the right.</comment>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Places this posting lists</value>
+    <comment>The places window: heading of the list of places picked.</comment>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Save</value>
+    <comment>The places window: the button that saves the places and closes it.</comment>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>None of our characters or corporations has anything at a station or structure.</value>
+    <comment>The places window, when there is nothing to pick from.</comment>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>The places window, a container its owner named: {0} is that name, {1} the container's type, as "Blue box (Station Container)".</comment>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Could not read the places: {0}</value>
+    <comment>The places window. {0} is the error.</comment>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>The places window: a station or structure whose name the app does not know. {0} is its id.</comment>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (personal)</value>
+    <comment>The places window: a character's own hangar at a station. {0} is the character's name.</comment>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (corporation)</value>
+    <comment>The places window: a corporation's hangars at a station. {0} is the corporation's name.</comment>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Hangar</value>
+    <comment>The places window: a character's item hangar.</comment>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Deliveries</value>
+    <comment>The places window: the deliveries hangar. Use the game's word.</comment>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Division {0}</value>
+    <comment>The places window: a corporation hangar division with no name. {0} is its number, 1 to 7.</comment>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Division {0}: {1}</value>
+    <comment>The places window: a corporation hangar division. {0} is its number, {1} the name the corporation gave it.</comment>
+  </data>
   <data name="ListingSell" xml:space="preserve">
     <value>Sell</value>
     <comment>Stores screen: a listing the store SELLS from — buyers order its items. Short; a choice in a drop-down beside the posting.</comment>

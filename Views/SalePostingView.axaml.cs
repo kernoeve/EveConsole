@@ -86,6 +86,12 @@ public partial class SalePostingView : UserControl
             return await win.ShowDialog<MarketGroupPickerResult?>(GetWindow());
         };
 
+        vm.ShowPlacesDialog = async (current) =>
+        {
+            var dlg = new PostingPlacesDialog { DataContext = vm.CreatePlacesPicker(current) };
+            return await dlg.ShowDialog<List<EveConsole.Models.SalePostingLocation>?>(GetWindow());
+        };
+
         vm.ConfirmSlackRepost = async (message) =>
         {
             var dlg = new ConfirmDialog(message);

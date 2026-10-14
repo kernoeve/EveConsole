@@ -709,6 +709,75 @@
   <data name="Listings" xml:space="preserve">
     <value>Listes</value>
   </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Lieux</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>Liste tout ce qui se trouve dans les stations, hangars, divisions ou conteneurs choisis, tel quel au moment où l'annonce est générée, au lieu d'objets choisis un à un.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>ses objets apparaissent dans l'onglet Annonce</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>titre de la section</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Lieux d'où lister les objets</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Choisissez n'importe quel niveau — une station ou structure, un propriétaire sur place, un hangar ou une division de corporation, ou un conteneur à l'intérieur — et ajoutez-le. L'annonce liste ce que contiennent ces lieux à chaque génération : leurs objets apparaissent dans l'onglet Annonce, pas dans la grille. Les vaisseaux ne sont pas proposés, et rien de ce qu'ils contiennent n'est listé.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Filtrer : une station, un propriétaire, une division ou un conteneur</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} objet</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} objets</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Ajouter →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Lieux listés par cette annonce</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>Aucun de nos personnages ni aucune de nos corporations n'a quoi que ce soit dans une station ou une structure.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Impossible de lire les lieux : {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Lieu {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (personnel)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (corporation)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Hangar personnel</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Livraisons</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Division {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Division {0} : {1}</value>
+  </data>
   <data name="ListingSell" xml:space="preserve">
     <value>Vente</value>
   </data>

@@ -246,6 +246,9 @@ public class AppDbContext : DbContext
     public DbSet<SalePostingSection> SalePostingSections => Set<SalePostingSection>();
     public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
     public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
+    // Places a posting lists whatever is found in. Mirrored by hand in App.axaml.cs (SQLite) and
+    // PostgresSchema — EnsureCreated builds it only into a new database.
+    public DbSet<SalePostingLocation> SalePostingLocations => Set<SalePostingLocation>();
 
     // ── Stores (EVE mail order desk) ────────────────────────────────────────
     public DbSet<Store>       Stores       => Set<Store>();
