@@ -523,7 +523,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // 76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
                 // 29226 Basic Robotics, 3585 Mangled Sansha Data Analyzer,
                 // 29202 Modified Augumene Antidote.
-                _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+                _ when typeId is 76203 or 76204 or 29226 or 76375       => "structure_ammo",
                 _ when typeId == 3585                                   => "modules_equipment",
                 _ when typeId == 29202                                  => "ammo_charges",
                 // 88172-88177 Narrow/Mid/Wideband Emission Amplifiers and Limiters —

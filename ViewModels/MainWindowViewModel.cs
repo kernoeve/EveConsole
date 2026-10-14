@@ -55,7 +55,13 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _dbEngineTip, value);
     }
 
-    private async Task LoadDbEngineTipAsync()
+    // ⚠️ Read on the thread pool, the tip set back here. This runs every ten minutes from a UI
+    // timer, and opening a PostgreSQL connection does real work before its first await — the
+    // window froze for 3.7 s on it (AppErrors 2026-10-14, "Db.TipRefresh"). Only the assignment
+    // belongs on the UI thread.
+    private async Task LoadDbEngineTipAsync() => DbEngineTip = await Task.Run(ReadDbEngineTipAsync);
+
+    private static async Task<string> ReadDbEngineTipAsync()
     {
         try
         {
@@ -65,26 +71,24 @@ public class MainWindowViewModel : ReactiveObject
                 var b  = new Npgsql.NpgsqlConnectionStringBuilder(cs);
 
                 await using var conn = new Npgsql.NpgsqlConnection(AppDb.PostgresConnectionString(cs));
-                await conn.OpenAsync();
+                await conn.OpenAsync().ConfigureAwait(false);
                 await using var cmd = new Npgsql.NpgsqlCommand(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
-                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? ShellText.DbSizeUnknown;
+                var size = (await cmd.ExecuteScalarAsync().ConfigureAwait(false))?.ToString() ?? ShellText.DbSizeUnknown;
 
-                DbEngineTip = string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
+                return string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
             }
-            else
-            {
-                var path = AppConfig.GetDbPath();
-                var size = File.Exists(path)
-                    ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
-                    : ShellText.DbFileNotFound;
-                DbEngineTip = string.Format(ShellText.TipDbSqlite, path, size);
-            }
+
+            var path = AppConfig.GetDbPath();
+            var fileSize = File.Exists(path)
+                ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
+                : ShellText.DbFileNotFound;
+            return string.Format(ShellText.TipDbSqlite, path, fileSize);
         }
         catch (Exception ex)
         {
             // The label still names the engine; only the detail is missing.
-            DbEngineTip = string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
+            return string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
         }
     }
 

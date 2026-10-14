@@ -3231,6 +3231,15 @@ public class EsiPollingService : ReactiveObject
     {
         if (candidateIds.Count == 0) return;
 
+        // ⚠️ Nothing our assets prove is not a structure, whoever asks. Each asset poll judges by
+        // its own owner's items, so a ship whose asset row is another snapshot's — a character's
+        // active ship, a corporation's hangar holding something inside it — passed the "not one of
+        // our ItemIds" test, was asked about, failed, and got a NotFound row that the hourly
+        // hygiene pass deleted again: the same Sigil removed and reported every hour. Checked here,
+        // the one door every caller comes through.
+        candidateIds = await _structureSync.RejectNonStructuresAsync(db, candidateIds, ct);
+        if (candidateIds.Count == 0) return;
+
         // Pull only the ID + timestamp columns and do the date comparison in memory —
         // EF Core's SQLite provider cannot translate DateTimeOffset comparisons to SQL.
         var cutoff = DateTimeOffset.UtcNow.AddDays(-30);

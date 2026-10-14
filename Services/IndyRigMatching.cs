@@ -189,9 +189,10 @@ public static class IndyRigMatching
             // "Miscellaneous" runs to thousands of unrelated items and "Commodities" mixes
             // industry inputs with trinkets — so the type id is the only thing precise
             // enough to match on.
-            _ when typeId is 76203 or 76204 or 29226                => "structure_ammo",
+            _ when typeId is 76203 or 76204 or 29226 or 76375       => "structure_ammo",
             //     76203 Stellar Transmuter Datacore, 76204 Transport Relay Datacore,
-            //     29226 Basic Robotics
+            //     29226 Basic Robotics, 76375 Mutadaptive Construction Component (a
+            //     Triglavian part "to build structures of various sizes", filed in Miscellaneous)
             _ when typeId == 3585                                   => "modules_equipment",
             //     3585 Mangled Sansha Data Analyzer
             _ when typeId == 29202                                  => "ammo_charges",
