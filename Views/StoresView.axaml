@@ -275,13 +275,45 @@
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.PriceList}" FontSize="11"
-                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.Listings}" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" Margin="0 5 0 6" />
                     <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
-                      <ComboBox ItemsSource="{Binding PostingOptions}"
-                                SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
-                                HorizontalAlignment="Left"
-                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <!-- Each listing a price list mail of its own and a tab of its own on the
+                           site, in this order: a posting, whether the store sells from it or buys
+                           into it, and what it is headed. Saved as it is changed. -->
+                      <ItemsControl ItemsSource="{Binding Listings}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:StoreListingRowVm">
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 0 0 3">
+                              <ComboBox ItemsSource="{Binding $parent[ItemsControl].((vm:StoresViewModel)DataContext).PostingOptions}"
+                                        SelectedItem="{Binding Posting}" FontSize="11" MinWidth="220"
+                                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                              <ComboBox ItemsSource="{x:Static vm:StoresViewModel.SideOptions}"
+                                        SelectedItem="{Binding Side}" FontSize="11" MinWidth="90"
+                                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                              <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" Width="180" FontSize="11"
+                                       Watermark="{x:Static loc:SalesText.ListingTitleWatermark}"
+                                       Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                              <Button Click="OnListingUp" Content="▲" ToolTip.Tip="{x:Static loc:SalesText.MoveUp}"
+                                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="6 1" FontSize="10" Cursor="Hand" />
+                              <Button Click="OnListingDown" Content="▼" ToolTip.Tip="{x:Static loc:SalesText.MoveDown}"
+                                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="6 1" FontSize="10" Cursor="Hand" />
+                              <Button Click="OnRemoveListing" Content="{x:Static loc:SalesText.Remove}"
+                                      Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                      BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
+                                      Padding="6 1" FontSize="10" Cursor="Hand" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <Button Command="{Binding AddListingCommand}" Content="{x:Static loc:SalesText.AddListing}"
+                              HorizontalAlignment="Left"
+                              Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                              BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" Padding="12 3" FontSize="11" />
+                      <TextBlock Text="{x:Static loc:SalesText.ListingsNote}" FontSize="10" TextWrapping="Wrap"
+                                 MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}" />
     
                       <!-- Measured through the same pagination the send uses, so what this says and
                            what a buyer receives cannot disagree. Amber once it splits; the byte count
@@ -291,6 +323,24 @@
                                  MaxWidth="420" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}"
                                  Classes.warn="{Binding PostingSplits}"
                                  IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                      <!-- Who sellers make a Buy listing's Item Exchange contracts out to, and so
+                           what the offers are matched against. Only ours to pick: a contract to
+                           anyone else is one no poll of the app's would see. -->
+                      <StackPanel IsVisible="{Binding HasBuyListing}" Spacing="3" Margin="0 6 0 0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{x:Static loc:SalesText.BuyContractsTo}" FontSize="11"
+                                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                          <ComboBox ItemsSource="{Binding AssigneeOptions}" SelectedItem="{Binding BuyAssignee}"
+                                    PlaceholderText="{x:Static loc:SalesText.BuyAssigneeNone}" FontSize="11" MinWidth="280"
+                                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Static loc:SalesText.BuyContractsToNote}" FontSize="10" TextWrapping="Wrap"
+                                   MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}" />
+                        <TextBlock Text="{x:Static loc:SalesText.BuyNoAssigneeWarn}" FontSize="10" TextWrapping="Wrap"
+                                   MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource BadBrush}"
+                                   IsVisible="{Binding BuyAssigneeMissing}" />
+                      </StackPanel>
                     </StackPanel>
 
                     <!-- The language the shop writes to buyers in, both doorways: a seller may play

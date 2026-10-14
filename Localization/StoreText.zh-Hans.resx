@@ -235,6 +235,75 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>等待材料</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0}——{1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>价格表</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>收购清单</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>我们按以下价格收购这些物品。如需卖给我们，请发送 SELL，并在正文中按下单的写法列出物品。</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>向我们出售收购清单上的物品，正文中每行一种物品，写法与下单相同。</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>我们会回复收购价格，以及物品交换合同应指定给谁。</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0}——报价 {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0}——无法识别的报价</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0}——报价未受理</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>已收到报价 {0}</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>现在请创建一份&lt;b&gt;物品交换&lt;/b&gt;合同，指定给 {0}，放入上述物品，并在“我将接收”中填写 &lt;b&gt;{1}&lt;/b&gt;。</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>在合同描述中填写 {0} 有助于我们匹配。</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>本店目前不收购任何物品。</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>本店目前不受理报价。</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>此报价中没有任何物品在我们的收购清单上。</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>在我们的收购清单上：{0}。如需卖给我们，请改为发送 SELL。</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>在我们的价格表上：{0}。如需购买，请改为发送 ORDER。</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>合同已接受——已付款</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>本店拒绝了该合同，此报价已关闭</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>已收到合同——等待本店接受</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>已收到合同，要价 {0}，约定为 {1}——等待本店处理</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>已有 {0:N0}/{1:N0} 在合同中</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>等待你的合同：物品交换，指定给 {0}，要价 {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>已交付 {0:N0} 个（共 {1:N0} 个）</value>
   </data>

@@ -254,6 +254,7 @@ public class AppDbContext : DbContext
     public DbSet<DiscordWebhook> DiscordWebhooks => Set<DiscordWebhook>();
     public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
+    public DbSet<StorePosting> StorePostings => Set<StorePosting>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
 
     // The web channel's ledger and log. ⚠️ New tables: hand-written CREATEs in both schema paths.
@@ -1200,6 +1201,8 @@ public class AppDbContext : DbContext
 
         mb.Entity<TrackedOrder>(e => {
             e.HasKey(x => x.Id);
+            e.Ignore(x => x.IsBuy);
+            e.Ignore(x => x.AsksMore);
             e.ToTable("TrackedOrders"); });
 
         mb.Entity<Store>(e => {
@@ -1221,6 +1224,14 @@ public class AppDbContext : DbContext
         mb.Entity<StoreSender>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("StoreSenders"); });
+
+        // A store's listings, sell and buy. Mirrored by hand in App.axaml.cs (SQLite) and
+        // PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<StorePosting>(e => {
+            e.HasKey(x => x.Id);
+            e.Ignore(x => x.IsBuy);
+            e.HasIndex(x => x.StoreId);
+            e.ToTable("StorePostings"); });
 
         mb.Entity<StoreMail>(e => {
             e.HasKey(x => x.Id);

@@ -492,6 +492,14 @@
     <value>Purchase Price</value>
     <comment>Column header in OrderTrackerView.</comment>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Side</value>
+    <comment>Order Tracker: column header — Sell (we sell to the buyer) or Buy (the other party sells to us, off a store's Buy listing). Short.</comment>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>The contracts ask {0}, more than the {1} quoted for the units they carry. Check them before accepting.</value>
+    <comment>Order Tracker: tooltip on a buy order's price when the seller's contracts ask more than was agreed. {0} is what they ask, {1} the quote, both as ISK amounts.</comment>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Status</value>
     <comment>Column header in OrderTrackerView.</comment>
@@ -932,9 +940,65 @@
     <value>Used for order status notifications, and for store requests when the EVE mail store is open.</value>
     <comment>Note in StoresView.</comment>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Price list</value>
-    <comment>Text in StoresView.</comment>
+  <data name="Listings" xml:space="preserve">
+    <value>Listings</value>
+    <comment>Stores screen, General tab: the label beside the store's listings — the sale postings it sends as price lists and shows as tabs on its web site.</comment>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Sell</value>
+    <comment>Stores screen: a listing the store SELLS from — buyers order its items. Short; a choice in a drop-down beside the posting.</comment>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Stores screen: a listing the store BUYS into — players offer to sell it these items. Short; a choice in a drop-down beside the posting.</comment>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Tab title (optional)</value>
+    <comment>Stores screen: the hint in the box for a listing's title, which heads its mail and its tab on the web site; empty uses the posting's own name.</comment>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Move up</value>
+    <comment>Stores screen: tooltip of the button that moves a listing up.</comment>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Move down</value>
+    <comment>Stores screen: tooltip of the button that moves a listing down.</comment>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Add listing</value>
+    <comment>Stores screen: the button that adds a listing to the store.</comment>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Each listing is a price list mail of its own and a tab of its own on the web site, in this order. Sell: buyers order from your stock and builds, as before. Buy: the prices you pay, with no counts; a seller offers, then makes an Item Exchange contract to you asking that ISK, and the order completes when you accept it.</value>
+    <comment>Stores screen, under the listings. "Item Exchange" is the game's name for the contract type.</comment>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Buy contracts to</value>
+    <comment>Stores screen: label of the picker for who sellers make a Buy listing's Item Exchange contracts out to.</comment>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Choose who receives them</value>
+    <comment>Stores screen: the empty state of the "Buy contracts to" picker.</comment>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Sellers are told to make their Item Exchange contracts out to this, and each offer is matched to the contracts it receives. A corporation's or alliance's contracts are seen only through a corporation login in it.</value>
+    <comment>Stores screen, under the "Buy contracts to" picker.</comment>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Buy listings take no offers until someone is chosen to receive their contracts.</value>
+    <comment>Stores screen: a warning under the "Buy contracts to" picker when it is empty.</comment>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (character)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: one of our characters. {0} is its name.</comment>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (corporation)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: a corporation. {0} is its name.</comment>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (alliance)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: an alliance. {0} is its name.</comment>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Language</value>
@@ -2131,6 +2195,14 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Contracted</value>
     <comment>Where an open order's units are coming from: a contract already made out to the buyer.</comment>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Offer · waiting for their contract</value>
+    <comment>Overview and Stores screens, an open order's source column, for an offer to SELL to a store's Buy listing: the seller has not sent their Item Exchange contract yet.</comment>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Offer · their contract to accept</value>
+    <comment>The same column: the seller's contract has arrived and is waiting for us to accept it in game.</comment>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Unsourced</value>
     <comment>Where an open order's units are coming from: nothing yet.</comment>
@@ -2210,6 +2282,14 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>The store has no posting to price against.</value>
     <comment>Stores screen, the mail log: why an order by mail failed — the store's sale posting is missing.</comment>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL was sent, but the store has no Buy listing.</value>
+    <comment>Stores screen, the mail log: why an offer to sell by mail was refused.</comment>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Offer refused: the store has no one set to receive Buy listing contracts.</value>
+    <comment>Stores screen, the mail log: why an offer to sell by mail was refused — the store's "Contracts to" for Buy listings is empty.</comment>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Nothing recognised. Unmatched: {0}</value>

@@ -126,7 +126,9 @@ public static class PurchaseLimit
     {
         var since   = Since(store, DateTimeOffset.UtcNow);
         var history = (await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.StoreId == store.Id && o.BuyerId == buyerId && o.Status != "canceled")
+                // The limit is on what a buyer takes from the shelf; what they sell to a Buy listing is not it.
+                .Where(o => o.StoreId == store.Id && o.BuyerId == buyerId && o.Status != "canceled"
+                         && o.Side != StorePosting.Buy)
                 .Select(o => new { o.TypeId, o.Units, o.CreatedAt })
                 .ToListAsync(ct))
             .Where(o => since is null || o.CreatedAt >= since)   // compared here: a DateTimeOffset in a Where does not translate on SQLite

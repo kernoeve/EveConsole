@@ -241,6 +241,33 @@ public class StoresViewModel : ReactiveObject
     public ObservableCollection<CharacterOption> CharacterOptions { get; } = [];
     public ObservableCollection<PostingOption>   PostingOptions   { get; } = [];
 
+    /// <summary>The selected store's listings, in its order: a mail and a tab each.</summary>
+    public ObservableCollection<StoreListingRowVm> Listings { get; } = [];
+
+    // ⚠️ The value is what is saved; only the label is translated.
+    public static IReadOnlyList<Choice<string>> SideOptions { get; } =
+    [
+        new(StorePosting.Sell, SalesText.ListingSell),
+        new(StorePosting.Buy,  SalesText.ListingBuy),
+    ];
+
+    /// <summary>
+    /// Who a Buy listing's contracts can go to: our characters, the corporations we poll, and
+    /// their alliances — nothing else, because a contract to anyone else is one no poll of ours
+    /// would ever see, and an order waiting on it would never be filled.
+    /// </summary>
+    public ObservableCollection<AssigneeOption> AssigneeOptions { get; } = [];
+
+    public sealed record AssigneeOption(long Id, string Kind, string Name)
+    {
+        public override string ToString() => string.Format(Kind switch
+        {
+            "corporation" => SalesText.AssigneeCorporation,
+            "alliance"    => SalesText.AssigneeAlliance,
+            _             => SalesText.AssigneeCharacter,
+        }, Name);
+    }
+
     // ⚠️ The value is what the store saves and the mail and web services read; only the label is
     // translated.
     public IReadOnlyList<Choice<string>> PolicyOptions { get; } =
@@ -296,6 +323,7 @@ public class StoresViewModel : ReactiveObject
         _deploy      = deploy;
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
+        AddListingCommand  = ReactiveCommand.Create(AddListing);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
         RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
         CheckMailCommand   = ReactiveCommand.CreateFromTask(CheckMailNowAsync);
@@ -337,6 +365,7 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RefreshCommand     { get; }
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
+    public ReactiveCommand<Unit, Unit> AddListingCommand  { get; }
     public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
     public ReactiveCommand<Unit, Unit> RemoveWebBannerCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCloudflareTokenCommand   { get; }
@@ -384,16 +413,99 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
-    private PostingOption? _storePosting;
-    public PostingOption? StorePosting
+    // ── Listings ──────────────────────────────────────────────────────────────
+
+    /// <summary>A listing is a Buy listing: the "contracts to" picker shows.</summary>
+    public bool HasBuyListing => Listings.Any(l => l.IsBuy);
+
+    /// <summary>A Buy listing with nobody to receive its contracts takes no offers — said in red.</summary>
+    public bool BuyAssigneeMissing => HasBuyListing && _buyAssignee is null;
+
+    private AssigneeOption? _buyAssignee;
+    public AssigneeOption? BuyAssignee
     {
-        get => _storePosting;
+        get => _buyAssignee;
         set
         {
-            this.RaiseAndSetIfChanged(ref _storePosting, value);
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _buyAssignee, value);
+            this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
+            _ = SaveAsync(s =>
+            {
+                s.BuyAssigneeId   = value.Id;
+                s.BuyAssigneeType = value.Kind;
+                s.BuyAssigneeName = value.Name;
+            }, nudge: true);
+        }
+    }
+
+    private StoreListingRowVm NewListing(PostingOption? posting, string side, string title) =>
+        new(posting, side, title, ListingsChanged);
+
+    /// <summary>Adds a Sell listing of the first posting the store does not list yet.</summary>
+    private void AddListing()
+    {
+        if (SelectedStore is null || PostingOptions.Count == 0) return;
+        var used = Listings.Select(l => l.Posting?.Id).ToHashSet();
+        var next = PostingOptions.FirstOrDefault(p => !used.Contains(p.Id)) ?? PostingOptions[0];
+        Listings.Add(NewListing(next, StorePosting.Sell, ""));
+        ListingsChanged();
+    }
+
+    public void RemoveListing(StoreListingRowVm row)
+    {
+        if (!Listings.Remove(row)) return;
+        ListingsChanged();
+    }
+
+    /// <summary>Moves a listing up (−1) or down (+1): the order of the mails and the tabs.</summary>
+    public void MoveListing(StoreListingRowVm row, int by)
+    {
+        var from = Listings.IndexOf(row);
+        var to   = from + by;
+        if (from < 0 || to < 0 || to >= Listings.Count) return;
+        Listings.Move(from, to);
+        ListingsChanged();
+    }
+
+    private void ListingsChanged()
+    {
+        this.RaisePropertyChanged(nameof(HasBuyListing));
+        this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
+        if (_suppressSave || SelectedStore is not StoreRowVm row) return;
+
+        var listings = Listings.Where(l => l.Posting is not null)
+            .Select(l => new StorePosting { PostingId = l.Posting!.Id, Side = l.SideValue, Title = l.Title })
+            .ToList();
+
+        // In line with every other save, so the writes land in the order they were made.
+        var previous = _lastSave;
+        _lastSave = SaveListingsAsync(previous, row.Id, listings);
+    }
+
+    private async Task SaveListingsAsync(Task previous, int storeId, List<StorePosting> listings)
+    {
+        try { await previous; } catch { /* reported where it happened */ }
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId);
+            if (store is null) return;
+
+            await StorePostings.ReplaceAsync(db, store, listings);
+
+            if (SelectedStore is StoreRowVm row && row.Id == storeId)
+                await Dispatcher.UIThread.InvokeAsync(() => row.Refresh(store));
+
+            // The site shows a new tab on the next call, not the next interval.
+            _webSync.Nudge();
             _ = MeasurePostingAsync();
-            if (value is null) return;
-            _ = SaveAsync(s => s.PostingId = value.Id);
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(SaveListingsAsync), ex);
+            Status = string.Format(SalesText.StatusSaveFailed, ex.Message);
         }
     }
 
@@ -603,7 +715,7 @@ public class StoresViewModel : ReactiveObject
             MessageHeader = MessageHeader,
             MessageFooter = MessageFooter,
             Language      = _storeLanguage,
-        }, UsageNames(_storeLanguage));
+        }, UsageNames(_storeLanguage), HasBuyListing);
     }
 
     // The stock usage's example items, named in the store's language: read when a store is loaded
@@ -1617,6 +1729,24 @@ public class StoresViewModel : ReactiveObject
             var postings = await db.SalePostings.AsNoTracking()
                 .Select(p => new { p.Id, p.Name }).OrderBy(p => p.Name).ToListAsync();
 
+            // Who Buy contracts may go to: a character we hold, a corporation we poll, or the
+            // alliance of one — see AssigneeOptions.
+            var polledCorps = await db.Corporations.AsNoTracking()
+                .Where(c => c.RefreshToken != "")
+                .Select(c => new { Id = (long)c.Id, c.Name }).OrderBy(c => c.Name).ToListAsync();
+            var corpIds  = polledCorps.Select(c => (int)c.Id).ToList();
+            var allIds   = (await db.Characters.AsNoTracking()
+                    .Where(c => c.AllianceId != null && corpIds.Contains(c.CorporationId))
+                    .Select(c => c.AllianceId!.Value).Distinct().ToListAsync())
+                .Select(a => (long)a).ToList();
+            var allNames = await db.UniverseNames.AsNoTracking()
+                .Where(n => n.Category == "alliance" && allIds.Contains(n.EntityId))
+                .ToDictionaryAsync(n => n.EntityId, n => n.Name);
+            var assignees = chars.Select(c => new AssigneeOption(c.Id, "character", c.Name))
+                .Concat(polledCorps.Select(c => new AssigneeOption(c.Id, "corporation", c.Name)))
+                .Concat(allIds.Select(a => new AssigneeOption(a, "alliance", allNames.GetValueOrDefault(a, a.ToString()))))
+                .ToList();
+
             var keepId = SelectedStore?.Id;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -1625,6 +1755,10 @@ public class StoresViewModel : ReactiveObject
 
                 PostingOptions.Clear();
                 foreach (var p in postings) PostingOptions.Add(new PostingOption(p.Id, p.Name));
+                // The listings shown pick their postings again from the refilled list.
+                foreach (var l in Listings) l.Rebind(PostingOptions.FirstOrDefault(p => p.Id == l.Posting?.Id));
+
+                ListSync.Sync(AssigneeOptions, assignees, a => (a.Kind, a.Id));
 
                 Stores.Clear();
                 foreach (var s in stores) Stores.Add(new StoreRowVm(s));
@@ -1697,6 +1831,8 @@ public class StoresViewModel : ReactiveObject
 
             var senders = await db.StoreSenders.AsNoTracking()
                 .Where(s => s.StoreId == row.Id).OrderBy(s => s.Name).ToListAsync();
+
+            var listings = await StorePostings.ListAsync(db, store);
 
             // Visits come by the dozen and would push every order off a list of the latest
             // hundred, so they have an allowance of their own and are merged in by arrival.
@@ -1870,7 +2006,16 @@ public class StoresViewModel : ReactiveObject
                 {
                     StoreName      = store.Name;
                     StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
-                    StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
+                    Listings.Clear();
+                    foreach (var l in listings)
+                        Listings.Add(NewListing(PostingOptions.FirstOrDefault(p => p.Id == l.PostingId), l.Side, l.Title));
+                    this.RaisePropertyChanged(nameof(HasBuyListing));
+                    _buyAssignee = store.BuyAssigneeId == 0 ? null
+                        : AssigneeOptions.FirstOrDefault(a => a.Id == store.BuyAssigneeId && a.Kind == store.BuyAssigneeType)
+                          ?? new AssigneeOption(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName);
+                    this.RaisePropertyChanged(nameof(BuyAssignee));
+                    this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
+                    _ = MeasurePostingAsync();
                     _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
                     _storeLanguage = store.Language;     this.RaisePropertyChanged(nameof(StoreLanguage));
                     _usageNames    = usageNames;         _usageNamesLanguage = store.Language;
@@ -1893,7 +2038,8 @@ public class StoresViewModel : ReactiveObject
                     // merely selecting a store does not write anything back.
                     CustomUsage        = store.CustomUsage.Length > 0
                                        ? store.CustomUsage
-                                       : StoreMailService.DefaultUsageForEditing(store, usageNames);
+                                       : StoreMailService.DefaultUsageForEditing(store, usageNames,
+                                                                                 listings.Any(l => l.IsBuy));
                     _usageIsStock      = store.CustomUsage.Length == 0;
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;

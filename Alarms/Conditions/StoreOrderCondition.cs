@@ -228,7 +228,17 @@ public sealed class StoreOrderCondition : IAlarmCondition
                 ["units_delivered"]   = o.Status == "completed" ? o.Units : o.UnitsDelivered,
                 ["units_on_contract"] = o.UnitsContracted,
                 ["created_at"]  = o.CreatedAt,
+                ["side"]        = o.IsBuy ? StorePosting.Buy : StorePosting.Sell,
             };
+
+            // ⚠️ An offer to sell to a Buy listing goes the other way: the party is a seller, the
+            // goods come in, and the contract to accept is theirs. Said in its own words, never
+            // as stock to contract or a build to start.
+            if (o.IsBuy)
+            {
+                matches.AddRange(OfferEvents(o, reff, store, what, recent, isNew, newKey, kinds, detail));
+                continue;
+            }
 
             // ── The order's arrival, said with the state it arrived in ──
             if (recent)
@@ -306,6 +316,46 @@ public sealed class StoreOrderCondition : IAlarmCondition
             }
         }
         return matches;
+    }
+
+    /// <summary>An offer to sell to a store's Buy listing: offered, contracted to us, paid, cancelled.</summary>
+    private static IEnumerable<AlarmMatch> OfferEvents(
+        TrackedOrder o, string reff, string store, string what, bool recent, bool isNew, string newKey,
+        Dictionary<string, bool> kinds, Dictionary<string, object?> detail)
+    {
+        if (recent && isNew)
+            yield return Match(newKey,
+                $"New offer {reff} at {store}: {what} from {o.Buyer}, {o.PurchasePrice:N0} ISK — waiting for their contract",
+                $"New offer at {store}: {o.Buyer} will sell {what} for {Isk(o.PurchasePrice)}.",
+                $"New offer: {what} from {o.Buyer}", detail, silent: !kinds["new_orders"]);
+
+        if (o.Status == "pending" && o.UnitsContracted > 0 && o.LinkedContractId is { } contractId)
+        {
+            var part = o.UnitsContracted < o.Units ? $"{o.UnitsContracted:N0} of {o.Units:N0} " : "";
+            var asks = o.AsksMore ? $" — it asks {o.ContractedPrice:N0} ISK against {o.PurchasePrice:N0} quoted" : "";
+            yield return Match($"order:{o.Id}:contract:{contractId}",
+                $"Offer {reff} ({what} from {o.Buyer}) {part}contracted to us — accept it in game{asks}",
+                $"{o.Buyer} sent the contract for {part}{what}" + (o.AsksMore ? ", asking more than was quoted." : ". Accept it in game."),
+                $"Offer {reff} contracted", detail, silent: isNew || !kinds["contracted"]);
+        }
+
+        if (o.Status == "pending" && o.UnitsDelivered > 0)
+            yield return Match($"order:{o.Id}:delivered:{o.UnitsDelivered}",
+                $"Offer {reff} ({what} from {o.Buyer}): {o.UnitsDelivered:N0} of {o.Units:N0} received",
+                $"Received {o.UnitsDelivered:N0} of {o.Units:N0} of {what} from {o.Buyer}.",
+                $"Offer {reff}: {o.UnitsDelivered:N0} of {o.Units:N0} received", detail,
+                silent: isNew || !kinds["accepted"]);
+
+        if (o.Status == "completed")
+            yield return Match($"order:{o.Id}:completed",
+                $"Offer {reff} complete — {what} from {o.Buyer} received and paid",
+                $"The contract for {what} from {o.Buyer} was accepted. Offer complete.",
+                $"Offer {reff} complete", detail, silent: isNew || !kinds["accepted"]);
+        else if (o.Status == "canceled")
+            yield return Match($"order:{o.Id}:canceled",
+                $"Offer {reff} ({what} from {o.Buyer}) canceled",
+                $"The offer of {what} from {o.Buyer} was canceled.",
+                $"Offer {reff} canceled", detail, silent: isNew || !kinds["canceled"]);
     }
 
     private static AlarmMatch Match(

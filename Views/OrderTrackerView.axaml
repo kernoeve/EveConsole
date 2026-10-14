@@ -127,7 +127,19 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
-        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColSide}"           Binding="{Binding SideText}"    SortMemberPath="IsBuy"       Width="60" />
+        <!-- A buy order whose contracts ask more than was quoted is marked here, in red, with the
+             amounts in the tip: the one thing to see before accepting them. -->
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" SortMemberPath="PurchaseRaw" Width="120" ClipboardContentBinding="{Binding Purchase}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrackedOrderRowVm">
+              <TextBlock Text="{Binding Purchase}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Margin="0 0 6 0" Foreground="{Binding PurchaseColor}"
+                         ToolTip.Tip="{Binding PurchaseTip}"
+                         ToolTip.IsEnabled="{Binding AsksMore}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">

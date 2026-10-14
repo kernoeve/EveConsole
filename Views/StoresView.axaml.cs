@@ -38,6 +38,25 @@ public partial class StoresView : UserControl
         await vm.RemoveSenderAsync(row);
     }
 
+    // The row's own DataContext, as for Remove above.
+    private void OnRemoveListing(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is StoreListingRowVm row && DataContext is StoresViewModel vm)
+            vm.RemoveListing(row);
+    }
+
+    private void OnListingUp(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is StoreListingRowVm row && DataContext is StoresViewModel vm)
+            vm.MoveListing(row, -1);
+    }
+
+    private void OnListingDown(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is StoreListingRowVm row && DataContext is StoresViewModel vm)
+            vm.MoveListing(row, +1);
+    }
+
     private void OnResetUsage(object? sender, RoutedEventArgs e)
     {
         if (DataContext is StoresViewModel vm) vm.ResetUsage();

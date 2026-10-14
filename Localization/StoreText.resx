@@ -312,6 +312,98 @@
     <value>waiting on materials</value>
     <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — nothing on the shelf and nothing being built yet.</comment>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+    <comment>A store's mail to a buyer, the subject of one listing's price list when the store has more than one: {0} is the store's name, {1} the listing's title (as SellListTitle / BuyListTitle, or a name the owner gave it).</comment>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>price list</value>
+    <comment>A store's mail to a buyer: the title of a listing of what the store sells, when the owner gave it no name and its posting has none. Goes in SubjectListing's {1}.</comment>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>what we buy</value>
+    <comment>A store's mail to a buyer: the title of a listing of what the store BUYS from players, when the owner gave it no name and its posting has none. Goes in SubjectListing's {1}.</comment>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>We buy the items below at these prices. To sell to us, send SELL with the items in the body, written as you would an order.</value>
+    <comment>A store's mail to a buyer: the line at the top of a listing of what the store BUYS. SELL is a command word and stays in English.</comment>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>offer us items from our buying list, one item per line in the body, as for an order.</value>
+    <comment>A store's how-to-order mail, after the command word SELL and a dash: what SELL does — the player offers to sell the store items it buys.</comment>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>We reply with what we will pay, and who to make the Item Exchange contract out to.</value>
+    <comment>A store's how-to-order mail, under SELL: what the answer to it says. "Item Exchange" is the game's name for the contract type.</comment>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — offer {1}</value>
+    <comment>A store's mail to a player who offered to sell to it: the subject. {0} is the store's name, {1} the offer's reference, as 3FVPA9.</comment>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — offer not understood</value>
+    <comment>A store's mail: the subject when a SELL mail named nothing the store buys. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — offer not taken</value>
+    <comment>A store's mail: the subject when a SELL mail was refused because the store is not buying. {0} is the store's name.</comment>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>Offer {0} received</value>
+    <comment>A store's mail: the heading of the answer to an offer to sell. {0} is its reference, as 3FVPA9.</comment>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>Now create an &lt;b&gt;Item Exchange&lt;/b&gt; contract to {0} with these items in it, and &lt;b&gt;{1}&lt;/b&gt; in “I will receive”.</value>
+    <comment>A store's mail, answering an offer to sell: what the seller does next. {0} is the character, corporation or alliance the contract goes to (a link), {1} the ISK total, as 1,234,000 ISK. "Item Exchange" and "I will receive" are the game's own words on the contract window; use the client's wording in the language.</comment>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>Putting {0} in the contract's description helps us match it.</value>
+    <comment>A store's mail, answering an offer to sell, under the contract instructions. {0} is the offer's reference, as 3FVPA9.</comment>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>This store is not buying anything at the moment.</value>
+    <comment>A store's mail: the answer to SELL at a store with no buying list.</comment>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>This store is not taking offers at the moment.</value>
+    <comment>A store's mail: the answer to SELL when the store has a buying list but cannot take offers yet (its owner has not said who contracts go to).</comment>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>Nothing in this offer is on our buying list.</value>
+    <comment>A store's mail: an offer to sell named nothing the store buys.</comment>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>On our buying list: {0}. To sell those to us, send SELL instead.</value>
+    <comment>A store's mail, answering ORDER: items the player named are ones the store BUYS, not sells. {0} is the names, comma separated. SELL stays in English.</comment>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>On our price list: {0}. To buy those, send ORDER instead.</value>
+    <comment>A store's mail, answering SELL: items the player named are ones the store SELLS, not buys. {0} is the names, comma separated. ORDER stays in English.</comment>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>contract accepted — paid</value>
+    <comment>A store's mail, after an item in an offer to sell: the store accepted the seller's contract and paid.</comment>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>the store declined the contract, so this offer is closed</value>
+    <comment>A store's mail, after an item in an offer to sell.</comment>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>contract received — waiting for the store to accept it</value>
+    <comment>A store's mail, after an item in an offer to sell: the seller's contract has arrived.</comment>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>contract received, asking {0} against the {1} agreed — waiting for the store</value>
+    <comment>A store's mail, after an item in an offer to sell: the seller's contract asks more ISK than was quoted. {0} is what it asks, {1} what was agreed, both as 1,234,000 ISK.</comment>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>{0:N0} of {1:N0} on contract so far</value>
+    <comment>A store's mail, after an item in an offer to sell: some of it has come in on contracts. {0} how many, {1} how many were offered. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>waiting for your contract: Item Exchange to {0}, asking {1}</value>
+    <comment>A store's mail, after an item in an offer to sell: nothing has come in yet. {0} is who the contract goes to, {1} the ISK it should ask, as 1,234,000 ISK.</comment>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} of {1:N0} delivered</value>
     <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there, as in "1 of 2 delivered; 1 in production". {0} is how many were delivered, {1} how many were ordered. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>

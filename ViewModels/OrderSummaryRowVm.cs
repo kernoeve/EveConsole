@@ -61,7 +61,10 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
 
     /// <summary>Where the units are expected to come from. The column that actually moves while
     /// an order is open — Status reads "Pending" on every row of an active-only list.</summary>
-    public string Source   => o.FulfilmentSource switch
+    public string Source   => o.IsBuy
+        // An offer to sell to us: nothing to source, only the seller's contract to wait on or accept.
+        ? (o.FulfilmentSource == OrderFulfilmentService.SourceContract ? SalesText.SourceOfferContracted : SalesText.SourceOfferWaiting)
+        : o.FulfilmentSource switch
     {
         OrderFulfilmentService.SourceStock    => SalesText.SourceStock,
         OrderFulfilmentService.SourceJob      => SalesText.SourceInProduction,
@@ -70,7 +73,7 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
     };
 
     /// <summary>An open order with nothing behind it: the row to look at.</summary>
-    public bool IsUnsourced => o.FulfilmentSource.Length == 0;
+    public bool IsUnsourced => !o.IsBuy && o.FulfilmentSource.Length == 0;
 
     /// <summary>⚠️ Sorts undated orders last rather than first. An empty date string sorts as
     /// earliest, which put the orders nobody had answered at the top pretending to be the most

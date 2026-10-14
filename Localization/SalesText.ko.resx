@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>구매 가격</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>구분</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>계약이 {0}을(를) 요구하며, 포함된 수량에 대해 제시한 {1}보다 많습니다. 수락하기 전에 확인하십시오.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>상태</value>
   </data>
@@ -700,8 +706,50 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>주문 상태 알림에 사용되며, EVE 메일 상점이 열려 있을 때는 상점 요청에도 사용됩니다.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>가격표</value>
+  <data name="Listings" xml:space="preserve">
+    <value>목록</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>판매</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>매입</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>탭 제목(선택)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>위로</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>아래로</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>각 목록은 이 순서대로 별도의 가격표 메일이 되고 웹사이트에서 별도의 탭이 됩니다. 판매: 지금처럼 구매자가 재고와 생산품에서 주문합니다. 매입: 지급하는 가격이며 수량은 없습니다. 판매자가 제안한 뒤 그 ISK를 요구하는 아이템 교환 계약을 당신 앞으로 만들고, 당신이 수락하면 주문이 완료됩니다.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>매입 계약 수신자</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>받을 대상 선택</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>판매자에게 아이템 교환 계약을 이 대상 앞으로 만들도록 안내하며, 각 제안은 이 대상이 받은 계약과 대조됩니다. 콥이나 얼라이언스 앞으로 된 계약은 그 안의 콥 로그인을 통해서만 보입니다.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>계약을 받을 대상을 고르기 전까지 매입 목록은 제안을 받지 않습니다.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (캐릭터)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (콥)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (얼라이언스)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>언어</value>
@@ -1595,6 +1643,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>계약됨</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>판매 제안 · 상대 계약 대기</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>판매 제안 · 상대 계약 수락 필요</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>미조달</value>
   </data>
@@ -1648,6 +1702,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>상점에 가격 기준으로 삼을 게시물이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL이 전송되었지만 상점에 매입 목록이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>판매 제안 거절: 매입 계약을 받을 대상이 상점에 지정되어 있지 않습니다.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>인식된 항목이 없습니다. 일치하지 않음: {0}</value>

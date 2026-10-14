@@ -144,8 +144,9 @@ public class StoreMailService(
         // channel and wants its web buyers mailed: the character is then an address to write
         // FROM only. Serving — reading and answering mail — needs the mail channel open.
         var stores = await db.Stores
-            .Where(s => !s.IsDeleted && s.CharacterId != 0 && s.PostingId != 0
+            .Where(s => !s.IsDeleted && s.CharacterId != 0
                      && (s.Enabled || (s.WebEnabled && s.WebMailUpdates)))
+            .WithListings(db)
             .ToListAsync(ct);
 
         if (stores.Count == 0) { StatusText = SalesText.MailStoreNoneOpen; return; }
@@ -290,7 +291,7 @@ public class StoreMailService(
                 sb.Append(o.Units.ToString("N0")).Append(" × ")
                   .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
                   .Append(Esc(NameOf(names, o.TypeId))).Append("</a>")
-                  .Append(" — ").Append(Describe(o)).Append("<br>");
+                  .Append(" — ").Append(Describe(o, store)).Append("<br>");
 
             var log = new StoreMail
             {
@@ -535,6 +536,7 @@ public class StoreMailService(
         {
             case "PRICES": await PricesAsync(db, store, log, ct); break;
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
+            case "SELL":   await OrderAsync(db, store, log, ct, buying: true); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
             case "INFO":  await InfoAsync(db, store, log, ct); break;
@@ -586,7 +588,8 @@ public class StoreMailService(
     private static async Task<string> UsageAsync(AppDbContext db, Store store, CancellationToken ct) =>
         store.UseCustomUsage && store.CustomUsage.Trim().Length > 0
             ? AsBreaks(store.CustomUsage)
-            : DefaultUsage(store, await ExampleNamesAsync(db, store.Language, ct));
+            : DefaultUsage(store, await ExampleNamesAsync(db, store.Language, ct),
+                           buys: (await StorePostings.ListAsync(db, store, ct)).Any(l => l.IsBuy));
 
     /// <summary>The stock usage's two example items, whose links a buyer is shown how to drag.</summary>
     private const int ArchonId = 23757, NidhoggurId = 24483;
@@ -626,12 +629,14 @@ public class StoreMailService(
     /// </summary>
     /// <param name="names">The example items' names in the store's language
     /// (<see cref="ExampleNamesAsync"/>); null for their English names.</param>
-    public static string DefaultUsageForEditing(Store store, IReadOnlyDictionary<long, string>? names = null)
+    /// <param name="buys">The store has a Buy listing, and SELL is explained.</param>
+    public static string DefaultUsageForEditing(Store store, IReadOnlyDictionary<long, string>? names = null,
+                                                bool buys = false)
     {
         // In the store's language, as buyers will receive it: this is the text the owner starts
         // editing from, and what goes out while they have not.
         using var language = LanguageScope.Use(store.Language);
-        return Breaks.Replace(DefaultUsage(store, names), "\n");
+        return Breaks.Replace(DefaultUsage(store, names, buys), "\n");
     }
 
     /// <summary>
@@ -645,7 +650,9 @@ public class StoreMailService(
     /// </summary>
     /// <param name="names">The example items' names in that language
     /// (<see cref="ExampleNamesAsync"/>); null, or a name missing, for the English.</param>
-    public static string DefaultUsage(Store store, IReadOnlyDictionary<long, string>? names = null)
+    /// <param name="buys">The store has a Buy listing, and SELL is explained.</param>
+    public static string DefaultUsage(Store store, IReadOnlyDictionary<long, string>? names = null,
+                                      bool buys = false)
     {
         // The examples named as this store's buyers see their items, in the price list and in their
         // own client. ⚠️ The command words stay English whatever the language: they are what the
@@ -676,6 +683,13 @@ public class StoreMailService(
         // where it read as a general remark about the store — but it is an instruction about
         // one command, and it only means anything while somebody is writing an order.
         Ind + StoreText.UsageSomeoneElse + Gap +
+
+        // Only for a store that buys: a command for a list nobody was sent is noise.
+        (buys
+            ? Cmd("SELL") + StoreText.UsageSell + Br +
+              Dim(StoreText.UsageSellContract) + Br +
+              Eg($"SELL     {archon} x2") + Gap
+            : "") +
 
         Cmd("STATUS") + StoreText.UsageStatus + Br +
         Dim(StoreText.UsageStatusNoReference) + Br +
@@ -789,18 +803,40 @@ public class StoreMailService(
         // in Chinese, Japanese and Korean. Measured in the scope it is sent in, so what this
         // predicts is what goes out.
         using var language = LanguageScope.Use(store.Language);
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, language: store.Language);
-        if (blocks.Count == 0) return null;
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var body = PriceListBlocks(blocks);
+        // Every listing is its own run of mails: the heaviest is the one measured against the
+        // limit, and the mails are all of them together.
+        int? heaviest = null;
+        var mails = 0;
+        var rendered = 0;
+        foreach (var listing in await StorePostings.ListAsync(db, store, ct))
+        {
+            var blocks = await postings.RenderAsync(listing.PostingId, "EVE Mail", ct, language: store.Language,
+                                                    buying: listing.IsBuy);
+            if (blocks.Count == 0) continue;
 
-        // What one mail would weigh, wrapper included — the number to compare against the limit,
-        // because the limit applies to the body as sent, not to the posting on its own.
-        var whole = Weigh(Wrap(store, string.Concat(body)));
+            var body = ListingBlocks(listing, blocks);
+
+            // What one mail would weigh, wrapper included — the number to compare against the
+            // limit, because the limit applies to the body as sent, not to the posting on its own.
+            heaviest = Math.Max(heaviest ?? 0, Weigh(Wrap(store, string.Concat(body))));
+            mails   += Paginate(store, "", body).Count;
+            rendered++;
+        }
+        if (heaviest is not int whole) return null;
 
         // ⚠️ Reported against what a mail can carry, not the raw ceiling. Quoting the ceiling
         // would tell someone they have 300 bytes of room that the heading is going to spend.
-        return new PriceListSize(whole, UsableBodyBytes, Paginate(store, "", body).Count);
+        return new PriceListSize(whole, UsableBodyBytes, mails, rendered);
+    }
+
+    /// <summary>A listing's blocks as mailed: a Buy listing opens by saying what it is.</summary>
+    private static List<string> ListingBlocks(StorePosting listing, IReadOnlyList<RenderedPost> blocks)
+    {
+        var body = PriceListBlocks(blocks);
+        if (listing.IsBuy) body.Insert(0, Dim(StoreText.BuyListIntro) + Gap);
+        return body;
     }
 
     private static List<string> PriceListBlocks(IReadOnlyList<RenderedPost> blocks) =>
@@ -810,61 +846,110 @@ public class StoreMailService(
 
     private async Task PricesAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
-        // With a purchase limit, the list this reader gets marks what they may not order any
-        // more — the rows the site greys out for them, dimmed here with the reason beside them.
-        IReadOnlySet<int>? blocked = null;
-        if (store.LimitEnabled)
+        var listings = await StorePostings.ListAsync(db, store, ct);
+        var titles   = await ListingTitlesAsync(db, listings, ct);
+
+        // Each listing its own mail, or run of mails, in the store's order — what the site shows
+        // as a tab each. One store with one Sell listing sends exactly what it always did.
+        var sent = 0;
+        foreach (var listing in listings)
         {
-            var typeIds = await (
-                    from i in db.SalePostingItems.AsNoTracking()
-                    join s in db.SalePostingSections.AsNoTracking() on i.SectionId equals s.Id
-                    where s.PostingId == store.PostingId
-                    select i.TypeId)
-                .Distinct().ToListAsync(ct);
-            blocked = await PurchaseLimit.BlockedAsync(db, store, log.PartyId, typeIds, ct);
+            // With a purchase limit, the list this reader gets marks what they may not order any
+            // more — the rows the site greys out for them, dimmed here with the reason beside
+            // them. Sell listings only: the limit is on what is taken from the shelf.
+            IReadOnlySet<int>? blocked = null;
+            if (store.LimitEnabled && !listing.IsBuy)
+            {
+                var typeIds = await (
+                        from i in db.SalePostingItems.AsNoTracking()
+                        join s in db.SalePostingSections.AsNoTracking() on i.SectionId equals s.Id
+                        where s.PostingId == listing.PostingId
+                        select i.TypeId)
+                    .Distinct().ToListAsync(ct);
+                blocked = await PurchaseLimit.BlockedAsync(db, store, log.PartyId, typeIds, ct);
+            }
+
+            var blocks = await postings.RenderAsync(listing.PostingId, "EVE Mail", ct, blocked, store.Language,
+                                                    buying: listing.IsBuy);
+            if (blocks.Count == 0) continue;
+
+            // Every block, in order, in as few mails as it takes. They exist as separate posts
+            // because Slack wants a parent message with detail in a thread; EVE mail has no
+            // threading, so sending them as separate mails would put three unrelated-looking
+            // messages in the buyer's inbox.
+            //
+            // ⚠️ Sent through the splitter rather than as one body. A price list grows with the
+            // stock behind it, and one that outgrows the limit is refused whole — the buyer asks
+            // for prices and gets nothing back.
+            var subject = listings.Count == 1 && !listing.IsBuy && listing.Title.Length == 0
+                ? string.Format(StoreText.SubjectPriceList, store.Name)
+                : string.Format(StoreText.SubjectListing, store.Name, titles.GetValueOrDefault(listing.PostingId, ""));
+            await ReplyInPartsAsync(store, log, subject, "", ListingBlocks(listing, blocks), ct);
+            sent++;
         }
 
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, blocked, store.Language);
-        if (blocks.Count == 0)
+        if (sent == 0)
         {
             log.Outcome = "error";
             log.Detail  = Owner(() => SalesText.MailStorePostingEmpty);
-            return;
         }
-
-        // Every block, in order, in as few mails as it takes. They exist as separate posts
-        // because Slack wants a parent message with detail in a thread; EVE mail has no
-        // threading, so sending them as separate mails would put three unrelated-looking
-        // messages in the buyer's inbox.
-        //
-        // ⚠️ Sent through the splitter rather than as one body. A price list grows with the
-        // stock behind it, and one that outgrows the limit is refused whole — the buyer asks for
-        // prices and gets nothing back.
-        await ReplyInPartsAsync(store, log, string.Format(StoreText.SubjectPriceList, store.Name), "",
-                                PriceListBlocks(blocks), ct);
     }
 
-    // ── ORDER ─────────────────────────────────────────────────────────────────
-
-    private async Task OrderAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
+    /// <summary>
+    /// What each listing is headed, by posting id: the title the store gave it, or the posting's
+    /// own name — and a Buy listing with neither says that it is one.
+    /// </summary>
+    private static async Task<Dictionary<int, string>> ListingTitlesAsync(
+        AppDbContext db, List<StorePosting> listings, CancellationToken ct)
     {
-        var view = await postings.BuildViewAsync(store.PostingId, ct, store.Language);
-        if (view is null)
-        {
-            log.Outcome = "error";
-            log.Detail  = Owner(() => SalesText.MailStoreNoPosting);
-            return;
-        }
+        var ids   = listings.Select(l => l.PostingId).ToList();
+        var names = await db.SalePostings.AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.Name, ct);
 
-        // The catalogue is the posting: what it quotes is what can be bought. Indexed both ways —
-        // by type id for a dragged link, which is exact, and by name for anyone who types. A name
-        // override is included because that is what the buyer was shown, so that is what they
-        // will write back; so is the name in the store's language, the one the list printed.
-        var byName   = new Dictionary<string, PostingItemView>(StringComparer.OrdinalIgnoreCase);
-        var byTypeId = new Dictionary<int, PostingItemView>();
-        foreach (var item in view.Sections.SelectMany(s => s.Items))
+        var titles = new Dictionary<int, string>();
+        foreach (var l in listings)
+            titles.TryAdd(l.PostingId,
+                l.Title.Length > 0 ? l.Title
+                : names.GetValueOrDefault(l.PostingId) is { Length: > 0 } n ? n
+                : l.IsBuy ? StoreText.BuyListTitle : StoreText.SellListTitle);
+        return titles;
+    }
+
+    /// <summary>
+    /// Everything one side of a store lists, for reading an order against: by name and by type,
+    /// with the listing each item came from. An item listed twice is the first listing's.
+    /// </summary>
+    private sealed record Catalogue(
+        Dictionary<string, PostingItemView> ByName,
+        Dictionary<int, PostingItemView>    ByTypeId,
+        Dictionary<int, int>                PostingOf);
+
+    /// <summary>The Sell listings' catalogue, or the Buy listings' with <paramref name="buying"/>;
+    /// null when that side has none, or nothing in them.</summary>
+    private async Task<Catalogue?> CatalogueAsync(
+        AppDbContext db, Store store, List<StorePosting> listings, bool buying, CancellationToken ct)
+    {
+        var byTypeId  = new Dictionary<int, PostingItemView>();
+        var postingOf = new Dictionary<int, int>();
+        var any       = false;
+        foreach (var listing in listings.Where(l => l.IsBuy == buying))
         {
-            byTypeId[item.TypeId] = item;
+            var view = await postings.BuildViewAsync(listing.PostingId, ct, store.Language, buying);
+            if (view is null) continue;
+            any = true;
+            foreach (var item in view.Sections.SelectMany(s => s.Items))
+                if (byTypeId.TryAdd(item.TypeId, item)) postingOf[item.TypeId] = listing.PostingId;
+        }
+        if (!any) return null;
+
+        // The catalogue is the postings: what they quote is what can be bought. Indexed both
+        // ways — by type id for a dragged link, which is exact, and by name for anyone who types.
+        // A name override is included because that is what the buyer was shown, so that is what
+        // they will write back; so is the name in the store's language, the one the list printed.
+        var byName = new Dictionary<string, PostingItemView>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in byTypeId.Values)
+        {
             byName[item.TypeName] = item;
             byName.TryAdd(item.Shown, item);
             if (!string.IsNullOrWhiteSpace(item.NameOverride)) byName[item.NameOverride!] = item;
@@ -881,7 +966,74 @@ public class StoreMailService(
             if (byTypeId.TryGetValue((int)n.Id, out var item)) byName.TryAdd(n.Name, item);
         AddFoldedNames(byName);
 
+        return new Catalogue(byName, byTypeId, postingOf);
+    }
+
+    /// <summary>
+    /// For words an order could not place: the ones the store's other side lists, said as the
+    /// command that would have taken them — SELL for an item it buys, ORDER for one it sells.
+    /// </summary>
+    private async Task<string> OtherSideHintAsync(
+        AppDbContext db, Store store, List<StorePosting> listings, bool buying, List<string> unknown,
+        CancellationToken ct)
+    {
+        if (unknown.Count == 0 || listings.All(l => l.IsBuy == buying)) return "";
+        var other = await CatalogueAsync(db, store, listings, !buying, ct);
+        if (other is null) return "";
+
+        var found = unknown
+            .Where(u => other.ByName.ContainsKey(u) || other.ByName.ContainsKey(Fold(u)))
+            .ToList();
+        return found.Count == 0 ? ""
+            : Dim(string.Format(buying ? StoreText.HintUseOrder : StoreText.HintUseSell,
+                                Esc(string.Join(", ", found)))) + Gap;
+    }
+
+    // ── ORDER ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// ORDER, against the store's Sell listings — or, <paramref name="buying"/>, SELL against its
+    /// Buy listings: the same reading of the body, the same booking, and a reply that tells a
+    /// seller what contract to make rather than what is coming to them.
+    /// </summary>
+    private async Task OrderAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct, bool buying = false)
+    {
+        var listings  = await StorePostings.ListAsync(db, store, ct);
+        var catalogue = await CatalogueAsync(db, store, listings, buying, ct);
+        if (catalogue is null)
+        {
+            if (!buying)
+            {
+                log.Outcome = "error";
+                log.Detail  = Owner(() => SalesText.MailStoreNoPosting);
+                return;
+            }
+
+            // Mailed SELL at a store that buys nothing: said, with how the store is used.
+            log.Outcome = "rejected";
+            log.Detail  = Owner(() => SalesText.MailStoreNoBuyListing);
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectOfferNotTaken, store.Name),
+                StoreText.NotBuying + Gap + await UsageAsync(db, store, ct), ct);
+            return;
+        }
+
+        // ⚠️ A Buy listing is filled by a contract made out to the entity the store names. With
+        // none named there is nothing to tell the seller to do, and an offer taken anyway would
+        // sit open with no contract that could ever match it.
+        if (buying && store.BuyAssigneeId == 0)
+        {
+            log.Outcome = "rejected";
+            log.Detail  = Owner(() => SalesText.MailStoreNoBuyAssignee);
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectOfferNotTaken, store.Name),
+                StoreText.OffersClosed, ct);
+            return;
+        }
+
+        var (byName, byTypeId, postingOf) = catalogue;
         var parsed = ParseOrder(log.Body, byName, byTypeId);
+
+        // Words the other side lists, with the command that would have taken them.
+        var hint = await OtherSideHintAsync(db, store, listings, buying, parsed.Unknown, ct);
 
         if (parsed.Lines.Count == 0)
         {
@@ -889,19 +1041,22 @@ public class StoreMailService(
             log.Detail  = Owner(() => parsed.Unknown.Count > 0
                 ? string.Format(SalesText.MailStoreNothingRecognised, string.Join(", ", parsed.Unknown))
                 : SalesText.MailStoreNoOrderLines);
-            await ReplyAsync(store, log, string.Format(StoreText.SubjectOrderNotUnderstood, store.Name),
-                StoreText.NothingMatched + Gap +
+            await ReplyAsync(store, log,
+                string.Format(buying ? StoreText.SubjectOfferNotUnderstood : StoreText.SubjectOrderNotUnderstood, store.Name),
+                (buying ? StoreText.NothingMatchedBuying : StoreText.NothingMatched) + Gap +
                 (parsed.Unknown.Count > 0
                     ? Warn(string.Format(StoreText.NotFound, Esc(string.Join(", ", parsed.Unknown)))) + Gap
                     : "") +
+                hint +
                 await UsageAsync(db, store, ct), ct);
             return;
         }
 
         // The store's purchase limit — the same check the site makes before it asks and the web
         // sync makes when it books. An order by mail that would take the buyer past it is turned
-        // down, with the sum that says why and the rule itself.
-        if (store.LimitEnabled
+        // down, with the sum that says why and the rule itself. Not on an offer to sell: the
+        // limit is on what a buyer takes from the shelf.
+        if (!buying && store.LimitEnabled
             && await PurchaseLimit.OverLimitAsync(db, store, log.PartyId,
                    parsed.Lines.Select(l => (l.Item.TypeId, l.Units)).ToList(), ct) is { } over)
         {
@@ -927,9 +1082,13 @@ public class StoreMailService(
         // named means the buyer" was a rule held in this code and nowhere else — the Order
         // Tracker showed a blank, and whoever came to fill the order had to know the convention
         // to read it. Writing the sender in says the same thing where it can be seen.
-        var toId   = parsed.ContractTo?.EntityId  ?? log.PartyId;
-        var toName = parsed.ContractTo?.Text      ?? log.PartyName;
-        var toKind = parsed.ContractTo?.EntityKind ?? "character";
+        //
+        // ⚠️ Not on an offer. Its contract comes FROM the seller, so nobody is named unless they
+        // dragged someone in — an alt or their corporation the contract will come from instead,
+        // which the match then accepts as the issuer too.
+        var toId   = parsed.ContractTo?.EntityId  ?? (buying ? 0 : log.PartyId);
+        var toName = parsed.ContractTo?.Text      ?? (buying ? "" : log.PartyName);
+        var toKind = parsed.ContractTo?.EntityKind ?? (buying ? "" : "character");
 
         var created = new List<TrackedOrder>();
         foreach (var (item, units) in parsed.Lines)
@@ -962,6 +1121,8 @@ public class StoreMailService(
                 ContractToId   = toId,
                 ContractToName = toName,
                 ContractToType = toKind,
+                Side          = buying ? StorePosting.Buy : StorePosting.Sell,
+                PostingId     = postingOf.GetValueOrDefault(item.TypeId),
                 CreatedAt     = now,
             };
             db.TrackedOrders.Add(order);
@@ -1017,7 +1178,7 @@ public class StoreMailService(
         var total = created.Sum(o => o.PurchasePrice);
 
         var sb = new StringBuilder();
-        sb.Append(Head(string.Format(StoreText.OrderReceived, reference)));
+        sb.Append(Head(string.Format(buying ? StoreText.OfferReceived : StoreText.OrderReceived, reference)));
 
         foreach (var (item, units) in parsed.Lines)
         {
@@ -1035,16 +1196,29 @@ public class StoreMailService(
             if (units > 1)
                 sb.Append(Dim(" " + string.Format(StoreText.PriceEach, Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0)))));
 
-            sb.Append(Br).Append(Ind).Append(Dim(Expect(line))).Append(Br);
+            // An offer has nothing coming to say: what happens next is the seller's contract.
+            if (!buying) sb.Append(Br).Append(Ind).Append(Dim(Expect(line)));
+            sb.Append(Br);
         }
 
         sb.Append(Br).Append("<font size=\"14\"><b>").Append(string.Format(StoreText.OrderTotalLine, Isk(total)))
           .Append("</b></font>").Append(Br);
 
+        if (buying)
+        {
+            // ⚠️ The whole of what the seller has to do, spelled out with the entity as a link
+            // and the amount as the box in the game names it: a contract to anyone else, or
+            // asking another sum, is one the order may never match.
+            sb.Append(Br).Append(string.Format(StoreText.OfferMakeContract,
+                                               Entity(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName),
+                                               Isk(total)))
+              .Append(Br)
+              .Append(Dim(string.Format(StoreText.OfferPutReference, reference))).Append(Br);
+        }
         // Always stated, even when it is simply the sender. It is the one detail a buyer cannot
         // check afterwards, and someone who meant to name a third party and whose link did not
         // parse finds out here rather than when the contract lands on the wrong name.
-        if (toName.Length > 0)
+        else if (toName.Length > 0)
             sb.Append(string.Format(StoreText.ContractMadeOutTo, Esc(toName))).Append(Br);
 
         sb.Append("<br>");
@@ -1055,7 +1229,7 @@ public class StoreMailService(
         // arrive.
         if (parsed.Unknown.Count > 0)
             sb.Append(Warn(string.Format(StoreText.NotOrdered, Esc(string.Join(", ", parsed.Unknown)))))
-              .Append(Gap);
+              .Append(Gap).Append(hint);
 
         // ⚠️ Said out loud. The order was reduced to fit what one mail may ask for, and a
         // quantity quietly changed between what somebody wrote and what they are charged for is
@@ -1066,7 +1240,17 @@ public class StoreMailService(
 
         sb.Append(Dim(StoreText.ReplyWithStatus));
 
-        await ReplyAsync(store, log, string.Format(StoreText.SubjectOrder, store.Name, reference), sb.ToString(), ct);
+        await ReplyAsync(store, log,
+            string.Format(buying ? StoreText.SubjectOffer : StoreText.SubjectOrder, store.Name, reference),
+            sb.ToString(), ct);
+    }
+
+    /// <summary>A character, corporation or alliance as a link the game opens, by id.</summary>
+    private static string Entity(long id, string kind, string name)
+    {
+        // The type a showinfo link names an instance by: 1373 does for any character.
+        var type = kind switch { "corporation" => 2, "alliance" => 16159, _ => 1373 };
+        return $"<a href=\"showinfo:{type}//{id}\">{Esc(name)}</a>";
     }
 
     // ── STATUS ────────────────────────────────────────────────────────────────
@@ -1134,12 +1318,13 @@ public class StoreMailService(
 
                 if (o.Units > 1) block.Append(Dim(" " + string.Format(StoreText.PriceEach, Isk(unit))));
 
-                block.Append(Br).Append(Ind).Append(Dim(Describe(o))).Append(Br);
+                block.Append(Br).Append(Ind).Append(Dim(Describe(o, store))).Append(Br);
             }
 
             // Per order, not per line: every line of one order shares its buyer and its
             // destination, and repeating them under each item would be noise.
-            var contractTo = lines.Select(o => o.ContractToName)
+            // Sell lines only: an offer's contract is the seller's own, to the store.
+            var contractTo = lines.Where(o => !o.IsBuy).Select(o => o.ContractToName)
                                   .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
             if (contractTo is not null)
                 block.Append(Ind).Append(Dim(string.Format(StoreText.ContractTo, Esc(contractTo)))).Append(Br);
@@ -1195,7 +1380,7 @@ public class StoreMailService(
     }
 
     /// <summary>What one line of an order is doing, in words a buyer can act on.</summary>
-    private static string Describe(TrackedOrder o) => o.Status switch
+    private static string Describe(TrackedOrder o, Store store) => o.IsBuy ? DescribeOffer(o, store) : o.Status switch
     {
         "completed" => StoreText.StateDelivered,
 
@@ -1230,6 +1415,30 @@ public class StoreMailService(
                         ? string.Format(StoreText.StateExpected, e)
                         : StoreText.StateWaitingOnMaterials,
         },
+    };
+
+    /// <summary>
+    /// What one line of an offer to sell is doing: waiting on the seller's contract, waiting on
+    /// the store to accept it, or paid.
+    /// </summary>
+    private static string DescribeOffer(TrackedOrder o, Store store) => o.Status switch
+    {
+        "completed" => StoreText.OfferPaid,
+        "canceled"  => o.UnitsDelivered > 0
+                        ? Plurals.Format(StoreText.ResourceManager, nameof(StoreText.StateDeliveredRestCancelledOther),
+                                         o.UnitsDelivered, o.Units)
+                        : o.LinkedContractId is not null
+                        ? StoreText.OfferContractDeclined
+                        : StoreText.StateCancelled,
+        _ when o.UnitsDelivered + o.UnitsContracted >= o.Units && o.UnitsContracted > 0
+                    => o.AsksMore
+                        ? string.Format(StoreText.OfferContractAsksMore, Isk(o.ContractedPrice), Isk(o.PurchasePrice))
+                        : StoreText.OfferContractWaiting,
+        _ when o.UnitsDelivered + o.UnitsContracted > 0
+                    => Plurals.Format(StoreText.ResourceManager, nameof(StoreText.OfferPartContractedOther),
+                                      o.UnitsDelivered + o.UnitsContracted, o.Units),
+        _ => string.Format(StoreText.OfferAwaitingContract,
+                           Esc(store.BuyAssigneeName), Isk(o.PurchasePrice)),
     };
 
     /// <summary>
@@ -1712,6 +1921,8 @@ public class StoreMailService(
 
         return word is "PRICES" or "PRICE" or "LIST" ? "PRICES"
              : word is "ORDER" or "BUY"              ? "ORDER"
+             // The other way round: an offer to sell to a store's Buy listing.
+             : word is "SELL" or "OFFER"             ? "SELL"
              : word is "STATUS"                      ? "STATUS"
              : word is "CANCEL"                      ? "CANCEL"
              // ⚠️ INFO used to be a third spelling of HELP. It is its own command now, and the
@@ -2146,10 +2357,13 @@ public class StoreMailService(
 /// and · weighs more than its character count suggests, which is exactly the case where a
 /// posting that looks well inside the limit is not.</para>
 /// </summary>
-public record PriceListSize(int Bytes, int Limit, int Parts)
+/// <param name="Bytes">The heaviest listing's mail.</param>
+/// <param name="Parts">Mails in all, every listing's together.</param>
+/// <param name="Listings">Listings that render: each is a mail of its own whatever its size.</param>
+public record PriceListSize(int Bytes, int Limit, int Parts, int Listings = 1)
 {
-    /// <summary>True when the buyer would receive more than one mail.</summary>
-    public bool Splits => Parts > 1;
+    /// <summary>True when a listing would arrive as more than one mail.</summary>
+    public bool Splits => Parts > Listings;
 
     /// <summary>How far past the limit, or zero when it fits.</summary>
     public int Over => Math.Max(0, Bytes - Limit);

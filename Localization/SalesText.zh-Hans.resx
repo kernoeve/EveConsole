@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>购买价格</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>合同要价 {0}，高于其所含数量的报价 {1}。接受前请核对。</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>状态</value>
   </data>
@@ -700,8 +706,50 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>用于发送订单状态通知；当 EVE 邮件商店开放时，也用于处理商店请求。</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>价目表</value>
+  <data name="Listings" xml:space="preserve">
+    <value>列表</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>出售</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>收购</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>标签标题（可选）</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>添加列表</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>每个列表都会单独作为一封价格表邮件发送，并在网站上单独作为一个标签页，顺序同此。出售：买家从你的库存和生产中下单，与以前相同。收购：你支付的价格，不显示数量；卖家报价后，向你创建要价为该 ISK 的物品交换合同，你接受后订单即完成。</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>收购合同指定给</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>选择接收方</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>卖家会被告知把物品交换合同指定给这里，每个报价都会与其收到的合同匹配。军团或联盟的合同只能通过其中某个军团的登录看到。</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>在选择合同接收方之前，收购列表不受理报价。</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0}（角色）</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0}（军团）</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0}（联盟）</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>语言</value>
@@ -1595,6 +1643,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>合同中</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>报价 · 等待对方合同</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>报价 · 对方合同待接受</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>尚无来源</value>
   </data>
@@ -1648,6 +1702,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>商店没有可用于定价的销售发布。</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>收到 SELL，但本店没有收购清单。</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>报价被拒：本店未设置接收收购合同的对象。</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>没有识别出任何物品。未匹配：{0}</value>

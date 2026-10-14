@@ -262,6 +262,75 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>ожидает материалов</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>прайс-лист</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>что мы покупаем</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>Мы покупаем перечисленные ниже предметы по этим ценам. Чтобы продать нам, отправьте SELL с предметами в тексте письма, записанными как в заказе.</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>предложить нам предметы из нашего списка покупок, по одному предмету в строке текста письма, как в заказе.</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>Мы ответим, сколько заплатим и на чьё имя выставить контракт обмена предметами.</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — предложение {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — предложение не распознано</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — предложение не принято</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>Предложение {0} получено</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>Теперь создайте контракт &lt;b&gt;«Обмен предметами»&lt;/b&gt; на имя {0} с этими предметами и укажите &lt;b&gt;{1}&lt;/b&gt; в поле «Я получу».</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>Если указать {0} в описании контракта, нам будет проще его найти.</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>Сейчас этот магазин ничего не покупает.</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>Сейчас этот магазин не принимает предложения.</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>Ничего из этого предложения нет в нашем списке покупок.</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>В нашем списке покупок: {0}. Чтобы продать их нам, отправьте вместо этого SELL.</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>В нашем прайс-листе: {0}. Чтобы купить их, отправьте вместо этого ORDER.</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>контракт принят — оплачено</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>магазин отклонил контракт, поэтому предложение закрыто</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>контракт получен — ждёт, когда магазин его примет</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>контракт получен, просит {0} вместо оговорённых {1} — ждёт решения магазина</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>пока по контракту {0:N0} из {1:N0}</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>ждём ваш контракт: обмен предметами на имя {0}, цена {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} единицы из {1:N0} доставлены</value>
   </data>

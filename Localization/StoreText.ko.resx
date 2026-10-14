@@ -235,6 +235,75 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>재료 대기 중</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>가격표</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>매입 목록</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>아래 아이템을 이 가격에 매입합니다. 판매하려면 주문과 같은 방식으로 본문에 아이템을 적어 SELL을 보내십시오.</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>매입 목록의 아이템을 판매합니다. 주문과 같이 본문에 한 줄에 아이템 하나씩 쓰십시오.</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>지급할 금액과 아이템 교환 계약을 누구 앞으로 발행할지 답장으로 알려 드립니다.</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — 판매 제안 {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — 판매 제안을 이해하지 못함</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — 판매 제안 거절</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>판매 제안 {0} 접수</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>이제 {0} 앞으로 &lt;b&gt;아이템 교환&lt;/b&gt; 계약을 만들어 이 아이템들을 넣고 '받을 금액'에 &lt;b&gt;{1}&lt;/b&gt;을(를) 입력하십시오.</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>계약 설명에 {0}을(를) 적어 주시면 확인이 쉬워집니다.</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>이 상점은 현재 아무것도 매입하지 않습니다.</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>이 상점은 현재 판매 제안을 받지 않습니다.</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>이 제안에는 매입 목록에 있는 아이템이 없습니다.</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>매입 목록에 있음: {0}. 판매하려면 대신 SELL을 보내십시오.</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>가격표에 있음: {0}. 구매하려면 대신 ORDER를 보내십시오.</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>계약 수락됨 — 지급 완료</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>상점이 계약을 거절하여 이 제안은 종료되었습니다</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>계약 수신 — 상점의 수락 대기 중</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>계약 수신, 합의한 {1} 대신 {0} 요구 — 상점 대기 중</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 계약됨</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>계약 대기 중: {0} 앞으로 아이템 교환, 요구 금액 {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{1:N0}개 중 {0:N0}개 전달됨</value>
   </data>

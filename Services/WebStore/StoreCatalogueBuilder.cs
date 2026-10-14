@@ -24,13 +24,41 @@ public sealed class StoreCatalogueBuilder(
     IDbContextFactory<AppDbContext> dbFactory,
     SalePostingService              postings)
 {
-    /// <summary>Null when the store has no posting, or the posting renders to nothing.</summary>
-    public async Task<CatalogueDto?> BuildAsync(Store store, CancellationToken ct)
+    /// <summary>Every listing of the store, in its order, each with its catalogue; a listing
+    /// whose posting is gone is left out.</summary>
+    public async Task<List<ListingDto>> BuildListingsAsync(Store store, CancellationToken ct)
     {
-        if (store.PostingId == 0) return null;
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var listings = await StorePostings.ListAsync(db, store, ct);
+        var ids      = listings.Select(l => l.PostingId).ToList();
+        var names    = await db.SalePostings.AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.Name, ct);
+
+        var built = new List<ListingDto>();
+        foreach (var listing in listings)
+        {
+            if (built.Any(b => b.Id == listing.PostingId)) continue;   // one tab per posting
+            if (await BuildAsync(store, listing.PostingId, listing.IsBuy, ct) is not { } catalogue) continue;
+            built.Add(new ListingDto
+            {
+                Id        = listing.PostingId,
+                Title     = listing.Title.Length > 0 ? listing.Title : names.GetValueOrDefault(listing.PostingId, ""),
+                Side      = listing.IsBuy ? StorePosting.Buy : StorePosting.Sell,
+                Catalogue = catalogue,
+            });
+        }
+        return built;
+    }
+
+    /// <summary>Null when the posting is gone, or renders to nothing.</summary>
+    /// <param name="buying">A Buy listing: prices only, nothing counted.</param>
+    public async Task<CatalogueDto?> BuildAsync(Store store, int postingId, bool buying, CancellationToken ct)
+    {
+        if (postingId == 0) return null;
 
         // In the store's language: the items' names and order, and their groups' names.
-        var view = await postings.BuildViewAsync(store.PostingId, ct, store.Language);
+        var view = await postings.BuildViewAsync(postingId, ct, store.Language, buying);
         if (view is null) return null;
 
         var typeIds = view.Sections.SelectMany(s => s.Items).Select(i => i.TypeId).Distinct().ToList();

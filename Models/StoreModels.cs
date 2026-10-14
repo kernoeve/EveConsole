@@ -24,8 +24,14 @@ public class Store
     public long   CharacterId   { get; set; }
     public string CharacterName { get; set; } = "";
 
-    /// <summary>The <see cref="SalePosting"/> sent in answer to a price request, and the
-    /// catalogue orders are checked against.</summary>
+    /// <summary>
+    /// The first Sell listing in <see cref="StorePosting"/>, or zero when there is none.
+    ///
+    /// <para>⚠️ Kept in step with that list rather than read on its own. A store from before the
+    /// list has only this, and it stands for a list of one Sell listing — see
+    /// <c>StorePostings.ListAsync</c> — so nothing has to be copied over when the database
+    /// upgrades, and a store nobody has touched since reads exactly as it did.</para>
+    /// </summary>
     public int    PostingId     { get; set; }
 
     /// <summary>
@@ -254,9 +260,47 @@ public class Store
     /// takes the same values as its own secrets.</summary>
     public string WebEveClientSecret   { get; set; } = "";
 
+    // ── Buy listings ──────────────────────────────────────────────────────────
+    //
+    // Who sellers make their item exchange contracts out to. A Buy listing's order is filled by
+    // a contract from the seller to this entity, carrying the items and asking the quoted ISK.
 
+    /// <summary>The character, corporation or alliance the contracts go to; zero for none, and
+    /// then a Buy listing cannot take orders.</summary>
+    public long   BuyAssigneeId   { get; set; }
+    /// <summary>"character", "corporation" or "alliance".</summary>
+    public string BuyAssigneeType { get; set; } = "";
+    public string BuyAssigneeName { get; set; } = "";
 
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>
+/// One of a store's listings: a sale posting, shown as a price list of its own — a mail of its
+/// own, a tab of its own on the site — and either sold from or bought into.
+///
+/// <para><b>Sell</b> is what a store always was: the buyer orders, and the goods come off the
+/// shelf or out of a job, on a contract to them. <b>Buy</b> turns it round: the posting's prices
+/// are what the store pays, nothing is counted, and the other party offers to sell — then makes
+/// an item exchange contract to <see cref="Store.BuyAssigneeId"/> asking the quoted ISK, which
+/// the order is matched to and completes on when it is accepted.</para>
+/// </summary>
+public class StorePosting
+{
+    public const string Sell = "sell";
+    public const string Buy  = "buy";
+
+    public int    Id        { get; set; }
+    public int    StoreId   { get; set; }
+    public int    PostingId { get; set; }
+    /// <summary>Where the listing comes in the store: first mail, first tab.</summary>
+    public int    Ordinal   { get; set; }
+    /// <summary><see cref="Sell"/> or <see cref="Buy"/>.</summary>
+    public string Side      { get; set; } = Sell;
+    /// <summary>What the tab and the mail are headed; empty for the posting's own name.</summary>
+    public string Title     { get; set; } = "";
+
+    public bool IsBuy => Side == Buy;
 }
 
 /// <summary>

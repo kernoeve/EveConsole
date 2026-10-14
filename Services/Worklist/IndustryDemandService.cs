@@ -785,8 +785,9 @@ public class IndustryDemandService(
         // ⚠️ By the unit, not the order. An order for two with one hull on a contract still
         // wants the other built, and skipping every order with a contract dropped it from the
         // plan; what is delivered or made out is taken off, and the rest is demand.
+        // ⚠️ Sell orders only. A buy order is goods coming in from a seller, not anything to make.
         var orders = (await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.Status == "pending").ToListAsync(ct))
+                .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
             .Where(o => OrderContractLinks.StillToSupply(o) > 0)
             .ToList();
         if (orders.Count == 0) return [];

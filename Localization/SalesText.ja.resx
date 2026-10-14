@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>購入価格</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>契約の要求額は {0} で、含まれる数量に対する見積もり {1} を上回っています。受諾する前に確認してください。</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>ステータス</value>
   </data>
@@ -700,8 +706,50 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>注文ステータスの通知に使われます。EVEメールのストアが開いているときは、ストアへのリクエストにも使われます。</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>価格表</value>
+  <data name="Listings" xml:space="preserve">
+    <value>リスト</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>販売</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>買取</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>タブのタイトル（任意）</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>上へ</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>下へ</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>リストを追加</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>各リストは、この順番で、それぞれ別の価格表メールとして送られ、ウェブサイトでは別のタブになります。販売：これまでどおり、購入者が在庫と製造から注文します。買取：支払う価格で、数量は表示しません。売り手が売却を申し込み、その ISK を要求するアイテム交換契約をあなた宛てに作成し、あなたが受諾すると注文が完了します。</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>買取契約の宛先</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>受取先を選択</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>売り手にはアイテム交換契約をこの宛先にするよう案内し、各売却申込はここが受け取った契約と照合されます。コーポレーションやアライアンス宛ての契約は、そこに所属するコーポレーションのログインからのみ見えます。</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>契約の受取先を選ぶまで、買取リストは売却申込を受け付けません。</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0}（キャラクター）</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0}（コーポレーション）</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0}（アライアンス）</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>言語</value>
@@ -1595,6 +1643,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>契約済み</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>売却申込 · 相手の契約待ち</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>売却申込 · 相手の契約を受諾</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>調達元なし</value>
   </data>
@@ -1648,6 +1702,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>ストアに、価格の基準となる投稿がありません。</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL が送られましたが、ストアに買取リストがありません。</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>売却申込を拒否：買取契約の宛先がストアに設定されていません。</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>認識できたものはありません。一致しなかったもの：{0}</value>

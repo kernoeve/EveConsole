@@ -251,7 +251,7 @@ public class OrderFulfilmentService(
 
         // What each order's contracts carry, worked out for every order before any of them takes
         // stock or a job — see ContractsAsync.
-        var (onContract, changed) = await ContractsAsync(db, orders, ours, now, ct);
+        var (onContract, changed) = await ContractsAsync(db, orders, ours, await AssigneesAsync(db, orders, ct), now, ct);
 
         foreach (var order in orders)
         {
@@ -265,9 +265,17 @@ public class OrderFulfilmentService(
 
             // The contracts are the agreed price once they carry the whole order — what the
             // buyer actually pays, where the order's figure was an intention.
-            if (contracts.Price is double price && Math.Abs(order.PurchasePrice - price) > 0.01)
+            if (!order.IsBuy && contracts.Price is double price && Math.Abs(order.PurchasePrice - price) > 0.01)
             {
                 order.PurchasePrice = price;
+                changed = true;
+            }
+
+            // ⚠️ A buy order keeps the price quoted: what the seller's contracts ask is recorded
+            // beside it, so asking more than was agreed shows rather than being agreed to.
+            if (order.IsBuy && Math.Abs(order.ContractedPrice - contracts.Asking) > 0.01)
+            {
+                order.ContractedPrice = contracts.Asking;
                 changed = true;
             }
 
@@ -291,6 +299,15 @@ public class OrderFulfilmentService(
                 order.Status      = "canceled";
                 order.CompletedOn = (contracts.DeclinedAt ?? now).UtcDateTime.ToString("yyyy-MM-dd");
                 changed = true;
+                continue;
+            }
+
+            // ⚠️ A buy order is goods coming in. Nothing on the shelf or in build is for it — it
+            // waits on the seller's contract, and then on ours to accept it.
+            if (order.IsBuy)
+            {
+                if (order.StockOnHand != 0) { order.StockOnHand = 0; changed = true; }
+                changed |= SetJobs(order, contracts.Offered > 0 ? SourceContract : SourceNone, [], 0);
                 continue;
             }
 
@@ -503,7 +520,8 @@ public class OrderFulfilmentService(
     /// that happens to rank first takes half of the contract cut for an order for two.</para>
     /// </summary>
     private static async Task<(Dictionary<int, Contracted> ByOrder, bool Changed)> ContractsAsync(
-        AppDbContext db, List<TrackedOrder> orders, OurIds ours, DateTimeOffset now, CancellationToken ct)
+        AppDbContext db, List<TrackedOrder> orders, OurIds ours, Dictionary<int, long> assignees,
+        DateTimeOffset now, CancellationToken ct)
     {
         var links   = orders.ToDictionary(o => o.Id, OrderContractLinks.Of);
         var typeIds = orders.Select(o => o.TypeId).Distinct().ToList();
@@ -578,7 +596,10 @@ public class OrderFulfilmentService(
         // ── Matching what is still wanted ─────────────────────────────────────
         var found = new Dictionary<int, List<int>>();
         foreach (var order in orders)
-            if (Need(order) > 0 && await CandidateIdsAsync(db, order, ours, ct) is { Count: > 0 } ids)
+            if (Need(order) > 0
+                && await (order.IsBuy
+                        ? InboundCandidateIdsAsync(db, order, assignees.GetValueOrDefault(order.StoreId), ct)
+                        : CandidateIdsAsync(db, order, ours, ct)) is { Count: > 0 } ids)
                 found[order.Id] = ids;
 
         if (found.Count > 0)
@@ -656,6 +677,28 @@ public class OrderFulfilmentService(
         // ── What it comes to ──────────────────────────────────────────────────
         var holders = links.Values.Concat(settledLinks.Select(s => s.Links)).SelectMany(held => held)
             .GroupBy(l => l.ContractId).ToDictionary(g => g.Key, g => g.Count());
+
+        // The quotes of every buy order a contract carries, so one contract for a whole offer —
+        // three items, one asking price — is shared over its lines by what each was quoted.
+        var quoted = new Dictionary<int, (double Sum, int Count)>();
+        void Quote(TrackedOrder o, IEnumerable<int> ids)
+        {
+            foreach (var id in ids.Distinct())
+            {
+                var (sum, count) = quoted.GetValueOrDefault(id);
+                quoted[id] = (sum + o.PurchasePrice, count + 1);
+            }
+        }
+        foreach (var o in orders.Where(o => o.IsBuy)) Quote(o, links[o.Id].Select(l => l.ContractId));
+        foreach (var o in settled.Where(o => o.IsBuy)) Quote(o, OrderContractLinks.Ids(o));
+
+        double ShareOf(TrackedOrder o, int contractId, double contractPrice)
+        {
+            if (holders.GetValueOrDefault(contractId) <= 1) return contractPrice;
+            var (sum, count) = quoted.GetValueOrDefault(contractId);
+            return sum > 0 ? contractPrice * o.PurchasePrice / sum : contractPrice / Math.Max(1, count);
+        }
+
         var changed = false;
         var byOrder = new Dictionary<int, Contracted>();
 
@@ -698,6 +741,12 @@ public class OrderFulfilmentService(
                 && paying.All(l => holders[l.ContractId] == 1 && states.TryGetValue(l.ContractId, out var s) && s.Price > 0))
                 price = paying.Sum(l => states[l.ContractId].Price);
 
+            // A buy order: what its contracts ask, so far — compared with the quote for the units
+            // they carry (TrackedOrder.AsksMore).
+            var asking = !order.IsBuy ? 0 : Math.Round(paying
+                .Where(l => states.TryGetValue(l.ContractId, out var s) && s.Price > 0)
+                .Sum(l => ShareOf(order, l.ContractId, states[l.ContractId].Price)), 2);
+
             var formatted = OrderContractLinks.Format(list);
             if (order.LinkedContracts  != formatted) { order.LinkedContracts  = formatted; changed = true; }
             if (order.UnitsDelivered   != delivered) { order.UnitsDelivered   = delivered; changed = true; }
@@ -707,7 +756,7 @@ public class OrderFulfilmentService(
             if (list.Count > 0)
                 byOrder[order.Id] = new Contracted(delivered, waiting,
                     Declined: delivered == 0 && waiting == 0 && declined >= order.Units,
-                    lastAccepted, declinedAt, price);
+                    lastAccepted, declinedAt, price, asking);
         }
 
         return (byOrder, changed);
@@ -796,6 +845,67 @@ public class OrderFulfilmentService(
     }
 
     /// <summary>
+    /// Who each store's Buy listings have contracts made out to, by store id, for the buy orders
+    /// among <paramref name="orders"/>.
+    /// </summary>
+    private static async Task<Dictionary<int, long>> AssigneesAsync(
+        AppDbContext db, List<TrackedOrder> orders, CancellationToken ct)
+    {
+        var storeIds = orders.Where(o => o.IsBuy && o.StoreId != 0).Select(o => o.StoreId).Distinct().ToList();
+        if (storeIds.Count == 0) return [];
+        return await db.Stores.AsNoTracking()
+            .Where(s => storeIds.Contains(s.Id) && s.BuyAssigneeId != 0)
+            .ToDictionaryAsync(s => s.Id, s => s.BuyAssigneeId, ct);
+    }
+
+    /// <summary>
+    /// Contracts that could fill a buy order — the other way round from
+    /// <see cref="CandidateIdsAsync"/>, and as strict:
+    /// <list type="bullet">
+    /// <item>an item exchange, made out by id to the entity the store names for its Buy listings;</item>
+    /// <item>issued by the seller — the character, or a contract on behalf of the corporation that
+    /// placed the order — or by whoever the order names as sending it;</item>
+    /// <item>issued after the order was placed;</item>
+    /// <item>giving the ordered type. How many, and what it asks, are for the caller: a contract
+    /// asking more than the quote is linked all the same and flagged.</item>
+    /// </list>
+    ///
+    /// <para>⚠️ Seen only if some poll of ours sees it: one to a character, through that
+    /// character; to a corporation or an alliance, through the poll of a corporation it is
+    /// assigned to or that is in that alliance.</para>
+    /// </summary>
+    private static async Task<List<int>> InboundCandidateIdsAsync(
+        AppDbContext db, TrackedOrder order, long assignee, CancellationToken ct)
+    {
+        if (assignee <= 0) return [];
+
+        var senders = new List<long>();
+        if (order.BuyerId      > 0) senders.Add(order.BuyerId);
+        if (order.ContractToId > 0 && !senders.Contains(order.ContractToId)) senders.Add(order.ContractToId);
+        if (senders.Count == 0) return [];
+
+        // Raw SQL for the DateIssued comparison, as in CandidateIdsAsync; the ids are ours.
+        var list = string.Join(",", senders);
+        var sql = $$"""
+            SELECT DISTINCT c."ContractId" AS "Value"
+            FROM "EsiContracts" c
+            WHERE c."Type" = 'item_exchange'
+              AND c."Status" IN ('finished', 'outstanding', 'in_progress', 'rejected')
+              AND c."AssigneeId" = {{assignee}}
+              AND c."DateIssued" > {0}
+              AND (c."IssuerId" IN ({{list}})
+                   OR (c."ForCorporation" = TRUE AND c."IssuerCorporationId" IN ({{list}})))
+              AND EXISTS (SELECT 1 FROM "EsiContractItems" i
+                          WHERE i."ContractId" = c."ContractId"
+                            AND i."TypeId" = {1} AND i."IsIncluded" = TRUE)
+            """;
+
+        return await db.Database
+            .SqlQueryRaw<int>(sql, order.CreatedAt.ToUniversalTime(), order.TypeId)
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
     /// What each of these contracts now says, by id. One no poll has brought in is absent.
     ///
     /// <para>⚠️ A contract is a row for each owner that can see it, each only as fresh as that
@@ -879,8 +989,9 @@ public class OrderFulfilmentService(
     /// <param name="Declined">Every unit offered and turned down: the buyer declined the order.</param>
     /// <param name="Price">What the contracts charge together, once they carry the whole order and
     /// nothing for anyone else; otherwise null, and the order keeps its own price.</param>
+    /// <param name="Asking">A buy order's share of what its contracts ask; zero on a sell order.</param>
     private sealed record Contracted(int Delivered, int Offered, bool Declined,
-        DateTimeOffset? LastAccepted, DateTimeOffset? DeclinedAt, double? Price)
+        DateTimeOffset? LastAccepted, DateTimeOffset? DeclinedAt, double? Price, double Asking = 0)
     {
         public static readonly Contracted None = new(0, 0, false, null, null, null);
     }

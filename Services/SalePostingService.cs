@@ -547,7 +547,11 @@ public class SalePostingService(
     /// <param name="language">The language the list is written in, an interface code ("de",
     /// "zh-Hans"): item names come in it, and items sort by them. Null or empty for the interface
     /// language — a store that speaks the app's own.</param>
-    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default, string? language = null)
+    /// <param name="buying">A store's Buy listing: prices only. Stock, builds, reservations and
+    /// completion dates are the seller's business, and colouring by them would say something
+    /// about our shelf to someone offering to fill it.</param>
+    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default, string? language = null,
+                                                     bool buying = false)
     {
         await using var db = dbFactory.CreateDbContext();
 
@@ -604,11 +608,14 @@ public class SalePostingService(
                       .ToList()))
             .ToList();
 
-        return new PostingView(
-            posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
-            posting.IncludeCompletionDate,
-            posting.ColorByState, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone,
-            views);
+        return buying
+            ? new PostingView(false, false, false, false,
+                              false, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone, views)
+            : new PostingView(
+                posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
+                posting.IncludeCompletionDate,
+                posting.ColorByState, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone,
+                views);
     }
 
     /// <summary>
@@ -620,11 +627,12 @@ public class SalePostingService(
     /// <param name="blocked">For a list rendered for one reader: the items they may not order any
     /// more under the store's purchase limit, which the Detail block dims and says.</param>
     /// <param name="language">The language it is written in, as for <see cref="BuildViewAsync"/>.</param>
+    /// <param name="buying">A store's Buy listing, as for <see cref="BuildViewAsync"/>.</param>
     internal async Task<List<RenderedPost>> RenderAsync(
         int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null,
-        string? language = null)
+        string? language = null, bool buying = false)
     {
-        var view = await BuildViewAsync(postingId, ct, language);
+        var view = await BuildViewAsync(postingId, ct, language, buying);
         if (view is null) return [];
 
         var fmt   = OutputFormat.ByName(formatName);
@@ -663,8 +671,9 @@ public class SalePostingService(
         // Reserved = pending Order Tracker units (global; no location/owner dimension).
         // ⚠️ Only those still to come from stock or a build. A unit delivered, or made out on a
         // contract, has already left the hangar, and reserving it again counted it twice.
+        // ⚠️ Sell orders only: a buy order's units are coming in, not going out.
         var reserved = (await db.TrackedOrders
-                .Where(o => o.Status == "pending" && ids.Contains(o.TypeId))
+                .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy && ids.Contains(o.TypeId))
                 .ToListAsync(ct))
             .GroupBy(o => o.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(o => (long)OrderContractLinks.StillToSupply(o)));

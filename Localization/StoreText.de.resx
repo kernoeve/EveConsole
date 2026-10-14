@@ -241,6 +241,75 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>wartet auf Material</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>Preisliste</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>Ankaufliste</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>Wir kaufen die unten stehenden Gegenstände zu diesen Preisen. Um an uns zu verkaufen, senden Sie SELL mit den Gegenständen im Nachrichtentext, so wie bei einer Bestellung.</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>bieten Sie uns Gegenstände von unserer Ankaufliste an, ein Gegenstand pro Zeile im Nachrichtentext, wie bei einer Bestellung.</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>Wir antworten mit dem Betrag, den wir zahlen, und an wen der Vertrag vom Typ Gegenstandsaustausch gehen soll.</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} – Angebot {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} – Angebot nicht verstanden</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} – Angebot nicht angenommen</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>Angebot {0} erhalten</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>Erstellen Sie jetzt einen Vertrag vom Typ &lt;b&gt;Gegenstandsaustausch&lt;/b&gt; an {0} mit diesen Gegenständen und &lt;b&gt;{1}&lt;/b&gt; unter „Ich werde bekommen“.</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>Wenn Sie {0} in die Vertragsbeschreibung schreiben, können wir ihn leichter zuordnen.</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>Dieser Laden kauft derzeit nichts an.</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>Dieser Laden nimmt derzeit keine Angebote an.</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>Nichts in diesem Angebot steht auf unserer Ankaufliste.</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>Auf unserer Ankaufliste: {0}. Um diese an uns zu verkaufen, senden Sie stattdessen SELL.</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>Auf unserer Preisliste: {0}. Um diese zu kaufen, senden Sie stattdessen ORDER.</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>Vertrag angenommen – bezahlt</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>der Laden hat den Vertrag abgelehnt, daher ist dieses Angebot geschlossen</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>Vertrag erhalten – wartet darauf, dass der Laden ihn annimmt</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>Vertrag erhalten, verlangt {0} statt der vereinbarten {1} – wartet auf den Laden</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>bisher {0:N0} von {1:N0} unter Vertrag</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>wartet auf Ihren Vertrag: Gegenstandsaustausch an {0}, verlangt {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} von {1:N0} geliefert</value>
   </data>

@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>Prix d'achat</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Sens</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>Les contrats demandent {0}, plus que les {1} convenus pour les unités qu'ils contiennent. Vérifiez-les avant de les accepter.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Statut</value>
   </data>
@@ -700,8 +706,50 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>Utilisée pour les notifications de statut des commandes, et pour les demandes adressées à la boutique quand la boutique par courrier EVE est ouverte.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Liste de prix</value>
+  <data name="Listings" xml:space="preserve">
+    <value>Listes</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Vente</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Achat</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Titre de l'onglet (facultatif)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Ajouter une liste</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Chaque liste est un courrier de liste de prix à part et un onglet à part sur le site web, dans cet ordre. Vente : les acheteurs commandent sur votre stock et vos fabrications, comme avant. Achat : les prix que vous payez, sans quantités ; un vendeur fait une offre, puis établit pour vous un contrat de troc demandant ce montant en ISK, et la commande est terminée quand vous l'acceptez.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Contrats d'achat pour</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Choisissez qui les reçoit</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Les vendeurs sont invités à établir leurs contrats de troc pour ce destinataire, et chaque offre est rapprochée des contrats qu'il reçoit. Les contrats d'une corporation ou d'une alliance ne sont visibles que par une connexion de corporation qui en fait partie.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Les listes d'achat n'acceptent aucune offre tant que personne n'est choisi pour recevoir leurs contrats.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (personnage)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (corporation)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (alliance)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Langue</value>
@@ -1601,6 +1649,12 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   <data name="SourceContracted" xml:space="preserve">
     <value>Sous contrat</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Offre · en attente de son contrat</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Offre · son contrat à accepter</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Sans source</value>
   </data>
@@ -1663,6 +1717,12 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>La boutique n'a aucune annonce sur laquelle baser les prix.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL a été envoyé, mais la boutique n'a aucune liste d'achat.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Offre refusée : la boutique n'a désigné personne pour recevoir les contrats d'achat.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Rien de reconnu. Sans correspondance : {0}</value>

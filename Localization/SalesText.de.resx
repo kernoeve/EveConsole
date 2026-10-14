@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>Kaufpreis</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Seite</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>Die Verträge verlangen {0}, mehr als die für ihre Mengen angebotenen {1}. Prüfen Sie sie vor der Annahme.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Status</value>
   </data>
@@ -700,8 +706,50 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>Wird für Benachrichtigungen zum Bestellstatus verwendet und für Shop-Anfragen, wenn der EVE-Mail-Shop geöffnet ist.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Preisliste</value>
+  <data name="Listings" xml:space="preserve">
+    <value>Angebote</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Verkauf</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Ankauf</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Tab-Titel (optional)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Nach oben</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Nach unten</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Angebot hinzufügen</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Jedes Angebot ist eine eigene Preislisten-Mail und ein eigener Tab auf der Website, in dieser Reihenfolge. Verkauf: Käufer bestellen aus Ihrem Lager und Ihrer Produktion, wie bisher. Ankauf: die Preise, die Sie zahlen, ohne Mengen; ein Verkäufer bietet an und erstellt dann einen Vertrag vom Typ Gegenstandsaustausch an Sie, der diesen ISK-Betrag verlangt, und die Bestellung ist abgeschlossen, wenn Sie ihn annehmen.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Ankaufverträge an</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Empfänger wählen</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Verkäufer werden angewiesen, ihre Verträge vom Typ Gegenstandsaustausch an diesen Empfänger zu richten, und jedes Angebot wird mit den Verträgen abgeglichen, die er erhält. Verträge an eine Corporation oder Allianz sind nur über einen Corporation-Login darin sichtbar.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Ankaufangebote nehmen keine Angebote an, bis ein Empfänger für ihre Verträge gewählt ist.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (Charakter)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (Corporation)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (Allianz)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Sprache</value>
@@ -1601,6 +1649,12 @@ Nichts wird vernichtet: Seine Bestellungen bleiben in der Bestellverfolgung, und
   <data name="SourceContracted" xml:space="preserve">
     <value>Vertrag erstellt</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Angebot · wartet auf deren Vertrag</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Angebot · deren Vertrag annehmen</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Ohne Quelle</value>
   </data>
@@ -1663,6 +1717,12 @@ Nichts wird vernichtet: Seine Bestellungen bleiben in der Bestellverfolgung, und
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>Der Shop hat keine Verkaufsanzeige, aus der sich die Preise ergeben.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL wurde gesendet, aber der Laden hat keine Ankaufliste.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Angebot abgelehnt: Für den Laden ist niemand als Empfänger der Ankaufverträge festgelegt.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Nichts erkannt. Nicht zugeordnet: {0}</value>

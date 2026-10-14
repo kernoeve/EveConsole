@@ -1,0 +1,66 @@
+using EveConsole.Models;
+using ReactiveUI;
+
+namespace EveConsole.ViewModels;
+
+/// <summary>
+/// One of a store's listings on the Stores screen: which posting, Sell or Buy, and what its tab
+/// and mail are headed. Every change is saved at once through <paramref name="changed"/>, which
+/// writes the whole list in its order.
+/// </summary>
+public sealed class StoreListingRowVm(
+    StoresViewModel.PostingOption? posting, string side, string title, Action changed) : ReactiveObject
+{
+    private StoresViewModel.PostingOption? _posting = posting;
+    public StoresViewModel.PostingOption? Posting
+    {
+        get => _posting;
+        set
+        {
+            // ⚠️ A detaching or refilled ComboBox sets null; that is not a choice, and must not
+            // be saved — it would drop the listing from the store.
+            if (value is null || value == _posting) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _posting, value);
+            changed();
+        }
+    }
+
+    private string _side = side == StorePosting.Buy ? StorePosting.Buy : StorePosting.Sell;
+    /// <summary><see cref="StorePosting.Sell"/> or <see cref="StorePosting.Buy"/>.</summary>
+    public string SideValue => _side;
+    public bool   IsBuy     => _side == StorePosting.Buy;
+
+    public Choice<string>? Side
+    {
+        get => StoresViewModel.SideOptions.FirstOrDefault(o => o.Value == _side);
+        set
+        {
+            if (value is null || value.Value == _side) { this.RaisePropertyChanged(); return; }
+            _side = value.Value;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsBuy));
+            changed();
+        }
+    }
+
+    private string _title = title;
+    /// <summary>What the tab and the mail are headed; empty for the posting's own name.</summary>
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            var trimmed = (value ?? "").Trim();
+            if (trimmed == _title) return;
+            this.RaiseAndSetIfChanged(ref _title, trimmed);
+            changed();
+        }
+    }
+
+    /// <summary>The posting picked again from a refilled list, without saving anything.</summary>
+    internal void Rebind(StoresViewModel.PostingOption? option)
+    {
+        _posting = option;
+        this.RaisePropertyChanged(nameof(Posting));
+    }
+}

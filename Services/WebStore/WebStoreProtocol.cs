@@ -61,7 +61,11 @@ public sealed class SyncRequest
     public string Generation { get; set; } = "";
 
     public StoreInfoDto    Store     { get; set; } = new();
+    /// <summary>The store's first Sell listing, for a site from before listings; empty when it
+    /// has none. A site that reads <see cref="Listings"/> ignores it.</summary>
     public CatalogueDto    Catalogue { get; set; } = new();
+    /// <summary>Every listing, in the store's order, each a tab on the site (site 0.2.0+).</summary>
+    public List<ListingDto> Listings { get; set; } = [];
 
     /// <summary>Order rows changed since the last acknowledged push, plus what to remove.</summary>
     public List<OrderDto>  Orders    { get; set; } = [];
@@ -114,6 +118,32 @@ public sealed class StoreInfoDto
     public BannerDto? Banner    { get; set; }
 
     public ThemeDto Theme       { get; set; } = new();
+    /// <summary>Who a Buy listing's sellers make their Item Exchange contracts out to; null when
+    /// nobody is named, and then the site takes no offers.</summary>
+    public AssigneeDto? BuyAssignee { get; set; }
+}
+
+public sealed class AssigneeDto
+{
+    public long   Id   { get; set; }
+    /// <summary>"character", "corporation" or "alliance".</summary>
+    public string Kind { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+/// <summary>
+/// One of a store's listings: a posting shown as a tab of its own. A Sell listing is what the
+/// catalogue always was; a Buy listing is prices the store pays, with no counts, which a visitor
+/// offers to sell to.
+/// </summary>
+public sealed class ListingDto
+{
+    /// <summary>The posting's id: what an order event's lines name the listing by.</summary>
+    public int    Id    { get; set; }
+    public string Title { get; set; } = "";
+    /// <summary>"sell" or "buy".</summary>
+    public string Side  { get; set; } = "sell";
+    public CatalogueDto Catalogue { get; set; } = new();
 }
 
 public sealed class BannerDto
@@ -263,6 +293,12 @@ public sealed class OrderDto
     public string  Fulfilment    { get; set; } = "";
     public string? EstimatedDate { get; set; }
     public int?    ContractId    { get; set; }
+    /// <summary>"sell", or "buy": the other party sells to the store, off a Buy listing.</summary>
+    public string  Side          { get; set; } = "sell";
+    /// <summary>The listing the order was placed against, or zero.</summary>
+    public int     PostingId     { get; set; }
+    /// <summary>A buy order: what the seller's contracts ask, once any have come in; null before.</summary>
+    public double? ContractedPrice { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public string? CompletedOn   { get; set; }
     /// <summary>Which store took it, or zero for one entered by hand.</summary>
@@ -332,6 +368,8 @@ public sealed class SiteEventDto
     public string CatalogueHash { get; set; } = "";
     /// <summary>The buyer's answer to the site's "keep me posted by EVE mail"; absent means yes.</summary>
     public bool?  MailUpdates { get; set; }
+    /// <summary>"buy" for an offer to sell to a Buy listing; absent, or "sell", for an order.</summary>
+    public string? Side { get; set; }
 
     // A cancellation, of an order the site knows by the app's id:
     public int?   OrderId { get; set; }
@@ -360,4 +398,6 @@ public sealed class SiteOrderLineDto
     public long   Units     { get; set; }
     /// <summary>The unit price the site quoted, from its own copy of the catalogue.</summary>
     public double UnitPrice { get; set; }
+    /// <summary>The listing it was ordered from; absent from a site before listings.</summary>
+    public int?   PostingId { get; set; }
 }

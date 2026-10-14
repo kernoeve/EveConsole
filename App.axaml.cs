@@ -1106,6 +1106,11 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContracts" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsDelivered" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsContracted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // Orders off a store's Buy listing: the side, the listing, and what the
+                // contracts ask. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "Side" TEXT NOT NULL DEFAULT 'sell'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "PostingId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractedPrice" REAL NOT NULL DEFAULT 0"""); } catch { }
 
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
@@ -1239,6 +1244,24 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // The language the shop speaks to buyers; empty for the app's own.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Language" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Who a Buy listing's contracts go to, and the store's listings. Mirrored for
+                // PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeType" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "StorePostings" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "StoreId"   INTEGER NOT NULL DEFAULT 0,
+                        "PostingId" INTEGER NOT NULL DEFAULT 0,
+                        "Ordinal"   INTEGER NOT NULL DEFAULT 0,
+                        "Side"      TEXT    NOT NULL DEFAULT 'sell',
+                        "Title"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")
+                    """);
 
 
                 db.Database.ExecuteSqlRaw("""
