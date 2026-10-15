@@ -427,8 +427,9 @@ public class StoresViewModel : ReactiveObject
         get => _buyAssignee;
         set
         {
-            // A detaching ComboBox sets null; that is not a choice, and must not be saved.
-            if (value is null) { this.RaisePropertyChanged(); return; }
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved. Ignored
+            // without raising: see StoreListingRowVm.Posting.
+            if (value is null || value == _buyAssignee) return;
             this.RaiseAndSetIfChanged(ref _buyAssignee, value);
             this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
             _ = SaveAsync(s =>
@@ -441,7 +442,7 @@ public class StoresViewModel : ReactiveObject
     }
 
     private StoreListingRowVm NewListing(PostingOption? posting, string side, string title) =>
-        new(posting, side, title, ListingsChanged);
+        new(posting, side, title, ListingsChanged, PostingOptions);
 
     /// <summary>Adds a Sell listing of the first posting the store does not list yet.</summary>
     private void AddListing()
@@ -2011,8 +2012,11 @@ public class StoresViewModel : ReactiveObject
                         Listings.Add(NewListing(PostingOptions.FirstOrDefault(p => p.Id == l.PostingId), l.Side, l.Title));
                     this.RaisePropertyChanged(nameof(HasBuyListing));
                     _buyAssignee = store.BuyAssigneeId == 0 ? null
-                        : AssigneeOptions.FirstOrDefault(a => a.Id == store.BuyAssigneeId && a.Kind == store.BuyAssigneeType)
-                          ?? new AssigneeOption(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName);
+                        : AssigneeOptions.FirstOrDefault(a => a.Id == store.BuyAssigneeId && a.Kind == store.BuyAssigneeType);
+                    // One no longer ours — a corporation not polled any more — is still the store's
+                    // setting: listed, so the picker shows it rather than blanking it.
+                    if (_buyAssignee is null && store.BuyAssigneeId != 0)
+                        AssigneeOptions.Add(_buyAssignee = new AssigneeOption(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName));
                     this.RaisePropertyChanged(nameof(BuyAssignee));
                     this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
                     _ = MeasurePostingAsync();

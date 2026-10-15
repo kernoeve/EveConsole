@@ -285,7 +285,7 @@
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:StoreListingRowVm">
                             <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 0 0 3">
-                              <ComboBox ItemsSource="{Binding $parent[ItemsControl].((vm:StoresViewModel)DataContext).PostingOptions}"
+                              <ComboBox ItemsSource="{Binding PostingOptions}"
                                         SelectedItem="{Binding Posting}" FontSize="11" MinWidth="220"
                                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                               <ComboBox ItemsSource="{x:Static vm:StoresViewModel.SideOptions}"
