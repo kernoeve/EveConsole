@@ -668,6 +668,15 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColVolume}" Width="100" SortMemberPath="Volume" ClipboardContentBinding="{Binding VolumeText}">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="models:PlanRawMaterial">
+                      <TextBlock Text="{Binding VolumeText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                 TextAlignment="Right" Margin="0 0 4 0" VerticalAlignment="Center"
+                                 ToolTip.Tip="{x:Static loc:IndustryText.TipRawVolume}"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMissing}" Width="90" SortMemberPath="Missing" ClipboardContentBinding="{Binding MissingDisplay}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">

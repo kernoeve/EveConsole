@@ -508,6 +508,12 @@
   <data name="ColNeeded" xml:space="preserve">
     <value>필요량</value>
   </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>전체 수량의 포장 부피</value>
+  </data>
   <data name="ColProduced" xml:space="preserve">
     <value>생산량</value>
   </data>

@@ -179,6 +179,13 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
     public decimal UnitPrice { get; set; }
     public decimal TotalCost { get; set; }
 
+    /// <summary>Packed volume of the whole quantity, m ³: what this line ships as.</summary>
+    public double  Volume    { get; set; }
+
+    /// <summary>Whole cubic metres once there are enough of them to read that way; a decimal or two
+    /// below, so a line of a few small items does not read as nothing.</summary>
+    public string  VolumeText => Volume >= 100 ? $"{Volume:N0} m³" : Volume >= 1 ? $"{Volume:N1} m³" : $"{Volume:N2} m³";
+
     // ── Availability ─────────────────────────────────────────────────────────
     // Unlike a job row, this is summed demand: every job needing this material
     // competes for the same stock. In station mode the sum is taken per structure —

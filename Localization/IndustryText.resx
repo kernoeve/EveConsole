@@ -676,6 +676,14 @@
     <value>Needed</value>
     <comment>Column header in ProductionCalculatorView.</comment>
   </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Production Calculator, Raw Materials tab, column: packed volume of the whole quantity, in m³.</comment>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>Packed volume of the whole quantity</value>
+    <comment>Tooltip on a Volume cell, Raw Materials tab.</comment>
+  </data>
   <data name="ColProduced" xml:space="preserve">
     <value>Produced</value>
     <comment>Column header in ProductionCalculatorView.</comment>

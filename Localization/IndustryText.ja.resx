@@ -508,6 +508,12 @@
   <data name="ColNeeded" xml:space="preserve">
     <value>必要数</value>
   </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>全数量の梱包時の体積</value>
+  </data>
   <data name="ColProduced" xml:space="preserve">
     <value>生産数</value>
   </data>

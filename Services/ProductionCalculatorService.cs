@@ -1054,10 +1054,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // ── Totals ─────────────────────────────────────────────────────────
         decimal totalRawMat   = rawMaterials.Sum(r => r.TotalCost);
 
-        // What the shopping list actually ships as. Summed off the raw materials rather than the
-        // whole tree: intermediates are made on site, so hauling them is not part of this job.
-        double  totalRawVol   = rawMaterials.Sum(
-            r => r.Quantity * ctx.TypeVolumes.GetValueOrDefault(r.TypeId, 0.0));
+        // What the shopping list actually ships as, line by line and in all. Summed off the raw
+        // materials rather than the whole tree: intermediates are made on site, so hauling them is
+        // not part of this job.
+        foreach (var r in rawMaterials)
+            r.Volume = r.Quantity * ctx.TypeVolumes.GetValueOrDefault(r.TypeId, 0.0);
+        double  totalRawVol   = rawMaterials.Sum(r => r.Volume);
         decimal totalJobCost  = jobPool.Values.Sum(j => j.JobCost);
         decimal totalLeftover = leftovers.Sum(l => l.TotalValue);
 

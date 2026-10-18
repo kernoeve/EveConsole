@@ -508,6 +508,12 @@
   <data name="ColNeeded" xml:space="preserve">
     <value>Requis</value>
   </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>Volume empaqueté de toute la quantité</value>
+  </data>
   <data name="ColProduced" xml:space="preserve">
     <value>Produit</value>
   </data>
