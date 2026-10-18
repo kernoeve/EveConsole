@@ -343,6 +343,30 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>Расход</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Доход</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="JournalEntriesTotalOne" xml:space="preserve">
+    <value>{0:N0} запись · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} записи · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalFew" xml:space="preserve">
+    <value>{0:N0} записи · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalMany" xml:space="preserve">
+    <value>{0:N0} записей · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>Дни по времени EVE, оба включительно. Очистите дату, чтобы оставить этот край открытым.</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>Денежный поток</value>
   </data>

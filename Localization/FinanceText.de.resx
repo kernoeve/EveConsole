@@ -343,6 +343,24 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>Ausgaben</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Einnahmen</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="JournalEntriesTotalOne" xml:space="preserve">
+    <value>{0:N0} Eintrag · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} Einträge · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>Tage in EVE-Zeit, beide eingeschlossen. Ein Datum leeren, um dieses Ende offen zu lassen.</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>Cashflow</value>
   </data>

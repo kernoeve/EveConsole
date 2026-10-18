@@ -233,6 +233,9 @@ public class MainWindowViewModel : ReactiveObject
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
     public IncomeExpenseViewModel         IncomeExpenseVm        { get; }
+    /// <summary>The Income &amp; Expense tool. Not <see cref="IncomeExpenseVm"/>, which is the
+    /// Overview's section: the tool's owner and dates must not move the Overview.</summary>
+    public IncomeExpenseToolViewModel     IncomeExpenseToolVm    { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
@@ -882,7 +885,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_posting"    => (ShellText.NavSalePosting,    SalePostingVm,            true),
             "stores"          => (ShellText.NavStores,          StoresVm,                 true),
             "net_worth"  => (ShellText.NavNetWorth,       NetWorthVm,               true),
-            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseVm,     true),
+            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseToolVm, true),
             "wallet"         => (ShellText.NavWallet,          WalletVm,          true),
             "contracts"      => (ShellText.NavContracts,       ContractsVm,       true),
             "market_viewer"  => (ShellText.NavMarketOverview, MarketViewerVm,    true),
@@ -1139,6 +1142,7 @@ public class MainWindowViewModel : ReactiveObject
             characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
+        IncomeExpenseToolVm = new IncomeExpenseToolViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi);
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);

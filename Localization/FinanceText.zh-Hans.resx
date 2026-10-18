@@ -343,6 +343,21 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>支出</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} 条记录 · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>以EVE时间计的日期，包含首尾两天。清除日期则该端不设限。</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>现金流</value>
   </data>

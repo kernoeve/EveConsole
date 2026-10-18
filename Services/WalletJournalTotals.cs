@@ -56,12 +56,20 @@ public static class WalletJournalTotals
             """;
     }
 
-    /// <summary>Signed totals per RefType across the given wallets since the cutoff.</summary>
+    /// <summary>Before <paramref name="until"/>, when there is one: a range's end, exclusive.</summary>
+    private static string Until(DateTimeOffset? until) => until is null ? "" : """ AND "Date" < {3}""";
+
+    /// <summary>The query's arguments: the end only when <see cref="Until"/> put it in the SQL.</summary>
+    private static object[] Args(string ot, long oid, DateTimeOffset cutoff, DateTimeOffset? until) =>
+        until is { } u ? [ot, oid, cutoff, u] : [ot, oid, cutoff];
+
+    /// <summary>Signed totals per RefType across the given wallets since the cutoff (and before
+    /// <paramref name="until"/>, if given).</summary>
     public static async Task<Dictionary<string, decimal>> ByRefTypeAsync(
         AppDbContext db, IEnumerable<(string OwnerType, long OwnerId)> owners, DateTimeOffset cutoff,
-        CancellationToken ct = default)
+        CancellationToken ct = default, DateTimeOffset? until = null)
     {
-        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct));
+        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct)) + Until(until);
         var totals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         foreach (var (ot, oid) in owners)
         {
@@ -74,7 +82,7 @@ public static class WalletJournalTotals
                 """ + filter + """
 
                 GROUP BY "RefType"
-                """, ot, oid, cutoff)).ToListAsync(ct);
+                """, Args(ot, oid, cutoff, until))).ToListAsync(ct);
             foreach (var r in rows)
                 totals[r.RefType] = totals.GetValueOrDefault(r.RefType) + (decimal)r.Total;
         }
@@ -84,9 +92,9 @@ public static class WalletJournalTotals
     /// <summary>Income and expense per calendar day (UTC, "yyyy-MM-dd") across the given wallets.</summary>
     public static async Task<Dictionary<string, (decimal Income, decimal Expense)>> ByDayAsync(
         AppDbContext db, IEnumerable<(string OwnerType, long OwnerId)> owners, DateTimeOffset cutoff,
-        CancellationToken ct = default)
+        CancellationToken ct = default, DateTimeOffset? until = null)
     {
-        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct));
+        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct)) + Until(until);
         var days = new Dictionary<string, (decimal Income, decimal Expense)>();
         foreach (var (ot, oid) in owners)
         {
@@ -100,7 +108,7 @@ public static class WalletJournalTotals
                 """ + filter + """
 
                 GROUP BY substr(CAST("Date" AS TEXT), 1, 10)
-                """, ot, oid, cutoff)).ToListAsync(ct);
+                """, Args(ot, oid, cutoff, until))).ToListAsync(ct);
             foreach (var d in rows)
             {
                 var cur = days.GetValueOrDefault(d.Day);

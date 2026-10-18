@@ -24,9 +24,11 @@ public class IncomeExpenseRowVm
     public IncomeExpenseRowVm(WalletCategory c) { Name = c.Name; Amount = MarketFmt.Isk((double)c.Amount); }
 }
 
-// Income & Expense tool — income category totals on the left, expense on the right, plus a daily
+// Income & Expense — income category totals on the left, expense on the right, plus a daily
 // line chart of total income, total expense, and running cashflow (net). Scoped to authenticated
-// characters and personal corporations, over the selected period.
+// characters and personal corporations, over the selected period. Two of these exist: the
+// Overview's section, which follows its period selector, and the Summary tab of the Income &
+// Expense tool, scoped by that tool's owner and dates (see SetScope).
 public class IncomeExpenseViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -39,10 +41,28 @@ public class IncomeExpenseViewModel : ReactiveObject
     private string _expenseTotal = "—"; public string ExpenseTotal { get => _expenseTotal; private set => this.RaiseAndSetIfChanged(ref _expenseTotal, value); }
     private string _netTotal = "—";     public string NetTotal     { get => _netTotal;     private set => this.RaiseAndSetIfChanged(ref _netTotal, value); }
 
-    // Days of history to show — driven by the Overview period dropdown (this VM is embedded as an
-    // Overview section; there is no local period control).
+    // Days of history to show — driven by the Overview period dropdown, for the Overview's own
+    // section. The tool's Summary is scoped by SetScope instead.
     private int _days = 90;
     public void SetPeriodDays(int days) { _days = Math.Max(1, days); _ = LoadAsync(); }
+
+    // The tool's scope: one wallet or all of them, from one date up to (not including) another.
+    private readonly bool _scoped;
+    private (string OwnerType, long OwnerId)? _owner;
+    private DateTimeOffset? _from;
+    private DateTimeOffset? _until;
+
+    /// <summary>The section's own title bar: the Overview shows it, the tool's Summary tab does not,
+    /// since the tool above it already says what it is and over what.</summary>
+    public bool ShowHeader => !_scoped;
+
+    /// <summary>One wallet (or every one, given null), between two moments: <paramref name="from"/>
+    /// inclusive, <paramref name="until"/> exclusive — either open when null.</summary>
+    public void SetScope((string OwnerType, long OwnerId)? owner, DateTimeOffset? from, DateTimeOffset? until)
+    {
+        _owner = owner; _from = from; _until = until;
+        _ = LoadAsync();
+    }
 
     // Full category lists (largest first) and how many rows the view has room to show. Extra
     // categories beyond the limit are rolled into a single "Other" line. The view drives the
@@ -110,8 +130,10 @@ public class IncomeExpenseViewModel : ReactiveObject
     private string _statusText = "";
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
-    public IncomeExpenseViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
+    /// <param name="scoped">The tool's Summary: nothing loads until <see cref="SetScope"/> says what to.</param>
+    public IncomeExpenseViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, bool scoped = false)
     {
+        _scoped = scoped;
         // ⚠️ Registered here rather than where the axes are built: several of these replace their
         // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
         // set that was on screen two loads ago. Only a weak reference is kept.
@@ -122,32 +144,34 @@ public class IncomeExpenseViewModel : ReactiveObject
 
         Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("IncomeExpense.AutoRefresh")
-            .Subscribe(tick => { _ = LoadAsync(); });
+            .Subscribe(tick => { if (!_scoped || _from is not null || _until is not null || _owner is not null) _ = LoadAsync(); });
 
-        _ = LoadAsync();
+        if (!scoped) _ = LoadAsync();
     }
+
+    // ⚠️ A load asked for while one runs is run after it, not dropped: the tool changes its scope
+    // while the previous one is still loading, and dropping that would leave the old figures up.
+    private bool _reloadPending;
 
     private async Task LoadAsync()
     {
-        if (IsLoading) return;
+        if (IsLoading) { _reloadPending = true; return; }
         IsLoading = true;
         StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            var charIds = await db.Characters.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync();
-            var corpIds = await db.Corporations.AsNoTracking().Where(c => c.IsPersonal).Select(c => c.Id).ToListAsync();
-            var owners  = charIds.Select(id => ("character", (long)id))
-                          .Concat(corpIds.Select(id => ("corporation", (long)id))).ToList();
+            var owners = _owner is { } one ? [one] : await AllOwnersAsync(db);
 
             var days   = _days;
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-days);
+            var until  = _until;
+            var cutoff = _scoped ? _from ?? OpenStart : DateTimeOffset.UtcNow.AddDays(-days);
 
             // Both leave out ISK moved between the player's own wallets — see WalletJournalTotals
             // for what that is and what it was doing to these figures.
-            var refTotals = await WalletJournalTotals.ByRefTypeAsync(db, owners, cutoff);
-            var dailyMap  = await WalletJournalTotals.ByDayAsync(db, owners, cutoff);
+            var refTotals = await WalletJournalTotals.ByRefTypeAsync(db, owners, cutoff, until: until);
+            var dailyMap  = await WalletJournalTotals.ByDayAsync(db, owners, cutoff, until: until);
 
             var cats = WalletCategorizer.CategorizeDetailed(refTotals);
             _incFull = cats.Where(c => c.IsIncome).OrderByDescending(c => c.Amount).ToList();
@@ -160,8 +184,15 @@ public class IncomeExpenseViewModel : ReactiveObject
             ExpenseTotal = MarketFmt.Isk((double)expenseTotal);
             NetTotal     = MarketFmt.Isk((double)(incomeTotal - expenseTotal));
 
-            BuildChart(dailyMap, cutoff.UtcDateTime.Date);
+            // The chart runs over the range asked for; an open start begins at the first day with
+            // anything on it, rather than in the year one.
+            var start = cutoff == OpenStart
+                ? (dailyMap.Count == 0 ? DateTime.UtcNow.Date : DateTime.Parse(dailyMap.Keys.Min()!, System.Globalization.CultureInfo.InvariantCulture))
+                : cutoff.UtcDateTime.Date;
+            var end = until is { } u ? u.UtcDateTime.Date.AddDays(-1) : DateTime.UtcNow.Date;
+            BuildChart(dailyMap, start, end);
             StatusText = owners.Count == 0 ? FinanceText.NoCharacters
+                       : _scoped ? ""
                        : Plurals.Format(FinanceText.ResourceManager, nameof(FinanceText.LastDaysNoteOther), days);
         }
         catch (Exception ex)
@@ -170,11 +201,25 @@ public class IncomeExpenseViewModel : ReactiveObject
             StatusText = AppErrorLogger.Line("Error loading data", ex);
         }
         finally { IsLoading = false; }
+
+        if (_reloadPending) { _reloadPending = false; _ = LoadAsync(); }
     }
 
-    private void BuildChart(Dictionary<string, (decimal Income, decimal Expense)> dailyMap, DateTime start)
+    /// <summary>A range with no start begins here: before any wallet journal there could be. Not
+    /// DateTimeOffset.MinValue, which PostgreSQL's timestamp cannot hold.</summary>
+    public static readonly DateTimeOffset OpenStart = new(2003, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    /// <summary>Every wallet the player has: authenticated characters and personal corporations.
+    /// The Income &amp; Expense tool lists the same ones in its owner picker.</summary>
+    public static async Task<List<(string OwnerType, long OwnerId)>> AllOwnersAsync(AppDbContext db)
     {
-        var end = DateTime.UtcNow.Date;
+        var charIds = await db.Characters.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync();
+        var corpIds = await db.Corporations.AsNoTracking().Where(c => c.IsPersonal).Select(c => c.Id).ToListAsync();
+        return [.. charIds.Select(id => ("character", (long)id)).Concat(corpIds.Select(id => ("corporation", (long)id)))];
+    }
+
+    private void BuildChart(Dictionary<string, (decimal Income, decimal Expense)> dailyMap, DateTime start, DateTime end)
+    {
         var incPts  = new List<DateTimePoint>();
         var expPts  = new List<DateTimePoint>();
         var cashPts = new List<DateTimePoint>();

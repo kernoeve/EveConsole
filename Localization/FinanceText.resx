@@ -456,6 +456,30 @@
     <value>Expense</value>
     <comment>Chart line.</comment>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Income &amp; Expense tool, tab: the categories and the daily chart.</comment>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Income</value>
+    <comment>Income &amp; Expense tool, tab: the journal entries that brought ISK in.</comment>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Expense</value>
+    <comment>Income &amp; Expense tool, tab: the journal entries that took ISK out.</comment>
+  </data>
+  <data name="JournalEntriesTotalOne" xml:space="preserve">
+    <value>{0:N0} entry · {1} ISK</value>
+    <comment>Income &amp; Expense tool, above a tab's grid: how many entries are in range and what they add up to. {0} = count, {1} = ISK, e.g. 1.25B.</comment>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} entries · {1} ISK</value>
+    <comment>Income &amp; Expense tool, above a tab's grid: how many entries are in range and what they add up to. {0} = count, {1} = ISK, e.g. 1.25B.</comment>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>Days in EVE time, both included. Clear a date to leave that end open.</value>
+    <comment>Tooltip on the Income &amp; Expense tool's From and Thru dates.</comment>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>Cashflow</value>
     <comment>Chart line.</comment>
