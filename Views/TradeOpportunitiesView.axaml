@@ -304,6 +304,17 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding MarginDisplay}"
+                         Foreground="{DynamicResource AccentBrush}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColProfitM}" Width="100" SortMemberPath="ProfitPerM3" ClipboardContentBinding="{Binding ProfitM3Display}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
