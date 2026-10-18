@@ -288,7 +288,10 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             await using var cmd = _lock!.CreateCommand();
             cmd.CommandText = """UPDATE "BackgroundWorkerStatus" SET "HeartbeatUtc" = @n WHERE "Id" = 1""";
             cmd.Parameters.AddWithValue("n", DateTimeOffset.UtcNow);
-            await cmd.ExecuteNonQueryAsync(ct);
+
+            // No row to beat on: the lease was taken on an empty database, before the table
+            // existed (see ContendAsync). Recorded now, whole.
+            if (await cmd.ExecuteNonQueryAsync(ct) == 0) await ClaimAsync(ct);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -423,6 +426,15 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             await ClaimAsync(ct);
         }
         catch (OperationCanceledException) { throw; }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            // ⚠️ An empty database: no tables at all yet, this one included. The lock is the lease
+            // and the row only records who holds it, so this process IS the holder — and must be,
+            // because creating the tables is the holder's job. Failing here instead left a first
+            // start on a new PostgreSQL database holding the lock, believing itself not the
+            // holder, skipping the schema step, then stopping because the tables were missing.
+            // The first heartbeat, which runs once the schema is up, writes the row (HoldAsync).
+        }
         catch (Exception ex)
         {
             // ⚠️ Keep the lock. We hold it, and releasing here would let a second client in;
