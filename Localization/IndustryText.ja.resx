@@ -1123,6 +1123,54 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>購入</value>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>階層</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>ステーション別</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>各ジョブを、その生産物を必要とするジョブの下に表示します</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>各ジョブを実行する施設の下に表示し、その施設のジョブ全体で必要な資源を示します</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} 件のジョブ</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>資源 {0:N0} 種</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>不足 {0:N0} 種</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>すべて在庫あり</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>施設が未リンクのため、ここの在庫は数えられません</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>施設なし</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>ここで製造</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>他所で製造</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>在庫</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>この施設の在庫に対する不足分（施設のジョブ全体の合計）。ここで別のジョブが製造する資源は不足に数えません。</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>この施設のジョブに必要な購入資源をすべてコピーします（名前と数量、タブ区切り）</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>この施設で不足している購入資源のみをコピーします</value>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>製造</value>
   </data>

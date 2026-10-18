@@ -76,6 +76,86 @@ public class JobTreeNode : ReactiveObject
     }
 }
 
+/// <summary>
+/// One facility in the Jobs tab's station view: every job the plan runs there, and what those
+/// jobs need of it between them.
+///
+/// <para>Keyed by the real facility a park structure is linked to, since that is where the stock
+/// is. Park structures with no facility linked group by their own name and system, and say their
+/// stock cannot be counted rather than reporting every material missing.</para>
+/// </summary>
+public class JobStationGroup : ReactiveObject
+{
+    /// <summary>A job here, for the facility and system links; every job in the group shares them.</summary>
+    public PlanJob Lead { get; init; } = null!;
+
+    public string DisplayName { get; init; } = "";
+
+    /// <summary>Earliest first: a job whose inputs another job here makes comes after that job.</summary>
+    public List<JobTreeNode>          Children  { get; init; } = [];
+    public List<StationMaterialLine>  Materials { get; init; } = [];
+
+    /// <summary>A real facility is linked, so its stock was counted.</summary>
+    public bool StockKnown { get; init; }
+
+    public double JobSeconds   { get; init; }
+    public decimal MaterialCost => Materials.Sum(m => m.TotalCost);
+
+    public string JobCountText      => Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.PlanStationJobsOther), Children.Count);
+    public string MaterialCountText => Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.PlanStationMaterialsOther), Materials.Count);
+    public bool   HasSlotTime       => JobSeconds > 0;
+    public string SlotTimeText      => HasSlotTime ? string.Format(IndustryText.FmtSlotTime, PlanTime.Format(JobSeconds)) : "";
+
+    public int  ShortCount => Materials.Count(m => m.Missing > 0);
+    public bool HasShort   => StockKnown && ShortCount > 0;
+    public bool AllOnHand  => StockKnown && ShortCount == 0;
+    public string ShortText => Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.PlanStationShortOther), ShortCount);
+
+    public bool HasStationLink   => Lead.HasStationLink;
+    public bool ShowStationPlain => !HasStationLink;
+    public bool HasSystemLink    => Lead.HasSystemLink;
+    public bool ShowSystemPlain  => Lead.ShowSystemPlain;
+    public bool ShowAtSeparator  => Lead.SystemName.Length > 0;
+
+    private bool _showMaterials = true;
+    /// <summary>Open from the start: what the station needs is the point of this view.</summary>
+    public bool ShowMaterials
+    {
+        get => _showMaterials;
+        set => this.RaiseAndSetIfChanged(ref _showMaterials, value);
+    }
+}
+
+/// <summary>A material the jobs at one facility need, summed over them.</summary>
+public class StationMaterialLine
+{
+    public int     MaterialTypeId { get; init; }
+    public string  TypeName       { get; init; } = "";
+    public string  DisplayName    { get; init; } = "";
+    public bool    IsBought       { get; init; }
+
+    /// <summary>Another job at this facility makes it, so it is not hauled in and never short.</summary>
+    public bool    BuiltHere      { get; init; }
+
+    public long    Needed         { get; init; }
+    public decimal TotalCost      { get; init; }
+
+    public bool    AvailabilityKnown { get; init; }
+    public long    Available      { get; init; }
+
+    public long    Missing => AvailabilityKnown && !BuiltHere ? Math.Max(0L, Needed - Available) : 0;
+
+    public string  AvailableDisplay => AvailabilityKnown ? Available.ToString("N0") : "—";
+    public string  MissingDisplay   => AvailabilityKnown ? Missing.ToString("N0")   : "—";
+    public string  MissingColor     => Missing > 0 ? "#e0902e" : "#555566";
+
+    public string  Source => IsBought ? IndustryText.SourceBuy
+                           : BuiltHere ? IndustryText.SourceBuiltHere
+                           : IndustryText.SourceBuiltElsewhere;
+
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(MaterialTypeId);
+}
+
 public class ProductionCalculatorViewModel : ReactiveObject
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -205,6 +285,23 @@ public class ProductionCalculatorViewModel : ReactiveObject
         ? IndustryText.CalcMissingByStation
         : IndustryText.CalcMissingByAssets;
 
+    // ── Jobs tab: by hierarchy or by station ──────────────────────────────
+    private const string JobsByStationKey = "prodcalc.jobs_by_station";
+
+    private bool _jobsByStation;
+    /// <summary>The Jobs tab groups its jobs under the facility each runs at, instead of under the
+    /// job that needs them. Kept between sessions, like the missing-stock mode.</summary>
+    public bool JobsByStation
+    {
+        get => _jobsByStation;
+        set
+        {
+            if (_jobsByStation == value) return;
+            this.RaiseAndSetIfChanged(ref _jobsByStation, value);
+            if (_prefs is not null) _ = _prefs.SetBoolAsync(JobsByStationKey, value);
+        }
+    }
+
     private ProductionCalculatorService.MissingMode CurrentMissingMode =>
         RawMissingByStation
             ? ProductionCalculatorService.MissingMode.Station
@@ -234,6 +331,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _plan, value);
             this.RaisePropertyChanged(nameof(HasResults));
             this.RaisePropertyChanged(nameof(JobTreeRoots));
+            this.RaisePropertyChanged(nameof(JobStationGroups));
             this.RaisePropertyChanged(nameof(HasPlanWarnings));
             this.RaisePropertyChanged(nameof(PlanWarningHeader));
             this.RaisePropertyChanged(nameof(PlanWarningLines));
@@ -347,6 +445,94 @@ public class ProductionCalculatorViewModel : ReactiveObject
         }
     }
 
+    /// <summary>The Jobs tab's station view: one group per facility, its jobs beneath it.</summary>
+    public List<JobStationGroup> JobStationGroups => _plan is null ? [] : GroupByStation(_plan, OpenInItemBrowserCommand);
+
+    /// <summary>
+    /// The plan's jobs under the facility each runs at, with what each facility's jobs need of it.
+    ///
+    /// <para>⚠️ A material is counted against the facility's stock once, for all its jobs together:
+    /// ten jobs in one Raitaru draw on one pile. A job row says whether that one job could start;
+    /// this says what the facility is short of for all of them. A material another job here makes
+    /// is never short — it is made on site — and one made at another facility is, until it has
+    /// been hauled in.</para>
+    /// </summary>
+    public static List<JobStationGroup> GroupByStation(ProductionPlan plan, ReactiveCommand<int, Unit>? navigate = null)
+    {
+        var jobIndex = plan.AllJobs.ToDictionary(j => j.OutputTypeId);
+
+        // How many jobs must finish before this one can start: zero for a job none of whose inputs
+        // the plan builds. The jobs at a facility are listed in this order, earliest first.
+        var depth = new Dictionary<int, int>();
+        int Depth(int typeId, int guard = 0)
+        {
+            if (depth.TryGetValue(typeId, out var d)) return d;
+            var job = jobIndex[typeId];
+            d = guard > 64 ? 0 : job.ChildTypeIds.Where(jobIndex.ContainsKey)
+                                                .Select(c => Depth(c, guard + 1) + 1)
+                                                .DefaultIfEmpty(0).Max();
+            return depth[typeId] = d;
+        }
+
+        var groups = new List<JobStationGroup>();
+        foreach (var g in plan.AllJobs.GroupBy(j => j.StationId is { } id
+                     ? $"facility:{id}"
+                     : $"park:{j.StructureName}|{j.SystemName}"))
+        {
+            var jobs = g.OrderBy(j => Depth(j.OutputTypeId))
+                        .ThenBy(j => j.OutputDisplayName, StringComparer.CurrentCulture)
+                        .ToList();
+            var lead  = jobs[0];
+            var known = lead.StationId.HasValue;
+            var made  = jobs.Select(j => j.OutputTypeId).ToHashSet();
+
+            // A copy's line is its own line: the same blueprint as a copy and as nothing else.
+            var lines = jobs.SelectMany(j => j.Materials)
+                .GroupBy(m => (m.MaterialTypeId, m.BlueprintName ?? ""))
+                .Select(m =>
+                {
+                    var first = m.First();
+                    return new StationMaterialLine
+                    {
+                        MaterialTypeId    = first.MaterialTypeId,
+                        TypeName          = first.TypeName,
+                        DisplayName       = first.DisplayName,
+                        IsBought          = first.IsBought,
+                        BuiltHere         = !first.IsBought && made.Contains(first.MaterialTypeId),
+                        Needed            = m.Sum(x => x.TotalQty),
+                        TotalCost         = m.Sum(x => x.TotalCost),
+                        AvailabilityKnown = known,
+                        // The facility's stock, which every job here was compared against whole.
+                        Available         = known ? first.Available : 0,
+                    };
+                })
+                .OrderByDescending(l => l.Missing > 0)
+                .ThenBy(l => l.DisplayName, StringComparer.CurrentCulture)
+                .ToList();
+
+            groups.Add(new JobStationGroup
+            {
+                Lead        = lead,
+                DisplayName = StationDisplayName(lead),
+                StockKnown  = known,
+                JobSeconds  = jobs.Sum(j => j.DurationSeconds ?? 0),
+                Materials   = lines,
+                Children    = [.. jobs.Select(j => new JobTreeNode { Job = j, NavigateCommand = navigate })],
+            });
+        }
+
+        // Facilities by name; park structures with nothing linked after them, since their stock is
+        // the part of the answer missing.
+        return [.. groups.OrderBy(g => !g.StockKnown).ThenBy(g => g.DisplayName, StringComparer.CurrentCulture)];
+    }
+
+    /// <summary>The facility's own name, in the interface language for an NPC station; the park
+    /// structure's name where none is linked.</summary>
+    private static string StationDisplayName(PlanJob job) =>
+        job.StationId is { } id && job.StationName.Length > 0 ? SdeNames.Location(id, job.StationName)
+        : job.StructureName.Length > 0 ? job.StructureName
+        : IndustryText.PlanStationNone;
+
     private bool _isBusy;
     public bool IsBusy { get => _isBusy; private set => this.RaiseAndSetIfChanged(ref _isBusy, value); }
 
@@ -376,6 +562,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
         _service   = service;
         _prefs     = prefs;
         _rawMissingByStation = prefs?.GetBool(RawMissingModeKey, true) ?? true;
+        _jobsByStation       = prefs?.GetBool(JobsByStationKey, false) ?? false;
 
         var canAdd  = this.WhenAnyValue(x => x.CanAdd);
         var canCalc = this.WhenAnyValue(x => x.IsBusy, x => x.Queue.Count, (b, c) => !b && c > 0);

@@ -1123,6 +1123,54 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>购买</value>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>层级</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>按空间站</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>每个任务列在需要其产出的任务之下</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>每个任务列在其运行的设施之下，并显示该设施所有任务共同需要的材料</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} 个任务</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} 种材料</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>缺少 {0:N0} 种</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>材料齐全</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>未关联设施，无法统计此处库存</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>无设施</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>本地制造</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>他处制造</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>现有</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>按此设施的库存计算的缺口，汇总其所有任务。由此处其他任务制造的材料不会计为缺少。</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>复制此设施所有任务需购买的材料（名称和数量，以制表符分隔）</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>只复制此设施缺少的需购买材料</value>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>制造</value>
   </data>

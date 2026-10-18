@@ -1150,6 +1150,81 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Купить</value>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Иерархия</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>По станциям</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Каждый проект под проектом, которому нужна его продукция</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Каждый проект под объектом, где он идёт, с тем, что нужно всем проектам этого объекта вместе</value>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} проект</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} проекта</value>
+  </data>
+  <data name="PlanStationJobsFew" xml:space="preserve">
+    <value>{0:N0} проекта</value>
+  </data>
+  <data name="PlanStationJobsMany" xml:space="preserve">
+    <value>{0:N0} проектов</value>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} материал</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} материала</value>
+  </data>
+  <data name="PlanStationMaterialsFew" xml:space="preserve">
+    <value>{0:N0} материала</value>
+  </data>
+  <data name="PlanStationMaterialsMany" xml:space="preserve">
+    <value>{0:N0} материалов</value>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortFew" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortMany" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Всё в наличии</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>Объект не привязан, поэтому запасы здесь посчитать нельзя</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>Нет объекта</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Производится здесь</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Производится в другом месте</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Нехватка относительно запасов на этом объекте, по всем его проектам вместе. Материал, который производит другой проект здесь, не считается нехваткой.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Скопировать все покупаемые материалы, нужные проектам этого объекта (название и количество через табуляцию)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Скопировать только покупаемые материалы, которых не хватает на этом объекте</value>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Произвести</value>
   </data>

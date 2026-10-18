@@ -59,6 +59,216 @@
     </Style>
   </UserControl.Styles>
 
+  <!-- The Jobs tab's rows, found by type: a job in either view, a facility in the station
+       view. Here rather than on one TreeView so the two trees share the job's. -->
+  <UserControl.DataTemplates>
+    <TreeDataTemplate x:DataType="vm:JobTreeNode" ItemsSource="{Binding Children}">
+      <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+              CornerRadius="3" Margin="2 2 2 0">
+        <StackPanel>
+          <Grid ColumnDefinitions="*,Auto" Margin="8 6 8 4">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{Binding Job.OutputDisplayName}"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding Job.OutputTypeId}"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="0" FontSize="12" FontWeight="SemiBold"
+                        Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                        HorizontalContentAlignment="Left"
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
+                <TextBlock Text="{Binding Job.MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding Job.Runs,            StringFormat={x:Static loc:IndustryText.FmtRuns}}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Text="{Binding Job.DurationText, StringFormat={x:Static loc:IndustryText.FmtJobTime}}" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding Job.HasDuration}"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipJobDuration}"/>
+                <TextBlock Text="{Binding Job.QuantityProduced, StringFormat={x:Static loc:IndustryText.FmtOut}}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Text="{Binding Job.Leftover,         StringFormat={x:Static loc:IndustryText.FmtLeftover}}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                <TextBlock Text="{Binding Job.InputVolume,  StringFormat={x:Static loc:IndustryText.FmtInM}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob}"/>
+                <TextBlock Text="{Binding Job.OutputVolume, StringFormat={x:Static loc:IndustryText.FmtOutM}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob2}"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding Job.MaterialCost, StringFormat={x:Static loc:IndustryText.FmtMatIsk}}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding Job.JobCost,      StringFormat={x:Static loc:IndustryText.FmtJobIsk}}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                <!-- StructureDisplay's two halves, split so each can link: the
+                     facility to the Structure Browser, the system to the map. The
+                     "@" shows only when both are present, so a job with one of them
+                     does not read as "Name @" or "@ System". -->
+                <StackPanel Orientation="Horizontal" Spacing="3">
+                  <Button Classes="link" Click="OnOpenJobStation"
+                          IsVisible="{Binding Job.HasStationLink}"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheStructureBrowser}">
+                    <TextBlock Text="{Binding StructureDisplayName}" Classes="linktext"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
+                  </Button>
+                  <TextBlock Text="{Binding StructureDisplayName}"
+                             IsVisible="{Binding Job.ShowStationPlain}"
+                             FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                  <TextBlock Text="@" IsVisible="{Binding Job.ShowAtSeparator}"
+                             FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                  <Button Classes="link" Click="OnOpenJobSystem"
+                          IsVisible="{Binding Job.HasSystemLink}"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipOpenOnTheMap}">
+                    <TextBlock Text="{Binding Job.SystemDisplayName}" Classes="linktext"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
+                  </Button>
+                  <TextBlock Text="{Binding Job.SystemDisplayName}"
+                             IsVisible="{Binding Job.ShowSystemPlain}"
+                             FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                        VerticalAlignment="Top" Margin="8 0 0 0">
+              <ToggleButton IsChecked="{Binding ShowMaterials}"
+                            Content="{x:Static loc:IndustryText.Materials}"
+                            Padding="6 3" FontSize="11"/>
+              <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnJobShoppingListClick"
+                      Padding="6 3" FontSize="11"
+                      ToolTip.Tip="{x:Static loc:IndustryText.TipCopyEveryBoughtMaterial}"/>
+              <Button Content="{x:Static loc:IndustryText.ShoppingListMissing}" Click="OnJobShoppingListMissingClick"
+                      Padding="6 3" FontSize="11"
+                      ToolTip.Tip="{x:Static loc:IndustryText.TipCopyOnlyTheBought}"/>
+            </StackPanel>
+          </Grid>
+
+          <!-- Expandable materials section -->
+          <Border IsVisible="{Binding ShowMaterials}"
+                  Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                  BorderThickness="0 1 0 0" Padding="8 6">
+            <StackPanel Spacing="3">
+              <TextBlock Text="{Binding Job.ModifierDisplay}"
+                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 4"
+                         FontStyle="Italic"/>
+              <Grid ColumnDefinitions="*,110,110,140,140,170,70,*">
+                <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.Material}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}"/>
+                <TextBlock Grid.Column="1" Text="{x:Static loc:IndustryText.BaseRun}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="2" Text="{x:Static loc:IndustryText.EffRun}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="3" Text="{x:Static loc:IndustryText.Total}"      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="4" Text="{x:Static loc:IndustryText.Missing}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipShortfallAgainstStockAt}"/>
+                <TextBlock Grid.Column="5" Text="{x:Static loc:IndustryText.Cost}"       FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="6" Text="{x:Static loc:IndustryText.Source}"     FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+                <TextBlock Grid.Column="7" Text="{x:Static loc:IndustryText.FormulaSdeBaseResult}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0"/>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Job.Materials}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,110,110,140,140,170,70,*" Margin="0 1">
+                      <Button Grid.Column="0" Content="{Binding DisplayName}"
+                              Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
+                              CommandParameter="{Binding MaterialTypeId}"
+                              Background="Transparent" BorderThickness="0" Padding="0"
+                              FontSize="11" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                              HorizontalContentAlignment="Left"
+                              ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
+                      <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <!-- Orange only when something is genuinely short; a zero or an
+                           unknown em dash stays quiet. -->
+                      <TextBlock Grid.Column="4" Text="{Binding MissingDisplay}" FontSize="11"
+                                 Foreground="{Binding MissingColor}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="5" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="6" Text="{Binding Source}"       FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+                      <TextBlock Grid.Column="7" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0" VerticalAlignment="Center"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+    </TreeDataTemplate>
+    <!-- A facility in the Jobs tab's station view: what its jobs need of it between them, and
+         the jobs beneath. -->
+    <TreeDataTemplate x:DataType="vm:JobStationGroup" ItemsSource="{Binding Children}">
+      <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+              CornerRadius="3" Margin="2 4 2 0">
+        <StackPanel>
+          <Grid ColumnDefinitions="*,Auto" Margin="8 6 8 4">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <!-- The facility to the Structure Browser and the system to the map, as on a job. -->
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Classes="link" Click="OnOpenGroupStation" IsVisible="{Binding HasStationLink}"
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheStructureBrowser}">
+                  <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="13" FontWeight="SemiBold"/>
+                </Button>
+                <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding ShowStationPlain}"
+                           FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock Text="@" IsVisible="{Binding ShowAtSeparator}"
+                           FontSize="12" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                <Button Classes="link" Click="OnOpenGroupSystem" IsVisible="{Binding HasSystemLink}"
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipOpenOnTheMap}">
+                  <TextBlock Text="{Binding Lead.SystemDisplayName}" Classes="linktext"
+                             FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                </Button>
+                <TextBlock Text="{Binding Lead.SystemDisplayName}" IsVisible="{Binding ShowSystemPlain}"
+                           FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding JobCountText}"      FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding SlotTimeText}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           IsVisible="{Binding HasSlotTime}" ToolTip.Tip="{x:Static loc:IndustryText.TipJobDuration}"/>
+                <TextBlock Text="{Binding MaterialCountText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Text="{Binding MaterialCost, StringFormat={x:Static loc:IndustryText.FmtMatIsk}}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding ShortText}" IsVisible="{Binding HasShort}" FontSize="11" FontWeight="SemiBold" Foreground="#e0902e"/>
+                <TextBlock Text="{x:Static loc:IndustryText.PlanStationAllOnHand}" IsVisible="{Binding AllOnHand}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                <TextBlock Text="{x:Static loc:IndustryText.PlanStationUnlinked}" IsVisible="{Binding !StockKnown}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top" Margin="8 0 0 0">
+              <ToggleButton IsChecked="{Binding ShowMaterials}" Content="{x:Static loc:IndustryText.Materials}" Padding="6 3" FontSize="11"/>
+              <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnStationShoppingListClick" Padding="6 3" FontSize="11"
+                      ToolTip.Tip="{x:Static loc:IndustryText.TipStationShoppingList}"/>
+              <Button Content="{x:Static loc:IndustryText.ShoppingListMissing}" Click="OnStationShoppingListMissingClick" Padding="6 3" FontSize="11"
+                      IsEnabled="{Binding StockKnown}" ToolTip.Tip="{x:Static loc:IndustryText.TipStationShoppingListMissing}"/>
+            </StackPanel>
+          </Grid>
+
+          <Border IsVisible="{Binding ShowMaterials}"
+                  Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                  BorderThickness="0 1 0 0" Padding="8 6">
+            <StackPanel Spacing="3">
+              <Grid ColumnDefinitions="*,130,130,130,160,120">
+                <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.Material}"  FontSize="10" Foreground="{DynamicResource TextFaintBrush}"/>
+                <TextBlock Grid.Column="1" Text="{x:Static loc:IndustryText.ColNeeded}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="2" Text="{x:Static loc:IndustryText.ColOnHand}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="3" Text="{x:Static loc:IndustryText.Missing}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipStationMissing}"/>
+                <TextBlock Grid.Column="4" Text="{x:Static loc:IndustryText.Cost}"      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                <TextBlock Grid.Column="5" Text="{x:Static loc:IndustryText.Source}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Materials}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:StationMaterialLine">
+                    <Grid ColumnDefinitions="*,130,130,130,160,120" Margin="0 1">
+                      <Button Grid.Column="0" Classes="link" Click="OnOpenStationMaterial" HorizontalAlignment="Left"
+                              ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}">
+                        <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                      </Button>
+                      <TextBlock Grid.Column="1" Text="{Binding Needed, StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="2" Text="{Binding AvailableDisplay}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"   HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <!-- Orange only when something is genuinely short, as on a job. -->
+                      <TextBlock Grid.Column="3" Text="{Binding MissingDisplay}"           FontSize="11" Foreground="{Binding MissingColor}"           HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="4" Text="{Binding TotalCost, StringFormat=N0}" FontSize="11" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                      <TextBlock Grid.Column="5" Text="{Binding Source}"                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+    </TreeDataTemplate>
+  </UserControl.DataTemplates>
+
   <Grid ColumnDefinitions="320,8,*" Background="{DynamicResource SurfaceBaseBrush}">
 
     <!-- ══ Left: Input Panel ══════════════════════════════════════════════ -->
@@ -755,138 +965,26 @@
 
         <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
         <TabItem Header="{x:Static loc:IndustryText.TabJobs}">
-          <!-- ⚠️ No ScrollViewer around this. A TreeView scrolls itself, and nesting it in
-               another scroller gives it unbounded height to measure against, so the extent
-               stops short and the last job sits under the status bar with nothing left to
-               scroll. -->
-            <TreeView ItemsSource="{Binding JobTreeRoots}" Padding="8 8 8 24">
-              <TreeView.ItemTemplate>
-                <TreeDataTemplate x:DataType="vm:JobTreeNode" ItemsSource="{Binding Children}">
-                  <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                          CornerRadius="3" Margin="2 2 2 0">
-                    <StackPanel>
-                      <Grid ColumnDefinitions="*,Auto" Margin="8 6 8 4">
-                        <StackPanel Grid.Column="0" Spacing="3">
-                          <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="{Binding Job.OutputDisplayName}"
-                                    Command="{Binding NavigateCommand}"
-                                    CommandParameter="{Binding Job.OutputTypeId}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Padding="0" FontSize="12" FontWeight="SemiBold"
-                                    Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
-                                    HorizontalContentAlignment="Left"
-                                    ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
-                            <TextBlock Text="{Binding Job.MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                          </StackPanel>
-                          <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="{Binding Job.Runs,            StringFormat={x:Static loc:IndustryText.FmtRuns}}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.DurationText, StringFormat={x:Static loc:IndustryText.FmtJobTime}}" FontSize="11"
-                                       Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding Job.HasDuration}"
-                                       ToolTip.Tip="{x:Static loc:IndustryText.TipJobDuration}"/>
-                            <TextBlock Text="{Binding Job.QuantityProduced, StringFormat={x:Static loc:IndustryText.FmtOut}}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.Leftover,         StringFormat={x:Static loc:IndustryText.FmtLeftover}}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
-                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat={x:Static loc:IndustryText.FmtInM}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                                       ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob}"/>
-                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat={x:Static loc:IndustryText.FmtOutM}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                                       ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob2}"/>
-                          </StackPanel>
-                          <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="{Binding Job.MaterialCost, StringFormat={x:Static loc:IndustryText.FmtMatIsk}}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding Job.JobCost,      StringFormat={x:Static loc:IndustryText.FmtJobIsk}}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
-                            <!-- StructureDisplay's two halves, split so each can link: the
-                                 facility to the Structure Browser, the system to the map. The
-                                 "@" shows only when both are present, so a job with one of them
-                                 does not read as "Name @" or "@ System". -->
-                            <StackPanel Orientation="Horizontal" Spacing="3">
-                              <Button Classes="link" Click="OnOpenJobStation"
-                                      IsVisible="{Binding Job.HasStationLink}"
-                                      ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheStructureBrowser}">
-                                <TextBlock Text="{Binding StructureDisplayName}" Classes="linktext"
-                                           FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
-                              </Button>
-                              <TextBlock Text="{Binding StructureDisplayName}"
-                                         IsVisible="{Binding Job.ShowStationPlain}"
-                                         FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
-                              <TextBlock Text="@" IsVisible="{Binding Job.ShowAtSeparator}"
-                                         FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
-                              <Button Classes="link" Click="OnOpenJobSystem"
-                                      IsVisible="{Binding Job.HasSystemLink}"
-                                      ToolTip.Tip="{x:Static loc:IndustryText.TipOpenOnTheMap}">
-                                <TextBlock Text="{Binding Job.SystemDisplayName}" Classes="linktext"
-                                           FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
-                              </Button>
-                              <TextBlock Text="{Binding Job.SystemDisplayName}"
-                                         IsVisible="{Binding Job.ShowSystemPlain}"
-                                         FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                          </StackPanel>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
-                                    VerticalAlignment="Top" Margin="8 0 0 0">
-                          <ToggleButton IsChecked="{Binding ShowMaterials}"
-                                        Content="{x:Static loc:IndustryText.Materials}"
-                                        Padding="6 3" FontSize="11"/>
-                          <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnJobShoppingListClick"
-                                  Padding="6 3" FontSize="11"
-                                  ToolTip.Tip="{x:Static loc:IndustryText.TipCopyEveryBoughtMaterial}"/>
-                          <Button Content="{x:Static loc:IndustryText.ShoppingListMissing}" Click="OnJobShoppingListMissingClick"
-                                  Padding="6 3" FontSize="11"
-                                  ToolTip.Tip="{x:Static loc:IndustryText.TipCopyOnlyTheBought}"/>
-                        </StackPanel>
-                      </Grid>
-
-                      <!-- Expandable materials section -->
-                      <Border IsVisible="{Binding ShowMaterials}"
-                              Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
-                              BorderThickness="0 1 0 0" Padding="8 6">
-                        <StackPanel Spacing="3">
-                          <TextBlock Text="{Binding Job.ModifierDisplay}"
-                                     FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 4"
-                                     FontStyle="Italic"/>
-                          <Grid ColumnDefinitions="*,110,110,140,140,170,70,*">
-                            <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.Material}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}"/>
-                            <TextBlock Grid.Column="1" Text="{x:Static loc:IndustryText.BaseRun}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="2" Text="{x:Static loc:IndustryText.EffRun}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="3" Text="{x:Static loc:IndustryText.Total}"      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="4" Text="{x:Static loc:IndustryText.Missing}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"
-                                       ToolTip.Tip="{x:Static loc:IndustryText.TipShortfallAgainstStockAt}"/>
-                            <TextBlock Grid.Column="5" Text="{x:Static loc:IndustryText.Cost}"       FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="6" Text="{x:Static loc:IndustryText.Source}"     FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="7" Text="{x:Static loc:IndustryText.FormulaSdeBaseResult}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0"/>
-                          </Grid>
-                          <ItemsControl ItemsSource="{Binding Job.Materials}">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                <Grid ColumnDefinitions="*,110,110,140,140,170,70,*" Margin="0 1">
-                                  <Button Grid.Column="0" Content="{Binding DisplayName}"
-                                          Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
-                                          CommandParameter="{Binding MaterialTypeId}"
-                                          Background="Transparent" BorderThickness="0" Padding="0"
-                                          FontSize="11" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
-                                          HorizontalContentAlignment="Left"
-                                          ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
-                                  <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                                  <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                                  <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                                  <!-- Orange only when something is genuinely short; a zero or an
-                                       unknown em dash stays quiet. -->
-                                  <TextBlock Grid.Column="4" Text="{Binding MissingDisplay}" FontSize="11"
-                                             Foreground="{Binding MissingColor}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                                  <TextBlock Grid.Column="5" Text="{Binding TotalCost,     StringFormat=N0}" FontSize="11" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                                  <TextBlock Grid.Column="6" Text="{Binding Source}"       FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
-                                  <TextBlock Grid.Column="7" Text="{Binding FormulaDisplay}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0" VerticalAlignment="Center"/>
-                                </Grid>
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                        </StackPanel>
-                      </Border>
-                    </StackPanel>
-                  </Border>
-                </TreeDataTemplate>
-              </TreeView.ItemTemplate>
-            </TreeView>
-
+          <DockPanel>
+            <!-- Two views of the same jobs, each its own tree so that switching keeps what was
+                 expanded in the other. The choice is remembered. -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="10 8 8 0">
+              <RadioButton Content="{x:Static loc:IndustryText.JobsViewHierarchy}" GroupName="JobsView" FontSize="11"
+                           IsChecked="{Binding !JobsByStation}"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipJobsViewHierarchy}"/>
+              <RadioButton Content="{x:Static loc:IndustryText.JobsViewByStation}" GroupName="JobsView" FontSize="11"
+                           IsChecked="{Binding JobsByStation}"
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipJobsViewByStation}"/>
+            </StackPanel>
+            <!-- ⚠️ No ScrollViewer around these. A TreeView scrolls itself, and nesting it in
+                 another scroller gives it unbounded height to measure against, so the extent
+                 stops short and the last job sits under the status bar with nothing left to
+                 scroll. Both take their templates from UserControl.DataTemplates. -->
+            <Panel>
+              <TreeView ItemsSource="{Binding JobTreeRoots}" Padding="8 8 8 24" IsVisible="{Binding !JobsByStation}"/>
+              <TreeView ItemsSource="{Binding JobStationGroups}" Padding="8 8 8 24" IsVisible="{Binding JobsByStation}"/>
+            </Panel>
+          </DockPanel>
         </TabItem>
 
       </TabControl>

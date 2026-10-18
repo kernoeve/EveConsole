@@ -105,6 +105,27 @@ public partial class ProductionCalculatorView : UserControl
         await CopyToClipboardAsync(sb.ToString());
     }
 
+    // ── Per-facility shopping lists (Jobs tab, station view) ──────────────
+    // Bought materials only, as for a job: one built here or elsewhere has its own job.
+
+    private async void OnStationShoppingListClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not JobStationGroup group) return;
+        var sb = new StringBuilder();
+        foreach (var mat in group.Materials.Where(m => m.IsBought))
+            sb.Append(mat.TypeName).Append('\t').AppendLine(mat.Needed.ToString());
+        await CopyToClipboardAsync(sb.ToString());
+    }
+
+    private async void OnStationShoppingListMissingClick(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not JobStationGroup group) return;
+        var sb = new StringBuilder();
+        foreach (var mat in group.Materials.Where(m => m.IsBought && m.Missing > 0))
+            sb.Append(mat.TypeName).Append('\t').AppendLine(mat.Missing.ToString());
+        await CopyToClipboardAsync(sb.ToString());
+    }
+
     /// <summary>The raw materials export's header row, in the grid's own column names, ending in a
     /// newline. ⚠️ In a CSV a header holding a comma is quoted, as a material name is: the names
     /// are translated, and a translation may have one.</summary>
@@ -178,6 +199,14 @@ public partial class ProductionCalculatorView : UserControl
 
     private void OnOpenJobStation(object? sender, RoutedEventArgs e) => Job(sender)?.OpenStation();
     private void OnOpenJobSystem(object? sender, RoutedEventArgs e)  => Job(sender)?.OpenSystem();
+
+    private static JobStationGroup? Group(object? sender) => (sender as Control)?.DataContext as JobStationGroup;
+
+    private void OnOpenGroupStation(object? sender, RoutedEventArgs e) => Group(sender)?.Lead.OpenStation();
+    private void OnOpenGroupSystem(object? sender, RoutedEventArgs e)  => Group(sender)?.Lead.OpenSystem();
+
+    private void OnOpenStationMaterial(object? sender, RoutedEventArgs e) =>
+        ((sender as Control)?.DataContext as StationMaterialLine)?.OpenItem();
 
     // ── Helpers ───────────────────────────────────────────────────────────
 

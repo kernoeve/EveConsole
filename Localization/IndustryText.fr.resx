@@ -1132,6 +1132,63 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Acheter</value>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Hiérarchie</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>Par station</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Chaque travail sous le travail qui a besoin de ce qu'il produit</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Chaque travail sous l'installation où il s'exécute, avec ce dont les travaux de cette installation ont besoin ensemble</value>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} travail</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} travaux</value>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} matériau</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} matériaux</value>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>{0:N0} manquant</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0} manquants</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Tout est disponible</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>Aucune installation liée : le stock ici ne peut pas être compté</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>Aucune installation</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Produit ici</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Produit ailleurs</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Manque par rapport au stock de cette installation, pour tous ses travaux ensemble. Un matériau qu'un autre travail produit ici ne manque jamais.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Copier tous les matériaux achetés nécessaires aux travaux de cette installation (nom et quantité, séparés par des tabulations)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Copier uniquement les matériaux achetés qui manquent à cette installation</value>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Produire</value>
   </data>

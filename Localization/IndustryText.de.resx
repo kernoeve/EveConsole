@@ -1132,6 +1132,63 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Kaufen</value>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Hierarchie</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>Nach Station</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Jeder Auftrag unter dem Auftrag, der sein Produkt braucht</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Jeder Auftrag unter der Anlage, in der er läuft, mit dem, was die Aufträge dieser Anlage zusammen brauchen</value>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} Auftrag</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} Aufträge</value>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} Material</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} Materialien</value>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>{0:N0} fehlt</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0} fehlen</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Alles vorhanden</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>Keine Anlage verknüpft, daher kann der Bestand hier nicht gezählt werden</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>Keine Anlage</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Hier gebaut</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Anderswo gebaut</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>Vorhanden</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Fehlmenge gegenüber dem Bestand in dieser Anlage, für alle ihre Aufträge zusammen. Ein Material, das ein anderer Auftrag hier baut, fehlt nie.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Alle gekauften Materialien kopieren, die die Aufträge dieser Anlage brauchen (Name und Menge, tabulatorgetrennt)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Nur die gekauften Materialien kopieren, die in dieser Anlage fehlen</value>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Bauen</value>
   </data>

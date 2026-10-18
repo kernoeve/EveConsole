@@ -1508,6 +1508,82 @@
     <value>Buy</value>
     <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan buys it (a verb, as against "Build").</comment>
   </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Hierarchy</value>
+    <comment>Production Calculator, Jobs tab: option that lists each job under the job that needs its output.</comment>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>By station</value>
+    <comment>Production Calculator, Jobs tab: option that lists each job under the facility it runs at.</comment>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Each job under the job that needs what it makes</value>
+    <comment>Tooltip on the Hierarchy option, Jobs tab.</comment>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Each job under the facility it runs at, with what that facility's jobs need between them</value>
+    <comment>Tooltip on the By station option, Jobs tab.</comment>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} job</value>
+    <comment>Jobs tab, station view, on a facility: how many jobs run there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} jobs</value>
+    <comment>Jobs tab, station view, on a facility: how many jobs run there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} material</value>
+    <comment>Jobs tab, station view, on a facility: how many different materials its jobs need. {0} = count.</comment>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} materials</value>
+    <comment>Jobs tab, station view, on a facility: how many different materials its jobs need. {0} = count.</comment>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>{0:N0} short</value>
+    <comment>Jobs tab, station view, on a facility: how many of its materials there is not enough of there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0} short</value>
+    <comment>Jobs tab, station view, on a facility: how many of its materials there is not enough of there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Everything on hand</value>
+    <comment>Jobs tab, station view, on a facility whose stock covers every material its jobs need.</comment>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>No facility linked, so stock here can't be counted</value>
+    <comment>Jobs tab, station view, on a park structure with no real facility linked (Indy Parks, Actual facility).</comment>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>No facility</value>
+    <comment>Jobs tab, station view: name of the group for jobs the plan placed in no structure at all.</comment>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Built here</value>
+    <comment>Jobs tab, station view, Source column: another job at this same facility makes this material.</comment>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Built elsewhere</value>
+    <comment>Jobs tab, station view, Source column: a job at another facility makes this material, so it has to be hauled here.</comment>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Jobs tab, station view, column: units already at the facility.</comment>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Shortfall against stock at this facility, for all its jobs together. A material another job here makes is never short.</value>
+    <comment>Tooltip on the Missing column header, Jobs tab, station view.</comment>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Copy every bought material this facility's jobs need (name and quantity, tab-separated)</value>
+    <comment>Tooltip on a facility's Shopping List button, Jobs tab, station view.</comment>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Copy only the bought materials this facility is short of</value>
+    <comment>Tooltip on a facility's Shopping List (Missing) button, Jobs tab, station view.</comment>
+  </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Build</value>
     <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan builds it in a job of its own (a verb, as against "Buy").</comment>
