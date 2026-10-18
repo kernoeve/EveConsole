@@ -935,49 +935,20 @@ public class WalletViewModel : ReactiveObject
 
         var byType = await WalletJournalTotals.ByRefTypeAsync(db, chartOwners, cutoff);
 
-        var bountyTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "bounty_prizes", "npc_bounty", "bounty_prize", "corporate_reward", "agent_bounty_prize" };
-        var contractIncTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "contract_reward", "contract_price", "contract_price_payment_corp",
-              "contract_reward_refund", "contract_auction_sold" };
-        var knownExpenseTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "broker_fee", "brokers_fee", "transaction_tax",
-              "industry_job_tax", "manufacturing_tax",
-              "contract_deposit", "contract_sales_tax", "contract_deposit_sales_tax",
-              "planetary_import_tax", "planetary_export_tax", "planetary_construction" };
-
-        decimal mktSell = 0m, mktBuy = 0m;
-        decimal npcBounty = 0m, contractInc = 0m, contractExp = 0m, otherIncome = 0m;
-        decimal brokerFees = 0m, txnTax = 0m, indyTax = 0m, otherExpense = 0m;
-
-        foreach (var (refType, total) in byType)
-        {
-            if (refType == "market_transaction")
-            {
-                if (total > 0) mktSell += total;
-                else           mktBuy  += Math.Abs(total);
-            }
-            else if (bountyTypes.Contains(refType))
-            {
-                if (total > 0) npcBounty += total;
-            }
-            else if (contractIncTypes.Contains(refType))
-            {
-                if (total > 0) contractInc += total;
-                else           contractExp += Math.Abs(total);
-            }
-            else if (refType is "broker_fee" or "brokers_fee")
-                brokerFees += Math.Abs(total);
-            else if (refType == "transaction_tax")
-                txnTax += Math.Abs(total);
-            else if (refType is "industry_job_tax" or "manufacturing_tax")
-                indyTax += Math.Abs(total);
-            else if (!knownExpenseTypes.Contains(refType))
-            {
-                if (total > 0) otherIncome  += total;
-                else           otherExpense += Math.Abs(total);
-            }
-        }
+        // The same categories as the Overview and the Income & Expense tool, each direction on
+        // its own side — see WalletCategorizer. This used to be a third copy of that code.
+        var cats = WalletCategorizer.Categorize(byType);
+        decimal Of(string name, bool income) => cats.Where(c => c.Name == name && c.IsIncome == income).Sum(c => c.Amount);
+        var mktSell      = Of(FinanceText.SliceMarketSales,       true);
+        var npcBounty    = Of(FinanceText.SliceNpcBounties,       true);
+        var contractInc  = Of(FinanceText.SliceContractSales,     true);
+        var otherIncome  = Of(FinanceText.SliceOtherIncome,       true);
+        var mktBuy       = Of(FinanceText.SliceMarketPurchases,   false);
+        var contractExp  = Of(FinanceText.SliceContractPurchases, false);
+        var brokerFees   = Of(FinanceText.SliceBrokerFees,        false);
+        var txnTax       = Of(FinanceText.SliceTransactionTax,    false);
+        var indyTax      = Of(FinanceText.SliceIndustryTax,       false);
+        var otherExpense = Of(FinanceText.SliceOtherExpenses,     false);
 
         BuildPieCharts(mktSell, npcBounty, contractInc, otherIncome,
                        mktBuy, brokerFees, txnTax, indyTax, otherExpense, contractExp);
