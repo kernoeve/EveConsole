@@ -48,6 +48,10 @@
     <!-- Avalonia UI -->
     <PackageReference Include="Avalonia" Version="11.3.22" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <!-- The platform the headless worker and the Windows service run on: a dispatcher and no
+         display. See Program.BuildWorkerApp — the desktop platform opens an X11 display on
+         Linux, which a container or a server with no desktop does not have. -->
+    <PackageReference Include="Avalonia.Headless" Version="11.3.22" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />

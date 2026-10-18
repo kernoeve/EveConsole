@@ -141,7 +141,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
 - Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
-- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
+- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
 - Eight UI themes: light, dark, and blue/pink/beige in both.  Applies immediately, remembered per machine rather than per database
 - Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one

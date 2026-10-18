@@ -4,3 +4,8 @@
 # Windows working copy, where autocrlf would otherwise convert them on the way out.
 *.sh       text eol=lf
 *.service  text eol=lf
+
+# The container files are read inside Linux too: a Dockerfile RUN continued with "\" and a CR
+# after it fails, and docker compose reads .env values with the CR still on them — a password
+# that never matches.
+packaging/docker/**  text eol=lf

@@ -130,3 +130,29 @@ jobs:
 
       - name: Build
         run: dotnet build EveConsole.csproj -c Release --no-restore
+
+      # ⚠️ Does --headless start where there is no display? It did not: the worker set Avalonia up
+      # on the desktop platform, which opens an X11 display on Linux, and under Docker it died
+      # before reaching any of our code. Nothing on Windows can show that, and nor can a desktop.
+      #
+      # So the worker is run the way a self-hoster runs it: in the image packaging/docker builds,
+      # with this build's binary in place of the released one. The image is the real test — no
+      # display, no fontconfig, no keyring, an unprivileged user — and building it also checks the
+      # Dockerfile itself. SQLite, because there is no server here; the worker says that is not
+      # what headless is for, and runs anyway, which is all this needs.
+      - name: Publish (self-contained linux-x64)
+        run: dotnet publish EveConsole.csproj -c Release -r linux-x64 --self-contained true -o publish-linux
+
+      - name: Docker compose file is valid
+        run: POSTGRES_PASSWORD=ci docker compose -f packaging/docker/docker-compose.yml config -q
+
+      - name: Headless worker starts in the container image
+        run: |
+          chmod +x publish-linux/EveConsole
+          docker build -t eveconsole-worker packaging/docker
+          set +e
+          docker run --rm -v "$PWD/publish-linux:/opt/eveconsole:ro" --entrypoint timeout \
+            eveconsole-worker -s TERM 90 /opt/eveconsole/EveConsole --headless > headless.log 2>&1
+          set -e
+          cat headless.log
+          grep -q "headless worker" headless.log
