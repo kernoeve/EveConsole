@@ -135,24 +135,44 @@ jobs:
       # on the desktop platform, which opens an X11 display on Linux, and under Docker it died
       # before reaching any of our code. Nothing on Windows can show that, and nor can a desktop.
       #
-      # So the worker is run the way a self-hoster runs it: in the image packaging/docker builds,
-      # with this build's binary in place of the released one. The image is the real test — no
-      # display, no fontconfig, no keyring, an unprivileged user — and building it also checks the
-      # Dockerfile itself. SQLite, because there is no server here; the worker says that is not
-      # what headless is for, and runs anyway, which is all this needs.
+      # So the worker is run the way a self-hoster runs it: packaging/docker's compose file, its
+      # image and its PostgreSQL server, with this build's binary in place of the released one
+      # (.github/docker-compose.ci.yml). The image is the real test — no display, no fontconfig,
+      # no keyring, an unprivileged user — and building it also checks the Dockerfile itself.
+      #
+      # Passing means: it starts, opens a fresh PostgreSQL database, holds the lease, and on
+      # SIGTERM (docker stop) says so and exits 0 inside the grace period. An exit by SIGKILL
+      # (137) is a worker that ignored the signal and never released its lease.
       - name: Publish (self-contained linux-x64)
         run: dotnet publish EveConsole.csproj -c Release -r linux-x64 --self-contained true -o publish-linux
 
       - name: Docker compose file is valid
         run: POSTGRES_PASSWORD=ci docker compose -f packaging/docker/docker-compose.yml config -q
 
-      - name: Headless worker starts in the container image
+      - name: Headless worker runs against the compose file's PostgreSQL
+        working-directory: packaging/docker
+        env:
+          POSTGRES_PASSWORD: ci-only
+          PUBLISH_DIR: ${{ github.workspace }}/publish-linux
         run: |
-          chmod +x publish-linux/EveConsole
-          docker build -t eveconsole-worker packaging/docker
-          set +e
-          docker run --rm -v "$PWD/publish-linux:/opt/eveconsole:ro" --entrypoint timeout \
-            eveconsole-worker -s TERM 90 /opt/eveconsole/EveConsole --headless > headless.log 2>&1
-          set -e
-          cat headless.log
-          grep -q "headless worker" headless.log
+          chmod +x "$PUBLISH_DIR/EveConsole"
+          compose="docker compose -f docker-compose.yml -f $GITHUB_WORKSPACE/.github/docker-compose.ci.yml"
+          $compose up -d --build
+          # ⚠️ The log goes to a file and grep reads the file. The step's shell runs with pipefail,
+          # and `compose logs | grep -q` fails whenever grep stops reading before compose has
+          # finished writing.
+          for i in $(seq 1 90); do
+            $compose logs worker > worker.log 2>&1
+            grep -q "holds the lease" worker.log && break
+            [ "$(docker inspect -f '{{.State.Running}}' "$($compose ps -aq worker)")" = false ] && break
+            sleep 2
+          done
+          $compose stop -t 30 worker
+          $compose logs worker > worker.log 2>&1
+          cat worker.log
+          code=$(docker inspect -f '{{.State.ExitCode}}' "$($compose ps -aq worker)")
+          echo "worker exit code: $code"
+          grep -q "database   PostgreSQL" worker.log
+          grep -q "this process holds the lease" worker.log
+          grep -q "Stopping" worker.log
+          test "$code" = 0
