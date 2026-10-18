@@ -1123,6 +1123,12 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>购买</value>
   </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>已复制到剪贴板</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>没有可复制的内容</value>
+  </data>
   <data name="JobsViewHierarchy" xml:space="preserve">
     <value>层级</value>
   </data>

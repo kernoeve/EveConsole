@@ -1150,6 +1150,12 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Купить</value>
   </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Скопировано в буфер обмена</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Нечего копировать</value>
+  </data>
   <data name="JobsViewHierarchy" xml:space="preserve">
     <value>Иерархия</value>
   </data>

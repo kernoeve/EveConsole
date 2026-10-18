@@ -210,11 +210,35 @@ public partial class ProductionCalculatorView : UserControl
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Copies, and says so. ⚠️ An empty list is not copied: putting nothing on the clipboard
+    /// would wipe whatever was there, for a button whose answer was "nothing is missing".
+    /// </summary>
     private async Task CopyToClipboardAsync(string text)
     {
+        if (text.Length == 0) { ShowToast(IndustryText.ToastNothingToCopy); return; }
+
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (clipboard is not null)
-            await clipboard.SetTextAsync(text);
+        if (clipboard is null) return;
+        await clipboard.SetTextAsync(text);
+        ShowToast(IndustryText.ToastCopied);
+    }
+
+    private int _toastShown;
+
+    /// <summary>Shows the message in the middle of the window for a moment, then fades it. A second
+    /// copy while one is showing starts the moment again rather than being cut short by the first.</summary>
+    private async void ShowToast(string message)
+    {
+        var toast = this.FindControl<Border>("CopyToast");
+        var text  = this.FindControl<TextBlock>("CopyToastText");
+        if (toast is null || text is null) return;
+
+        var mine = ++_toastShown;
+        text.Text     = message;
+        toast.Opacity = 1;
+        await Task.Delay(TimeSpan.FromSeconds(1.6));
+        if (mine == _toastShown) toast.Opacity = 0;
     }
 
     private async Task SaveToFileAsync(string content, string suggestedName, FilePickerFileType fileType)

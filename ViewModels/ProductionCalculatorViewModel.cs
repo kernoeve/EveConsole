@@ -117,8 +117,8 @@ public class JobStationGroup : ReactiveObject
     public bool ShowSystemPlain  => Lead.ShowSystemPlain;
     public bool ShowAtSeparator  => Lead.SystemName.Length > 0;
 
-    private bool _showMaterials = true;
-    /// <summary>Open from the start: what the station needs is the point of this view.</summary>
+    private bool _showMaterials;
+    /// <summary>Closed until asked for, as on a job: the summary line says whether anything is short.</summary>
     public bool ShowMaterials
     {
         get => _showMaterials;
@@ -141,11 +141,17 @@ public class StationMaterialLine
     public decimal TotalCost      { get; init; }
 
     public bool    AvailabilityKnown { get; init; }
+
+    /// <summary>Everything of it at the facility, needed or not.</summary>
     public long    Available      { get; init; }
 
-    public long    Missing => AvailabilityKnown && !BuiltHere ? Math.Max(0L, Needed - Available) : 0;
+    /// <summary>How much of what is needed is there: the stock, up to the need. 18 million of a
+    /// material that 63 thousand is wanted of says nothing about these jobs.</summary>
+    public long    OnHand  => Math.Min(Needed, Available);
 
-    public string  AvailableDisplay => AvailabilityKnown ? Available.ToString("N0") : "—";
+    public long    Missing => AvailabilityKnown && !BuiltHere ? Needed - OnHand : 0;
+
+    public string  AvailableDisplay => AvailabilityKnown ? OnHand.ToString("N0") : "—";
     public string  MissingDisplay   => AvailabilityKnown ? Missing.ToString("N0")   : "—";
     public string  MissingColor     => Missing > 0 ? "#e0902e" : "#555566";
 
@@ -329,6 +335,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
         private set
         {
             this.RaiseAndSetIfChanged(ref _plan, value);
+            _stationGroups = null;
             this.RaisePropertyChanged(nameof(HasResults));
             this.RaisePropertyChanged(nameof(JobTreeRoots));
             this.RaisePropertyChanged(nameof(JobStationGroups));
@@ -445,8 +452,12 @@ public class ProductionCalculatorViewModel : ReactiveObject
         }
     }
 
-    /// <summary>The Jobs tab's station view: one group per facility, its jobs beneath it.</summary>
-    public List<JobStationGroup> JobStationGroups => _plan is null ? [] : GroupByStation(_plan, OpenInItemBrowserCommand);
+    private List<JobStationGroup>? _stationGroups;
+
+    /// <summary>The Jobs tab's station view: one group per facility, its jobs beneath it. Built
+    /// once per plan, so the rows on screen are the rows anything else reads.</summary>
+    public List<JobStationGroup> JobStationGroups =>
+        _plan is null ? [] : _stationGroups ??= GroupByStation(_plan, OpenInItemBrowserCommand);
 
     /// <summary>
     /// The plan's jobs under the facility each runs at, with what each facility's jobs need of it.

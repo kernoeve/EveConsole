@@ -1508,6 +1508,14 @@
     <value>Buy</value>
     <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan buys it (a verb, as against "Build").</comment>
   </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Copied to clipboard</value>
+    <comment>Production Calculator: shown briefly in the middle of the window after a Shopping List or other copy button.</comment>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Nothing to copy</value>
+    <comment>Production Calculator: shown briefly when a copy button's list is empty, e.g. Shopping List (Missing) with nothing short. The clipboard is left as it was.</comment>
+  </data>
   <data name="JobsViewHierarchy" xml:space="preserve">
     <value>Hierarchy</value>
     <comment>Production Calculator, Jobs tab: option that lists each job under the job that needs its output.</comment>

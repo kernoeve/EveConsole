@@ -1132,6 +1132,12 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Acheter</value>
   </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Copié dans le presse-papiers</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Rien à copier</value>
+  </data>
   <data name="JobsViewHierarchy" xml:space="preserve">
     <value>Hiérarchie</value>
   </data>

@@ -1123,6 +1123,12 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>購入</value>
   </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>クリップボードにコピーしました</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>コピーするものがありません</value>
+  </data>
   <data name="JobsViewHierarchy" xml:space="preserve">
     <value>階層</value>
   </data>
