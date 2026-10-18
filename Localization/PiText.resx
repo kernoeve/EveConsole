@@ -512,6 +512,10 @@
     <value>Command center</value>
     <comment>PI tool, Colony tab: the command center. Use the game's word.</comment>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>The colony as laid out in the game, north up, as of the last time it was opened. Rings: gold the command center, blue extractors, green factories running, orange factories idle, red an extractor stopped or storage full. A structure far from the rest sits at the edge, its link dashed. Hover a structure for more.</value>
+    <comment>Tooltip on the colony map in the Colony tab header: what the drawing shows and what its ring colours mean.</comment>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0}%</value>
     <comment>A percentage, as in "45%". {0} is the number. Space it as your language does.</comment>

@@ -385,6 +385,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>Kommandozentrale</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>Die Kolonie, wie sie im Spiel angelegt ist, Norden oben, Stand beim letzten Öffnen. Ringe: Gold das Kommandozentrum, Blau Extraktoren, Grün laufende Fabriken, Orange untätige Fabriken, Rot ein gestoppter Extraktor oder ein volles Lager. Ein Gebäude weit abseits steht am Rand, seine Verbindung gestrichelt. Für mehr mit der Maus über ein Gebäude fahren.</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0} %</value>
   </data>

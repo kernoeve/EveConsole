@@ -97,6 +97,8 @@ public static class PiLayoutStore
                 InstallTime    = p.InstallTime,
                 ExpiryTime     = p.ExpiryTime,
                 LastCycleStart = p.LastCycleStart,
+                Latitude       = p.Latitude,
+                Longitude      = p.Longitude,
                 Contents       = contentsOf(p.PinId).ToDictionary(c => c.TypeId, c => c.Amount),
                 Extractor      = p.ExtractorProductTypeId is null && p.ExtractorCycleTime is null
                                  && p.ExtractorQtyPerCycle is null && p.ExtractorHeadCount == 0

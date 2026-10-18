@@ -367,6 +367,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>指挥中心</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>游戏中的殖民地布局，上方为北，以最后一次打开时为准。圆环颜色：金色为指挥中心，蓝色为提取器，绿色为运行中的工厂，橙色为闲置工厂，红色为已停止的提取器或已满的仓储。远离其他建筑的建筑画在边缘，其连线为虚线。将鼠标悬停在建筑上可查看详情。</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0}%</value>
   </data>

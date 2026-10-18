@@ -37,21 +37,32 @@ public sealed class TypeIcon : Image
         set => SetValue(BlueprintPictureProperty, value);
     }
 
+    /// <summary>The size asked of the image server, in pixels: 32 for a row, more for a picture
+    /// shown larger. The server offers 32, 64, 128, 256 and 512.</summary>
+    public static readonly StyledProperty<int> IconSizeProperty =
+        AvaloniaProperty.Register<TypeIcon, int>(nameof(IconSize), 32);
+
+    public int IconSize
+    {
+        get => GetValue(IconSizeProperty);
+        set => SetValue(IconSizeProperty, value);
+    }
+
     protected override Type StyleKeyOverride => typeof(Image);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == TypeIdProperty || change.Property == BlueprintPictureProperty)
-            _ = LoadAsync(TypeId, BlueprintPicture);
+        if (change.Property == TypeIdProperty || change.Property == BlueprintPictureProperty || change.Property == IconSizeProperty)
+            _ = LoadAsync(TypeId, BlueprintPicture, IconSize);
     }
 
-    private async Task LoadAsync(int typeId, string blueprint)
+    private async Task LoadAsync(int typeId, string blueprint, int size)
     {
         Source = null;
         if (typeId <= 0) return;
-        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/icon?size=32")
-               ?? await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/{blueprint}?size=32");
+        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/icon?size={size}")
+               ?? await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/{blueprint}?size={size}");
         if (typeId == TypeId) Source = bmp;
     }
 }
