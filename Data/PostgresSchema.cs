@@ -292,6 +292,15 @@ public static class PostgresSchema
         """
         ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FittingUsageChanceAttributeId" INTEGER NULL
         """,
+        // Planets, moons, belts and stars: the rest of what the SDE says about each. Mirrored for
+        // SQLite in SdeImportService.EnsureSdeSchema.
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "OrbitId" BIGINT NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "Radius" DOUBLE PRECISION NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "Attributes" TEXT NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "Statistics" TEXT NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "MoonIds" TEXT NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "AsteroidBeltIds" TEXT NULL""",
+        """ALTER TABLE "SdeCelestials" ADD COLUMN IF NOT EXISTS "NpcStationIds" TEXT NULL""",
         """
         CREATE TABLE IF NOT EXISTS "SdeFighterAbilities" (
             "AbilityId"         INTEGER          NOT NULL,

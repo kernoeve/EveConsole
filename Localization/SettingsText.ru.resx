@@ -3016,6 +3016,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
     <value>Типы записей журнала кошелька</value>
   </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Всё остальное из SDE</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Материалы типов</value>
   </data>

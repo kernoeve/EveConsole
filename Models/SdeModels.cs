@@ -426,6 +426,18 @@ public class SdeCelestial
     public double Y             { get; set; }
     public double Z             { get; set; }
     public string Name          { get; set; } = "";
+
+    // The rest of what the SDE says about a planet, moon, belt or star. Null for a stargate, and for
+    // whatever a body does not carry. The blocks are kept whole, as JSON text: attributes holds a
+    // planet's heightMap1/2, shaderPreset and population; statistics its density, temperature,
+    // orbit, mass and the like.
+    public long?   OrbitId         { get; set; }
+    public double? Radius          { get; set; }
+    public string? Attributes      { get; set; }
+    public string? Statistics      { get; set; }
+    public string? MoonIds         { get; set; }   // a planet's moons, as a JSON list
+    public string? AsteroidBeltIds { get; set; }   // a planet's belts, as a JSON list
+    public string? NpcStationIds   { get; set; }   // the NPC stations orbiting it, as a JSON list
 }
 
 public class SdeStation

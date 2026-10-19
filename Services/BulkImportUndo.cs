@@ -165,9 +165,18 @@ public static class BulkImportUndo
             var n = 0;
             foreach (var t in tables)
             {
+                // ⚠️ The columns named, the copy's own. An import may add columns as it goes (the
+                // SDE's completeness pass does, for fields CCP has added), and SELECT * into a table
+                // that has grown since the copy was taken fails on the count — the restore the
+                // whole copy exists for. Named, the old columns come back and the new stay empty.
+                var columns = await db.Database
+                    .SqlQueryRaw<string>($"SELECT name AS \"Value\" FROM pragma_table_info('{t}', 'undobak')")
+                    .ToListAsync(ct);
+                var list = string.Join(", ", columns.Select(c => $"\"{c.Replace("\"", "\"\"")}\""));
+
                 await db.Database.ExecuteSqlRawAsync($"DELETE FROM main.\"{t}\"", ct);
                 await db.Database.ExecuteSqlRawAsync(
-                    $"INSERT INTO main.\"{t}\" SELECT * FROM undobak.\"{t}\"", ct);
+                    $"INSERT INTO main.\"{t}\" ({list}) SELECT {list} FROM undobak.\"{t}\"", ct);
 
                 report(SettingsText.ImportStageRestoring, string.Format(SettingsText.ImportPuttingBack, ++n, tables.Count), -1);
             }

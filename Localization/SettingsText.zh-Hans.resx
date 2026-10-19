@@ -3016,6 +3016,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
     <value>钱包日志类型</value>
   </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>SDE 中的其余内容</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>类型材料</value>
   </data>

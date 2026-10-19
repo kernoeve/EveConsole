@@ -84,8 +84,10 @@ Console.WriteLine("Rollback:");
         using var cmd = other.CreateCommand();
         cmd.CommandText = "PRAGMA busy_timeout=3000";
         cmd.ExecuteNonQuery();
-        cmd.CommandText = "INSERT INTO \"AppErrorLog\" (\"OccurredAt\",\"Source\",\"Context\",\"Message\",\"HostName\",\"Headless\") " +
-                          "VALUES ('2026-01-01','t','t','a poller writing during the import','h',0)";
+        // Every NOT NULL column named: Severity arrived after this check was written, and an INSERT
+        // that leaves one out fails on the constraint rather than on the lock this is testing.
+        cmd.CommandText = "INSERT INTO \"AppErrorLog\" (\"OccurredAt\",\"Source\",\"Context\",\"Message\",\"HostName\",\"Headless\",\"Severity\") " +
+                          "VALUES ('2026-01-01','t','t','a poller writing during the import','h',0,0)";
         cmd.ExecuteNonQuery();
         Check("another connection can WRITE an unrelated table mid-import", true);
     }
@@ -100,6 +102,35 @@ Console.WriteLine("Rollback:");
     Check("restored rows are the OLD ones", races.FirstOrDefault()?.Name == "OLD race 1");
     Check("3 categories restored", after.SdeCategories.AsNoTracking().Count() == 3);
     Check("backup file cleaned up", !File.Exists(bakPath));
+}
+
+// ── 1b. Rollback after the import added a column ─────────────────────────────────────────
+// The SDE's completeness pass adds a column when a release brings a field it has not seen. The
+// copy was taken before that, so a restore by SELECT * would fail on the count; it names the
+// copy's columns, and the new one comes back empty.
+Console.WriteLine("Rollback after a column was added:");
+{
+    using var db = new AppDbContext(opts);
+    await SeedAsync(db, "OLD");
+    var undo = await BulkImportUndo.CreateAsync(db, "sde", Tables(db), (_, _, _) => { }, default);
+    foreach (var t in Tables(db))
+        await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{t}\"");
+    await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"SdeRaces\" ADD COLUMN \"AddedMidImport\" TEXT");
+    await db.Database.ExecuteSqlRawAsync("INSERT INTO \"SdeRaces\" (\"RaceId\", \"Name\", \"Description\", \"AddedMidImport\") VALUES (99, 'NEW', '', 'x')");
+
+    try
+    {
+        await undo.RollbackAsync(default);
+        Check("restore succeeds although the table grew", true);
+    }
+    catch (Exception ex) { Check($"restore succeeds although the table grew ({ex.Message.Split('\n')[0]})", false); }
+    await undo.DisposeAsync();
+
+    using var after = new AppDbContext(opts);
+    var races = after.SdeRaces.AsNoTracking().OrderBy(r => r.RaceId).ToList();
+    Check("the 5 OLD races are back, the NEW one gone", races.Count == 5 && races[0].Name == "OLD race 1");
+    var added = after.Database.SqlQueryRaw<long>("SELECT COUNT(*) AS \"Value\" FROM \"SdeRaces\" WHERE \"AddedMidImport\" IS NOT NULL").Single();
+    Check("the added column is empty on the restored rows", added == 0);
 }
 
 // ── 2. Commit keeps the new data ─────────────────────────────────────────────────────────

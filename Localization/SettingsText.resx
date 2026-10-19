@@ -3975,6 +3975,10 @@ The application will restart.</value>
     <value>Wallet Journal Types</value>
     <comment>Settings → SDE import progress, stage: the names of wallet journal entry types.</comment>
   </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Everything else in the SDE</value>
+    <comment>Settings → SDE import progress, stage: every file and field the app does not read for any tool, kept in the database all the same. The detail shows the file name.</comment>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Type Materials</value>
     <comment>Settings → SDE / Hoboleaks import progress, stage: what each item reprocesses into.</comment>

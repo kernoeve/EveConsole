@@ -3016,6 +3016,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
     <value>Arten von Wallet-Journaleinträgen</value>
   </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Alles Übrige aus dem SDE</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Typ-Materialien</value>
   </data>

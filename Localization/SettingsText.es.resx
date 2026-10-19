@@ -3016,6 +3016,9 @@ La aplicación se reiniciará.</value>
   <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
     <value>Tipos de entradas del registro de cartera</value>
   </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Todo lo demás del SDE</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Materiales de tipos</value>
   </data>
