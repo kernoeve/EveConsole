@@ -3013,6 +3013,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>証明書</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>ウォレット記録の種類</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>タイプの資源</value>
   </data>

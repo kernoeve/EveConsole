@@ -1223,6 +1223,46 @@ public static class PostgresSchema
             CONSTRAINT "PK_SdePlanetTypeResources" PRIMARY KEY ("PlanetTypeId", "ResourceTypeId")
         )
         """,
+        // Certificates' skills and recommended ships, compression, and the journal's entry types:
+        // SDE content that used to be left in the file. New tables, so the schema fingerprint grows
+        // and the SDE import that fills them starts on its own after the upgrade. Mirrored for
+        // SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeCertificateSkills" (
+            "CertificateId" INTEGER NOT NULL,
+            "SkillTypeId"   INTEGER NOT NULL,
+            "Basic"         INTEGER NOT NULL DEFAULT 0,
+            "Standard"      INTEGER NOT NULL DEFAULT 0,
+            "Improved"      INTEGER NOT NULL DEFAULT 0,
+            "Advanced"      INTEGER NOT NULL DEFAULT 0,
+            "Elite"         INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT "PK_SdeCertificateSkills" PRIMARY KEY ("CertificateId", "SkillTypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeCertificateRecommendations" (
+            "CertificateId" INTEGER NOT NULL,
+            "ShipTypeId"    INTEGER NOT NULL,
+            CONSTRAINT "PK_SdeCertificateRecommendations" PRIMARY KEY ("CertificateId", "ShipTypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeCompressibleTypes" (
+            "TypeId"           INTEGER NOT NULL,
+            "CompressedTypeId" INTEGER NOT NULL,
+            CONSTRAINT "PK_SdeCompressibleTypes" PRIMARY KEY ("TypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeAccountingEntryTypes" (
+            "EntryTypeId"    INTEGER NOT NULL,
+            "InternalName"   TEXT    NOT NULL DEFAULT '',
+            "Name"           TEXT    NOT NULL DEFAULT '',
+            "Description"    TEXT    NOT NULL DEFAULT '',
+            "JournalMessage" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeAccountingEntryTypes" PRIMARY KEY ("EntryTypeId")
+        )
+        """,
     ];
 
     /// <summary>

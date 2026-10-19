@@ -625,6 +625,54 @@ public class SdeCertificate
     public string Description   { get; set; } = "";
 }
 
+/// <summary>
+/// A skill a certificate asks for, at each of its five levels (certificates.yaml's skillTypes):
+/// the level of that skill the certificate needs to be held at Basic, Standard, Improved, Advanced
+/// and Elite.
+/// </summary>
+public class SdeCertificateSkill
+{
+    public int CertificateId { get; set; }
+    public int SkillTypeId   { get; set; }
+    public int Basic         { get; set; }
+    public int Standard      { get; set; }
+    public int Improved      { get; set; }
+    public int Advanced      { get; set; }
+    public int Elite         { get; set; }
+}
+
+/// <summary>A ship a certificate is recommended for (certificates.yaml's recommendedFor).</summary>
+public class SdeCertificateRecommendation
+{
+    public int CertificateId { get; set; }
+    public int ShipTypeId    { get; set; }
+}
+
+/// <summary>
+/// What a type compresses into (compressibleTypes.yaml): ore, ice and gas to their compressed
+/// forms, one compressed type for each.
+/// </summary>
+public class SdeCompressibleType
+{
+    public int TypeId           { get; set; }
+    public int CompressedTypeId { get; set; }
+}
+
+/// <summary>
+/// A wallet journal entry type as the game names it (accountingEntryTypes.yaml). ESI's
+/// <c>ref_type</c> is the <see cref="InternalName"/>; <see cref="Name"/> is what the client shows,
+/// and <see cref="JournalMessage"/> the sentence a journal line reads, with its placeholders. The
+/// English here, the other languages in SdeNames and SdeTexts.
+/// </summary>
+public class SdeAccountingEntryType
+{
+    public int    EntryTypeId    { get; set; }
+    public string InternalName   { get; set; } = "";
+    public string Name           { get; set; } = "";
+    public string Description    { get; set; } = "";
+    public string JournalMessage { get; set; } = "";
+}
+
 // fsd/typeMaterials.yaml — reprocessing outputs
 public class SdeTypeMaterial
 {
@@ -753,6 +801,7 @@ public enum SdeNameKind
     Station                = 22,
     FighterAbility         = 23,  // SdeFighterAbilities.Name
     Dbuff                  = 24,  // SdeDbuffs.Name
+    AccountingEntryType    = 25,  // SdeAccountingEntryTypes.Name
 }
 
 /// <summary>
@@ -799,6 +848,8 @@ public enum SdeTextKind
     CertificateDescription    = 6,  // SdeCertificates.Description
     MetaGroupDescription      = 7,  // SdeMetaGroups.Description
     FighterAbilityTooltip     = 8,  // SdeFighterAbilities.Tooltip
+    AccountingEntryDescription = 9, // SdeAccountingEntryTypes.Description
+    AccountingEntryJournalMessage = 10, // SdeAccountingEntryTypes.JournalMessage
 }
 
 /// <summary>

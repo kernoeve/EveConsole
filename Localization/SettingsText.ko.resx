@@ -3013,6 +3013,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>자격증</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>지갑 기록 유형</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>종류별 재료</value>
   </data>

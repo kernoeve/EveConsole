@@ -3971,6 +3971,10 @@ The application will restart.</value>
     <value>Certificates</value>
     <comment>Settings → SDE import progress, stage: skill certificates. Use the game's own word.</comment>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Wallet Journal Types</value>
+    <comment>Settings → SDE import progress, stage: the names of wallet journal entry types.</comment>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Type Materials</value>
     <comment>Settings → SDE / Hoboleaks import progress, stage: what each item reprocesses into.</comment>

@@ -3013,6 +3013,9 @@ La aplicación se reiniciará.</value>
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>Certificados</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Tipos de entradas del registro de cartera</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Materiales de tipos</value>
   </data>

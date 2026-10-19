@@ -168,6 +168,8 @@ public class SdeImportService
             await ImportRacesAsync(archive, fsdRoot, db, progress, ct);
             await ImportMetaGroupsAsync(archive, fsdRoot, db, progress, ct);
             await ImportCertificatesAsync(archive, fsdRoot, db, progress, ct);
+            await ImportCompressibleTypesAsync(archive, fsdRoot, db, progress, ct);
+            await ImportAccountingEntryTypesAsync(archive, fsdRoot, db, progress, ct);
             await ImportTypeMaterialsAsync(archive, fsdRoot, db, progress, ct);
             await ImportPlanetSchematicsAsync(archive, fsdRoot, db, progress, ct);
             await ImportDogmaUnitsAsync(archive, fsdRoot, db, progress, ct);
@@ -486,6 +488,14 @@ public class SdeImportService
             // database the fingerprint grows and the import that fills them starts on its own.
             // Mirrored for PostgreSQL in PostgresSchema.
             """CREATE TABLE IF NOT EXISTS "SdePlanetSchematicPins" ("SchematicId" INTEGER NOT NULL, "PinTypeId" INTEGER NOT NULL, CONSTRAINT "PK_SdePlanetSchematicPins" PRIMARY KEY ("SchematicId", "PinTypeId"))""",
+            // Certificates' skills and recommended ships, compression, and the journal's entry
+            // types: SDE content that used to be left in the file. New tables, so the fingerprint
+            // grows and the import that fills them starts on its own. Mirrored for PostgreSQL in
+            // PostgresSchema.
+            """CREATE TABLE IF NOT EXISTS "SdeCertificateSkills" ("CertificateId" INTEGER NOT NULL, "SkillTypeId" INTEGER NOT NULL, "Basic" INTEGER NOT NULL DEFAULT 0, "Standard" INTEGER NOT NULL DEFAULT 0, "Improved" INTEGER NOT NULL DEFAULT 0, "Advanced" INTEGER NOT NULL DEFAULT 0, "Elite" INTEGER NOT NULL DEFAULT 0, CONSTRAINT "PK_SdeCertificateSkills" PRIMARY KEY ("CertificateId", "SkillTypeId"))""",
+            """CREATE TABLE IF NOT EXISTS "SdeCertificateRecommendations" ("CertificateId" INTEGER NOT NULL, "ShipTypeId" INTEGER NOT NULL, CONSTRAINT "PK_SdeCertificateRecommendations" PRIMARY KEY ("CertificateId", "ShipTypeId"))""",
+            """CREATE TABLE IF NOT EXISTS "SdeCompressibleTypes" ("TypeId" INTEGER NOT NULL, "CompressedTypeId" INTEGER NOT NULL, CONSTRAINT "PK_SdeCompressibleTypes" PRIMARY KEY ("TypeId"))""",
+            """CREATE TABLE IF NOT EXISTS "SdeAccountingEntryTypes" ("EntryTypeId" INTEGER NOT NULL, "InternalName" TEXT NOT NULL DEFAULT '', "Name" TEXT NOT NULL DEFAULT '', "Description" TEXT NOT NULL DEFAULT '', "JournalMessage" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdeAccountingEntryTypes" PRIMARY KEY ("EntryTypeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdePlanetTypeResources" ("PlanetTypeId" INTEGER NOT NULL, "ResourceTypeId" INTEGER NOT NULL, "PlanetType" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdePlanetTypeResources" PRIMARY KEY ("PlanetTypeId", "ResourceTypeId"))""",
         };
         foreach (var sql in creates)
@@ -1763,6 +1773,67 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeCertificates, rows, SettingsText.ImportStageCertificates, raw.Count, p, 0.96, 0.97, ct);
         await SaveNamesAsync(db, SdeNameKind.Certificate, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.97, ct);
         await SaveTextsAsync(db, SdeTextKind.CertificateDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.97, ct);
+
+        // What each certificate is made of — the skill levels at each of its five levels — and the
+        // ships it is recommended for. Both used to be left in the file.
+        var skills = raw.SelectMany(kv => (kv.Value.skillTypes ?? []).Select(s => new SdeCertificateSkill
+        {
+            CertificateId = kv.Key,
+            SkillTypeId   = s.Key,
+            Basic         = s.Value.basic,
+            Standard      = s.Value.standard,
+            Improved      = s.Value.improved,
+            Advanced      = s.Value.advanced,
+            Elite         = s.Value.elite,
+        })).ToList();
+        await SaveBatchesAsync(db, db.SdeCertificateSkills, skills, SettingsText.ImportStageCertificates, skills.Count, p, 0.97, 0.97, ct);
+
+        var ships = raw.SelectMany(kv => (kv.Value.recommendedFor ?? []).Distinct()
+                .Select(ship => new SdeCertificateRecommendation { CertificateId = kv.Key, ShipTypeId = ship }))
+            .ToList();
+        await SaveBatchesAsync(db, db.SdeCertificateRecommendations, ships, SettingsText.ImportStageCertificates, ships.Count, p, 0.97, 0.97, ct);
+    }
+
+    /// <summary>What each ore, ice and gas compresses into (compressibleTypes.yaml).</summary>
+    private async Task ImportCompressibleTypesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}compressibleTypes.yaml");
+        if (entry is null) { Report(p, SettingsText.ImportStageCompressibleTypes, SettingsText.SdeNotFoundInZip, 0.971); return; }
+        Report(p, SettingsText.ImportStageCompressibleTypes, SettingsText.ImportParsing, 0.971);
+        using var reader = OpenEntry(entry);
+        var raw = _yaml.Deserialize<Dictionary<int, CompressibleTypeYaml>>(reader) ?? [];
+        var rows = raw.Where(kv => kv.Value.compressedTypeID > 0)
+            .Select(kv => new SdeCompressibleType { TypeId = kv.Key, CompressedTypeId = kv.Value.compressedTypeID })
+            .ToList();
+        await SaveBatchesAsync(db, db.SdeCompressibleTypes, rows, SettingsText.ImportStageCompressibleTypes, rows.Count, p, 0.971, 0.972, ct);
+    }
+
+    /// <summary>
+    /// The wallet journal's entry types as the game names them (accountingEntryTypes.yaml): the
+    /// internal name ESI calls a ref_type, the name and description the client shows, and the
+    /// journal line's own sentence — the English here, the other languages as names and texts.
+    /// </summary>
+    private async Task ImportAccountingEntryTypesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}accountingEntryTypes.yaml");
+        if (entry is null) { Report(p, SettingsText.ImportStageAccountingEntryTypes, SettingsText.SdeNotFoundInZip, 0.973); return; }
+        Report(p, SettingsText.ImportStageAccountingEntryTypes, SettingsText.ImportParsing, 0.973);
+        using var reader = OpenEntry(entry);
+        var raw = _yaml.Deserialize<Dictionary<int, AccountingEntryTypeYaml>>(reader) ?? [];
+        var rows = raw.Select(kv => new SdeAccountingEntryType
+        {
+            EntryTypeId    = kv.Key,
+            InternalName   = kv.Value.internalName ?? "",
+            Name           = kv.Value.name?.en           ?? "",
+            Description    = kv.Value.description?.en    ?? "",
+            JournalMessage = kv.Value.journalMessage?.en ?? "",
+        }).ToList();
+        await SaveBatchesAsync(db, db.SdeAccountingEntryTypes, rows, SettingsText.ImportStageAccountingEntryTypes, rows.Count, p, 0.973, 0.974, ct);
+        await SaveNamesAsync(db, SdeNameKind.AccountingEntryType, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.974, ct);
+        await SaveTextsAsync(db, SdeTextKind.AccountingEntryDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.974, ct);
+        await SaveTextsAsync(db, SdeTextKind.AccountingEntryJournalMessage, raw.Select(kv => ((long)kv.Key, kv.Value.journalMessage)), p, 0.975, ct);
     }
 
     /// <summary>
@@ -3113,6 +3184,27 @@ public class SdeImportService
         // which LocalizedTextConverter reads as the English.
         public LocalizedName?   name        { get; set; }
         public LocalizedName?   description { get; set; }   // every language, for SdeTexts
+        /// <summary>Skill type → the level needed at each certificate level.</summary>
+        public Dictionary<int, CertificateSkillLevelsYaml>? skillTypes { get; set; }
+        public List<int>?       recommendedFor { get; set; }
+    }
+    private class CertificateSkillLevelsYaml
+    {
+        public int basic    { get; set; }
+        public int standard { get; set; }
+        public int improved { get; set; }
+        public int advanced { get; set; }
+        public int elite    { get; set; }
+    }
+
+    private class CompressibleTypeYaml { public int compressedTypeID { get; set; } }
+
+    private class AccountingEntryTypeYaml
+    {
+        public string?        internalName   { get; set; }
+        public LocalizedName? name           { get; set; }
+        public LocalizedName? description    { get; set; }
+        public LocalizedName? journalMessage { get; set; }
     }
 
     private class TypeMaterialsYaml

@@ -3013,6 +3013,9 @@ L'application va redémarrer.</value>
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>Certificats</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Types d'entrées du journal de portefeuille</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Matériaux des types</value>
   </data>

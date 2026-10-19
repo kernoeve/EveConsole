@@ -196,6 +196,10 @@ public class AppDbContext : DbContext
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
     public DbSet<SdeMetaGroup>          SdeMetaGroups          => Set<SdeMetaGroup>();
     public DbSet<SdeCertificate>        SdeCertificates        => Set<SdeCertificate>();
+    public DbSet<SdeCertificateSkill>   SdeCertificateSkills   => Set<SdeCertificateSkill>();
+    public DbSet<SdeCertificateRecommendation> SdeCertificateRecommendations => Set<SdeCertificateRecommendation>();
+    public DbSet<SdeCompressibleType>   SdeCompressibleTypes   => Set<SdeCompressibleType>();
+    public DbSet<SdeAccountingEntryType> SdeAccountingEntryTypes => Set<SdeAccountingEntryType>();
     public DbSet<SdeTypeMaterial>       SdeTypeMaterials       => Set<SdeTypeMaterial>();
     public DbSet<SdePlanetSchematic>    SdePlanetSchematics    => Set<SdePlanetSchematic>();
     public DbSet<SdePlanetSchematicType> SdePlanetSchematicTypes => Set<SdePlanetSchematicType>();
@@ -591,6 +595,20 @@ public class AppDbContext : DbContext
         mb.Entity<SdeCertificate>(e => {
             e.HasKey(x => x.CertificateId);
             e.Property(x => x.CertificateId).ValueGeneratedNever(); });
+        mb.Entity<SdeCertificateSkill>(e => {
+            e.HasKey(x => new { x.CertificateId, x.SkillTypeId });
+            e.Property(x => x.CertificateId).ValueGeneratedNever();
+            e.Property(x => x.SkillTypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeCertificateRecommendation>(e => {
+            e.HasKey(x => new { x.CertificateId, x.ShipTypeId });
+            e.Property(x => x.CertificateId).ValueGeneratedNever();
+            e.Property(x => x.ShipTypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeCompressibleType>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeAccountingEntryType>(e => {
+            e.HasKey(x => x.EntryTypeId);
+            e.Property(x => x.EntryTypeId).ValueGeneratedNever(); });
 
         mb.Entity<SdeTypeMaterial>(e => {
             e.HasKey(x => new { x.TypeId, x.MaterialTypeId });
