@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using EveConsole.Tools.PgSqlCheck;
 using Npgsql;
 
@@ -9,10 +10,27 @@ using Npgsql;
 // wrong — LIKE that should be ILIKE, CAST(x AS REAL) quietly narrowing a double, COUNT(*) read
 // into a C# int — parses cleanly and is invisible here. Those are the classes this cannot cover,
 // and pretending otherwise would be worse than not having it.
+//
+// --collisions then asks what the SQL would mean on a LATER schema. The SDE import adds a column
+// to an Sde table for every field CCP adds to a file (SdeCompleteness), on the user's machine,
+// with no release of ours in between — so a statement that names a column bare beside an Sde
+// table is one CCP field away from breaking, and no schema CI can build shows it. The pass gives
+// every Sde table a column for every name the code quotes, then PREPAREs everything again:
+//
+//   - two tables in scope with the name → "ambiguous", which is what the user would get;
+//   - a subquery whose bare name meant the OUTER table now quietly reads the Sde table's new
+//     column. That is no error at all on the real schema, so the probe columns are of a type
+//     nothing compares with, adds to or reads as text: the rebinding becomes a type error here,
+//     or a result column of the probe type when it is only selected.
+//
+// ⚠️ It ALTERs tables. All of it is inside one transaction that is rolled back, but the tables
+// are locked while it runs and a read-only session cannot do it: point it at a scratch database
+// (CI uses the one the headless worker has just built from empty), never at one in use.
 
 var root = args.FirstOrDefault(a => !a.StartsWith('-'))
            ?? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 var verbose = args.Contains("-v") || args.Contains("--verbose");
+var collisions = args.Contains("--collisions");
 
 var cs = Environment.GetEnvironmentVariable("EVECONSOLE_PG");
 if (string.IsNullOrWhiteSpace(cs))
@@ -64,6 +82,9 @@ var skipped   = candidates.Where(c => c.Unusable is not null).ToList();
 
 var failures  = new List<(Candidate C, string Error)>();
 var id        = 0;
+// What each sound statement returns, so the collision pass can tell a result column that now
+// reads a probe column from one that was always there.
+var shapes    = new Dictionary<Candidate, (string Types, int Count)>();
 
 foreach (var c in checkable)
 {
@@ -72,6 +93,7 @@ foreach (var c in checkable)
     {
         await using (var prep = new NpgsqlCommand($"PREPARE {name} AS {c.Sql}", pg))
             await prep.ExecuteNonQueryAsync();
+        shapes[c] = await ShapeOfAsync(name);
         await using (var drop = new NpgsqlCommand($"DEALLOCATE {name}", pg))
             await drop.ExecuteNonQueryAsync();
     }
@@ -94,6 +116,13 @@ foreach (var c in checkable)
     {
         failures.Add((c, ex.Message.Split('\n')[0]));
     }
+}
+
+var collided = new List<(Candidate C, string Error)>();
+if (collisions)
+{
+    var code = await CollisionPassAsync();
+    if (code != 0) return code;
 }
 
 // ⚠️ Syntax errors are separated out, and it is not squeamishness. A statement with a real
@@ -137,6 +166,18 @@ if (artefact.Count > 0)
     Show(artefact);
 }
 
+if (collisions)
+{
+    if (collided.Count > 0)
+    {
+        Console.WriteLine($"COLLISIONS — these break once the SDE import adds a column of the same "
+                        + $"name to an Sde table ({collided.Count})\n");
+        Show(collided);
+    }
+    else
+        Console.WriteLine("  no collisions: no checked statement changes meaning when an Sde table gains a column.\n");
+}
+
 Console.WriteLine($"  statements found      : {candidates.Count}");
 Console.WriteLine($"    checked             : {checkable.Count}");
 Console.WriteLine($"    not checkable        : {skipped.Count}   (assembled from SQL fragments)");
@@ -154,6 +195,122 @@ if (verbose && skipped.Count > 0)
 
 // Only the semantic findings fail the run. The artefacts are this tool's reconstruction, and a
 // checker that reports its own limitations as build failures is one nobody keeps in CI.
-return real.Count == 0 ? 0 : 1;
+return real.Count == 0 && collided.Count == 0 ? 0 : 1;
 
 string Rel(string p) => Path.GetRelativePath(root, p).Replace('\\', '/');
+
+async Task<(string Types, int Count)> ShapeOfAsync(string prepared)
+{
+    await using var q = new NpgsqlCommand(
+        "SELECT coalesce(result_types::text, ''), coalesce(cardinality(result_types), 0) " +
+        "FROM pg_prepared_statements WHERE name = @n", pg);
+    q.Parameters.AddWithValue("n", prepared);
+    await using var r = await q.ExecuteReaderAsync();
+    return await r.ReadAsync() ? (r.GetString(0), r.GetInt32(1)) : ("", 0);
+}
+
+async Task Exec(string sql)
+{
+    await using var cmd = new NpgsqlCommand(sql, pg);
+    await cmd.ExecuteNonQueryAsync();
+}
+
+async Task<int> CollisionPassAsync()
+{
+    // The name the errors print: "operator does not exist: "SdeColumnAddedLater" = integer" says
+    // what happened without this tool's help.
+    const string Probe = "SdeColumnAddedLater";
+
+    // Every name the code quotes, whatever it names here — a column of another table, a CTE's
+    // output, an alias that GROUP BY would prefer an input column over. A field CCP adds can be
+    // spelled like any of them, and only those can change what this code means.
+    var quoted = candidates
+        .SelectMany(c => Regex.Matches(c.Sql, "\"([^\"]{1,63})\"").Select(m => m.Groups[1].Value))
+        .ToHashSet(StringComparer.Ordinal);
+
+    var columns = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+    await using (var q = new NpgsqlCommand("""
+        SELECT c.table_name, c.column_name
+        FROM information_schema.columns c
+        JOIN information_schema.tables t ON t.table_schema = c.table_schema AND t.table_name = c.table_name
+        WHERE c.table_schema = current_schema() AND t.table_type = 'BASE TABLE'
+        """, pg))
+    await using (var r = await q.ExecuteReaderAsync())
+        while (await r.ReadAsync())
+        {
+            if (!columns.TryGetValue(r.GetString(0), out var set))
+                columns[r.GetString(0)] = set = new HashSet<string>(StringComparer.Ordinal);
+            set.Add(r.GetString(1));
+        }
+
+    var sde = columns.Keys.Where(t => t.StartsWith("Sde", StringComparison.Ordinal)).OrderBy(t => t).ToList();
+    if (sde.Count == 0)
+    {
+        Console.Error.WriteLine("--collisions: this database has no Sde tables, so there is nothing to probe.");
+        return 2;
+    }
+
+    await using var tx = await pg.BeginTransactionAsync();
+    try
+    {
+        // ⚠️ Never wait behind anybody: a database something else is using is the wrong one.
+        await Exec("SET LOCAL lock_timeout = '5s'");
+        await Exec($"CREATE TYPE \"{Probe}\" AS (never_read integer)");
+    }
+    catch (PostgresException ex)
+    {
+        Console.Error.WriteLine($"--collisions needs a scratch database it may alter inside a transaction "
+                              + $"it rolls back; this one refused: {ex.SqlState}: {ex.MessageText}");
+        return 2;
+    }
+
+    var added = 0;
+    foreach (var table in sde)
+    {
+        var add = quoted.Where(n => !columns[table].Contains(n) && !columns.ContainsKey(n)).OrderBy(n => n).ToList();
+        // PostgreSQL's 1,600 columns a table, with room for what the import itself still adds.
+        if (columns[table].Count + add.Count > 1500)
+        {
+            Console.Error.WriteLine($"--collisions: {table} would need {add.Count} probe columns beside its "
+                                  + $"{columns[table].Count}, past PostgreSQL's limit.");
+            return 2;
+        }
+        if (add.Count == 0) continue;
+        await Exec($"ALTER TABLE \"{table}\" " +
+                   string.Join(", ", add.Select(n => $"ADD COLUMN \"{n}\" \"{Probe}\"")));
+        added += add.Count;
+    }
+
+    var n2 = 0;
+    foreach (var c in checkable.Where(shapes.ContainsKey))
+    {
+        var name = $"_pgsqlcollide_{++n2}";
+        await Exec("SAVEPOINT probe");
+        try
+        {
+            await using (var prep = new NpgsqlCommand($"PREPARE {name} AS {c.Sql}", pg))
+                await prep.ExecuteNonQueryAsync();
+            var now    = await ShapeOfAsync(name);
+            var before = shapes[c];
+            await Exec($"DEALLOCATE {name}");
+            await Exec("RELEASE SAVEPOINT probe");
+            // ⚠️ Same number of result columns, one of them now the probe's: a bare name in the
+            // select list that reads the new column. More columns is a SELECT * growing, which
+            // reads by name and is not this.
+            if (now.Count == before.Count && now.Types != before.Types && now.Types.Contains(Probe))
+                collided.Add((c, $"a result column now reads the new Sde column: {before.Types} -> {now.Types}"));
+        }
+        catch (PostgresException ex)
+        {
+            await Exec("ROLLBACK TO SAVEPOINT probe");
+            collided.Add((c, ex.SqlState == "42702"
+                ? $"42702 ambiguous: {ex.MessageText}"
+                : $"{ex.SqlState}: {ex.MessageText} (a bare name now binds to the new Sde column)"));
+        }
+    }
+
+    await tx.RollbackAsync();
+    Console.WriteLine($"  collision pass        : {sde.Count} Sde tables, {added:N0} probe columns, "
+                    + $"{n2} statements re-checked, all rolled back");
+    return 0;
+}

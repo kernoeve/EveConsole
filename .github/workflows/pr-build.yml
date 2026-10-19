@@ -176,3 +176,18 @@ jobs:
           grep -q "this process holds the lease" worker.log
           grep -q "Stopping" worker.log
           test "$code" = 0
+
+      # The worker has just built the whole schema in an empty database, and that database is
+      # still running — the one place in CI with every table PostgreSQL will see. So PgSqlCheck
+      # PREPAREs every hand-written statement against it.
+      #
+      # ⚠️ --collisions is the reason it runs here. The SDE import adds a column to an Sde table
+      # for every field CCP adds to a file, on users' machines, with no release of ours in
+      # between; a statement naming a column bare beside an Sde table is then one CCP field away
+      # from "ambiguous" — or, in a subquery, from quietly reading the new column instead of the
+      # one it meant. No schema this build can make shows that, so the pass gives every Sde table
+      # a column for every name the code quotes, checks everything again, and rolls it all back.
+      - name: SQL typechecks on PostgreSQL and survives new SDE columns
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
