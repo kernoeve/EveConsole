@@ -3200,13 +3200,17 @@
     <value>{0} at {1} — {2:N0} m3</value>
     <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the stopped job, {1} the station, {2} the volume to move in cubic metres.</comment>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>Raise {0:N0} haul(s)</value>
-    <comment>Heading of a hauling finding on the Bottlenecks → Summary tab. {0} is the hauls to raise. "Raise" is a verb.</comment>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} haul(s) holding up {1:N0} job(s)</value>
+    <comment>Heading of the hauling finding on the Bottlenecks → Summary tab. {0} is the deliveries listed under it, {1} the stopped jobs waiting on material owned elsewhere. The deliveries are listed most important first, whether or not a haul is already on the worklist.</comment>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>{0:N0} job(s) waiting on material already owned, with nothing moving.</value>
-    <comment>Under a hauling finding on the Bottlenecks → Summary tab. {0} is the stopped jobs waiting on material owned elsewhere.</comment>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>{0:N0} of what they need has no haul on the worklist yet.</value>
+    <comment>Under the hauling finding when some deliveries have no haul raised. {0} is how many item-and-place deliveries have none.</comment>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Every one of them is on the worklist: flying them restarts the work.</value>
+    <comment>Under the hauling finding when every delivery already has a haul raised on the worklist; the jobs wait only for the hauls to be flown.</comment>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Add manufacturing slots</value>
@@ -3239,14 +3243,6 @@
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — unblocks {1:N0} task(s)</value>
     <comment>A line under a buying finding on the Bottlenecks → Summary tab. {0} is the purchase as the Worklist names it, {1} the stopped tasks it would free.</comment>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} to {1} — {2:N0} ({3:N0} m3), restarts {4:N0} jobs</value>
-    <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs the delivery restarts.</comment>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} to {1} — {2:N0} ({3:N0} m3), wanted by {4:N0} jobs, none restarted by it alone</value>
-    <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs that want it.</comment>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Worst {0} shown; the rest are on the tab.</value>

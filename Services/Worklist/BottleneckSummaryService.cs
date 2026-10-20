@@ -273,30 +273,28 @@ public class BottleneckSummaryService
     {
         if (hauls.Count == 0) yield break;
 
-        // Only what nobody has raised: a trip already on the list needs no decision.
-        var idle = hauls.Where(h => h.HaulTasks == 0).ToList();
-        if (idle.Count == 0) yield break;
-
-        // ⚠️ Trips serving several stopped jobs first. One row per job is the grid's business;
-        // what belongs here is the delivery worth making.
-        var shared = SharedHauls.Find(idle).Where(h => !h.Raised).ToList();
+        // ⚠️ What holds up the most work, whether a haul is raised for it or not. Only the
+        // trips nobody had raised were listed once, and a raised one simply vanished: the haul
+        // that 132 stopped jobs were waiting on — Tritanium, 945 million units, ready to fly —
+        // was nowhere on the card, while it named trips the plan could never make. A raised trip
+        // is still the bottleneck until it is flown; the line says whether it is on the worklist.
+        var shared = SharedHauls.Find(hauls);
+        var notRaised = hauls.SelectMany(h => h.Wants.Where(w => !w.Moving).Select(w => (h.StationId, w.TypeId)))
+            .Distinct().Count();
 
         List<ObservationPoint> points = shared.Count > 0
-            ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId,
-                  h.Unblocks > 0
-                      ? string.Format(WorklistText.SummaryTripRestarts,
-                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Unblocks)
-                      : string.Format(WorklistText.SummaryTripWanted,
-                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Jobs)))]
-            : [.. idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
+            ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId, h.Line))]
+            : [.. hauls.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
                    .Select(h => new ObservationPoint(h.TypeId,
                        string.Format(WorklistText.SummaryHaulAt, h.Title, h.StationName, h.Volume)))];
+        var deliveries = shared.Count > 0 ? shared.Count : hauls.Count;
 
         yield return new Observation(
             "hauling",
-            idle.Count + DistinctStopped(idle.Select(h => h.Tasks)),
-            string.Format(WorklistText.SummaryRaiseHauls, shared.Count > 0 ? shared.Count : idle.Count),
-            string.Format(WorklistText.SummaryHaulsIdle, idle.Count),
+            hauls.Count + DistinctStopped(hauls.Select(h => h.Tasks)),
+            string.Format(WorklistText.SummaryHaulsHoldUp, deliveries, hauls.Count),
+            (notRaised > 0 ? string.Format(WorklistText.SummaryHaulsNotRaised, notRaised) : WorklistText.SummaryHaulsAllRaised)
+          + More(deliveries),
             points);
     }
 

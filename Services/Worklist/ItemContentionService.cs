@@ -303,9 +303,11 @@ public sealed record ItemShortage(
 /// the rate that was wanted. Fix the constraint and the number rises — which means a buffer sized
 /// on today's figure is sized for today's constrained pipeline.</para>
 /// </summary>
+/// <param name="planner">The haul planner, whose last plan says what owned material can move.</param>
 public class ItemContentionService(
     IDbContextFactory<AppDbContext> dbFactory,
-    WorklistSettings                settings)
+    WorklistSettings                settings,
+    LogisticsGenerator?             planner = null)
 {
     /// <summary>How far back rates are measured. Matches the Bottlenecks tab's other windows.</summary>
     private const int WindowDays = 90;
@@ -327,8 +329,17 @@ public class ItemContentionService(
         // ⚠️ Only genuine shortages. A material sitting at another station stops this job just as
         // firmly, but the fix is a hauler rather than a purchase or a build, and the hauling view
         // is where it belongs.
+        //
+        // ⚠️ And what is owned but cannot move: needed by the station holding every unit of it,
+        // or promised to someone first. Neither a haul nor a purchase reaches it, so it was on
+        // neither tab — capital components the ship hangar needs four times over read as trips.
+        // It is short like anything nobody owns, and the answer is building more. HaulReach
+        // splits owned shortages with the Hauling rows, so none is on both.
+        var reach  = new HaulReach(items, planner?.LastFacts);
         var short_ = items
-            .SelectMany(i => i.Shortages.Where(s => s.MustBuy).Select(s => (Item: i, Short: s)))
+            .SelectMany(i => i.Shortages
+                .Where(s => s.MustBuy || (i.LocationId > 0 && !reach.CanHaul(i.LocationId, s.TypeId)))
+                .Select(s => (Item: i, Short: s)))
             .ToList();
         if (short_.Count == 0) return [];
 

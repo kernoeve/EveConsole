@@ -2389,11 +2389,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0}（位于 {1}）——{2:N0} m³</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>生成 {0:N0} 趟运送</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} 趟运输阻碍着 {1:N0} 项工作</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>{0:N0} 个任务在等待已拥有的材料，却没有任何运送在进行。</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>其中 {0:N0} 项所需物资在工作清单上还没有运输任务。</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>它们都已在工作清单上：完成运输即可恢复这些工作。</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>增加制造栏位</value>
@@ -2418,12 +2421,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0}——可解除 {1:N0} 个工作项的阻塞</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} 运至 {1}——{2:N0} 个（{3:N0} m³），可让 {4:N0} 个任务重新开始</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} 运至 {1}——{2:N0} 个（{3:N0} m³），{4:N0} 个任务需要，但单靠它没有一个能重新开始</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>仅显示最严重的 {0} 项；其余见对应标签页。</value>

@@ -1230,8 +1230,10 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistHaulingViewModel(dbFactory, worklistSettings, errorLogger),
                                      new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
                                                            industryBlueprintService, worklistSettings),
-                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),
-                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings));
+                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings,
+                                         worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault()),
+                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings,
+                                         worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault()));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section
