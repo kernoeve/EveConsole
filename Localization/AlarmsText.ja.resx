@@ -1168,6 +1168,42 @@
   <data name="StoreSaidCanceled" xml:space="preserve">
     <value>{1}の{0}の注文はキャンセルされました。</value>
   </data>
+  <data name="StoreHeadOfferNew" xml:space="preserve">
+    <value>新しい売却申し出：{0}（売り手：{1}）</value>
+  </data>
+  <data name="StoreSaidOfferNew" xml:space="preserve">
+    <value>{0}に新しい売却申し出です：{2}が{1}を{3}で売ります。</value>
+  </data>
+  <data name="StoreHeadOfferContracted" xml:space="preserve">
+    <value>申し出{0}：こちら宛ての契約が届きました</value>
+  </data>
+  <data name="StoreSaidOfferContracted" xml:space="preserve">
+    <value>{1}が{0}の契約を送りました。ゲーム内で受諾してください。</value>
+  </data>
+  <data name="StoreSaidOfferContractedPart" xml:space="preserve">
+    <value>{1}が{0}のうち{3:N0}個中{2:N0}個の契約を送りました。ゲーム内で受諾してください。</value>
+  </data>
+  <data name="StoreSaidOfferAsksMore" xml:space="preserve">
+    <value>{1}が{0}の契約を送りましたが、提示価格より高い金額を求めています。</value>
+  </data>
+  <data name="StoreHeadOfferReceived" xml:space="preserve">
+    <value>申し出{0}：{2:N0}個中{1:N0}個を受領済み</value>
+  </data>
+  <data name="StoreSaidOfferReceived" xml:space="preserve">
+    <value>{0}から{1}を{3:N0}個中{2:N0}個受領しました。</value>
+  </data>
+  <data name="StoreHeadOfferComplete" xml:space="preserve">
+    <value>申し出{0}は完了です</value>
+  </data>
+  <data name="StoreSaidOfferComplete" xml:space="preserve">
+    <value>{0}からの{1}の契約を受諾しました。申し出は完了です。</value>
+  </data>
+  <data name="StoreHeadOfferCanceled" xml:space="preserve">
+    <value>申し出{0}はキャンセルされました</value>
+  </data>
+  <data name="StoreSaidOfferCanceled" xml:space="preserve">
+    <value>{1}からの{0}の申し出はキャンセルされました。</value>
+  </data>
   <data name="IskBillions" xml:space="preserve">
     <value>{0:0.##}十億ISK</value>
   </data>

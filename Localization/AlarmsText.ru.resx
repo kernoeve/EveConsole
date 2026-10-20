@@ -1249,6 +1249,42 @@
   <data name="StoreSaidCanceled" xml:space="preserve">
     <value>Заказ ({0}, покупатель {1}) отменён.</value>
   </data>
+  <data name="StoreHeadOfferNew" xml:space="preserve">
+    <value>Новое предложение: {0}, продавец: {1}</value>
+  </data>
+  <data name="StoreSaidOfferNew" xml:space="preserve">
+    <value>Новое предложение в магазине {0}: продавец {2} продаёт {1} за {3}.</value>
+  </data>
+  <data name="StoreHeadOfferContracted" xml:space="preserve">
+    <value>Предложение {0}: контракт нам создан</value>
+  </data>
+  <data name="StoreSaidOfferContracted" xml:space="preserve">
+    <value>Продавец {1} прислал контракт ({0}). Примите его в игре.</value>
+  </data>
+  <data name="StoreSaidOfferContractedPart" xml:space="preserve">
+    <value>Продавец {1} прислал контракт на {2:N0} из {3:N0} ({0}). Примите его в игре.</value>
+  </data>
+  <data name="StoreSaidOfferAsksMore" xml:space="preserve">
+    <value>Продавец {1} прислал контракт ({0}) и просит больше, чем было указано.</value>
+  </data>
+  <data name="StoreHeadOfferReceived" xml:space="preserve">
+    <value>Предложение {0}: получено {1:N0} из {2:N0}</value>
+  </data>
+  <data name="StoreSaidOfferReceived" xml:space="preserve">
+    <value>Получено {2:N0} из {3:N0} ({1}) от продавца {0}.</value>
+  </data>
+  <data name="StoreHeadOfferComplete" xml:space="preserve">
+    <value>Предложение {0} выполнено</value>
+  </data>
+  <data name="StoreSaidOfferComplete" xml:space="preserve">
+    <value>Контракт ({1}) от продавца {0} принят. Предложение выполнено.</value>
+  </data>
+  <data name="StoreHeadOfferCanceled" xml:space="preserve">
+    <value>Предложение {0} отменено</value>
+  </data>
+  <data name="StoreSaidOfferCanceled" xml:space="preserve">
+    <value>Предложение ({0}, продавец {1}) отменено.</value>
+  </data>
   <data name="IskBillions" xml:space="preserve">
     <value>{0:0.##} млрд ISK</value>
   </data>

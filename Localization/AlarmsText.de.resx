@@ -1195,6 +1195,42 @@
   <data name="StoreSaidCanceled" xml:space="preserve">
     <value>Die Bestellung über {0} für {1} wurde storniert.</value>
   </data>
+  <data name="StoreHeadOfferNew" xml:space="preserve">
+    <value>Neues Angebot: {0} von {1}</value>
+  </data>
+  <data name="StoreSaidOfferNew" xml:space="preserve">
+    <value>Neues Angebot bei {0}: {2} verkauft {1} für {3}.</value>
+  </data>
+  <data name="StoreHeadOfferContracted" xml:space="preserve">
+    <value>Angebot {0}: Vertrag an uns erstellt</value>
+  </data>
+  <data name="StoreSaidOfferContracted" xml:space="preserve">
+    <value>{1} hat den Vertrag über {0} geschickt. Im Spiel annehmen.</value>
+  </data>
+  <data name="StoreSaidOfferContractedPart" xml:space="preserve">
+    <value>{1} hat den Vertrag über {2:N0} von {3:N0} ({0}) geschickt. Im Spiel annehmen.</value>
+  </data>
+  <data name="StoreSaidOfferAsksMore" xml:space="preserve">
+    <value>{1} hat den Vertrag über {0} geschickt und verlangt mehr als den genannten Preis.</value>
+  </data>
+  <data name="StoreHeadOfferReceived" xml:space="preserve">
+    <value>Angebot {0}: {1:N0} von {2:N0} erhalten</value>
+  </data>
+  <data name="StoreSaidOfferReceived" xml:space="preserve">
+    <value>{2:N0} von {3:N0} ({1}) von {0} erhalten.</value>
+  </data>
+  <data name="StoreHeadOfferComplete" xml:space="preserve">
+    <value>Angebot {0} abgeschlossen</value>
+  </data>
+  <data name="StoreSaidOfferComplete" xml:space="preserve">
+    <value>Der Vertrag über {1} von {0} wurde angenommen. Angebot abgeschlossen.</value>
+  </data>
+  <data name="StoreHeadOfferCanceled" xml:space="preserve">
+    <value>Angebot {0} storniert</value>
+  </data>
+  <data name="StoreSaidOfferCanceled" xml:space="preserve">
+    <value>Das Angebot über {0} von {1} wurde storniert.</value>
+  </data>
   <data name="IskBillions" xml:space="preserve">
     <value>{0:0.##} Milliarden ISK</value>
   </data>
