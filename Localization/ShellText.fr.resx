@@ -483,6 +483,9 @@ Clic droit pour réactiver.</value>
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>version de dev</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portable</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>n/d — version non installée</value>
   </data>

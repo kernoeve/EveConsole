@@ -603,6 +603,10 @@ Right-click to unmute.</value>
     <value>dev build</value>
     <comment>Title bar, beside the version: this copy was built from source, not installed from a release. Keep short.</comment>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portable</value>
+    <comment>Title-bar badge beside the version for a released build that was not installed (the Portable zip, the Linux tarball, Docker): it is a real release, but it does not update itself.</comment>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>n/a — not an installed build</value>
     <comment>Settings and the update dialog, "Latest:": not known, because this copy was not installed by the installer.</comment>

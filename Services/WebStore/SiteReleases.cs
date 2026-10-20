@@ -12,10 +12,14 @@ namespace EveConsole.Services.WebStore;
 /// its manifest and whose protocol is the app's own — a newer site speaking a newer protocol waits
 /// for the app to catch up rather than being installed and refused on the next sync.</para>
 ///
+/// <para>⚠️ Pre-releases are a development build's only (<paramref name="prereleases"/>). A site
+/// release candidate is tagged v0.2.0-rc.1 and published as a pre-release, so it can be deployed
+/// to a real store from a dev build and tried for real while no released app can see it.</para>
+///
 /// <para>The client is handed the API's base address (<c>https://api.github.com/</c> in the app, a
 /// fake in a harness); asset downloads follow the absolute addresses the API gives.</para>
 /// </summary>
-public sealed class SiteReleases(HttpClient github)
+public sealed class SiteReleases(HttpClient github, bool prereleases = false)
 {
     public const string Repository = "kernoeve/eveconsole-store";
     public static string ReleasesUrl => $"https://github.com/{Repository}/releases";
@@ -89,7 +93,7 @@ public sealed class SiteReleases(HttpClient github)
         foreach (var r in doc.RootElement.EnumerateArray())
         {
             if (r.TryGetProperty("draft", out var d) && d.ValueKind == JsonValueKind.True) continue;
-            if (r.TryGetProperty("prerelease", out var p) && p.ValueKind == JsonValueKind.True) continue;
+            if (!prereleases && r.TryGetProperty("prerelease", out var p) && p.ValueKind == JsonValueKind.True) continue;
 
             string? manifest = null, module = null;
             if (r.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)

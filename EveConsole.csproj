@@ -12,6 +12,13 @@
     <Version>0.9.17</Version>
   </PropertyGroup>
 
+  <!-- ⚠️ Set only by release-build.yml (-p:OfficialRelease=true). It is how a binary knows it is a
+       release rather than a development build — Services/BuildInfo.cs says why being installed
+       is not the same question. -->
+  <ItemGroup Condition="'$(OfficialRelease)' == 'true'">
+    <AssemblyMetadata Include="OfficialRelease" Value="true" />
+  </ItemGroup>
+
   <!--
     ⚠️ Are we BUILDING FOR Windows? Not the same question as $(OS), which describes the
     machine running MSBuild. Cross-compiling a Linux artifact from a Windows box leaves

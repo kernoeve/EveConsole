@@ -483,6 +483,9 @@ Rechtsklick hebt die Stummschaltung auf.</value>
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>Dev-Build</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portabel</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>k. A. – keine installierte Version</value>
   </data>

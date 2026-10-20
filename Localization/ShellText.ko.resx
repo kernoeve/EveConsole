@@ -477,6 +477,9 @@ PID: {2}
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>개발 빌드</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>포터블</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>해당 없음 — 설치된 빌드가 아님</value>
   </data>

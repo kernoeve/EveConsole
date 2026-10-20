@@ -83,9 +83,12 @@ public class UpdateViewModel : ReactiveObject
     /// <para>A dev build is not "up to date" and is not out of date either — it was never
     /// published, so there is nothing to compare it against. Saying so is more honest than
     /// either verdict.</para>
+    ///
+    /// <para>⚠️ A release that is not installed — the Portable zip, the Linux tarball — is not a
+    /// dev build, and was called one: it says "portable" (see <see cref="BuildInfo"/>).</para>
     /// </summary>
     public string UpdateBadgeText =>
-        !IsInstalledBuild ? ShellText.UpdateBadgeDevBuild
+        !IsInstalledBuild ? (BuildInfo.IsOfficialRelease ? ShellText.UpdateBadgePortable : ShellText.UpdateBadgeDevBuild)
       : UpdateAvailable   ? string.Format(ShellText.UpdateBadgeAvailable, LatestVersionText)
       : _upToDate         ? ShellText.UpToDate
       : "";

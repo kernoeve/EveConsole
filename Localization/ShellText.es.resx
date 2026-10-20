@@ -483,6 +483,9 @@ Haz clic con el botón derecho para dejar de silenciarlas.</value>
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>versión dev</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portátil</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>n/d — no es una compilación instalada</value>
   </data>

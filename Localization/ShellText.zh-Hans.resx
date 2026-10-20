@@ -477,6 +477,9 @@ PID：{2}
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>开发版</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>便携版</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>不适用——非安装版本</value>
   </data>
