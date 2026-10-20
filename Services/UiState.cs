@@ -43,6 +43,8 @@ public static class UiState
     /// <summary>"all" or "personal": whether the Asset Browser shows every owner it holds, or only
     /// the user's characters and the corporations marked personal.</summary>
     public const string AssetScope            = "assets.scope";
+    /// <summary>How the Asset Browser's Detailed View groups its rows: an AssetGroupBy name.</summary>
+    public const string AssetGroupBy          = "assets.group_by";
     public const string Theme                 = "ui.theme";
     /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
     public const string Scale                 = "ui.scale";
