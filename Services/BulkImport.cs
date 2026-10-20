@@ -118,10 +118,11 @@ public static class BulkImport
     /// table silently falls out of.
     /// </remarks>
     public static async Task ClearAsync(AppDbContext db, IReadOnlyList<string> tables,
-        CancellationToken ct)
+        CancellationToken ct, Action<int>? waiting = null)
     {
+        // Each DELETE whole in itself: one the database refused is made again (SqliteBusy).
         foreach (var table in tables)
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\"", ct);
+            await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\"", ct), waiting, ct);
     }
 
     /// <summary>

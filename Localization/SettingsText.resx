@@ -4019,6 +4019,10 @@ The application will restart.</value>
     <value>{0:N0} rows</value>
     <comment>Settings → SDE / Hoboleaks import progress detail while a table is saved. {0} is the number of rows saved so far.</comment>
   </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>Waiting for the database: something else is writing to it. Trying this write again (attempt {0})…</value>
+    <comment>Progress line during an SDE or Hoboleaks import on SQLite, when one write found the database locked by other work for more than 30 seconds. The import pauses and makes the same write again; nothing is lost or restarted. {0} is how many times this write has had to wait.</comment>
+  </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0} rows saved</value>
     <comment>Settings → SDE / Hoboleaks import progress detail: a table is saved. {0} is the number of rows.</comment>

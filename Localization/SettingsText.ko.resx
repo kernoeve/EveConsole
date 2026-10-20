@@ -3049,6 +3049,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0}행</value>
   </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>데이터베이스를 기다리는 중: 다른 작업이 쓰고 있습니다. 이 쓰기를 다시 시도합니다({0}번째)…</value>
+  </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0}행 저장됨</value>
   </data>

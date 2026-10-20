@@ -93,8 +93,20 @@ public class SdeImportService
     /// <exception cref="ImportVerificationException">
     /// The import ran to the end but lost a table that previously held data. Nothing was committed.
     /// </exception>
+    // Writes that met a locked database and were made again, this import (SQLite).
+    private int _busyWaits;
+
+    /// <summary>What a write that met a locked database says while it waits: the stage's own line,
+    /// the bar where it was. See SqliteBusy.</summary>
+    private Action<int> Waiting(IProgress<SdeImportProgress> p, string stage, double frac) => attempt =>
+    {
+        _busyWaits++;
+        p.Report(new SdeImportProgress(stage, string.Format(SettingsText.ImportWaitingForDatabase, attempt), frac));
+    };
+
     public async Task<IReadOnlyList<string>> ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
     {
+        _busyWaits = 0;
         Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeFetchingBuildInfo, 0.01);
         var buildInfo = await GetLatestBuildInfoAsync(ct);
 
@@ -119,7 +131,7 @@ public class SdeImportService
             // describe the shape rather than the contents, and a new column is wanted whether or
             // not the rows that follow survive.
             Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeCreatingSchema, 0.30);
-            EnsureSdeSchema(db);
+            EnsureSdeSchema(db, Waiting(progress, SettingsText.ImportStagePreparing, 0.30));
 
             // Read before the wipe destroys it. This is what the verification at the end compares
             // against, so a table that quietly stops being filled reads as "races held 11 rows and
@@ -150,7 +162,7 @@ public class SdeImportService
                 (stage, detail, frac) => progress.Report(new SdeImportProgress(stage, detail, frac)), ct);
 
             Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeClearing, 0.31);
-            await BulkImport.ClearAsync(db, tables, ct);
+            await BulkImport.ClearAsync(db, tables, ct, Waiting(progress, SettingsText.ImportStagePreparing, 0.31));
 
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -206,7 +218,7 @@ public class SdeImportService
                     existing.ReleaseDate = buildInfo.ReleaseDate;
                     existing.ImportedAt  = buildInfo.ImportedAt;
                 }
-                await db.SaveChangesAsync(ct);
+                await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(progress, SettingsText.ImportStageVerifying, 0.99), ct);
             }
 
             // How many names each language got: the one place that says whether the SDE carried all
@@ -222,6 +234,11 @@ public class SdeImportService
             var (lost, warnings) = BulkImport.Compare(
                 before, await BulkImport.CountAsync(db, tables, ct));
             warnings.AddRange(completeness.Warnings);
+            // Worth knowing, not a fault: every one of them went through in the end.
+            if (_busyWaits + completeness.BusyWaits > 0)
+                warnings.Add($"Waited for the database {_busyWaits + completeness.BusyWaits:N0} time(s): something else held SQLite's " +
+                             "write lock past its 30 seconds. Each of those writes was made again and went through; " +
+                             "the error log's lock reports name what held it.");
 
             if (lost.Count > 0)
             {
@@ -413,7 +430,7 @@ public class SdeImportService
     /// duplicate-column error is swallowed — so it is safe to run on every start, on any vintage
     /// of database, in either order relative to EnsureCreated.</para>
     /// </remarks>
-    internal static void EnsureSdeSchema(AppDbContext db)
+    internal static void EnsureSdeSchema(AppDbContext db, Action<int>? waiting = null)
     {
         // CREATE TABLE IF NOT EXISTS — idempotent for the full table definition
         var creates = new[]
@@ -511,7 +528,7 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdePlanetTypeResources" ("PlanetTypeId" INTEGER NOT NULL, "ResourceTypeId" INTEGER NOT NULL, "PlanetType" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdePlanetTypeResources" PRIMARY KEY ("PlanetTypeId", "ResourceTypeId"))""",
         };
         foreach (var sql in creates)
-            db.Database.ExecuteSqlRaw(sql);
+            SqliteBusy.Retry(() => db.Database.ExecuteSqlRaw(sql), waiting);
 
         // ALTER TABLE ADD COLUMN for tables that existed before these columns were added.
         // SQLite ALTER TABLE does not support IF NOT EXISTS, so we catch the duplicate-column error.
@@ -660,10 +677,12 @@ public class SdeImportService
             """ALTER TABLE "SdeTypes" ADD COLUMN "SoundId" INTEGER""",
             """ALTER TABLE "SdeTypes" ADD COLUMN "ShipTreeGroupId" INTEGER""",
         };
+        // ⚠️ Only the duplicate column is "already done". A locked database swallowed here would
+        // skip the column and fail the import later, on a write that names it.
         foreach (var sql in alters)
         {
-            try { db.Database.ExecuteSqlRaw(sql); }
-            catch { /* column already exists — idempotent */ }
+            try { SqliteBusy.Retry(() => db.Database.ExecuteSqlRaw(sql), waiting); }
+            catch (Exception ex) when (!SqliteBusy.IsBusy(ex)) { /* column already exists — idempotent */ }
         }
     }
 
@@ -2243,7 +2262,7 @@ public class SdeImportService
                 station.Name = filled[station.StationId];
             // ⚠️ The import turns automatic change detection off for its bulk inserts.
             db.ChangeTracker.DetectChanges();
-            await db.SaveChangesAsync(ct);
+            await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, SettingsText.ImportStageNames, 0.999), ct);
             db.ChangeTracker.Clear();
         }
 
@@ -2287,26 +2306,29 @@ public class SdeImportService
             if (buffer.Count >= Batch)
             {
                 await set.AddRangeAsync(buffer, ct);
-                await db.SaveChangesAsync(ct);
+                // ⚠️ This batch, made again if the database is locked — never the table from the
+                // top. A refused SaveChanges wrote nothing and keeps the rows as Added. SqliteBusy.
+                await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, stage, Frac()), ct);
                 db.ChangeTracker.Clear();
                 saved += buffer.Count;
                 buffer.Clear();
 
-                var frac   = estimatedTotal > 0
-                    ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
-                    : fracStart;
                 var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : string.Format(SettingsText.ImportRowsProgress, saved);
-                p.Report(new SdeImportProgress(stage, detail, frac));
+                p.Report(new SdeImportProgress(stage, detail, Frac()));
             }
         }
 
         if (buffer.Count > 0)
         {
             await set.AddRangeAsync(buffer, ct);
-            await db.SaveChangesAsync(ct);
+            await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, stage, Frac()), ct);
             db.ChangeTracker.Clear();
             saved += buffer.Count;
         }
+
+        double Frac() => estimatedTotal > 0
+            ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
+            : fracStart;
 
         p.Report(new SdeImportProgress(stage, string.Format(SettingsText.ImportRowsSaved, saved), fracEnd));
 
@@ -3131,7 +3153,7 @@ public class SdeImportService
                 ServiceId = kv.Key,
                 Name      = kv.Value.serviceName?.en ?? $"Service {kv.Key}",
             }));
-            await db.SaveChangesAsync(ct);
+            await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, SettingsText.ImportStageStationServices, 0.89), ct);
             db.ChangeTracker.Clear();
             Report(p, SettingsText.ImportStageStationServices, string.Format(SettingsText.SdeServicesCount, raw.Count), 0.892);
             await SaveNamesAsync(db, SdeNameKind.StationService, raw.Select(kv => ((long)kv.Key, kv.Value.serviceName)), p, 0.892, ct);
@@ -3170,7 +3192,7 @@ public class SdeImportService
             .SelectMany(kv => (kv.Value.services ?? []).Distinct()
                 .Select(sid => new SdeStationOperationService { OperationId = kv.Key, ServiceId = sid })));
 
-        await db.SaveChangesAsync(ct);
+        await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, SettingsText.ImportStageStationOperations, 0.895), ct);
         db.ChangeTracker.Clear();
         Report(p, SettingsText.ImportStageStationOperations, string.Format(SettingsText.SdeOperationsCount, ops.Count), 0.895);
         await SaveNamesAsync(db, SdeNameKind.StationOperation, ops.Select(kv => ((long)kv.Key, kv.Value.operationName)), p, 0.895, ct);

@@ -3049,6 +3049,9 @@ La aplicación se reiniciará.</value>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0} filas</value>
   </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>Esperando a la base de datos: otra tarea está escribiendo en ella. Reintentando esta escritura (intento {0})…</value>
+  </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0} filas guardadas</value>
   </data>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using EveConsole.Data;
+using EveConsole.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -71,6 +72,12 @@ public sealed class SdeCompleteness
     /// <summary>What did not go as it should, for the import's own warnings.</summary>
     public List<string> Warnings { get; } = [];
 
+    /// <summary>How many writes met a locked database and were made again (SQLite).</summary>
+    public int BusyWaits { get; private set; }
+
+    // What hears of a wait while a job runs: the job's own line on the progress bar.
+    private Action<int>? _waiting;
+
     private SdeCompleteness() { }
 
     /// <summary>
@@ -129,8 +136,9 @@ public sealed class SdeCompleteness
                 plan._ownTables.Add(existing);
 
         foreach (var job in plan._jobs.Where(j => j.Mode != Mode.Supplement))
-            await db.Database.ExecuteSqlRawAsync(
-                $"CREATE TABLE IF NOT EXISTS \"{job.Table}\" (\"{job.KeyColumn}\" {(job.KeyIsText ? "TEXT" : DbEngine.IsPostgres ? "BIGINT" : "INTEGER")} NOT NULL PRIMARY KEY)", ct);
+            await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync(
+                $"CREATE TABLE IF NOT EXISTS \"{job.Table}\" (\"{job.KeyColumn}\" {(job.KeyIsText ? "TEXT" : DbEngine.IsPostgres ? "BIGINT" : "INTEGER")} NOT NULL PRIMARY KEY)", ct),
+                attempt => plan.BusyWaits++, ct);
 
         return plan;
     }
@@ -152,8 +160,14 @@ public sealed class SdeCompleteness
         {
             for (var i = 0; i < _jobs.Count; i++)
             {
-                var job = _jobs[i];
-                report(job.File, from + (to - from) * i / Math.Max(1, _jobs.Count));
+                var job  = _jobs[i];
+                var frac = from + (to - from) * i / Math.Max(1, _jobs.Count);
+                report(job.File, frac);
+                _waiting = attempt =>
+                {
+                    BusyWaits++;
+                    report($"{job.File} — {string.Format(SettingsText.ImportWaitingForDatabase, attempt)}", frac);
+                };
 
                 // ⚠️ On PostgreSQL the whole import is one transaction, and a statement that fails
                 // poisons it: everything after is refused and the import is lost. A savepoint per
@@ -227,7 +241,8 @@ public sealed class SdeCompleteness
         {
             if (!existing.TryGetValue(name, out var had))
             {
-                await db.Database.ExecuteSqlRawAsync($"ALTER TABLE \"{job.Table}\" ADD COLUMN \"{name}\" {SqlType(kind)}", ct);
+                await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync(
+                    $"ALTER TABLE \"{job.Table}\" ADD COLUMN \"{name}\" {SqlType(kind)}", ct), _waiting, ct);
                 kinds[name] = kind;
                 continue;
             }
@@ -243,25 +258,48 @@ public sealed class SdeCompleteness
         }
 
         // ── Write ─────────────────────────────────────────────────────────────────
+        // ⚠️ In chunks, each its own transaction on SQLite and made again if the database is locked.
+        // One transaction for the whole file held SQLite's only write lock for as long as the
+        // file took — every background write in the app waited behind it, and the one that met
+        // a poll holding the lock failed the file. On PostgreSQL the import's own transaction
+        // carries everything, and nothing here waits on a lock.
         var conn  = db.Database.GetDbConnection();
         var outer = db.Database.CurrentTransaction?.GetDbTransaction();
-        await using var own = outer is null ? await conn.BeginTransactionAsync(ct) : null;
-        var tx = outer ?? own;
+
+        async Task WriteAsync(Func<System.Data.Common.DbTransaction, Task> chunk)
+        {
+            if (outer is not null) { await chunk(outer); return; }
+            await SqliteBusy.RetryAsync(async () =>
+            {
+                await using var own = await conn.BeginTransactionAsync(ct);
+                await chunk(own);
+                await own.CommitAsync(ct);
+            }, _waiting, ct);
+        }
 
         if (job.Mode == Mode.Supplement)
         {
-            await using var cmd = conn.CreateCommand();
-            cmd.Transaction = tx;
-            cmd.CommandText = $"UPDATE \"{job.Table}\" SET " +
-                string.Join(", ", columns.Select((c, n) => $"\"{c.Name}\" = @v{n}")) + $" WHERE \"{job.KeyColumn}\" = @k";
-            var pars = columns.Select((_, n) => Param(cmd, $"v{n}")).ToList();
-            var keyPar = Param(cmd, "k");
             var missed = 0;
-            foreach (var (key, values) in rows)
+            foreach (var part in rows.Chunk(500))
             {
-                keyPar.Value = KeyValue(key, job.KeyIsText);
-                for (var n = 0; n < columns.Count; n++) pars[n].Value = Convert(columns[n].Get(values), kinds[columns[n].Name]);
-                if (await cmd.ExecuteNonQueryAsync(ct) == 0) missed++;
+                var partMissed = 0;
+                await WriteAsync(async tx =>
+                {
+                    partMissed = 0;   // counted again if the chunk is made again
+                    await using var cmd = conn.CreateCommand();
+                    cmd.Transaction = tx;
+                    cmd.CommandText = $"UPDATE \"{job.Table}\" SET " +
+                        string.Join(", ", columns.Select((c, n) => $"\"{c.Name}\" = @v{n}")) + $" WHERE \"{job.KeyColumn}\" = @k";
+                    var pars = columns.Select((_, n) => Param(cmd, $"v{n}")).ToList();
+                    var keyPar = Param(cmd, "k");
+                    foreach (var (key, values) in part)
+                    {
+                        keyPar.Value = KeyValue(key, job.KeyIsText);
+                        for (var n = 0; n < columns.Count; n++) pars[n].Value = Convert(columns[n].Get(values), kinds[columns[n].Name]);
+                        if (await cmd.ExecuteNonQueryAsync(ct) == 0) partMissed++;
+                    }
+                });
+                missed += partMissed;
             }
             if (missed > 0)
                 Warnings.Add($"{job.File}: {missed:N0} record(s) have no row in {job.Table} to keep their other fields on.");
@@ -270,6 +308,7 @@ public sealed class SdeCompleteness
         {
             var perStatement = Math.Max(1, 900 / (columns.Count + 1));
             foreach (var chunk in rows.Chunk(perStatement))
+            await WriteAsync(async tx =>
             {
                 await using var cmd = conn.CreateCommand();
                 cmd.Transaction = tx;
@@ -290,10 +329,8 @@ public sealed class SdeCompleteness
                 }
                 cmd.CommandText = sql.ToString();
                 await cmd.ExecuteNonQueryAsync(ct);
-            }
+            });
         }
-
-        if (own is not null) await own.CommitAsync(ct);
     }
 
     // ── Names ────────────────────────────────────────────────────────────────────

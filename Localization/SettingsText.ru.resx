@@ -3049,6 +3049,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>строк: {0:N0}</value>
   </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>Ожидание базы данных: в неё пишет другая задача. Повтор этой записи (попытка {0})…</value>
+  </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>сохранено строк: {0:N0}</value>
   </data>
