@@ -808,6 +808,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>在选择合同接收方之前，收购列表不受理报价。</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>收购合同地点</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>搜索空间站或建筑（可选）</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>卖家会被告知：在 {0} 创建所有合同。</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>可选。卖家应创建合同的地点：价格表邮件、报价回复和网站都会告知。在其他地点创建的合同仍会匹配。</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0}（角色）</value>
   </data>

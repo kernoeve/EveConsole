@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
 using EveConsole.Api;
@@ -161,6 +162,7 @@ public class StoreMailService(
             // numbers and the item names. What its owner reads — the log's detail lines, the
             // status — goes back to the app's own language through Owner.
             using var language = LanguageScope.Use(store.Language);
+            await RememberBuyPlaceAsync(db, store, ct);
             if (store.Enabled) handled += await ServeAsync(db, store, ct);
             told += await NotifyAsync(db, store, ct);
         }
@@ -810,13 +812,14 @@ public class StoreMailService(
         int? heaviest = null;
         var mails = 0;
         var rendered = 0;
+        await RememberBuyPlaceAsync(db, store, ct);
         foreach (var listing in await StorePostings.ListAsync(db, store, ct))
         {
             var blocks = await postings.RenderAsync(listing.PostingId, "EVE Mail", ct, language: store.Language,
                                                     buying: listing.IsBuy);
             if (blocks.Count == 0) continue;
 
-            var body = ListingBlocks(listing, blocks);
+            var body = ListingBlocks(listing, blocks, store);
 
             // What one mail would weigh, wrapper included — the number to compare against the
             // limit, because the limit applies to the body as sent, not to the posting on its own.
@@ -831,13 +834,43 @@ public class StoreMailService(
         return new PriceListSize(whole, UsableBodyBytes, mails, rendered);
     }
 
-    /// <summary>A listing's blocks as mailed: a Buy listing opens by saying what it is.</summary>
-    private static List<string> ListingBlocks(StorePosting listing, IReadOnlyList<RenderedPost> blocks)
+    /// <summary>A listing's blocks as mailed: a Buy listing opens by saying what it is, and where
+    /// its contracts are made when the store says.</summary>
+    private static List<string> ListingBlocks(StorePosting listing, IReadOnlyList<RenderedPost> blocks, Store store)
     {
         var body = PriceListBlocks(blocks);
-        if (listing.IsBuy) body.Insert(0, Dim(StoreText.BuyListIntro) + Gap);
+        if (listing.IsBuy)
+            body.Insert(0, Dim(BuyPlace(store) is { Length: > 0 } place
+                               ? StoreText.BuyListIntro + " " + string.Format(StoreText.BuyListAt, Esc(place))
+                               : StoreText.BuyListIntro) + Gap);
         return body;
     }
+
+    // ── Where a Buy listing's contracts are made ─────────────────────────────
+
+    /// <summary>
+    /// Each store's contract place as its buyers read it, remembered for the pass that writes to
+    /// them. ⚠️ SDE names do not follow LanguageScope (see there): an NPC station has to be looked
+    /// up in the store's language, and the sentences that name it are static and synchronous, so
+    /// the pass looks it up on the way in and they read it here.
+    /// </summary>
+    private static readonly ConcurrentDictionary<int, string> BuyPlaces = new();
+
+    private static async Task RememberBuyPlaceAsync(AppDbContext db, Store store, CancellationToken ct)
+    {
+        if (store.BuyLocationId == 0) BuyPlaces.TryRemove(store.Id, out _);
+        else BuyPlaces[store.Id] = await BuyPlaceInLanguageAsync(db, store, ct);
+    }
+
+    /// <summary>The place, or "" when the store names none. English if the pass did not look it up.</summary>
+    private static string BuyPlace(Store store) =>
+        store.BuyLocationId == 0 ? "" : BuyPlaces.TryGetValue(store.Id, out var name) ? name : store.BuyLocationName;
+
+    /// <summary>The store's contract place in the store's language: an NPC station as its buyers'
+    /// client names it, a structure by its own name.</summary>
+    internal static async Task<string> BuyPlaceInLanguageAsync(AppDbContext db, Store store, CancellationToken ct) =>
+        (await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Station, [store.BuyLocationId], ct))
+            .GetValueOrDefault(store.BuyLocationId) ?? store.BuyLocationName;
 
     private static List<string> PriceListBlocks(IReadOnlyList<RenderedPost> blocks) =>
         blocks.Select(b => b.Text).Where(t => t.Length > 0)
@@ -884,7 +917,7 @@ public class StoreMailService(
             var subject = listings.Count == 1 && !listing.IsBuy && listing.Title.Length == 0
                 ? string.Format(StoreText.SubjectPriceList, store.Name)
                 : string.Format(StoreText.SubjectListing, store.Name, titles.GetValueOrDefault(listing.PostingId, ""));
-            await ReplyInPartsAsync(store, log, subject, "", ListingBlocks(listing, blocks), ct);
+            await ReplyInPartsAsync(store, log, subject, "", ListingBlocks(listing, blocks, store), ct);
             sent++;
         }
 
@@ -1212,8 +1245,10 @@ public class StoreMailService(
             sb.Append(Br).Append(string.Format(StoreText.OfferMakeContract,
                                                Entity(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName),
                                                Isk(total)))
-              .Append(Br)
-              .Append(Dim(string.Format(StoreText.OfferPutReference, reference))).Append(Br);
+              .Append(Br);
+            if (BuyPlace(store) is { Length: > 0 } place)
+                sb.Append(string.Format(StoreText.OfferContractAt, Esc(place))).Append(Br);
+            sb.Append(Dim(string.Format(StoreText.OfferPutReference, reference))).Append(Br);
         }
         // Always stated, even when it is simply the sender. It is the one detail a buyer cannot
         // check afterwards, and someone who meant to name a third party and whose link did not
@@ -1437,8 +1472,9 @@ public class StoreMailService(
         _ when o.UnitsDelivered + o.UnitsContracted > 0
                     => Plurals.Format(StoreText.ResourceManager, nameof(StoreText.OfferPartContractedOther),
                                       o.UnitsDelivered + o.UnitsContracted, o.Units),
-        _ => string.Format(StoreText.OfferAwaitingContract,
-                           Esc(store.BuyAssigneeName), Isk(o.PurchasePrice)),
+        _ => BuyPlace(store) is { Length: > 0 } place
+                ? string.Format(StoreText.OfferAwaitingContractAt, Esc(store.BuyAssigneeName), Isk(o.PurchasePrice), Esc(place))
+                : string.Format(StoreText.OfferAwaitingContract, Esc(store.BuyAssigneeName), Isk(o.PurchasePrice)),
     };
 
     /// <summary>

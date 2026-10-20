@@ -247,6 +247,9 @@
   <data name="BuyListIntro" xml:space="preserve">
     <value>我们按以下价格收购这些物品。如需卖给我们，请发送 SELL，并在正文中按下单的写法列出物品。</value>
   </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>请在 {0} 创建所有合同。</value>
+  </data>
   <data name="UsageSell" xml:space="preserve">
     <value>向我们出售收购清单上的物品，正文中每行一种物品，写法与下单相同。</value>
   </data>
@@ -267,6 +270,9 @@
   </data>
   <data name="OfferMakeContract" xml:space="preserve">
     <value>现在请创建一份&lt;b&gt;物品交换&lt;/b&gt;合同，指定给 {0}，放入上述物品，并在“我将接收”中填写 &lt;b&gt;{1}&lt;/b&gt;。</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>请在 &lt;b&gt;{0}&lt;/b&gt; 创建合同。</value>
   </data>
   <data name="OfferPutReference" xml:space="preserve">
     <value>在合同描述中填写 {0} 有助于我们匹配。</value>
@@ -303,6 +309,9 @@
   </data>
   <data name="OfferAwaitingContract" xml:space="preserve">
     <value>等待你的合同：物品交换，指定给 {0}，要价 {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>等待你的合同：在 {2} 的物品交换，指定给 {0}，要价 {1}</value>
   </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>已交付 {0:N0} 个（共 {1:N0} 个）</value>

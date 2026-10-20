@@ -808,6 +808,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>契約の受取先を選ぶまで、買取リストは売却申込を受け付けません。</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>買取契約の場所</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>ステーションまたはストラクチャーを検索（任意）</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>売り手への案内：すべての契約を{0}で作成。</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>任意。売り手が契約を作成する場所です。価格表メール、申し出への返信、ウェブサイトで案内されます。別の場所で作成された契約も照合されます。</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0}（キャラクター）</value>
   </data>

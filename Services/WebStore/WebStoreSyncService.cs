@@ -551,6 +551,11 @@ public class WebStoreSyncService(
                     Kind = store.BuyAssigneeType,
                     Name = store.BuyAssigneeName,
                 },
+                BuyLocation   = store.BuyLocationId == 0 ? null : new PlaceDto
+                {
+                    Id   = store.BuyLocationId,
+                    Name = await StoreMailService.BuyPlaceInLanguageAsync(db, store, ct),
+                },
             },
             Catalogue = catalogue,
             Listings  = listings,

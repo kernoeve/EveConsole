@@ -253,6 +253,9 @@
   <data name="BuyListIntro" xml:space="preserve">
     <value>Wir kaufen die unten stehenden Gegenstände zu diesen Preisen. Um an uns zu verkaufen, senden Sie SELL mit den Gegenständen im Nachrichtentext, so wie bei einer Bestellung.</value>
   </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>Erstellen Sie alle Verträge in {0}.</value>
+  </data>
   <data name="UsageSell" xml:space="preserve">
     <value>bieten Sie uns Gegenstände von unserer Ankaufliste an, ein Gegenstand pro Zeile im Nachrichtentext, wie bei einer Bestellung.</value>
   </data>
@@ -273,6 +276,9 @@
   </data>
   <data name="OfferMakeContract" xml:space="preserve">
     <value>Erstellen Sie jetzt einen Vertrag vom Typ &lt;b&gt;Gegenstandsaustausch&lt;/b&gt; an {0} mit diesen Gegenständen und &lt;b&gt;{1}&lt;/b&gt; unter „Ich werde bekommen“.</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>Erstellen Sie den Vertrag in &lt;b&gt;{0}&lt;/b&gt;.</value>
   </data>
   <data name="OfferPutReference" xml:space="preserve">
     <value>Wenn Sie {0} in die Vertragsbeschreibung schreiben, können wir ihn leichter zuordnen.</value>
@@ -309,6 +315,9 @@
   </data>
   <data name="OfferAwaitingContract" xml:space="preserve">
     <value>wartet auf Ihren Vertrag: Gegenstandsaustausch an {0}, verlangt {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>wartet auf Ihren Vertrag: Gegenstandsaustausch an {0} in {2}, verlangt {1}</value>
   </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} von {1:N0} geliefert</value>

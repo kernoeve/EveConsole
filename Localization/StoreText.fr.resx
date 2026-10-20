@@ -256,6 +256,9 @@
   <data name="BuyListIntro" xml:space="preserve">
     <value>Nous achetons les objets ci-dessous à ces prix. Pour nous vendre, envoyez SELL avec les objets dans le corps du courrier, écrits comme pour une commande.</value>
   </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>Créez tous les contrats à {0}.</value>
+  </data>
   <data name="UsageSell" xml:space="preserve">
     <value>proposez-nous des objets de notre liste d'achat, un objet par ligne dans le corps du courrier, comme pour une commande.</value>
   </data>
@@ -276,6 +279,9 @@
   </data>
   <data name="OfferMakeContract" xml:space="preserve">
     <value>Créez maintenant un contrat de &lt;b&gt;Troc&lt;/b&gt; pour {0} contenant ces objets, avec &lt;b&gt;{1}&lt;/b&gt; dans « Je recevrai ».</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>Créez le contrat à &lt;b&gt;{0}&lt;/b&gt;.</value>
   </data>
   <data name="OfferPutReference" xml:space="preserve">
     <value>Indiquer {0} dans la description du contrat nous aide à le retrouver.</value>
@@ -312,6 +318,9 @@
   </data>
   <data name="OfferAwaitingContract" xml:space="preserve">
     <value>en attente de votre contrat : troc pour {0}, demandant {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>en attente de votre contrat : troc pour {0} à {2}, demandant {1}</value>
   </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} sur {1:N0} livrés</value>

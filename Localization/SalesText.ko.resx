@@ -808,6 +808,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>계약을 받을 대상을 고르기 전까지 매입 목록은 제안을 받지 않습니다.</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>매입 계약 장소</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>정거장 또는 구조물 검색 (선택)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>판매자 안내: 모든 계약을 {0}에서 만드십시오.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>선택 사항. 판매자가 계약을 만들 장소입니다. 가격표 메일, 제안에 대한 답장, 웹사이트에서 안내합니다. 다른 곳에서 만든 계약도 대조됩니다.</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (캐릭터)</value>
   </data>

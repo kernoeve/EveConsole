@@ -1080,6 +1080,26 @@
     <value>Buy listings take no offers until someone is chosen to receive their contracts.</value>
     <comment>Stores screen: a warning under the "Buy contracts to" picker when it is empty.</comment>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Buy contracts at</value>
+    <comment>Label beside the Stores screen's location search for where sellers create their Buy listing contracts.</comment>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Search for a station or structure (optional)</value>
+    <comment>Watermark of that search box.</comment>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Sellers are told: create all contracts at {0}.</value>
+    <comment>Shown under the search once a place is picked. {0} is a station or structure name, as the game names it.</comment>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button: stop naming a place for the contracts.</comment>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Optional. Where sellers should create their contracts: the price list mail, the replies to offers and the web site say so. A contract made elsewhere is still matched.</value>
+    <comment>Note under the location search on the Stores screen.</comment>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (character)</value>
     <comment>Stores screen, the "Buy contracts to" picker: one of our characters. {0} is its name.</comment>

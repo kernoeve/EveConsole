@@ -258,6 +258,14 @@ public class StoresViewModel : ReactiveObject
     /// </summary>
     public ObservableCollection<AssigneeOption> AssigneeOptions { get; } = [];
 
+    /// <summary>A place a Buy listing's contracts may be made at: an NPC station shown in the
+    /// interface language, a structure by its own name. <see cref="Name"/> is what is stored.</summary>
+    public sealed record BuyPlaceOption(long Id, string Name)
+    {
+        public string DisplayName => SdeNames.Location(Id, Name);
+        public override string ToString() => DisplayName;
+    }
+
     public sealed record AssigneeOption(long Id, string Kind, string Name)
     {
         public override string ToString() => string.Format(Kind switch
@@ -324,6 +332,7 @@ public class StoresViewModel : ReactiveObject
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
         AddListingCommand  = ReactiveCommand.Create(AddListing);
+        ClearBuyLocationCommand = ReactiveCommand.Create(ClearBuyLocation);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
         RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
         CheckMailCommand   = ReactiveCommand.CreateFromTask(CheckMailNowAsync);
@@ -366,6 +375,7 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddListingCommand  { get; }
+    public ReactiveCommand<Unit, Unit> ClearBuyLocationCommand { get; }
     public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
     public ReactiveCommand<Unit, Unit> RemoveWebBannerCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCloudflareTokenCommand   { get; }
@@ -439,6 +449,71 @@ public class StoresViewModel : ReactiveObject
                 s.BuyAssigneeName = value.Name;
             }, nudge: true);
         }
+    }
+
+    // ── Where a Buy listing's contracts are made ─────────────────────────────
+
+    // The place picked, as stored: English for an NPC station, a structure's own name.
+    private long   _buyLocationId;
+    private string _buyLocationName = "";
+
+    public bool HasBuyLocation => _buyLocationId != 0;
+
+    /// <summary>What sellers are told, with the place as this screen names it.</summary>
+    public string BuyLocationChosenText => _buyLocationId == 0 ? ""
+        : string.Format(SalesText.BuyLocationChosen, SdeNames.Location(_buyLocationId, _buyLocationName));
+
+    private string _buyLocationSearch = "";
+    public string BuyLocationSearch
+    {
+        get => _buyLocationSearch;
+        set { this.RaiseAndSetIfChanged(ref _buyLocationSearch, value); _ = SearchBuyLocationsAsync(value); }
+    }
+
+    public ObservableCollection<BuyPlaceOption> BuyLocationResults { get; } = [];
+    public bool HasBuyLocationResults => BuyLocationResults.Count > 0;
+
+    // Each keystroke searches; only the newest search's answer is shown.
+    private int _buyLocationQuery;
+
+    private async Task SearchBuyLocationsAsync(string text)
+    {
+        var query = ++_buyLocationQuery;
+        IReadOnlyList<LocationOption> found = [];
+        if (text.Trim().Length >= 2)
+            try { found = await _postings.SearchLocationsAsync("Station", text.Trim()); }
+            catch (Exception ex) { _errorLogger.Log("Stores", "searching for a contract place", ex); }
+        if (query != _buyLocationQuery) return;
+        BuyLocationResults.Clear();
+        foreach (var f in found) BuyLocationResults.Add(new BuyPlaceOption(f.Id, f.Name));
+        this.RaisePropertyChanged(nameof(HasBuyLocationResults));
+    }
+
+    /// <summary>Picking a search result names it as the place; the search is cleared.</summary>
+    public BuyPlaceOption? PickedBuyLocation
+    {
+        get => null;
+        set
+        {
+            if (value is null) return;
+            SetBuyLocation(value.Id, value.Name);
+            _buyLocationQuery++;
+            _buyLocationSearch = ""; this.RaisePropertyChanged(nameof(BuyLocationSearch));
+            BuyLocationResults.Clear(); this.RaisePropertyChanged(nameof(HasBuyLocationResults));
+            this.RaisePropertyChanged();
+        }
+    }
+
+    private void ClearBuyLocation() => SetBuyLocation(0, "");
+
+    private void SetBuyLocation(long id, string name, bool save = true)
+    {
+        _buyLocationId   = id;
+        _buyLocationName = name;
+        this.RaisePropertyChanged(nameof(HasBuyLocation));
+        this.RaisePropertyChanged(nameof(BuyLocationChosenText));
+        if (save && SelectedStore is not null)
+            _ = SaveAsync(s => { s.BuyLocationId = id; s.BuyLocationName = name; }, nudge: true);
     }
 
     private StoreListingRowVm NewListing(PostingOption? posting, string side, string title) =>
@@ -2019,6 +2094,7 @@ public class StoresViewModel : ReactiveObject
                         AssigneeOptions.Add(_buyAssignee = new AssigneeOption(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName));
                     this.RaisePropertyChanged(nameof(BuyAssignee));
                     this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
+                    SetBuyLocation(store.BuyLocationId, store.BuyLocationName, save: false);
                     _ = MeasurePostingAsync();
                     _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
                     _storeLanguage = store.Language;     this.RaisePropertyChanged(nameof(StoreLanguage));

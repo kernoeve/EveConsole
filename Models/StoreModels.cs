@@ -272,6 +272,14 @@ public class Store
     public string BuyAssigneeType { get; set; } = "";
     public string BuyAssigneeName { get; set; } = "";
 
+    /// <summary>Where sellers are asked to create those contracts: an NPC station or a structure,
+    /// by id; zero when the store does not say. Told to sellers in the price list mail, the offer
+    /// replies and on the web site — not enforced: a contract made elsewhere still matches.</summary>
+    public long   BuyLocationId   { get; set; }
+    /// <summary>Its name as picked: English for an NPC station, which each store's buyers read in
+    /// the store's language; a structure's own name otherwise.</summary>
+    public string BuyLocationName { get; set; } = "";
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

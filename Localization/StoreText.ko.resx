@@ -247,6 +247,9 @@
   <data name="BuyListIntro" xml:space="preserve">
     <value>아래 아이템을 이 가격에 매입합니다. 판매하려면 주문과 같은 방식으로 본문에 아이템을 적어 SELL을 보내십시오.</value>
   </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>모든 계약은 {0}에서 만드십시오.</value>
+  </data>
   <data name="UsageSell" xml:space="preserve">
     <value>매입 목록의 아이템을 판매합니다. 주문과 같이 본문에 한 줄에 아이템 하나씩 쓰십시오.</value>
   </data>
@@ -267,6 +270,9 @@
   </data>
   <data name="OfferMakeContract" xml:space="preserve">
     <value>이제 {0} 앞으로 &lt;b&gt;아이템 교환&lt;/b&gt; 계약을 만들어 이 아이템들을 넣고 '받을 금액'에 &lt;b&gt;{1}&lt;/b&gt;을(를) 입력하십시오.</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>계약은 &lt;b&gt;{0}&lt;/b&gt;에서 만드십시오.</value>
   </data>
   <data name="OfferPutReference" xml:space="preserve">
     <value>계약 설명에 {0}을(를) 적어 주시면 확인이 쉬워집니다.</value>
@@ -303,6 +309,9 @@
   </data>
   <data name="OfferAwaitingContract" xml:space="preserve">
     <value>계약 대기 중: {0} 앞으로 아이템 교환, 요구 금액 {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>계약 대기 중: {2}에서 {0} 앞으로 아이템 교환, 요구 금액 {1}</value>
   </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{1:N0}개 중 {0:N0}개 전달됨</value>

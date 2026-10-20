@@ -1256,6 +1256,9 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeType" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Where those contracts are to be made, when the store says.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationName" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "StorePostings" (
                         "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

@@ -811,6 +811,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>Les listes d'achat n'acceptent aucune offre tant que personne n'est choisi pour recevoir leurs contrats.</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Contrats d'achat à</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Rechercher une station ou une structure (facultatif)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Les vendeurs sont informés : créer tous les contrats à {0}.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Facultatif. Où les vendeurs doivent créer leurs contrats : le courrier de la liste de prix, les réponses aux offres et le site web le leur indiquent. Un contrat créé ailleurs est quand même rapproché.</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (personnage)</value>
   </data>

@@ -811,6 +811,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>Ankaufangebote nehmen keine Angebote an, bis ein Empfänger für ihre Verträge gewählt ist.</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Ankaufverträge in</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Station oder Struktur suchen (optional)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Verkäufer erfahren: Alle Verträge in {0} erstellen.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Optional. Wo Verkäufer ihre Verträge erstellen sollen: Die Preisliste per Mail, die Antworten auf Angebote und die Website sagen es ihnen. Ein anderswo erstellter Vertrag wird trotzdem zugeordnet.</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (Charakter)</value>
   </data>

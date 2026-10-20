@@ -817,6 +817,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>Списки покупки не принимают предложения, пока не выбран получатель их контрактов.</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Место контрактов на покупку</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Найдите станцию или сооружение (необязательно)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Продавцам сообщается: создавать все контракты в {0}.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Необязательно. Где продавцам создавать контракты: об этом говорят письмо с прайс-листом, ответы на предложения и сайт. Контракт, созданный в другом месте, всё равно сопоставляется.</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (персонаж)</value>
   </data>

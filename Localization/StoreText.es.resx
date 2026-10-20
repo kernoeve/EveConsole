@@ -256,6 +256,9 @@
   <data name="BuyListIntro" xml:space="preserve">
     <value>Compramos los objetos de abajo a estos precios. Para vendernos, envía SELL con los objetos en el cuerpo del mensaje, escritos como en un encargo.</value>
   </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>Crea todos los contratos en {0}.</value>
+  </data>
   <data name="UsageSell" xml:space="preserve">
     <value>ofrécenos objetos de nuestra lista de compra, un objeto por línea en el cuerpo del mensaje, como en un encargo.</value>
   </data>
@@ -276,6 +279,9 @@
   </data>
   <data name="OfferMakeContract" xml:space="preserve">
     <value>Ahora crea un contrato de &lt;b&gt;Intercambio de objetos&lt;/b&gt; a nombre de {0} con estos objetos y &lt;b&gt;{1}&lt;/b&gt; en «Recibiré».</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>Crea el contrato en &lt;b&gt;{0}&lt;/b&gt;.</value>
   </data>
   <data name="OfferPutReference" xml:space="preserve">
     <value>Poner {0} en la descripción del contrato nos ayuda a identificarlo.</value>
@@ -312,6 +318,9 @@
   </data>
   <data name="OfferAwaitingContract" xml:space="preserve">
     <value>esperando tu contrato: Intercambio de objetos a nombre de {0}, pidiendo {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>esperando tu contrato: Intercambio de objetos a nombre de {0} en {2}, pidiendo {1}</value>
   </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} de {1:N0} entregados</value>

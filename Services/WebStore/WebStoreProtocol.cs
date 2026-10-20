@@ -121,6 +121,15 @@ public sealed class StoreInfoDto
     /// <summary>Who a Buy listing's sellers make their Item Exchange contracts out to; null when
     /// nobody is named, and then the site takes no offers.</summary>
     public AssigneeDto? BuyAssignee { get; set; }
+    /// <summary>Where sellers are asked to create those contracts, named in the store's language;
+    /// null when the store does not say (site 0.2.0+ shows it).</summary>
+    public PlaceDto? BuyLocation { get; set; }
+}
+
+public sealed class PlaceDto
+{
+    public long   Id   { get; set; }
+    public string Name { get; set; } = "";
 }
 
 public sealed class AssigneeDto

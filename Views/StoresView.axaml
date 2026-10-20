@@ -340,6 +340,35 @@
                         <TextBlock Text="{x:Static loc:SalesText.BuyNoAssigneeWarn}" FontSize="10" TextWrapping="Wrap"
                                    MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource BadBrush}"
                                    IsVisible="{Binding BuyAssigneeMissing}" />
+
+                        <!-- Where sellers create those contracts, when the store says. Told to them in
+                             the price list mail, the replies and on the site; not enforced. Searched as
+                             typed, NPC stations by either name, structures by theirs. -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 6 0 0">
+                          <TextBlock Text="{x:Static loc:SalesText.BuyContractsAt}" FontSize="11"
+                                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" Margin="0 5 0 0" />
+                          <StackPanel Spacing="2">
+                            <TextBox Text="{Binding BuyLocationSearch}" Watermark="{x:Static loc:SalesText.BuyLocationHint}"
+                                     FontSize="11" MinWidth="280"
+                                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                            <Border IsVisible="{Binding HasBuyLocationResults}" MaxHeight="140" MinWidth="280"
+                                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="3">
+                              <ListBox ItemsSource="{Binding BuyLocationResults}" SelectedItem="{Binding PickedBuyLocation}"
+                                       Background="Transparent" BorderThickness="0" FontSize="11"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </Border>
+                          </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasBuyLocation}">
+                          <TextBlock Text="{Binding BuyLocationChosenText}" FontSize="11" TextWrapping="Wrap" MaxWidth="560"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                          <Button Command="{Binding ClearBuyLocationCommand}" Content="{x:Static loc:SalesText.BuyLocationClear}"
+                                  Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 1" FontSize="10" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Static loc:SalesText.BuyLocationNote}" FontSize="10" TextWrapping="Wrap"
+                                   MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}" />
                       </StackPanel>
                     </StackPanel>
 

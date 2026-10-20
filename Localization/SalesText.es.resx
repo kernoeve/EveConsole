@@ -811,6 +811,21 @@
   <data name="BuyNoAssigneeWarn" xml:space="preserve">
     <value>Los listados de compra no aceptan ofertas hasta que se elija quién recibe sus contratos.</value>
   </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Contratos de compra en</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Busca una estación o estructura (opcional)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>A los vendedores se les indica: crear todos los contratos en {0}.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Opcional. Dónde deben crear los vendedores sus contratos: lo indican el correo con la lista de precios, las respuestas a las ofertas y el sitio web. Un contrato creado en otro lugar se empareja igualmente.</value>
+  </data>
   <data name="AssigneeCharacter" xml:space="preserve">
     <value>{0} (personaje)</value>
   </data>
