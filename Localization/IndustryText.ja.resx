@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>ブループリントが購入可能なBPOであるか、BPOから発明されるもの（T1 BPOからのT2など）のアイテムのみを対象にします。入手可能なBPOがない勢力・回数限定のBPCアイテム、ストーリーライン・士官・デッドスペースのアイテム、BPOをゲーム内で購入できなくなった「期間限定」イベントアイテムは除外されます。</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>所有している設計図のみ</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>そのアイテム自体の設計図（オリジナルまたはコピー）を、あなたのキャラクターまたは個人用に指定したコーポレーションが持っているアイテムのみ。次回の計算から適用されます。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>
   </data>

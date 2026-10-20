@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>블루프린트가 구매할 수 있는 BPO이거나 그런 BPO에서 인벤션한 것(예: T1 BPO에서 나온 T2)인 아이템만 포함합니다. 구할 수 있는 BPO가 없는 팩션/한정 실행 BPC 아이템, 스토리라인·장교·데드스페이스 아이템, 그리고 게임에서 더 이상 BPO를 살 수 없는 '기간 한정' 이벤트 아이템은 제외합니다.</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>보유한 설계도만</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>해당 아이템의 설계도(원본 또는 사본)를 내 캐릭터나 개인용으로 표시한 콥이 보유한 아이템만 표시합니다. 다음 계산부터 적용됩니다.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>
   </data>

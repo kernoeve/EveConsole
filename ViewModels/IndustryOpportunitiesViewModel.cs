@@ -172,6 +172,20 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         }
     }
 
+    // Only items whose own blueprint — an original or a copy — sits with one of the user's
+    // characters or personal corporations: what can be started without buying a print first
+    // (issue #152). Off by default: the list is also for finding what is worth a print.
+    private bool _ownedOnly = UiState.GetBool(UiState.IndustryOppsOwnedOnly, false);
+    public bool OwnedOnly
+    {
+        get => _ownedOnly;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _ownedOnly, value);
+            UiState.SetBool(UiState.IndustryOppsOwnedOnly, value);
+        }
+    }
+
     // ── Name filter ───────────────────────────────────────────────────────────
 
     /// <summary>Narrows the results to the items whose name contains what was typed, as it is
@@ -513,13 +527,32 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
               """
             : "";
 
+        // Owned: the item's own manufacturing or reaction blueprint held by one of the user's
+        // characters, or by a corporation marked personal — the Asset Browser's "characters and
+        // personal corps". A copy counts as much as an original; an original that could only be
+        // invented into this item does not, since that is a further job before this one.
+        // ⚠️ IsPersonal stands on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL.
+        var ownedClause = OwnedOnly
+            ? """
+              AND EXISTS (
+                SELECT 1 FROM "SdeBlueprintProducts" obp
+                JOIN "EsiBlueprints" ob ON ob."TypeId" = obp."TypeId"
+                WHERE obp."ProductTypeId" = bc."TypeId"
+                  AND obp."Activity" IN ('manufacturing','reaction')
+                  AND (ob."OwnerType" = 'character'
+                       OR (ob."OwnerType" = 'corporation'
+                           AND ob."OwnerId" IN (SELECT pc."Id" FROM "Corporations" pc WHERE pc."IsPersonal"))))
+              """
+            : "";
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.Command(CandidateSql
             .Replace("/*EXCLUSION*/", exclusionClause)
             .Replace("/*FACTION*/", factionClause)
-            .Replace("/*BPO*/", bpoClause));
+            .Replace("/*BPO*/", bpoClause)
+            .Replace("/*OWNED*/", ownedClause));
         cmd.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
@@ -736,5 +769,6 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         /*EXCLUSION*/
         /*FACTION*/
         /*BPO*/
+        /*OWNED*/
         """;
 }

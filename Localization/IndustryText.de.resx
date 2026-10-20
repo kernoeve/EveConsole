@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Nur Gegenstände, deren Blaupause ein kaufbares BPO ist oder daraus erfunden wird (z. B. T2 aus einem T1-BPO). Schließt Fraktions- und BPC-Gegenstände mit begrenzten Durchläufen ohne erhältliches BPO aus, ebenso Storyline-, Offiziers- und Raumverwerfungsgegenstände sowie „Limited Time“-Event-Gegenstände, deren BPO im Spiel nicht mehr gekauft werden kann.</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Nur Blaupausen in meinem Besitz</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Nur Gegenstände, deren eigene Blaupause (Original oder Kopie) einer deiner Charaktere oder eine als persönlich markierte Corporation besitzt. Gilt ab dem nächsten Berechnen.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>
   </data>

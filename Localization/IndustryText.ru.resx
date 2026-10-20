@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Только предметы, чертёж которых — покупаемый BPO или получается из него модернизацией (например, T2 из T1 BPO). Исключает фракционные предметы и предметы из BPC с ограниченным числом прогонов, для которых нельзя получить BPO, наградные, командирские и экспериментальные предметы, а также предметы событий с пометкой «Limited Time», чей BPO больше нельзя купить в игре.</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Только мои чертежи</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Только предметы, чей собственный чертёж (оригинал или копия) есть у одного из ваших персонажей или у корпорации, отмеченной как личная. Применяется при следующем расчёте.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Исключить группы</value>
   </data>

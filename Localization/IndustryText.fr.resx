@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Uniquement les objets dont le plan est un BPO achetable, ou est inventé à partir d'un BPO (p. ex. T2 à partir d'un BPO T1). Exclut les objets de faction ou à BPC limités sans BPO obtenable, les objets de scénario, d'officier et deadspace, ainsi que les objets d'événements « Durée limitée » dont le BPO ne peut plus être acheté en jeu.</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Seulement les plans que je possède</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Seulement les objets dont le plan, original ou copie, est détenu par l'un de vos personnages ou une corporation marquée personnelle. S'applique au prochain calcul.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclure des groupes</value>
   </data>

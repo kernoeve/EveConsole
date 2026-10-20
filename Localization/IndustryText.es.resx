@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Solo los objetos cuyo plano es un BPO que se puede comprar o se inventa a partir de uno (p. ej., T2 a partir de un BPO T1). Excluye los objetos de facción o de BPC de iteraciones limitadas sin ningún BPO que se pueda obtener, los objetos de historia, de oficial y de espacio muerto, y los objetos de eventos de «Tiempo limitado» cuyo BPO ya no se puede comprar en el juego.</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Solo planos que poseo</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Solo objetos cuyo propio plano, original o copia, tenga uno de tus personajes o una corporación marcada como personal. Se aplica en el próximo cálculo.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Excluir grupos</value>
   </data>

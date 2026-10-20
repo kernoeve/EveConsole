@@ -132,6 +132,14 @@
     <value>Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, storyline, officer and deadspace items, and 'Limited Time' event items whose BPO can no longer be bought in game.</value>
     <comment>Tooltip in IndustryOpportunitiesView.</comment>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Only blueprints I own</value>
+    <comment>Industry Ops filter checkbox: keep only items whose blueprint (original or copy) the user holds.</comment>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Only items whose own blueprint, an original or a copy, is held by one of your characters or a corporation marked personal. Applies at the next Calculate.</value>
+    <comment>Tooltip of that checkbox.</comment>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclude Groups</value>
     <comment>Text in IndustryOpportunitiesView.</comment>

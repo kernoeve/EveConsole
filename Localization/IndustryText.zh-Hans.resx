@@ -100,6 +100,12 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>只保留蓝图为可购买的蓝图原件、或由其发明而来的物品（例如由 T1 蓝图原件发明的 T2）。排除无法获得蓝图原件的势力 / 限量流程蓝图拷贝物品、故事线、官员和死亡空间物品，以及蓝图原件已无法在游戏中购买的“限时”活动物品。</value>
   </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>仅限我拥有的蓝图</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>仅显示其蓝图（原件或拷贝）由你的某个角色或标记为个人的军团持有的物品。下次计算时生效。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>排除分组</value>
   </data>

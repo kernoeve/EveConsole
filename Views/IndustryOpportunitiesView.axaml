@@ -59,7 +59,9 @@
                 BorderThickness="1"
                 FontSize="12" />
 
-        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <!-- ⚠️ Wraps rather than running on under the Calculate button: on a narrower window the
+             checkboxes at the end of one long row went behind it. Each label stays with its box. -->
+        <WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="6" VerticalAlignment="Center">
 
           <ComboBox ItemsSource="{Binding ModeOptions}"
                     SelectedItem="{Binding SelectedMode}"
@@ -72,6 +74,7 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.PriceAt}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <ComboBox ItemsSource="{Binding MarketConfigs}"
@@ -84,18 +87,23 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
+          </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.Min30dIskVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
                    Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.Min30dUnitVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
                    Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
 
           <CheckBox IsChecked="{Binding SkipFactionItems}"
                     Content="{x:Static loc:IndustryText.SkipFaction}"
@@ -108,7 +116,13 @@
                     VerticalAlignment="Center"
                     ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
 
-        </StackPanel>
+          <CheckBox IsChecked="{Binding OwnedOnly}"
+                    Content="{x:Static loc:IndustryText.OnlyBlueprintsIOwn}"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
+
+        </WrapPanel>
       </DockPanel>
 
       <!-- ── Excluded market groups ─────────────────────────────────────────── -->
