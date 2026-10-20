@@ -9,7 +9,7 @@
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.17</Version>
+    <Version>0.9.18</Version>
   </PropertyGroup>
 
   <!-- ⚠️ Set only by release-build.yml (-p:OfficialRelease=true). It is how a binary knows it is a
