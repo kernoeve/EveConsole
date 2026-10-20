@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -97,7 +98,7 @@ public partial class ItemValuationView : UserControl
             if (top.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) != true) return;
             if (top.FocusManager?.GetFocusedElement() is TextBox) return;
             e.Handled = true;
-            var text = top.Clipboard is { } clipboard ? await clipboard.GetTextAsync() : null;
+            var text = top.Clipboard is { } clipboard ? await clipboard.TryGetTextAsync() : null;
             if (string.IsNullOrWhiteSpace(text)) return;
             // Whatever was last copied is not always a list: a paste that names no item leaves
             // the list as it is, rather than putting the clipboard's stray text in its place.

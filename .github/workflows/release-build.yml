@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk --version 1.2.0
@@ -51,6 +51,7 @@ jobs:
           -r win-x64
           --self-contained true
           -p:Version=${{ steps.version.outputs.version }}
+          -p:OfficialRelease=true
           -o publish
 
       # Pull the previous release so Velopack can generate a delta package (first run is a no-op).
@@ -139,7 +140,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
       # system copy. Needed on the runner so the build's own checks can see it; users install
@@ -157,6 +158,7 @@ jobs:
           -r linux-x64
           --self-contained true
           -p:Version=${{ needs.build.outputs.version }}
+          -p:OfficialRelease=true
           -o publish-linux
 
       # The plain tarball: extract anywhere and run. No install step, no update mechanism —

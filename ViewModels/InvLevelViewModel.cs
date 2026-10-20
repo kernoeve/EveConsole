@@ -28,7 +28,9 @@ public record InvGroupDialogResult(
     bool   IncludeContractsBuying,
     bool   PackagedOnly,
     int    Multiplier,
-    int?   CollectionId = null);
+    int?   CollectionId = null,
+    bool   IncludeMarketSellOrders = false,
+    bool   IncludeContractsSelling = false);
 
 public record CollectionOption(int? CollectionId, string Name)
 {
@@ -147,6 +149,8 @@ public class InvGroupRow : ReactiveObject
     public bool   IncludeIndustryJobs    { get; private set; }
     public bool   IncludeMarketBuyOrders { get; private set; }
     public bool   IncludeContractsBuying { get; private set; }
+    public bool   IncludeMarketSellOrders { get; private set; }
+    public bool   IncludeContractsSelling { get; private set; }
     public bool   PackagedOnly           { get; private set; }
 
     public List<InvItemRow> AllItems { get; } = [];
@@ -255,6 +259,8 @@ public class InvGroupRow : ReactiveObject
             if (IncludeIndustryJobs)    parts.Add(AssetsText.IncludeIjShort);
             if (IncludeMarketBuyOrders) parts.Add(AssetsText.IncludeOrdersShort);
             if (IncludeContractsBuying) parts.Add(AssetsText.IncludeContractsShort);
+            if (IncludeMarketSellOrders) parts.Add(AssetsText.IncludeSellOrdersShort);
+            if (IncludeContractsSelling) parts.Add(AssetsText.IncludeContractsSellingShort);
             if (PackagedOnly)           parts.Add(AssetsText.IncludePackagedOnly);
             return parts.Count > 0 ? string.Join(", ", parts) : AssetsText.IncludeNone;
         }
@@ -306,6 +312,8 @@ public class InvGroupRow : ReactiveObject
         IncludeIndustryJobs    = g.IncludeIndustryJobs;
         IncludeMarketBuyOrders = g.IncludeMarketBuyOrders;
         IncludeContractsBuying = g.IncludeContractsBuying;
+        IncludeMarketSellOrders = g.IncludeMarketSellOrders;
+        IncludeContractsSelling = g.IncludeContractsSelling;
         PackagedOnly           = g.PackagedOnly;
         this.RaisePropertyChanged(nameof(ScopeDisplay));
         this.RaisePropertyChanged(nameof(ScopeLabel));
@@ -372,16 +380,22 @@ public class InvItemRow : ReactiveObject
     private long _availIJ;
     private long _availOrders;
     private long _availContracts;
+    private long _availSellOrders;
+    private long _availContractsSelling;
 
     public long AssetsQty       => _availAssets;
     public long IndustryJobsQty => _availIJ;
     public long BuyOrdersQty    => _availOrders;
     public long ContractsQty    => _availContracts;
+    public long SellOrdersQty   => _availSellOrders;
+    public long ContractsSellingQty => _availContractsSelling;
 
     public string AssetsText       => FormatQty(_availAssets);
     public string IndustryJobsText => FormatQty(_availIJ);
     public string BuyOrdersText    => FormatQty(_availOrders);
     public string ContractsText    => FormatQty(_availContracts);
+    public string SellOrdersText   => FormatQty(_availSellOrders);
+    public string ContractsSellingText => FormatQty(_availContractsSelling);
 
     private int _groupMultiplier = 1;
     public int GroupMultiplier
@@ -406,7 +420,11 @@ public class InvItemRow : ReactiveObject
         }
     }
 
-    public long Available => _availAssets + _availIJ + _availOrders;
+    /// <summary>Every source the group counts. ⚠️ All of them: the contracts we buy through were
+    /// shown in their own column and left out of this sum, while the worklist, reading the same
+    /// figures through InvAvailability.Total, counted them — two answers to one question.</summary>
+    public long Available => _availAssets + _availIJ + _availOrders + _availContracts
+                           + _availSellOrders + _availContractsSelling;
 
     // Derived
     public long   TargetTotal => (long)_targetQty * _groupMultiplier;
@@ -516,6 +534,8 @@ public class InvItemRow : ReactiveObject
         _availIJ      = avail.IndustryJobs;
         _availOrders  = avail.BuyOrders;
         _availContracts = avail.Contracts;
+        _availSellOrders       = avail.SellOrders;
+        _availContractsSelling = avail.ContractsSelling;
         RaiseDiffDependents();
     }
 
@@ -531,6 +551,10 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(IndustryJobsText));
         this.RaisePropertyChanged(nameof(BuyOrdersText));
         this.RaisePropertyChanged(nameof(ContractsText));
+        this.RaisePropertyChanged(nameof(SellOrdersQty));
+        this.RaisePropertyChanged(nameof(ContractsSellingQty));
+        this.RaisePropertyChanged(nameof(SellOrdersText));
+        this.RaisePropertyChanged(nameof(ContractsSellingText));
         this.RaisePropertyChanged(nameof(TargetTotal));
         this.RaisePropertyChanged(nameof(TargetTotalText));
         this.RaisePropertyChanged(nameof(Diff));
@@ -801,6 +825,11 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             IncludeIndustryJobs    = groupRow.IncludeIndustryJobs,
             IncludeMarketBuyOrders = groupRow.IncludeMarketBuyOrders,
             IncludeContractsBuying = groupRow.IncludeContractsBuying,
+            IncludeMarketSellOrders = groupRow.IncludeMarketSellOrders,
+            IncludeContractsSelling = groupRow.IncludeContractsSelling,
+            // ⚠️ Carried too. Left out, a refresh of one group counted assembled hulls in a
+            // packaged-only group until the next full load put them back out.
+            PackagedOnly           = groupRow.PackagedOnly,
         };
         var typeIds = groupRow.AllItems.Select(r => r.TypeId).ToList();
         // ⚠️ Task.Run, not a bare await: SQLite has no real async I/O, so awaiting the service
@@ -1212,6 +1241,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             "AssetsQty"      => r => (IComparable?)r.AssetsQty,
             "IndustryJobs"   => r => (IComparable?)r.IndustryJobsQty,
             "BuyOrders"      => r => (IComparable?)r.BuyOrdersQty,
+            "Contracts"      => r => (IComparable?)r.ContractsQty,
+            "SellOrders"     => r => (IComparable?)r.SellOrdersQty,
+            "ContractsSelling" => r => (IComparable?)r.ContractsSellingQty,
             _                => null
         };
         if (key == null) return;
@@ -1413,7 +1445,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             row.IncludeContractsBuying,
             row.PackagedOnly,
             multiplierOverride ?? row.Multiplier,
-            row.CollectionId);
+            row.CollectionId,
+            row.IncludeMarketSellOrders,
+            row.IncludeContractsSelling);
 
     private InvCollectionRow MakeCollectionRow(int? collectionId, string name, bool isSynthetic)
     {

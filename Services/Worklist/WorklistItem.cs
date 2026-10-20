@@ -72,10 +72,14 @@ public sealed record WorklistShortage(
 /// an earlier job has already claimed that stock, and this crate came out of the same pile. A
 /// different fact from being short of something else, and the row has to say which or the reader
 /// goes looking for a missing item that is right there on the list.</param>
+/// <param name="WithOtherLoops">Not started by this loop alone, but by it and the other pilots'
+/// loops in the same system together: what it lacks here, one of them drops.</param>
+/// <param name="ByLoop">Judged against an in-system loop's whole run — everything every stop puts
+/// down — so it starts when the loop is done rather than when one load lands.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
     bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
-    long WantsUnits = 0)
+    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false)
 {
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -88,7 +92,8 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? WorklistText.WaitStartsOnArrival
+        Unblocked                 ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
+        : WithOtherLoops          ? WorklistText.WaitStartsWithOtherLoop
         : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
         : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
         : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
@@ -104,7 +109,7 @@ public sealed record WorklistWaitingJob(
 
     public string StatusTip =>
         IsPlanned ? WorklistText.WaitTipPlanned
-        : Unblocked ? WorklistText.WaitTipStarts
+        : Unblocked ? (ByLoop ? WorklistText.WaitTipStartsAfterLoop : WorklistText.WaitTipStarts)
         : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
         : (StillShortOf.Count > 6
               ? string.Format(WorklistText.WaitTipStillShortMore,
@@ -113,7 +118,9 @@ public sealed record WorklistWaitingJob(
           + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
 
     public Avalonia.Media.IBrush StatusColor =>
-        Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;
+        Unblocked      ? EveConsole.Services.Palette.Good
+        : WithOtherLoops ? EveConsole.Services.Palette.Accent
+        :                  EveConsole.Services.Palette.TextFaint;
 }
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
@@ -142,6 +149,26 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
                                         : v >= 1_000     ? $"{v / 1_000:N0}k m³"
                                         : $"{v:N0} m³";
 }
+
+/// <summary>One item handled at a loop stop, and the other end of its trip: where it is going
+/// for a pick-up, where it came from for a drop-off.</summary>
+public sealed record WorklistStopLine(int TypeId, string TypeName, long Quantity, double Volume,
+                                      long OtherId, string OtherName)
+{
+    /// <summary>What it is worth, at the prices the rest of the list uses; 0 when unpriced.</summary>
+    public double Value { get; init; }
+
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+}
+
+/// <summary>
+/// One stop on an in-system loop, in the order to fly it: what comes off, then what goes on.
+/// </summary>
+/// <param name="TurnBefore">Getting here meant undocking away from it and turning round first.</param>
+public sealed record WorklistHaulStop(long StationId, string StationName, bool TurnBefore,
+                                      IReadOnlyList<WorklistStopLine> DropOff,
+                                      IReadOnlyList<WorklistStopLine> PickUp);
 
 /// <summary>
 /// One suggested piece of work.
@@ -252,6 +279,57 @@ public sealed record WorklistItem
     /// one place and leaves this empty.</summary>
     public long   DestinationId   { get; init; }
     public string DestinationName { get; init; } = "";
+
+    // ── A haul's kind of trip, and how its lane is set to make it ─────────────
+    //
+    // Stamped by the logistics generator from the lane's settings, so the row can say how the
+    // trip will be made without the list knowing anything about settings.
+
+    /// <summary>In system, nearby or long distance. <see cref="HaulLane.None"/> on anything not a haul.</summary>
+    public HaulLane Lane { get; init; }
+
+    /// <summary>Gates between the two ends: 0 in one system, -1 when no route is known.</summary>
+    public int HaulJumps { get; init; }
+
+    public HaulMethod HaulMethod { get; init; }
+
+    /// <summary>The hull the trip is sized for — the lane's chosen hull or the pilot's current
+    /// one. Empty when there is none to size by: a hauling service, or no pilot set.</summary>
+    public int    HaulShipTypeId { get; init; }
+    public string HaulShipName   { get; init; } = "";
+
+    /// <summary>The hold the trip is sized with, in m³; 0 when unknown.</summary>
+    public double HaulCapacity { get; init; }
+
+    /// <summary>Pilots set for the lane. More than one shares the trips.</summary>
+    public int HaulPilots { get; init; }
+
+    /// <summary>
+    /// An in-system loop's stops, in flying order. Empty on every other task, including a haul
+    /// between two systems, which is one trip with one destination.
+    /// </summary>
+    public IReadOnlyList<WorklistHaulStop> Stops { get; init; } = [];
+
+    /// <summary>Of a loop's stops, how many are reached by turning round after undocking.</summary>
+    public int LoopTurns { get; init; }
+
+    /// <summary>The system an in-system loop flies in — which its other pilots' loops share. 0 on
+    /// everything else.</summary>
+    public int LoopSystemId { get; init; }
+
+    /// <summary>
+    /// What this haul puts down, and where.
+    ///
+    /// <para>⚠️ The one reading of "where does this cargo go". A trip has one destination and a
+    /// loop has one per stop; everything judging a delivery against the jobs waiting at its
+    /// destination reads this rather than <see cref="DestinationId"/>, which a loop leaves empty.</para>
+    /// </summary>
+    public IEnumerable<(long Destination, int TypeId, long Quantity)> Deliveries() =>
+        Stops.Count > 0
+            ? Stops.SelectMany(s => s.DropOff.Select(l => (s.StationId, l.TypeId, l.Quantity)))
+            : Kind != WorklistKind.Haul || DestinationId <= 0 ? []
+            : Lines.Count > 0 ? Lines.Select(l => (DestinationId, l.TypeId, l.Quantity))
+            : [(DestinationId, TypeId, Quantity)];
 
     public int    TypeId   { get; init; }
     public string TypeName { get; init; } = "";
@@ -391,12 +469,21 @@ public sealed record WorklistItem
     /// A task with a <see cref="TypeId"/> shows that type instead: what it moves or makes.
     /// </summary>
     public string? IconUrl { get; init; }
+
+    /// <summary>
+    /// Which of <see cref="TypeId"/>'s pictures the row shows: null for its icon, "bp" or "bpc"
+    /// for a blueprint's original or copy — a blueprint has no icon, and the image server refuses
+    /// one. Set where the generator knows; a blueprint it did not is caught by the row falling back.
+    /// </summary>
+    public string? TypeImage { get; init; }
 }
 
 /// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>
 public static class WorklistIcons
 {
     public static string Type(int typeId)            => $"https://images.evetech.net/types/{typeId}/icon?size=32";
+    /// <summary>A blueprint's picture, an original's or a copy's: blueprints have no icon.</summary>
+    public static string Blueprint(int typeId, bool copy) => $"https://images.evetech.net/types/{typeId}/{(copy ? "bpc" : "bp")}?size=32";
     /// <summary>A station or structure type's picture: the render, not the generic station glyph.</summary>
     public static string Render(int typeId)          => $"https://images.evetech.net/types/{typeId}/render?size=32";
     public static string Portrait(long characterId)  => $"https://images.evetech.net/characters/{characterId}/portrait?size=32";

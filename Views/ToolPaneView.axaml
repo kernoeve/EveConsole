@@ -191,8 +191,8 @@
         <DataTemplate DataType="vm:NetWorthViewModel">
           <views:NetWorthView />
         </DataTemplate>
-        <DataTemplate DataType="vm:IncomeExpenseViewModel">
-          <views:IncomeExpenseView />
+        <DataTemplate DataType="vm:IncomeExpenseToolViewModel">
+          <views:IncomeExpenseToolView />
         </DataTemplate>
         <DataTemplate DataType="vm:WalletViewModel">
           <views:WalletView />

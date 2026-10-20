@@ -345,7 +345,7 @@ public class NotificationsViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             var (baseWhere, ps) = BuildFilter();
             var where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
 
@@ -373,7 +373,7 @@ public class NotificationsViewModel : ReactiveObject
                     "GROUP BY \"NotificationId\", \"Type\", \"Timestamp\") g" +
                     $") x WHERE x.\"NotificationId\" = {id}", ps)
                 .ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
             Pager.SetPage(position.Count > 0 ? (int)((position[0] - 1) / GridPager.PageSize) + 1 : 1);
         }
         catch (Exception ex)
@@ -385,20 +385,34 @@ public class NotificationsViewModel : ReactiveObject
         await ReloadPageAsync();
     }
 
-    private async Task InitAsync()
+    /// <summary>The character filter: all, then each character. Read again, in place, whenever
+    /// characters are added or removed (<see cref="OwnerList"/>), so the filter picked stays picked.</summary>
+    private async Task LoadCharacterOptionsAsync()
     {
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-
             var chars = await db.Characters.OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name }).ToListAsync();
-            Characters.Clear();
-            Characters.Add(new ContractPartyOption(CommsText.AllCharactersLower, null));
-            foreach (var c in chars)
-                Characters.Add(new ContractPartyOption(c.Name, c.Id));
-            _selectedCharacter = Characters.FirstOrDefault();
-            this.RaisePropertyChanged(nameof(SelectedCharacter));
+            var options = new List<ContractPartyOption> { new(CommsText.AllCharactersLower, null) };
+            options.AddRange(chars.Select(c => new ContractPartyOption(c.Name, c.Id)));
+            ListSync.Sync(Characters, options, o => o.Id ?? 0);
+            if (_selectedCharacter is null || !Characters.Contains(_selectedCharacter))
+            {
+                _selectedCharacter = Characters.FirstOrDefault();
+                this.RaisePropertyChanged(nameof(SelectedCharacter));
+            }
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(NotificationsViewModel), nameof(LoadCharacterOptionsAsync), ex); }
+    }
+
+    private async Task InitAsync()
+    {
+        OwnerList.Changed += () => _ = LoadCharacterOptionsAsync();
+        await LoadCharacterOptionsAsync();
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
 
             // By the name each type is shown under, so the list reads like the grid; types
             // that share a name are one choice.
@@ -481,7 +495,7 @@ public class NotificationsViewModel : ReactiveObject
 
             // The same notification is delivered to multiple characters; the grid shows one row per
             // NotificationId, so counts and paging are over DISTINCT NotificationId.
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             // Unread count = distinct notifications with any unread recipient (ignores the toggle).
             UnreadCount = await db.EsiNotifications
                 .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} AND \"IsRead\" = FALSE", ps)
@@ -525,7 +539,7 @@ public class NotificationsViewModel : ReactiveObject
                         $"AND \"NotificationId\" IN ({string.Join(",", pageIds)})", ps)
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var recipientsByNotif = recipients
                 .GroupBy(x => x.NotificationId)

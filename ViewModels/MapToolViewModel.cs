@@ -860,16 +860,19 @@ public sealed class MapToolViewModel : ReactiveObject
         var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).ToDictionary(n => n.RegionId);
         var result  = new Dictionary<int, MapMarkers>();
 
-        var now = live.At;
-        foreach (var id in live.Hostiles.Keys.Union(live.Own.Keys))
+        var now      = live.At;
+        var officers = live.Officers ?? new Dictionary<int, IReadOnlyList<OfficerSighting>>();
+        foreach (var id in live.Hostiles.Keys.Union(live.Own.Keys).Union(officers.Keys))
         {
             if (!nodes.TryGetValue(id, out var node)) continue;
 
             live.Hostiles.TryGetValue(id, out var h);
             live.Own.TryGetValue(id, out var o);
+            officers.TryGetValue(id, out var f);
 
             var hostileRows = h is null ? null : HostileRows(h, now);
             var ownRows     = o is null ? null : OwnRows(o);
+            var officerRows = f is null ? null : OfficerRows(f, now);
             result[id] = new MapMarkers(
                 h?.Count ?? 0,
                 h is null ? null
@@ -880,7 +883,11 @@ public sealed class MapToolViewModel : ReactiveObject
                 o is null ? null : string.Format(MapText.LiveOwnTitle, o.Count, node.Label),
                 ownRows is null ? null : string.Join("\n", ownRows.Select(r => r.Text)),
                 hostileRows, ownRows,
-                Reported: h is { Facts: not null });
+                Reported: h is { Facts: not null },
+                Officers:      f?.Count ?? 0,
+                OfficerTitle:  f is null ? null : string.Format(MapText.LiveOfficersTitle, f.Count, node.Label),
+                OfficerDetail: officerRows is null ? null : string.Join("\n", officerRows.Select(r => r.Text)),
+                OfficerRows:   officerRows);
         }
 
         // Regions: the sum, and which systems it is in.
@@ -892,10 +899,14 @@ public sealed class MapToolViewModel : ReactiveObject
             var own = live.Own
                 .Where(kv => nodes.TryGetValue(kv.Key, out var n) && n.RegionId == region.RegionId)
                 .OrderByDescending(kv => kv.Value.Count).ToList();
-            if (hostile.Count == 0 && own.Count == 0) continue;
+            var spawns = officers
+                .Where(kv => nodes.TryGetValue(kv.Key, out var n) && n.RegionId == region.RegionId)
+                .OrderByDescending(kv => kv.Value.Max(o => o.LastKill)).ToList();
+            if (hostile.Count == 0 && own.Count == 0 && spawns.Count == 0) continue;
 
             var hCount = hostile.Sum(h => h.Count);
             var oCount = own.Sum(kv => kv.Value.Count);
+            var fCount = spawns.Sum(kv => kv.Value.Count);
             result[region.Id] = new MapMarkers(
                 hCount,
                 hCount == 0 ? null : string.Format(MapText.LiveHostilesTitle, hCount, region.Label),
@@ -904,10 +915,37 @@ public sealed class MapToolViewModel : ReactiveObject
                 oCount,
                 oCount == 0 ? null : string.Format(MapText.LiveOwnTitle, oCount, region.Label),
                 oCount == 0 ? null : string.Join("\n", own.Take(MaxListed)
-                    .Select(kv => string.Format(MapText.LiveSystemCount, nodes[kv.Key].Label, kv.Value.Count))));
+                    .Select(kv => string.Format(MapText.LiveSystemCount, nodes[kv.Key].Label, kv.Value.Count))),
+                Officers:      fCount,
+                OfficerTitle:  fCount == 0 ? null : string.Format(MapText.LiveOfficersTitle, fCount, region.Label),
+                OfficerDetail: fCount == 0 ? null : string.Join("\n", spawns.Take(MaxListed)
+                    .SelectMany(kv => kv.Value.Select(o => string.Format(MapText.LiveOfficerRegionLine,
+                        nodes[kv.Key].Label, o.Name, Ago(o.LastKill, now))))));
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// A hover's lines for one system's officer spawns: who, and when it last killed — in EVE time
+    /// to the minute and how long ago, since freshness is the whole question: officers despawn
+    /// at downtime, and one that killed an hour ago is a better lead than one from this morning.
+    /// Each line carries the officer's type, so its picture goes in front.
+    /// </summary>
+    private static List<MapMarkRow> OfficerRows(IReadOnlyList<OfficerSighting> officers, DateTimeOffset now) =>
+        officers.Take(MaxListed).Select(o => new MapMarkRow(
+            string.Format(MapText.LiveOfficerLine, o.Name,
+                o.LastKill.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                Ago(o.LastKill, now), o.VictimShip ?? MapText.LiveShipUnknown, o.Kills),
+            ShipTypeId: o.TypeId, ShipAt: 0)).ToList();
+
+    /// <summary>"12 min ago", or "3 h 5 min ago" past the hour.</summary>
+    private static string Ago(DateTimeOffset at, DateTimeOffset now)
+    {
+        var minutes = (int)Math.Max(0, (now - at).TotalMinutes);
+        return minutes == 0  ? MapText.LiveJustNow
+             : minutes < 60  ? string.Format(MapText.LiveMinutesAgo, minutes)
+             : string.Format(MapText.LiveHoursAgo, minutes / 60, minutes % 60);
     }
 
     /// <summary>A hover's lines for one system's hostiles, each carrying the pilot and ship so

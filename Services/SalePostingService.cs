@@ -107,6 +107,7 @@ public class SalePostingService(
         await db.SalePostingItems.Where(i => sectionIds.Contains(i.SectionId)).ExecuteDeleteAsync(ct);
         await db.SalePostingSections.Where(s => s.PostingId == postingId).ExecuteDeleteAsync(ct);
         await db.SalePostingPosts.Where(p => p.PostingId == postingId).ExecuteDeleteAsync(ct);
+        await db.SalePostingLocations.Where(l => l.PostingId == postingId).ExecuteDeleteAsync(ct);
         await db.SalePostings.Where(p => p.Id == postingId).ExecuteDeleteAsync(ct);
     }
 
@@ -192,6 +193,44 @@ public class SalePostingService(
         s.OverrideOnlyPackaged = r.OverrideOnlyPackaged;
         s.OnlyPackaged      = r.OnlyPackaged;
     }
+
+    // ── Places a posting lists whatever is found in ───────────────────────────
+
+    public async Task<List<SalePostingLocation>> LoadLocationsAsync(CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        return await db.SalePostingLocations.AsNoTracking().OrderBy(l => l.PostingId).ThenBy(l => l.Ordinal).ThenBy(l => l.Id).ToListAsync(ct);
+    }
+
+    /// <summary>A posting's places, written as given and in that order.</summary>
+    public async Task ReplaceLocationsAsync(int postingId, IReadOnlyList<SalePostingLocation> places, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.SalePostingLocations.Where(l => l.PostingId == postingId).ExecuteDeleteAsync(ct);
+        for (var i = 0; i < places.Count; i++)
+        {
+            var p = places[i];
+            db.SalePostingLocations.Add(new SalePostingLocation
+            {
+                PostingId = postingId, Ordinal = i, StationId = p.StationId, OwnerType = p.OwnerType,
+                OwnerId = p.OwnerId, Flag = p.Flag, ContainerId = p.ContainerId, Path = p.Path, Title = p.Title.Trim(),
+            });
+        }
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
+    public async Task UpdateLocationTitleAsync(int locationId, string title, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        await db.SalePostingLocations.Where(l => l.Id == locationId)
+            .ExecuteUpdateAsync(u => u.SetProperty(l => l.Title, title.Trim()), ct);
+    }
+
+    /// <summary>A place's section heading: its own title, or the last step of the way to it.</summary>
+    public static string LocationTitle(SalePostingLocation l) =>
+        l.Title.Length > 0 ? l.Title : l.Path.Split(" › ").LastOrDefault()?.Trim() ?? "";
 
     public async Task DeleteSectionAsync(int sectionId, CancellationToken ct = default)
     {
@@ -370,7 +409,13 @@ public class SalePostingService(
         bool ColorByState = false,
         string ColorInStock = "#4a9a5a",
         string ColorInBuild = "#c8a84b",
-        string ColorNone    = "#888899");
+        string ColorNone    = "#888899",
+        // The places it lists whatever is found in. Ids of stations, owners and containers: the
+        // file carries them to another database of the same pilots, where they mean the same.
+        List<PostingPlaceExportDto>? Places = null);
+
+    public sealed record PostingPlaceExportDto(
+        long StationId, string OwnerType, long OwnerId, string Flag, long ContainerId, string Path, string Title);
 
     private static readonly JsonSerializerOptions ExportJson = new() { WriteIndented = true };
 
@@ -391,6 +436,9 @@ public class SalePostingService(
 
         var posts = await db.SalePostingPosts.AsNoTracking()
             .Where(x => x.PostingId == postingId).OrderBy(x => x.Ordinal).ToListAsync(ct);
+
+        var places = await db.SalePostingLocations.AsNoTracking()
+            .Where(l => l.PostingId == postingId).OrderBy(l => l.Ordinal).ThenBy(l => l.Id).ToListAsync(ct);
 
         var dto = new PostingExportDto(
             p.Name, p.Scope, p.LocationId, p.LocationName,
@@ -414,7 +462,9 @@ public class SalePostingService(
             posts.Select(x => new PostingPostExportDto(
                 x.Ordinal, x.PostType, x.Name, x.StaticContent, x.Header, x.Footer,
                 x.HeaderColor, x.FooterColor)).ToList(),
-            p.ColorByState, p.ColorInStock, p.ColorInBuild, p.ColorNone);
+            p.ColorByState, p.ColorInStock, p.ColorInBuild, p.ColorNone,
+            places.Count == 0 ? null : places.Select(l => new PostingPlaceExportDto(
+                l.StationId, l.OwnerType, l.OwnerId, l.Flag, l.ContainerId, l.Path, l.Title)).ToList());
 
         await JsonSerializer.SerializeAsync(stream, dto, ExportJson, ct);
     }
@@ -514,6 +564,13 @@ public class SalePostingService(
                 });
         db.SalePostingItems.AddRange(items);
 
+        var ordinal = 0;
+        db.SalePostingLocations.AddRange((dto.Places ?? []).Select(l => new SalePostingLocation
+        {
+            PostingId = posting.Id, Ordinal = ordinal++, StationId = l.StationId, OwnerType = l.OwnerType ?? "",
+            OwnerId = l.OwnerId, Flag = l.Flag ?? "", ContainerId = l.ContainerId, Path = l.Path ?? "", Title = l.Title ?? "",
+        }));
+
         db.SalePostingPosts.AddRange((dto.Posts ?? []).Select(x => new SalePostingPost
         {
             PostingId     = posting.Id,
@@ -547,14 +604,21 @@ public class SalePostingService(
     /// <param name="language">The language the list is written in, an interface code ("de",
     /// "zh-Hans"): item names come in it, and items sort by them. Null or empty for the interface
     /// language — a store that speaks the app's own.</param>
-    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default, string? language = null)
+    /// <param name="buying">A store's Buy listing: prices only. Stock, builds, reservations and
+    /// completion dates are the seller's business, and colouring by them would say something
+    /// about our shelf to someone offering to fill it.</param>
+    /// <param name="onlyPlaces">Only the sections of the posting's places (see
+    /// <see cref="SalePostingLocation"/>): the tool renders its listed sections from the rows on
+    /// screen and asks for these, which no row holds.</param>
+    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default, string? language = null,
+                                                     bool buying = false, bool onlyPlaces = false)
     {
         await using var db = dbFactory.CreateDbContext();
 
         var posting = await db.SalePostings.FirstOrDefaultAsync(p => p.Id == postingId, ct);
         if (posting is null) return null;
 
-        var sections = await db.SalePostingSections
+        var sections = onlyPlaces ? [] : await db.SalePostingSections
             .Where(s => s.PostingId == postingId).OrderBy(s => s.Name).ToListAsync(ct);
 
         var built = new List<(SalePostingSection Section, List<PostingItemView> Rows)>();
@@ -589,6 +653,35 @@ public class SalePostingService(
                 .ToList()));
         }
 
+        // ── Places: a section each, of whatever is there now ──
+        // In stock is what the place holds — not the posting's scope, which a place narrows — and
+        // nothing is in build for it: a job does not deliver into a container. The price is the
+        // posting's rule, as for every listed item. An empty place lists nothing, heading and all.
+        var places = await db.SalePostingLocations.AsNoTracking()
+            .Where(l => l.PostingId == postingId).OrderBy(l => l.Ordinal).ThenBy(l => l.Id).ToListAsync(ct);
+        if (places.Count > 0)
+        {
+            var held  = await PostingLocations.ContentsAsync(db, places, posting.OnlyPackaged, ct);
+            var found = held.Values.SelectMany(h => h.Keys).Distinct().ToList();
+            var calc  = found.Count == 0 ? [] : await ComputeAsync(posting, found, ct);
+            foreach (var place in places)
+            {
+                var here = held.GetValueOrDefault(place.Id);
+                if (here is not { Count: > 0 }) continue;
+                built.Add((new SalePostingSection { PostingId = postingId, Name = LocationTitle(place) },
+                    here.Select(kv =>
+                    {
+                        calc.TryGetValue(kv.Key, out var c);
+                        return new PostingItemView(
+                            kv.Key, c?.Name ?? $"Type {kv.Key}",
+                            null, null, null,
+                            kv.Value, 0, c?.Reserved ?? 0,
+                            null, null, null,
+                            c?.SalePrice, null);
+                    }).ToList()));
+            }
+        }
+
         // Every item's name in the list's language, in one read, and the items in that
         // language's order: the order a list posted in chat has, when it is in the same language.
         var names = await SdeNames.InLanguageAsync(db, language, SdeNameKind.Type,
@@ -604,11 +697,14 @@ public class SalePostingService(
                       .ToList()))
             .ToList();
 
-        return new PostingView(
-            posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
-            posting.IncludeCompletionDate,
-            posting.ColorByState, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone,
-            views);
+        return buying
+            ? new PostingView(false, false, false, false,
+                              false, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone, views)
+            : new PostingView(
+                posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
+                posting.IncludeCompletionDate,
+                posting.ColorByState, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone,
+                views);
     }
 
     /// <summary>
@@ -620,11 +716,12 @@ public class SalePostingService(
     /// <param name="blocked">For a list rendered for one reader: the items they may not order any
     /// more under the store's purchase limit, which the Detail block dims and says.</param>
     /// <param name="language">The language it is written in, as for <see cref="BuildViewAsync"/>.</param>
+    /// <param name="buying">A store's Buy listing, as for <see cref="BuildViewAsync"/>.</param>
     internal async Task<List<RenderedPost>> RenderAsync(
         int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null,
-        string? language = null)
+        string? language = null, bool buying = false)
     {
-        var view = await BuildViewAsync(postingId, ct, language);
+        var view = await BuildViewAsync(postingId, ct, language, buying);
         if (view is null) return [];
 
         var fmt   = OutputFormat.ByName(formatName);
@@ -663,8 +760,9 @@ public class SalePostingService(
         // Reserved = pending Order Tracker units (global; no location/owner dimension).
         // ⚠️ Only those still to come from stock or a build. A unit delivered, or made out on a
         // contract, has already left the hangar, and reserving it again counted it twice.
+        // ⚠️ Sell orders only: a buy order's units are coming in, not going out.
         var reserved = (await db.TrackedOrders
-                .Where(o => o.Status == "pending" && ids.Contains(o.TypeId))
+                .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy && ids.Contains(o.TypeId))
                 .ToListAsync(ct))
             .GroupBy(o => o.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(o => (long)OrderContractLinks.StillToSupply(o)));

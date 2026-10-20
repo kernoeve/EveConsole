@@ -196,6 +196,10 @@
     <value>Character</value>
     <comment>Text in BackgroundProcessesView.</comment>
   </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Entity</value>
+    <comment>ESI Activity Log: label of the filter and column naming whose call it was — a character or a corporation, or a region or system for public calls.</comment>
+  </data>
   <data name="Endpoint" xml:space="preserve">
     <value>Endpoint</value>
     <comment>Text in BackgroundProcessesView.</comment>

@@ -278,6 +278,148 @@ public class WorklistSettings(AppPreferencesService prefs)
             ? Math.Clamp(v, 0, 100)
             : 10.0;
 
+    // ── Hauling lanes ─────────────────────────────────────────────────────────
+    //
+    // How each kind of trip is made, and by whom. Shared like the rest of the worklist's settings:
+    // they describe the operation, not the machine the list happens to be read on.
+
+    public const string HaulNearJumpsKey = "worklist.hauling.near_jumps";
+
+    /// <summary>
+    /// The most gates a haul between two systems may take and still count as nearby; anything
+    /// further, or with no gate route known, is long distance. Fifteen by default.
+    /// </summary>
+    public int HaulNearJumps => (int)Math.Clamp(prefs.GetLong(HaulNearJumpsKey, 15), 1, 100);
+
+    public Task SetHaulNearJumpsAsync(int jumps) =>
+        prefs.SetAsync(HaulNearJumpsKey, Math.Clamp(jumps, 1, 100).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    private static string LaneKey(HaulLane lane, string part) => lane switch
+    {
+        HaulLane.InSystem => $"worklist.hauling.in_system.{part}",
+        HaulLane.Nearby   => $"worklist.hauling.nearby.{part}",
+        _                 => $"worklist.hauling.long_distance.{part}",
+    };
+
+    /// <summary>
+    /// One lane's set-up, with the defaults it starts on: in system flown in the pilot's current
+    /// ship, nearby through the gates, long distance by a hauling service.
+    ///
+    /// <para>⚠️ Inside one system the method is always <see cref="HaulMethod.Fly"/>, whatever is
+    /// stored: there is nothing to contract, bridge or jump.</para>
+    /// </summary>
+    public HaulLaneSettings HaulLaneFor(HaulLane lane)
+    {
+        var fallback = lane switch
+        {
+            HaulLane.LongDistance => HaulMethod.Service,
+            HaulLane.Nearby       => HaulMethod.Gating,
+            _                     => HaulMethod.Fly,
+        };
+        var method = lane == HaulLane.InSystem ? HaulMethod.Fly
+                   : Enum.TryParse<HaulMethod>(prefs.Get(LaneKey(lane, "method")), out var m) && m != HaulMethod.Fly ? m
+                   : fallback;
+
+        var cargo = prefs.Get(LaneKey(lane, "cargo_m3")) is { Length: > 0 } c
+                    && double.TryParse(c, System.Globalization.NumberStyles.Float,
+                                       System.Globalization.CultureInfo.InvariantCulture, out var v) && v > 0
+            ? v : 0;
+
+        var chars = (prefs.Get(LaneKey(lane, "characters")) ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => long.TryParse(s, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        var contract = prefs.Get(LaneKey(lane, "contract_m3")) is { Length: > 0 } k
+                       && double.TryParse(k, System.Globalization.NumberStyles.Float,
+                                          System.Globalization.CultureInfo.InvariantCulture, out var km) && km > 0
+            ? km : HaulLaneSettings.DefaultContractM3;
+
+        return new HaulLaneSettings(lane, method, (int)prefs.GetLong(LaneKey(lane, "ship_type_id"), 0), cargo, chars)
+        {
+            ContractM3 = contract,
+        };
+    }
+
+    public Task SetHaulMethodAsync(HaulLane lane, HaulMethod method) =>
+        prefs.SetAsync(LaneKey(lane, "method"), method.ToString());
+
+    /// <summary>0 plans in whatever the pilot is flying.</summary>
+    public Task SetHaulShipAsync(HaulLane lane, int shipTypeId) =>
+        prefs.SetAsync(LaneKey(lane, "ship_type_id"), Math.Max(0, shipTypeId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>0 takes the hull's own hold.</summary>
+    public Task SetHaulCargoAsync(HaulLane lane, double m3) =>
+        prefs.SetAsync(LaneKey(lane, "cargo_m3"), Math.Max(0, m3).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>0 goes back to the default (<see cref="HaulLaneSettings.DefaultContractM3"/>).</summary>
+    public Task SetHaulContractM3Async(HaulLane lane, double m3) =>
+        prefs.SetAsync(LaneKey(lane, "contract_m3"), Math.Max(0, m3).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>In order: the first is the pilot used when only one is needed.</summary>
+    public Task SetHaulCharactersAsync(HaulLane lane, IEnumerable<long> characterIds) =>
+        prefs.SetAsync(LaneKey(lane, "characters"), string.Join(",", characterIds.Where(id => id > 0).Distinct()));
+
+    public const string HaulDeliverToKey     = "worklist.hauling.long_distance.deliver_to";
+    public const string HaulDropStationsKey  = "worklist.hauling.drop_stations";
+
+    /// <summary>
+    /// Where every long-distance haul is taken, or 0 for each item's own station.
+    ///
+    /// <para>A haul from a market hub is rarely flown to the structure that wants it: it comes in
+    /// by a service or a jump freighter to one staging station, and goes on from there in a
+    /// different ship. Set, each source's long-distance cargo is one trip to here; the nearby and
+    /// in-system hauls pick it up from here once it has landed.</para>
+    /// </summary>
+    public long HaulDeliverTo => Math.Max(0, prefs.GetLong(HaulDeliverToKey, 0));
+
+    public Task SetHaulDeliverToAsync(long stationId) =>
+        prefs.SetAsync(HaulDeliverToKey, Math.Max(0, stationId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Each system's drop-off station, where one is set: "system=station;…".
+    ///
+    /// <para>A trip from another system bringing cargo for more than one of a system's stations
+    /// goes to its drop-off instead, as one task — bridged or jumped to the fortress, and
+    /// handed out from there by the in-system loop. A system without one, or a trip with only one
+    /// station to go to, is hauled straight to the station.</para>
+    /// </summary>
+    public Dictionary<int, long> HaulDropStations =>
+        (prefs.Get(HaulDropStationsKey) ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Split('='))
+            .Where(p => p.Length == 2 && int.TryParse(p[0], out var s) && s > 0 && long.TryParse(p[1], out var t) && t > 0)
+            .GroupBy(p => int.Parse(p[0]))
+            .ToDictionary(g => g.Key, g => long.Parse(g.First()[1]));
+
+    public Task SetHaulDropStationsAsync(IReadOnlyDictionary<int, long> stations) =>
+        prefs.SetAsync(HaulDropStationsKey, string.Join(";", stations.Where(kv => kv.Key > 0 && kv.Value > 0)
+                                                                    .OrderBy(kv => kv.Key)
+                                                                    .Select(kv => $"{kv.Key}={kv.Value}")));
+
+    public const string LoopSharesKey = "worklist.hauling.loop_shares";
+
+    /// <summary>
+    /// Which pilot each leg of an in-system loop is pinned to: "system:from:to" to a character id.
+    ///
+    /// <para>⚠️ Shared, like the rest of the hauling set-up, and kept across restarts: a pilot two
+    /// stops into a loop must find the rest of it still theirs after a refresh, on this client or
+    /// another. See LogisticsGenerator.LoopsAsync for how a leg is pinned and let go.</para>
+    /// </summary>
+    public Dictionary<string, long> LoopShares =>
+        (prefs.Get(LoopSharesKey) ?? "")
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Split('='))
+            .Where(p => p.Length == 2 && long.TryParse(p[1], out _))
+            .GroupBy(p => p[0])
+            .ToDictionary(g => g.Key, g => long.Parse(g.First()[1]));
+
+    public Task SetLoopSharesAsync(IReadOnlyDictionary<string, long> shares) =>
+        prefs.SetAsync(LoopSharesKey, string.Join(";", shares.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                                                              .Select(kv => $"{kv.Key}={kv.Value}")));
+
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it
     /// is short enough that a split actually happens on the long component runs that prompted

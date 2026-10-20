@@ -129,9 +129,9 @@ public class HaulPressureService(
 
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId) && a.Quantity > 0)
-                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.OwnerId, a.TypeId, a.RootLocationId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                         && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(
@@ -167,16 +167,18 @@ public class HaulPressureService(
         }
 
         // Hauls already raised, by where they are going and what they carry.
+        //
+        // By where the cargo is put down: one place for a trip, each stop for an in-system loop.
         var hauls = items
-            .Where(i => i.Kind == WorklistKind.Haul && i.DestinationId > 0)
-            .Select(i => (
-                i.DestinationId,
-                i.Title,
-                i.Readiness,
-                From: i.LocationName,
-                Types: i.Lines.Count > 0
-                    ? i.Lines.Select(l => l.TypeId).ToHashSet()
-                    : new HashSet<int> { i.TypeId }))
+            .Where(i => i.Kind == WorklistKind.Haul)
+            .SelectMany(i => i.Deliveries()
+                .GroupBy(d => d.Destination)
+                .Select(g => (
+                    DestinationId: g.Key,
+                    i.Title,
+                    i.Readiness,
+                    From: i.LocationName,
+                    Types: g.Select(d => d.TypeId).ToHashSet())))
             .ToList();
 
         var rows = new List<HaulBlock>();

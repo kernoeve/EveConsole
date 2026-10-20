@@ -235,6 +235,84 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>資源待ち</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>価格表</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>買取リスト</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>以下のアイテムをこの価格で買い取ります。売却するには、注文と同じ書き方でアイテムを本文に書き、SELL を送ってください。</value>
+  </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>契約はすべて{0}で作成してください。</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>買取リストのアイテムを売却します。注文と同じく、本文に1行に1アイテムずつ書いてください。</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>支払額と、アイテム交換契約の宛先をお返事します。</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — 売却申込：{1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — 売却申込を読み取れませんでした</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — 売却申込は受け付けられません</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>売却申込 {0} を受け付けました</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>{0} 宛てに&lt;b&gt;アイテム交換&lt;/b&gt;契約を作成し、これらのアイテムを入れて「あなたの受け取り」に &lt;b&gt;{1}&lt;/b&gt; と入力してください。</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>契約は&lt;b&gt;{0}&lt;/b&gt;で作成してください。</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>契約の説明に {0} と書いていただくと照合しやすくなります。</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>このストアは現在、何も買い取っていません。</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>このストアは現在、売却申込を受け付けていません。</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>この売却申込には、買取リストに載っているアイテムがありません。</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>買取リストにあるもの：{0}。売却するには、代わりに SELL を送ってください。</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>価格表にあるもの：{0}。購入するには、代わりに ORDER を送ってください。</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>契約受諾済み — 支払い済み</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>ストアが契約を拒否したため、この売却申込は終了しました</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>契約受領 — ストアの受諾待ち</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>契約受領。合意額 {1} に対し {0} を要求 — ストアの対応待ち</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>{1:N0} 個中 {0:N0} 個が契約済み</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>契約待ち：{0} 宛てのアイテム交換、要求額 {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>契約待ち：{2}で{0} 宛てのアイテム交換、要求額 {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{1:N0}個中{0:N0}個は納品済み</value>
   </data>

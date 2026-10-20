@@ -3013,6 +3013,12 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>Сертификаты</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Типы записей журнала кошелька</value>
+  </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Всё остальное из SDE</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Материалы типов</value>
   </data>
@@ -3042,6 +3048,9 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>строк: {0:N0}</value>
+  </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>Ожидание базы данных: в неё пишет другая задача. Повтор этой записи (попытка {0})…</value>
   </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>сохранено строк: {0:N0}</value>

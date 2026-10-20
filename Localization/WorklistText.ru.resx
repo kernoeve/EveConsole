@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Автообновление</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Перестраивает список каждые несколько минут. Отключите, пока летите по кругу перевозок, чтобы план не менялся на ходу: перестройка планирует заново от текущего положения каждого пилота. Кнопка «Обновить» по-прежнему перестраивает список.</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>готовы сейчас</value>
   </data>
@@ -775,6 +781,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Перевозка</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Перевозка — внутри системы</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Перевозка — поблизости</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Перевозка — дальняя</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Переработка</value>
   </data>
@@ -1465,6 +1480,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>начнётся по прибытии</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>запустится, когда завершится и другой круг</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>Ещё {0:N0} запустятся, когда завершится и другой круг в этой системе.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>запустится, когда круг завершится</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Всё, что этот круг выгружает здесь на всех остановках, покрывает нехватку проекта, поэтому он запустится, когда круг завершится.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>После круга запустятся остановленные проекты ({0:N0}): {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>После круга запустятся остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>нужно {0:N0}</value>
   </data>
@@ -1512,6 +1545,9 @@
   </data>
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>Ещё проектов, которым нужна часть этого груза, но которые не запустятся с этой партией: {0:N0}.</value>
+  </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>Остановленных проектов, которым нужна часть этого груза, но которые не запустятся с этой партией: {0:N0}.</value>
   </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>Ещё предметов в этом грузе, нужных запланированной работе без собственного остановленного проекта: {0:N0}.</value>
@@ -1912,8 +1948,245 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>Предметов: {0}</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>Предметов: {0}, контракт {1} из {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Этого ждут проекты.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>Для работ, запланированных в пункте назначения.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>Внутри системы</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Ближние системы</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Дальние перевозки</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Служба перевозок</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Фрейтер через гипермосты</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Джамп-фрейтер</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Через звёздные врата</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Самостоятельно</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>Прыжков: {0:N0}</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>нет маршрута через врата</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>Рейсов: {0:N0}</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>Рейсов: {0:N0}, по {2:N0} на каждого из {1:N0} пилотов</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Как этот вид перевозки настроен в «Настройка → Перевозки»: способ и число прыжков между системами, корабль и сколько полных трюмов занимает груз. Рейсы — объём, делённый на трюм, с округлением вверх.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Основной</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Перемещение грузов между структурами одной системы по мере завершения работ. Планируется от текущего местоположения пилота, на его текущем корабле, с пустым трюмом.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Перевозки в системы в пределах указанного выше лимита прыжков.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Всё, что дальше или без маршрута через врата, — обычно торговые узлы.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Корпус {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Текущий корабль пилота</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>трюм {0:N0} м³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Как выполняется каждый вид перевозки и кто её выполняет. Сохраняется при изменении; рабочий список перестраивается чуть позже.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Поблизости — до</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>прыжков через врата; всё дальше — дальние перевозки.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Считаются только звёздные врата, гипермосты не учитываются.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Способ</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Трюм (м³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>На контракт (м³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350 000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Наибольший объём, который вмещает один курьерский контракт. Перевозка больше этого делится на задачи по одной на контракт, самый нужный груз — в первой. Оставьте пустым для 350 000 м³.</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Как у корпуса</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>Корабль, по которому считаются рейсы. Текущий корабль берётся из игры для первого пилота в списке.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>Трюм для планирования. Оставьте пустым, чтобы взять базовый трюм корпуса — без расширителей, модификаторов, навыков и флотского ангара транспорта.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Поднять в списке</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Убрать из этого вида перевозок</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Добавить пилота…</value>
+  </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Круг от {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>Остановок: {0:N0}</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>Разворотов: {0:N0}</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>Не удаётся запланировать позиций: {0:N0} — одна единица больше трюма.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Запланированы первые {0:N0} остановок; ещё {1:N0} м³ потребуют следующих кругов.</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>разворот</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>Предыдущая структура обращена в другую сторону, поэтому после выхода корабль разворачивается — самая медленная часть перелёта фрейтера. Направления задаются в обозревателе структур.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Забрать</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Выгрузить</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>для {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>из {0}</value>
+  </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>трюм {0}</value>
+  </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Доставлять на</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>Станция каждого предмета</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Все дальние перевозки из одного источника идут на эту станцию одной задачей, а после прибытия груз дальше везут ближние и внутрисистемные перевозки. Оставьте «станцию каждого предмета», чтобы везти прямо туда, где он нужен.</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Станция выгрузки для системы</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>Если у одного источника есть груз для нескольких станций одной системы, он везётся на станцию выгрузки этой системы одной задачей, а дальше его развозит внутрисистемный круг. Груз для одной станции там по-прежнему везётся прямо на неё, а в систему без станции выгрузки — всегда напрямую.</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Назначить станцию точкой выгрузки её системы…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Снова возить прямо на станции этой системы</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Затем оттуда на {0}.</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} и ещё {1}</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Выполнено</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Отметить эту остановку как пройденную. Загруженное здесь считается в трюме, выгруженное — доставленным, так что круг продолжается и ждущие проекты могут запуститься, пока следующее обновление имущества это не покажет.</value>
+  </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Отметить этот рейс как доставленный. Его груз сразу считается находящимся в пункте назначения — ожидающие его работы можно запускать, а следующий отрезок от перевалочной станции или станции выгрузки планируется — пока следующее обновление имущества не покажет это.</value>
+  </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Контракт создан</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Контракт создан</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Что попало в курьерский контракт. Сначала здесь план: измените количества, уберите то, что не положили, или вставьте скопированные в игре предметы контракта и замените список. Записывается и считается в пути только то, что здесь есть; остальное остаётся в списке задач.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>В списке: {0}</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>В списке: {0} — больше {1}, которые вмещает один контракт</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Список пуст. Вставьте предметы контракта или отмените.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Не распознано, в список не добавлено: {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Записать</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Добавляет вставленные предметы в список. Для уже имеющегося количества складываются.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Заменяет весь список вставленными предметами. Вставьте скопированные в игре предметы контракта, чтобы записать точно то, что в нём.</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Отметьте, когда курьерский контракт создан. Его груз считается в пути, поэтому повторно не покупается и не перевозится, и хранится вместе с курьерским контрактом — найденным по началу и концу, как только обновление контрактов его увидит, — где его можно исправить в инструменте контрактов. В ваше имущество ничего не добавляется.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Не удалось записать перевозку: {0}</value>
+  </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} м³)</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>выгрузить {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>забрать {0} · {1}</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Пополняет станцию до её уровня.</value>

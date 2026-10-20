@@ -25,8 +25,17 @@ public sealed class Row(int index, double body, int lines, bool open)
     public bool         IsOpen { get; } = open;
     public List<string> Items  { get; } = [.. Enumerable.Range(0, lines).Select(i => $"line {i}")];
 
+    /// <summary>
+    /// The most an open drawer occupies, for the variants that cap it and scroll inside.
+    ///
+    /// <para>⚠️ Set per run. Without it the truth for a capped variant was the UNCAPPED height,
+    /// so every "uniform drawers" figure ever reported here — the one that ruled capping out as
+    /// worse — was measured against geometry the grid never had.</para>
+    /// </summary>
+    public static double Cap = double.PositiveInfinity;
+
     /// <summary>What this row really occupies, drawer included when it is open.</summary>
-    public double TrueHeight => Body + (IsOpen ? Lines * LineHeight : 0);
+    public double TrueHeight => Body + (IsOpen ? Math.Min(Lines * LineHeight, Cap) : 0);
 }
 
 public sealed record Step(
@@ -116,6 +125,22 @@ public static class Program
         return rows;
     }
 
+    /// <summary>
+    /// The same fifty rows with every open drawer turned into rows of its own — one per line, each
+    /// as tall as the shortest body — under its parent, and no drawer anywhere.
+    /// </summary>
+    private static List<Row> Flatten(List<Row> rows, double? even = null)
+    {
+        var flat = new List<Row>();
+        var n = 0;
+        foreach (var r in rows)
+        {
+            flat.Add(new Row(n++, even ?? r.Body, 0, false));
+            for (var i = 0; i < r.Lines && r.IsOpen; i++) flat.Add(new Row(n++, even ?? 32, 0, false));
+        }
+        return flat;
+    }
+
     private static DataGrid BuildGrid(List<Row> rows, Mode mode)
     {
         var grid = new DataGrid
@@ -142,9 +167,33 @@ public static class Program
 
                 var border = new Border { Child = text };
                 border[!Layoutable.HeightProperty] = new Binding(nameof(Row.Body));
-                return border;
+                if (mode is not (Mode.InCell or Mode.InCellCapped)) return border;
+
+                // ⚠️ The drawer INSIDE the cell: an open row is simply a taller row, and the grid's
+                // details machinery — where both faults live — is never touched.
+                var lines = new ItemsControl
+                {
+                    ItemTemplate = new FuncDataTemplate<string>((_, _) =>
+                        new Border { Height = Row.LineHeight, Child = new TextBlock() }),
+                };
+                lines[!ItemsControl.ItemsSourceProperty] = new Binding(nameof(Row.Items));
+                lines[!Visual.IsVisibleProperty]         = new Binding(nameof(Row.IsOpen));
+
+                var stack = new StackPanel();
+                stack.Children.Add(border);
+                if (mode == Mode.InCellCapped)
+                {
+                    // Capped, scrolling inside: an open row is never taller than a fixed amount.
+                    var sv = new ScrollViewer { MaxHeight = 320, Content = lines };
+                    sv[!Visual.IsVisibleProperty] = new Binding(nameof(Row.IsOpen));
+                    stack.Children.Add(sv);
+                }
+                else stack.Children.Add(lines);
+                return stack;
             }),
         });
+
+        if (mode is Mode.InCell or Mode.InCellCapped) return grid;
 
         // A drawer is N stacked lines, so its height is N * LineHeight exactly.
         grid.RowDetailsTemplate = new FuncDataTemplate<Row>((_, _) =>
@@ -187,7 +236,7 @@ public static class Program
     /// zero here and it destroyed the real app. Anything that writes DisplayData is out on those
     /// grounds and no green line changes that.
     /// </summary>
-    private enum Mode { Stock, Pin, Takeover, WhenSelected, Uniform }
+    private enum Mode { Stock, Pin, Takeover, WhenSelected, Uniform, InCell, InCellCapped, ChildRows, NoneOpen, ChildRowsEven }
 
     private sealed class Fix(DataGrid grid, List<Row> model, Mode mode)
     {
@@ -427,8 +476,12 @@ public static class Program
     private static Result Run(string label, Mode mode, string input, double step, int burst, bool trace)
     {
         Crashes.Clear();
+        Row.Cap = mode is Mode.Uniform or Mode.InCellCapped ? 320 : double.PositiveInfinity;
 
-        var rows  = BuildRows();
+        var rows  = mode == Mode.ChildRows     ? Flatten(BuildRows())
+                  : mode == Mode.ChildRowsEven ? Flatten(BuildRows(), 40)
+                  : mode == Mode.NoneOpen  ? [.. BuildRows().Select((r, i) => new Row(i, r.Body, 0, false))]
+                  : BuildRows();
         var truth = rows.Sum(r => r.TrueHeight);
         var grid  = BuildGrid(rows, mode);
         var fix   = new Fix(grid, rows, mode);
@@ -533,6 +586,11 @@ public static class Program
                          ("+ takeover [REJ]", Mode.Takeover),
                          ("whenSelected", Mode.WhenSelected),
                          ("uniform drawers", Mode.Uniform),
+                         ("in-cell drawer", Mode.InCell),
+                         ("in-cell capped", Mode.InCellCapped),
+                         ("child rows", Mode.ChildRows),
+                         ("none open (today)", Mode.NoneOpen),
+                         ("child rows, even", Mode.ChildRowsEven),
                      })
             {
                 var r = Run(label, mode, input, step, burst, trace);

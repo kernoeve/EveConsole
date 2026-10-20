@@ -1018,6 +1018,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         "get_assets"            => AgentText.ToolStatusGetAssets,
         "get_industry_jobs"     => AgentText.ToolStatusGetIndustryJobs,
         "get_character_info"    => AgentText.ToolStatusGetCharacterInfo,
+        "get_pilot_status"      => AgentText.ToolStatusGetPilotStatus,
         "get_market_prices"     => AgentText.ToolStatusGetMarketPrices,
         "search_items"          => AgentText.ToolStatusSearchItems,
         "capture_tab"           => AgentText.ToolStatusCaptureTab,

@@ -49,6 +49,8 @@ public class AppDbContext : DbContext
     public DbSet<KillMailItem>               KillMailItems           => Set<KillMailItem>();
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
+    public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
+    public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
     public DbSet<PlanetaryRoute>             EsiPlanetaryRoutes      => Set<PlanetaryRoute>();
@@ -194,6 +196,10 @@ public class AppDbContext : DbContext
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
     public DbSet<SdeMetaGroup>          SdeMetaGroups          => Set<SdeMetaGroup>();
     public DbSet<SdeCertificate>        SdeCertificates        => Set<SdeCertificate>();
+    public DbSet<SdeCertificateSkill>   SdeCertificateSkills   => Set<SdeCertificateSkill>();
+    public DbSet<SdeCertificateRecommendation> SdeCertificateRecommendations => Set<SdeCertificateRecommendation>();
+    public DbSet<SdeCompressibleType>   SdeCompressibleTypes   => Set<SdeCompressibleType>();
+    public DbSet<SdeAccountingEntryType> SdeAccountingEntryTypes => Set<SdeAccountingEntryType>();
     public DbSet<SdeTypeMaterial>       SdeTypeMaterials       => Set<SdeTypeMaterial>();
     public DbSet<SdePlanetSchematic>    SdePlanetSchematics    => Set<SdePlanetSchematic>();
     public DbSet<SdePlanetSchematicType> SdePlanetSchematicTypes => Set<SdePlanetSchematicType>();
@@ -244,6 +250,9 @@ public class AppDbContext : DbContext
     public DbSet<SalePostingSection> SalePostingSections => Set<SalePostingSection>();
     public DbSet<SalePostingItem>    SalePostingItems    => Set<SalePostingItem>();
     public DbSet<SalePostingPost>    SalePostingPosts    => Set<SalePostingPost>();
+    // Places a posting lists whatever is found in. Mirrored by hand in App.axaml.cs (SQLite) and
+    // PostgresSchema — EnsureCreated builds it only into a new database.
+    public DbSet<SalePostingLocation> SalePostingLocations => Set<SalePostingLocation>();
 
     // ── Stores (EVE mail order desk) ────────────────────────────────────────
     public DbSet<Store>       Stores       => Set<Store>();
@@ -252,6 +261,7 @@ public class AppDbContext : DbContext
     public DbSet<DiscordWebhook> DiscordWebhooks => Set<DiscordWebhook>();
     public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
+    public DbSet<StorePosting> StorePostings => Set<StorePosting>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
 
     // The web channel's ledger and log. ⚠️ New tables: hand-written CREATEs in both schema paths.
@@ -585,6 +595,20 @@ public class AppDbContext : DbContext
         mb.Entity<SdeCertificate>(e => {
             e.HasKey(x => x.CertificateId);
             e.Property(x => x.CertificateId).ValueGeneratedNever(); });
+        mb.Entity<SdeCertificateSkill>(e => {
+            e.HasKey(x => new { x.CertificateId, x.SkillTypeId });
+            e.Property(x => x.CertificateId).ValueGeneratedNever();
+            e.Property(x => x.SkillTypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeCertificateRecommendation>(e => {
+            e.HasKey(x => new { x.CertificateId, x.ShipTypeId });
+            e.Property(x => x.CertificateId).ValueGeneratedNever();
+            e.Property(x => x.ShipTypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeCompressibleType>(e => {
+            e.HasKey(x => x.TypeId);
+            e.Property(x => x.TypeId).ValueGeneratedNever(); });
+        mb.Entity<SdeAccountingEntryType>(e => {
+            e.HasKey(x => x.EntryTypeId);
+            e.Property(x => x.EntryTypeId).ValueGeneratedNever(); });
 
         mb.Entity<SdeTypeMaterial>(e => {
             e.HasKey(x => new { x.TypeId, x.MaterialTypeId });
@@ -894,6 +918,19 @@ public class AppDbContext : DbContext
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiPlanetaryColonies"); });
 
+        // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
+        // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<HaulMark>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("HaulMarks"); });
+
+        // What is in our courier contracts, entered by hand — ESI never lists it. Mirrored by hand
+        // in App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<CourierCargo>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ContractId);
+            e.ToTable("CourierCargo"); });
+
         // Colony layouts, one colony replaced whole at a time. Mirrored by hand in App.axaml.cs
         // (SQLite) and PostgresSchema — EnsureCreated builds them only into a new database.
         mb.Entity<PlanetaryLayout>(e => {
@@ -1185,6 +1222,8 @@ public class AppDbContext : DbContext
 
         mb.Entity<TrackedOrder>(e => {
             e.HasKey(x => x.Id);
+            e.Ignore(x => x.IsBuy);
+            e.Ignore(x => x.AsksMore);
             e.ToTable("TrackedOrders"); });
 
         mb.Entity<Store>(e => {
@@ -1206,6 +1245,14 @@ public class AppDbContext : DbContext
         mb.Entity<StoreSender>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("StoreSenders"); });
+
+        // A store's listings, sell and buy. Mirrored by hand in App.axaml.cs (SQLite) and
+        // PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<StorePosting>(e => {
+            e.HasKey(x => x.Id);
+            e.Ignore(x => x.IsBuy);
+            e.HasIndex(x => x.StoreId);
+            e.ToTable("StorePostings"); });
 
         mb.Entity<StoreMail>(e => {
             e.HasKey(x => x.Id);

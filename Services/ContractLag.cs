@@ -15,7 +15,17 @@ namespace EveConsole.Services;
 /// counts that only take packaged ones.</param>
 public sealed record ContractMove(
     int ContractId, long Site, string OwnerType, long OwnerId, int TypeId, long Units, bool IsSingleton,
-    DateTimeOffset At);
+    DateTimeOffset At)
+{
+    /// <summary>
+    /// On its way to <see cref="Site"/> in a courier, not there yet — see CourierCargoLag.
+    ///
+    /// <para>⚠️ Counted by whatever asks whether the goods exist — demand, purchasing, inventory
+    /// levels, the hauling plan's cover for a want — and skipped by whatever asks whether they
+    /// are on the shelf now: a job's readiness, an order's stock.</para>
+    /// </summary>
+    public bool InTransit { get; init; }
+}
 
 /// <summary>
 /// What contracts have moved in and out of hangars that the asset polls have not caught up with.
@@ -23,9 +33,10 @@ public sealed record ContractMove(
 /// <para>⚠️ Assets are polled hourly, contracts every five minutes. Making a contract takes its
 /// goods out of the hangar at once, and for up to an hour the snapshot still shows them: the Order
 /// Tracker found the hull just contracted to one buyer still on the shelf, called the next buyer's
-/// order in stock, and mailed them to say so. Deleting a contract puts the goods back, accepting
-/// one hands them over — and takes whatever it asked for in return — and a courier contract lands
-/// them at the far end, each with the same gap. The contract-side twin of DeliveryLag, settled
+/// order in stock, and mailed them to say so. Deleting a contract puts the goods back, and
+/// accepting one hands them over — and takes whatever it asked for in return — each with the same
+/// gap. ⚠️ A courier's goods are not here: ESI never lists a courier's cargo, so its moves come
+/// from what the user entered — see CourierCargoLag. The contract-side twin of DeliveryLag, settled
 /// the same way: measured against the asset clock of the owner whose hangar the goods left or
 /// reached.</para>
 ///
@@ -90,6 +101,15 @@ public static class ContractLag
             .ToDictionary(s => s.Owner, s => (s.Type, s.At));
         if (snapshot.Count == 0) return [];
 
+        // Hauls ticked off as delivered move goods just as contracts do, against the same clocks,
+        // so every reader of these moves sees them — and goods picked up stay on their shelf in
+        // every count until they are put down. See HaulLag.
+        //
+        // And a courier's cargo, which ESI never lists: entered by hand, and moved here — out of
+        // the start, in transit, then in at the end. See CourierCargoLag.
+        var hauled = await HaulLag.MovesAsync(db, snapshot, typeIds, ct);
+        hauled.AddRange(await CourierCargoLag.MovesAsync(db, snapshot, typeIds, ct));
+
         // ⚠️ Raw SQL for the dates: a DateTimeOffset in a LINQ Where does not translate on SQLite
         // (see OrderFulfilmentService.CandidateIdsAsync, which filters the same way). Only rows
         // polled for these owners — the key leads with the owner, where the dates have no index
@@ -100,12 +120,12 @@ public static class ContractLag
             FROM "EsiContracts" c
             WHERE c."OwnerId" IN ({{string.Join(",", snapshot.Keys)}})
               AND c."OwnerType" IN ('character', 'corporation')
-              AND c."Type" IN ('item_exchange', 'auction', 'courier')
+              AND c."Type" IN ('item_exchange', 'auction')
               AND (c."DateIssued" > {0} OR c."DateAccepted" > {1} OR c."DateCompleted" > {2}
                    OR c."StatusChangedAfter" > {3})
             """;
         var ids = await db.Database.SqlQueryRaw<int>(sql, floor, floor, floor, floor).ToListAsync(ct);
-        if (ids.Count == 0) return [];
+        if (ids.Count == 0) return [.. hauled.OrderByDescending(m => m.Units)];
 
         // ⚠️ Every owner row of each, read together. A contract is a row per owner that can see
         // it, each as fresh as that owner's last poll; the most settled speaks for the contract,
@@ -197,13 +217,9 @@ public static class ContractLag
                 if (polled && accepted > issuerTaken)
                     Move(g.Key, c.StartLocationId, issuer, offered: false, +1, accepted);
             }
-
-            // ── A courier delivered since: the goods are the issuer's at the far end ───────
-            if (c.Type == "courier" && polled && g.Max(r => r.DateCompleted) is { } delivered
-                && delivered > issuerTaken)
-                Move(g.Key, c.EndLocationId, issuer, offered: true, +1, delivered);
         }
 
+        moves.AddRange(hauled);
         return moves.OrderByDescending(m => m.Units).ToList();
     }
 

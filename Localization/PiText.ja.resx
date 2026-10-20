@@ -367,6 +367,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>司令基地</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>ゲーム内での配置どおりのコロニー（北が上、最後に開いた時点）。リングの色：金はコマンドセンター、青は抽出装置、緑は稼働中の工場、橙は停止中の工場、赤は停止した抽出装置か満杯の保管庫。他から離れた施設は枠の端に置かれ、リンクは破線になります。施設にカーソルを合わせると詳細を表示します。</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0}%</value>
   </data>

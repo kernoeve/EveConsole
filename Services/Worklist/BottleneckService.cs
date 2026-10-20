@@ -98,6 +98,9 @@ public sealed record ItemBandwidth(
     int    BlockedNow,
     bool   IsReaction = false)
 {
+    /// <summary>The blueprint or formula these prints are, for its picture.</summary>
+    public int BlueprintTypeId { get; init; }
+
     /// <summary>
     /// Tasks held up by this blueprint's output, directly or behind something that is.
     ///
@@ -599,6 +602,7 @@ public class BottleneckService(
                 wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked,
                 made.IsReaction)
             {
+                BlueprintTypeId = bpTypeId,
                 // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
                 // seen made "all busy" mean "the one I happened to use was busy": five formulas
                 // owned, jobs only ever run on one, and a print busy 31% of the time reported 31%

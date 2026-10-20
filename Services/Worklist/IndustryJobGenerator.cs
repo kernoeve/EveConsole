@@ -113,7 +113,7 @@ public class IndustryJobGenerator(
                 .Where(a => siteIds.Contains(a.RootLocationId))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId) && Ours(a.OwnerType, a.OwnerId))
             .ToList();
 
         // How far to look before calling something missing. Stock outside this counts as absent,
@@ -160,7 +160,8 @@ public class IndustryJobGenerator(
         // site, material bought on one is there. Never below zero. See ContractLag.
         foreach (var m in await ContractLag.MovesAsync(db, ct))
         {
-            if (!siteIds.Contains(m.Site) || !Ours(m.OwnerType, m.OwnerId)) continue;
+            // ⚠️ Not what a courier is still carrying: a job starts on what is on the shelf.
+            if (m.InTransit || !siteIds.Contains(m.Site) || !Ours(m.OwnerType, m.OwnerId)) continue;
             var pile = m.OwnerType == "corporation" ? stock.Corp : stock.Personal;
             pile[(m.Site, m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.Site, m.TypeId, m.OwnerId)) + m.Units);
         }

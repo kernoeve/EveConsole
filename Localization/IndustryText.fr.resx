@@ -314,10 +314,88 @@
     <value>Ajouter à la file</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Inclure le coût du BPC final</value>
+    <value>Inclure le coût des BPC</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Retire tous les objets de la file, et les résultats avec.</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>Combien en construire. Modifiez-le ici ; recalculez pour voir les nouveaux chiffres.</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Efficacité matérielle du plan avec lequel cet objet est construit.</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Retirer de la file</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>La file a changé depuis le calcul de ces résultats.</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalculer</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Coût net</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Valeur marchande</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Bénéfice</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Volume des matières premières</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Durée des travaux</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>Le grand chiffre est la plus longue chaîne de travaux devant s'enchaîner : le plus tôt où le plan pourrait être fini avec un créneau par travail. En dessous, la durée de tous les travaux additionnée. Suppose toutes les compétences au niveau V et une TE égale au double de l'ME, jusqu'à 20, dans les structures où le plan a placé chaque travail.</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>{0} de travaux au total</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Coûts de copies de plan non inclus ({0})</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>« Inclure le coût des BPC » est désactivé : ces objets sont comptés sans le prix des copies dont ils ont besoin, et les totaux ne les incluent pas.</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (copie de plan)</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Valeur produite</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Tout ce que produit le travail, à la valeur de construction : le coût de construction enregistré, ou le prix du marché à défaut.</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Durée : {0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>Toutes les exécutions de ce travail, en supposant les compétences au niveau V et une TE égale au double de l'ME (jusqu'à 20), dans la structure où le plan l'a placé.</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0} j {1} h</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Ajoute la copie de plan de construction du produit final (prix en contrat) comme intrant. Toujours incluse pour les objets de faction ou disponibles uniquement en BPC ; facultative pour les objets à BPO standard.</value>
+    <value>Compte les copies de plan (prix en contrat) comme intrant : celle du produit final et celles des objets qui ne se construisent qu'à partir d'une copie. Cochée quand un tel objet est mis en file ; décochez-la pour voir la construction sans copies.</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>Ouvrir dans l'explorateur d'objets</value>
@@ -429,6 +507,12 @@
   </data>
   <data name="ColNeeded" xml:space="preserve">
     <value>Requis</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>Volume empaqueté de toute la quantité</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
     <value>Produit</value>
@@ -1053,6 +1137,69 @@
   </data>
   <data name="SourceBuy" xml:space="preserve">
     <value>Acheter</value>
+  </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Copié dans le presse-papiers</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Rien à copier</value>
+  </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Hiérarchie</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>Par station</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Chaque travail sous le travail qui a besoin de ce qu'il produit</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Chaque travail sous l'installation où il s'exécute, avec ce dont les travaux de cette installation ont besoin ensemble</value>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} travail</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} travaux</value>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} matériau</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} matériaux</value>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>{0:N0} manquant</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0} manquants</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Tout est disponible</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>Aucune installation liée : le stock ici ne peut pas être compté</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>Aucune installation</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Produit ici</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Produit ailleurs</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Manque par rapport au stock de cette installation, pour tous ses travaux ensemble. Un matériau qu'un autre travail produit ici ne manque jamais.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Copier tous les matériaux achetés nécessaires aux travaux de cette installation (nom et quantité, séparés par des tabulations)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Copier uniquement les matériaux achetés qui manquent à cette installation</value>
   </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Produire</value>

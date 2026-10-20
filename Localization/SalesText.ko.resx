@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>구매 가격</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>구분</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>계약이 {0}을(를) 요구하며, 포함된 수량에 대해 제시한 {1}보다 많습니다. 수락하기 전에 확인하십시오.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>상태</value>
   </data>
@@ -604,6 +610,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>취소됨</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>방문</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>순 방문자</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>최근 48시간: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>아래: 최근 48시간 동안 주문된 진행 중인 항목.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>아래: 최근 48시간 동안 마무리된 주문. 주문에는 마무리된 날짜(EVE 시간)만 남으므로 그날의 시작부터 세며, 최대 하루가 더 포함될 수 있습니다.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>구매자가 상점 웹사이트에 로그인하거나, 한동안 떠나 있다가 돌아온 경우.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>방문한 서로 다른 구매자 수. 같은 구매자는 몇 번을 와도 한 명으로 셉니다.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>진행 중인 주문</value>
   </data>
@@ -676,8 +706,131 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>주문 상태 알림에 사용되며, EVE 메일 상점이 열려 있을 때는 상점 요청에도 사용됩니다.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>가격표</value>
+  <data name="Listings" xml:space="preserve">
+    <value>목록</value>
+  </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ 위치</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>아이템을 하나씩 고르는 대신, 선택한 정거장, 격납고, 부서, 컨테이너에 있는 모든 것을 게시물을 만들 때의 상태대로 나열합니다.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>아이템은 게시물 탭에 표시됩니다</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>섹션 제목</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>아이템을 나열할 위치</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>정거장이나 구조물, 그곳의 소유자, 격납고나 콥 부서, 그 안의 컨테이너 등 어느 단계든 골라 추가하십시오. 게시물을 만들 때마다 그 위치에 있는 것이 나열됩니다. 아이템은 표가 아니라 게시물 탭에 표시됩니다. 함선은 고를 수 없으며 그 안의 것도 나열되지 않습니다.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>필터: 정거장, 소유자, 부서 또는 컨테이너</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>아이템 {0:N0}개</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>추가 →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>이 게시물이 나열하는 위치</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>우리 캐릭터나 콥 중 어느 것도 정거장이나 구조물에 가진 것이 없습니다.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>위치를 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>위치 {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (개인)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (콥)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>아이템 창고</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>운송</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>부서 {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>부서 {0}: {1}</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>판매</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>매입</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>탭 제목(선택)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>위로</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>아래로</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>각 목록은 이 순서대로 별도의 가격표 메일이 되고 웹사이트에서 별도의 탭이 됩니다. 판매: 지금처럼 구매자가 재고와 생산품에서 주문합니다. 매입: 지급하는 가격이며 수량은 없습니다. 판매자가 제안한 뒤 그 ISK를 요구하는 아이템 교환 계약을 당신 앞으로 만들고, 당신이 수락하면 주문이 완료됩니다.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>매입 계약 수신자</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>받을 대상 선택</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>판매자에게 아이템 교환 계약을 이 대상 앞으로 만들도록 안내하며, 각 제안은 이 대상이 받은 계약과 대조됩니다. 콥이나 얼라이언스 앞으로 된 계약은 그 안의 콥 로그인을 통해서만 보입니다.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>계약을 받을 대상을 고르기 전까지 매입 목록은 제안을 받지 않습니다.</value>
+  </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>매입 계약 장소</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>정거장 또는 구조물 검색 (선택)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>판매자 안내: 모든 계약을 {0}에서 만드십시오.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>선택 사항. 판매자가 계약을 만들 장소입니다. 가격표 메일, 제안에 대한 답장, 웹사이트에서 안내합니다. 다른 곳에서 만든 계약도 대조됩니다.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (캐릭터)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (콥)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (얼라이언스)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>언어</value>
@@ -1571,6 +1724,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>계약됨</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>판매 제안 · 상대 계약 대기</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>판매 제안 · 상대 계약 수락 필요</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>미조달</value>
   </data>
@@ -1624,6 +1783,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>상점에 가격 기준으로 삼을 게시물이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL이 전송되었지만 상점에 매입 목록이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>판매 제안 거절: 매입 계약을 받을 대상이 상점에 지정되어 있지 않습니다.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>인식된 항목이 없습니다. 일치하지 않음: {0}</value>

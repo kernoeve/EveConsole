@@ -417,11 +417,115 @@
     <comment>Button or option in ProductionCalculatorView.</comment>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Include final BPC cost</value>
+    <value>Include BPC cost</value>
     <comment>Button or option in ProductionCalculatorView.</comment>
   </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Take every item off the queue, and the results with them.</value>
+    <comment>Tooltip on the queue's Clear button.</comment>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>How many to build. Change it here; Calculate again to see the new figures.</value>
+    <comment>Tooltip on a queued item's quantity box.</comment>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Material efficiency of the blueprint this item is built from.</value>
+    <comment>Tooltip on a queued item's ME box.</comment>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+    <comment>Column heading and label: material efficiency.</comment>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Remove from the queue</value>
+    <comment>Tooltip on a queued item's remove button.</comment>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>The queue has changed since these results were calculated.</value>
+    <comment>Note above the results when the queue, park or BPC choice changed after calculating.</comment>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalculate</value>
+    <comment>Button: calculate the results again.</comment>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Net cost</value>
+    <comment>Summary figure: what the build costs after leftovers.</comment>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Summary figure: what the products sell for.</comment>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Summary figure: market value less cost.</comment>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Raw material volume</value>
+    <comment>Summary figure: volume of everything to buy.</comment>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Job time</value>
+    <comment>Summary figure: how long the jobs take.</comment>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>The large figure is the longest chain of jobs that must run one after another: how soon the plan could be done with a slot for every job. Below it, every job's time added up. Assumes all-V skills and TE twice the ME, up to 20, in the structures the plan placed each job in.</value>
+    <comment>Tooltip on the job time summary figure.</comment>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>{0} of jobs in all</value>
+    <comment>Under the job time figure. {0} = every job's time added up, e.g. 12d 4h.</comment>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Blueprint copy costs left out ({0})</value>
+    <comment>Heading of the list of BPC-only items whose copy cost was not counted. {0} = how many.</comment>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>Include BPC cost is off, so these items are built without the price of the copies they need, and the totals do not include them.</value>
+    <comment>Explanation under the skipped BPC list.</comment>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (blueprint copy)</value>
+    <comment>A line in the skipped BPC list. {0} = the blueprint's name.</comment>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+    <comment>An ISK amount. {0} = the amount.</comment>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+    <comment>A blueprint's material efficiency. {0} = the level, e.g. ME10.</comment>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Produced value</value>
+    <comment>Column: everything a job makes, at build value.</comment>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Everything the job makes, at build value: the stored build cost, or the market price for an item with none.</value>
+    <comment>Tooltip on the Produced value column.</comment>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Time: {0}</value>
+    <comment>On a job in the Jobs tab. {0} = how long the job takes, e.g. 2d 4h.</comment>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>All runs of this job, assuming all-V skills and TE twice the ME (up to 20), in the structure the plan placed it in.</value>
+    <comment>Tooltip on a job's time.</comment>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>A duration. {0} = days, {1} = hours.</comment>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+    <comment>A duration. {0} = hours, {1} = minutes.</comment>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>A duration in minutes.</comment>
+  </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items.</value>
+    <value>Count blueprint copies (contract price) as an input: the final product's, and those of items that can only be built from a copy. Ticked when such an item is queued; untick it to see the build without any copies.</value>
     <comment>Tooltip in ProductionCalculatorView.</comment>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
@@ -571,6 +675,14 @@
   <data name="ColNeeded" xml:space="preserve">
     <value>Needed</value>
     <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Production Calculator, Raw Materials tab, column: packed volume of the whole quantity, in m³.</comment>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>Packed volume of the whole quantity</value>
+    <comment>Tooltip on a Volume cell, Raw Materials tab.</comment>
   </data>
   <data name="ColProduced" xml:space="preserve">
     <value>Produced</value>
@@ -1403,6 +1515,90 @@
   <data name="SourceBuy" xml:space="preserve">
     <value>Buy</value>
     <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan buys it (a verb, as against "Build").</comment>
+  </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Copied to clipboard</value>
+    <comment>Production Calculator: shown briefly in the middle of the window after a Shopping List or other copy button.</comment>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Nothing to copy</value>
+    <comment>Production Calculator: shown briefly when a copy button's list is empty, e.g. Shopping List (Missing) with nothing short. The clipboard is left as it was.</comment>
+  </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Hierarchy</value>
+    <comment>Production Calculator, Jobs tab: option that lists each job under the job that needs its output.</comment>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>By station</value>
+    <comment>Production Calculator, Jobs tab: option that lists each job under the facility it runs at.</comment>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Each job under the job that needs what it makes</value>
+    <comment>Tooltip on the Hierarchy option, Jobs tab.</comment>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Each job under the facility it runs at, with what that facility's jobs need between them</value>
+    <comment>Tooltip on the By station option, Jobs tab.</comment>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} job</value>
+    <comment>Jobs tab, station view, on a facility: how many jobs run there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} jobs</value>
+    <comment>Jobs tab, station view, on a facility: how many jobs run there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} material</value>
+    <comment>Jobs tab, station view, on a facility: how many different materials its jobs need. {0} = count.</comment>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} materials</value>
+    <comment>Jobs tab, station view, on a facility: how many different materials its jobs need. {0} = count.</comment>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>{0:N0} short</value>
+    <comment>Jobs tab, station view, on a facility: how many of its materials there is not enough of there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0} short</value>
+    <comment>Jobs tab, station view, on a facility: how many of its materials there is not enough of there. {0} = count.</comment>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Everything on hand</value>
+    <comment>Jobs tab, station view, on a facility whose stock covers every material its jobs need.</comment>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>No facility linked, so stock here can't be counted</value>
+    <comment>Jobs tab, station view, on a park structure with no real facility linked (Indy Parks, Actual facility).</comment>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>No facility</value>
+    <comment>Jobs tab, station view: name of the group for jobs the plan placed in no structure at all.</comment>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Built here</value>
+    <comment>Jobs tab, station view, Source column: another job at this same facility makes this material.</comment>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Built elsewhere</value>
+    <comment>Jobs tab, station view, Source column: a job at another facility makes this material, so it has to be hauled here.</comment>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Jobs tab, station view, column: units already at the facility.</comment>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Shortfall against stock at this facility, for all its jobs together. A material another job here makes is never short.</value>
+    <comment>Tooltip on the Missing column header, Jobs tab, station view.</comment>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Copy every bought material this facility's jobs need (name and quantity, tab-separated)</value>
+    <comment>Tooltip on a facility's Shopping List button, Jobs tab, station view.</comment>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Copy only the bought materials this facility is short of</value>
+    <comment>Tooltip on a facility's Shopping List (Missing) button, Jobs tab, station view.</comment>
   </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Build</value>

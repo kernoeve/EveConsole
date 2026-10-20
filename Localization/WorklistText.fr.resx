@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>Actualiser</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Actualisation auto</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Reconstruit la liste toutes les quelques minutes. Désactivez-le pendant une boucle de transport, pour que le plan ne change pas en cours de route : une reconstruction replanifie depuis la position actuelle de chaque pilote. Actualiser la reconstruit toujours.</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>prêtes maintenant</value>
   </data>
@@ -775,6 +781,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>Transport</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Transport — dans le système</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Transport — à proximité</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Transport — longue distance</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Retraitement</value>
   </data>
@@ -1459,6 +1474,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>démarre à l'arrivée</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>démarre une fois l'autre boucle terminée aussi</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} autres démarrent une fois l'autre boucle de ce système terminée aussi.</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>démarre une fois la boucle terminée</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Ce que cette boucle dépose ici, sur l'ensemble de ses arrêts, couvre ce qui manque au travail ; il démarre une fois la boucle terminée.</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Relance {0:N0} travail(aux) à l'arrêt une fois la boucle terminée : {1}.</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Relance {0:N0} travail(aux) à l'arrêt une fois la boucle terminée : {1}, et {2:N0} de plus.</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>en demande {0:N0}</value>
   </data>
@@ -1500,6 +1533,9 @@
   </data>
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>{0:N0} autre(s) travail(aux) demandent une partie de cette cargaison mais ne démarreront pas avec ce chargement.</value>
+  </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>{0:N0} travail(aux) à l'arrêt demandent une partie de cette cargaison mais ne démarreront pas avec ce chargement.</value>
   </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>{0:N0} autre(s) objet(s) de ce chargement sont demandés par du travail planifié qui n'a pas de travail arrêté en propre.</value>
@@ -1882,8 +1918,245 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} objet(s)</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} objet(s), contrat {1} sur {2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Des travaux attendent ce transport.</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>Pour des travaux prévus à destination.</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>Dans le système</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Systèmes proches</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Longue distance</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Service de transport</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Transport de fret par ponts interstellaires</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Transport de fret hyperspatial</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Par les portails stellaires</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Le piloter</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} saut(s)</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>aucun itinéraire par portail</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} chargement(s)</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} chargements, {2:N0} chacun pour {1:N0} pilotes</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>Comment ce type de trajet est configuré dans Configuration → Transport : la méthode et les sauts entre systèmes, le vaisseau, et le nombre de soutes que remplit la cargaison. Les chargements sont le volume divisé par la soute, arrondi au supérieur.</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Principal</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Déplacer des marchandises entre structures d'un même système au fil des travaux terminés. Planifié depuis la position actuelle du pilote, dans son vaisseau actuel, soute vide.</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Trajets vers les systèmes jusqu'à la limite de sauts ci-dessus.</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Tout ce qui est plus loin, ou sans itinéraire par portail — en général les places de marché.</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Coque {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Vaisseau actuel du pilote</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>soute de {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>Comment chaque type de trajet est effectué et qui le pilote. Enregistré à chaque modification ; la liste de travail se reconstruit peu après.</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Proche signifie jusqu'à</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>sauts de portail ; au-delà, c'est la longue distance.</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Seuls les portails stellaires comptent — pas les ponts interstellaires.</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Méthode</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Vaisseau</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Soute (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Par contrat (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350 000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>Le maximum qu'un contrat de transport peut contenir. Un transport plus grand est divisé en une tâche par contrat, la cargaison la plus nécessaire dans le premier. Laissez vide pour 350 000 m³.</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Celle de la coque</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>Le vaisseau qui sert à dimensionner les trajets. Le vaisseau actuel est lu dans le jeu pour le premier pilote de la liste.</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>La soute utilisée pour planifier. Laissez vide pour la soute de base de la coque, sans extensions, modifications, compétences ni hangar de flotte d'un transport.</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Pilotes</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Monter dans la liste</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Retirer de ce type de trajet</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Ajouter un pilote…</value>
+  </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Boucle depuis {0}</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} arrêt(s)</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} demi-tour(s)</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} article(s) ne peuvent pas être planifiés : une seule unité dépasse la soute.</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>Les {0:N0} premiers arrêts sont planifiés ; {1:N0} m³ de plus demandent d'autres boucles.</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>demi-tour</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>La structure précédente est orientée à l'opposé de celle-ci : le vaisseau fait demi-tour après la sortie, la partie la plus lente d'un trajet en cargo. Les orientations se règlent dans le navigateur de structures.</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Charger</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Décharger</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>pour {0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>de {0}</value>
+  </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>soute de {0}</value>
+  </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Livrer à</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>La station propre à chaque objet</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Tous les transports longue distance d'une source vont à cette station en une seule tâche, et les transports proches et internes au système prennent le relais une fois la cargaison arrivée. Laissez la station propre à chaque objet pour transporter directement là où il est nécessaire.</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Station de dépôt par système</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>Quand une source a de la cargaison pour plus d'une station d'un système, elle est transportée vers la station de dépôt de ce système en une seule tâche, et la tournée interne au système la répartit depuis là. La cargaison destinée à une seule station y va toujours directement, et un système sans station de dépôt est toujours desservi directement.</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Définir une station comme dépôt de son système…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Transporter de nouveau directement vers les stations de ce système</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Puis de là vers {0}.</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} et {1} de plus</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Fait</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Cochez cet arrêt comme effectué. Ce qui a été chargé ici compte comme dans votre soute, et ce qui a été déchargé comme livré — la boucle avance et les travaux qui l'attendent peuvent démarrer — jusqu'à ce que la prochaine mise à jour des biens le montre.</value>
+  </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Cocher ce trajet comme livré. Sa cargaison compte aussitôt comme arrivée à destination — les travaux qui l'attendent peuvent démarrer, et l'étape suivante depuis une station de transit ou de dépôt est planifiée — jusqu'à ce que la prochaine mise à jour des actifs le montre.</value>
+  </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Contrat créé</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Contrat créé</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>Ce qui est entré dans le contrat de transport. Au départ, c'est le plan : modifiez les quantités, retirez ce que vous avez laissé, ou collez les objets du contrat copiés en jeu et remplacez la liste. Seul ce qui est listé est enregistré et compté comme en route ; le reste reste sur la liste de travail.</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} listés</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} listés, plus que les {1} qu'un contrat peut contenir</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Rien n'est listé. Collez les objets du contrat, ou annulez.</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Non reconnu, non ajouté à la liste : {0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Ajoute les objets collés à la liste. Pour un objet déjà présent, les quantités sont additionnées.</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Remplace toute la liste par les objets collés. Collez les objets du contrat copiés en jeu pour enregistrer exactement son contenu.</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Cochez une fois le contrat de coursier créé. Sa cargaison compte comme en route, donc rien n'est racheté ni transporté à nouveau, et elle est conservée avec le contrat de coursier — retrouvé par son départ et son arrivée dès que la mise à jour des contrats le voit — où elle peut être corrigée dans l'outil des contrats. Rien n'est ajouté à vos actifs.</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Impossible d'enregistrer le transport : {0}</value>
+  </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} m³)</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>décharger {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>charger {0} · {1}</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Remet la station à son niveau.</value>

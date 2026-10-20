@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>Цена покупки</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Сторона</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>Контракты просят {0} — больше, чем оговорённые {1} за указанное в них количество. Проверьте их, прежде чем принимать.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Статус</value>
   </data>
@@ -604,6 +610,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Отменено</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Посещения</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Уникальные посетители</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>За 48 ч: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Ниже: активные позиции, заказанные за последние 48 часов.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Ниже: закрытые за последние 48 часов. Заказ хранит только дату закрытия (время EVE), поэтому счёт идёт с начала того дня и может захватить до суток больше.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Покупатель вошёл на сайт магазина или вернулся после перерыва.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Разные покупатели среди посещений, сколько бы раз каждый ни заходил.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Активные заказы</value>
   </data>
@@ -676,8 +706,140 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>Используется для уведомлений о статусе заказов, а также для запросов к магазину, когда он открыт для почты EVE.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Прайс-лист</value>
+  <data name="Listings" xml:space="preserve">
+    <value>Списки</value>
+  </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Места</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>Перечисляет всё, что лежит в выбранных станциях, ангарах, отделах или контейнерах, — как есть на момент создания объявления, — вместо предметов, выбранных по одному.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>предметы показаны на вкладке «Объявление»</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>заголовок раздела</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Места, из которых перечислять предметы</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Выберите любой уровень — станцию или сооружение, владельца на ней, ангар или отдел корпорации, контейнер внутри — и добавьте его. Объявление при каждом создании перечисляет то, что лежит в этих местах: предметы показаны на вкладке «Объявление», а не в таблице. Корабли не предлагаются, и ничего внутри них не перечисляется.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Фильтр: станция, владелец, подразделение или контейнер</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} предмет</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="PlacesItemsFew" xml:space="preserve">
+    <value>{0:N0} предмета</value>
+  </data>
+  <data name="PlacesItemsMany" xml:space="preserve">
+    <value>{0:N0} предметов</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Добавить →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Места этого объявления</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>Ни у одного из наших персонажей и корпораций нет ничего на станциях или в сооружениях.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Не удалось прочитать места: {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Место {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (личное)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (корпорация)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Поставки</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Подразделение {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Подразделение {0}: {1}</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Продажа</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Покупка</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Название вкладки (необязательно)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Выше</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Добавить список</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Каждый список — это отдельное письмо с прайс-листом и отдельная вкладка на сайте, в этом порядке. Продажа: покупатели заказывают из ваших запасов и производства, как раньше. Покупка: цены, которые платите вы, без количеств; продавец делает предложение, затем выставляет вам контракт обмена предметами с этой суммой ISK, и заказ завершается, когда вы его принимаете.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Контракты на покупку для</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Выберите получателя</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Продавцам говорят выставлять контракты обмена предметами на это имя, и каждое предложение сверяется с контрактами, которые оно получает. Контракты на корпорацию или альянс видны только через вход корпорации, состоящей в нём.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Списки покупки не принимают предложения, пока не выбран получатель их контрактов.</value>
+  </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Место контрактов на покупку</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Найдите станцию или сооружение (необязательно)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Продавцам сообщается: создавать все контракты в {0}.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Необязательно. Где продавцам создавать контракты: об этом говорят письмо с прайс-листом, ответы на предложения и сайт. Контракт, созданный в другом месте, всё равно сопоставляется.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (персонаж)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (корпорация)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (альянс)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Язык</value>
@@ -1589,6 +1751,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>В контракте</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Предложение · ждём их контракт</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Предложение · принять их контракт</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Без источника</value>
   </data>
@@ -1669,6 +1837,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>У магазина нет объявления о продаже, из которого брать цены.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>Пришло SELL, но у магазина нет списка покупок.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Предложение отклонено: у магазина не указан получатель контрактов на покупку.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Ничего не распознано. Без совпадений: {0}</value>

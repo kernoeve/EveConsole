@@ -34,10 +34,10 @@ public partial class JumpPlannerView : UserControl
         _dragging = waypoint;
         try
         {
-            var data = new DataObject();
+            var data = new DataTransfer();
             // English, like a copied route: this text can be dropped outside the app.
-            data.Set(DataFormats.Text, waypoint.Name);
-            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+            data.Add(DataTransferItem.CreateText(waypoint.Name));
+            await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
         }
         finally { _dragging = null; }
     }

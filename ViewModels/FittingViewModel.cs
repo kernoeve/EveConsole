@@ -455,6 +455,9 @@ public class FittingViewModel : ReactiveObject
         LeftPane.IsActive = true;
         try { _finderVisible = UiState.Get(FinderKey) != "0"; } catch { }
 
+        // A character added or removed while the tool is open: the pilot list follows.
+        OwnerList.Changed += () => { if (IsReady) _ = RefreshPilotsAsync(); };
+
         ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
         OpenFitCommand     = Guarded(ReactiveCommand.CreateFromTask(OpenFitAsync));
         OpenShipCommand    = Guarded(ReactiveCommand.CreateFromTask(OpenShipAsync));
@@ -641,6 +644,24 @@ public class FittingViewModel : ReactiveObject
     private bool _loading, _loaded;
     public bool IsReady { get => _loaded; private set => this.RaiseAndSetIfChanged(ref _loaded, value); }
 
+    /// <summary>
+    /// The pilots a fit can be flown by: All V, All 0, then every character. Read when the tool
+    /// loads and again whenever characters are added or removed (<see cref="OwnerList"/>), in
+    /// place, so a tab's chosen pilot stays chosen.
+    /// </summary>
+    private async Task RefreshPilotsAsync()
+    {
+        List<SkillSourceOption> pilots =
+        [
+            new(FittingText.PilotAllV, null, 5),
+            new(FittingText.PilotAll0, null, 0),
+        ];
+        await using (var db = await DbFactory.CreateDbContextAsync())
+            pilots.AddRange((await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync())
+                .OrderBy(c => c.Name).Select(c => new SkillSourceOption(c.Name, c.Id, 0)));
+        ListSync.Sync(SkillSources, pilots, s => (s.CharacterId, s.AllLevel));
+    }
+
     /// <summary>Called when the tool is first shown: reads the SDE's dogma data and the item list.</summary>
     public async Task EnsureLoadedAsync()
     {
@@ -669,12 +690,7 @@ public class FittingViewModel : ReactiveObject
                 Data = null;
                 return;
             }
-            SkillSources.Clear();
-            SkillSources.Add(new SkillSourceOption(FittingText.PilotAllV, null, 5));
-            SkillSources.Add(new SkillSourceOption(FittingText.PilotAll0, null, 0));
-            await using (var db = await DbFactory.CreateDbContextAsync())
-                foreach (var c in (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()).OrderBy(c => c.Name))
-                    SkillSources.Add(new SkillSourceOption(c.Name, c.Id, 0));
+            await RefreshPilotsAsync();
             Hulls.Clear();
             foreach (var h in Catalog.Entries.Where(e => e.Kind == CatalogKind.Hull).OrderBy(e => e.DisplayName, StringComparer.CurrentCulture))
                 Hulls.Add(h);

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.PlanetaryIndustryView"
              x:DataType="vm:PlanetaryIndustryViewModel">
@@ -243,11 +244,58 @@
         <ScrollViewer IsVisible="{Binding HasDetail}" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Spacing="12" Margin="0 0 8 8" DataContext="{Binding Detail}" x:DataType="vm:PiColonyDetailVm">
 
-            <StackPanel Spacing="2">
-              <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
-              <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding AgeText}" FontSize="11" Foreground="{Binding AgeColor}" TextWrapping="Wrap" />
-            </StackPanel>
+            <!-- The planet, its name and how old the reading is, and the colony as it is laid out. -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Width="72" Height="72" CornerRadius="36" ClipToBounds="True"
+                      VerticalAlignment="Top" Margin="0 0 12 0">
+                <views:TypeIcon TypeId="{Binding PlanetTypeId}" IconSize="128" Stretch="UniformToFill" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Top">
+                <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+                <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding AgeText}" FontSize="11" Foreground="{Binding AgeColor}" TextWrapping="Wrap" />
+              </StackPanel>
+
+              <!-- Links first, then the structures over them, each placed by the map's own sums. -->
+              <Border Grid.Column="2" IsVisible="{Binding Map.HasMap}" Margin="12 0 0 0" VerticalAlignment="Top"
+                      Width="{Binding Map.FrameWidth}" Height="{Binding Map.FrameHeight}" ClipToBounds="True"
+                      Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                      BorderThickness="1" CornerRadius="6" ToolTip.Tip="{x:Static loc:PiText.TipColonyMap}">
+                <Panel>
+                  <ItemsControl ItemsSource="{Binding Map.Links}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiMapLinkVm">
+                        <Line StartPoint="{Binding From}" EndPoint="{Binding To}" StrokeThickness="{Binding Thickness}"
+                              StrokeDashArray="{Binding Dashes}" Stroke="{DynamicResource BorderStrongBrush}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <ItemsControl ItemsSource="{Binding Map.Pins}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.Styles>
+                      <Style Selector="ContentPresenter" x:DataType="vm:PiMapPinVm">
+                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                        <Setter Property="Canvas.Top"  Value="{Binding Y}" />
+                      </Style>
+                    </ItemsControl.Styles>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiMapPinVm">
+                        <Border Width="{Binding Size}" Height="{Binding Size}" CornerRadius="{Binding Corner}"
+                                Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{Binding Ring}"
+                                BorderThickness="{Binding RingThickness}" ToolTip.Tip="{Binding Tip}">
+                          <views:TypeIcon TypeId="{Binding IconTypeId}" Margin="4" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Panel>
+              </Border>
+            </Grid>
 
             <!-- What it could make against what it will, and why the difference: estimated. -->
             <Border Classes="section" IsVisible="{Binding HasPeriod}">

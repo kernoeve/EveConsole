@@ -21,3 +21,6 @@ publish-linux/
 Releases/
 .build-tmp/
 EveConsole-linux-x64.tar.gz
+
+# The compose file's secrets. .env.example is the template.
+packaging/docker/.env

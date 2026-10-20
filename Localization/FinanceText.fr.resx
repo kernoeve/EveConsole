@@ -343,6 +343,24 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>Dépenses</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Synthèse</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Revenus</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Dépenses</value>
+  </data>
+  <data name="JournalEntriesTotalOne" xml:space="preserve">
+    <value>{0:N0} entrée · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} entrées · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>Jours en heure EVE, tous deux inclus. Effacez une date pour laisser cette borne ouverte.</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>Flux de trésorerie</value>
   </data>

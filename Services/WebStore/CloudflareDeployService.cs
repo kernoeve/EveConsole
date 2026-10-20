@@ -47,7 +47,7 @@ public sealed partial class CloudflareDeployService(
     public Func<string?> TokenSource { get; set; } = AppConfig.GetCloudflareToken;
 
     private CloudflareClient Cloudflare => new(httpFactory.CreateClient("cloudflare"));
-    private SiteReleases     Releases   => new(httpFactory.CreateClient("github"));
+    private SiteReleases     Releases   => new(httpFactory.CreateClient("github"), prereleases: BuildInfo.IsDevelopmentBuild);
 
     /// <summary>A name Cloudflare accepts — lower-case letters, digits and hyphens — from the store's name.</summary>
     public static string DefaultWorkerName(string storeName) => "eveconsole-" + Slug(storeName, 29, "store");
@@ -513,8 +513,25 @@ public sealed partial class CloudflareDeployService(
     private static string Trim(string v) => v.Trim().TrimStart('v', 'V');
     private static bool Same(string a, string b) => Trim(a) == Trim(b);
 
-    private static bool Newer(string a, string b) =>
-        Version.TryParse(Trim(a), out var x) && Version.TryParse(Trim(b), out var y) ? x > y : string.CompareOrdinal(Trim(a), Trim(b)) > 0;
+    /// <summary>Whether site version <paramref name="a"/> is later than <paramref name="b"/>.
+    /// ⚠️ A release candidate ("0.2.0-rc.1") comes before its release ("0.2.0"): compared as plain
+    /// text it came after, and a store left on the candidate was told it had the newest.</summary>
+    internal static bool Newer(string a, string b)
+    {
+        static (Version? Core, string Pre) Split(string v)
+        {
+            var t    = Trim(v);
+            var dash = t.IndexOf('-');
+            var core = dash < 0 ? t : t[..dash];
+            return (Version.TryParse(core, out var parsed) ? parsed : null, dash < 0 ? "" : t[(dash + 1)..]);
+        }
+        var (x, xp) = Split(a);
+        var (y, yp) = Split(b);
+        if (x is null || y is null) return string.CompareOrdinal(Trim(a), Trim(b)) > 0;
+        if (x != y) return x > y;
+        if (xp.Length == 0 || yp.Length == 0) return xp.Length == 0 && yp.Length > 0;
+        return string.CompareOrdinal(xp, yp) > 0;
+    }
 
     private static string Plain(Exception ex) => ex switch
     {

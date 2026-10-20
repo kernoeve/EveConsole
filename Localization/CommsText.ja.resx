@@ -315,6 +315,9 @@
   <data name="NotifTitleStructureLostShields" xml:space="preserve">
     <value>ストラクチャのシールド喪失</value>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>強化時間の変更</value>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>ストラクチャのアーマー喪失</value>
   </data>
@@ -741,6 +744,21 @@
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>強化終了</value>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>変更されたストラクチャ</value>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>強化時刻</value>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>強化曜日</value>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>適用</value>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>戦闘開始</value>
   </data>
@@ -752,6 +770,15 @@
   </data>
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>アカウントにゲーム時間が追加されました。</value>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>EVE時間 {0}（±3時間）</value>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>{1:N0} 基のストラクチャの強化時間が EVE時間 {0}（±3時間）に変わります。</value>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>{1:N0} 基のストラクチャの強化時間が {2} から EVE時間 {0}（±3時間）に変わります。その時点で損傷している場合は、無傷になった最初の時点で変わります。</value>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>詳細</value>

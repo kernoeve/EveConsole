@@ -37,6 +37,8 @@ public sealed record InvGroupFile
     public bool IncludeIndustryJobs    { get; init; } = true;
     public bool IncludeMarketBuyOrders { get; init; } = true;
     public bool IncludeContractsBuying { get; init; }
+    public bool IncludeMarketSellOrders { get; init; }
+    public bool IncludeContractsSelling { get; init; }
     public bool PackagedOnly           { get; init; }
 
     public List<InvItemFile> Items { get; init; } = [];
@@ -100,6 +102,8 @@ public class InvLevelCollectionTransfer(IDbContextFactory<AppDbContext> dbFactor
                 IncludeIndustryJobs    = g.IncludeIndustryJobs,
                 IncludeMarketBuyOrders = g.IncludeMarketBuyOrders,
                 IncludeContractsBuying = g.IncludeContractsBuying,
+                IncludeMarketSellOrders = g.IncludeMarketSellOrders,
+                IncludeContractsSelling = g.IncludeContractsSelling,
                 PackagedOnly           = g.PackagedOnly,
                 Items = items.Where(i => i.GroupId == g.Id)
                              .OrderBy(i => names.GetValueOrDefault(i.TypeId, ""))
@@ -169,6 +173,8 @@ public class InvLevelCollectionTransfer(IDbContextFactory<AppDbContext> dbFactor
                 IncludeIndustryJobs    = g.IncludeIndustryJobs,
                 IncludeMarketBuyOrders = g.IncludeMarketBuyOrders,
                 IncludeContractsBuying = g.IncludeContractsBuying,
+                IncludeMarketSellOrders = g.IncludeMarketSellOrders,
+                IncludeContractsSelling = g.IncludeContractsSelling,
                 PackagedOnly           = g.PackagedOnly,
             };
             db.InvLevelGroups.Add(group);

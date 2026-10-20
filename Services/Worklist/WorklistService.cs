@@ -36,6 +36,9 @@ public class WorklistService(
 
     public WorklistSettings Settings => settings;
 
+    /// <summary>For the dialogs that look items up before a tick is recorded.</summary>
+    public IDbContextFactory<AppDbContext> DbFactory => dbFactory;
+
     public async Task<WorklistRun> BuildAsync(CancellationToken ct = default)
     {
         // Every load the generators share — the production context, the delivery-lag snapshot,
@@ -138,6 +141,19 @@ public class WorklistService(
 
         if (stopped.Count == 0) return;
 
+        // A system's in-system loops taken together, where its pilots share them: what all of them
+        // put down, by destination. A job one pilot's loop cannot start alone may be started by
+        // the loops between them — and saying "will not start" under each would be wrong twice.
+        var together = all
+            .Where(i => i.Kind == WorklistKind.Haul && i.Stops.Count > 0 && i.LoopSystemId > 0)
+            .GroupBy(i => i.LoopSystemId)
+            .Where(g => g.Count() > 1)
+            .ToDictionary(g => g.Key, g => g
+                .SelectMany(i => i.Deliveries())
+                .GroupBy(d => d.Destination)
+                .ToDictionary(x => x.Key,
+                              x => x.GroupBy(d => d.TypeId).ToDictionary(y => y.Key, y => y.Sum(d => d.Quantity))));
+
         for (var si = 0; si < sections.Count; si++)
         {
             var section = sections[si];
@@ -145,7 +161,7 @@ public class WorklistService(
             for (var n = 0; n < section.Items.Count; n++)
             {
                 var haul = section.Items[n];
-                if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
+                if (haul.Kind != WorklistKind.Haul) continue;
 
                 // What this one trip actually puts on the dock, by type and by how much.
                 //
@@ -154,15 +170,22 @@ public class WorklistService(
                 // trips out of several stations, each of them its own row here. A trip carrying 200
                 // of those 5,000 is worth showing against the job, but it does not start it, and a
                 // test on type alone cannot tell the two apart.
-                var cargo = haul.Lines.Count > 0
-                    ? haul.Lines.GroupBy(l => l.TypeId)
-                          .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
-                    : new Dictionary<int, long> { [haul.TypeId] = haul.Quantity };
+                //
+                // By destination: a trip has one, and an in-system loop drops at several. A job is
+                // judged only against what lands where it runs.
+                var drops = haul.Deliveries()
+                    .GroupBy(d => d.Destination)
+                    .ToDictionary(g => g.Key,
+                                  g => g.GroupBy(d => d.TypeId).ToDictionary(x => x.Key, x => x.Sum(d => d.Quantity)));
+                if (drops.Count == 0) continue;
 
-                // Every job at the destination waiting on anything in this cargo. Relevant to the
+                IReadOnlyDictionary<int, long> CargoFor(WorklistItem job) =>
+                    drops.GetValueOrDefault(job.LocationId) ?? new Dictionary<int, long>();
+
+                // Every job at a destination waiting on anything dropped there. Relevant to the
                 // row, but not the same thing as restarted by it.
-                var touched = cargo.Keys
-                    .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
+                var touched = drops
+                    .SelectMany(d => d.Value.Keys.SelectMany(t => stopped.GetValueOrDefault((d.Key, t), [])))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
@@ -185,9 +208,17 @@ public class WorklistService(
                 var waiting = touched
                     .Select(j =>
                     {
+                        var cargo = CargoFor(j);
                         var outstanding = j.Shortages
                             .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
                             .ToList();
+
+                        // Not by this loop alone — but by the system's loops between them?
+                        var shared = haul.LoopSystemId > 0
+                                     && together.TryGetValue(haul.LoopSystemId, out var systemDrops)
+                                     && systemDrops.GetValueOrDefault(j.LocationId) is { } joint
+                                     && outstanding.Count > 0
+                                     && outstanding.All(s => !s.MustBuy && joint.GetValueOrDefault(s.TypeId) >= s.Short);
 
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
@@ -197,14 +228,18 @@ public class WorklistService(
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
                                                          .DistinctBy(s => s.TypeName)
                                                          .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
-                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
+                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)),
+                            WithOtherLoops: shared,
+                            ByLoop: haul.Stops.Count > 0);
                     })
                     .OrderByDescending(w => w.Unblocked)
+                    .ThenByDescending(w => w.WithOtherLoops)
                     .ThenBy(w => w.StillShortOf.Count)
                     .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
+                var jointly = waiting.Count(w => w.WithOtherLoops);
 
                 // ⚠️ Merged, not replaced. A stopped row is the better answer where there is one —
                 // only it can say whether this load actually starts the job — but the planner's
@@ -221,16 +256,33 @@ public class WorklistService(
                     // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
                     // job this haul only partly serves would rank the trip by work it cannot
                     // release.
+                    //
+                    // A trip that restarts anything goes to the top of the hauling, whatever the
+                    // job's own rank: it turns an idle slot back into work for the price of one
+                    // trip. That is the one thing HaulUnblocking now means — the generator no
+                    // longer gives it to job material by default.
                     Priority = freed.Count > 0
-                        ? Math.Max(haul.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        ? Math.Max(Math.Max(haul.Priority, WorklistPriority.HaulUnblocking),
+                                   freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
                         : haul.Priority,
 
-                    Detail = haul.Detail
+                    // "Jobs are waiting on this" only where it is true. The generator says what
+                    // the cargo is for; this is the place that knows a job is actually stopped.
+                    Detail = (freed.Count > 0 ? WorklistText.HaulWhyUnblocking : haul.Detail)
                            + (freed.Count > 0
-                                ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
+                                ? " " + (haul.Stops.Count > 0
+                                    // A loop restarts them when it is done, not when any one load lands.
+                                    ? Listed(WorklistText.HaulLoopRestartsJobs, WorklistText.HaulLoopRestartsJobsMore, freed)
+                                    : Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed))
                                 : "")
-                           + (waiting.Count > freed.Count
-                                ? " " + string.Format(WorklistText.HaulOthersWantPart, waiting.Count - freed.Count)
+                           + (jointly > 0
+                                ? " " + string.Format(WorklistText.HaulRestartsWithOtherLoops, jointly)
+                                : "")
+                           + (waiting.Count > freed.Count + jointly
+                                // "More" only after a list of jobs it does restart.
+                                ? " " + string.Format(freed.Count > 0 ? WorklistText.HaulOthersWantPart
+                                                                      : WorklistText.HaulJobsWantPart,
+                                                      waiting.Count - freed.Count - jointly)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or
@@ -728,6 +780,147 @@ public class WorklistService(
                     $"None of {newState.Count} first-seen row(s) could be stored. Items will show " +
                     $"no age until this is resolved.");
         }
+    }
+
+    /// <summary>
+    /// Records a loop's stop as flown: what was picked up there is in the pilot's hold, and what
+    /// was put down there is delivered — until the asset poll shows it. See <see cref="HaulLag"/>.
+    ///
+    /// <para>A drop-off settles the pick-up it belongs to, ticked at an earlier stop; one that was
+    /// never ticked there is recorded as picked up and delivered at once, so ticking only the
+    /// drop-offs still moves the goods. Each mark carries the owner whose hangar the goods sit in
+    /// at the pick-up — the largest holders first — so it is that owner's poll that settles it.
+    /// Cargo that was in the hold with no pick-up ticked at all is put down as the pilot's own.</para>
+    ///
+    /// <para>A trip between systems is ticked off the same way, as one stop at its destination
+    /// with everything on it coming from its source: picked up and delivered at once.</para>
+    /// </summary>
+    /// <param name="pilotId">Whose loop this is: whose hold the picked-up goods are in. For a
+    /// trip, its lead pilot, or 0 for none.</param>
+    /// <summary>
+    /// Records a hauling-service trip as handed to a courier: the courier's cargo from the trip's
+    /// start to its end, until the courier turns up in the contracts poll and is matched to it —
+    /// at once, if it already has. See <see cref="CourierCargoLag"/>.
+    ///
+    /// <para>⚠️ Not an asset, and nothing is written to the assets: the goods are in no hangar
+    /// while the courier has them. It is kept with the contract, where it can be corrected.</para>
+    /// </summary>
+    /// <param name="trip">The trip as one stop at its end, its lines coming from its start.</param>
+    /// <param name="cargo">What actually went into the contract, as the reader confirmed it; null
+    /// takes the trip's manifest as planned.</param>
+    public async Task MarkContractedAsync(WorklistHaulStop trip, IReadOnlyList<(int TypeId, long Quantity)>? cargo = null,
+                                          CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var now  = DateTimeOffset.UtcNow;
+        var from = trip.DropOff.Select(l => l.OtherId).FirstOrDefault(id => id > 0);
+        if (from <= 0 || trip.StationId <= 0) return;
+
+        var lines = (cargo ?? [.. trip.DropOff.Select(l => (l.TypeId, l.Quantity))])
+            .Where(l => l.TypeId > 0 && l.Quantity > 0)
+            .GroupBy(l => l.TypeId)
+            .Select(g => (TypeId: g.Key, Quantity: g.Sum(l => l.Quantity)))
+            .ToList();
+        if (lines.Count == 0) return;
+
+        // Whose hangar the goods left: the largest holder of the cargo at its start. The
+        // courier's own issuer takes over once it is matched.
+        var types   = lines.Select(l => l.TypeId).ToList();
+        var holders = await db.EsiAssets.AsNoTracking()
+            .Where(a => a.RootLocationId == from && types.Contains(a.TypeId))
+            .GroupBy(a => new { a.OwnerType, a.OwnerId })
+            .Select(g => new { g.Key.OwnerType, g.Key.OwnerId, Units = g.Sum(a => (long)a.Quantity) })
+            .ToListAsync(ct);
+        var owner = holders.OrderByDescending(h => h.Units).FirstOrDefault();
+
+        foreach (var l in lines)
+            db.CourierCargo.Add(new CourierCargo
+            {
+                FromId = from, ToId = trip.StationId, TypeId = l.TypeId, Quantity = l.Quantity,
+                OwnerType = owner?.OwnerType ?? "character", OwnerId = owner?.OwnerId ?? 0, AddedAt = now,
+            });
+        await db.SaveChangesAsync(ct);
+        await CourierCargoLag.AttachAsync(db, ct);
+    }
+
+    public async Task MarkHauledAsync(long pilotId, WorklistHaulStop stop, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var now = DateTimeOffset.UtcNow;
+
+        // The table is an hour or two of ticks: read whole, and old ones let go of on the way.
+        var marks = await db.HaulMarks.ToListAsync(ct);
+        db.HaulMarks.RemoveRange(marks.Where(m => now - m.PickedAt > HaulLag.KeepFor));
+
+        // Who holds this item at a site, largest first. A job's output delivered since the asset
+        // poll is in nobody's hangar yet as far as the snapshot knows; the pilot stands in for it.
+        async Task<List<(string Type, long Id, long Units)>> HoldersAsync(long site, int typeId) =>
+            site <= 0 ? [] : (await db.EsiAssets.AsNoTracking()
+                    .Where(a => a.RootLocationId == site && a.TypeId == typeId)
+                    .Select(a => new { a.OwnerType, a.OwnerId, a.Quantity })
+                    .ToListAsync(ct))
+                .GroupBy(a => (a.OwnerType, a.OwnerId))
+                .Select(g => (g.Key.OwnerType, g.Key.OwnerId, g.Sum(a => (long)a.Quantity)))
+                .OrderByDescending(h => h.Item3)
+                .ToList();
+
+        async Task PickAsync(long from, long to, int typeId, long units, DateTimeOffset? delivered)
+        {
+            var holders = await HoldersAsync(from, typeId);
+            var left    = units;
+            foreach (var (type, id, held) in holders)
+            {
+                if (left <= 0) break;
+                var take = Math.Min(left, held);
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = from, ToId = to, TypeId = typeId, Units = take,
+                                                OwnerType = type, OwnerId = id, PickedAt = now, DeliveredAt = delivered });
+                left -= take;
+            }
+            if (left > 0)
+            {
+                var (type, id) = holders.Count > 0 ? (holders[0].Type, holders[0].Id) : ("character", pilotId);
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = from, ToId = to, TypeId = typeId, Units = left,
+                                                OwnerType = type, OwnerId = id, PickedAt = now, DeliveredAt = delivered });
+            }
+        }
+
+        foreach (var l in stop.PickUp)
+            await PickAsync(stop.StationId, l.OtherId, l.TypeId, l.Quantity, delivered: null);
+
+        foreach (var l in stop.DropOff)
+        {
+            // What this pilot picked up for here — from where the line says, or out of their hold.
+            var left = l.Quantity;
+            foreach (var m in marks.Where(m => m.DeliveredAt is null && m.ToId == stop.StationId && m.TypeId == l.TypeId
+                                               && (m.FromId == l.OtherId || (l.OtherId < 0 && m.PilotId == -l.OtherId)))
+                                   .OrderBy(m => m.PickedAt).ToList())
+            {
+                if (left <= 0) break;
+                if (m.Units > left)
+                {
+                    // Part of it put down here: the rest stays aboard as a mark of its own.
+                    db.HaulMarks.Add(new HaulMark { PilotId = m.PilotId, FromId = m.FromId, ToId = m.ToId, TypeId = m.TypeId,
+                                                    Units = m.Units - left, OwnerType = m.OwnerType, OwnerId = m.OwnerId,
+                                                    PickedAt = m.PickedAt });
+                    m.Units = left;
+                }
+                m.DeliveredAt = now;
+                left -= m.Units;
+            }
+
+            // Its pick-up was never ticked: picked up and delivered in one.
+            if (left > 0 && l.OtherId > 0)
+                await PickAsync(l.OtherId, stop.StationId, l.TypeId, left, delivered: now);
+
+            // Aboard with no pick-up ticked anywhere — loaded without one, or there before: out
+            // of the pilot's own hold, into their own hangar here.
+            else if (left > 0 && l.OtherId < 0)
+                db.HaulMarks.Add(new HaulMark { PilotId = pilotId, FromId = l.OtherId, ToId = stop.StationId, TypeId = l.TypeId,
+                                                Units = left, OwnerType = "character", OwnerId = pilotId,
+                                                PickedAt = now, DeliveredAt = now });
+        }
+
+        await db.SaveChangesAsync(ct);
     }
 
     /// <summary>Hides an item until a chosen time. Pass null to un-snooze.</summary>

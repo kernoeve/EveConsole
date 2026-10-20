@@ -71,6 +71,7 @@ public static class NotificationBrief
                                            T(OverviewText.BriefShieldArmorHull, "shieldPercentage", "armorPercentage", "hullPercentage")],
         ["StructureLostShields"]        = ["{structureID}", T(OverviewText.BriefReinforcedUntil, "timestamp")],
         ["StructureLostArmor"]          = ["{structureID}", T(OverviewText.BriefReinforcedUntil, "timestamp")],
+        ["StructuresReinforcementChanged"] = ["{summary}"],
         ["StructureDestroyed"]          = ["{structureID}"],
         ["StructureFuelAlert"]          = ["{structureID}", T(OverviewText.BriefQuantityLeft, "listOfTypesAndQty")],
         ["StructureLowReagentsAlert"]   = ["{structureID}"],

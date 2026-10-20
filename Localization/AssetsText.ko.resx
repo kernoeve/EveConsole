@@ -49,6 +49,30 @@
   <data name="ContractsBuying" xml:space="preserve">
     <value>구매 계약</value>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>거래소 판매 주문</value>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>판매 계약</value>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>미체결 판매 주문에 올라 있는 수량을 보유량으로 셉니다. 팔릴 때까지는 당신의 것입니다. 기본값은 꺼짐이며, 판매 중인 재고도 다시 채웁니다.</value>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>진행 중인 계약에서 넘겨주는 아이템을 구매자가 수락할 때까지 보유량으로 셉니다. 판매 주문과 같은 이유로 기본값은 꺼짐입니다.</value>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>판매 주문</value>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>판매 계약</value>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>판매 주문</value>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>판매 계약</value>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>포장된 아이템만 집계 (조립되었거나 피팅된 선체 제외)</value>
   </data>
@@ -185,7 +209,7 @@
     <value>구매 주문</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>계약</value>
+    <value>구매 계약</value>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
     <value>시세</value>
@@ -806,10 +830,10 @@
     <value>산업 작업</value>
   </data>
   <data name="IncludeOrdersShort" xml:space="preserve">
-    <value>주문</value>
+    <value>구매 주문</value>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>계약</value>
+    <value>구매 계약</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
     <value>포장된 아이템만</value>

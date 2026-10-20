@@ -343,6 +343,21 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>지출</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>수익</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>지출</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0}건 · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>EVE 시간 기준 날짜이며 양 끝을 포함합니다. 날짜를 지우면 그쪽은 제한이 없습니다.</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>현금 흐름</value>
   </data>

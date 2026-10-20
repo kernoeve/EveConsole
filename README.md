@@ -38,7 +38,7 @@ Keep in mind this application is still very green.  You are free to play around 
       <br><sub>Worklist</sub>
     </td>
     <td align="center" width="33%">
-      <a href="media/screenshots/Screenshot12.png"><img src="media/screenshots/Screenshot12.png" alt="Universe map with sovereignty overlay" width="280"></a>
+      <a href="media/screenshots/Screenshot12.png"><img src="media/screenshots/Screenshot12.png" alt="Universe map with tabs, security overlay and live-mark legend" width="280"></a>
       <br><sub>Universe Map</sub>
     </td>
   </tr>
@@ -58,6 +58,10 @@ Keep in mind this application is still very green.  You are free to play around 
   </tr>
   <tr>
     <td align="center" width="33%">
+      <a href="media/screenshots/Screenshot20.png"><img src="media/screenshots/Screenshot20.png" alt="Fitting tool with two fits side by side" width="280"></a>
+      <br><sub>Fitting</sub>
+    </td>
+    <td align="center" width="33%">
       <a href="media/screenshots/Screenshot4.png"><img src="media/screenshots/Screenshot4.png" alt="Market Overview dashboard" width="280"></a>
       <br><sub>Market Overview</sub>
     </td>
@@ -65,12 +69,12 @@ Keep in mind this application is still very green.  You are free to play around 
       <a href="media/screenshots/Screenshot16.png"><img src="media/screenshots/Screenshot16.png" alt="Sales Tracker" width="280"></a>
       <br><sub>Sales Tracker</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot17.png"><img src="media/screenshots/Screenshot17.png" alt="LP Market Values" width="280"></a>
       <br><sub>LP Market Values</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot18.png"><img src="media/screenshots/Screenshot18.png" alt="Sale Posting builder" width="280"></a>
       <br><sub>Sale Posting</sub>
@@ -79,12 +83,12 @@ Keep in mind this application is still very green.  You are free to play around 
       <a href="media/screenshots/Screenshot2.png"><img src="media/screenshots/Screenshot2.png" alt="Item Browser price history" width="280"></a>
       <br><sub>Item Browser — Price History</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot1.png"><img src="media/screenshots/Screenshot1.png" alt="Item Browser market orders" width="280"></a>
       <br><sub>Item Browser — Market Orders</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot3.png"><img src="media/screenshots/Screenshot3.png" alt="Production Calculator" width="280"></a>
       <br><sub>Production Calculator</sub>
@@ -93,12 +97,12 @@ Keep in mind this application is still very green.  You are free to play around 
       <a href="media/screenshots/Screenshot7.png"><img src="media/screenshots/Screenshot7.png" alt="Industry Opportunities" width="280"></a>
       <br><sub>Industry Opportunities</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot9.png"><img src="media/screenshots/Screenshot9.png" alt="Industry Jobs" width="280"></a>
       <br><sub>Industry Jobs</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot6.png"><img src="media/screenshots/Screenshot6.png" alt="Trade Opportunities" width="280"></a>
       <br><sub>Trade Opportunities</sub>
@@ -107,17 +111,16 @@ Keep in mind this application is still very green.  You are free to play around 
       <a href="media/screenshots/Screenshot8.png"><img src="media/screenshots/Screenshot8.png" alt="Inventory Levels" width="280"></a>
       <br><sub>Inventory Levels</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot5.png"><img src="media/screenshots/Screenshot5.png" alt="Market price-source settings" width="280"></a>
       <br><sub>Market Settings</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="33%">
       <a href="media/screenshots/Screenshot10.png"><img src="media/screenshots/Screenshot10.png" alt="Corp Activity" width="280"></a>
       <br><sub>Corp Activity</sub>
     </td>
-    <td align="center" width="33%"></td>
     <td align="center" width="33%"></td>
   </tr>
 </table>
@@ -138,7 +141,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
 - Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
-- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
+- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
 - Eight UI themes: light, dark, and blue/pink/beige in both.  Applies immediately, remembered per machine rather than per database
 - Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one
@@ -220,7 +223,7 @@ Keep in mind this application is still very green.  You are free to play around 
 
 ## Tech stack
 
-- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net9.0`
+- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net10.0`
 - .NET 9, [ReactiveUI](https://www.reactiveui.net/) (MVVM)
 - EF Core 9, with SQLite for local persistence or PostgreSQL for a shared one
 - [LiveChartsCore](https://livecharts.dev/) for charts

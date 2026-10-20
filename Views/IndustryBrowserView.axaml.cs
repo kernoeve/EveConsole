@@ -535,9 +535,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         // (3/4) outputs the original blueprint; everything else is a normal item.
         var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };
 
+        // The print the job was started with, an original or a copy.
+        var bpVariant = row[IndustryBrowserViewModel.ColBlueprintIsCopy] == "1" ? "bpc" : "bp";
+
         var tasks = new[]
         {
-            EveImageLoader.LoadTypeAsync(bpTypeId,  "bp"),
+            EveImageLoader.LoadTypeAsync(bpTypeId,  bpVariant),
             EveImageLoader.LoadTypeAsync(prodTypeId, prodVariant),
             EveImageLoader.LoadTypeAsync(facTypeId,  "render"),
         };
@@ -545,6 +548,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         Bitmap? bpImg = imgs[0], prodImg = imgs[1], facImg = imgs[2];
 
         if (ViewModel?.SelectedRow != row) return;
+
+        // A reaction's formula is no blueprint, though the image server draws it as one.
+        if (actId is 9 or 11 && prodImg is not null) bpImg = ViewModels.FormulaPicture.Compose(prodImg);
 
         BlueprintImage.Source = bpImg;
         ProductImage.Source   = prodImg;

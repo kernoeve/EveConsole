@@ -1571,10 +1571,13 @@ public class EsiClient
         if (!revoked.TryAdd(ownerId, new Refused(dead?.RefreshToken ?? "", ex.Description))) return;
 
         OwnerRevoked?.Invoke(ownerId, ownerType, ex.Message);
-        if (TokenRevoked is not { } hook) return;
+        // ⚠️ Announced once the refusal is written: lists offering only working owners drop it,
+        // on every client — this may be a headless worker nobody is looking at.
+        if (TokenRevoked is not { } hook) { EveConsole.Services.OwnerList.Announce(); return; }
         _ = Task.Run(async () =>
         {
             try { await hook(ownerId, ownerType, ex.Message); } catch { }
+            EveConsole.Services.OwnerList.Announce();
         });
     }
 }

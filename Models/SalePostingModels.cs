@@ -114,6 +114,39 @@ public class SalePostingSection
     public string RowColor { get; set; } = "";
 }
 
+/// <summary>
+/// One place a posting lists whatever is found in, instead of items picked one by one: a station
+/// or structure, narrowed to one owner, one hangar or division, and one container, at any depth.
+///
+/// <para>Each is a section of the posting when it is rendered, headed by <see cref="Title"/>, its
+/// items whatever the place holds at the moment — so a box that is restocked restocks the
+/// posting, and nothing has to be added or taken off by hand. See
+/// <c>Services.PostingLocations</c>.</para>
+/// </summary>
+public class SalePostingLocation
+{
+    public int    Id          { get; set; }
+    public int    PostingId   { get; set; }
+    /// <summary>Where it comes in the posting, after the listed sections.</summary>
+    public int    Ordinal     { get; set; }
+    /// <summary>The station or structure: the asset's root location.</summary>
+    public long   StationId   { get; set; }
+    /// <summary>"" for everything there, or "character" / "corporation".</summary>
+    public string OwnerType   { get; set; } = "";
+    /// <summary>The owner, with <see cref="OwnerType"/>; zero for every owner of that kind.</summary>
+    public long   OwnerId     { get; set; }
+    /// <summary>The hangar the items sit in at the station — "Hangar", "CorpSAG3",
+    /// "CorpDeliveries" — or "" for all of them.</summary>
+    public string Flag        { get; set; } = "";
+    /// <summary>A container the items are inside, at any depth; zero for none.</summary>
+    public long   ContainerId { get; set; }
+    /// <summary>The whole way to it as picked, "Jita IV - Moon 4 › Some Corp › Ships › Blue box",
+    /// for the definitions grid.</summary>
+    public string Path        { get; set; } = "";
+    /// <summary>The heading of its section; empty for the last step of <see cref="Path"/>.</summary>
+    public string Title       { get; set; } = "";
+}
+
 // A post block within a posting. The first (Ordinal 0) is the parent; the rest are supporting
 // detail (e.g. posted under a Slack thread). "Summary"/"Detail" are rendered from the posting's
 // data; "Static" carries user-authored text in StaticContent.

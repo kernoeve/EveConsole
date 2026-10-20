@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Media;
+using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
@@ -465,9 +466,10 @@ internal sealed class OutputFormat
 // ── Posting row (top level) ─────────────────────────────────────────────────────
 public class SalePostingRow : ReactiveObject
 {
-    public bool IsPosting => true;
-    public bool IsSection => false;
-    public bool IsItem    => false;
+    public bool IsPosting  => true;
+    public bool IsSection  => false;
+    public bool IsItem     => false;
+    public bool IsLocation => false;
 
     // Warm/amber tint so posting rows stand out from sections (blue) and items (near-black).
     public IBrush RowBackground => Palette.AccentSurface;   // the posting header band
@@ -475,6 +477,9 @@ public class SalePostingRow : ReactiveObject
     public SalePosting Model { get; private set; }
     public int PostingId => Model.Id;
     public List<SalePostingSectionRow> Sections { get; set; } = [];
+
+    /// <summary>The places it lists whatever is found in, after its sections.</summary>
+    public List<SalePostingLocationRow> Locations { get; set; } = [];
 
     private string _postingName = "";
     public string PostingName { get => _postingName; private set => this.RaiseAndSetIfChanged(ref _postingName, value); }
@@ -539,14 +544,17 @@ public class SalePostingRow : ReactiveObject
     public ReactiveCommand<Unit, Unit> EditCommand       { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand     { get; }
     public ReactiveCommand<Unit, Unit> AddSectionCommand { get; }
+    public ReactiveCommand<Unit, Unit> PlacesCommand     { get; }
 
-    public SalePostingRow(SalePosting model, Action toggle, Func<Task> edit, Func<Task> delete, Func<Task> addSection)
+    public SalePostingRow(SalePosting model, Action toggle, Func<Task> edit, Func<Task> delete, Func<Task> addSection,
+                          Func<Task> places)
     {
         Model             = model;
         ToggleCommand     = ReactiveCommand.Create(toggle);
         EditCommand       = ReactiveCommand.CreateFromTask(edit);
         DeleteCommand     = ReactiveCommand.CreateFromTask(delete);
         AddSectionCommand = ReactiveCommand.CreateFromTask(addSection);
+        PlacesCommand     = ReactiveCommand.CreateFromTask(places);
         ApplyData(model);
     }
 
@@ -606,9 +614,10 @@ public class SalePostingRow : ReactiveObject
 // ── Section row (middle level) ──────────────────────────────────────────────────
 public class SalePostingSectionRow : ReactiveObject
 {
-    public bool IsPosting => false;
-    public bool IsSection => true;
-    public bool IsItem    => false;
+    public bool IsPosting  => false;
+    public bool IsSection  => true;
+    public bool IsItem     => false;
+    public bool IsLocation => false;
 
     // Blue tint so section rows stand out from postings (amber) and items (near-black).
     public IBrush RowBackground => Palette.SurfaceHeader;   // the section band
@@ -702,12 +711,52 @@ public class SalePostingSectionRow : ReactiveObject
     }
 }
 
+// ── Place row: a place the posting lists whatever is found in ───────────────────
+public class SalePostingLocationRow : ReactiveObject
+{
+    public bool IsPosting  => false;
+    public bool IsSection  => false;
+    public bool IsItem     => false;
+    public bool IsLocation => true;
+
+    public IBrush RowBackground => Palette.SurfaceHeader;
+
+    public SalePostingLocation Model { get; }
+    public string Path => Model.Path;
+
+    /// <summary>Its section's heading, edited in the name column; empty for the last step of the
+    /// path. Saved as it is changed.</summary>
+    public string? NameOverride
+    {
+        get => Model.Title.Length > 0 ? Model.Title : null;
+        set
+        {
+            var title = (value ?? "").Trim();
+            if (title == Model.Title) return;
+            Model.Title = title;
+            this.RaisePropertyChanged();
+            _ = _saveTitle(title);
+        }
+    }
+
+    private readonly Func<string, Task> _saveTitle;
+    public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
+
+    public SalePostingLocationRow(SalePostingLocation model, Func<string, Task> saveTitle, Func<Task> delete)
+    {
+        Model         = model;
+        _saveTitle    = saveTitle;
+        DeleteCommand = ReactiveCommand.CreateFromTask(delete);
+    }
+}
+
 // ── Item row (leaf) ─────────────────────────────────────────────────────────────
 public class SalePostingItemRow : ReactiveObject
 {
-    public bool IsPosting => false;
-    public bool IsSection => false;
-    public bool IsItem    => true;
+    public bool IsPosting  => false;
+    public bool IsSection  => false;
+    public bool IsItem     => true;
+    public bool IsLocation => false;
 
     public IBrush RowBackground => Palette.SurfaceBase;     // an ordinary item row
 
@@ -1005,13 +1054,23 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     public Func<SalePostingSectionRow, Task<SectionDialogResult?>>? ShowEditSectionDialog;
     public Func<Task<AddItemDialogResult?>>?                        ShowAddItemDialog;
     public Func<Task<MarketGroupPickerResult?>>?                    ShowMarketGroupPickerDialog;
+    /// <summary>The places picker: the posting's places as they are, and as they should be, or null.</summary>
+    public Func<IReadOnlyList<SalePostingLocation>, Task<List<SalePostingLocation>?>>? ShowPlacesDialog;
+
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly EsiClient? _esi;
+
+    /// <summary>The places picker's model, on a posting's places as they are.</summary>
+    public PostingPlacesViewModel CreatePlacesPicker(IReadOnlyList<SalePostingLocation> current) => new(_dbFactory, _esi, current);
     public Action<int, string>?                                     OpenInItemBrowser;
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
         BatchAddService? batchSvc = null, SlackService? slack = null,
-        ExportFormatSettings? exportFormat = null, DiscordService? discord = null)
+        ExportFormatSettings? exportFormat = null, DiscordService? discord = null, EsiClient? esi = null)
     {
         _svc          = svc;
+        _dbFactory    = dbFactory;
+        _esi          = esi;
         _batchSvc     = batchSvc;
         _slack        = slack;
         _discord      = discord;
@@ -1088,6 +1147,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             StatusText = CommonText.Loading;
             var postings = await _svc.LoadPostingsAsync();
             var sections = await _svc.LoadSectionsAsync();
+            var places   = await _svc.LoadLocationsAsync();
 
             // The posting and section lines name their places in the interface language, worded
             // once as the rows are built; this first runs at start, so wait for the names.
@@ -1098,6 +1158,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             {
                 pr.Sections = sections.Where(s => s.PostingId == pr.PostingId)
                     .Select(s => MakeSectionRow(pr, s)).ToList();
+                pr.Locations = places.Where(l => l.PostingId == pr.PostingId)
+                    .Select(l => MakeLocationRow(pr, l)).ToList();
                 foreach (var sr in pr.Sections)
                 {
                     var items = await _svc.LoadItemsAsync(sr.SectionId);
@@ -1180,6 +1242,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                 if (!s.IsExpanded) continue;
                 foreach (var it in s.AllItems) GridRows.Add(it);
             }
+            foreach (var l in p.Locations) GridRows.Add(l);
         }
         HasAnyPosting = _allPostings.Count > 0;
     }
@@ -1199,12 +1262,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         if (_selectedPostingForTab is not SalePostingRow pr) return;
         var fmt   = OutputFormat.ByName(_selectedFormat);
         var posts = await _svc.LoadPostsAsync(pr.PostingId);
+        var view  = await SnapshotAsync(pr);
         foreach (var post in posts.OrderBy(p => p.Ordinal))
         {
             // Rendered through the shared renderer, off a snapshot of the rows. The tool and the
             // mail responder must produce the same listing from the same posting, and the surest
             // way to guarantee that is for there to be one implementation.
-            var body = SalePostingRenderer.Render(Snapshot(pr), fmt, post);
+            var body = SalePostingRenderer.Render(view, fmt, post);
             var clip = fmt.Finalize(body);        // clipboard: raw markup + literal :emoji:
             var segs = fmt.ToDisplay(clip);       // preview: real bold + emoji placeholder
 
@@ -1289,12 +1353,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             var fmt   = OutputFormat.ByName("Slack");
             var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
             if (posts.Count == 0) { SlackStatus = SalesText.SlackNothingToPost; return; }
+            var view  = await SnapshotAsync(pr);
 
             string? threadTs = null;
             int posted = 0;
             foreach (var post in posts)
             {
-                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
+                var markup = fmt.Finalize(SalePostingRenderer.Render(view, fmt, post));
                 if (string.IsNullOrWhiteSpace(markup)) continue;
 
                 // Slack's legacy mrkdwn `text` field can't underline, so the real message is a
@@ -1372,11 +1437,12 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             var fmt   = OutputFormat.ByName("Discord");
             var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
             if (posts.Count == 0) { DiscordStatus = SalesText.SlackNothingToPost; return; }
+            var view  = await SnapshotAsync(pr);
 
             int posted = 0;
             foreach (var post in posts)
             {
-                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
+                var markup = fmt.Finalize(SalePostingRenderer.Render(view, fmt, post));
                 if (string.IsNullOrWhiteSpace(markup)) continue;
 
                 var sent = await _discord.PostAreaAsync(DiscordService.AreaSalePosting, markup);
@@ -1399,16 +1465,22 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     /// renders what is on screen, including edits typed a moment ago that have been persisted
     /// but not reloaded. A re-read would show the posting as it was, which is not what the person
     /// looking at it is about to copy.</para>
+    ///
+    /// <para>⚠️ Then the posting's places, read now: no row holds what they hold, and the point of
+    /// one is that the listing follows what is there.</para>
     /// </summary>
-    private static PostingView Snapshot(SalePostingRow pr)
+    private async Task<PostingView> SnapshotAsync(SalePostingRow pr)
     {
         var m = pr.Model;
+        var places = pr.Locations.Count == 0 ? null : await _svc.BuildViewAsync(pr.PostingId, onlyPlaces: true);
         return new PostingView(
             m.ShowInStock, m.ShowInBuild, m.ShowReserved, m.IncludeCompletionDate,
             m.ColorByState, m.ColorInStock, m.ColorInBuild, m.ColorNone,
             pr.Sections.Select(s => new PostingSectionView(
                 s.SectionName, s.Model.Prefix, s.Model.HeaderColor, s.Model.RowColor,
-                s.AllItems.Select(i => i.ToView()).ToList())).ToList());
+                s.AllItems.Select(i => i.ToView()).ToList()))
+              .Concat(places?.Sections ?? [])
+              .ToList());
     }
 
     // ── Posting factory + CRUD ──────────────────────────────────────────────────
@@ -1419,8 +1491,38 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             toggle:     () => { row.IsExpanded = !row.IsExpanded; RebuildGridRows(); },
             edit:       () => EditPostingAsync(row),
             delete:     () => DeletePostingAsync(row),
-            addSection: () => AddSectionAsync(row));
+            addSection: () => AddSectionAsync(row),
+            places:     () => EditPlacesAsync(row));
         return row;
+    }
+
+    // ── Places ────────────────────────────────────────────────────────────────
+    private SalePostingLocationRow MakeLocationRow(SalePostingRow parent, SalePostingLocation l)
+    {
+        SalePostingLocationRow row = null!;
+        row = new SalePostingLocationRow(l,
+            saveTitle: title => _svc.UpdateLocationTitleAsync(l.Id, title),
+            delete:    () => SavePlacesAsync(parent, parent.Locations.Where(x => x != row).Select(x => x.Model).ToList()));
+        return row;
+    }
+
+    /// <summary>Opens the picker on the posting's places, and saves what it comes back with.</summary>
+    private async Task EditPlacesAsync(SalePostingRow parent)
+    {
+        if (ShowPlacesDialog is null) return;
+        var picked = await ShowPlacesDialog(parent.Locations.Select(l => l.Model).ToList());
+        if (picked is null) return;
+        await SavePlacesAsync(parent, picked);
+    }
+
+    private async Task SavePlacesAsync(SalePostingRow parent, List<SalePostingLocation> places)
+    {
+        await _svc.ReplaceLocationsAsync(parent.PostingId, places);
+        var saved = (await _svc.LoadLocationsAsync()).Where(l => l.PostingId == parent.PostingId).ToList();
+        parent.Locations = saved.Select(l => MakeLocationRow(parent, l)).ToList();
+        parent.IsExpanded = true;
+        RebuildGridRows();
+        if (_selectedPostingForTab == parent) await RenderSelectedAsync();
     }
 
     private async Task AddPostingAsync()

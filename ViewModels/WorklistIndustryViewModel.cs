@@ -17,8 +17,8 @@ public sealed record ScopeStationRow(int Id, string LocationName);
 
 /// <summary>
 /// A region or system in the scope picker: the id and the English name that are saved, and the
-/// name the list shows. ⚠️ The box writes ToString back into its text when one is picked, which
-/// is why that is the shown name — nothing reads the text back as a choice.
+/// name the list shows. â ï¸ The box writes ToString back into its text when one is picked, which
+/// is why that is the shown name â nothing reads the text back as a choice.
 /// </summary>
 /// <param name="Region">A system's region, shown to its right in the list; empty for a region.</param>
 public sealed record ScopePlaceOption(long Id, string Name, string Shown, string Region = "")
@@ -87,7 +87,7 @@ public sealed class IndyCharRow : ReactiveObject
 
     private bool _pi;
     /// <summary>Whether the character does Planetary Industry. Clear, it is not in the PI tool at
-    /// all and gets no PI alerts or tasks — see PiCharacters.</summary>
+    /// all and gets no PI alerts or tasks â see PiCharacters.</summary>
     public bool PlanetaryIndustry
     {
         get => _pi;
@@ -171,12 +171,16 @@ public class WorklistIndustryViewModel : ReactiveObject
             if (IndustryChanged is not null) await IndustryChanged();
         });
 
+        // A character added or removed: enrolled or dropped here, in Settings → Characters,
+        // without a restart.
+        OwnerList.Changed += () => _ = LoadAsync();
+
         _ = LoadAsync();
     }
 
     public Func<Task>? IndustryChanged { get; set; }
 
-    // ── Park ──────────────────────────────────────────────────────────────────
+    // ââ Park ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     /// <summary>
     /// The "follow the starred park" choice, stored as park id 0.
@@ -209,7 +213,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     /// Rebuilds the park dropdown alone, for when Indy Parks adds, deletes, renames or stars a
     /// park, and re-plans only if the park the worklist plans against has moved.
     ///
-    /// <para>⚠️ A chosen park that was deleted goes back to &lt;Default&gt; in the setting, not
+    /// <para>â ï¸ A chosen park that was deleted goes back to &lt;Default&gt; in the setting, not
     /// only on screen. <see cref="WorklistSettings.ResolveParkIdAsync"/> returns any positive id
     /// as given, so the worklist would otherwise go on planning against a park that no longer
     /// exists while the dropdown read &lt;Default&gt;.</para>
@@ -274,7 +278,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     private string _parkResolvedText = "";
     public string ParkResolvedText { get => _parkResolvedText; private set => this.RaiseAndSetIfChanged(ref _parkResolvedText, value); }
 
-    // ── Where industry buys ───────────────────────────────────────────────────
+    // ââ Where industry buys âââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     /// <summary>Stations for the buy-location and extra-station boxes, listed in the order of the
     /// names shown, which the boxes show; each result keeps the English that is saved.</summary>
@@ -312,7 +316,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     public string BuyWarning { get => _buyWarning; private set => this.RaiseAndSetIfChanged(ref _buyWarning, value); }
     public bool HasBuyWarning => BuyWarning.Length > 0;
 
-    // ── How far to look for materials ─────────────────────────────────────────
+    // ââ How far to look for materials âââââââââââââââââââââââââââââââââââââââââ
 
     private bool _includeNonPersonalCorps;
     public bool IncludeNonPersonalCorps
@@ -354,7 +358,7 @@ public class WorklistIndustryViewModel : ReactiveObject
 
             // Everywhere needs no place, so it can save immediately. The other two are only
             // half-specified until one is picked, and saving a region scope with no region would
-            // silently mean "nowhere" — every material would read as unowned and every job would
+            // silently mean "nowhere" â every material would read as unowned and every job would
             // raise a purchase.
             if (value.Value == "Everywhere")
                 _ = Fire(async () =>
@@ -388,7 +392,7 @@ public class WorklistIndustryViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedScopePlace, value);
             if (_loading) return;
 
-            // ⚠️ The English name is saved, never the shown one: the worklist reads it back.
+            // â ï¸ The English name is saved, never the shown one: the worklist reads it back.
             (long Id, string Name)? place = value is ScopePlaceOption o ? (o.Id, o.Name) : null;
             if (place is not { } p) return;
 
@@ -404,7 +408,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     private string _scopePlaceText = "";
     public string ScopePlaceText { get => _scopePlaceText; set => this.RaiseAndSetIfChanged(ref _scopePlaceText, value); }
 
-    // ── Extra stations in scope ───────────────────────────────────────────────
+    // ââ Extra stations in scope âââââââââââââââââââââââââââââââââââââââââââââââ
 
     public ObservableCollection<ScopeStationRow> ScopeStations { get; } = [];
 
@@ -438,7 +442,7 @@ public class WorklistIndustryViewModel : ReactiveObject
         if (IndustryChanged is not null) await IndustryChanged();
     }
 
-    // ── Job length ────────────────────────────────────────────────────────────
+    // ââ Job length ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
     //
     // Held as text rather than a number so a half-typed value does not momentarily read as zero
     // and turn the cap off. Nothing is saved until the field loses focus or the value parses,
@@ -493,7 +497,7 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     /// <summary>
     /// Runs work started from a property setter. Nothing awaits these, so an escaping exception
-    /// would land unhandled on the thread pool and take the client down — a poor trade for a
+    /// would land unhandled on the thread pool and take the client down â a poor trade for a
     /// save that lost a race with another writer.
     /// </summary>
     private Task Fire(Func<Task> work, string context) => Task.Run(async () =>
@@ -524,8 +528,8 @@ public class WorklistIndustryViewModel : ReactiveObject
 
             var parks = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
 
-            // Two ids, deliberately. The dropdown shows what was *chosen* — <Default> stays
-            // selected as <Default> — while every warning below describes the park actually
+            // Two ids, deliberately. The dropdown shows what was *chosen* â <Default> stays
+            // selected as <Default> â while every warning below describes the park actually
             // planned against.
             var chosenParkId = _settings.IndustryParkId;
             var parkId       = await WorklistSettings.ResolveParkIdAsync(db, chosenParkId);
@@ -602,7 +606,7 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(MaxJobDaysSci));
 
                 // Shown in the interface language; the setting keeps the English. Nothing reads
-                // the box's text back — a pick saves the result's English.
+                // the box's text back â a pick saves the result's English.
                 _buyLocationText = SdeNames.Location(buyLocId, _settings.IndustryBuyLocationName);
                 this.RaisePropertyChanged(nameof(BuyLocationText));
 
@@ -638,13 +642,13 @@ public class WorklistIndustryViewModel : ReactiveObject
 
                 // Which park <Default> currently points at. Shown because the dropdown says
                 // "<Default>" and nothing else on screen would say what that resolved to.
-                ParkResolvedText = defaultName.Length > 0 ? $"→ {defaultName}" : "";
+                ParkResolvedText = defaultName.Length > 0 ? $"â {defaultName}" : "";
             });
         }
         catch (Exception ex)
         {
-            // ⚠️ Every field on this tab is assigned at the end of the try above, so anything that
-            // throws part-way leaves the whole tab blank — park, job lengths, asset scope and the
+            // â ï¸ Every field on this tab is assigned at the end of the try above, so anything that
+            // throws part-way leaves the whole tab blank â park, job lengths, asset scope and the
             // character grid all at once, with no clue why. That happened. Say so instead.
             _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(LoadAsync), ex);
             Status = string.Format(WorklistText.IndustryLoadFailed, ex.Message);
@@ -657,7 +661,7 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     /// <summary>The first few unlinked structures, for the park warning's parentheses.</summary>
     private static string UnlinkedNames(List<string> unlinked) =>
-        string.Join(CommonText.ListSeparator, unlinked.Take(3)) + (unlinked.Count > 3 ? CommonText.ListSeparator + "…" : "");
+        string.Join(CommonText.ListSeparator, unlinked.Take(3)) + (unlinked.Count > 3 ? CommonText.ListSeparator + "â¦" : "");
 
     /// <summary>
     /// Writes one character's activity switches back.
@@ -671,9 +675,9 @@ public class WorklistIndustryViewModel : ReactiveObject
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-            // ⚠️ Every box on this grid must be listed here. ExecuteUpdate writes exactly the
+            // â ï¸ Every box on this grid must be listed here. ExecuteUpdate writes exactly the
             // properties named and nothing else, so a new column added to the row above and left
-            // out below saves silently and reverts on the next load — which is what the Skill
+            // out below saves silently and reverts on the next load â which is what the Skill
             // queue box did on the day it was added.
             await db.WorklistIndyChars
                 .Where(x => x.Id == row.Id)
@@ -688,7 +692,7 @@ public class WorklistIndustryViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            // The grid has no status line of its own — the box the user just clicked is the
+            // The grid has no status line of its own â the box the user just clicked is the
             // feedback. A failed save is a real fault, so it goes to the error log rather than
             // being swallowed to keep the panel quiet.
             _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(SaveCharAsync), ex);

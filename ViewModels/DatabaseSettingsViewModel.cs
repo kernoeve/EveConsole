@@ -636,9 +636,9 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 // every reason to expect the database they are leaving to be untouched, and to be
                 // able to point back at it if the server does not suit them.
                 AppDbContext OpenSqlite() => new(new DbContextOptionsBuilder<AppDbContext>()
-                    .UseSqlite($"Data Source={sqlitePath};Mode=ReadOnly;Pooling=False").Options);
+                    .UseSqlite($"Data Source={sqlitePath};Mode=ReadOnly;Pooling=False", AppDb.KeepCollectionParameter).Options);
                 AppDbContext OpenPg() => new(new DbContextOptionsBuilder<AppDbContext>()
-                    .UseNpgsql(pgConn).Options);
+                    .UseNpgsql(pgConn, AppDb.KeepCollectionParameter).Options);
 
                 // ⚠️ Built through the app's own bootstrap, not by the copy. Anything else
                 // would be a third definition of the schema, free to drift from the two that

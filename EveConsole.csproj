@@ -2,15 +2,22 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EveConsole</RootNamespace>
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.16</Version>
+    <Version>0.9.17</Version>
   </PropertyGroup>
+
+  <!-- ⚠️ Set only by release-build.yml (-p:OfficialRelease=true). It is how a binary knows it is a
+       release rather than a development build — Services/BuildInfo.cs says why being installed
+       is not the same question. -->
+  <ItemGroup Condition="'$(OfficialRelease)' == 'true'">
+    <AssemblyMetadata Include="OfficialRelease" Value="true" />
+  </ItemGroup>
 
   <!--
     ⚠️ Are we BUILDING FOR Windows? Not the same question as $(OS), which describes the
@@ -46,16 +53,20 @@
 
   <ItemGroup>
     <!-- Avalonia UI -->
-    <PackageReference Include="Avalonia" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.3" />
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <!-- The platform the headless worker and the Windows service run on: a dispatcher and no
+         display. See Program.BuildWorkerApp — the desktop platform opens an X11 display on
+         Linux, which a container or a server with no desktop does not have. -->
+    <PackageReference Include="Avalonia.Headless" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
     <!-- Avalonia's own colour picker, pinned to the same version as the rest of Avalonia.
          Added for the "Custom" option on ColorField; the curated palette covers the common
          cases and this covers everything else. -->
-    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.22" />
     <PackageReference Include="KokoroSharp.CPU" Version="0.6.7" />
     <PackageReference Include="PiperSharp" Version="1.0.6" />
 
@@ -63,8 +74,8 @@
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
     <PackageReference Include="SharpCompress" Version="0.50.3" />
 
-    <!-- HTTP / JSON -->
-    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+    <!-- HTTP / JSON: System.Net.Http.Json comes with the shared framework, and .NET 10's NuGet
+         asks for the package reference to go (NU1510). -->
 
     <!-- DPAPI, for SecretStore's Windows key protection.
 
@@ -78,21 +89,20 @@
          above: the API throws PlatformNotSupportedException off Windows and every call site is
          gated on OperatingSystem.IsWindows(), but a runtime guard does not remove the
          compile-time reference. -->
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
-    <!-- ⚠️ Declared, not left to arrive transitively. It does today, through the two packages
-         above — and ProtectedData did too, until moving one reference changed the graph and took
-         it away. A dependency the code names should be a dependency the project names. -->
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.12" />
+    <!-- Microsoft.Win32.Registry is not referenced: it is part of the shared framework on every
+         target, so unlike ProtectedData it cannot drop out of the graph, and .NET 10's NuGet asks
+         for the package reference to go (NU1510). -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
 
     <!-- SQLite / EF Core -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
     <!-- ⚠️ Unconditioned, and must stay that way. Npgsql is cross-platform and everything
          using it — AppDb, DatabaseCopyService, PgDump/PgRestore, SingleInstance — compiles on every
          target. Sitting in the Windows-only group above, it took the linux-x64 build down with
          12 CS0246s while the Windows build stayed green. -->
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -101,9 +111,9 @@
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
 
     <!-- Dependency Injection -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
 
     <!-- Audio playback for alarms and TTS.
          ⚠️ There is no VideoLAN.LibVLC.Linux on nuget — a comment here used to say to add

@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>Offerts</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>Cargaison — saisie à la main</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI n'indique jamais le contenu d'un contrat de coursier, la cargaison est donc saisie ici : cochée sur un trajet de transport de la liste de travail, tapée ou collée. Pour la planification, elle compte comme en route vers la destination tant que le coursier est en cours, puis comme sur place une fois livrée, jusqu'à ce que la mise à jour des actifs le montre. Elle n'est jamais ajoutée à vos actifs.</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>Rien de saisi pour l'instant.</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>{0} saisis, sur les {1} du contrat</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>Collez des objets copiés en jeu, ou tapez-en un par ligne : Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>Tout remplacer</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>Ajouter ceux-ci à la cargaison. Pour un objet déjà présent, les quantités s'additionnent.</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>Mettre ceux-ci à la place de tout ce qui a été saisi — pour une liste copiée du contrat une fois créé.</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>Combien il y en a dans le coursier. Enregistré à la saisie ; 0 retire la ligne.</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>Retirer cette ligne de la cargaison</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>Enregistré.</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>Le reste est enregistré. Non reconnus : {0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>Rien à ajouter : collez ou tapez d'abord les objets.</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>Cargaison du coursier non enregistrée</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>Objet</value>
   </data>

@@ -112,6 +112,24 @@ public class InventionGenerator(
         var slotsLeft = scientists.ToDictionary(
             c => c.Config.CharacterId, c => c.FreeSlots.GetValueOrDefault(IndustryPool.Science));
 
+        // What copying a source blueprint asks of the pilot, from the SDE. Usually nothing.
+        var sourceBps  = recipes.Values.Select(r => r.SourceBlueprintTypeId).Distinct().ToList();
+        var copySkills = (await db.SdeBlueprintSkills.AsNoTracking()
+                .Where(s => sourceBps.Contains(s.TypeId) && s.Activity == "copying")
+                .ToListAsync(ct))
+            .GroupBy(s => s.TypeId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<SdeBlueprintSkill>)g.ToList());
+
+        // How much each scientist is worth at the bench: their levels in every encryption and
+        // science skill the inventions in this pass turn on. Copying ranks by it upward and
+        // invention by its odds downward, so the two spend opposite ends of the roster.
+        var inventionSkills = recipes.Values
+            .SelectMany(r => r.ScienceSkillIds.Append(r.EncryptionSkillId))
+            .ToHashSet();
+        var inventionWorth = scientists.ToDictionary(
+            c => c.Config.CharacterId,
+            c => inventionSkills.Sum(id => Math.Clamp(c.Skills.GetValueOrDefault(id), 0, 5)));
+
         // Datacores already spoken for by jobs planned earlier in this pass. Without it every job
         // in a split compares against the same untouched pile and all twenty report Ready off one
         // job's worth of stock.
@@ -128,13 +146,29 @@ public class InventionGenerator(
         {
             var name = names.GetValueOrDefault(d.TypeId, string.Format(WorklistText.TypeWithId, d.TypeId));
 
-            // Whoever gives the best odds. Invention chance is the one thing here that genuinely
-            // differs by character, and a worse pilot costs datacores on every attempt.
-            var best = scientists
+            // Best odds first. Invention chance is the one thing here that genuinely differs by
+            // character, and a worse pilot costs datacores on every attempt. Only pilots holding
+            // the skills the attempt needs — the game refuses the job without them — unless nobody
+            // does, when the list stays whole and the odds say how far off it is.
+            var holders = scientists.Where(c => HoldsInventionSkills(c, recipe)).ToList();
+            var inventors = (holders.Count > 0 ? holders : scientists)
                 .OrderByDescending(c => InventionService.Chance(recipe, plan.Decryptor, c.Skills))
                 .ThenByDescending(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId))
                 .ThenBy(c => c.Config.CharacterId)
-                .First();
+                .ToList();
+            var best = inventors[0];
+
+            // ⚠️ The other way round for copying. A copy job runs the same for anyone who can
+            // start it — skills only shave its time — so it goes to the pilot the bench misses
+            // least, and the best inventors keep their slots for the attempts. Handing copies to
+            // the best inventor filled the one character every invention job wanted.
+            var copyNeeds = copySkills.GetValueOrDefault(recipe.SourceBlueprintTypeId, []);
+            var copiers = scientists
+                .Where(c => c.MeetsSkills(copyNeeds))
+                .OrderBy(c => inventionWorth[c.Config.CharacterId])
+                .ThenByDescending(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId))
+                .ThenBy(c => c.Config.CharacterId)
+                .ToList();
 
             // A level of the blueprint itself is short in copy runs; one of the item, in T2 runs.
             var head = recipe.BlueprintTarget
@@ -142,9 +176,9 @@ public class InventionGenerator(
                 : string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
-                                     timeCtx, best, siteStock, d.Priority, name, head));
+                                     timeCtx, copiers, slotsLeft, siteStock, d.Priority, name, head));
 
-            items.AddRange(InventionTasks(recipe, plan, inventionLab.Value, timeCtx, best, scientists,
+            items.AddRange(InventionTasks(recipe, plan, inventionLab.Value, timeCtx, best, inventors,
                                           reaches, printsByType, siteStock, committed, slotsLeft,
                                           d.Priority, name, head, names));
         }
@@ -154,10 +188,14 @@ public class InventionGenerator(
 
     // ── Invention ─────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// <paramref name="inventors"/> come best odds first: each job goes to the best of them with
+    /// a slot free, and waits on the best when none has.
+    /// </summary>
     private List<WorklistItem> InventionTasks(
         InventionRecipe recipe, InventionPlan plan, InventionService.Lab lab,
         IndustryTimeService.TimeContext timeCtx, IndustryCandidate best,
-        List<IndustryCandidate> scientists, List<WorklistIndyCharReach> reaches,
+        List<IndustryCandidate> inventors, List<WorklistIndyCharReach> reaches,
         Dictionary<int, List<BlueprintStock>> printsByType,
         Dictionary<(long Site, int TypeId), long> stock,
         Dictionary<(long Site, int TypeId), long> committed,
@@ -234,7 +272,10 @@ public class InventionGenerator(
                     .DefaultIfEmpty(job.Runs)
                     .Min();
 
-            var free = scientists.FirstOrDefault(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
+            // ⚠️ In odds order. This took the first scientist with a slot in the order the
+            // characters were configured, so every attempt went to whoever sorted first by name
+            // while the best inventor sat idle.
+            var free = inventors.FirstOrDefault(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
             var who  = free ?? best;
 
             if (runnable > 0)
@@ -388,12 +429,16 @@ public class InventionGenerator(
     /// The copy job that feeds invention, raised only when the copies on hand cannot cover the
     /// attempts. Usually one run: a copy carries up to its blueprint's licensed maximum, and
     /// twenty runs is twenty attempts.
+    ///
+    /// <para><paramref name="copiers"/> come least use to invention first; the job goes to the
+    /// first with a slot free, and waits on the first when none has.</para>
     /// </summary>
     private List<WorklistItem> CopyTasks(
         InventionRecipe recipe, InventionPlan plan, InventionService.Lab lab,
         Dictionary<int, List<BlueprintStock>> printsByType, PrintOwnership owner,
         List<WorklistIndyCharReach> reaches, IndustryTimeService.TimeContext timeCtx,
-        IndustryCandidate best, Dictionary<(long Site, int TypeId), long> stock,
+        List<IndustryCandidate> copiers, Dictionary<long, int> slotsLeft,
+        Dictionary<(long Site, int TypeId), long> stock,
         int priority, string name, string head)
     {
         var all = printsByType.GetValueOrDefault(recipe.SourceBlueprintTypeId, []);
@@ -435,6 +480,7 @@ public class InventionGenerator(
                 BlockedByPrint = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
+                TypeImage = "bpc",   // what the job makes: copies
                 Priority  = priority,
             }];
 
@@ -442,9 +488,17 @@ public class InventionGenerator(
         // Busy wherever it is: a running job is the wait, and any move comes after it.
         var busy      = original.LockedInJob;
 
-        var perUnit = IndustryTimeService.PerScienceUnitSeconds(
+        // Nobody the SDE allows to copy it: the job is listed unassigned rather than not at all.
+        var free  = copiers.FirstOrDefault(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
+        var who   = free ?? copiers.FirstOrDefault();
+        var ready = atCopyLab && !busy && free is not null;
+
+        // Only a copy that could start now claims its slot, as an invention job does.
+        if (ready) slotsLeft[free!.Config.CharacterId] -= 1;
+
+        var perUnit = who is null ? null : IndustryTimeService.PerScienceUnitSeconds(
             timeCtx, recipe.SourceBlueprintTypeId, IndustryTimeService.CopyingActivity,
-            lab.Structure, InventionService.CopyingCategory, best.Skills);
+            lab.Structure, InventionService.CopyingCategory, who.Skills);
 
         // Copying is charged per run per copy, so a two-copy job of thirty runs costs sixty units.
         var duration = IndustryJobSplit.Duration((perUnit ?? 0) * copies * perCopy);
@@ -463,22 +517,31 @@ public class InventionGenerator(
                           + " " + (atCopyLab ? string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
                                              : string.Format(WorklistText.PrintUsing, original.Describe()))
                           + durText,
-            Readiness     = atCopyLab && !busy ? WorklistReadiness.Ready : WorklistReadiness.Blocked,
+            Readiness     = ready ? WorklistReadiness.Ready
+                          : atCopyLab && !busy ? WorklistReadiness.Waiting
+                          : WorklistReadiness.Blocked,
             BlockedBy     = busy       ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
                           : !atCopyLab ? string.Format(WorklistText.BlockedOriginalNotAt, lab.Name)
+                          : !ready     ? WorklistText.WaitingScienceSlotsBusy
                           : "",
             BlockedByPrint = busy,
-            CharacterId   = best.Config.CharacterId,
-            CharacterName = best.Config.CharacterName,
+            CharacterId   = who?.Config.CharacterId ?? 0,
+            CharacterName = who?.Config.CharacterName ?? "",
             LocationId    = lab.Site,
             LocationName  = lab.Name,
             TypeId        = recipe.SourceBlueprintTypeId,
             TypeName      = recipe.SourceBlueprintName,
+            TypeImage     = "bpc",   // what the job makes: copies
             Priority      = priority,
         }];
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    // The game's own gate on an attempt: the encryption skill and both sciences, each trained.
+    private static bool HoldsInventionSkills(IndustryCandidate c, InventionRecipe recipe) =>
+        c.Skills.GetValueOrDefault(recipe.EncryptionSkillId) >= 1
+        && recipe.ScienceSkillIds.All(id => c.Skills.GetValueOrDefault(id) >= 1);
 
     // Named as the screen shows it. ⚠️ Only here: the settings pick a decryptor by its English
     // Name (InventionService.DecryptorFor).
@@ -496,7 +559,7 @@ public class InventionGenerator(
                 .Where(a => sites.Contains(a.RootLocationId))
                 .Select(a => new { a.ItemId, a.RootLocationId, a.TypeId, a.OwnerId, a.OwnerType, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                      && (a.OwnerType != "corporation" || corps is null || corps.Contains(a.OwnerId)))
             .GroupBy(a => (a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
@@ -510,7 +573,7 @@ public class InventionGenerator(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                      && (a.OwnerType != "corporation" || corps is null || corps.Contains(a.OwnerId)))
             .ToList();
 

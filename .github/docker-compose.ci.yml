@@ -1,0 +1,8 @@
+# Laid over packaging/docker/docker-compose.yml by the PR build's Linux job: the worker runs this
+# build's binary in place of the released one the image downloads. Everything else — the image,
+# the PostgreSQL server, the environment, the volumes — is exactly what a self-hoster runs.
+
+services:
+  worker:
+    volumes:
+      - ${PUBLISH_DIR:?set PUBLISH_DIR to the dotnet publish output}:/opt/eveconsole:ro

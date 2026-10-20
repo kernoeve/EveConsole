@@ -205,7 +205,8 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
 
     /// <summary>Every type a colony's screens name: products, contents, flows, pins.</summary>
     private static IEnumerable<int> TypesOf(PiColonyForecast f)
-        => f.Flows.Select(x => x.TypeId)
+        => f.Layout.Pins.Select(p => p.TypeId)
+            .Concat(f.Flows.Select(x => x.TypeId))
             .Concat(f.Extractors.Where(x => x.ProductTypeId is not null).Select(x => x.ProductTypeId!.Value))
             .Concat(f.Storage.SelectMany(s => s.ContentsAt.Keys.Append(s.TypeId)))
             .Concat(f.Factories.Select(p => p.TypeId))
@@ -596,6 +597,12 @@ public sealed class PiColonyDetailVm
     public IBrush AgeColor    { get; }
     public string CommandCenterText { get; }
 
+    /// <summary>The planet's own type, for its picture beside the name.</summary>
+    public int    PlanetTypeId { get; }
+
+    /// <summary>The colony as laid out on the surface.</summary>
+    public PiColonyMapVm Map { get; }
+
     public IReadOnlyList<PiExtractorVm>      Extractors { get; }
     public IReadOnlyList<PiProcessorRowVm>   Processors { get; }
     public IReadOnlyList<PiStorageRowVm>     Storage    { get; }
@@ -630,6 +637,9 @@ public sealed class PiColonyDetailVm
         AgeText     = string.Format(row.Attention.Stale ? PiText.DetailAgeStale : PiText.DetailAge,
                                     PiFormat.Duration(row.Attention.DataAge), PiFormat.When(f.SnapshotAt));
         AgeColor    = row.AgeColor;
+
+        PlanetTypeId = c.PlanetTypeId;
+        Map          = new PiColonyMapVm(f, sd, Name, now);
 
         var (cpu, power) = PiCommandCenter.At(f.Layout.UpgradeLevel);
         CommandCenterText = string.Format(PiText.DetailCommandCenter, f.Layout.UpgradeLevel, c.MaxUpgradeLevel, cpu, power);
@@ -667,6 +677,200 @@ public sealed class PiColonyDetailVm
 
     private static string CollectorName(PiChargeKind kind)
         => kind == PiChargeKind.Skyhook ? PiText.Skyhook : PiText.CustomsOffice;
+}
+
+/// <summary>One structure on the colony map: where its disc goes, and how it reads.</summary>
+public sealed record PiMapPinVm(double X, double Y, double Size, IBrush Ring, Avalonia.Thickness RingThickness,
+                                int IconTypeId, string Tip)
+{
+    public Avalonia.CornerRadius Corner => new(Size / 2);
+}
+
+/// <summary>A link between two structures, centre to centre.</summary>
+/// <param name="Far">One end is a structure drawn at the frame's edge rather than where it stands:
+/// the link is dashed, so it does not read as to scale.</param>
+public sealed record PiMapLinkVm(Avalonia.Point From, Avalonia.Point To, double Thickness, bool Far)
+{
+    public Avalonia.Collections.AvaloniaList<double>? Dashes => Far ? [4, 3] : null;
+}
+
+/// <summary>
+/// The colony drawn as the game lays it out: each structure where it stands, the links between
+/// them, and the state that needs a look — an idle factory, a stopped extractor, full storage —
+/// as the colour of its ring.
+///
+/// <para>Seen from straight above the colony's middle: the pins are turned into points on the
+/// sphere, and projected onto the plane that touches it there. A colony covers a small patch of
+/// its planet, so this keeps its shape where drawing latitude and longitude flat would stretch
+/// it towards the poles. Scaled to fill the frame, the same in both directions.</para>
+///
+/// <para>⚠️ Scaled to the colony's main group, not to every structure. A command center is often
+/// set down well away from the rest; fitted to that, eleven structures shared a strip twenty
+/// pixels wide, one on top of another. A structure more than <see cref="FarFactor"/> times the
+/// usual distance from the middle is drawn at the frame's edge in its true direction instead, its
+/// links dashed.</para>
+/// </summary>
+public sealed class PiColonyMapVm
+{
+    public const double Width   = 440;
+    public const double Height  = 220;
+    private const double Padding = 24;
+
+    /// <summary>How many times the median distance from the middle a structure may stand before it
+    /// is drawn at the edge rather than to scale.</summary>
+    public const double FarFactor = 3;
+
+    public IReadOnlyList<PiMapPinVm>  Pins  { get; }
+    public IReadOnlyList<PiMapLinkVm> Links { get; }
+    public bool HasMap => Pins.Count > 0;
+
+    public double FrameWidth  => Width;
+    public double FrameHeight => Height;
+
+    public PiColonyMapVm(PiColonyForecast f, PiStaticData sd, Func<int, string> name, DateTimeOffset now)
+    {
+        var pins = f.Layout.Pins;
+        if (pins.Count == 0) { Pins = []; Links = []; return; }
+
+        static (double X, double Y, double Z) OnSphere(PiLayoutPin p) =>
+            (Math.Sin(p.Latitude) * Math.Cos(p.Longitude), Math.Sin(p.Latitude) * Math.Sin(p.Longitude), Math.Cos(p.Latitude));
+        static (double X, double Y, double Z) Unit((double X, double Y, double Z) v)
+        {
+            var n = Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
+            return n < 1e-12 ? (0, 0, 1) : (v.X / n, v.Y / n, v.Z / n);
+        }
+        static (double X, double Y, double Z) Cross((double X, double Y, double Z) a, (double X, double Y, double Z) b) =>
+            (a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
+        static double Dot((double X, double Y, double Z) a, (double X, double Y, double Z) b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+
+        var points = pins.ToDictionary(p => p.PinId, OnSphere);
+        var centre = Unit((points.Values.Sum(v => v.X), points.Values.Sum(v => v.Y), points.Values.Sum(v => v.Z)));
+
+        // East and north at the centre. A colony sitting on a pole has no east; any direction will do.
+        var east  = Math.Abs(centre.Z) > 0.999 ? (1.0, 0.0, 0.0) : Unit(Cross((0, 0, 1), centre));
+        var north = Cross(centre, east);
+        var flat  = points.ToDictionary(kv => kv.Key, kv => (U: Dot(kv.Value, east), V: Dot(kv.Value, north)));
+
+        // The middle by median, so a far structure does not drag it; then which stand far from it.
+        static double Median(IEnumerable<double> xs)
+        {
+            var s = xs.OrderBy(x => x).ToList();
+            return s.Count == 0 ? 0 : s.Count % 2 == 1 ? s[s.Count / 2] : (s[s.Count / 2 - 1] + s[s.Count / 2]) / 2;
+        }
+        var cu = Median(flat.Values.Select(p => p.U));
+        var cv = Median(flat.Values.Select(p => p.V));
+        double Dist((double U, double V) p) => Math.Sqrt((p.U - cu) * (p.U - cu) + (p.V - cv) * (p.V - cv));
+        var usual = Median(flat.Values.Select(Dist));
+        var far   = flat.Where(kv => usual > 1e-12 && Dist(kv.Value) > FarFactor * usual).Select(kv => kv.Key).ToHashSet();
+        var main  = flat.Where(kv => !far.Contains(kv.Key)).Select(kv => kv.Value).ToList();
+
+        var minU = main.Min(p => p.U); var maxU = main.Max(p => p.U);
+        var minV = main.Min(p => p.V); var maxV = main.Max(p => p.V);
+        var spanU = maxU - minU; var spanV = maxV - minV;
+        var scale = Math.Min(spanU > 1e-9 ? (Width - 2 * Padding) / spanU : double.MaxValue,
+                             spanV > 1e-9 ? (Height - 2 * Padding) / spanV : double.MaxValue);
+        if (scale == double.MaxValue) scale = 1;   // a single structure: it goes in the middle
+        var midU = (minU + maxU) / 2; var midV = (minV + maxV) / 2;
+        Avalonia.Point At(long pinId)
+        {
+            var p = flat[pinId];
+            // North up: screen y runs down.
+            var x = (p.U - midU) * scale;
+            var y = -(p.V - midV) * scale;
+            if (far.Contains(pinId))
+            {
+                // Along its true direction from the middle, out to the frame's edge.
+                var reach = Math.Min(Math.Abs(x) > 1e-9 ? (Width / 2 - Padding) / Math.Abs(x) : double.MaxValue,
+                                     Math.Abs(y) > 1e-9 ? (Height / 2 - Padding) / Math.Abs(y) : double.MaxValue);
+                if (reach < 1) { x *= reach; y *= reach; }
+            }
+            return new(Width / 2 + x, Height / 2 + y);
+        }
+
+        var factories  = f.Factories.ToDictionary(x => x.PinId);
+        var storage    = f.Storage.ToDictionary(x => x.PinId);
+        var extractors = f.Extractors.ToDictionary(x => x.PinId);
+
+        Links = f.Layout.Links
+            .Where(l => points.ContainsKey(l.SourcePinId) && points.ContainsKey(l.DestinationPinId))
+            .Select(l => new PiMapLinkVm(At(l.SourcePinId), At(l.DestinationPinId), 1.5 + 0.4 * l.LinkLevel,
+                                         far.Contains(l.SourcePinId) || far.Contains(l.DestinationPinId)))
+            .ToList();
+
+        var list = new List<PiMapPinVm>();
+        foreach (var pin in pins)
+        {
+            var kind  = PiEngine.KindOf(pin, sd);
+            var lines = new List<string> { name(pin.TypeId) };
+            var ring  = Palette.BorderStrong;
+            var thick = 1.5;
+            var icon  = pin.TypeId;
+            double size;
+
+            switch (kind)
+            {
+                case PiPinKind.CommandCenter:
+                    size = 32; ring = Palette.Accent;
+                    break;
+
+                case PiPinKind.ExtractorControlUnit:
+                    size = 28; ring = Palette.Info;
+                    if (extractors.TryGetValue(pin.PinId, out var x))
+                    {
+                        if (x.ProductTypeId is { } product) { icon = product; lines.Add(name(product)); }
+                        lines.Add(Plurals.Format(PiText.ResourceManager, nameof(PiText.HeadsOther), x.HeadCount));
+                        if (x.IsExpired)
+                        {
+                            ring = Palette.Bad; thick = 2.5;
+                            lines.Add(x.ExpiryTime is { } stopped ? string.Format(PiText.ExtractorStopped, PiFormat.Relative(stopped, now)) : PiText.Stopped);
+                        }
+                        else if (x.ExpiryTime is { } stops)
+                            lines.Add(string.Format(PiText.ExtractorStops, PiFormat.Relative(stops, now)));
+                    }
+                    break;
+
+                case PiPinKind.Processor:
+                    size = 22;
+                    if (factories.TryGetValue(pin.PinId, out var p))
+                    {
+                        size = p.Tier switch { PiProcessorTier.HighTech => 30, PiProcessorTier.Advanced => 25, _ => 22 };
+                        if (p.OutputTypeId is { } output) { icon = output; lines.Add(name(output)); }
+                        switch (p.StateAt)
+                        {
+                            case PiFactoryState.Running:
+                                ring = Palette.Good; lines.Add(PiText.ProcessorRunning); break;
+                            case PiFactoryState.Idle:
+                                ring = Palette.Warn; thick = 2.5;
+                                lines.Add(p.IdleSince is { } since ? string.Format(PiText.ProcessorIdleSince, PiFormat.When(since)) : PiText.ProcessorIdle);
+                                break;
+                            default:
+                                lines.Add(PiText.NoSchematic); break;
+                        }
+                    }
+                    break;
+
+                case PiPinKind.Storage or PiPinKind.Launchpad:
+                    size = 28;
+                    if (storage.TryGetValue(pin.PinId, out var s))
+                    {
+                        lines.Add(string.Format(PiText.VolumeOfCapacity, s.UsedAt.ToString("N0"), s.Capacity.ToString("N0")));
+                        if (s.FullAt is { } full && full <= now) { ring = Palette.Bad; thick = 2.5; lines.Add(PiText.Full); }
+                    }
+                    break;
+
+                default:
+                    size = 22;
+                    break;
+            }
+
+            var c = At(pin.PinId);
+            list.Add(new PiMapPinVm(c.X - size / 2, c.Y - size / 2, size, ring, new Avalonia.Thickness(thick), icon,
+                                    string.Join("\n", lines)));
+        }
+
+        // The command center last, so it is drawn on top of anything placed against it.
+        Pins = [.. list.OrderBy(p => p.Size)];
+    }
 }
 
 /// <summary>The period a colony's potential and forecast cover, in words.</summary>

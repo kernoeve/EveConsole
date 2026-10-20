@@ -15,6 +15,13 @@ using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
+// ⚠️ EF1003 (EF Core 10: SQL built by concatenation) is suppressed for this file, for what is
+// concatenated: the const fragments below (OrdersFrom, RegionExpr, PlayerOrders, MgTopCte), an int
+// region id, TRUE/FALSE from a bool, and Cutoff()'s date — DateTime.UtcNow formatted yyyy-MM-dd
+// with the invariant culture. Nothing a user types, or a server sends, reaches these strings.
+// Anything added here that concatenates something else does NOT inherit that argument.
+#pragma warning disable EF1003
+
 internal static class MarketFmt
 {
     public static string Isk(double v) => Num(v);

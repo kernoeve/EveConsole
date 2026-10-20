@@ -49,6 +49,30 @@
   <data name="ContractsBuying" xml:space="preserve">
     <value>买入合同</value>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>市场卖单</value>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>卖出合同</value>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>仍挂在你未完成卖单上的数量计为现有库存：卖出之前它们仍归你所有。默认关闭，这样库存挂售期间也会补货。</value>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>你未完成合同中要交出的物品，在买家接受前计为现有库存。与卖单同理，默认关闭。</value>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>卖单</value>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>卖出合同</value>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>卖单</value>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>卖出合同</value>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>只计算打包的物品（跳过已组装 / 已装配的船体）</value>
   </data>
@@ -185,7 +209,7 @@
     <value>买单</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>合同</value>
+    <value>买入合同</value>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
     <value>市场价</value>
@@ -809,7 +833,7 @@ Warrior II 5
     <value>买单</value>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>合同</value>
+    <value>买入合同</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
     <value>仅打包物品</value>

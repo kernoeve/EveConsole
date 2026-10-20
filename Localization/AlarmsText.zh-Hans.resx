@@ -1168,6 +1168,42 @@
   <data name="StoreSaidCanceled" xml:space="preserve">
     <value>{1} 订购 {0} 的订单已取消。</value>
   </data>
+  <data name="StoreHeadOfferNew" xml:space="preserve">
+    <value>新的出售报价：{1} 出售 {0}</value>
+  </data>
+  <data name="StoreSaidOfferNew" xml:space="preserve">
+    <value>{0} 收到新的出售报价：{2} 以 {3} 出售 {1}。</value>
+  </data>
+  <data name="StoreHeadOfferContracted" xml:space="preserve">
+    <value>报价 {0}：对方已向我们发出合同</value>
+  </data>
+  <data name="StoreSaidOfferContracted" xml:space="preserve">
+    <value>{1} 已发出 {0} 的合同。请在游戏中接受。</value>
+  </data>
+  <data name="StoreSaidOfferContractedPart" xml:space="preserve">
+    <value>{1} 已发出 {0} 的合同（{3:N0} 个中的 {2:N0} 个）。请在游戏中接受。</value>
+  </data>
+  <data name="StoreSaidOfferAsksMore" xml:space="preserve">
+    <value>{1} 已发出 {0} 的合同，要价高于报价。</value>
+  </data>
+  <data name="StoreHeadOfferReceived" xml:space="preserve">
+    <value>报价 {0}：已收到 {1:N0} / {2:N0}</value>
+  </data>
+  <data name="StoreSaidOfferReceived" xml:space="preserve">
+    <value>已从 {0} 收到 {1}：{2:N0} / {3:N0}。</value>
+  </data>
+  <data name="StoreHeadOfferComplete" xml:space="preserve">
+    <value>报价 {0} 完成</value>
+  </data>
+  <data name="StoreSaidOfferComplete" xml:space="preserve">
+    <value>{0} 出售 {1} 的合同已接受。报价完成。</value>
+  </data>
+  <data name="StoreHeadOfferCanceled" xml:space="preserve">
+    <value>报价 {0} 已取消</value>
+  </data>
+  <data name="StoreSaidOfferCanceled" xml:space="preserve">
+    <value>{1} 出售 {0} 的报价已取消。</value>
+  </data>
   <data name="IskBillions" xml:space="preserve">
     <value>{0:0.##} 十亿 ISK</value>
   </data>

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using EveConsole.Localization;
 
@@ -14,7 +15,7 @@ public partial class EftPasteDialog : Window
         {
             EftBox.Focus();
             // Most people have just copied the fit; offer it rather than make them paste.
-            if (GetTopLevel(this)?.Clipboard is { } clip && await clip.GetTextAsync() is { } text
+            if (GetTopLevel(this)?.Clipboard is { } clip && await clip.TryGetTextAsync() is { } text
                 && text.TrimStart().StartsWith('['))
             {
                 EftBox.Text = text;

@@ -144,7 +144,8 @@ public class WebStoreSyncService(
             List<(int Id, int Minutes)> stores;
             await using (var db = await dbFactory.CreateDbContextAsync(ct))
                 stores = (await db.Stores.AsNoTracking()
-                    .Where(s => !s.IsDeleted && s.WebEnabled && s.WebUrl != "" && s.WebSecret != "" && s.PostingId != 0)
+                    .Where(s => !s.IsDeleted && s.WebEnabled && s.WebUrl != "" && s.WebSecret != "")
+                    .WithListings(db)
                     .Select(s => new { s.Id, s.WebPollMinutes })
                     .ToListAsync(ct))
                     .Select(s => (s.Id, s.WebPollMinutes)).ToList();
@@ -268,7 +269,7 @@ public class WebStoreSyncService(
                 string.Format(SalesText.WebSyncBuildFailed, AppErrorLogger.Line("", ex).TrimStart(':', ' ')), ex, ct);
         }
 
-        if (request.Catalogue.Sections.Count == 0)
+        if (request.Listings.All(l => l.Catalogue.Sections.Count == 0))
             return await FailAsync(db, store, SalesText.WebSyncPostingEmpty, null, ct);
 
         var (response, error) = await PostAsync(store, request, ct);
@@ -417,9 +418,11 @@ public class WebStoreSyncService(
     private async Task<(SyncRequest Request, Dictionary<int, string> Hashes)> BuildRequestAsync(
         AppDbContext db, Store store, CancellationToken ct)
     {
-        var catalogue = await catalogues.BuildAsync(store, ct) ?? new CatalogueDto { AsOf = DateTimeOffset.UtcNow };
-
-        var posting = await db.SalePostings.AsNoTracking().FirstOrDefaultAsync(p => p.Id == store.PostingId, ct);
+        // Every listing a tab, and the first Sell listing again on its own for a site from
+        // before tabs, which shows that one only.
+        var listings  = await catalogues.BuildListingsAsync(store, ct);
+        var catalogue = listings.FirstOrDefault(l => l.Side == StorePosting.Sell)?.Catalogue
+                     ?? new CatalogueDto { AsOf = DateTimeOffset.UtcNow };
 
         var allowed = store.SenderPolicy == "Anyone"
             ? []
@@ -542,8 +545,20 @@ public class WebStoreSyncService(
 
                 Theme         = theme,
                 Banner        = banner,
+                BuyAssignee   = store.BuyAssigneeId == 0 ? null : new AssigneeDto
+                {
+                    Id   = store.BuyAssigneeId,
+                    Kind = store.BuyAssigneeType,
+                    Name = store.BuyAssigneeName,
+                },
+                BuyLocation   = store.BuyLocationId == 0 ? null : new PlaceDto
+                {
+                    Id   = store.BuyLocationId,
+                    Name = await StoreMailService.BuyPlaceInLanguageAsync(db, store, ct),
+                },
             },
             Catalogue = catalogue,
+            Listings  = listings,
             Orders    = page.Select(kv => kv.Value.Dto).ToList(),
             Removed   = removed,
             WebOrders = held,
@@ -576,6 +591,9 @@ public class WebStoreSyncService(
         Fulfilment     = o.FulfilmentSource,
         EstimatedDate  = string.IsNullOrEmpty(o.EstimatedDate) ? null : o.EstimatedDate,
         ContractId     = o.LinkedContractId,
+        Side           = o.IsBuy ? StorePosting.Buy : StorePosting.Sell,
+        PostingId      = o.PostingId,
+        ContractedPrice = o.IsBuy && o.ContractedPrice > 0 ? o.ContractedPrice : null,
         CreatedAt      = o.CreatedAt,
         CompletedOn    = string.IsNullOrEmpty(o.CompletedOn) ? null : o.CompletedOn,
         StoreId        = o.StoreId,
@@ -763,18 +781,43 @@ public class WebStoreSyncService(
             return Rejected(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.WebTooManyLinesOther),
                                            ev.Lines.Count, StoreMailService.MaxLinesPerOrder));
 
-        var view = await postings.BuildViewAsync(store.PostingId, ct);
-        if (view is null) return Review(() => SalesText.WebSyncNoPosting);
+        // An offer to sell to a Buy listing, or an order off a Sell listing: checked against the
+        // listings of that side only, so a price the store pays is never booked as one it charges.
+        var buying = ev.Side == StorePosting.Buy;
+        if (buying && store.BuyAssigneeId == 0) return Rejected(StoreText.OffersClosed);
 
-        var byTypeId = view.Sections.SelectMany(s => s.Items)
-            .GroupBy(i => i.TypeId).ToDictionary(g => g.Key, g => g.First());
+        List<StorePosting> listings;
+        await using (var ldb = await dbFactory.CreateDbContextAsync(ct))
+            listings = (await StorePostings.ListAsync(ldb, store, ct)).Where(l => l.IsBuy == buying).ToList();
+
+        // Each listing's items, and every item of the side by the first listing it is in — the
+        // one a line names, or for a site from before listings, the first that has it.
+        var byListing = new Dictionary<int, Dictionary<int, PostingItemView>>();
+        foreach (var listing in listings)
+            if (!byListing.ContainsKey(listing.PostingId)
+                && await postings.BuildViewAsync(listing.PostingId, ct, buying: buying) is { } v)
+                byListing[listing.PostingId] = v.Sections.SelectMany(s => s.Items)
+                    .GroupBy(i => i.TypeId).ToDictionary(g => g.Key, g => g.First());
+        if (byListing.Count == 0) return Review(() => SalesText.WebSyncNoPosting);
+
+        int? ListingOf(int typeId, int? asked)
+        {
+            if (asked is int p) return byListing.TryGetValue(p, out var named) && named.ContainsKey(typeId) ? p : null;
+            foreach (var (id, items) in byListing) if (items.ContainsKey(typeId)) return id;
+            return null;
+        }
 
         // The same lines, merged by item: two lines for one hull are one line for two.
         var lines = ev.Lines.GroupBy(l => l.TypeId)
-            .Select(g => (TypeId: g.Key, Units: g.Sum(l => l.Units), UnitPrice: g.First().UnitPrice))
+            .Select(g => (TypeId: g.Key, Units: g.Sum(l => l.Units), UnitPrice: g.First().UnitPrice,
+                          PostingId: ListingOf(g.Key, g.First().PostingId)))
             .ToList();
 
-        foreach (var (typeId, units, unitPrice) in lines)
+        var byTypeId = new Dictionary<int, PostingItemView>();
+        foreach (var l in lines)
+            if (l.PostingId is int p) byTypeId[l.TypeId] = byListing[p][l.TypeId];
+
+        foreach (var (typeId, units, unitPrice, _) in lines)
         {
             if (!byTypeId.ContainsKey(typeId)) return Rejected(string.Format(StoreText.WebNotOnPriceList, typeId));
             if (units <= 0)
@@ -796,7 +839,7 @@ public class WebStoreSyncService(
         // a long way in between, or the site is not quoting what it was given. Either way a
         // person looks before a hull changes hands.
         if (!force)
-            foreach (var (typeId, _, unitPrice) in lines)
+            foreach (var (typeId, _, unitPrice, _) in lines)
             {
                 var item = byTypeId[typeId];
                 if (item.SalePrice is not { } sale)
@@ -810,7 +853,7 @@ public class WebStoreSyncService(
         // ⚠️ The store's purchase limit, checked here as well as on the site: the site greys out
         // what a buyer may no longer order, but the app holds the whole history and does the
         // booking. Over the limit is a matter for the owner, not a refusal.
-        if (!force && store.LimitEnabled
+        if (!force && !buying && store.LimitEnabled
             && await PurchaseLimit.OverLimitAsync(db, store, ev.Buyer.Id, lines.Select(l => (l.TypeId, (long)l.Units)).ToList(), ct)
                 is { } over)
             return Review(() => over.Words(byTypeId[over.TypeId].TypeName));
@@ -818,12 +861,13 @@ public class WebStoreSyncService(
         var reference = await OrderReference.NewAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
 
-        var toId   = ev.ContractTo?.Id   is > 0 and var id ? id : ev.Buyer.Id;
-        var toName = ev.ContractTo?.Name is { Length: > 0 } n ? n : ev.Buyer.Name;
-        var toKind = ev.ContractTo?.Kind is { Length: > 0 } k ? k : "character";
+        // An offer's contract comes from the seller: nobody is named unless the site said so.
+        var toId   = ev.ContractTo?.Id   is > 0 and var id ? id : buying ? 0 : ev.Buyer.Id;
+        var toName = ev.ContractTo?.Name is { Length: > 0 } n ? n : buying ? "" : ev.Buyer.Name;
+        var toKind = ev.ContractTo?.Kind is { Length: > 0 } k ? k : buying ? "" : "character";
 
         var created = new List<TrackedOrder>();
-        foreach (var (typeId, units, unitPrice) in lines)
+        foreach (var (typeId, units, unitPrice, postingId) in lines)
         {
             var priced = unitPrice > 0
                 ? unitPrice
@@ -849,6 +893,8 @@ public class WebStoreSyncService(
                 ContractToId   = toId,
                 ContractToName = toName,
                 ContractToType = toKind,
+                Side           = buying ? StorePosting.Buy : StorePosting.Sell,
+                PostingId      = postingId ?? 0,
                 CreatedAt      = now,
             });
         }

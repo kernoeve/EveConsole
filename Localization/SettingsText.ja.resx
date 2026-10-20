@@ -3013,6 +3013,12 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>証明書</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>ウォレット記録の種類</value>
+  </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>SDE のその他すべて</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>タイプの資源</value>
   </data>
@@ -3042,6 +3048,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0}行</value>
+  </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>データベースを待っています：ほかの処理が書き込み中です。この書き込みを再試行しています（{0} 回目）…</value>
   </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0}行を保存しました</value>

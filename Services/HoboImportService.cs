@@ -98,8 +98,19 @@ public class HoboImportService
     /// <exception cref="ImportVerificationException">
     /// The import ran to the end but lost a table that previously held data. Nothing was kept.
     /// </exception>
+    // Writes that met a locked database and were made again, this import (SQLite).
+    private int _busyWaits;
+
+    /// <summary>What a write that met a locked database says while it waits. See SqliteBusy.</summary>
+    private Action<int> Waiting(IProgress<HoboImportProgress> p, string stage, double frac) => attempt =>
+    {
+        _busyWaits++;
+        p.Report(new HoboImportProgress(stage, string.Format(SettingsText.ImportWaitingForDatabase, attempt), frac));
+    };
+
     public async Task<IReadOnlyList<string>> ImportAsync(IProgress<HoboImportProgress> progress, CancellationToken ct)
     {
+        _busyWaits = 0;
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -141,7 +152,7 @@ public class HoboImportService
             (stage, detail, frac) => progress.Report(new HoboImportProgress(stage, detail, frac)), ct);
 
         Report(progress, SettingsText.ImportStagePreparing, SettingsText.HoboClearing, 0.22);
-        await BulkImport.ClearAsync(db, tables, ct);
+        await BulkImport.ClearAsync(db, tables, ct, Waiting(progress, SettingsText.ImportStagePreparing, 0.31));
 
         db.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -162,10 +173,13 @@ public class HoboImportService
             existing.ImportedAt = now;
             existing.Revision   = meta.Revision;
         }
-        await db.SaveChangesAsync(ct);
+        await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(progress, SettingsText.ImportStageVerifying, 0.99), ct);
 
         Report(progress, SettingsText.ImportStageVerifying, SettingsText.ImportCheckingRowCounts, 0.99);
         var (lost, warnings) = BulkImport.Compare(before, await BulkImport.CountAsync(db, tables, ct));
+        if (_busyWaits > 0)
+            warnings.Add($"Waited for the database {_busyWaits:N0} time(s): something else held SQLite's write lock past its " +
+                         "30 seconds. Each of those writes was made again and went through.");
 
         if (lost.Count > 0)
         {
@@ -256,7 +270,7 @@ public class HoboImportService
             """CREATE TABLE IF NOT EXISTS "HoboCompressibleTypes" ("SourceTypeId" INTEGER NOT NULL PRIMARY KEY, "CompressedTypeId" INTEGER NOT NULL)""",
         };
         foreach (var sql in ddl)
-            db.Database.ExecuteSqlRaw(sql);
+            SqliteBusy.Retry(() => db.Database.ExecuteSqlRaw(sql), null);
 
         // ALTER TABLE ADD COLUMN for databases that predate the column.
         // SQLite ALTER TABLE does not support IF NOT EXISTS, so the duplicate-column error is
@@ -265,10 +279,11 @@ public class HoboImportService
         {
             """ALTER TABLE "HoboBuildInfos" ADD COLUMN "Revision" INTEGER NOT NULL DEFAULT 0""",
         };
+        // Only the duplicate column is "already done"; a locked database is waited out (SqliteBusy).
         foreach (var sql in alters)
         {
-            try { db.Database.ExecuteSqlRaw(sql); }
-            catch { /* column already exists - idempotent */ }
+            try { SqliteBusy.Retry(() => db.Database.ExecuteSqlRaw(sql), null); }
+            catch (Exception ex) when (!SqliteBusy.IsBusy(ex)) { /* column already exists - idempotent */ }
         }
     }
 
@@ -379,26 +394,28 @@ public class HoboImportService
             if (buffer.Count >= Batch)
             {
                 await set.AddRangeAsync(buffer, ct);
-                await db.SaveChangesAsync(ct);
+                // This batch made again if the database is locked; never the table. SqliteBusy.
+                await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, stage, Frac()), ct);
                 db.ChangeTracker.Clear();
                 saved += buffer.Count;
                 buffer.Clear();
 
-                var frac   = estimatedTotal > 0
-                    ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
-                    : fracStart;
                 var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : string.Format(SettingsText.ImportRowsProgress, saved);
-                p.Report(new HoboImportProgress(stage, detail, frac));
+                p.Report(new HoboImportProgress(stage, detail, Frac()));
             }
         }
 
         if (buffer.Count > 0)
         {
             await set.AddRangeAsync(buffer, ct);
-            await db.SaveChangesAsync(ct);
+            await SqliteBusy.RetryAsync(() => db.SaveChangesAsync(ct), Waiting(p, stage, Frac()), ct);
             db.ChangeTracker.Clear();
             saved += buffer.Count;
         }
+
+        double Frac() => estimatedTotal > 0
+            ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
+            : fracStart;
 
         p.Report(new HoboImportProgress(stage, string.Format(SettingsText.ImportRowsSaved, saved), fracEnd));
 

@@ -603,6 +603,10 @@ Right-click to unmute.</value>
     <value>dev build</value>
     <comment>Title bar, beside the version: this copy was built from source, not installed from a release. Keep short.</comment>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portable</value>
+    <comment>Title-bar badge beside the version for a released build that was not installed (the Portable zip, the Linux tarball, Docker): it is a real release, but it does not update itself.</comment>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>n/a — not an installed build</value>
     <comment>Settings and the update dialog, "Latest:": not known, because this copy was not installed by the installer.</comment>
@@ -750,6 +754,30 @@ Update the client running the background processes to {1}, or close it and start
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>This build does not match the database</value>
     <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
+  </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>This build expects tables the database does not have yet: {0}.
+
+Another client is running the background processes, and only that client may change the schema. Update it to this build, or close it and start this one first so that it takes over and adds them.</value>
+    <comment>Shown before the app stops: a client that may not change the schema found tables missing. {0} = the missing tables' names.</comment>
+  </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>Upgrade the database?</value>
+    <comment>Title of the question shown at start when the database was last used by an older EVE Console.</comment>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>This database was last used by EVE Console {0}, and this is {1}.
+
+Starting will upgrade it to {1}. After that, earlier versions can no longer open it, so back it up first if you may need to go back.
+
+Database: {2}
+
+Upgrade it and start? No closes EVE Console and leaves the database as it is.</value>
+    <comment>Asked at start, before anything is changed, when the database is older than this build. {0} the version that last used it (or the DatabaseVersionUnrecorded text), {1} this build's version, {2} which database (a file path, or PostgreSQL server/database). Answered with Yes / No.</comment>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>an earlier version</value>
+    <comment>Fills {0} of UpgradeDatabaseQuestion for a database from before EVE Console recorded its version: "last used by EVE Console an earlier version" reads as "… by an earlier version of EVE Console" — word it to fit that sentence in this language.</comment>
   </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Shrinking database — {0} elapsed. Please leave the application open.</value>

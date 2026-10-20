@@ -3,6 +3,7 @@ using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
@@ -117,6 +118,9 @@ public class WorklistCorpAltsViewModel : ReactiveObject
             if (CorpAltsChanged is not null) await CorpAltsChanged();
         });
 
+        // Characters or corporations added or removed: the pickers follow without a restart.
+        OwnerList.Changed += () => _ = LoadAsync();
+
         _ = LoadAsync();
     }
 
@@ -164,18 +168,20 @@ public class WorklistCorpAltsViewModel : ReactiveObject
         {
             // Characters first: the rows carry one each and the grid combo binds its ItemsSource
             // here, so a row realised against an empty list draws blank and pushes null back.
-            Characters.Clear();
-            foreach (var c in charOptions) Characters.Add(c);
+            // ⚠️ In place, never cleared: the rows still on screen bind their combo to this list,
+            // and clearing it blanked each one's character and pushed the blank back to be saved.
+            // Rows below point at the entries that survived, so a character keeps its instance.
+            ListSync.Sync(Characters, charOptions, c => c.Id);
 
             Alts.Clear();
             foreach (var a in alts)
-                Alts.Add(new CorpAltRow(a, charOptions.FirstOrDefault(o => o.Id == a.CharacterId),
+                Alts.Add(new CorpAltRow(a, Characters.FirstOrDefault(o => o.Id == a.CharacterId),
                                         Characters, SaveRowAsync));
 
-            Corps.Clear();
-            foreach (var w in withProjects.OrderBy(w => corpNames.GetValueOrDefault(w.CorpId, "")))
-                Corps.Add(new CorpOption(w.CorpId, corpNames.GetValueOrDefault(
-                    w.CorpId, string.Format(WorklistText.CorpWithId, w.CorpId))));
+            // In place too: the corporation picked for a new alt stays picked.
+            ListSync.Sync(Corps, withProjects.OrderBy(w => corpNames.GetValueOrDefault(w.CorpId, ""))
+                .Select(w => new CorpOption(w.CorpId, corpNames.GetValueOrDefault(
+                    w.CorpId, string.Format(WorklistText.CorpWithId, w.CorpId)))).ToList(), c => c.Id);
 
             // A sentence for each case, rather than the unassigned count tacked onto the one.
             Status = withProjects.Count == 0

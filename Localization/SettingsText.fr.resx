@@ -3013,6 +3013,12 @@ L'application va redémarrer.</value>
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>Certificats</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Types d'entrées du journal de portefeuille</value>
+  </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Tout le reste du SDE</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Matériaux des types</value>
   </data>
@@ -3042,6 +3048,9 @@ L'application va redémarrer.</value>
   </data>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0} lignes</value>
+  </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>En attente de la base de données : une autre tâche y écrit. Nouvelle tentative de cette écriture (essai {0})…</value>
   </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0} lignes enregistrées</value>

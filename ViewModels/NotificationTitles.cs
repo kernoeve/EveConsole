@@ -80,6 +80,7 @@ public static class NotificationTitles
         ["StructureUnderAttack"]          = CommsText.NotifTitleStructureUnderAttack,
         ["StructureLostShields"]          = CommsText.NotifTitleStructureLostShields,
         ["StructureLostArmor"]            = CommsText.NotifTitleStructureLostArmor,
+        ["StructuresReinforcementChanged"] = CommsText.NotifTitleStructuresReinforcementChanged,
         ["StructureDestroyed"]            = CommsText.NotifTitleStructureDestroyed,
         ["StructureFuelAlert"]            = CommsText.NotifTitleStructureFuelAlert,
         ["StructureLowReagentsAlert"]     = CommsText.NotifTitleStructureLowReagentsAlert,

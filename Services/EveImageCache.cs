@@ -68,6 +68,13 @@ internal static class EveImageCache
             await using var ms = new MemoryStream(bytes);
             return new Bitmap(ms);
         }
+        catch (HttpRequestException ex) when (ex.StatusCode is { } status && (int)status is >= 400 and < 500)
+        {
+            // Refused, not failed: the server says this picture does not exist — a blueprint asked
+            // for its /icon, which only its /bp and /bpc have. Kept as missing for the session, so
+            // a caller that falls back to another picture does not ask again on every refresh.
+            return null;
+        }
         catch
         {
             // Drop the failed attempt from the cache. It holds the Task, so a timeout or a

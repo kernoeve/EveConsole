@@ -492,6 +492,14 @@
     <value>Purchase Price</value>
     <comment>Column header in OrderTrackerView.</comment>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Side</value>
+    <comment>Order Tracker: column header — Sell (we sell to the buyer) or Buy (the other party sells to us, off a store's Buy listing). Short.</comment>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>The contracts ask {0}, more than the {1} quoted for the units they carry. Check them before accepting.</value>
+    <comment>Order Tracker: tooltip on a buy order's price when the seller's contracts ask more than was agreed. {0} is what they ask, {1} the quote, both as ISK amounts.</comment>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Status</value>
     <comment>Column header in OrderTrackerView.</comment>
@@ -804,6 +812,38 @@
     <value>Cancelled</value>
     <comment>Text in StoresView.</comment>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Visits</value>
+    <comment>Stores Overview count tile: visits to the store's web site (a buyer signing in, or coming back after a while away), all time.</comment>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Unique visitors</value>
+    <comment>Stores Overview count tile: how many different buyers visited the store's web site, all time.</comment>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Last 48 h: {0:N0}</value>
+    <comment>Under each Stores Overview count: the same count over the last 48 hours. {0} is the number.</comment>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>Below: active items ordered in the last 48 hours.</value>
+    <comment>Tooltip on the Active items tile of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>Below: settled in the last 48 hours. An order keeps only the date it settled (EVE time), so this counts from the start of that day and can include up to a day more.</value>
+    <comment>Tooltip on the Completed and Cancelled tiles of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>A buyer signing in to the store's web site, or coming back after a while away.</value>
+    <comment>Tooltip on the Visits tile of the Stores Overview.</comment>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Different buyers among the visits, however often each came.</value>
+    <comment>Tooltip on the Unique visitors tile of the Stores Overview.</comment>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+    <comment>Stores Overview, web site events, Item column: one ordered line. {0} is the item's name, {1} the units. Several lines are joined with the list separator.</comment>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Active orders</value>
     <comment>Text in StoresView.</comment>
@@ -900,9 +940,177 @@
     <value>Used for order status notifications, and for store requests when the EVE mail store is open.</value>
     <comment>Note in StoresView.</comment>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Price list</value>
-    <comment>Text in StoresView.</comment>
+  <data name="Listings" xml:space="preserve">
+    <value>Listings</value>
+    <comment>Stores screen, General tab: the label beside the store's listings — the sale postings it sends as price lists and shows as tabs on its web site.</comment>
+  </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Places</value>
+    <comment>Sale Posting tool, a posting's row: the button that picks places (stations, hangars, containers) whose contents the posting lists. Short, like the "+ Section" button beside it.</comment>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>List whatever is in chosen stations, hangars, divisions or containers, as it is when the posting is rendered, instead of items picked one by one.</value>
+    <comment>Tooltip of the Places button.</comment>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>its items show on the Posting tab</value>
+    <comment>Sale Posting tool, after a place's path on the definitions grid: the place has no item rows here; what it holds is listed when the posting is rendered.</comment>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>section heading</value>
+    <comment>Sale Posting tool: the hint in a place row's heading box; empty uses the last step of the place's path.</comment>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Places to list items from</value>
+    <comment>Title of the window that picks a posting's places.</comment>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Pick any step — a station or structure, an owner there, a hangar or corporation division, or a container in it — and add it. The posting lists whatever those places hold each time it is rendered: their items show on the Posting tab, not in the grid. Ships are not offered, and nothing inside one is listed.</value>
+    <comment>The places window, at the top.</comment>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Filter: a station, an owner, a division or a container</value>
+    <comment>The places window: the hint in the box that narrows the tree.</comment>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>The places window: a container, {0} its type ("Station Container"), {1} how much is in it (PlacesItems).</comment>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} item</value>
+    <comment>The places window: how many stacks of items a container holds, one. A language that needs other forms by count adds them (…Few, …Many).</comment>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} items</value>
+    <comment>The places window: how many stacks of items a container holds. {0} is the number.</comment>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Add →</value>
+    <comment>The places window: the button that adds the step picked in the tree to the list on the right.</comment>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Places this posting lists</value>
+    <comment>The places window: heading of the list of places picked.</comment>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Save</value>
+    <comment>The places window: the button that saves the places and closes it.</comment>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>None of our characters or corporations has anything at a station or structure.</value>
+    <comment>The places window, when there is nothing to pick from.</comment>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>The places window, a container its owner named: {0} is that name, {1} the container's type, as "Blue box (Station Container)".</comment>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Could not read the places: {0}</value>
+    <comment>The places window. {0} is the error.</comment>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>The places window: a station or structure whose name the app does not know. {0} is its id.</comment>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (personal)</value>
+    <comment>The places window: a character's own hangar at a station. {0} is the character's name.</comment>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (corporation)</value>
+    <comment>The places window: a corporation's hangars at a station. {0} is the corporation's name.</comment>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Hangar</value>
+    <comment>The places window: a character's item hangar.</comment>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Deliveries</value>
+    <comment>The places window: the deliveries hangar. Use the game's word.</comment>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Division {0}</value>
+    <comment>The places window: a corporation hangar division with no name. {0} is its number, 1 to 7.</comment>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Division {0}: {1}</value>
+    <comment>The places window: a corporation hangar division. {0} is its number, {1} the name the corporation gave it.</comment>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Sell</value>
+    <comment>Stores screen: a listing the store SELLS from — buyers order its items. Short; a choice in a drop-down beside the posting.</comment>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Stores screen: a listing the store BUYS into — players offer to sell it these items. Short; a choice in a drop-down beside the posting.</comment>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Tab title (optional)</value>
+    <comment>Stores screen: the hint in the box for a listing's title, which heads its mail and its tab on the web site; empty uses the posting's own name.</comment>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Move up</value>
+    <comment>Stores screen: tooltip of the button that moves a listing up.</comment>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Move down</value>
+    <comment>Stores screen: tooltip of the button that moves a listing down.</comment>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Add listing</value>
+    <comment>Stores screen: the button that adds a listing to the store.</comment>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Each listing is a price list mail of its own and a tab of its own on the web site, in this order. Sell: buyers order from your stock and builds, as before. Buy: the prices you pay, with no counts; a seller offers, then makes an Item Exchange contract to you asking that ISK, and the order completes when you accept it.</value>
+    <comment>Stores screen, under the listings. "Item Exchange" is the game's name for the contract type.</comment>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Buy contracts to</value>
+    <comment>Stores screen: label of the picker for who sellers make a Buy listing's Item Exchange contracts out to.</comment>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Choose who receives them</value>
+    <comment>Stores screen: the empty state of the "Buy contracts to" picker.</comment>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Sellers are told to make their Item Exchange contracts out to this, and each offer is matched to the contracts it receives. A corporation's or alliance's contracts are seen only through a corporation login in it.</value>
+    <comment>Stores screen, under the "Buy contracts to" picker.</comment>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Buy listings take no offers until someone is chosen to receive their contracts.</value>
+    <comment>Stores screen: a warning under the "Buy contracts to" picker when it is empty.</comment>
+  </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Buy contracts at</value>
+    <comment>Label beside the Stores screen's location search for where sellers create their Buy listing contracts.</comment>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Search for a station or structure (optional)</value>
+    <comment>Watermark of that search box.</comment>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Sellers are told: create all contracts at {0}.</value>
+    <comment>Shown under the search once a place is picked. {0} is a station or structure name, as the game names it.</comment>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button: stop naming a place for the contracts.</comment>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Optional. Where sellers should create their contracts: the price list mail, the replies to offers and the web site say so. A contract made elsewhere is still matched.</value>
+    <comment>Note under the location search on the Stores screen.</comment>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (character)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: one of our characters. {0} is its name.</comment>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (corporation)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: a corporation. {0} is its name.</comment>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (alliance)</value>
+    <comment>Stores screen, the "Buy contracts to" picker: an alliance. {0} is its name.</comment>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Language</value>
@@ -2099,6 +2307,14 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Contracted</value>
     <comment>Where an open order's units are coming from: a contract already made out to the buyer.</comment>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Offer · waiting for their contract</value>
+    <comment>Overview and Stores screens, an open order's source column, for an offer to SELL to a store's Buy listing: the seller has not sent their Item Exchange contract yet.</comment>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Offer · their contract to accept</value>
+    <comment>The same column: the seller's contract has arrived and is waiting for us to accept it in game.</comment>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Unsourced</value>
     <comment>Where an open order's units are coming from: nothing yet.</comment>
@@ -2178,6 +2394,14 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>The store has no posting to price against.</value>
     <comment>Stores screen, the mail log: why an order by mail failed — the store's sale posting is missing.</comment>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL was sent, but the store has no Buy listing.</value>
+    <comment>Stores screen, the mail log: why an offer to sell by mail was refused.</comment>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Offer refused: the store has no one set to receive Buy listing contracts.</value>
+    <comment>Stores screen, the mail log: why an offer to sell by mail was refused — the store's "Contracts to" for Buy listings is empty.</comment>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Nothing recognised. Unmatched: {0}</value>

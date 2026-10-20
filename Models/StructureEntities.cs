@@ -48,6 +48,18 @@ public class Structure
     /// anything ESI will never carry. Never touched by the sync.</summary>
     public string Notes { get; set; } = "";
 
+    /// <summary>
+    /// What the structure's undock points at — another structure in the same system, or one of
+    /// its stargates — or 0 when nobody has said. Typed by hand; never touched by the sync.
+    ///
+    /// <para>⚠️ Not something ESI or the SDE can tell us: both give a structure's position and
+    /// nothing about which way it faces. It matters to whoever hauls between structures in one
+    /// system, because a freighter that undocks pointing away from its next stop has to turn
+    /// round before it can warp, and stations are often anchored so a loop runs undock-to-undock.
+    /// The in-system hauling plan orders its stops by it.</para>
+    /// </summary>
+    public long FacesTowardId { get; set; }
+
     /// <summary><see cref="StructureSource"/>. Which side wrote the row last.</summary>
     public string UpdatedBy { get; set; } = StructureSource.Esi;
 

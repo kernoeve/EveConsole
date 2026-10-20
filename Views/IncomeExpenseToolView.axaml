@@ -1,0 +1,124 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.IncomeExpenseToolView"
+             x:DataType="vm:IncomeExpenseToolViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <!-- A name that opens something, as on the Wallet tool: no colour of its own, the cursor and a
+         hover underline as the only cues. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- One tab of entries: income or expense, the same grid either way. -->
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:IncomeExpenseJournalVm">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="0 0 0 1" Padding="8 5">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding TotalText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="{x:Static loc:FinanceText.SortLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
+                        FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
+            </StackPanel>
+          </Grid>
+        </Border>
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDate}" Binding="{Binding DateText}" Width="130" />
+            <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColOwner}" Width="170" ClipboardContentBinding="{Binding OwnerText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:WalletJournalRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenOwner" IsVisible="{Binding HasOwnerLink}"
+                            ToolTip.Tip="{x:Static loc:FinanceText.TipOpenInTheEntityBrowser}">
+                      <TextBlock Text="{Binding OwnerText}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding OwnerText}" IsVisible="{Binding !HasOwnerLink}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDiv}" Binding="{Binding DivisionText}" Width="110" />
+            <DataGridTextColumn Header="{x:Static loc:FinanceText.ColType}" Binding="{Binding RefTypeText}" Width="190" />
+            <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColAmount}" Width="120" ClipboardContentBinding="{Binding AmountText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:WalletJournalRowVm">
+                  <TextBlock Text="{Binding AmountText}" Foreground="{Binding AmountColor}" HorizontalAlignment="Right"
+                             Margin="8 0" VerticalAlignment="Center" FontSize="12" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDescription}" Binding="{Binding Description}" Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="0 1 0 0" Padding="8 5">
+          <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+            <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:FinanceText.First}" FontSize="11" Padding="8 2" />
+            <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:FinanceText.Prev}"  FontSize="11" Padding="8 2" />
+            <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                       Margin="12 0" MinWidth="200" TextAlignment="Center" />
+            <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:FinanceText.Next}"  FontSize="11" Padding="8 2" />
+            <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:FinanceText.Last}"  FontSize="11" Padding="8 2" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Whose wallets, and over what days: everything below follows these. -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 8"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{x:Static loc:FinanceText.IncomeExpense}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                   VerticalAlignment="Center" Margin="0 0 8 0" />
+        <ComboBox ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}" MinWidth="240" FontSize="12"
+                  VerticalAlignment="Center" />
+        <TextBlock Text="{x:Static loc:FinanceText.FromLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                   VerticalAlignment="Center" Margin="8 0 0 0" />
+        <CalendarDatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" Width="130" FontSize="12" VerticalAlignment="Center"
+                            ToolTip.Tip="{x:Static loc:FinanceText.TipFromThru}" />
+        <TextBlock Text="{x:Static loc:FinanceText.ThruLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+        <CalendarDatePicker SelectedDate="{Binding ThruDate, Mode=TwoWay}" Width="130" FontSize="12" VerticalAlignment="Center"
+                            ToolTip.Tip="{x:Static loc:FinanceText.TipFromThru}" />
+      </StackPanel>
+    </Border>
+
+    <TabControl Grid.Row="1" Padding="0">
+      <TabItem Header="{x:Static loc:FinanceText.TabSummary}">
+        <views:IncomeExpenseView DataContext="{Binding Summary}" />
+      </TabItem>
+      <TabItem Header="{x:Static loc:FinanceText.TabIncome}">
+        <ContentControl Content="{Binding Income}" />
+      </TabItem>
+      <TabItem Header="{x:Static loc:FinanceText.TabExpense}">
+        <ContentControl Content="{Binding Expense}" />
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

@@ -3971,6 +3971,14 @@ The application will restart.</value>
     <value>Certificates</value>
     <comment>Settings → SDE import progress, stage: skill certificates. Use the game's own word.</comment>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>Wallet Journal Types</value>
+    <comment>Settings → SDE import progress, stage: the names of wallet journal entry types.</comment>
+  </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>Everything else in the SDE</value>
+    <comment>Settings → SDE import progress, stage: every file and field the app does not read for any tool, kept in the database all the same. The detail shows the file name.</comment>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>Type Materials</value>
     <comment>Settings → SDE / Hoboleaks import progress, stage: what each item reprocesses into.</comment>
@@ -4010,6 +4018,10 @@ The application will restart.</value>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0} rows</value>
     <comment>Settings → SDE / Hoboleaks import progress detail while a table is saved. {0} is the number of rows saved so far.</comment>
+  </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>Waiting for the database: something else is writing to it. Trying this write again (attempt {0})…</value>
+    <comment>Progress line during an SDE or Hoboleaks import on SQLite, when one write found the database locked by other work for more than 30 seconds. The import pauses and makes the same write again; nothing is lost or restarted. {0} is how many times this write has had to wait.</comment>
   </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>{0:N0} rows saved</value>

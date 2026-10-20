@@ -385,9 +385,9 @@ public class ItemContentionService(
 
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId))
-                .Select(a => new { a.ItemId, a.TypeId, a.Quantity, a.RootLocationId })
+                .Select(a => new { a.ItemId, a.OwnerId, a.TypeId, a.Quantity, a.RootLocationId })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                         && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));

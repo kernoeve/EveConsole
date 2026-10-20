@@ -267,11 +267,12 @@ public static class AppKnowledge
         A historical chart of your net worth over time (assets, wallet, etc.).
 
         ### Income & Expense
-        Where ISK came from and went, from the wallet journal of every authenticated character and
-        personal corp together (no owner picker). Income and Expenses list categories by journal
-        type, largest first, smaller ones rolled into Other; a chart shows daily income, expense
-        and running cashflow. The period follows the Overview's period selector. ISK moved
-        between your own wallets is left out. Asset value is in Net Worth; single entries in Wallet.
+        Where ISK came from and went, from the wallet journal: all authenticated characters and
+        personal corps together, or one picked from the owner dropdown, over a From/Thru range
+        (EVE days, last 30 by default). Summary tab: Income and Expenses by journal type, largest
+        first, smaller ones rolled into Other, and a daily income/expense/cashflow chart. Income
+        and Expense tabs: the entries themselves, paged, sortable, with their totals. ISK moved
+        between your own wallets is left out. The Overview's section follows the Overview period.
 
         ### Wallet
         Browse wallet transactions and the wallet journal for your characters.

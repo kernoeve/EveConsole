@@ -314,10 +314,88 @@
     <value>Добавить в очередь</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>Учитывать стоимость BPC конечной продукции</value>
+    <value>Учитывать стоимость BPC</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>Убрать все предметы из очереди вместе с результатами.</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>Сколько строить. Измените здесь и снова нажмите «Рассчитать», чтобы увидеть новые цифры.</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>Эффективность материалов чертежа, по которому строится предмет.</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>Убрать из очереди</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>Очередь изменилась после расчёта этих результатов.</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Пересчитать</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>Чистая стоимость</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>Объём сырья</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>Время работ</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>Крупная цифра — самая длинная цепочка работ, которые идут одна за другой: как быстро можно выполнить план, если у каждой работы есть слот. Ниже — время всех работ в сумме. Предполагаются все навыки на V и TE, равная удвоенной ME (не более 20), в сооружениях, куда план поставил каждую работу.</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>Всего работ: {0}</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>Не учтённые копии чертежей ({0})</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>«Учитывать стоимость BPC» выключено, поэтому эти предметы считаются без цены нужных им копий, и в итоги копии не входят.</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (копия чертежа)</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>Стоимость выпуска</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>Всё, что производит работа, по стоимости производства: сохранённая себестоимость, а если её нет — рыночная цена.</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>Время: {0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>Все прогоны этой работы при навыках на V и TE, равной удвоенной ME (не более 20), в сооружении, куда её поставил план.</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0} мин</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>Добавить копию чертежа конечной продукции (по цене в контрактах) как затрату. Для фракционных предметов и предметов, доступных только по BPC, учитывается всегда; для обычных предметов с BPO — по желанию.</value>
+    <value>Учитывать копии чертежей (по цене в контрактах) как затрату: копию конечной продукции и копии предметов, которые строятся только из копии. Включается, когда такой предмет добавлен в очередь; выключите, чтобы увидеть производство без копий.</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>Открыть в разделе «Просмотр предметов»</value>
@@ -429,6 +507,12 @@
   </data>
   <data name="ColNeeded" xml:space="preserve">
     <value>Нужно</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>Объём всего количества в упакованном виде</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
     <value>Выпуск</value>
@@ -1071,6 +1155,87 @@
   </data>
   <data name="SourceBuy" xml:space="preserve">
     <value>Купить</value>
+  </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>Скопировано в буфер обмена</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>Нечего копировать</value>
+  </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>Иерархия</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>По станциям</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>Каждый проект под проектом, которому нужна его продукция</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>Каждый проект под объектом, где он идёт, с тем, что нужно всем проектам этого объекта вместе</value>
+  </data>
+  <data name="PlanStationJobsOne" xml:space="preserve">
+    <value>{0:N0} проект</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>{0:N0} проекта</value>
+  </data>
+  <data name="PlanStationJobsFew" xml:space="preserve">
+    <value>{0:N0} проекта</value>
+  </data>
+  <data name="PlanStationJobsMany" xml:space="preserve">
+    <value>{0:N0} проектов</value>
+  </data>
+  <data name="PlanStationMaterialsOne" xml:space="preserve">
+    <value>{0:N0} материал</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>{0:N0} материала</value>
+  </data>
+  <data name="PlanStationMaterialsFew" xml:space="preserve">
+    <value>{0:N0} материала</value>
+  </data>
+  <data name="PlanStationMaterialsMany" xml:space="preserve">
+    <value>{0:N0} материалов</value>
+  </data>
+  <data name="PlanStationShortOne" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortFew" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationShortMany" xml:space="preserve">
+    <value>не хватает {0:N0}</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>Всё в наличии</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>Объект не привязан, поэтому запасы здесь посчитать нельзя</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>Нет объекта</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>Производится здесь</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>Производится в другом месте</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>Нехватка относительно запасов на этом объекте, по всем его проектам вместе. Материал, который производит другой проект здесь, не считается нехваткой.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>Скопировать все покупаемые материалы, нужные проектам этого объекта (название и количество через табуляцию)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>Скопировать только покупаемые материалы, которых не хватает на этом объекте</value>
   </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>Произвести</value>

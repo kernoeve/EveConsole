@@ -520,6 +520,9 @@ public class SalesTrackerViewModel : ReactiveObject
             .ObserveOnUi("SalesTracker.AutoRefresh")
             .Subscribe(tick => { _ = LoadAsync(); });
 
+        // Characters or corporations added or removed: read again now, not at the next tick.
+        OwnerList.Changed += () => _ = LoadAsync();
+
         _ = LoadAsync();
     }
 
@@ -908,13 +911,20 @@ public class SalesTrackerViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
-    // Populate the owner filter with every tracked character and corp (once).
+    // Every tracked character and corporation, after the fixed choices at the top. Followed on
+    // every load, in place (ListSync): one added since appears without a restart, and the owner
+    // picked stays picked — unless it is the one removed, when the filter falls back to the default.
     private void BuildOwnerOptions(IReadOnlyList<(long Id, string Name)> chars, IReadOnlyList<(long Id, string Name)> corps)
     {
-        if (OwnerOptions.Count > 2) return;   // already built (keeps the current selection intact)
-        foreach (var (id, name) in chars.OrderBy(c => c.Name))
-            OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "character"));
-        foreach (var (id, name) in corps.OrderBy(c => c.Name))
-            OwnerOptions.Add(new SalesOwnerOption(name, OwnerScope.Specific, id, "corporation"));
+        var wanted = OwnerOptions.Where(o => o.Scope != OwnerScope.Specific).ToList();
+        wanted.AddRange(chars.OrderBy(c => c.Name).Select(c => new SalesOwnerOption(c.Name, OwnerScope.Specific, c.Id, "character")));
+        wanted.AddRange(corps.OrderBy(c => c.Name).Select(c => new SalesOwnerOption(c.Name, OwnerScope.Specific, c.Id, "corporation")));
+        ListSync.Sync(OwnerOptions, wanted, o => (o.Scope, o.OwnerType, o.OwnerId));
+
+        if (!OwnerOptions.Contains(_selectedOwner))
+        {
+            _selectedOwner = OwnerOptions[1];
+            this.RaisePropertyChanged(nameof(SelectedOwner));
+        }
     }
 }

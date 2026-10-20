@@ -33,4 +33,12 @@ public static class ItemIcons
         var bmp = await GetAsync(typeId, blueprint);
         if (bmp is not null) Dispatcher.UIThread.Post(() => apply(bmp));
     }
+
+    /// <summary>A reaction formula's picture, from its product's icon: see <see cref="FormulaPicture"/>.
+    /// Drawn on the UI thread, where it is handed back.</summary>
+    public static async Task LoadFormulaAsync(int productTypeId, Action<Bitmap> apply)
+    {
+        var bmp = await GetAsync(productTypeId);
+        if (bmp is not null) Dispatcher.UIThread.Post(() => apply(FormulaPicture.Compose(bmp, 32)));
+    }
 }

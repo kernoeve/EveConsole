@@ -483,6 +483,9 @@ Haz clic con el botón derecho para dejar de silenciarlas.</value>
   <data name="UpdateBadgeDevBuild" xml:space="preserve">
     <value>versión dev</value>
   </data>
+  <data name="UpdateBadgePortable" xml:space="preserve">
+    <value>portátil</value>
+  </data>
   <data name="UpdateLatestNotInstalled" xml:space="preserve">
     <value>n/d — no es una compilación instalada</value>
   </data>
@@ -595,6 +598,26 @@ Actualiza a la versión {1} el cliente que ejecuta los procesos en segundo plano
   </data>
   <data name="VersionMismatchHeading" xml:space="preserve">
     <value>Esta compilación no coincide con la base de datos</value>
+  </data>
+  <data name="SchemaBehindWorker" xml:space="preserve">
+    <value>Esta compilación espera tablas que la base de datos aún no tiene: {0}.
+
+Otro cliente está ejecutando los procesos en segundo plano, y solo ese cliente puede cambiar el esquema. Actualízalo a esta compilación, o ciérralo e inicia este primero para que tome el relevo y las añada.</value>
+  </data>
+  <data name="UpgradeDatabaseTitle" xml:space="preserve">
+    <value>¿Actualizar la base de datos?</value>
+  </data>
+  <data name="UpgradeDatabaseQuestion" xml:space="preserve">
+    <value>Esta base de datos se usó por última vez con EVE Console {0}, y esta es la {1}.
+
+Al iniciar se actualizará a {1}. Después, las versiones anteriores ya no podrán abrirla, así que haz una copia de seguridad antes si quizá necesites volver atrás.
+
+Base de datos: {2}
+
+¿Actualizarla e iniciar? No cierra EVE Console y deja la base de datos como está.</value>
+  </data>
+  <data name="DatabaseVersionUnrecorded" xml:space="preserve">
+    <value>una versión anterior</value>
   </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>Compactando la base de datos (tiempo transcurrido: {0}). Deja la aplicación abierta.</value>

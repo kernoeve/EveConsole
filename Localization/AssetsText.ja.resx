@@ -49,6 +49,30 @@
   <data name="ContractsBuying" xml:space="preserve">
     <value>購入中の契約</value>
   </data>
+  <data name="MarketSellOrders" xml:space="preserve">
+    <value>マーケットの売り注文</value>
+  </data>
+  <data name="ContractsSelling" xml:space="preserve">
+    <value>販売中の契約</value>
+  </data>
+  <data name="TipMarketSellOrders" xml:space="preserve">
+    <value>未約定の売り注文に出品中の数量を在庫として数えます。売れるまではあなたのものです。既定ではオフで、出品中でも補充されます。</value>
+  </data>
+  <data name="TipContractsSelling" xml:space="preserve">
+    <value>未処理の契約で引き渡すアイテムを、買い手が受諾するまで在庫として数えます。売り注文と同じ理由で、既定ではオフです。</value>
+  </data>
+  <data name="ColSellOrders" xml:space="preserve">
+    <value>売り注文</value>
+  </data>
+  <data name="ColContractsSelling" xml:space="preserve">
+    <value>販売契約</value>
+  </data>
+  <data name="IncludeSellOrdersShort" xml:space="preserve">
+    <value>売り注文</value>
+  </data>
+  <data name="IncludeContractsSellingShort" xml:space="preserve">
+    <value>販売中の契約</value>
+  </data>
   <data name="OnlyCountPackagedItems" xml:space="preserve">
     <value>パッケージ済みのアイテムのみ数える（組み立て済み・装備済みの船体は除外）</value>
   </data>
@@ -185,7 +209,7 @@
     <value>買い注文</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
-    <value>契約</value>
+    <value>購入契約</value>
   </data>
   <data name="ColMktPrice" xml:space="preserve">
     <value>マーケット価格</value>
@@ -806,10 +830,10 @@ Warrior II 5
     <value>ジョブ</value>
   </data>
   <data name="IncludeOrdersShort" xml:space="preserve">
-    <value>注文</value>
+    <value>買い注文</value>
   </data>
   <data name="IncludeContractsShort" xml:space="preserve">
-    <value>契約</value>
+    <value>購入中の契約</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
     <value>パッケージ済みのみ</value>

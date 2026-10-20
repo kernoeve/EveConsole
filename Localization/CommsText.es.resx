@@ -318,6 +318,9 @@
   <data name="NotifTitleStructureLostShields" xml:space="preserve">
     <value>Estructura sin escudos</value>
   </data>
+  <data name="NotifTitleStructuresReinforcementChanged" xml:space="preserve">
+    <value>Hora de refuerzo cambiada</value>
+  </data>
   <data name="NotifTitleStructureLostArmor" xml:space="preserve">
     <value>Estructura sin blindaje</value>
   </data>
@@ -744,6 +747,21 @@
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>Reforzado hasta</value>
   </data>
+  <data name="NotifLabelStructuresChanged" xml:space="preserve">
+    <value>Estructuras cambiadas</value>
+  </data>
+  <data name="NotifColStructure" xml:space="preserve">
+    <value>Estructura</value>
+  </data>
+  <data name="NotifLabelReinforcementHour" xml:space="preserve">
+    <value>Hora de refuerzo</value>
+  </data>
+  <data name="NotifLabelReinforcementDay" xml:space="preserve">
+    <value>Día de refuerzo</value>
+  </data>
+  <data name="NotifLabelTakesEffect" xml:space="preserve">
+    <value>Entra en vigor</value>
+  </data>
   <data name="NotifLabelFightingStarts" xml:space="preserve">
     <value>Inicio de los combates</value>
   </data>
@@ -755,6 +773,15 @@
   </data>
   <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
     <value>Se ha añadido tiempo de juego a la cuenta.</value>
+  </data>
+  <data name="NotifReinforcementHourValue" xml:space="preserve">
+    <value>{0} hora de EVE (±3 horas)</value>
+  </data>
+  <data name="NotifSentenceReinforcementChanged" xml:space="preserve">
+    <value>La hora de refuerzo de {1:N0} estructura(s) pasa a las {0} hora de EVE (±3 horas).</value>
+  </data>
+  <data name="NotifSentenceReinforcementChangedFrom" xml:space="preserve">
+    <value>La hora de refuerzo de {1:N0} estructura(s) pasa a las {0} hora de EVE (±3 horas) a partir del {2}, o en cuanto cada una esté intacta después.</value>
   </data>
   <data name="NotifDetails" xml:space="preserve">
     <value>Detalles</value>

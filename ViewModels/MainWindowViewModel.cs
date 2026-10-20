@@ -55,7 +55,13 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _dbEngineTip, value);
     }
 
-    private async Task LoadDbEngineTipAsync()
+    // ⚠️ Read on the thread pool, the tip set back here. This runs every ten minutes from a UI
+    // timer, and opening a PostgreSQL connection does real work before its first await — the
+    // window froze for 3.7 s on it (AppErrors 2026-10-14, "Db.TipRefresh"). Only the assignment
+    // belongs on the UI thread.
+    private async Task LoadDbEngineTipAsync() => DbEngineTip = await Task.Run(ReadDbEngineTipAsync);
+
+    private static async Task<string> ReadDbEngineTipAsync()
     {
         try
         {
@@ -65,26 +71,24 @@ public class MainWindowViewModel : ReactiveObject
                 var b  = new Npgsql.NpgsqlConnectionStringBuilder(cs);
 
                 await using var conn = new Npgsql.NpgsqlConnection(AppDb.PostgresConnectionString(cs));
-                await conn.OpenAsync();
+                await conn.OpenAsync().ConfigureAwait(false);
                 await using var cmd = new Npgsql.NpgsqlCommand(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
-                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? ShellText.DbSizeUnknown;
+                var size = (await cmd.ExecuteScalarAsync().ConfigureAwait(false))?.ToString() ?? ShellText.DbSizeUnknown;
 
-                DbEngineTip = string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
+                return string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
             }
-            else
-            {
-                var path = AppConfig.GetDbPath();
-                var size = File.Exists(path)
-                    ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
-                    : ShellText.DbFileNotFound;
-                DbEngineTip = string.Format(ShellText.TipDbSqlite, path, size);
-            }
+
+            var path = AppConfig.GetDbPath();
+            var fileSize = File.Exists(path)
+                ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
+                : ShellText.DbFileNotFound;
+            return string.Format(ShellText.TipDbSqlite, path, fileSize);
         }
         catch (Exception ex)
         {
             // The label still names the engine; only the detail is missing.
-            DbEngineTip = string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
+            return string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -229,6 +233,9 @@ public class MainWindowViewModel : ReactiveObject
     public ItemBrowserViewModel           ItemBrowserVm          { get; }
     public NetWorthViewModel              NetWorthVm             { get; }
     public IncomeExpenseViewModel         IncomeExpenseVm        { get; }
+    /// <summary>The Income &amp; Expense tool. Not <see cref="IncomeExpenseVm"/>, which is the
+    /// Overview's section: the tool's owner and dates must not move the Overview.</summary>
+    public IncomeExpenseToolViewModel     IncomeExpenseToolVm    { get; }
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
@@ -878,7 +885,7 @@ public class MainWindowViewModel : ReactiveObject
             "sale_posting"    => (ShellText.NavSalePosting,    SalePostingVm,            true),
             "stores"          => (ShellText.NavStores,          StoresVm,                 true),
             "net_worth"  => (ShellText.NavNetWorth,       NetWorthVm,               true),
-            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseVm,     true),
+            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseToolVm, true),
             "wallet"         => (ShellText.NavWallet,          WalletVm,          true),
             "contracts"      => (ShellText.NavContracts,       ContractsVm,       true),
             "market_viewer"  => (ShellText.NavMarketOverview, MarketViewerVm,    true),
@@ -1135,6 +1142,7 @@ public class MainWindowViewModel : ReactiveObject
             characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
+        IncomeExpenseToolVm = new IncomeExpenseToolViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi);
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
@@ -1149,7 +1157,7 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters);
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
@@ -1219,6 +1227,7 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
                                      new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
                                      new WorklistFinalProductsViewModel(dbFactory, appPrefs, errorLogger),
+                                     new WorklistHaulingViewModel(dbFactory, worklistSettings, errorLogger),
                                      new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
                                                            industryBlueprintService, worklistSettings),
                                      new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),

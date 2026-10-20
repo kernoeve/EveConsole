@@ -31,10 +31,19 @@ public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilot
 public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
                               long CharacterId = 0, int? ShipTypeId = null, long CorporationId = 0, long AllianceId = 0);
 
+/// <summary>An officer NPC seen on a killmail since the last downtime: its latest kill in one system.</summary>
+/// <param name="Name">The officer's own name, as the screen names it ("Ramaku Basta").</param>
+/// <param name="Kills">Killmails it has been on in this system since downtime.</param>
+/// <param name="VictimShip">What its latest kill was flying, as the screen names it; null when unknown.</param>
+public sealed record OfficerSighting(string Name, int TypeId, int SystemId, DateTimeOffset LastKill, int Kills,
+                                     string? VictimShip);
+
+/// <param name="Officers">Officer NPCs per system, seen on a killmail since the last downtime.</param>
 public sealed record LiveMapSnapshot(
-    IReadOnlyDictionary<int, SystemHostiles>          Hostiles,
-    IReadOnlyDictionary<int, IReadOnlyList<OwnPilot>> Own,
-    DateTimeOffset                                     At);
+    IReadOnlyDictionary<int, SystemHostiles>                  Hostiles,
+    IReadOnlyDictionary<int, IReadOnlyList<OwnPilot>>         Own,
+    DateTimeOffset                                             At,
+    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null);
 
 /// <summary>
 /// Who is where right now: the last place each pilot was put by an intel report or a killmail,
@@ -244,7 +253,104 @@ public sealed class LiveIntelService(
                     c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId, c.CorporationId, c.AllianceId))
                 .ToList();
 
-        return new LiveMapSnapshot(hostiles, own, now);
+        return new LiveMapSnapshot(hostiles, own, now, await OfficersAsync(db, now, ct));
+    }
+
+    // ── Officer spawns ───────────────────────────────────────────────────────
+    //
+    // An officer NPC's own death makes no killmail, but every pilot it kills does, with the
+    // officer among the attackers. That is the only trace one leaves, so the map shows where an
+    // officer has killed since the last downtime — when officers despawn — as a pointer to where
+    // one may still be. Whether somebody has killed it since cannot be known.
+
+    /// <summary>The latest downtime: 11:00 EVE time (UTC) today, or yesterday before then.</summary>
+    internal static DateTimeOffset LastDowntime(DateTimeOffset now)
+    {
+        var today = new DateTimeOffset(now.UtcDateTime.Date.AddHours(11), TimeSpan.Zero);
+        return now >= today ? today : today.AddDays(-1);
+    }
+
+    private static readonly SemaphoreSlim s_officerGate = new(1, 1);
+    private static IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? s_officers;
+    private static DateTimeOffset s_officersAt;
+    private static HashSet<int>? s_officerTypes;
+
+    /// <summary>How long one reading of the officers is reused. The map refreshes every few
+    /// seconds; a day of killmails does not need reading that often for a mark measured in hours.</summary>
+    private static readonly TimeSpan OfficerReuse = TimeSpan.FromMinutes(1);
+
+    /// <summary>The SDE's Entity category: NPCs.</summary>
+    private const int EntityCategoryId = 11;
+
+    private static async Task<IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>> OfficersAsync(
+        AppDbContext db, DateTimeOffset now, CancellationToken ct)
+    {
+        await s_officerGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var downtime = LastDowntime(now);
+            // Reused only within one EVE day: the first reading after downtime starts afresh.
+            if (s_officers is { } cached && now - s_officersAt < OfficerReuse && s_officersAt >= downtime)
+                return cached;
+
+            // ⚠️ By SDE group, not by name: every officer group is an Entity group named for its
+            // faction's officers ("Asteroid Guristas Officer", "… Officer Frigate"), and that is
+            // the only thing they share. Read once per process; it changes only with the SDE.
+            s_officerTypes ??= (await (from t in db.SdeTypes.AsNoTracking()
+                                       join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                                       where g.CategoryId == EntityCategoryId && g.Name.Contains("Officer")
+                                       select t.TypeId).ToListAsync(ct).ConfigureAwait(false)).ToHashSet();
+            var officerTypes = s_officerTypes.ToList();
+
+            // ⚠️ Raw SQL for the time, as for the live killmails above: SQLite cannot translate a
+            // DateTimeOffset comparison in LINQ.
+            var kills = await db.KillMailDetails
+                .FromSqlRaw("""SELECT * FROM "KillMailDetails" WHERE "KillMailTime" >= {0}""", downtime)
+                .AsNoTracking()
+                .Select(k => new { k.KillMailId, k.KillMailTime, k.SolarSystemId, k.VictimShipTypeId })
+                .ToListAsync(ct).ConfigureAwait(false);
+
+            var result = new Dictionary<int, IReadOnlyList<OfficerSighting>>();
+            if (kills.Count > 0 && officerTypes.Count > 0)
+            {
+                var killIds = kills.Select(k => k.KillMailId).ToList();
+                var seen = await db.KillMailAttackers.AsNoTracking()
+                    .Where(a => killIds.Contains(a.KillMailId) && a.ShipTypeId != null && officerTypes.Contains(a.ShipTypeId.Value))
+                    .Select(a => new { a.KillMailId, ShipTypeId = a.ShipTypeId!.Value })
+                    .Distinct()
+                    .ToListAsync(ct).ConfigureAwait(false);
+
+                if (seen.Count > 0)
+                {
+                    var killById = kills.ToDictionary(k => k.KillMailId);
+                    var typeIds  = seen.Select(s => s.ShipTypeId)
+                        .Concat(seen.Select(s => killById[s.KillMailId].VictimShipTypeId)).Distinct().ToList();
+                    var names = await db.SdeTypes.AsNoTracking()
+                        .Where(t => typeIds.Contains(t.TypeId))
+                        .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct).ConfigureAwait(false);
+                    string Named(int id) => SdeNames.Type(id, names.GetValueOrDefault(id, id.ToString(CultureInfo.InvariantCulture)));
+
+                    foreach (var bySystem in seen.GroupBy(s => killById[s.KillMailId].SolarSystemId))
+                        result[bySystem.Key] = bySystem
+                            .GroupBy(s => s.ShipTypeId)
+                            .Select(byOfficer =>
+                            {
+                                var latest = byOfficer.Select(s => killById[s.KillMailId])
+                                                      .MaxBy(k => k.KillMailTime)!;
+                                return new OfficerSighting(Named(byOfficer.Key), byOfficer.Key, bySystem.Key,
+                                    latest.KillMailTime, byOfficer.Count(),
+                                    latest.VictimShipTypeId > 0 ? Named(latest.VictimShipTypeId) : null);
+                            })
+                            .OrderByDescending(o => o.LastKill)
+                            .ToList();
+                }
+            }
+
+            s_officers   = result;
+            s_officersAt = now;
+            return result;
+        }
+        finally { s_officerGate.Release(); }
     }
 
     private Task _resolving = Task.CompletedTask;

@@ -35,6 +35,10 @@ public partial class ConfirmDialog : Window
                 string.Equals(ConfirmBox.Text?.Trim(), _required, StringComparison.Ordinal);
     }
 
-    private void OnYes(object? sender, RoutedEventArgs e) => Close(true);
+    /// <summary>True once Yes was chosen — for a dialog shown without an owner, whose result
+    /// Close cannot hand back.</summary>
+    public bool Confirmed { get; private set; }
+
+    private void OnYes(object? sender, RoutedEventArgs e) { Confirmed = true; Close(true); }
     private void OnNo(object? sender, RoutedEventArgs e)  => Close(false);
 }

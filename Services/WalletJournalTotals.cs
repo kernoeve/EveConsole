@@ -27,6 +27,9 @@ namespace EveConsole.Services;
 /// <para>Membership is by party id, not by which wallets are polled: a character without a
 /// token is still the player's, and ISK sent to it is still internal.</para>
 /// </summary>
+/// <summary>One journal type's money: what came in and what went out, both as positive amounts.</summary>
+public sealed record RefTypeFlow(decimal In, decimal Out);
+
 public static class WalletJournalTotals
 {
     /// <summary>Every id that is the player: all characters and all personal corporations.</summary>
@@ -56,27 +59,47 @@ public static class WalletJournalTotals
             """;
     }
 
-    /// <summary>Signed totals per RefType across the given wallets since the cutoff.</summary>
-    public static async Task<Dictionary<string, decimal>> ByRefTypeAsync(
+    /// <summary>Before <paramref name="until"/>, when there is one: a range's end, exclusive.</summary>
+    private static string Until(DateTimeOffset? until) => until is null ? "" : """ AND "Date" < {3}""";
+
+    /// <summary>The query's arguments: the end only when <see cref="Until"/> put it in the SQL.</summary>
+    private static object[] Args(string ot, long oid, DateTimeOffset cutoff, DateTimeOffset? until) =>
+        until is { } u ? [ot, oid, cutoff, u] : [ot, oid, cutoff];
+
+    /// <summary>
+    /// What came in and what went out, per RefType, across the given wallets since the cutoff (and
+    /// before <paramref name="until"/>, if given).
+    ///
+    /// <para>⚠️ Each direction on its own, never one signed sum. A type runs both ways — contract
+    /// prices are paid and received, escrow is held and released — and netting it hid both: over a
+    /// month, 26B of contract buys vanished into 473B of contract sales, and the summary disagreed
+    /// with the entries it was summing by 142B on each side.</para>
+    /// </summary>
+    public static async Task<Dictionary<string, RefTypeFlow>> ByRefTypeAsync(
         AppDbContext db, IEnumerable<(string OwnerType, long OwnerId)> owners, DateTimeOffset cutoff,
-        CancellationToken ct = default)
+        CancellationToken ct = default, DateTimeOffset? until = null)
     {
-        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct));
-        var totals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct)) + Until(until);
+        var totals = new Dictionary<string, RefTypeFlow>(StringComparer.OrdinalIgnoreCase);
         foreach (var (ot, oid) in owners)
         {
             // Amount is TEXT on SQLite; the CAST is what makes SUM arithmetic on both engines.
             var rows = await db.Database.SqlQuery<RefRow>(FormattableStringFactory.Create(
                 """
-                SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "Total"
+                SELECT "RefType",
+                       COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "In",
+                       COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) < 0 THEN -CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "Out"
                 FROM "EsiWalletJournal"
                 WHERE "OwnerType" = {0} AND "OwnerId" = {1} AND "Date" >= {2}
                 """ + filter + """
 
                 GROUP BY "RefType"
-                """, ot, oid, cutoff)).ToListAsync(ct);
+                """, Args(ot, oid, cutoff, until))).ToListAsync(ct);
             foreach (var r in rows)
-                totals[r.RefType] = totals.GetValueOrDefault(r.RefType) + (decimal)r.Total;
+            {
+                var had = totals.GetValueOrDefault(r.RefType) ?? new RefTypeFlow(0, 0);
+                totals[r.RefType] = new RefTypeFlow(had.In + (decimal)r.In, had.Out + (decimal)r.Out);
+            }
         }
         return totals;
     }
@@ -84,9 +107,9 @@ public static class WalletJournalTotals
     /// <summary>Income and expense per calendar day (UTC, "yyyy-MM-dd") across the given wallets.</summary>
     public static async Task<Dictionary<string, (decimal Income, decimal Expense)>> ByDayAsync(
         AppDbContext db, IEnumerable<(string OwnerType, long OwnerId)> owners, DateTimeOffset cutoff,
-        CancellationToken ct = default)
+        CancellationToken ct = default, DateTimeOffset? until = null)
     {
-        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct));
+        var filter = ExcludeInternalTransfers(await PlayerPartyIdsAsync(db, ct)) + Until(until);
         var days = new Dictionary<string, (decimal Income, decimal Expense)>();
         foreach (var (ot, oid) in owners)
         {
@@ -100,7 +123,7 @@ public static class WalletJournalTotals
                 """ + filter + """
 
                 GROUP BY substr(CAST("Date" AS TEXT), 1, 10)
-                """, ot, oid, cutoff)).ToListAsync(ct);
+                """, Args(ot, oid, cutoff, until))).ToListAsync(ct);
             foreach (var d in rows)
             {
                 var cur = days.GetValueOrDefault(d.Day);
@@ -110,6 +133,6 @@ public static class WalletJournalTotals
         return days;
     }
 
-    private sealed class RefRow { public string RefType { get; set; } = ""; public double Total   { get; set; } }
+    private sealed class RefRow { public string RefType { get; set; } = ""; public double In { get; set; } public double Out { get; set; } }
     private sealed class DayRow { public string Day     { get; set; } = ""; public double Income  { get; set; } public double Expense { get; set; } }
 }

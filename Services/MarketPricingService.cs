@@ -248,6 +248,8 @@ public class MarketPricingService
                 if (buy <= 0 && sell <= 0) continue;
                 // If no buy orders, use sell as the buy proxy.
                 if (buy <= 0) buy = sell;
+                // Never above sell: see the note in CalculatePercentilePrices.
+                if (sell > 0 && buy > sell) buy = sell;
                 collected.Add(new MarketItemPrice
                 {
                     ConfigId       = config.Id,
@@ -394,11 +396,20 @@ public class MarketPricingService
                     buys = rawBuys.Where(b => b.Price >= threshold).ToList();
                 }
 
-                double buy  = buys.Count  > 0
-                    ? (usePercentile ? VolumeWeightedPercentile(buys,  100.0 - percentPct) : buys.Max(b => b.Price))
-                    : 0;
                 double sell = sells.Count > 0
                     ? (usePercentile ? VolumeWeightedPercentile(sells, percentPct) : sells.Min(s => s.Price))
+                    : 0;
+
+                // ⚠️ Bids above the sell price are not a price anything sells at. In a region's
+                // book they are orders out of range of every seller, or bait — a Rorqual bid at
+                // 4.5B against 3.5B asked, Pyerite at 18 against 15.7 — and taken as the buy price
+                // they put "Buy" ABOVE "Sell", which a buy price never is: the asset value read
+                // double at Buy, a little less at Split, and normal at Sell. Dropped before the
+                // percentile, so the buy is the best bid a seller can actually take.
+                if (sell > 0) buys = buys.Where(b => b.Price <= sell).ToList();
+
+                double buy  = buys.Count  > 0
+                    ? (usePercentile ? VolumeWeightedPercentile(buys,  100.0 - percentPct) : buys.Max(b => b.Price))
                     : 0;
 
                 // If no buy orders remain after filtering, use sell as the buy proxy.
@@ -770,9 +781,26 @@ public class MarketPricingService
             """, ct);
 
         // Step 4 — price anything that sells on contracts rather than the market from contract
-        // data. Runs last so it wins over the build-cost estimate above, which is the weaker
-        // signal for these items. Real market rows (FromMarketData = 1) are never touched.
+        // data. Runs after the build-cost estimate above, which is the weaker signal for these
+        // items. Real market rows (FromMarketData = 1) are never touched.
         await FillContractPricesAsync(configId, db, fetched, ct);
+
+        // Step 5 — buy and split never above sell, whatever the source said.
+        //
+        // ⚠️ The case that inflated asset values: an item with bids but no asks. Step 2 gives it
+        // the build-cost sell — 0 when it cannot be built — and keeps the bid, so it was worth
+        // the bid at Buy, half of it at Split and nothing at Sell: the opposite of the order the
+        // three are chosen in. A bid nobody sells into is no better evidence of value than the
+        // missing ask, so it falls back exactly as the sell does — to the build cost, which the
+        // valuations read where a price is 0. Also catches a Fuzzwork bid above its ask.
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE "MarketItemPrices"
+            SET "BuyPrice" = CASE WHEN "BuyPrice" > "SellPrice" THEN "SellPrice" ELSE "BuyPrice" END,
+                "Midpoint" = CASE WHEN "Midpoint" > "SellPrice" THEN "SellPrice" ELSE "Midpoint" END
+            WHERE "ConfigId" = {configId}
+              AND ("BuyPrice" > "SellPrice" OR "Midpoint" > "SellPrice")
+            """, ct);
     }
 
     /// <summary>

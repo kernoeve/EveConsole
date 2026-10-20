@@ -385,6 +385,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>Centro de mando</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>La colonia tal como está dispuesta en el juego, con el norte arriba, según la última vez que se abrió. Anillos: dorado el centro de mando, azul los extractores, verde las fábricas en marcha, naranja las fábricas paradas, rojo un extractor detenido o un almacén lleno. Una estructura lejos del resto aparece en el borde, con su enlace discontinuo. Pasa el ratón sobre una estructura para ver más.</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0} %</value>
   </data>

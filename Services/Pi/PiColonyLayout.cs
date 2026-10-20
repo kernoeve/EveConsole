@@ -41,6 +41,12 @@ public sealed record PiLayoutPin
 
     /// <summary>Set for an extractor control unit only.</summary>
     public PiLayoutExtractor? Extractor { get; init; }
+
+    /// <summary>Where it stands, in radians as ESI gives them: latitude from the north pole (the
+    /// equator is π/2), longitude round from 0 to 2π. For drawing the colony; the engine has no use
+    /// for them.</summary>
+    public double Latitude  { get; init; }
+    public double Longitude { get; init; }
 }
 
 /// <param name="CycleSeconds">⚠️ Seconds, as ESI gives it.</param>

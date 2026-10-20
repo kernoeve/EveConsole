@@ -16,6 +16,14 @@
     <value>Refresh</value>
     <comment>Button or option in WorklistView.</comment>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Auto refresh</value>
+    <comment>Worklist: checkbox beside Refresh — whether the list rebuilds itself every few minutes.</comment>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>Rebuild the list every few minutes. Turn off while flying a hauling loop, so the plan does not change under you — a rebuild replans from where every pilot is now. Refresh still rebuilds it.</value>
+    <comment>Tooltip on the Worklist's auto refresh checkbox.</comment>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>ready now</value>
     <comment>Text in WorklistView.</comment>
@@ -1032,6 +1040,18 @@
     <value>Haul</value>
     <comment>Task kind: moving goods to another station. Group heading and filter option on the Worklist, and the task-kind icon's tooltip.</comment>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>Haul — in system</value>
+    <comment>Worklist group heading and type filter: hauls with both ends in one solar system.</comment>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>Haul — nearby</value>
+    <comment>Worklist group heading and type filter: hauls between systems within the nearby jump limit.</comment>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>Haul — long distance</value>
+    <comment>Worklist group heading and type filter: hauls further than the nearby jump limit, or with no gate route.</comment>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>Refine</value>
     <comment>Task kind: reprocessing ore. Group heading and filter option on the Worklist.</comment>
@@ -1944,6 +1964,30 @@
     <value>starts on arrival</value>
     <comment>Beside a job in a Worklist row's "waiting on this" panel: this delivery is all the job lacks. Lower case.</comment>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>starts once the other loop is done too</value>
+    <comment>Waiting-on-this status: the job is started by this hauling loop together with another pilot's loop in the same system, not by this one alone.</comment>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>{0:N0} more start once the other loop in this system is done too.</value>
+    <comment>Hauling loop detail: {0} = stopped jobs this loop starts together with another pilot's loop in the same system.</comment>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>starts when the loop is done</value>
+    <comment>Waiting-on-this status on an in-system hauling loop: everything the loop's stops put down covers what the job is short of.</comment>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>Everything this loop puts down here, across all its stops, covers what the job is short of, so it starts when the loop is done.</value>
+    <comment>Tooltip beside a job a hauling loop restarts.</comment>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}.</value>
+    <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} a comma-separated list of what they make.</comment>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}, and {2:N0} more.</value>
+    <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} what the first three make, {2} how many more.</comment>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>wants {0:N0}</value>
     <comment>Beside a planned build in a Worklist row's "waiting on this" panel. {0} is how many units of the cargo it wants. Lower case.</comment>
@@ -1999,6 +2043,10 @@
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>{0:N0} more job(s) want part of this cargo but will not start on this load.</value>
     <comment>Added to a Worklist haul's detail. {0} is the stopped jobs that want some of the cargo and still lack other things.</comment>
+  </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>{0:N0} stopped job(s) want part of this cargo but will not start on this load.</value>
+    <comment>Worklist haul detail when the trip restarts no job: {0} = stopped jobs at the destination that need some of this cargo but are still short of something else.</comment>
   </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>{0:N0} more item(s) here are wanted by planned work that has no stopped job of its own.</value>
@@ -2500,9 +2548,325 @@
     <value>{0} item(s)</value>
     <comment>Worklist haul title: how many kinds of item the trip carries. {0} is the number; the route is shown beside it.</comment>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} item(s), contract {1} of {2}</value>
+    <comment>Title of a hauling-service trip split across contracts. {0} = item types on it, {1} = which contract, {2} = how many contracts.</comment>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Jobs are waiting on this.</value>
     <comment>Worklist haul detail: stopped jobs need this cargo.</comment>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>For work planned at the destination.</value>
+    <comment>Worklist haul detail: the cargo is material for builds or invention the worklist plans at the destination; no stopped job is restarted by it alone.</comment>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>In system</value>
+    <comment>Hauling settings: lane title for trips between structures in one system.</comment>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>Nearby systems</value>
+    <comment>Hauling settings: lane title for trips to systems within the nearby jump limit.</comment>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>Long distance</value>
+    <comment>Hauling settings: lane title for trips beyond the nearby jump limit.</comment>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>Hauling service</value>
+    <comment>Hauling method: a courier contract for a player hauling service.</comment>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>Bridged freighter</value>
+    <comment>Hauling method: a freighter travelling through jump bridges.</comment>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>Jump freighter</value>
+    <comment>Hauling method: a jump freighter.</comment>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>Through the gates</value>
+    <comment>Hauling method: flying through stargates.</comment>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>Fly it</value>
+    <comment>Hauling method inside one system: a pilot flies the cargo.</comment>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} jump(s)</value>
+    <comment>Haul row: gate jumps between the two ends, {0} = count.</comment>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>no gate route</value>
+    <comment>Haul row: no stargate route is known between the two ends.</comment>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} load(s)</value>
+    <comment>Haul row: how many full holds the cargo comes to, {0} = count.</comment>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0} loads, {2:N0} each for {1:N0} pilots</value>
+    <comment>Haul row: {0} = full holds the cargo comes to, {1} = pilots set for the lane, {2} = loads per pilot.</comment>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>How this kind of trip is set up in Config → Hauling: the method and gate jumps between systems, the ship, and how many holds the cargo fills. Loads are the volume over the hold, rounded up.</value>
+    <comment>Tooltip on the haul plan text beside a haul's route.</comment>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>Primary</value>
+    <comment>Hauling settings: the first pilot in a lane's list, used when only one is needed.</comment>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>Moving things between structures in one system, as jobs finish. Planned from where the pilot is now, in the ship they are in, with an empty hold.</value>
+    <comment>Hauling settings: note under the In system lane.</comment>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>Trips to systems up to the jump limit above.</value>
+    <comment>Hauling settings: note under the Nearby systems lane.</comment>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>Anything further, or with no gate route — usually the market hubs.</value>
+    <comment>Hauling settings: note under the Long distance lane.</comment>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>Hull {0}</value>
+    <comment>Hauling settings: a stored hull with no name in the list, {0} = its type id.</comment>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>Pilot's current ship</value>
+    <comment>Hauling settings ship choice: plan in whatever the lead pilot is flying.</comment>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>{0:N0} m³ hold</value>
+    <comment>Hauling settings ship list: the hull's own cargo hold, {0} = m³.</comment>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>How each kind of trip is made and who flies it. Saved as you change it; the worklist rebuilds a moment later.</value>
+    <comment>Hauling settings: introduction at the top of the tab.</comment>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>Nearby means up to</value>
+    <comment>Hauling settings: label before the nearby jump limit box.</comment>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>gate jumps; anything further is long distance.</value>
+    <comment>Hauling settings: text after the nearby jump limit box.</comment>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>Counted by stargates only — jump bridges are not included.</value>
+    <comment>Tooltip on the nearby jump limit box.</comment>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>Method</value>
+    <comment>Hauling settings: label above the method box.</comment>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Hauling settings: label above the ship box.</comment>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>Hold (m³)</value>
+    <comment>Hauling settings: label above the cargo hold box.</comment>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>Per contract (m³)</value>
+    <comment>Lane settings, hauling service only: label over the most one courier contract may hold.</comment>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+    <comment>Watermark in the empty per-contract box: the default, 350000, formatted as numbers are in this language.</comment>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>The most one courier contract may hold. A trip bigger than this is split into one task per contract, with the cargo needed most in the first. Leave empty for 350,000 m³.</value>
+    <comment>Tooltip on the per-contract box in a hauling-service lane.</comment>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>Hull's own</value>
+    <comment>Hauling settings: placeholder in the hold box when empty — the hull's own hold is used.</comment>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>The ship to size trips by. The pilot's current ship is read from the game for the first pilot listed.</value>
+    <comment>Tooltip on the hauling ship box.</comment>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>The hold to plan with. Leave empty to use the hull's base cargo hold, which leaves out expanders, rigs, skills and a transport's fleet hangar.</value>
+    <comment>Tooltip on the hauling hold box.</comment>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Hauling settings: label above a lane's list of pilots.</comment>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>Move up the list</value>
+    <comment>Hauling settings: tooltip on the button moving a pilot up.</comment>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>Remove from this lane</value>
+    <comment>Hauling settings: tooltip on the button removing a pilot from a lane.</comment>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>Add a pilot…</value>
+    <comment>Hauling settings: placeholder of the box that adds a pilot to a lane.</comment>
+  </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>Loop from {0}</value>
+    <comment>Worklist row for an in-system hauling loop, in place of a route: {0} = the first stop.</comment>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} stop(s)</value>
+    <comment>Haul plan text for an in-system loop: {0} = number of stops.</comment>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} turn(s)</value>
+    <comment>Haul plan text for an in-system loop: {0} = stops reached by turning round after undocking.</comment>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} item(s) cannot be planned: a single unit is bigger than the hold.</value>
+    <comment>Detail of an in-system loop when some cargo never fits: {0} = how many lines.</comment>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>The first {0:N0} stops are planned; {1:N0} m³ more needs further loops.</value>
+    <comment>Detail of an in-system loop too big for one plan: {0} = stops planned, {1} = m³ left for later loops.</comment>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>turn round</value>
+    <comment>Beside a loop stop reached by undocking away from it and turning round first.</comment>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>The previous structure faces away from this one, so the ship turns round after undocking — the slow part of a freighter's leg. Set facings in the Structure Browser.</value>
+    <comment>Tooltip on the turn-round marker of a loop stop.</comment>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>Pick up</value>
+    <comment>Loop stop line: an item to load here.</comment>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>Drop off</value>
+    <comment>Loop stop line: an item to unload here.</comment>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>for {0}</value>
+    <comment>Loop stop pick-up line: {0} = the structure it is going to.</comment>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>from {0}</value>
+    <comment>Loop stop drop-off line: {0} = the structure it came from.</comment>
+  </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}'s hold</value>
+    <comment>Hauling loop: where cargo already picked up sits until it is put down. {0} = the pilot.</comment>
+  </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>Deliver to</value>
+    <comment>Config → Hauling, long-distance lane: label of the station every long-distance haul is taken to.</comment>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>Each item's own station</value>
+    <comment>Config → Hauling, 'Deliver to' choice: no staging station; each haul goes straight to the station that wants it.</comment>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>Every long-distance haul from a source goes to this station as one task, and the nearby and in-system hauls take it on from there once it has landed. Leave it on each item's own station to haul straight to where it is needed.</value>
+    <comment>Tooltip on the long-distance 'Deliver to' box.</comment>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>Drop-off station per system</value>
+    <comment>Config → Hauling, nearby lane: heading of the list of each system's drop-off station.</comment>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>When one source has cargo for more than one station in a system, it is hauled to that system's drop-off station as one task, and the in-system loop hands it out from there. Cargo for a single station there still goes straight to it, and a system without a drop-off is always hauled to directly.</value>
+    <comment>Config → Hauling, explanation under 'Drop-off station per system'.</comment>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>Set a station as its system's drop-off…</value>
+    <comment>Placeholder of the box that adds a drop-off station; picking one sets it for the station's own system.</comment>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>Haul to this system's stations directly again</value>
+    <comment>Tooltip on the button removing a system's drop-off station.</comment>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>Then on from there to {0}.</value>
+    <comment>Haul task detail, after its reason, when the trip stops at a staging or drop-off station. {0} = the stations the cargo goes on to.</comment>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0} and {1} more</value>
+    <comment>List of onward stations cut short. {0} = the first three names, {1} = how many more.</comment>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ Hauled</value>
+    <comment>Button on a hauling loop's stop: mark the stop as flown.</comment>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>Tick this stop off as flown. What was picked up here counts as in your hold, and what was dropped off counts as delivered — so the loop moves on and jobs waiting on it can start — until the next asset update shows it.</value>
+    <comment>Tooltip on the Hauled button of a hauling loop's stop.</comment>
+  </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>Tick this trip off as delivered. Its cargo counts as at the destination at once — jobs waiting on it can start, and the next leg on from a staging or drop-off station is planned — until the next asset update shows it.</value>
+    <comment>Tooltip on the Hauled button of a haul between systems (on its manifest heading).</comment>
+  </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ Contracted</value>
+    <comment>Button on a hauling-service trip: it has been handed to a courier contract.</comment>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>Contracted</value>
+    <comment>Title of the dialog shown when a hauling-service trip is ticked off as contracted.</comment>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+    <comment>Heading of the Contracted dialog. {0} = where the trip starts, {1} = where it goes.</comment>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>What went into the courier contract. This starts as the plan: change quantities, take off what you left out, or paste the contract's items copied in game and replace the list. Only what is listed is recorded and counted as on its way; the rest stays on the worklist.</value>
+    <comment>Explanation under the heading of the Contracted dialog.</comment>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} listed</value>
+    <comment>Under the Contracted dialog's list. {0} = the listed cargo's volume, e.g. 39,347 m³.</comment>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} listed, more than the {1} one contract may hold</value>
+    <comment>Warning under the Contracted dialog's list. {0} = the listed volume, {1} = the lane's per-contract limit.</comment>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>Nothing listed. Paste the contract's items, or cancel.</value>
+    <comment>In the Contracted dialog when every line has been taken off.</comment>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>Not recognised, left off the list: {0}</value>
+    <comment>In the Contracted dialog after a paste, for names that match no item. {0} = those names, separated by commas.</comment>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>Record</value>
+    <comment>Button in the Contracted dialog: records the listed cargo as the courier's.</comment>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>Adds the pasted items to the list. An item already on it has the quantities added together.</value>
+    <comment>Tooltip on the Add button in the Contracted dialog.</comment>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>Puts the pasted items in place of the whole list. Paste the contract's items copied in game to record exactly what is in it.</value>
+    <comment>Tooltip on the Replace all button in the Contracted dialog.</comment>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>Tick this off once the courier contract is made. Its cargo counts as on its way, so nothing is bought or hauled for it again, and it is kept with the courier contract — found by its start and end once the contracts update sees it — where it can be corrected in the Contracts tool. Nothing is added to your assets.</value>
+    <comment>Tooltip on the Contracted button of a hauling-service trip.</comment>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>Could not record the haul: {0}</value>
+    <comment>Worklist error line when ticking a stop off as hauled fails. {0} = the error.</comment>
+  </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0} ({1:N0} m³)</value>
+    <comment>Haul plan text: the ship and the hold the trip is sized with. {0} = hull, {1} = m³ (fitted and skilled).</comment>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>drop off {0} · {1}</value>
+    <comment>Loop stop row: total unloaded here. {0} = m³, {1} = ISK value.</comment>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>pick up {0} · {1}</value>
+    <comment>Loop stop row: total loaded here. {0} = m³, {1} = ISK value.</comment>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>Tops the station up to its level.</value>

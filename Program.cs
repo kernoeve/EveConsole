@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Headless;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
@@ -131,8 +132,6 @@ class Program
     }
 
     /// <summary>
-    /// Sets Avalonia up and runs the dispatcher until the token is cancelled, then releases the
-    /// <summary>
     /// The value of <c>--profile</c>, however it was written: <c>--profile dev</c> or
     /// <c>--profile=dev</c>. Null when the switch is absent, or present with nothing after it —
     /// a bare switch is a mistake, and guessing a profile name would put the app somewhere
@@ -152,12 +151,14 @@ class Program
         return null;
     }
 
+    /// <summary>
+    /// Sets Avalonia up and runs the dispatcher until the token is cancelled, then releases the
     /// lease. The whole of the worker, shared by <c>--headless</c> and the Windows service so the
     /// two cannot come to mean different things.
     /// </summary>
     private static int RunWorker(CancellationToken stopping)
     {
-        BuildAvaloniaApp().SetupWithoutStarting();
+        BuildWorkerApp().SetupWithoutStarting();
         Dispatcher.UIThread.MainLoop(stopping);
         Shutdown();
         return 0;
@@ -234,6 +235,23 @@ class Program
         }
         catch { /* going away regardless; a failure here has nobody left to tell */ }
     }
+
+    /// <summary>
+    /// Avalonia for a process that never draws: the headless platform, which gives the dispatcher
+    /// and no display.
+    ///
+    /// <para>⚠️ Not <see cref="BuildAvaloniaApp"/>. Its <c>UsePlatformDetect</c> picks X11 on Linux,
+    /// and X11 opens a display during setup, before any of our code runs. On a server or in a
+    /// container there is none, and <c>--headless</c> died at start with nothing about EVE Console
+    /// in the output (reported trying to run the worker under Docker). Nothing the worker does
+    /// draws, so it needs no renderer either, nor fonts: the headless platform's stub drawing is
+    /// enough.</para>
+    /// </summary>
+    private static AppBuilder BuildWorkerApp() =>
+        AppBuilder.Configure<App>()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = true })
+            .LogToTrace()
+            .UseReactiveUI();
 
     public static AppBuilder BuildAvaloniaApp()
     {

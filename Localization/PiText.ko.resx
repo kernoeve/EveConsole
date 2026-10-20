@@ -367,6 +367,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>통제센터</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>게임에 배치된 그대로의 콜로니로, 북쪽이 위이며 마지막으로 열었을 때 기준입니다. 고리 색: 금색은 지휘 본부, 파란색은 추출기, 초록색은 가동 중인 공장, 주황색은 유휴 공장, 빨간색은 멈춘 추출기나 가득 찬 저장고. 다른 시설과 멀리 떨어진 시설은 가장자리에 그려지고 연결선은 점선입니다. 시설에 마우스를 올리면 자세히 볼 수 있습니다.</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0}%</value>
   </data>

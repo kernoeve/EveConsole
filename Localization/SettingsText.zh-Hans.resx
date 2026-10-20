@@ -3013,6 +3013,12 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ImportStageCertificates" xml:space="preserve">
     <value>证书</value>
   </data>
+  <data name="ImportStageAccountingEntryTypes" xml:space="preserve">
+    <value>钱包日志类型</value>
+  </data>
+  <data name="ImportStageRestOfSde" xml:space="preserve">
+    <value>SDE 中的其余内容</value>
+  </data>
   <data name="ImportStageTypeMaterials" xml:space="preserve">
     <value>类型材料</value>
   </data>
@@ -3042,6 +3048,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>{0:N0} 行</value>
+  </data>
+  <data name="ImportWaitingForDatabase" xml:space="preserve">
+    <value>正在等待数据库：其他任务正在写入。正在重试这次写入（第 {0} 次）…</value>
   </data>
   <data name="ImportRowsSaved" xml:space="preserve">
     <value>已保存 {0:N0} 行</value>

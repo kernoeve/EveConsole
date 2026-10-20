@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>刷新</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>自动刷新</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>每隔几分钟重建一次清单。执行运输环线时请关闭，以免计划在途中被改动——重建会按每位飞行员当前的位置重新规划。“刷新”按钮仍可手动重建。</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>当前就绪</value>
   </data>
@@ -775,6 +781,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>运送</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>运送 — 星系内</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>运送 — 邻近星系</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>运送 — 长途</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>精炼</value>
   </data>
@@ -1456,6 +1471,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>送达即开始</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>另一条环线也完成后开始</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>另有 {0:N0} 个任务会在本星系另一条环线也完成后开始。</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>环线完成后开始</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>这条环线在所有停靠点卸在此处的货物，足以补齐该任务的缺口，因此环线完成后即开始。</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>环线完成后会重启 {0:N0} 个停滞的任务：{1}。</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>环线完成后会重启 {0:N0} 个停滞的任务：{1}，另有 {2:N0} 个。</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>需要 {0:N0}</value>
   </data>
@@ -1494,6 +1527,9 @@
   </data>
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>另有 {0:N0} 个任务需要这批货中的部分物品，但仅靠这一趟无法开始。</value>
+  </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>有 {0:N0} 个停滞的任务需要这批货中的部分物品，但仅靠这一趟无法开始。</value>
   </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>货物清单上另有 {0:N0} 种物品为已规划的工作所需，这些工作本身还没有停下的任务。</value>
@@ -1867,8 +1903,245 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} 种物品</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} 种物品，第 {1}/{2} 份合同</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>有任务在等待这批货。</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>供目的地计划中的工作使用。</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>星系内</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>邻近星系</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>长途</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>运输服务</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>货舰走跳跃桥接</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>战略货舰</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>走星门</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>自行驾驶</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0} 跳</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>无星门航线</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0} 趟</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>共 {0:N0} 趟，{1:N0} 名飞行员每人 {2:N0} 趟</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>此类运输在“配置 → 运输”中的设置：星系之间的方式与星门跳数、舰船，以及货物需要装满几次货舱。趟数为体积除以货舱容量后向上取整。</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>主要</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>在同一星系的建筑之间搬运，随任务完成而进行。从飞行员当前位置、当前舰船出发规划，并假定货舱为空。</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>前往上方跳数上限以内的星系。</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>更远的，或没有星门航线的——通常是贸易中心。</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>舰船 {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>飞行员当前舰船</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>货舱 {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>每种运输的方式以及由谁执行。更改即保存；工作清单会在片刻后重建。</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>邻近指最多</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>次星门跳跃；更远的算长途。</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>只计算星门跳跃，不包括跳跃桥接。</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>方式</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>货舱 (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>每份合同 (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>一份快递合同最多可容纳的体积。超过此体积的运输会拆分为每份合同一个任务，最急需的货物放在第一份。留空则为 350,000 m³。</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>按舰船自身</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>用来计算趟数的舰船。飞行员当前舰船取自列表中第一位飞行员在游戏中的状态。</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>用于规划的货舱容量。留空则使用舰船的基础货舱，不含扩展装置、改装件、技能以及运输舰的舰队机库。</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>从此类运输中移除</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>添加飞行员…</value>
+  </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>从{0}开始的环线</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0} 站</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0} 次掉头</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0} 项物品无法规划：单件体积大于货舱。</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>已规划前 {0:N0} 站；还有 {1:N0} m³ 需要后续环线。</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>需掉头</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>上一座建筑的朝向背离这里，所以出站后需要掉头——这是货舰航段中最慢的部分。可在建筑浏览器中设置朝向。</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>装货</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>卸货</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>送往{0}</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>来自{0}</value>
+  </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}的货舱</value>
+  </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>送达至</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>各物品自己的空间站</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>来自同一来源的所有远程运输都作为一个任务运到此空间站，货物到达后由附近和星系内运输接着运送。保留“各物品自己的空间站”则直接运到需要的地方。</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>各星系的卸货空间站</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>当同一来源有货物要运往某星系的多个空间站时，会作为一个任务运到该星系的卸货空间站，再由星系内循环分发。只运往其中一个空间站的货物仍直接运过去，没有设置卸货空间站的星系也总是直接运送。</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>将空间站设为其星系的卸货点…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>恢复直接运往该星系的各空间站</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>之后从那里继续运往{0}。</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0}等另外{1}个</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ 已运送</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>将此停靠点标记为已完成。在此装上的货物视为已在货舱中，在此卸下的视为已送达——环线因此继续，等待这些材料的任务也可以开始——直到下一次资产更新反映出来。</value>
+  </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>将此趟运输标记为已送达。其货物立即计为已在目的地——等待它的任务可以开始，并会规划从中转或卸货空间站出发的下一段——直到下次资产更新显示为止。</value>
+  </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ 已建合同</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>已建合同</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>快递合同里实际放入的物品。初始为计划内容：修改数量、移除未放入的物品，或粘贴从游戏中复制的合同物品并替换列表。只有列出的物品会被记录并计为在途；其余的仍留在工作清单上。</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>已列出 {0}</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>已列出 {0}，超过一份合同可容纳的 {1}</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>未列出任何物品。请粘贴合同物品，或取消。</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>无法识别，未加入列表：{0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>记录</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>将粘贴的物品加入列表。已在列表中的物品会合计数量。</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>用粘贴的物品替换整个列表。粘贴从游戏中复制的合同物品，即可准确记录合同内容。</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>建好快递合同后勾选此项。其货物计为在途，不会再次购买或运输，并与快递合同一起保存——合同更新看到合同后按起点和终点找到它——可在合同工具中更正。不会添加到你的资产中。</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>无法记录此次运送：{0}</value>
+  </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0}（{1:N0} m³）</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>卸货 {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>装货 {0} · {1}</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>把空间站的库存补充到设定水平。</value>

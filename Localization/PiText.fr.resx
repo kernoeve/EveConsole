@@ -385,6 +385,9 @@
   <data name="PinCommandCenter" xml:space="preserve">
     <value>Centre de commandement</value>
   </data>
+  <data name="TipColonyMap" xml:space="preserve">
+    <value>La colonie telle qu'elle est disposée dans le jeu, nord en haut, à la dernière ouverture. Anneaux : or le centre de commandement, bleu les extracteurs, vert les usines en marche, orange les usines à l'arrêt, rouge un extracteur arrêté ou un stockage plein. Une structure éloignée des autres est placée au bord, son lien en pointillés. Survolez une structure pour en savoir plus.</value>
+  </data>
   <data name="Percent" xml:space="preserve">
     <value>{0} %</value>
   </data>

@@ -62,6 +62,8 @@ public partial class AddEditInvGroupDialog : Window
         IncludeJobsBox.IsChecked       = existing.IncludeIndustryJobs;
         IncludeBuyOrdersBox.IsChecked  = existing.IncludeMarketBuyOrders;
         IncludeContractsBox.IsChecked  = existing.IncludeContractsBuying;
+        IncludeSellOrdersBox.IsChecked       = existing.IncludeMarketSellOrders;
+        IncludeContractsSellingBox.IsChecked = existing.IncludeContractsSelling;
         PackagedOnlyBox.IsChecked      = existing.PackagedOnly;
         MultiplierBox.Value            = existing.Multiplier;
 
@@ -166,7 +168,9 @@ public partial class AddEditInvGroupDialog : Window
             IncludeContractsBox.IsChecked == true,
             PackagedOnlyBox.IsChecked     == true,
             (int)(MultiplierBox.Value ?? 1),
-            selectedCollection?.CollectionId));
+            selectedCollection?.CollectionId,
+            IncludeSellOrdersBox.IsChecked       == true,
+            IncludeContractsSellingBox.IsChecked == true));
     }
 
     private void OnCancelClick(object? sender, RoutedEventArgs e) => Close(null);

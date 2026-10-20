@@ -16,6 +16,14 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
+    <!-- ⚠️ A detail row carries its parent's data (see IFamilyRow), so every cell would show the
+         parent's figures again. Only columns marked CellStyleClasses="child" draw on a detail
+         row; the rest are blank and take no clicks. The row gets its class in OnRowLoading. -->
+    <Style Selector="DataGridRow.child DataGridCell:not(.child)">
+      <Setter Property="Opacity" Value="0"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
     <Style Selector="TextBlock.fieldLabel">
       <Setter Property="FontSize"   Value="10" />
@@ -62,6 +70,10 @@
            for the same numbers to be read and reconciled. -->
       <Button Content="{x:Static loc:WorklistText.Refresh}" Command="{Binding RefreshCommand}"
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
+      <!-- Off while flying a plan: a rebuild replans from where everyone is now. -->
+      <CheckBox Content="{x:Static loc:WorklistText.AutoRefresh}" IsChecked="{Binding AutoRefresh}"
+                FontSize="11" VerticalAlignment="Center"
+                ToolTip.Tip="{x:Static loc:WorklistText.TipAutoRefresh}"/>
       <!-- When the run happened. The rows carry their own data age, but nothing said when the list
            itself was last built. -->
       <TextBlock Text="{Binding RefreshedText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
@@ -168,7 +180,7 @@
                FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="520"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-    <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="3" ItemsSource="{Binding RowsView}"
+    <DataGrid x:Name="TaskGrid" LoadingRow="OnRowLoading" Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
               Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
@@ -264,7 +276,8 @@
              one of 147 rows, which is a column that says nothing in the position that costs most.
              As a bar it is read peripherally: you notice the amber and red, and the rest recedes.
              The text is still available on hover, and the filter dropdown above still names it. -->
-        <DataGridTemplateColumn Header="" Width="4" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding ReadinessText}">
+        <DataGridTemplateColumn Header="" Width="4" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding ReadinessText}"
+                                CellStyleClasses="child">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Border Background="{Binding ReadinessBarColor}" Width="3"
@@ -283,6 +296,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
+                    IsVisible="{Binding ShowsKindGlyph}"
                     Stroke="{DynamicResource BorderStrongBrush}" StrokeThickness="1.15"
                     StrokeLineCap="Round" StrokeJoin="Round"
                     Width="16" Height="16"
@@ -307,133 +321,13 @@
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                         ToolTip.Tip="{x:Static loc:WorklistText.TipShowWhatThisTask}"/>
 
-                <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
-                     inside a row makes rows wildly different heights, and the DataGrid prices
-                     every row it has not realised from a single average of them; it also reuses
-                     a row between an open one and a closed one and measures it before the
-                     drawer has caught up. Both are why scrolling up used to stick and jump.
-                     See tools/gridsim. Floating the detail leaves every row one height, so
-                     there is nothing left to estimate wrongly.
-                
-                     ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
-                     back. The flag still lives on the ITEM, not the row: the grid recycles
-                     rows, and a popup keyed to the row would open against whatever item
-                     landed in it next. -->
-                <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                       Placement="BottomEdgeAlignedLeft"
-                       HorizontalOffset="-70"
-                       IsLightDismissEnabled="True">
-                  <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                       full height of the screen and off the bottom of it. -->
-                  <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                  <!-- ⚠️ No height constraint here, deliberately. Three attempts to cure the scroll
-                       flicker by controlling this box all failed — a 320px cap, shorter panels, and a
-                       fixed 220px drawer — which between them rule out the size of the details as the
-                       cause. Leaving it natural until the mechanism is actually known beats carrying a
-                       constraint that costs the look and buys nothing. -->
-                  <Border Margin="70 0 0 8" Padding="12 8"
-                          Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                          CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
-                    <StackPanel Spacing="8">
-
-                      <!-- ⚠️ What put the task on the list, above the detail of it. On a job or a purchase
-                           this is the whole answer to "why am I being asked for this" — the stock level it
-                           is filling, the orders behind it, and the arithmetic between them — and it was
-                           only ever readable by hovering the marker. -->
-                      <TextBlock Text="{Binding Detail}" IsVisible="{Binding HasDetail}"
-                                 FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                                 TextWrapping="Wrap" MaxWidth="720"/>
-
-                      <Grid ColumnDefinitions="Auto,Auto">
-
-                      <StackPanel Grid.Column="0" Spacing="5" Margin="0 0 28 0"
-                                  IsVisible="{Binding HasWaitingJobs}">
-                        <TextBlock Text="{x:Static loc:WorklistText.WaitingOnThisLabel}" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                        <ItemsControl ItemsSource="{Binding WaitingJobs}">
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:WorklistWaitingJobVm">
-                              <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
-                                            Margin="0 0 24 0">
-                                  <Image Source="{Binding Icon}" Width="18" Height="18"
-                                         VerticalAlignment="Center"/>
-                                  <Panel>
-                                    <Button Classes="link" Click="OnOpenWaitingJob" IsVisible="{Binding HasItemLink}"
-                                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
-                                      <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                                 FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </Button>
-                                    <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                               FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                  </Panel>
-                                </StackPanel>
-
-                                <!-- ⚠️ Says which of the two it is rather than ticking only the good case.
-                                     A blank beside a job reads as "not checked yet"; naming what it is
-                                     still short of is the difference between a promise and a fact. -->
-                                <TextBlock Grid.Column="1" Text="{Binding StatusText}"
-                                           FontSize="13" MinWidth="176" TextAlignment="Right"
-                                           Foreground="{Binding StatusColor}"
-                                           ToolTip.Tip="{Binding StatusTip}"/>
-                              </Grid>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                      </StackPanel>
-
-                      <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding HasLines}">
-                        <TextBlock Text="{x:Static loc:WorklistText.ManifestLabel}" FontSize="11" FontWeight="SemiBold"
-                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                        <ItemsControl ItemsSource="{Binding Lines}">
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:WorklistLineVm">
-                              <!-- Count, then value, then volume — each in its own fixed column so the
-                                   figures line up down the list rather than drifting with name length.
-                                   Value and volume are dimmer than the count: the count is what the task
-                                   is about, the other two are what it costs to do. -->
-                              <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
-                                            Margin="0 0 24 0">
-                                  <Image Source="{Binding Icon}" Width="18" Height="18"
-                                         VerticalAlignment="Center"/>
-                                  <Panel>
-                                    <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
-                                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
-                                      <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                                 FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </Button>
-                                    <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                               FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                  </Panel>
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                           FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
-                                           MinWidth="60" TextAlignment="Right"/>
-                                <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                           FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                           MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                                <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                           FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                           MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                              </Grid>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                      </StackPanel>
-
-                    </Grid>
-                    </StackPanel>
-                  </Border>
-                  </ScrollViewer>
-                </Popup>
               </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Sort here to get back to the tool's own ranking after sorting on anything else. -->
-        <DataGridTextColumn Header="#" Binding="{Binding Sequence}" FontSize="12" Width="44"
+        <DataGridTextColumn Header="#" Binding="{Binding SequenceText}" SortMemberPath="Sequence" FontSize="12" Width="44"
                             IsReadOnly="True"/>
 
         <!-- No Task column: it is the group header now. -->
@@ -448,7 +342,7 @@
              the station for asset safety, the ore for a refine. Anything else leaves the cell empty
              rather than showing a placeholder that would read as a kind of its own. -->
         <DataGridTemplateColumn Header="" Width="30" IsReadOnly="True" CanUserSort="False"
-                                CanUserResize="False">
+                                CanUserResize="False" CellStyleClasses="child">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Image Source="{Binding Icon}" Width="24" Height="24"
@@ -469,10 +363,52 @@
              so sorting on the title ordered those rows by text nobody can see — which reads as no
              ordering at all. The Overview's sections were fixed this way already; the tool's own
              grid kept the old path. -->
-        <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
+        <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColTask}" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}"
+                                CellStyleClasses="child">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Panel VerticalAlignment="Center">
+
+                <!-- A loop's stop, as a row of its own under the loop: the stop, then each item handled
+                     there. Rows rather than a drawer — see WorklistRowVm on why every row must be one
+                     height. Indented under the loop's route so the family reads as one. -->
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsChildStop}" Margin="16 0 0 0">
+                  <TextBlock Text="{Binding ChildLabel}" FontSize="14" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextBrightBrush}" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{x:Static loc:WorklistText.HaulStopTurn}" IsVisible="{Binding ChildTurn}"
+                             FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"
+                             ToolTip.Tip="{x:Static loc:WorklistText.TipHaulStopTurn}"/>
+                  <TextBlock Text="{Binding ChildTotals}" FontSize="12"
+                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                  <!-- Tick a stop off as flown: its pick-ups go into the hold and its drop-offs are
+                       delivered, ahead of the asset poll. On a trip's manifest, the whole trip. -->
+                  <Button Content="{Binding MarkHauledText}" Click="OnMarkHauled"
+                          IsVisible="{Binding CanMarkHauled}"
+                          FontSize="11" Padding="8 1" VerticalAlignment="Center"
+                          ToolTip.Tip="{Binding MarkHauledTip}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding IsChildText}" Margin="16 0 0 0"
+                           FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildLabel}"/>
+                <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsChildLine}" Margin="40 0 0 0">
+                  <TextBlock Text="{Binding ChildAction}" FontSize="12" MinWidth="64"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenChildItem" IsVisible="{Binding ChildHasLink}"
+                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
+                      <TextBlock Text="{Binding ChildLabel}" Classes="linktext" FontSize="14"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding ShowsPlainChild}" FontSize="14"
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                  </Panel>
+                  <TextBlock Text="{Binding ChildQty}" FontSize="14"
+                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                  <TextBlock Text="{Binding ChildOther}" FontSize="12"
+                             Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <!-- Haul: where from, where to, and how much of it. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsHaul}">
@@ -482,6 +418,12 @@
                        trip or a packing job, so it sits with the route rather than under it. -->
                   <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
                              VerticalAlignment="Center"/>
+                  <!-- How the lane makes the trip: method and gates between systems, the ship, and
+                       how many loads it comes to. Fainter than the count: context, not the task. -->
+                  <TextBlock Text="{Binding HaulPlanText}" IsVisible="{Binding HasHaulPlan}"
+                             Foreground="{DynamicResource TextFaintBrush}" FontSize="12"
+                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{x:Static loc:WorklistText.TipHaulPlan}"/>
                 </StackPanel>
 
                 <!-- Job: what is being made, by whom, and where — one line, like the rest. -->
@@ -645,13 +587,13 @@
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
              job has no stored blueprint value per ME level. -->
         <DataGridTextColumn Binding="{Binding ValueText}" FontSize="12" Width="100"
-                            CellStyleClasses="num" SortMemberPath="Value">
+                            CellStyleClasses="num child" SortMemberPath="Value">
           <DataGridTextColumn.Header>
             <TextBlock Text="{x:Static loc:WorklistText.Value}" HorizontalAlignment="Right"/>
           </DataGridTextColumn.Header>
         </DataGridTextColumn>
         <DataGridTextColumn Binding="{Binding VolumeText}" FontSize="12" Width="110"
-                            CellStyleClasses="num" SortMemberPath="VolumeRaw">
+                            CellStyleClasses="num child" SortMemberPath="VolumeRaw">
           <DataGridTextColumn.Header>
             <TextBlock Text="{x:Static loc:WorklistText.Volume}" HorizontalAlignment="Right"/>
           </DataGridTextColumn.Header>
@@ -663,7 +605,7 @@
               <!-- Shown on row hover. A button on all 166 rows is a lot of permanent chrome for
                    an action taken on one of them; Opacity rather than IsVisible so the column does
                    not resize as the pointer moves down the list. -->
-              <Button Content="{x:Static loc:WorklistText.Snooze}" Classes="snooze"
+              <Button Content="{x:Static loc:WorklistText.Snooze}" Classes="snooze" IsVisible="{Binding !IsChild}"
                       Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).SnoozeCommand}"
                       CommandParameter="{Binding Key}"
                       FontSize="11" Padding="6 2" Background="Transparent"
@@ -695,7 +637,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="2" ItemsSource="{Binding NeedsView}"
+        <DataGrid LoadingRow="OnRowLoading" Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -757,53 +699,6 @@
                               IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                               ToolTip.Tip="{x:Static loc:WorklistText.TipWhatIsAskingForThis}"/>
 
-                      <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
-                           inside a row makes rows wildly different heights, and the DataGrid prices
-                           every row it has not realised from a single average of them; it also reuses
-                           a row between an open one and a closed one and measures it before the
-                           drawer has caught up. Both are why scrolling up used to stick and jump.
-                           See tools/gridsim. Floating the detail leaves every row one height, so
-                           there is nothing left to estimate wrongly.
-                      
-                           ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
-                           back. The flag still lives on the ITEM, not the row: the grid recycles
-                           rows, and a popup keyed to the row would open against whatever item
-                           landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                             Placement="BottomEdgeAlignedLeft"
-                             IsLightDismissEnabled="True">
-                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                             full height of the screen and off the bottom of it. -->
-                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                        <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
-                                Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
-                          <StackPanel Spacing="4">
-                            <TextBlock Text="{x:Static loc:WorklistText.AskedForByLabel}" FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                            <ItemsControl ItemsSource="{Binding Drivers}">
-                              <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:NeedDriverRowVm">
-                                  <Grid ColumnDefinitions="240,110,*" Margin="0 1">
-                                    <Panel Grid.Column="0">
-                                      <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
-                                              ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
-                                        <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
-                                      </Button>
-                                      <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                                 FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                    </Panel>
-                                    <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                               Foreground="{DynamicResource TextDimBrush}"/>
-                                  </Grid>
-                                </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                          </StackPanel>
-                        </Border>
-                        </ScrollViewer>
-                      </Popup>
                     </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
@@ -812,16 +707,21 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColStation}" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColStation}" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}"
+                                    CellStyleClasses="child">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
+                    <!-- An "asked for by" row: what sort of demand it is, indented under its need. -->
+                    <TextBlock Text="{Binding ChildKind}" IsVisible="{Binding IsChild}" Margin="16 0 0 0"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
                     <Button Classes="link" Click="OnOpenNeedStation" IsVisible="{Binding HasStationLink}"
                             ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStationOrStructure}">
                       <TextBlock Text="{Binding Station}" Classes="linktext"
                                  TextTrimming="CharacterEllipsis"/>
                     </Button>
-                    <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                    <TextBlock Text="{Binding Station}" IsVisible="{Binding ShowsPlainStation}"
                                ToolTip.Tip="{Binding Station}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                   </Panel>
@@ -829,16 +729,24 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColItem}" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColItem}" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}"
+                                    CellStyleClasses="child">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
+                    <!-- An "asked for by" row: what it is for, opening the item where there is one. -->
+                    <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding ChildHasLink}"
+                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
+                      <TextBlock Text="{Binding ChildDriver}" Classes="linktext" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding ChildDriver}" IsVisible="{Binding ShowsPlainDriver}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                     <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
                             ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
                       <TextBlock Text="{Binding Item}" Classes="linktext"
                                  TextTrimming="CharacterEllipsis"/>
                     </Button>
-                    <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                    <TextBlock Text="{Binding Item}" IsVisible="{Binding ShowsPlainItem}"
                                ToolTip.Tip="{Binding Item}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                   </Panel>
@@ -846,7 +754,8 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColTotal}"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColTotal}"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"
+                                CellStyleClasses="child"/>
             <DataGridTextColumn Header="{x:Static loc:WorklistText.ColOnHand}" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
 
             <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColShort}" Width="110" SortMemberPath="ShortRaw" ClipboardContentBinding="{Binding Short}">
@@ -895,7 +804,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
+        <DataGrid LoadingRow="OnRowLoading" Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -957,53 +866,6 @@
                               IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                               ToolTip.Tip="{x:Static loc:WorklistText.TipWhatIsAskingForThis}"/>
 
-                      <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
-                           inside a row makes rows wildly different heights, and the DataGrid prices
-                           every row it has not realised from a single average of them; it also reuses
-                           a row between an open one and a closed one and measures it before the
-                           drawer has caught up. Both are why scrolling up used to stick and jump.
-                           See tools/gridsim. Floating the detail leaves every row one height, so
-                           there is nothing left to estimate wrongly.
-                      
-                           ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
-                           back. The flag still lives on the ITEM, not the row: the grid recycles
-                           rows, and a popup keyed to the row would open against whatever item
-                           landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                             Placement="BottomEdgeAlignedLeft"
-                             IsLightDismissEnabled="True">
-                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                             full height of the screen and off the bottom of it. -->
-                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                        <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
-                                Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
-                          <StackPanel Spacing="4">
-                            <TextBlock Text="{x:Static loc:WorklistText.AskedForByLabel}" FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                            <ItemsControl ItemsSource="{Binding Drivers}">
-                              <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:NeedDriverRowVm">
-                                  <Grid ColumnDefinitions="240,110,*" Margin="0 1">
-                                    <Panel Grid.Column="0">
-                                      <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
-                                              ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
-                                        <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
-                                      </Button>
-                                      <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                                 FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                    </Panel>
-                                    <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                               Foreground="{DynamicResource TextDimBrush}"/>
-                                  </Grid>
-                                </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                          </StackPanel>
-                        </Border>
-                        </ScrollViewer>
-                      </Popup>
                     </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
@@ -1012,16 +874,21 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColStation}" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColStation}" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}"
+                                    CellStyleClasses="child">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
+                    <!-- An "asked for by" row: what sort of demand it is, indented under its need. -->
+                    <TextBlock Text="{Binding ChildKind}" IsVisible="{Binding IsChild}" Margin="16 0 0 0"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
                     <Button Classes="link" Click="OnOpenNeedStation" IsVisible="{Binding HasStationLink}"
                             ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStationOrStructure}">
                       <TextBlock Text="{Binding Station}" Classes="linktext"
                                  TextTrimming="CharacterEllipsis"/>
                     </Button>
-                    <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                    <TextBlock Text="{Binding Station}" IsVisible="{Binding ShowsPlainStation}"
                                ToolTip.Tip="{Binding Station}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                   </Panel>
@@ -1029,16 +896,24 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColItem}" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColItem}" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}"
+                                    CellStyleClasses="child">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
+                    <!-- An "asked for by" row: what it is for, opening the item where there is one. -->
+                    <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding ChildHasLink}"
+                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
+                      <TextBlock Text="{Binding ChildDriver}" Classes="linktext" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding ChildDriver}" IsVisible="{Binding ShowsPlainDriver}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                     <Button Classes="link" Click="OnOpenNeedItem" IsVisible="{Binding HasItemLink}"
                             ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
                       <TextBlock Text="{Binding Item}" Classes="linktext"
                                  TextTrimming="CharacterEllipsis"/>
                     </Button>
-                    <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasItemLink}"
+                    <TextBlock Text="{Binding Item}" IsVisible="{Binding ShowsPlainItem}"
                                ToolTip.Tip="{Binding Item}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                   </Panel>
@@ -1046,7 +921,8 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColTotal}"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColTotal}"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"
+                                CellStyleClasses="child"/>
             <DataGridTextColumn Header="{x:Static loc:WorklistText.ColOnHand}" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
 
             <!-- ⚠️ Item Needs only. This tab asks what still has to be MADE, so production
@@ -1287,7 +1163,7 @@
                            Text="{x:Static loc:WorklistText.MaterialsThePipelineRunsNote}"/>
               </StackPanel>
 
-              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" Grid.Row="1" ItemsSource="{Binding ItemShortagesView}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
@@ -1298,7 +1174,7 @@
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <Panel>
                           <Button Classes="expander" Click="OnShortageToggle"
-                                  IsVisible="{Binding HasTasks}"
+                                  IsVisible="{Binding CanExpand}"
                                   Content="{Binding Glyph}" FontSize="20"
                                   Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
                                   Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
@@ -1307,59 +1183,11 @@
                                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                   ToolTip.Tip="{x:Static loc:WorklistText.TipShowTheTasksBehindThese}"/>
 
-                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point.
-                               A drawer inside a row makes rows wildly different heights, and the
-                               DataGrid prices every row it has not realised from a single average
-                               of them; it also reuses a row between an open one and a closed one
-                               and measures it before the drawer has caught up. Both are why
-                               scrolling up used to stick and jump. See tools/gridsim. Floating the
-                               detail leaves every row the same height, so there is nothing left to
-                               estimate wrongly.
-
-                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the
-                               glyph back. The flag still lives on the ITEM, not the row: the grid
-                               recycles rows, and a popup keyed to the row would open against
-                               whatever item landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                                 Placement="BottomEdgeAlignedLeft"
-                                 IsLightDismissEnabled="True">
-                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                                 full height of the screen and off the bottom of it. -->
-                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                            <Border Padding="10 7" MinWidth="720"
-                                    Background="{DynamicResource SurfaceBaseBrush}"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                                    CornerRadius="3">
-                                <ItemsControl ItemsSource="{Binding Tasks}">
-                                  <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                                      <Grid ColumnDefinitions="90,70,320,*" Margin="0 1">
-                                        <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                                   Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                                   Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
-                                                    Margin="{Binding Indent}" VerticalAlignment="Center">
-                                          <Image Source="{Binding Icon}" Width="14" Height="14"
-                                                 IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
-                                          <TextBlock Text="{Binding Title}" FontSize="10"
-                                                     Foreground="{DynamicResource TextPrimaryBrush}"
-                                                     TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                      </Grid>
-                                    </DataTemplate>
-                                  </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </Border>
-                            </ScrollViewer>
-                          </Popup>
                         </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Item}">
+                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Item}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Material}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTheItemThatRan}"/>
                     </DataGridTemplateColumn.Header>
@@ -1369,11 +1197,19 @@
                           <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
                                  Margin="0 0 6 0" VerticalAlignment="Center"/>
                           <Panel Grid.Column="1">
+                            <!-- A task row: the task, indented by how far down the chain it sits. -->
+                            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsChildTask}"
+                                        Margin="{Binding ChildTask.Indent}">
+                              <Image Source="{Binding ChildTask.Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                              <TextBlock Text="{Binding ChildTask.Title}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                         ToolTip.Tip="{Binding ChildTask.Title}"/>
+                            </StackPanel>
                             <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
                                     ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
                               <TextBlock Text="{Binding Item}" Classes="linktext"/>
                             </Button>
-                            <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
+                            <TextBlock Text="{Binding Item}" IsVisible="{Binding ShowsPlainItem}"
                                        VerticalAlignment="Center"/>
                           </Panel>
                         </Grid>
@@ -1463,29 +1299,46 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="110" ClipboardContentBinding="{Binding Verdict}">
+                  <DataGridTemplateColumn Width="110" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
-                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                     IsVisible="{Binding IsParent}" VerticalAlignment="Center"/>
+                          <TextBlock Text="{Binding ChildTask.State}" Foreground="{Binding ChildTask.StateColor}"
+                                     IsVisible="{Binding IsChildTask}" VerticalAlignment="Center"/>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <!-- Wraps, and the row grows to fit. A DataGridTextColumn cannot wrap at all, so the whole
-                       sentence sat on one clipped line and the half worth reading - what to do
-                       about the shortage - was the half off the right edge. -->
+                  <!-- One line, the whole of it on hover and in the rows the row opens into, a
+                       sentence each. It used to wrap and grow the row, but every row has to be the
+                       same height for the grid to scroll true — see IFamilyRow. -->
                   <DataGridTemplateColumn Width="*" MinWidth="260"
-                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
+                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Suggestion}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatIsHappeningAnd}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
-                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Advice}" IsVisible="{Binding IsParent}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Advice}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <TextBlock Text="{Binding ChildText}" IsVisible="{Binding IsChildText}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildText}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsChildTask}"
+                                      VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ChildTask.Role}" Foreground="{DynamicResource TextDimBrush}"/>
+                            <TextBlock Text="{Binding ChildTask.Why}" Foreground="{DynamicResource TextMutedBrush}"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildTask.Why}"/>
+                          </StackPanel>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1504,7 +1357,7 @@
                          Text="{x:Static loc:WorklistText.ABlueprintBottleneckIsNote}"/>
             </StackPanel>
 
-              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" Grid.Row="1" ItemsSource="{Binding PrintPressureView}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
@@ -1516,7 +1369,7 @@
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <Panel>
                           <Button Classes="expander" Click="OnPrintToggle"
-                                  IsVisible="{Binding HasTasks}"
+                                  IsVisible="{Binding CanExpand}"
                                   Content="{Binding Glyph}" FontSize="20"
                                   Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
                                   Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
@@ -1525,59 +1378,11 @@
                                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                   ToolTip.Tip="{x:Static loc:WorklistText.TipShowTheTasksBehindThese}"/>
 
-                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
-                               inside a row makes rows wildly different heights, and the DataGrid prices
-                               every row it has not realised from a single average of them; it also reuses
-                               a row between an open one and a closed one and measures it before the
-                               drawer has caught up. Both are why scrolling up used to stick and jump.
-                               See tools/gridsim. Floating the detail leaves every row one height, so
-                               there is nothing left to estimate wrongly.
-                          
-                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
-                               back. The flag still lives on the ITEM, not the row: the grid recycles
-                               rows, and a popup keyed to the row would open against whatever item
-                               landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                                 Placement="BottomEdgeAlignedLeft"
-                                 IsLightDismissEnabled="True">
-                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                                 full height of the screen and off the bottom of it. -->
-                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                            <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                                    Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                                    CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
-                              <ItemsControl ItemsSource="{Binding Tasks}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                                    <Grid ColumnDefinitions="90,70,320,*" Margin="0 1">
-                                      <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
-                                      <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                                 Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
-                                                  Margin="{Binding Indent}" VerticalAlignment="Center">
-                                        <!-- Fixed slot, drawn or not — the picture arrives after the grid
-                                             has sized the row, so it must not change the size when it does. -->
-                                        <Image Source="{Binding Icon}" Width="14" Height="14"
-                                               IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Title}" FontSize="10"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                      </StackPanel>
-                                      <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                            </Border>
-                            </ScrollViewer>
-                          </Popup>
                         </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="220" ClipboardContentBinding="{Binding Product}">
+                  <DataGridTemplateColumn Width="220" ClipboardContentBinding="{Binding Product}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Product}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatThisBlueprintOr}"/>
                     </DataGridTemplateColumn.Header>
@@ -1587,11 +1392,19 @@
                           <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
                                  Margin="0 0 6 0" VerticalAlignment="Center"/>
                           <Panel Grid.Column="1">
+                            <!-- A task row: the task, indented by how far down the chain it sits. -->
+                            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsChildTask}"
+                                        Margin="{Binding ChildTask.Indent}">
+                              <Image Source="{Binding ChildTask.Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                              <TextBlock Text="{Binding ChildTask.Title}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                         ToolTip.Tip="{Binding ChildTask.Title}"/>
+                            </StackPanel>
                             <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
                                     ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
                               <TextBlock Text="{Binding Product}" Classes="linktext"/>
                             </Button>
-                            <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
+                            <TextBlock Text="{Binding Product}" IsVisible="{Binding ShowsPlainItem}"
                                        VerticalAlignment="Center"/>
                           </Panel>
                         </Grid>
@@ -1680,27 +1493,44 @@
                       <TextBlock Text="{x:Static loc:WorklistText.Blocking}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksWaitingOnWhat}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Verdict}">
+                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts2}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
-                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                     IsVisible="{Binding IsParent}" VerticalAlignment="Center"/>
+                          <TextBlock Text="{Binding ChildTask.State}" Foreground="{Binding ChildTask.StateColor}"
+                                     IsVisible="{Binding IsChildTask}" VerticalAlignment="Center"/>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <!-- Wraps, and the row grows to fit; see the Item Contention grid. -->
                   <DataGridTemplateColumn Width="*" MinWidth="260"
-                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
+                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Suggestion}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatIsHappeningAnd2}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
-                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Advice}" IsVisible="{Binding IsParent}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Advice}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <TextBlock Text="{Binding ChildText}" IsVisible="{Binding IsChildText}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildText}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsChildTask}"
+                                      VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ChildTask.Role}" Foreground="{DynamicResource TextDimBrush}"/>
+                            <TextBlock Text="{Binding ChildTask.Why}" Foreground="{DynamicResource TextMutedBrush}"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildTask.Why}"/>
+                          </StackPanel>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1739,7 +1569,7 @@
                 </Border>
               </StackPanel>
 
-              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" Grid.Row="1" ItemsSource="{Binding HaulPressuresView}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
@@ -1750,7 +1580,7 @@
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
                         <Panel>
                           <Button Classes="expander" Click="OnHaulToggle"
-                                  IsVisible="{Binding HasTasks}"
+                                  IsVisible="{Binding CanExpand}"
                                   Content="{Binding Glyph}" FontSize="20"
                                   Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
                                   Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
@@ -1759,60 +1589,12 @@
                                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                   ToolTip.Tip="{x:Static loc:WorklistText.TipShowTheTasksBehindThese}"/>
 
-                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
-                               inside a row makes rows wildly different heights, and the DataGrid prices
-                               every row it has not realised from a single average of them; it also reuses
-                               a row between an open one and a closed one and measures it before the
-                               drawer has caught up. Both are why scrolling up used to stick and jump.
-                               See tools/gridsim. Floating the detail leaves every row one height, so
-                               there is nothing left to estimate wrongly.
-                          
-                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
-                               back. The flag still lives on the ITEM, not the row: the grid recycles
-                               rows, and a popup keyed to the row would open against whatever item
-                               landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
-                                 Placement="BottomEdgeAlignedLeft"
-                                 IsLightDismissEnabled="True">
-                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
-                                 full height of the screen and off the bottom of it. -->
-                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
-                            <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                                    Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                                    CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
-                              <ItemsControl ItemsSource="{Binding Tasks}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                                    <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
-                                      <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
-                                      <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                                 Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
-                                                  Margin="{Binding Indent}" VerticalAlignment="Center">
-                                        <!-- Fixed slot, drawn or not — the picture arrives after the grid
-                                             has sized the row, so it must not change the size when it does. -->
-                                        <Image Source="{Binding Icon}" Width="14" Height="14"
-                                               IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Title}" FontSize="10"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                      </StackPanel>
-                                      <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
-                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                            </Border>
-                            </ScrollViewer>
-                          </Popup>
                         </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="250" ClipboardContentBinding="{Binding Task}">
+                  <DataGridTemplateColumn Width="250" ClipboardContentBinding="{Binding Task}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Job}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipTheStoppedJobIt}"/>
@@ -1823,11 +1605,19 @@
                           <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
                                  Margin="0 0 6 0" VerticalAlignment="Center"/>
                           <Panel Grid.Column="1">
+                            <!-- A task row: the task, indented by how far down the chain it sits. -->
+                            <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsChildTask}"
+                                        Margin="{Binding ChildTask.Indent}">
+                              <Image Source="{Binding ChildTask.Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                              <TextBlock Text="{Binding ChildTask.Title}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                         ToolTip.Tip="{Binding ChildTask.Title}"/>
+                            </StackPanel>
                             <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
                                     ToolTip.Tip="{x:Static loc:WorklistText.TipOpenWhatThisJobMakes}">
                               <TextBlock Text="{Binding Task}" Classes="linktext"/>
                             </Button>
-                            <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
+                            <TextBlock Text="{Binding Task}" IsVisible="{Binding ShowsPlainTask}"
                                        VerticalAlignment="Center"/>
                           </Panel>
                         </Grid>
@@ -1847,7 +1637,7 @@
                                   ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStation}">
                             <TextBlock Text="{Binding Station}" Classes="linktext"/>
                           </Button>
-                          <TextBlock Text="{Binding Station}" IsVisible="{Binding !HasStationLink}"
+                          <TextBlock Text="{Binding Station}" IsVisible="{Binding ShowsPlainStation}"
                                      VerticalAlignment="Center"/>
                         </Panel>
                       </DataTemplate>
@@ -1889,28 +1679,45 @@
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTemplateColumn Width="120" ClipboardContentBinding="{Binding Verdict}">
+                  <DataGridTemplateColumn Width="120" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts2}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                        <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
-                                   VerticalAlignment="Top" Margin="0 3 0 0"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Verdict}" Foreground="{Binding VerdictColor}"
+                                     IsVisible="{Binding IsParent}" VerticalAlignment="Center"/>
+                          <TextBlock Text="{Binding ChildTask.State}" Foreground="{Binding ChildTask.StateColor}"
+                                     IsVisible="{Binding IsChildTask}" VerticalAlignment="Center"/>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="*" MinWidth="260" CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
+                  <DataGridTemplateColumn Width="*" MinWidth="260" CanUserSort="False" ClipboardContentBinding="{Binding Advice}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Suggestion}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipWhatIsHappeningAnd2}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                        <TextBlock Text="{Binding Advice}" TextWrapping="Wrap"
-                                   VerticalAlignment="Top" Margin="0 3 4 3"/>
+                        <Panel>
+                          <TextBlock Text="{Binding Advice}" IsVisible="{Binding IsParent}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Advice}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <TextBlock Text="{Binding ChildText}" IsVisible="{Binding IsChildText}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildText}"
+                                     VerticalAlignment="Center" Margin="0 0 4 0"/>
+                          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsChildTask}"
+                                      VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ChildTask.Role}" Foreground="{DynamicResource TextDimBrush}"/>
+                            <TextBlock Text="{Binding ChildTask.Why}" Foreground="{DynamicResource TextMutedBrush}"
+                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildTask.Why}"/>
+                          </StackPanel>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -2496,6 +2303,150 @@
 
     <!-- Last: the settings here are set once and then left, unlike the tabs above them. Which
          characters may be given jobs lives on Settings → Characters. -->
+    <!-- How each kind of trip is made, and by whom. Saved as it is changed; the list rebuilds a
+         moment after the last change. -->
+    <TabItem Header="{x:Static loc:WorklistText.TabHauling}">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="14 12" Spacing="16" MaxWidth="760" HorizontalAlignment="Left"
+                  DataContext="{Binding HaulingVm}" x:DataType="vm:WorklistHaulingViewModel">
+
+        <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Text="{x:Static loc:WorklistText.HaulingSettingsNote}"/>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="{x:Static loc:WorklistText.HaulNearbyUpTo}" Classes="fieldLabel" VerticalAlignment="Center"/>
+          <NumericUpDown Value="{Binding NearJumps, Mode=TwoWay}" Minimum="1" Maximum="100" Increment="1"
+                         FormatString="0" ShowButtonSpinner="False" Width="60" FontSize="11"
+                         ToolTip.Tip="{x:Static loc:WorklistText.TipHaulNearbyUpTo}"/>
+          <TextBlock Text="{x:Static loc:WorklistText.HaulJumpsSuffix}" Classes="fieldLabel" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{Binding Lanes}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="12"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HaulLaneVm">
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                      BorderThickness="1" CornerRadius="3" Padding="14 10">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                  <TextBlock Text="{Binding Note}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+
+                  <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:WorklistText.HaulMethodLabel}" Classes="fieldLabel"
+                               IsVisible="{Binding ShowsMethod}"/>
+                    <ComboBox Grid.Row="1" Grid.Column="0" Width="190" Margin="0 0 12 0" FontSize="11"
+                              ItemsSource="{Binding Methods}" SelectedItem="{Binding SelectedMethod}"
+                              IsVisible="{Binding ShowsMethod}"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static loc:WorklistText.HaulShipLabel}" Classes="fieldLabel"
+                               IsVisible="{Binding ShowsShip}"/>
+                    <ComboBox Grid.Row="1" Grid.Column="1" Width="250" Margin="0 0 12 0" FontSize="11"
+                              ItemsSource="{Binding Hulls}" SelectedItem="{Binding SelectedHull}"
+                              IsVisible="{Binding ShowsShip}" MaxDropDownHeight="360"
+                              ToolTip.Tip="{x:Static loc:WorklistText.TipHaulShip}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HaulHullOption">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="11"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:WorklistText.HaulHoldLabel}" Classes="fieldLabel"
+                               IsVisible="{Binding ShowsShip}"/>
+                    <NumericUpDown Grid.Row="1" Grid.Column="2" Value="{Binding CargoM3, Mode=TwoWay}"
+                                   Minimum="0" Maximum="10000000" Increment="1000" FormatString="N0"
+                                   ShowButtonSpinner="False" Width="120" FontSize="11"
+                                   IsVisible="{Binding ShowsShip}"
+                                   Watermark="{x:Static loc:WorklistText.HintHullsOwnHold}"
+                                   ToolTip.Tip="{x:Static loc:WorklistText.TipHaulHold}"/>
+
+                    <!-- A hauling service: the most one contract takes, a bigger trip split by it. -->
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="{x:Static loc:WorklistText.HaulContractLabel}" Classes="fieldLabel"
+                               IsVisible="{Binding ShowsContract}"/>
+                    <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding ContractM3, Mode=TwoWay}"
+                                   Minimum="0" Maximum="100000000" Increment="10000" FormatString="N0"
+                                   ShowButtonSpinner="False" Width="140" FontSize="11"
+                                   IsVisible="{Binding ShowsContract}"
+                                   Watermark="{x:Static loc:WorklistText.HintContractDefault}"
+                                   ToolTip.Tip="{x:Static loc:WorklistText.TipHaulContract}"/>
+                  </Grid>
+
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulPilotsLabel}" Classes="fieldLabel"/>
+                    <ItemsControl ItemsSource="{Binding Pilots}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HaulPilotRow">
+                          <Grid ColumnDefinitions="70,220,Auto,Auto" Margin="0 1">
+                            <TextBlock Grid.Column="0" Text="{Binding Position}" FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Button Grid.Column="2" Content="▲" FontSize="10" Padding="6 1" Margin="0 0 4 0"
+                                    Command="{Binding Lane.MovePilotUpCommand}" CommandParameter="{Binding}"
+                                    IsVisible="{Binding CanMoveUp}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipHaulPilotUp}"/>
+                            <Button Grid.Column="3" Content="✕" FontSize="10" Padding="6 1"
+                                    Command="{Binding Lane.RemovePilotCommand}" CommandParameter="{Binding}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipHaulPilotRemove}"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ComboBox Width="290" FontSize="11" HorizontalAlignment="Left"
+                              ItemsSource="{Binding AvailablePilots}" SelectedItem="{Binding PilotToAdd}"
+                              PlaceholderText="{x:Static loc:WorklistText.HintAddPilot}" MaxDropDownHeight="360"/>
+                  </StackPanel>
+
+                  <!-- Long distance: one station every trip goes to, taken on from there. -->
+                  <StackPanel Spacing="4" IsVisible="{Binding ShowsDeliverTo}">
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDeliverToLabel}" Classes="fieldLabel"/>
+                    <ComboBox Width="380" FontSize="11" HorizontalAlignment="Left"
+                              ItemsSource="{Binding DeliverToOptions}" SelectedItem="{Binding SelectedDeliverTo}"
+                              MaxDropDownHeight="360" ToolTip.Tip="{x:Static loc:WorklistText.TipHaulDeliverTo}"/>
+                  </StackPanel>
+
+                  <!-- Nearby: each system's drop-off station, for trips with several stops there. -->
+                  <StackPanel Spacing="4" IsVisible="{Binding ShowsDropStations}">
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDropStationsLabel}" Classes="fieldLabel"/>
+                    <TextBlock Text="{x:Static loc:WorklistText.HaulDropStationsNote}" FontSize="10"
+                               Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+                    <ItemsControl ItemsSource="{Binding DropStations}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HaulDropRow">
+                          <Grid ColumnDefinitions="110,340,Auto" Margin="0 1">
+                            <TextBlock Grid.Column="0" Text="{Binding SystemName}" FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Station.Name}" FontSize="11" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Button Grid.Column="2" Content="✕" FontSize="10" Padding="6 1"
+                                    Command="{Binding Lane.RemoveDropCommand}" CommandParameter="{Binding}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipHaulDropRemove}"/>
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ComboBox Width="380" FontSize="11" HorizontalAlignment="Left"
+                              ItemsSource="{Binding DropOptions}" SelectedItem="{Binding DropToAdd}"
+                              PlaceholderText="{x:Static loc:WorklistText.HintAddDropStation}" MaxDropDownHeight="360"/>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <TabItem Header="{x:Static loc:WorklistText.TabOther}">
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <StackPanel Margin="14 12" Spacing="18"

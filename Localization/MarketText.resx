@@ -124,6 +124,66 @@
     <value>Offered</value>
     <comment>Text in ContractDetailView.</comment>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>Cargo — entered by hand</value>
+    <comment>Contracts tool, a courier we made: heading of its cargo list.</comment>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI never lists what is in a courier contract, so its cargo is entered here: ticked off a hauling trip on the worklist, typed or pasted. For planning it counts as on its way to the destination while the courier is out, and as there once it is delivered, until the asset update shows it. It is never added to your assets.</value>
+    <comment>Contracts tool: note under the courier cargo heading.</comment>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>Nothing entered yet.</value>
+    <comment>Contracts tool: a courier with no cargo entered.</comment>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>{0} entered, of the contract's {1}</value>
+    <comment>Contracts tool, courier cargo: the entered cargo's volume against the contract's. {0}, {1} = volumes in m³.</comment>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>Paste items copied in game, or type one a line: Tritanium 1000</value>
+    <comment>Watermark of the box where items are pasted onto a courier's cargo.</comment>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button: add the pasted items to the courier's cargo.</comment>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>Replace all</value>
+    <comment>Button: put the pasted items in place of the courier's whole cargo.</comment>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>Add these to the cargo. An item already on it has the quantities summed.</value>
+    <comment>Tooltip on the Add button.</comment>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>Put these in place of everything entered so far — for a list copied from the contract as made.</value>
+    <comment>Tooltip on the Replace all button.</comment>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>How many are in the courier. Saved as you type; 0 takes the line off.</value>
+    <comment>Tooltip on a courier cargo line's quantity box.</comment>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>Take this line off the cargo</value>
+    <comment>Tooltip on the button removing a courier cargo line.</comment>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Courier cargo: the pasted items were saved.</comment>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>Saved the rest. Not recognised: {0}</value>
+    <comment>Courier cargo: names in the pasted text that are no item. {0} = those names.</comment>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>Nothing to add: paste or type the items first.</value>
+    <comment>Courier cargo: Add or Replace pressed with an empty box.</comment>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>Courier cargo not saved</value>
+    <comment>Courier cargo: what failed, before the error itself.</comment>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>Item</value>
     <comment>Column header in ContractDetailView.</comment>

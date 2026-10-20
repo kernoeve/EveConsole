@@ -87,13 +87,27 @@ public static class WorklistPriority
 
     // ── Hauling ───────────────────────────────────────────────────────────────
     //
-    // A haul is worth what the most valuable thing on it is worth. A run that unblocks a job
-    // earns the job's urgency even if most of the cargo is a routine top-up, because the trip
+    // A haul is worth what the most valuable thing on it is worth. A run that restarts a job
+    // earns a place at the top even if most of the cargo is a routine top-up, because the trip
     // happens once and the job starts when it lands. The tiers are never used to split a run:
     // one source to one destination is one task whatever is in it.
 
-    /// <summary>Carries material a job is waiting on.</summary>
+    /// <summary>
+    /// Carries everything a stopped job is short of, so the job starts when it lands.
+    ///
+    /// <para>⚠️ Earned, not assumed. Every haul of job material used to be stamped with this,
+    /// and on a live list 25 of the 28 so marked restarted nothing — they carried material for
+    /// builds the planner had only suggested, and the three trips that would actually start work
+    /// were indistinguishable from them. It is given now by the promotion pass, which is the one
+    /// place that can see whether a load covers a stopped job in full.</para>
+    /// </summary>
     public const int HaulUnblocking = 95;
+
+    /// <summary>
+    /// The least a haul of job material is worth when it restarts nothing on its own: material
+    /// for planned work, ranked with that work and never below a restock.
+    /// </summary>
+    public const int HaulForWork = 46;
 
     /// <summary>Tops a station up to its configured level, with nothing waiting.</summary>
     public const int HaulRestock = 45;

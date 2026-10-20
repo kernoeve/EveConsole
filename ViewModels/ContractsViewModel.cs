@@ -220,6 +220,14 @@ public class ContractDetailVm : ReactiveObject
     private readonly Func<int, Task<string>>? _pull;
     public bool CanPull => _pull is not null && !HasItems && !IsPulling;
 
+    /// <summary>⚠️ Not on a courier: ESI never lists a courier's cargo, so there is nothing to ask
+    /// for — 142 of ours asked, 19 answered, not one line. Ours are entered by hand instead (<see cref="Cargo"/>).</summary>
+    public bool ShowsPull => !HasItems && !IsCourier;
+
+    /// <summary>The cargo entered by hand, on a courier we made; null on anything else.</summary>
+    public CourierCargoVm? Cargo { get; }
+    public bool HasCargo => Cargo is not null;
+
     private bool _isPulling;
     public bool IsPulling { get => _isPulling; private set { this.RaiseAndSetIfChanged(ref _isPulling, value); this.RaisePropertyChanged(nameof(CanPull)); } }
 
@@ -303,10 +311,12 @@ public class ContractDetailVm : ReactiveObject
         IReadOnlyDictionary<long, string> names,
         IReadOnlyDictionary<long, string> locations,
         ContractItemValues? values = null,
-        Func<int, Task<string>>? pull = null)
+        Func<int, Task<string>>? pull = null,
+        CourierCargoVm? cargo = null)
     {
         values    ??= ContractItemValues.None;
         _pull       = pull;
+        Cargo       = cargo;
         ContractId  = c.ContractId;
         // Why there are no items, when there are none: asked and refused, or not asked yet.
         if (items.Count == 0)
@@ -1023,7 +1033,64 @@ public class OwnedContractsViewModel : ReactiveObject
         _errorLogger = errorLogger;
         _names       = names;
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
+        OwnerList.Changed += () => _ = RefreshOwnerScopesAsync();
         _ = LoadAsync();
+    }
+
+    /// <summary>
+    /// The scope list's characters and corporations, for one added or removed
+    /// (<see cref="OwnerList"/>).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Not the full load: that also resets every filter — scope, assignee, acceptor, status —
+    /// which is right for the Refresh button and wrong for something that happens on its own.
+    /// Synced in place, so the scope picked stays picked; the alliance entries are left as the
+    /// last load found them. "All characters and corporations" is rebuilt, since its set of
+    /// owners is what changed, and the filter re-applied if it was the one in use.
+    /// </remarks>
+    private async Task RefreshOwnerScopesAsync()
+    {
+        if (!_initialized || IsLoading || Scopes.Count < 2) return;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var chars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync();
+            var corps = await db.Corporations.AsNoTracking().Select(c => new { c.Id, c.Name, c.Ticker, c.IsPersonal }).ToListAsync();
+
+            var mine = chars.Select(c => c.Id)
+                .Concat(corps.Where(c => c.IsPersonal).Select(c => (long)c.Id))
+                .ToHashSet();
+            var allMine = new ContractScopeOption(MarketText.ScopeAllCharsCorps, mine);
+
+            var wanted = new List<ContractScopeOption> { Scopes[0], allMine };
+            wanted.AddRange(chars.OrderBy(c => c.Name).Select(c => new ContractScopeOption(c.Name, new HashSet<long> { c.Id })));
+            wanted.AddRange(corps.OrderBy(c => c.Name).Select(c => new ContractScopeOption($"{c.Name} [{c.Ticker}]", new HashSet<long> { c.Id })));
+            wanted.AddRange(Scopes.Where(o => o.Ids is { Count: 1 } ids && o.Label != MarketText.ScopeAllCharsCorps
+                                              && EntityLinks.KindOf(ids.First()) == EntityKind.Alliance));
+
+            static string Key(ContractScopeOption o) =>
+                o.Ids is null ? "*"
+                : o.Label == MarketText.ScopeAllCharsCorps ? "mine"
+                : string.Join(",", o.Ids.Order());
+
+            var before = _selectedScope;
+            ListSync.Sync(Scopes, wanted, Key);
+
+            // The kept "mine" entry still carries the old set: replace it with the new one.
+            var at = Scopes.ToList().FindIndex(o => Key(o) == "mine");
+            if (at >= 0 && !Scopes[at].Ids!.SetEquals(mine)) Scopes[at] = allMine;
+
+            var selected = before is null ? null
+                         : Key(before) == "mine" ? Scopes[at]
+                         : Scopes.FirstOrDefault(o => Key(o) == Key(before));
+            if (!ReferenceEquals(selected, before) || selected is null)
+            {
+                _selectedScope = selected ?? (Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault());
+                this.RaisePropertyChanged(nameof(SelectedScope));
+                ApplyFilter();
+            }
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(OwnedContractsViewModel), nameof(RefreshOwnerScopesAsync), ex); }
     }
 
     private async Task LoadAsync()
@@ -1172,7 +1239,12 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
+
+        // A courier made by the character or corporation this row is for: its cargo, entered by
+        // hand — not one we were handed to carry.
+        var cargo = c.Type == "courier" && (c.IssuerId == c.OwnerId || c.IssuerCorporationId == c.OwnerId)
+            ? new CourierCargoVm(_dbFactory, c) : null;
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync, cargo);
     }
 }
 
@@ -1566,7 +1638,7 @@ public class PublicContractsViewModel : ReactiveObject
             // Filter values (type name, region) are passed as parameters via `ps`; only the
             // placeholder string, the fixed sort expression and computed integers are interpolated,
             // so this is not an injection vector despite EF1002.
-#pragma warning disable EF1002
+#pragma warning disable EF1002, EF1003
             // Count of the WHOLE filtered set (no ORDER BY/LIMIT so EF can wrap it in COUNT).
             int total = await db.EsiContracts
                 .FromSqlRaw($"SELECT * FROM \"EsiContracts\" AS c WHERE {where}", ps)
@@ -1584,7 +1656,7 @@ public class PublicContractsViewModel : ReactiveObject
                         $"SELECT * FROM \"EsiContracts\" AS c WHERE {where} " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {PageSize} OFFSET {offset}", ps)
                     .AsNoTracking().ToListAsync();
-#pragma warning restore EF1002
+#pragma warning restore EF1002, EF1003
 
             var cids = contracts.Select(c => c.ContractId).Distinct().ToList();
             var items = cids.Count == 0 ? new List<ContractItem>()

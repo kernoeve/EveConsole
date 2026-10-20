@@ -11,7 +11,7 @@ namespace EveConsole.Views;
 public partial class FitPaneView : UserControl
 {
     /// <summary>The drag-and-drop format carrying a fit's tab, within this app only.</summary>
-    public const string TabFormat = "EveConsole.FitTab";
+    public static readonly DataFormat<string> TabFormat = InProcessDrag.Format("EveConsole.FitTab");
 
     private FitTabViewModel? _pressed;
     private Point _pressedAt;
@@ -48,10 +48,8 @@ public partial class FitPaneView : UserControl
         if (Math.Abs(d.X) < 6 && Math.Abs(d.Y) < 6) return;
         _pressed = null;
 
-        var data = new DataObject();
-        data.Set(TabFormat, tab);
         tab.Tool.IsDraggingTab = true;
-        try { await DragDrop.DoDragDrop(e, data, DragDropEffects.Move); }
+        try { await InProcessDrag.RunAsync(e, TabFormat, tab, DragDropEffects.Move); }
         finally
         {
             tab.Tool.IsDraggingTab = false;
@@ -59,7 +57,7 @@ public partial class FitPaneView : UserControl
         }
     }
 
-    private static FitTabViewModel? Dragged(DragEventArgs e) => e.Data.Get(TabFormat) as FitTabViewModel;
+    private static FitTabViewModel? Dragged(DragEventArgs e) => InProcessDrag.Get<FitTabViewModel>(e, TabFormat);
 
     private bool OverStrip(DragEventArgs e) => e.GetPosition(Strip) is var p && p.Y >= 0 && p.Y <= Strip.Bounds.Height;
 

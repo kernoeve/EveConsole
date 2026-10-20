@@ -15,7 +15,7 @@ namespace EveConsole.ViewModels;
 public sealed record SummaryStatVm(string Label, string Value);
 
 /// <summary>One row on the worklist.</summary>
-public class WorklistRowVm : ReactiveObject, IExpandableRow
+public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => Key;
@@ -30,6 +30,224 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         _item    = item;
         Sequence = sequence;
     }
+
+    // ── What a row opens into, as rows of its own ─────────────────────────────
+    //
+    // ⚠️ Why rows, and not a drawer or a floating panel — see IFamilyRow. A row opens into its
+    // reason (a row per sentence), what waits on it, then its manifest or, for a hauling loop,
+    // its stops. Each is a row the height of every other row; the view pins that height.
+    //
+    // ⚠️ A child row carries its PARENT's item, so every sort key, the group and the readiness
+    // rail are the parent's: whatever column the list is sorted on, the detail stays under it.
+
+    private enum ChildKind { Heading, Line, Text }
+
+    private readonly WorklistRowVm? _parent;
+    private readonly ChildKind _childKind;
+    private readonly int    _childOrder;
+    private readonly int    _childTypeId;
+    private readonly string _childLabel  = "";
+    private readonly string _childAction = "";
+    private readonly string _childQty    = "";
+    private readonly string _childOther  = "";
+    private readonly string _childVolume = "";
+    private readonly string _childValue  = "";
+    private readonly string _childTotals = "";
+    private readonly IBrush? _childOtherColor;
+    private readonly bool   _childTurn;
+    private readonly WorklistHaulStop? _stop;
+
+    private WorklistRowVm(WorklistRowVm parent, int order, ChildKind kind, string label, bool turn = false,
+                          int typeId = 0, string action = "", string qty = "", string other = "",
+                          string volume = "", string value = "", string totals = "", IBrush? otherColor = null,
+                          WorklistHaulStop? stop = null)
+    {
+        _stop = stop;
+        _childOtherColor = otherColor;
+        _item        = parent._item;
+        Sequence     = parent.Sequence;
+        _parent      = parent;
+        _childOrder  = order;
+        _childKind   = kind;
+        _childLabel  = label;
+        _childTurn   = turn;
+        _childTypeId = typeId;
+        _childAction = action;
+        _childQty    = qty;
+        _childOther  = other;
+        _childVolume = volume;
+        _childValue  = value;
+        _childTotals = totals;
+    }
+
+    /// <summary>One of another row's detail rows rather than a task.</summary>
+    public bool IsChild => _parent is not null;
+
+    /// <summary>A heading among the detail: a loop's stop (its number, the structure, whether it
+    /// means a turn, and its totals), or the title of a list that follows.</summary>
+    public bool IsChildStop => IsChild && _childKind == ChildKind.Heading;
+
+    /// <summary>An item: dropped off or picked up at a stop, on the manifest, or waiting on this.</summary>
+    public bool IsChildLine => IsChild && _childKind == ChildKind.Line;
+
+    /// <summary>A sentence of the row's reason for being on the list.</summary>
+    public bool IsChildText => IsChild && _childKind == ChildKind.Text;
+
+    public string ChildLabel  => _childLabel;
+    public string ChildAction => _childAction;
+    public string ChildQty    => _childQty;
+    public string ChildOther  => _childOther;
+
+    /// <summary>The colour of <see cref="ChildOther"/>: a waiting job's verdict in its own colour —
+    /// green where this trip starts it — and the muted text of a note everywhere else.</summary>
+    public IBrush ChildOtherColor => _childOtherColor ?? Palette.TextDim;
+    public bool   ChildTurn   => _childTurn;
+
+    /// <summary>The item a detail row names, opened in the Item Browser.</summary>
+    public bool ChildHasLink  => IsChildLine && _childTypeId > 0;
+    public bool ShowsPlainChild => IsChildLine && _childTypeId <= 0;
+    public void OpenChildItem() { if (_childTypeId > 0) EntityNavigator.Instance.Item(_childTypeId); }
+
+    /// <summary>A stop's totals: what comes off and what goes on, in m³ and ISK.</summary>
+    public string ChildTotals => _childTotals;
+
+    /// <summary>The loop stop this row heads, which can be ticked off as hauled.</summary>
+    internal WorklistHaulStop? Stop => _stop;
+
+    private bool _marked;
+    /// <summary>Ticked off already: the button goes, so a second click cannot record it twice
+    /// before the list has been rebuilt without it.</summary>
+    public bool Marked
+    {
+        get => _marked;
+        set { this.RaiseAndSetIfChanged(ref _marked, value); this.RaisePropertyChanged(nameof(CanMarkHauled)); }
+    }
+
+    public bool CanMarkHauled => _stop is not null && !_marked;
+
+    /// <summary>A hauling service's trip: ticked off as handed to a courier, not as flown.</summary>
+    internal bool IsCourierTick => !IsLoop && _item.HaulMethod == HaulMethod.Service;
+
+    /// <summary>What ticking it off records: a loop's stop, a whole trip, or a trip handed to a courier.</summary>
+    public string MarkHauledTip => IsLoop ? WorklistText.TipHaulMarkHauled
+                                 : IsCourierTick ? WorklistText.TipHaulMarkContracted
+                                 : WorklistText.TipHaulMarkTrip;
+
+    public string MarkHauledText => IsCourierTick ? WorklistText.HaulMarkContracted : WorklistText.HaulMarkHauled;
+
+    /// <summary>The parent's place in the list, shared by its detail rows, so they sort as one.</summary>
+    public int FamilyOrder => Sequence;
+
+    /// <summary>0 on the row itself, then its detail rows in reading order.</summary>
+    public int ChildOrder => _childOrder;
+
+    private IReadOnlyList<WorklistRowVm>? _children;
+
+    /// <summary>What the row opens into: its reason, what waits on it, then its manifest or stops.</summary>
+    public IReadOnlyList<WorklistRowVm> Children => _children ??= BuildChildren();
+
+    private IReadOnlyList<WorklistRowVm> BuildChildren()
+    {
+        if (IsChild) return [];
+
+        static string Short(string place)
+        {
+            var dash = place.IndexOf(" - ", StringComparison.Ordinal);
+            return dash > 0 ? place[(dash + 3)..] : place;
+        }
+        static string M3(double v) => v < 0.1 ? "" : v >= 10 ? $"{v:N0} m³" : $"{v:N1} m³";
+
+        var rows  = new List<WorklistRowVm>();
+        var order = 0;
+
+        // The reason, in as few one-line rows as it fits: see FamilyRows.Lines.
+        //
+        // ⚠️ Not on a haul. There the reason is boilerplate ("Jobs are waiting on this", counts the
+        // list below already shows), and four rows of it pushed the stops — the part worth opening
+        // a loop for — down the screen. It stays on the row's ⓘ, as it is for every task.
+        if (_item.Kind != WorklistKind.Haul)
+            foreach (var line in FamilyRows.Lines(_item.Detail))
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Text, line));
+
+        // A loop's stops, in flying order: each stop, then what comes off, then what goes on.
+        for (var i = 0; i < _item.Stops.Count; i++)
+        {
+            var st = _item.Stops[i];
+
+            string Total(IReadOnlyList<WorklistStopLine> lines, string format) => lines.Count == 0 ? ""
+                : string.Format(format, M3(lines.Sum(l => l.Volume)) is { Length: > 0 } m ? m : "0 m³",
+                                StationNeedRowVm.Isk(lines.Sum(l => l.Value)));
+            var totals = string.Join("     ", new[]
+            {
+                Total(st.DropOff, WorklistText.HaulStopDropTotal),
+                Total(st.PickUp,  WorklistText.HaulStopPickTotal),
+            }.Where(t => t.Length > 0));
+
+            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, $"{i + 1}.  {st.StationName}",
+                                       st.TurnBefore, totals: totals, stop: st));
+
+            void Line(WorklistStopLine l, bool pickUp) =>
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line,
+                    SdeNames.Type(l.TypeId, l.TypeName), typeId: l.TypeId,
+                    action: pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff,
+                    qty:    l.Quantity.ToString("N0"),
+                    other:  string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom, Short(l.OtherName)),
+                    volume: M3(l.Volume),
+                    value:  l.Value > 0 ? StationNeedRowVm.Isk(l.Value) : ""));
+
+            foreach (var l in st.DropOff) Line(l, pickUp: false);
+            foreach (var l in st.PickUp)  Line(l, pickUp: true);
+        }
+
+        // A trip's manifest, first: what to load is what the trip is. A loop's cargo is already
+        // listed where it is handled, at its stops. The heading carries the trip's Hauled tick.
+        if (HasLines)
+        {
+            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop()));
+            foreach (var l in _item.Lines)
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, SdeNames.Type(l.TypeId, l.TypeName),
+                                           typeId: l.TypeId, qty: l.Quantity.ToString("N0"),
+                                           volume: l.VolumeText, value: l.ValueText));
+        }
+
+        // What is waiting on this, and whether this load releases it.
+        if (HasWaitingJobs)
+        {
+            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.WaitingOnThisLabel));
+            foreach (var w in WaitingJobs)
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId,
+                                           other: w.StatusText, otherColor: w.StatusColor));
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// A trip as one stop at its destination, everything on it put down there out of its source,
+    /// so ticking it off records it picked up and delivered at once — see
+    /// <see cref="WorklistService.MarkHauledAsync"/>.
+    ///
+    /// <para>A hauling service's trip is ticked off as Contracted instead: handed to a courier,
+    /// its cargo recorded with the courier contract — see <see cref="WorklistService.MarkContractedAsync"/>.</para>
+    /// </summary>
+    private WorklistHaulStop? TripStop() =>
+        _item.Kind == WorklistKind.Haul && !IsLoop && _item.Lines.Count > 0
+        && _item.LocationId > 0 && _item.DestinationId > 0
+            ? new WorklistHaulStop(_item.DestinationId, _item.DestinationName, false,
+                  [.. _item.Lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
+                                                                   _item.LocationId, _item.LocationName))],
+                  [])
+            : null;
+
+    /// <summary>Told when this row opens or closes, so its detail rows can be put in or taken out
+    /// of the grid without rebuilding it — which would lose the scroll position.</summary>
+    internal Action<WorklistRowVm>? ExpansionChanged { get; set; }
+
+    /// <summary>The # column: blank on a detail row, which shares its parent's number.</summary>
+    public string SequenceText => IsChild ? "" : Sequence.ToString("N0");
+
+    /// <summary>The kind glyph, which a detail row leaves to its parent.</summary>
+    public bool ShowsKindGlyph => !IsChild;
 
     /// <summary>
     /// This row's place in the default priority order, numbered from one.
@@ -50,9 +268,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// is, because "twelve items" and "how many trips is that" are one question when the answer
     /// decides which ship to undock.</para>
     /// </summary>
-    public string Title => _item.Kind == WorklistKind.Haul && _item.Volume > 0
-        ? $"{_item.Title} · {VolumeText}"
-        : _item.Title;
+    public string Title => _item.Kind != WorklistKind.Haul ? _item.Title
+        : string.Join(" · ", new[] { _item.Title, VolumeText, ValueText }.Where(s => s.Length > 0));
     public string Detail        => _item.Detail;
     public string SourceName    => _item.Source;
     public string CharacterName => _item.CharacterName.Length > 0 ? _item.CharacterName : "—";
@@ -108,11 +325,11 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     }
 
     /// <summary>
-    /// ⚠️ Blueprints have their own render, reached by a path segment rather than a parameter —
-    /// asking for /icon on a blueprint returns the generic paper sheet, so every print in a buy
-    /// list would look like every other print.
+    /// ⚠️ Blueprints have their own pictures, reached by a path segment rather than a parameter:
+    /// /bp for an original and /bpc for a copy. The image server refuses a blueprint's /icon. A
+    /// print to buy shows the copy, since runs are what is short and runs are bought as copies.
     /// </summary>
-    private string IconVariant => _item.TitleTag == "BPO/BPC" ? "bp" : "icon";
+    private string IconVariant => _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bpc" : "icon");
 
     /// <summary>
     /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
@@ -122,16 +339,33 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public async Task LoadIconAsync()
     {
-        // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
-        var url = _item.TypeId > 0
-            ? $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32"
-            : _item.IconUrl;
-        if (string.IsNullOrEmpty(url)) return;
+        // A stop row: the item handled, or nothing on the stop's own heading.
+        if (IsChild)
+        {
+            if (_childTypeId <= 0) return;
+            var line = await TypePictureAsync(_childTypeId, "icon");
+            if (line is not null) Dispatcher.UIThread.Post(() => Icon = line);
+            return;
+        }
 
-        var bmp = await EveImageCache.GetAsync(url);
+        // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
+        var bmp = _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
+                : !string.IsNullOrEmpty(_item.IconUrl) ? await EveImageCache.GetAsync(_item.IconUrl)
+                : null;
 
         if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
     }
+
+    /// <summary>
+    /// A type's picture, and a blueprint's when its icon is refused: a blueprint has none — the
+    /// image server answers its /icon with an error — and nothing on a manifest line, or on a row
+    /// whose generator did not say, tells a blueprint from anything else. The refusal is kept for
+    /// the session (<see cref="EveImageCache"/>), so this costs the one request.
+    /// </summary>
+    private static async Task<Bitmap?> TypePictureAsync(int typeId, string variant) =>
+        await EveImageCache.GetAsync($"https://images.evetech.net/types/{typeId}/{variant}?size=32")
+        ?? (variant == "icon" ? await EveImageCache.GetAsync(WorklistIcons.Blueprint(typeId, copy: false)) : null);
+
     public int    Priority      => _item.Priority;
 
     /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
@@ -154,7 +388,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     public string KindText => _item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,
-        WorklistKind.Haul        => WorklistText.KindHaul,
+        // A heading of its own per kind of trip: the loop flown between structures, a run a few
+        // gates over and an import from the far side of the map are three different errands.
+        WorklistKind.Haul        => _item.Lane switch
+        {
+            HaulLane.InSystem     => WorklistText.KindHaulInSystem,
+            HaulLane.Nearby       => WorklistText.KindHaulNearby,
+            HaulLane.LongDistance => WorklistText.KindHaulLongDistance,
+            _                     => WorklistText.KindHaul,
+        },
         WorklistKind.Refine      => WorklistText.KindRefine,
         WorklistKind.Decompress  => WorklistText.KindDecompress,
         WorklistKind.Job         => WorklistText.KindJob,
@@ -292,15 +534,17 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// Rounded to whole cubic metres above a thousand — nobody loads a hauler to the decimal, and
     /// the column is read to judge how many trips it is.
     /// </summary>
-    public string VolumeText => _item.Volume <= 0 ? ""
+    public string VolumeText => IsChild ? _childVolume
+        : _item.Volume <= 0 ? ""
         : _item.Volume >= 1000 ? $"{_item.Volume:N0} m³"
         : $"{_item.Volume:N1} m³";
 
-    /// <summary>The manifest, shown by expanding the row. Empty for single-item tasks.</summary>
-    private IReadOnlyList<WorklistLineVm>? _lines;
-    public IReadOnlyList<WorklistLineVm> Lines =>
-        _lines ??= [.. _item.Lines.Select(l => new WorklistLineVm(l))];
-    public bool HasLines => _item.Lines.Count > 0;
+    /// <summary>⚠️ Not for a loop: its stops list the same cargo where it is actually handled,
+    /// and a manifest beside them would be the whole load stated twice.</summary>
+    public bool HasLines => _item.Lines.Count > 0 && !IsLoop && !IsChild;
+
+    /// <summary>An in-system loop: one errand of several stops rather than one trip.</summary>
+    public bool IsLoop => _item.Stops.Count > 0;
 
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
     private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
@@ -318,7 +562,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
     /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
     /// their neighbours opened, which reads as missing data rather than as no data.</summary>
-    public bool CanExpand => HasLines || HasWaitingJobs || HasDetail;
+    public bool CanExpand => !IsChild && (HasLines || IsLoop || HasWaitingJobs || (HasDetail && !IsHaul));
     public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
@@ -332,8 +576,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         get => _isExpanded;
         set
         {
+            if (_isExpanded == value) return;
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpandGlyph));
+            ExpansionChanged?.Invoke(this);
         }
     }
 
@@ -353,14 +599,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     // presentation has to happen inside the cell — one panel per kind, only one of them visible.
     // Selection by kind rather than by CLR type because every row is the same class; splitting the
     // view model per kind would mean four near-identical types to keep in step.
-    public bool IsHaul  => _item.Kind == WorklistKind.Haul;
-    public bool IsJob   => _item.Kind == WorklistKind.Job;
-    public bool IsBuy   => _item.Kind == WorklistKind.Buy;
+    // ⚠️ Each false on a stop row, which carries its loop's item: the stop draws its own content.
+    public bool IsHaul  => !IsChild && _item.Kind == WorklistKind.Haul;
+    public bool IsJob   => !IsChild && _item.Kind == WorklistKind.Job;
+    public bool IsBuy   => !IsChild && _item.Kind == WorklistKind.Buy;
     /// <summary>Reprocessing and decompressing share a shape: what to do, and the one station to
     /// do it at.</summary>
-    public bool IsRefining => _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
+    public bool IsRefining => !IsChild && _item.Kind is WorklistKind.Refine or WorklistKind.Decompress;
 
-    public bool IsOther => !IsHaul && !IsJob && !IsBuy && !IsRefining;
+    public bool IsOther => !IsChild && !IsHaul && !IsJob && !IsBuy && !IsRefining;
 
     /// <summary>Source and destination as one phrase, since a haul is the pairing rather than two
     /// independent facts.</summary>
@@ -371,16 +618,77 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     /// its title — so sorting on Title alone rearranged haul rows by text the user could not see.
     /// Sorting has to follow what is on screen or it looks random.</para>
     /// </summary>
-    public string TaskSortText => IsHaul ? RouteText : Title;
+    public string TaskSortText => _parent is { } loop ? loop.TaskSortText : IsHaul ? RouteText : Title;
 
-    public string RouteText => $"{_item.LocationName}  →  {_item.DestinationName}";
+    /// <summary>A trip's two ends; a loop's first stop, since it has no single far end.</summary>
+    public string RouteText => IsLoop
+        ? string.Format(WorklistText.HaulLoopRoute, _item.LocationName)
+        : $"{_item.LocationName}  →  {_item.DestinationName}";
+
+    /// <summary>
+    /// How the haul's lane will make the trip: the method and the gates for a trip between
+    /// systems, then the ship and how many loads the cargo comes to.
+    ///
+    /// <para>The load count is the volume over the hold, rounded up, shared between the lane's
+    /// pilots when there are several. Left out when either is unknown — a hauling service, a
+    /// pilot in a capsule, a lane with no pilot set — rather than guessed.</para>
+    /// </summary>
+    public string HaulPlanText
+    {
+        get
+        {
+            if (!IsHaul) return "";
+
+            // Who flies it first: with two pilots sharing a system, which loop is whose is the
+            // first thing to know.
+            var parts = new List<string>();
+            if (_item.CharacterName.Length > 0) parts.Add(_item.CharacterName);
+
+            if (_item.Lane != HaulLane.InSystem)
+            {
+                parts.Add(HaulLaneText.Method(_item.HaulMethod));
+                parts.Add(_item.HaulJumps > 0 ? string.Format(WorklistText.HaulJumps, _item.HaulJumps)
+                                              : WorklistText.HaulNoGateRoute);
+            }
+
+            // The hold beside the hull: what the trip was sized with, so a plan that looks short of
+            // room can be checked against the game at a glance.
+            if (_item.HaulShipName.Length > 0)
+                parts.Add(_item.HaulCapacity > 0
+                    ? string.Format(WorklistText.HaulShipHold, SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName), _item.HaulCapacity)
+                    : SdeNames.Type(_item.HaulShipTypeId, _item.HaulShipName));
+
+            // A loop says how long it is and how often it turns round; its loads are in its stops.
+            if (IsLoop)
+            {
+                parts.Add(string.Format(WorklistText.HaulLoopStops, _item.Stops.Count));
+                if (_item.LoopTurns > 0) parts.Add(string.Format(WorklistText.HaulLoopTurns, _item.LoopTurns));
+            }
+            else if (_item.HaulCapacity > 0 && _item.Volume > 0)
+            {
+                var loads = (int)Math.Ceiling(_item.Volume / _item.HaulCapacity);
+
+                // Shared only when there is more than one load to share, and among no more pilots
+                // than there are loads: one load is one pilot's trip however many are listed.
+                var pilots = Math.Min(_item.HaulPilots, loads);
+                parts.Add(pilots > 1
+                    ? string.Format(WorklistText.HaulLoadsShared, loads, pilots,
+                                    (int)Math.Ceiling(loads / (double)pilots))
+                    : string.Format(WorklistText.HaulLoads, loads));
+            }
+
+            return string.Join(" · ", parts);
+        }
+    }
+
+    public bool HasHaulPlan => HaulPlanText.Length > 0;
 
     /// <summary>What the task is worth — the goods hauled, the purchase, the job's output.
     ///
     /// <para>Blank rather than zero when unpriced. Science jobs are the case that matters: a
     /// blueprint copy has no stored value per ME level, so the honest answer is nothing at all
     /// rather than a confident 0 ISK.</para></summary>
-    public string ValueText => _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
+    public string ValueText => IsChild ? _childValue : _item.Value > 0 ? StationNeedRowVm.Isk(_item.Value) : "";
 
     /// <summary>
     /// Everything the row knows that is not worth a line of its own, gathered for one tooltip.
@@ -402,7 +710,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         }
     }
 
-    public bool HasDetailTip => DetailTip.Length > 0;
+    public bool HasDetailTip => !IsChild && DetailTip.Length > 0;
 
     /// <summary>
     /// Where this row's task sits in the group order — the declaration order of
@@ -410,8 +718,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     ///
     /// <para>Sorted on rather than <see cref="KindText"/> so the groups do not fall into
     /// alphabetical order, which would put Buy before Haul for no reason a reader could name.</para>
+    ///
+    /// <para>Hauls split by lane within their place, in system first.</para>
     /// </summary>
-    public int KindRank => (int)_item.Kind;
+    public int KindRank => (int)_item.Kind * 10 + (int)_item.Lane;
 
     /// <summary>
     /// The row's leading edge bar.
@@ -605,16 +915,69 @@ public sealed class ShortageTaskRowVm : ReactiveObject
     };
 }
 
-public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
+public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
+    // ── Its suggestion and its tasks, as rows of their own ────────────────────
+    //
+    // See IFamilyRow for why rows and why one height. The suggestion shows on one line in the
+    // row; opening it gives the whole of it, a sentence to a row, and then the tasks behind the
+    // counts. A child row carries its parent's figures, so it sorts with it.
+
+    private readonly ItemShortageRowVm? _parent;
+
+    /// <summary>On a task row, the task.</summary>
+    public ShortageTaskRowVm? ChildTask { get; }
+
+    /// <summary>On a suggestion row, its sentence.</summary>
+    public string ChildText { get; } = "";
+
+    private ItemShortageRowVm(ItemShortageRowVm parent, ShortageTaskRowVm? task, string text, int childOrder)
+    {
+        s         = parent.s;
+        _parent     = parent;
+        ChildTask   = task;
+        ChildText   = text;
+        FamilyOrder = parent.FamilyOrder;
+        ChildOrder  = childOrder;
+        Tasks       = [];
+    }
+
+    public bool IsChild     => _parent is not null;
+    public bool IsChildTask => ChildTask is not null;
+    public bool IsChildText => IsChild && ChildTask is null;
+    public bool IsParent    => !IsChild;
+    public int  FamilyOrder { get; }
+    public int  ChildOrder  { get; }
+
+    /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
+    internal Action<ItemShortageRowVm>? ExpansionChanged { get; set; }
+
+    private IReadOnlyList<ItemShortageRowVm>? _children;
+    public IReadOnlyList<ItemShortageRowVm> Children => _children ??= BuildChildren();
+
+    private IReadOnlyList<ItemShortageRowVm> BuildChildren()
+    {
+        if (IsChild) return [];
+        var rows  = new List<ItemShortageRowVm>();
+        var order = 0;
+        foreach (var sentence in FamilyRows.Sentences(Advice)) rows.Add(new ItemShortageRowVm(this, null, sentence, ++order));
+        foreach (var task in Tasks) rows.Add(new ItemShortageRowVm(this, task, "", ++order));
+        return rows;
+    }
+
+    /// <summary>Something to open: tasks, or a suggestion longer than its one line.</summary>
+    public bool CanExpand => !IsChild && (HasTasks || Advice.Length > 0);
+
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => s.TypeId.ToString();
 
     private readonly ItemShortage s;
 
-    public ItemShortageRowVm(ItemShortage shortage)
+    /// <param name="order">Its place in the list as built, which its rows share.</param>
+    public ItemShortageRowVm(ItemShortage shortage, int order = 0)
     {
-        s     = shortage;
+        s           = shortage;
+        FamilyOrder = order;
         Tasks = [.. (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t))];
         _ = ItemIcons.LoadAsync(s.TypeId, b => Icon = b);
     }
@@ -633,10 +996,16 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
     public bool IsExpanded
     {
         get => _isExpanded;
-        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+        set
+        {
+            if (_isExpanded == value) return;
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            this.RaisePropertyChanged(nameof(Glyph));
+            ExpansionChanged?.Invoke(this);
+        }
     }
 
-    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+    public string Glyph => !CanExpand ? "" : _isExpanded ? "▾" : "▸";
 
     public string Item      => SdeNames.Type(s.TypeId, s.Name);
     public string Used      => string.Format(WorklistText.PerDayN1, s.UsedPerDay);
@@ -677,7 +1046,7 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
     /// </summary>
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
-    public bool HasTasks => s.Tasks is { Count: > 0 };
+    public bool HasTasks => !IsChild && s.Tasks is { Count: > 0 };
 
     /// <summary>
     /// The verdict as shown.
@@ -745,7 +1114,8 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 
     /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
 
-    public bool HasLink => s.TypeId > 0;
+    public bool HasLink => !IsChild && s.TypeId > 0;
+    public bool ShowsPlainItem => !IsChild && !HasLink;
     public void Open()  => s.OpenItem();
 }
 
@@ -782,6 +1152,7 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     /// the reader nothing the first line had not, and made the expanded row taller than the grid.
     /// </summary>
     public string TypeName => _count > 1 ? $"{Shown} × {_count:N0}" : Shown;
+    public int    TypeId      => _w.TypeId;
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
@@ -790,41 +1161,6 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
 
     /// <summary>The product as the screen names it. The record keeps the English.</summary>
     private string Shown => SdeNames.Type(_w.TypeId, _w.TypeName);
-
-    private Avalonia.Media.Imaging.Bitmap? _icon;
-    public Avalonia.Media.Imaging.Bitmap? Icon
-    {
-        get => _icon;
-        private set => this.RaiseAndSetIfChanged(ref _icon, value);
-    }
-}
-
-/// <summary>
-/// One manifest line, with the item's picture.
-///
-/// <para>⚠️ A view model rather than a property on WorklistLine. That is a record in the service
-/// layer, created fresh on every refresh and immutable — an icon arrives asynchronously and has to
-/// raise a change when it does, which a record cannot.</para>
-/// </summary>
-public sealed class WorklistLineVm : ReactiveObject
-{
-    private readonly WorklistLine _line;
-
-    public WorklistLineVm(WorklistLine line)
-    {
-        _line = line;
-        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b);
-    }
-
-    public WorklistLine Line => _line;
-
-    /// <summary>As the screen names it; <see cref="Line"/> keeps the English.</summary>
-    public string TypeName   => SdeNames.Type(_line.TypeId, _line.TypeName);
-    public long   Quantity   => _line.Quantity;
-    public string ValueText  => _line.ValueText;
-    public string VolumeText => _line.VolumeText;
-    public bool   HasItemLink => _line.HasItemLink;
-    public void   OpenItem()  => _line.OpenItem();
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon
@@ -850,7 +1186,15 @@ public sealed class ObservationPointVm : ReactiveObject
     public Avalonia.Media.Imaging.Bitmap? Icon
     {
         get => _icon;
-        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _icon, value);
+            // ⚠️ HasIcon too: the picture always lands after the card is built, and the bullet it
+            // replaces reads HasIcon. Without this, only cards drawn after their pictures had
+            // arrived ever showed them, and a refresh while the tab was open turned them all back
+            // into bullets.
+            this.RaisePropertyChanged(nameof(HasIcon));
+        }
     }
 
     /// <summary>⚠️ Only once the picture is actually here. Reserving the space up front leaves a
@@ -894,16 +1238,69 @@ public sealed class ObservationVm(Observation o)
 
 /// <summary>One stopped job on the Hauling tab.</summary>
 
-public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
+public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
+    // ── Its suggestion and its tasks, as rows of their own ────────────────────
+    //
+    // See IFamilyRow for why rows and why one height. The suggestion shows on one line in the
+    // row; opening it gives the whole of it, a sentence to a row, and then the tasks behind the
+    // counts. A child row carries its parent's figures, so it sorts with it.
+
+    private readonly HaulPressureRowVm? _parent;
+
+    /// <summary>On a task row, the task.</summary>
+    public ShortageTaskRowVm? ChildTask { get; }
+
+    /// <summary>On a suggestion row, its sentence.</summary>
+    public string ChildText { get; } = "";
+
+    private HaulPressureRowVm(HaulPressureRowVm parent, ShortageTaskRowVm? task, string text, int childOrder)
+    {
+        h         = parent.h;
+        _parent     = parent;
+        ChildTask   = task;
+        ChildText   = text;
+        FamilyOrder = parent.FamilyOrder;
+        ChildOrder  = childOrder;
+        Tasks       = [];
+    }
+
+    public bool IsChild     => _parent is not null;
+    public bool IsChildTask => ChildTask is not null;
+    public bool IsChildText => IsChild && ChildTask is null;
+    public bool IsParent    => !IsChild;
+    public int  FamilyOrder { get; }
+    public int  ChildOrder  { get; }
+
+    /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
+    internal Action<HaulPressureRowVm>? ExpansionChanged { get; set; }
+
+    private IReadOnlyList<HaulPressureRowVm>? _children;
+    public IReadOnlyList<HaulPressureRowVm> Children => _children ??= BuildChildren();
+
+    private IReadOnlyList<HaulPressureRowVm> BuildChildren()
+    {
+        if (IsChild) return [];
+        var rows  = new List<HaulPressureRowVm>();
+        var order = 0;
+        foreach (var sentence in FamilyRows.Sentences(Advice)) rows.Add(new HaulPressureRowVm(this, null, sentence, ++order));
+        foreach (var task in Tasks) rows.Add(new HaulPressureRowVm(this, task, "", ++order));
+        return rows;
+    }
+
+    /// <summary>Something to open: tasks, or a suggestion longer than its one line.</summary>
+    public bool CanExpand => !IsChild && (HasTasks || Advice.Length > 0);
+
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => h.TaskKey;
 
     private readonly HaulBlock h;
 
-    public HaulPressureRowVm(HaulBlock block)
+    /// <param name="order">Its place in the list as built, which its rows share.</param>
+    public HaulPressureRowVm(HaulBlock block, int order = 0)
     {
-        h     = block;
+        h           = block;
+        FamilyOrder = order;
         Tasks = [.. h.Tasks.Select(t => new ShortageTaskRowVm(t))];
         _ = ItemIcons.LoadAsync(h.TypeId, b => Icon = b);
     }
@@ -920,10 +1317,16 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
     public bool IsExpanded
     {
         get => _isExpanded;
-        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+        set
+        {
+            if (_isExpanded == value) return;
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            this.RaisePropertyChanged(nameof(Glyph));
+            ExpansionChanged?.Invoke(this);
+        }
     }
 
-    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+    public string Glyph => !CanExpand ? "" : _isExpanded ? "▾" : "▸";
 
     public string Task     => h.Title;
     public string Station  => h.StationName.Length > 0 ? h.StationName
@@ -958,10 +1361,12 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
 
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
-    public bool HasTasks => h.Tasks.Count > 0;
+    public bool HasTasks => !IsChild && h.Tasks.Count > 0;
 
-    public bool HasItemLink    => h.TypeId > 0;
-    public bool HasStationLink => h.StationId > 0;
+    public bool HasItemLink    => !IsChild && h.TypeId > 0;
+    public bool HasStationLink => !IsChild && h.StationId > 0;
+    public bool ShowsPlainTask    => !IsChild && !HasItemLink;
+    public bool ShowsPlainStation => !IsChild && !HasStationLink;
 
     public void OpenItem() => EntityNavigator.Instance.Item(h.TypeId);
 
@@ -977,22 +1382,77 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
     }
 }
 
-public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
+public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
+    // ── Its suggestion and its tasks, as rows of their own ────────────────────
+    //
+    // See IFamilyRow for why rows and why one height. The suggestion shows on one line in the
+    // row; opening it gives the whole of it, a sentence to a row, and then the tasks behind the
+    // counts. A child row carries its parent's figures, so it sorts with it.
+
+    private readonly PrintPressureRowVm? _parent;
+
+    /// <summary>On a task row, the task.</summary>
+    public ShortageTaskRowVm? ChildTask { get; }
+
+    /// <summary>On a suggestion row, its sentence.</summary>
+    public string ChildText { get; } = "";
+
+    private PrintPressureRowVm(PrintPressureRowVm parent, ShortageTaskRowVm? task, string text, int childOrder)
+    {
+        p         = parent.p;
+        _parent     = parent;
+        ChildTask   = task;
+        ChildText   = text;
+        FamilyOrder = parent.FamilyOrder;
+        ChildOrder  = childOrder;
+        Tasks       = [];
+    }
+
+    public bool IsChild     => _parent is not null;
+    public bool IsChildTask => ChildTask is not null;
+    public bool IsChildText => IsChild && ChildTask is null;
+    public bool IsParent    => !IsChild;
+    public int  FamilyOrder { get; }
+    public int  ChildOrder  { get; }
+
+    /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
+    internal Action<PrintPressureRowVm>? ExpansionChanged { get; set; }
+
+    private IReadOnlyList<PrintPressureRowVm>? _children;
+    public IReadOnlyList<PrintPressureRowVm> Children => _children ??= BuildChildren();
+
+    private IReadOnlyList<PrintPressureRowVm> BuildChildren()
+    {
+        if (IsChild) return [];
+        var rows  = new List<PrintPressureRowVm>();
+        var order = 0;
+        foreach (var sentence in FamilyRows.Sentences(Advice)) rows.Add(new PrintPressureRowVm(this, null, sentence, ++order));
+        foreach (var task in Tasks) rows.Add(new PrintPressureRowVm(this, task, "", ++order));
+        return rows;
+    }
+
+    /// <summary>Something to open: tasks, or a suggestion longer than its one line.</summary>
+    public bool CanExpand => !IsChild && (HasTasks || Advice.Length > 0);
+
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => p.ProductTypeId.ToString();
 
     private readonly ItemBandwidth p;
 
-    public PrintPressureRowVm(ItemBandwidth bandwidth)
+    /// <param name="order">Its place in the list as built, which its rows share.</param>
+    public PrintPressureRowVm(ItemBandwidth bandwidth, int order = 0)
     {
-        p     = bandwidth;
+        p           = bandwidth;
+        FamilyOrder = order;
         Tasks = [.. p.Tasks.Select(t => new ShortageTaskRowVm(t))];
 
-        // ⚠️ The PRODUCT's icon, not a blueprint one. This grid is named for the print but every
-        // row is identified by what it makes, and the image server has no blueprint art for a
-        // product id — asking for one returns nothing at all.
-        _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
+        // The print the row is about: the blueprint original, or for a reaction the formula —
+        // which the image server draws as a blueprint, so it is drawn here (FormulaPicture). The
+        // product's own icon only where the blueprint is not known.
+        if (p.IsReaction)               _ = ItemIcons.LoadFormulaAsync(p.ProductTypeId, b => Icon = b);
+        else if (p.BlueprintTypeId > 0) _ = ItemIcons.LoadAsync(p.BlueprintTypeId, b => Icon = b, blueprint: true);
+        else                            _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
     }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
@@ -1009,10 +1469,16 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
     public bool IsExpanded
     {
         get => _isExpanded;
-        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+        set
+        {
+            if (_isExpanded == value) return;
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            this.RaisePropertyChanged(nameof(Glyph));
+            ExpansionChanged?.Invoke(this);
+        }
     }
 
-    public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
+    public string Glyph => !CanExpand ? "" : _isExpanded ? "▾" : "▸";
 
     /// <summary>
     /// Work waiting on what this blueprint makes — the same walk Item Contention uses,
@@ -1025,7 +1491,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
 
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
-    public bool HasTasks => p.Tasks.Count > 0;
+    public bool HasTasks => !IsChild && p.Tasks.Count > 0;
 
     public string Product   => SdeNames.Type(p.ProductTypeId, p.ProductName);
     public string Cycle     => p.CycleDays >= 1 ? string.Format(WorklistText.DaysN1, p.CycleDays)
@@ -1114,35 +1580,73 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
         _          => Palette.TextMuted,
     };
 
-    public bool HasLink => p.ProductTypeId > 0;
+    public bool HasLink => !IsChild && p.ProductTypeId > 0;
+    public bool ShowsPlainItem => !IsChild && !HasLink;
     public void Open()  => p.OpenItem();
 }
 
-/// <summary>One line of "what is asking for this", under a need.</summary>
-public sealed class NeedDriverRowVm(NeedDriver d)
+public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
-    public string Driver => d.Label;
-    public string Kind   => d.Kind;
-    public long   QtyRaw => d.Qty;
-    public string Qty    => d.Qty.ToString("N0");
+    private readonly StationNeed n;
 
-    public bool HasLink => d.DriverTypeId > 0;
-    public void Open()  { if (d.DriverTypeId > 0) EntityNavigator.Instance.Item(d.DriverTypeId); }
-}
+    /// <param name="order">Its place in the list as built, which its "asked for by" rows share.</param>
+    public StationNeedRowVm(StationNeed need, int order = 0)
+    {
+        n           = need;
+        FamilyOrder = order;
+    }
 
-public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandableRow
-{
+    // ── "Asked for by", as rows of its own ────────────────────────────────────
+    //
+    // A need opens into one row per thing asking for it — see IFamilyRow for why rows and why one
+    // height. A driver row carries its need, so it groups and sorts with it; it draws its kind in
+    // the Station column, what it is for in the Item column and its share in Total.
+
+    private readonly StationNeedRowVm? _parent;
+    private readonly NeedDriver?       _driver;
+
+    private StationNeedRowVm(StationNeedRowVm parent, NeedDriver driver, int childOrder)
+    {
+        n           = parent.n;
+        _parent     = parent;
+        _driver     = driver;
+        FamilyOrder = parent.FamilyOrder;
+        ChildOrder  = childOrder;
+    }
+
+    public bool IsChild    => _parent is not null;
+    public int  FamilyOrder { get; }
+    public int  ChildOrder  { get; }
+
+    private IReadOnlyList<StationNeedRowVm>? _children;
+    public IReadOnlyList<StationNeedRowVm> Children =>
+        _children ??= IsChild ? [] : [.. n.Why.Select((d, i) => new StationNeedRowVm(this, d, i + 1))];
+
+    /// <summary>Told when this row opens or closes, so its rows go into the grid under it.</summary>
+    internal Action<StationNeedRowVm>? ExpansionChanged { get; set; }
+
+    public string ChildKind      => _driver?.Kind  ?? "";
+    public string ChildDriver    => _driver?.Label ?? "";
+    public bool   ChildHasLink   => _driver is { DriverTypeId: > 0 };
+    public void   OpenChild()    { if (_driver is { DriverTypeId: > 0 } d) EntityNavigator.Instance.Item(d.DriverTypeId); }
+
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => $"{n.StationId}/{n.TypeId}";
 
     private bool _isExpanded;
 
-    /// <summary>Whether the "asked for by" panel is open. Lives on the item, not the row, so the
-    /// glyph stays right when the grid recycles rows during a scroll.</summary>
+    /// <summary>Whether the "asked for by" rows are showing. Lives on the item, not the row, so
+    /// the glyph stays right when the grid recycles rows during a scroll.</summary>
     public bool IsExpanded
     {
         get => _isExpanded;
-        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); this.RaisePropertyChanged(nameof(Glyph)); }
+        set
+        {
+            if (_isExpanded == value) return;
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            this.RaisePropertyChanged(nameof(Glyph));
+            ExpansionChanged?.Invoke(this);
+        }
     }
 
     public string Glyph => !HasDrivers ? "" : _isExpanded ? "▾" : "▸";
@@ -1156,9 +1660,13 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandabl
     /// </summary>
     public string Item    => SdeNames.Type(n.TypeId, n.TypeName);
 
-    // Both names on a need point somewhere; the ids were already on the record.
-    public bool HasStationLink => n.StationId > 0 && n.StationName.Length > 0;
-    public bool HasItemLink    => n.TypeId    > 0 && n.TypeName.Length    > 0;
+    // Both names on a need point somewhere; the ids were already on the record. An "asked for by"
+    // row draws neither — its own text sits in the same cells.
+    public bool HasStationLink => !IsChild && n.StationId > 0 && n.StationName.Length > 0;
+    public bool HasItemLink    => !IsChild && n.TypeId    > 0 && n.TypeName.Length    > 0;
+    public bool ShowsPlainStation => !IsChild && !HasStationLink;
+    public bool ShowsPlainItem    => !IsChild && !HasItemLink;
+    public bool ShowsPlainDriver  => IsChild && !ChildHasLink;
 
     /// <summary>⚠️ Station versus structure by int range — SdeStations keys on an int, so an id
     /// above that range cannot be a station. A station need carries no discriminator.</summary>
@@ -1174,7 +1682,9 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandabl
     public void OpenItem() => EntityNavigator.Instance.Item(n.TypeId);
 
     public long   TotalRaw  => n.Total;
-    public string Total     => n.Total.ToString("N0");
+
+    /// <summary>The need's total; on an "asked for by" row, that row's share of it.</summary>
+    public string Total     => _driver is { } d ? d.Qty.ToString("N0") : n.Total.ToString("N0");
     public long   OnHandRaw => n.OnHand;
     public string OnHand    => n.OnHand.ToString("N0");
 
@@ -1200,18 +1710,8 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandabl
     public double ShortVolumeRaw => n.ShortfallVolume;
     public string ShortVolume    => n.Shortfall > 0 ? $"{n.ShortfallVolume:N0} m³" : "";
 
-    /// <summary>
-    /// What is asking for this here — the jobs behind the number, largest share first.
-    ///
-    /// <para>Shown as row details rather than a column: it is a list of variable length, and the
-    /// question it answers ("what is this FOR") is one people ask of a single row, not one they
-    /// scan a grid for.</para>
-    /// </summary>
-    public IReadOnlyList<NeedDriverRowVm> Drivers { get; } =
-        n.Why.Select(d => new NeedDriverRowVm(d)).ToList();
-
     /// <summary>False when nothing itemised this need, so the row shows no expander.</summary>
-    public bool HasDrivers => n.Why.Count > 0;
+    public bool HasDrivers => !IsChild && n.Why.Count > 0;
 
     public long   OrderJobsRaw => n.OrderJobs;
     public long   JobsRaw      => n.Jobs;
@@ -1298,6 +1798,14 @@ public class WorklistViewModel : ReactiveObject
     public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
     public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
     public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
+
+    // ⚠️ Views, not the lists, for the grids: a grid handed a plain list sorts a copy of its own,
+    // and a header click there would scatter a row's task rows. Through a view the family keys
+    // are kept last in the sort — see FamilyRows.Pin.
+    public DataGridCollectionView PrintPressureView { get; }
+    public DataGridCollectionView ItemShortagesView { get; }
+    public DataGridCollectionView HaulPressuresView { get; }
+    private bool _pinningPrint, _pinningShort, _pinningHaul;
     public ObservableCollection<ObservationVm>      Observations  { get; } = [];
 
     /// <summary>Deliveries that would restart several jobs at once. Above the grid rather
@@ -1381,22 +1889,22 @@ public class WorklistViewModel : ReactiveObject
                 // Built first, carried, then swapped in. Every row here is a new object, so what
                 // the reader had open is only recoverable from the OLD rows -- which is why the
                 // fill cannot start with Clear().
-                var printRows = prints.Select(p => new PrintPressureRowVm(p)).ToList();
-                var shortRows = shorts.Select(s => new ItemShortageRowVm(s)).ToList();
-                var haulRows  = hauls .Select(h => new HaulPressureRowVm(h)).ToList();
+                var printRows = prints.Select((p, i) => new PrintPressureRowVm(p, i + 1) { ExpansionChanged = r => FamilyRows.Toggle(PrintPressure, r, r.IsExpanded, r.Children) }).ToList();
+                var shortRows = shorts.Select((s, i) => new ItemShortageRowVm(s, i + 1)  { ExpansionChanged = r => FamilyRows.Toggle(ItemShortages, r, r.IsExpanded, r.Children) }).ToList();
+                var haulRows  = hauls .Select((h, i) => new HaulPressureRowVm(h, i + 1)  { ExpansionChanged = r => FamilyRows.Toggle(HaulPressures, r, r.IsExpanded, r.Children) }).ToList();
 
-                RowExpansion.Carry(PrintPressure, printRows);
-                RowExpansion.Carry(ItemShortages, shortRows);
-                RowExpansion.Carry(HaulPressures, haulRows);
+                RowExpansion.Carry(PrintPressure.Where(r => r.IsParent), printRows);
+                RowExpansion.Carry(ItemShortages.Where(r => r.IsParent), shortRows);
+                RowExpansion.Carry(HaulPressures.Where(r => r.IsParent), haulRows);
 
                 PrintPressure.Clear();
-                foreach (var p in printRows) PrintPressure.Add(p);
+                foreach (var p in FamilyRows.WithChildren(printRows, r => r.IsExpanded && r.CanExpand, r => r.Children)) PrintPressure.Add(p);
 
                 ItemShortages.Clear();
-                foreach (var s in shortRows) ItemShortages.Add(s);
+                foreach (var s in FamilyRows.WithChildren(shortRows, r => r.IsExpanded && r.CanExpand, r => r.Children)) ItemShortages.Add(s);
 
                 HaulPressures.Clear();
-                foreach (var h in haulRows) HaulPressures.Add(h);
+                foreach (var h in FamilyRows.WithChildren(haulRows, r => r.IsExpanded && r.CanExpand, r => r.Children)) HaulPressures.Add(h);
 
                 SharedTrips.Clear();
                 foreach (var t in SharedHauls.Find(hauls).Take(6)) SharedTrips.Add(t.Line);
@@ -1538,11 +2046,13 @@ public class WorklistViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var needRows = rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName)
-                                   .Select(r => new StationNeedRowVm(r)).ToList();
-                RowExpansion.Carry(Needs, needRows);
+                                   .Select((r, i) => new StationNeedRowVm(r, i + 1) { ExpansionChanged = OnNeedExpansionChanged })
+                                   .ToList();
+                RowExpansion.Carry(Needs.Where(r => !r.IsChild), needRows);
 
                 Needs.Clear();
-                foreach (var r in needRows) Needs.Add(r);
+                foreach (var r in FamilyRows.WithChildren(needRows, r => r.IsExpanded && r.HasDrivers, r => r.Children))
+                    Needs.Add(r);
 
                 // ⚠️ Both views, explicitly. A DataGridCollectionView groups what it is holding
                 // when it is asked to, and a view whose grid has never been realised is not asked
@@ -1587,6 +2097,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>Config → Hauling: how each kind of trip is made, and by whom.</summary>
+    public WorklistHaulingViewModel HaulingVm { get; }
+
     /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
     public WorklistFinalProductsViewModel FinalProductsVm { get; }
 
@@ -1603,6 +2116,7 @@ public class WorklistViewModel : ReactiveObject
                              WorklistIndustryViewModel industry,
                              WorklistStationLevelsViewModel stationLevels,
                              WorklistFinalProductsViewModel finalProducts,
+                             WorklistHaulingViewModel hauling,
                              BottleneckService bottlenecks,
                              ItemContentionService itemContention,
                              HaulPressureService   haulPressure)
@@ -1639,6 +2153,17 @@ public class WorklistViewModel : ReactiveObject
         PinItemNeedsGroupOrder();
         ItemNeedsView.SortDescriptions.CollectionChanged += (_, _) => PinItemNeedsGroupOrder();
 
+        PrintPressureView = new DataGridCollectionView(PrintPressure);
+        ItemShortagesView = new DataGridCollectionView(ItemShortages);
+        HaulPressuresView = new DataGridCollectionView(HaulPressures);
+        void PinPrint() => FamilyRows.Pin(PrintPressureView, null, ref _pinningPrint);
+        void PinShort() => FamilyRows.Pin(ItemShortagesView, null, ref _pinningShort);
+        void PinHaul()  => FamilyRows.Pin(HaulPressuresView, null, ref _pinningHaul);
+        PinPrint(); PinShort(); PinHaul();
+        PrintPressureView.SortDescriptions.CollectionChanged += (_, _) => PinPrint();
+        ItemShortagesView.SortDescriptions.CollectionChanged += (_, _) => PinShort();
+        HaulPressuresView.SortDescriptions.CollectionChanged += (_, _) => PinHaul();
+
         RefreshBottlenecksCommand = ReactiveCommand.CreateFromTask(RefreshBottlenecksAsync);
         RefreshBottlenecksCommand.ThrownExceptions.Subscribe(
             ex => BottleneckStatus = string.Format(WorklistText.BottlenecksError, ex.Message));
@@ -1653,6 +2178,8 @@ public class WorklistViewModel : ReactiveObject
         StationLevelsVm = stationLevels;
         FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
+        HaulingVm = hauling;
+        HaulingVm.HaulingChanged = RefreshAsync;
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.
@@ -1804,9 +2331,29 @@ public class WorklistViewModel : ReactiveObject
     /// the user may not be looking at, so the sections accept data that is a few minutes old.</para>
     /// </summary>
     public Task RefreshIfStaleAsync(TimeSpan maxAge)
-        => _lastRefreshUtc is { } last && DateTimeOffset.UtcNow - last < maxAge
+        => _lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge)
             ? Task.CompletedTask
             : RefreshAsync();
+
+    private bool _autoRefresh = UiState.GetBool(UiState.WorklistAutoRefresh, true);
+
+    /// <summary>
+    /// Whether the list rebuilds itself every few minutes, or only when asked.
+    ///
+    /// <para>⚠️ Off is for working a plan. A rebuild replans from the live state — where each pilot
+    /// is now, which loop gets which cargo — so a hauling loop two stops in came back with its
+    /// items reshuffled between the pilots flying it. Refresh, a snooze and a settings change
+    /// still rebuild it, since the user asked for each of those.</para>
+    /// </summary>
+    public bool AutoRefresh
+    {
+        get => _autoRefresh;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoRefresh, value);
+            UiState.SetBool(UiState.WorklistAutoRefresh, value);
+        }
+    }
     private string _hiddenTail = "";
 
     public ObservableCollection<string> StateOptions     { get; } = [];
@@ -1903,15 +2450,90 @@ public class WorklistViewModel : ReactiveObject
     /// <see cref="WorklistRowVm.KindRank"/> defines whatever else is being sorted on.</summary>
     private bool _pinningGroupOrder;
 
-    private void PinGroupOrder()
-    {
-        if (_pinningGroupOrder) return;              // the insert below re-raises this
-        var sorts = RowsView.SortDescriptions;
-        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(WorklistRowVm.KindRank)) return;
+    /// <summary>
+    /// The group key first, and a loop's family last: <see cref="WorklistRowVm.FamilyOrder"/>
+    /// then <see cref="WorklistRowVm.ChildOrder"/>.
+    ///
+    /// <para>⚠️ The tail is what keeps a loop's stop rows under it. They carry the loop's own
+    /// values for every column, so they tie with it — and with any other row that happens to
+    /// share the value sorted on. Last in the sort, the loop's number keeps two families from
+    /// interleaving and the child order puts the stops in flying order beneath their loop. A
+    /// header click replaces the sort wholesale, so this runs again and puts both back at the end.</para>
+    /// </summary>
+    private void PinGroupOrder() =>
+        FamilyRows.Pin(RowsView, nameof(WorklistRowVm.KindRank), ref _pinningGroupOrder);
 
-        _pinningGroupOrder = true;
-        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(WorklistRowVm.KindRank))); }
-        finally { _pinningGroupOrder = false; }
+    /// <summary>A row, and after it its detail rows when it is open.</summary>
+    private static IEnumerable<WorklistRowVm> WithDetail(WorklistRowVm row)
+    {
+        yield return row;
+        if (!row.IsExpanded || !row.CanExpand) yield break;
+        foreach (var child in row.Children) yield return child;
+        _ = Task.WhenAll(row.Children.Select(c => c.LoadIconAsync()));
+    }
+
+    /// <summary>
+    /// A loop opened or closed: its stop rows go into the grid under it, or come out.
+    ///
+    /// <para>⚠️ One at a time rather than a Reset of the whole list. A Reset recycles every row,
+    /// and the reader who opened a loop halfway down the list would be thrown back to the top.
+    /// A loop's stops are tens of rows, not hundreds, which per-row inserts handle.</para>
+    /// </summary>
+    /// <summary>
+    /// A loop's stop ticked off as hauled: its pick-ups go into the pilot's hold and its drop-offs
+    /// are delivered, until the asset poll shows them — see HaulLag — and the list is rebuilt with
+    /// that, so the stop leaves the loop and any job it was holding up can start.
+    /// </summary>
+    public Task MarkHauledAsync(WorklistRowVm stopRow) =>
+        RecordAsync(stopRow, stop => stopRow.IsCourierTick
+            ? _service.MarkContractedAsync(stop)
+            : _service.MarkHauledAsync(stopRow.Item.CharacterId, stop));
+
+    /// <summary>
+    /// A hauling-service trip's cargo to correct before it is recorded as contracted: the trip's
+    /// manifest to start from, and the most its lane's contracts may hold. Null for a row that is
+    /// not such a trip, or is ticked already. See <see cref="ContractedCargoVm"/>.
+    /// </summary>
+    public ContractedCargoVm? ContractedEditor(WorklistRowVm stopRow)
+    {
+        if (!stopRow.IsCourierTick || stopRow.Stop is not { } stop || stopRow.Marked) return null;
+        var item = stopRow.Item;
+        return new ContractedCargoVm(
+            _service.DbFactory,
+            string.Format(WorklistText.ContractedRoute, item.LocationName, item.DestinationName),
+            _service.Settings.HaulLaneFor(item.Lane).ContractM3,
+            stop.DropOff.Where(l => l.Quantity > 0).Select(l => (l.TypeId, SdeNames.Type(l.TypeId, l.TypeName), l.Quantity)));
+    }
+
+    /// <summary>A hauling-service trip ticked off as contracted, with the cargo the reader confirmed.</summary>
+    public Task MarkContractedAsync(WorklistRowVm stopRow, IReadOnlyList<(int TypeId, long Quantity)> cargo) =>
+        RecordAsync(stopRow, stop => _service.MarkContractedAsync(stop, cargo));
+
+    private async Task RecordAsync(WorklistRowVm stopRow, Func<WorklistHaulStop, Task> record)
+    {
+        if (stopRow.Stop is not { } stop || stopRow.Marked) return;
+        stopRow.Marked = true;
+        try
+        {
+            await Task.Run(() => record(stop));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            stopRow.Marked = false;
+            Errors = string.Format(WorklistText.HaulMarkFailed, ex.Message);
+        }
+    }
+
+    private void OnRowExpansionChanged(WorklistRowVm row)
+    {
+        if (row.IsChild || !row.CanExpand) return;
+
+        // Not on screen: ApplyFilters adds them when it is.
+        FamilyRows.Toggle(Rows, row, row.IsExpanded, row.Children);
+        if (row.IsExpanded) _ = Task.WhenAll(row.Children.Select(c => c.LoadIconAsync()));
+
+        UpdateStatus();
     }
 
     private bool _pinningNeedsGroupOrder;
@@ -1923,34 +2545,26 @@ public class WorklistViewModel : ReactiveObject
     /// order among stations, and alphabetical is at least the one a reader can predict. Inside a
     /// group the user's own column sort still applies.</para>
     /// </summary>
-    private void PinNeedsGroupOrder()
-    {
-        if (_pinningNeedsGroupOrder) return;
-        var sorts = NeedsView.SortDescriptions;
-        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(StationNeedRowVm.Station)) return;
+    private void PinNeedsGroupOrder() =>
+        FamilyRows.Pin(NeedsView, nameof(StationNeedRowVm.Station), ref _pinningNeedsGroupOrder);
 
-        _pinningNeedsGroupOrder = true;
-        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Station))); }
-        finally { _pinningNeedsGroupOrder = false; }
+    /// <summary>A need opened or closed: its "asked for by" rows go into the list under it, or out.</summary>
+    private void OnNeedExpansionChanged(StationNeedRowVm row)
+    {
+        if (row.IsChild || !row.HasDrivers) return;
+        FamilyRows.Toggle(Needs, row, row.IsExpanded, row.Children);
     }
 
     private bool _pinningItemNeedsGroupOrder;
 
-    private void PinItemNeedsGroupOrder()
-    {
-        if (_pinningItemNeedsGroupOrder) return;
-        var sorts = ItemNeedsView.SortDescriptions;
-        if (sorts.Count > 0 && sorts[0].PropertyPath == nameof(StationNeedRowVm.Item)) return;
-
-        _pinningItemNeedsGroupOrder = true;
-        try   { sorts.Insert(0, DataGridSortDescription.FromPath(nameof(StationNeedRowVm.Item))); }
-        finally { _pinningItemNeedsGroupOrder = false; }
-    }
+    private void PinItemNeedsGroupOrder() =>
+        FamilyRows.Pin(ItemNeedsView, nameof(StationNeedRowVm.Item), ref _pinningItemNeedsGroupOrder);
 
     private void ApplyFilters()
     {
-        // One notification, not one per row: this is the grid's ItemsSource.
-        Rows.ResetTo(_pool.Where(Matches));
+        // One notification, not one per row: this is the grid's ItemsSource. An open loop brings
+        // its stop rows with it.
+        Rows.ResetTo(_pool.Where(Matches).SelectMany(WithDetail));
 
         UpdateStatus();
         this.RaisePropertyChanged(nameof(HasFilters));
@@ -2084,7 +2698,8 @@ public class WorklistViewModel : ReactiveObject
     {
         ReadyCountText = _readyTotal.ToString("N0");
 
-        var shown = Rows.Count;
+        // Tasks, not grid rows: an open loop's stop rows are its detail.
+        var shown = Rows.Count(r => !r.IsChild);
 
         // "Shown" is only worth saying when it differs from the ready count — otherwise the two
         // numbers are the same fact stated twice.
@@ -2154,7 +2769,8 @@ public class WorklistViewModel : ReactiveObject
                 // Numbered here, off the ordered list, so the sequence is the default order itself
                 // rather than a second guess at it. Built off-thread with everything else — the
                 // rows are plain view models until something binds to them.
-                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+                var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1) { ExpansionChanged = OnRowExpansionChanged })
+                                  .ToList();
 
                 // Icons fetched together rather than one per row as the grid realises them: they
                 // come from a cache that dedupes across refreshes, so a rebuild costs nothing

@@ -19,10 +19,10 @@ public partial class FittingView : UserControl
     {
         InitializeComponent();
         SplitDropZone.AddHandler(DragDrop.DragOverEvent, (_, e) =>
-            e.DragEffects = e.Data.Get(FitPaneView.TabFormat) is FitTabViewModel ? DragDropEffects.Move : DragDropEffects.None);
+            e.DragEffects = InProcessDrag.Get<FitTabViewModel>(e, FitPaneView.TabFormat) is not null ? DragDropEffects.Move : DragDropEffects.None);
         SplitDropZone.AddHandler(DragDrop.DropEvent, (_, e) =>
         {
-            if (Vm is { } vm && e.Data.Get(FitPaneView.TabFormat) is FitTabViewModel tab) vm.MoveTab(tab, vm.RightPane);
+            if (Vm is { } vm && InProcessDrag.Get<FitTabViewModel>(e, FitPaneView.TabFormat) is { } tab) vm.MoveTab(tab, vm.RightPane);
             e.Handled = true;
         });
     }
@@ -102,7 +102,7 @@ public partial class FittingView : UserControl
     // ── Dragging an item onto the fit ──
 
     /// <summary>The drag-and-drop format carrying an item from the finder, within this app only.</summary>
-    public const string ItemFormat = "EveConsole.FitItem";
+    public static readonly DataFormat<string> ItemFormat = InProcessDrag.Format("EveConsole.FitItem");
 
     private CatalogEntry? _pressedEntry;
     private Point _pressedAt;
@@ -124,8 +124,6 @@ public partial class FittingView : UserControl
         var d = e.GetPosition(this) - _pressedAt;
         if (Math.Abs(d.X) < 6 && Math.Abs(d.Y) < 6) return;
         _pressedEntry = null;
-        var data = new DataObject();
-        data.Set(ItemFormat, entry);
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
+        await InProcessDrag.RunAsync(e, ItemFormat, entry, DragDropEffects.Copy);
     }
 }

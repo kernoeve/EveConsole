@@ -101,6 +101,8 @@ public static class BulkImportUndo
             Discard(path);   // whatever an import that died left behind
 
             var undo = new FileCopyUndo(db, tables, path, report);
+            void Waiting(int attempt) =>
+                report(SettingsText.ImportStagePreparing, string.Format(SettingsText.ImportWaitingForDatabase, attempt), -1);
             try
             {
                 await db.Database.ExecuteSqlRawAsync(
@@ -112,8 +114,8 @@ public static class BulkImportUndo
                     // One statement, one implicit transaction. CREATE TABLE AS copies the columns
                     // in order and none of the indexes, which is all a restore needs: it is read
                     // back with INSERT INTO ... SELECT *, never queried on its own.
-                    await db.Database.ExecuteSqlRawAsync(
-                        $"CREATE TABLE undobak.\"{t}\" AS SELECT * FROM main.\"{t}\"", ct);
+                    await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync(
+                        $"CREATE TABLE undobak.\"{t}\" AS SELECT * FROM main.\"{t}\"", ct), Waiting, ct);
 
                     report(SettingsText.ImportStagePreparing, string.Format(SettingsText.ImportCopyingAside, ++n, tables.Count), -1);
                 }
@@ -165,9 +167,22 @@ public static class BulkImportUndo
             var n = 0;
             foreach (var t in tables)
             {
-                await db.Database.ExecuteSqlRawAsync($"DELETE FROM main.\"{t}\"", ct);
-                await db.Database.ExecuteSqlRawAsync(
-                    $"INSERT INTO main.\"{t}\" SELECT * FROM undobak.\"{t}\"", ct);
+                // ⚠️ The columns named, the copy's own. An import may add columns as it goes (the
+                // SDE's completeness pass does, for fields CCP has added), and SELECT * into a table
+                // that has grown since the copy was taken fails on the count — the restore the
+                // whole copy exists for. Named, the old columns come back and the new stay empty.
+                var columns = await db.Database
+                    .SqlQueryRaw<string>($"SELECT name AS \"Value\" FROM pragma_table_info('{t}', 'undobak')")
+                    .ToListAsync(ct);
+                var list = string.Join(", ", columns.Select(c => $"\"{c.Replace("\"", "\"\"")}\""));
+
+                // Each statement whole in itself, so each is made again on its own if the database
+                // is locked: a restore that gave up halfway would leave the table empty.
+                void Waiting(int attempt) =>
+                    report(SettingsText.ImportStageRestoring, string.Format(SettingsText.ImportWaitingForDatabase, attempt), -1);
+                await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync($"DELETE FROM main.\"{t}\"", ct), Waiting, ct);
+                await SqliteBusy.RetryAsync(() => db.Database.ExecuteSqlRawAsync(
+                    $"INSERT INTO main.\"{t}\" ({list}) SELECT {list} FROM undobak.\"{t}\"", ct), Waiting, ct);
 
                 report(SettingsText.ImportStageRestoring, string.Format(SettingsText.ImportPuttingBack, ++n, tables.Count), -1);
             }

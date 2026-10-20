@@ -199,6 +199,15 @@ public class NetWorthViewModel : ReactiveObject
 
     public async Task InitializeAsync()
     {
+        OwnerList.Changed += () => _ = LoadOwnerOptionsAsync();
+        await LoadOwnerOptionsAsync();
+        await LoadDataAsync();
+    }
+
+    /// <summary>Personal, then each non-personal corporation. Read again, in place, when
+    /// corporations are added or removed (<see cref="OwnerList"/>), so the owner picked stays picked.</summary>
+    private async Task LoadOwnerOptionsAsync()
+    {
         await using var db = await _dbFactory.CreateDbContextAsync();
         var corps = await db.Corporations
             .Where(c => !c.IsPersonal)
@@ -206,14 +215,18 @@ public class NetWorthViewModel : ReactiveObject
             .AsNoTracking()
             .ToListAsync();
 
-        OwnerOptions.Clear();
-        OwnerOptions.Add(new NetWorthOwnerOption(FinanceText.OwnerPersonal, IsPersonal: true, CorpId: null));
-        foreach (var c in corps)
-            OwnerOptions.Add(new NetWorthOwnerOption(c.Name, IsPersonal: false, CorpId: c.Id));
+        var options = new List<NetWorthOwnerOption> { new(FinanceText.OwnerPersonal, IsPersonal: true, CorpId: null) };
+        options.AddRange(corps.Select(c => new NetWorthOwnerOption(c.Name, IsPersonal: false, CorpId: c.Id)));
+        ListSync.Sync(OwnerOptions, options, o => o.CorpId ?? 0);
 
-        _selectedOwner = OwnerOptions[0];
-        this.RaisePropertyChanged(nameof(SelectedOwner));
-        await LoadDataAsync();
+        if (_selectedOwner is null || !OwnerOptions.Contains(_selectedOwner))
+        {
+            var first = _selectedOwner is null;
+            _selectedOwner = OwnerOptions[0];
+            this.RaisePropertyChanged(nameof(SelectedOwner));
+            // The corporation on screen was removed: show what is left rather than its last figures.
+            if (!first) await LoadDataAsync();
+        }
     }
 
     // ── Data loading ──────────────────────────────────────────────────────────

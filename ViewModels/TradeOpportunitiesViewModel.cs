@@ -44,7 +44,12 @@ public class TradeRow
     public double DestUnitVol30d { get; init; }
     public double DestIskVol30d  { get; init; }
 
+    /// <summary>Profit on what a unit costs to buy here, as Industry Opportunities gives profit on
+    /// what it costs to build: 0.25 is 25 %.</summary>
+    public double Margin => BestSell > 0 ? ProfitPerUnit / BestSell : 0;
+
     public string BestSellDisplay    => FormatIsk(BestSell);
+    public string MarginDisplay      => $"{Margin * 100:N1}%";
     public string DestPriceDisplay   => FormatIsk(DestPrice);
     public string ProfitUnitDisplay  => FormatIsk(ProfitPerUnit);
     public string ProfitM3Display    => FormatIsk(ProfitPerM3);

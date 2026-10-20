@@ -91,6 +91,18 @@ public class TrackedOrderRowVm : ReactiveObject
     /// <summary>A star rather than True/False: the column is scanned, not read.</summary>
     public string PriorityMark { get; }
     public double PurchaseRaw { get; } public string Purchase { get; }
+
+    /// <summary>Sell — we sell to the buyer — or Buy, off a store's Buy listing: the other party
+    /// sells to us, and the price is what we pay.</summary>
+    public bool   IsBuy    { get; }
+    public string SideText { get; }
+
+    /// <summary>A buy order whose contracts ask more than was quoted: the price is marked, and the
+    /// tip says by how much, before anyone accepts them.</summary>
+    public bool   AsksMore    { get; }
+    public string PurchaseTip { get; }
+    public IBrush PurchaseColor => AsksMore ? Palette.Bad : Palette.TextPrimary;
+
     public string StatusRaw   { get; } public string Status   { get; }
     public double BuildRaw  { get; } public string Build  { get; }
     /// <summary>Which day's cost the Build cell is quoting — the settled day, or today.</summary>
@@ -210,7 +222,7 @@ public class TrackedOrderRowVm : ReactiveObject
         ContractToType = o.ContractToType;
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
-        CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
+        CreatedText = OrderSummaryRowVm.CreatedText(o.CreatedAt);
         TypeId      = o.TypeId;   Type  = SdeNames.Type(o.TypeId, typeName);
         TypeEnglish = typeName;
         Units       = o.Units;    UnitsText = o.Units.ToString("N0");
@@ -219,7 +231,14 @@ public class TrackedOrderRowVm : ReactiveObject
         BuyerType   = o.BuyerType;
         EstDate     = o.EstimatedDate ?? "";
         CompletedOn = o.CompletedOn ?? "";
-        PurchaseRaw = o.PurchasePrice; Purchase = MarketFmt.Isk(o.PurchasePrice);
+        IsBuy       = o.IsBuy;
+        SideText    = o.IsBuy ? SalesText.ListingBuy : SalesText.ListingSell;
+        AsksMore    = o.AsksMore;
+        PurchaseRaw = o.PurchasePrice;
+        Purchase    = MarketFmt.Isk(o.PurchasePrice) + (AsksMore ? " ⚠" : "");
+        PurchaseTip = AsksMore
+            ? string.Format(SalesText.TipContractsAskMore, MarketFmt.Isk(o.ContractedPrice), MarketFmt.Isk(o.PurchasePrice))
+            : "";
         StatusRaw   = o.Status;
         IsPriority  = o.IsPriority;
         PriorityMark = o.IsPriority ? "★" : "";
@@ -242,8 +261,10 @@ public class TrackedOrderRowVm : ReactiveObject
         // being worked. Units on a contract are already made out to the buyer, and a settled
         // order is history: "19/50" and a red shortfall for either is a question about supply
         // nobody needs to answer, and on a contracted row it contradicts the contract beside it.
+        // ⚠️ Nothing at all on a buy order: its goods are coming in, and "0/5" with a red
+        // shortfall would read as stock we owe somebody.
         var toSupply = OrderContractLinks.StillToSupply(o);
-        var open     = toSupply > 0;
+        var open     = !o.IsBuy && toSupply > 0;
 
         // ⚠️ In build too, and the sort values with the text. "2 in build" stayed on an order
         // whose contract carried both hulls, telling the user it still waited on jobs that were
@@ -267,10 +288,13 @@ public class TrackedOrderRowVm : ReactiveObject
         BuildBasis = buildAsOf.Length > 0
             ? string.Format(SalesText.TipBuildCostAsOf, buildAsOf)
             : SalesText.TipBuildCostCurrent;
-        var profit = buildCost is double bc ? o.PurchasePrice - bc : (double?)null;
+        // A buy order the other way round: what the goods are worth to build, less what we pay.
+        var profit = buildCost is double bc ? (o.IsBuy ? bc - o.PurchasePrice : o.PurchasePrice - bc) : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
-        var pct = buildCost is double bc2 && bc2 != 0 ? (o.PurchasePrice - bc2) / bc2 * 100 : (double?)null;
+        var pct = buildCost is double bc2 && bc2 != 0
+            ? (o.IsBuy ? bc2 - o.PurchasePrice : o.PurchasePrice - bc2) / (o.IsBuy ? Math.Max(1, o.PurchasePrice) : bc2) * 100
+            : (double?)null;
         ProfitPctRaw = pct ?? double.MinValue;
         ProfitPct    = pct is double pp ? $"{pp:N1}%" : "—";
 
@@ -280,7 +304,7 @@ public class TrackedOrderRowVm : ReactiveObject
         Signature = string.Join("\u001f",
             Type, Units, Buyer, EstDate, CompletedOn, PriorityMark, Status,
             StockText, IndyJob, ShortfallText, Contract, ContractTip, FromStock,
-            DeliveredText, OnContractText,
+            DeliveredText, OnContractText, SideText, PurchaseTip,
             Purchase, Build, BuildBasis, Profit, ProfitPct,
             string.Join(",", LabelList));
     }

@@ -244,6 +244,84 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>en attente de matériaux</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>liste de prix</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>ce que nous achetons</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>Nous achetons les objets ci-dessous à ces prix. Pour nous vendre, envoyez SELL avec les objets dans le corps du courrier, écrits comme pour une commande.</value>
+  </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>Créez tous les contrats à {0}.</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>proposez-nous des objets de notre liste d'achat, un objet par ligne dans le corps du courrier, comme pour une commande.</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>Nous répondons avec ce que nous paierons, et à qui établir le contrat de troc.</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — offre {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — offre non comprise</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — offre non acceptée</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>Offre {0} reçue</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>Créez maintenant un contrat de &lt;b&gt;Troc&lt;/b&gt; pour {0} contenant ces objets, avec &lt;b&gt;{1}&lt;/b&gt; dans « Je recevrai ».</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>Créez le contrat à &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>Indiquer {0} dans la description du contrat nous aide à le retrouver.</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>Cette boutique n'achète rien pour le moment.</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>Cette boutique n'accepte pas d'offres pour le moment.</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>Rien dans cette offre ne figure sur notre liste d'achat.</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>Sur notre liste d'achat : {0}. Pour nous les vendre, envoyez plutôt SELL.</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>Sur notre liste de prix : {0}. Pour les acheter, envoyez plutôt ORDER.</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>contrat accepté — payé</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>la boutique a refusé le contrat, cette offre est donc close</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>contrat reçu — en attente de son acceptation par la boutique</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>contrat reçu, demandant {0} au lieu des {1} convenus — en attente de la boutique</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} sous contrat pour l'instant</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>en attente de votre contrat : troc pour {0}, demandant {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>en attente de votre contrat : troc pour {0} à {2}, demandant {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} sur {1:N0} livrés</value>
   </data>

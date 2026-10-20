@@ -244,6 +244,84 @@
   <data name="StateWaitingOnMaterials" xml:space="preserve">
     <value>a la espera de materiales</value>
   </data>
+  <data name="SubjectListing" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="SellListTitle" xml:space="preserve">
+    <value>lista de precios</value>
+  </data>
+  <data name="BuyListTitle" xml:space="preserve">
+    <value>lo que compramos</value>
+  </data>
+  <data name="BuyListIntro" xml:space="preserve">
+    <value>Compramos los objetos de abajo a estos precios. Para vendernos, envía SELL con los objetos en el cuerpo del mensaje, escritos como en un encargo.</value>
+  </data>
+  <data name="BuyListAt" xml:space="preserve">
+    <value>Crea todos los contratos en {0}.</value>
+  </data>
+  <data name="UsageSell" xml:space="preserve">
+    <value>ofrécenos objetos de nuestra lista de compra, un objeto por línea en el cuerpo del mensaje, como en un encargo.</value>
+  </data>
+  <data name="UsageSellContract" xml:space="preserve">
+    <value>Respondemos con lo que pagaremos y a nombre de quién emitir el contrato de intercambio de objetos.</value>
+  </data>
+  <data name="SubjectOffer" xml:space="preserve">
+    <value>{0} — oferta {1}</value>
+  </data>
+  <data name="SubjectOfferNotUnderstood" xml:space="preserve">
+    <value>{0} — oferta no entendida</value>
+  </data>
+  <data name="SubjectOfferNotTaken" xml:space="preserve">
+    <value>{0} — oferta no aceptada</value>
+  </data>
+  <data name="OfferReceived" xml:space="preserve">
+    <value>Oferta {0} recibida</value>
+  </data>
+  <data name="OfferMakeContract" xml:space="preserve">
+    <value>Ahora crea un contrato de &lt;b&gt;Intercambio de objetos&lt;/b&gt; a nombre de {0} con estos objetos y &lt;b&gt;{1}&lt;/b&gt; en «Recibiré».</value>
+  </data>
+  <data name="OfferContractAt" xml:space="preserve">
+    <value>Crea el contrato en &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="OfferPutReference" xml:space="preserve">
+    <value>Poner {0} en la descripción del contrato nos ayuda a identificarlo.</value>
+  </data>
+  <data name="NotBuying" xml:space="preserve">
+    <value>Esta tienda no está comprando nada por ahora.</value>
+  </data>
+  <data name="OffersClosed" xml:space="preserve">
+    <value>Esta tienda no acepta ofertas por ahora.</value>
+  </data>
+  <data name="NothingMatchedBuying" xml:space="preserve">
+    <value>Nada de esta oferta está en nuestra lista de compra.</value>
+  </data>
+  <data name="HintUseSell" xml:space="preserve">
+    <value>En nuestra lista de compra: {0}. Para vendérnoslos, envía SELL en su lugar.</value>
+  </data>
+  <data name="HintUseOrder" xml:space="preserve">
+    <value>En nuestra lista de precios: {0}. Para comprarlos, envía ORDER en su lugar.</value>
+  </data>
+  <data name="OfferPaid" xml:space="preserve">
+    <value>contrato aceptado: pagado</value>
+  </data>
+  <data name="OfferContractDeclined" xml:space="preserve">
+    <value>la tienda rechazó el contrato, así que esta oferta está cerrada</value>
+  </data>
+  <data name="OfferContractWaiting" xml:space="preserve">
+    <value>contrato recibido: esperando a que la tienda lo acepte</value>
+  </data>
+  <data name="OfferContractAsksMore" xml:space="preserve">
+    <value>contrato recibido, pide {0} frente a los {1} acordados: esperando a la tienda</value>
+  </data>
+  <data name="OfferPartContractedOther" xml:space="preserve">
+    <value>{0:N0} de {1:N0} en contrato por ahora</value>
+  </data>
+  <data name="OfferAwaitingContract" xml:space="preserve">
+    <value>esperando tu contrato: Intercambio de objetos a nombre de {0}, pidiendo {1}</value>
+  </data>
+  <data name="OfferAwaitingContractAt" xml:space="preserve">
+    <value>esperando tu contrato: Intercambio de objetos a nombre de {0} en {2}, pidiendo {1}</value>
+  </data>
   <data name="PartDeliveredOther" xml:space="preserve">
     <value>{0:N0} de {1:N0} entregados</value>
   </data>

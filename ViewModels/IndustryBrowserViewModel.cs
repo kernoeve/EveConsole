@@ -123,6 +123,8 @@ public class IndustryBrowserViewModel : ReactiveObject
     public const string ColTE               = "TE";
     public const string ColCompletedBy      = "Completed By";
     public const string ColActivityId       = "Activity Id";
+    /// <summary>1 when the job was started with a copy, else 0. See the query.</summary>
+    public const string ColBlueprintIsCopy  = "Blueprint Is Copy";
 
     // What each name on a row opens. Hidden like the ids above — the grid never shows these,
     // they exist so the visible text can be a link.
@@ -330,9 +332,9 @@ public class IndustryBrowserViewModel : ReactiveObject
     {
         var conds = new List<string>();
         if (!string.IsNullOrEmpty(activity) && activity != "All Activities")
-            conds.Add("\"Activity\" = @activity");
+            conds.Add("Base.\"Activity\" = @activity");
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
-            conds.Add("\"Status\" = @status");
+            conds.Add("Base.\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
         {
             // ⚠️ QUOTED, like every other condition here. These are quoted aliases in the select
@@ -350,16 +352,18 @@ public class IndustryBrowserViewModel : ReactiveObject
             var shown = SdeNames.Find(Models.SdeNameKind.Type, search);
             var ids   = string.Join(",", shown.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             var byId  = shown.Count > 0
-                ? $" OR \"Blueprint Type Id\" IN ({ids}) OR \"Product Type Id\" IN ({ids})"
+                ? $" OR Base.\"Blueprint Type Id\" IN ({ids}) OR Base.\"Product Type Id\" IN ({ids})"
                 : "";
-            conds.Add($"(LOWER(\"Blueprint\") LIKE LOWER(@search) OR LOWER(\"Product\") LIKE LOWER(@search){byId})");
+            conds.Add($"(LOWER(Base.\"Blueprint\") LIKE LOWER(@search) OR LOWER(Base.\"Product\") LIKE LOWER(@search){byId})");
         }
+        // ⚠️ Every column named through Base. These go into a query that joins Base to four other
+        // tables, and a bare name there is one column added to any of them away from "ambiguous".
         if (startedFrom.HasValue)
-            conds.Add("\"Start Date\" >= @startedFrom");
+            conds.Add("Base.\"Start Date\" >= @startedFrom");
         if (startedThru.HasValue)
-            conds.Add("\"Start Date\" < @startedThru");
+            conds.Add("Base.\"Start Date\" < @startedThru");
         if (!string.IsNullOrEmpty(owner))
-            conds.Add("\"Owner\" = @owner");
+            conds.Add("Base.\"Owner\" = @owner");
 
         var where = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
 
@@ -373,10 +377,15 @@ public class IndustryBrowserViewModel : ReactiveObject
             cmd.AddWithValue("@status", status);
         if (!string.IsNullOrEmpty(search))
             cmd.AddWithValue("@search", $"%{search}%");
+        // ⚠️ A timestamp on PostgreSQL, text on SQLite. The column is timestamptz there, and a text
+        // parameter against it fails outright ("operator does not exist: timestamp with time zone
+        // >= text") — the date filters never worked on PostgreSQL. SQLite stores the date as text,
+        // which is what it is compared with.
+        object When(DateTimeOffset d) => DbEngine.IsPostgres ? d.ToUniversalTime() : d.UtcDateTime.ToString("O");
         if (startedFrom.HasValue)
-            cmd.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
+            cmd.AddWithValue("@startedFrom", When(startedFrom.Value));
         if (startedThru.HasValue)
-            cmd.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
+            cmd.AddWithValue("@startedThru", When(startedThru.Value.AddDays(1)));
         if (!string.IsNullOrEmpty(owner))
             cmd.AddWithValue("@owner", owner);
 
@@ -765,6 +774,11 @@ public class IndustryBrowserViewModel : ReactiveObject
                 COALESCE(st."StationTypeId", cs."TypeId")                                        AS "Facility Type Id",
                 COALESCE(bl."MaterialEfficiency", 0)                                           AS "ME",
                 COALESCE(bl."TimeEfficiency", 0)                                               AS "TE",
+                -- Started with a copy: the print's own row says so (ESI's quantity -2) for as long
+                -- as the job holds it, which is every live job. Invention takes nothing else. A
+                -- finished job whose copy was used up has no row left to ask, and reads as an
+                -- original, as before.
+                CASE WHEN bl."Quantity" = -2 OR j."ActivityId" = 8 THEN 1 ELSE 0 END             AS "Blueprint Is Copy",
                 COALESCE(ch_comp."Name", '')                                                   AS "Completed By",
                 j."ActivityId"                                                                  AS "Activity Id",
                 j."Probability"                                                                 AS "Probability",
@@ -827,9 +841,9 @@ public class IndustryBrowserViewModel : ReactiveObject
                                              AND mp."TypeId"   = Base."Product Type Id"
         {where}
         ORDER BY
-            CASE WHEN "Status" IN ('active', 'paused') THEN 0
-                 WHEN "Status" = 'ready'               THEN 1
+            CASE WHEN Base."Status" IN ('active', 'paused') THEN 0
+                 WHEN Base."Status" = 'ready'               THEN 1
                  ELSE 2 END,
-            "End Date" ASC
+            Base."End Date" ASC
         """;
 }

@@ -907,6 +907,33 @@
   <data name="StatusNotesSaved" xml:space="preserve">
     <value>메모를 저장했습니다 (식별 정보는 ESI에서 옵니다).</value>
   </data>
+  <data name="FacesTowardLabel" xml:space="preserve">
+    <value>향하는 방향</value>
+  </data>
+  <data name="TipFacesToward" xml:space="preserve">
+    <value>이 구조물의 출항 방향: 이 항성계의 다른 구조물 또는 스타게이트. 항성계 내 운송은 이를 기준으로 정박 순서를 정하므로, 다음 정박지를 향해 출항하는 화물선은 방향을 돌릴 필요가 없습니다. ESI는 이 정보를 제공하지 않습니다. 선택하는 즉시 저장됩니다.</value>
+  </data>
+  <data name="FacingNotSet" xml:space="preserve">
+    <value>설정 안 됨</value>
+  </data>
+  <data name="FacingClosestGateDefault" xml:space="preserve">
+    <value>{0} (가장 가까움, 기본값)</value>
+  </data>
+  <data name="FacingDistanceKm" xml:space="preserve">
+    <value>{0:N0} km</value>
+  </data>
+  <data name="FacingStargateTo" xml:space="preserve">
+    <value>{0}행 스타게이트</value>
+  </data>
+  <data name="FacingStructureNumbered" xml:space="preserve">
+    <value>구조물 {0}</value>
+  </data>
+  <data name="FacingElsewhere" xml:space="preserve">
+    <value>{0} (더 이상 이 항성계에 없음)</value>
+  </data>
+  <data name="StatusFacingSaved" xml:space="preserve">
+    <value>방향을 저장했습니다.</value>
+  </data>
   <data name="StatusSaveFailed" xml:space="preserve">
     <value>저장 실패: {0}</value>
   </data>
@@ -1518,6 +1545,9 @@
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
   </data>
+  <data name="LiveMarkOfficers" xml:space="preserve">
+    <value>일일점검(EVE 11:00) 이후 이곳의 킬메일에 나타난 장교 NPC입니다. 장교는 일일점검 때 사라집니다. 그 뒤에 격파되었는지는 알 수 없습니다. 마우스를 올리면 각 장교의 마지막 킬 시각을 표시합니다.</value>
+  </data>
   <data name="TipMapTab" xml:space="preserve">
     <value>막대를 따라 끌면 순서를 바꾸고, 오른쪽 절반으로 끌면 탭 두 개를 나란히 봅니다.</value>
   </data>
@@ -1580,6 +1610,18 @@
   </data>
   <data name="LiveOwnLine" xml:space="preserve">
     <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveOfficersTitle" xml:space="preserve">
+    <value>일일점검 이후 {1}에서 확인된 장교: {0}</value>
+  </data>
+  <data name="LiveOfficerLine" xml:space="preserve">
+    <value>{0} — 마지막 킬 {1} EVE ({2}) · {3} · 일일점검 이후 킬: {4}</value>
+  </data>
+  <data name="LiveOfficerRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveHoursAgo" xml:space="preserve">
+    <value>{0}시간 {1}분 전</value>
   </data>
   <data name="LiveInSpace" xml:space="preserve">
     <value>비행 중</value>

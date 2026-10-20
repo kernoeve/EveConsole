@@ -950,6 +950,10 @@ public class CorpProject
     // True when the project appears in the list but its detail endpoint returns 404 (detail not
     // available to us). We keep updating cheap list fields but stop retrying the detail call.
     public bool    DetailUnavailable { get; set; }
+    // True for a finished project made static WITHOUT its contributors, because this
+    // corporation's token could not read them. Fetched once more when it can; see
+    // EsiPollingService.FetchCorpProjectsAsync.
+    public bool    ContributorsPending { get; set; }
     public string? ConfigType        { get; set; }  // e.g. "deliver_item"
     public string? ConfigurationJson { get; set; }
 }
@@ -1199,6 +1203,39 @@ public class TrackedOrder
     public long   ContractToId   { get; set; }
     public string ContractToName { get; set; } = "";
     public string ContractToType { get; set; } = "";   // "character" | "corporation" | ""
+
+    /// <summary>
+    /// "sell" — we sell to <see cref="Buyer"/>, the order this table always held — or "buy": the
+    /// other party sells to us, off a store's Buy listing.
+    ///
+    /// <para>⚠️ On a buy order <see cref="Buyer"/> is the SELLER, and the goods come in. Nothing
+    /// is taken from the shelf or a job for it, it is no demand for anything, and its contracts
+    /// are theirs to us — see OrderFulfilmentService. Read through <see cref="IsBuy"/>.</para>
+    /// </summary>
+    public string Side           { get; set; } = StorePosting.Sell;
+
+    /// <summary>The store listing (<see cref="SalePosting"/>) the order was placed against, or
+    /// zero: entered by hand, or placed before a store had more than one.</summary>
+    public int    PostingId      { get; set; }
+
+    /// <summary>
+    /// A buy order's contracts' asking price added up, once they carry the whole order and
+    /// nothing else; zero until then, and on sell orders.
+    ///
+    /// <para>Kept beside <see cref="PurchasePrice"/>, the price quoted, rather than written over
+    /// it as a sell order's is: a contract asking more than was agreed is linked all the same, and
+    /// the difference is what the owner needs to see before accepting it.</para>
+    /// </summary>
+    public double ContractedPrice { get; set; }
+
+    public bool IsBuy => Side == StorePosting.Buy;
+
+    /// <summary>
+    /// A buy order's contracts ask more than was quoted for the units they carry, by more than
+    /// rounding. Pro rata, so the first of two contracts at the agreed rate is not flagged.
+    /// </summary>
+    public bool AsksMore => IsBuy && UnitsDelivered + UnitsContracted > 0
+        && ContractedPrice > PurchasePrice * Math.Min(Units, UnitsDelivered + UnitsContracted) / Math.Max(1, Units) + 0.5;
 
     public DateTimeOffset CreatedAt { get; set; }
 }

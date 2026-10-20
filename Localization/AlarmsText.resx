@@ -1592,6 +1592,54 @@
     <value>Order for {0} for {1} was canceled.</value>
     <comment>Spoken. {0} is the item with its count when more than one, {1} the buyer.</comment>
   </data>
+  <data name="StoreHeadOfferNew" xml:space="preserve">
+    <value>New offer: {0} from {1}</value>
+    <comment>Title of a Store order events alarm's alert: someone offers to sell to the store's Buy listing. {0} is the item, with its count when more than one; {1} the seller.</comment>
+  </data>
+  <data name="StoreSaidOfferNew" xml:space="preserve">
+    <value>New offer at {0}: {2} will sell {1} for {3}.</value>
+    <comment>Spoken when an offer to sell to a store's Buy listing arrives. {0} is the store, {1} the item with its count when more than one, {2} the seller, {3} the price (IskBillions and the rest).</comment>
+  </data>
+  <data name="StoreHeadOfferContracted" xml:space="preserve">
+    <value>Offer {0}: contracted to us</value>
+    <comment>Title of a Store order events alarm's alert: the seller made the Item Exchange contract to the store for their offer. {0} is the offer's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreSaidOfferContracted" xml:space="preserve">
+    <value>{1} sent the contract for {0}. Accept it in game.</value>
+    <comment>Spoken: the seller contracted the offered goods to the store. {0} is the item with its count when more than one, {1} the seller.</comment>
+  </data>
+  <data name="StoreSaidOfferContractedPart" xml:space="preserve">
+    <value>{1} sent the contract for {2:N0} of {3:N0} of {0}. Accept it in game.</value>
+    <comment>Spoken when the seller's contract carries part of the offer. {0} is the item, {1} the seller, {2} the units on the contract, {3} the units offered.</comment>
+  </data>
+  <data name="StoreSaidOfferAsksMore" xml:space="preserve">
+    <value>{1} sent the contract for {0}, asking more than was quoted.</value>
+    <comment>Spoken when the seller's contract asks more ISK than the store quoted; the owner should check it before accepting. {0} is the item with its count, {1} the seller.</comment>
+  </data>
+  <data name="StoreHeadOfferReceived" xml:space="preserve">
+    <value>Offer {0}: {1:N0} of {2:N0} received</value>
+    <comment>Title of a Store order events alarm's alert. {0} is the offer's reference, {1} the units received so far, {2} the units offered.</comment>
+  </data>
+  <data name="StoreSaidOfferReceived" xml:space="preserve">
+    <value>Received {2:N0} of {3:N0} of {1} from {0}.</value>
+    <comment>Spoken. {0} is the seller, {1} the item, {2} the units received so far, {3} the units offered.</comment>
+  </data>
+  <data name="StoreHeadOfferComplete" xml:space="preserve">
+    <value>Offer {0} complete</value>
+    <comment>Title of a Store order events alarm's alert: the seller's contract was accepted. {0} is the offer's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreSaidOfferComplete" xml:space="preserve">
+    <value>The contract for {1} from {0} was accepted. Offer complete.</value>
+    <comment>Spoken. {0} is the seller, {1} the item with its count when more than one.</comment>
+  </data>
+  <data name="StoreHeadOfferCanceled" xml:space="preserve">
+    <value>Offer {0} canceled</value>
+    <comment>Title of a Store order events alarm's alert. {0} is the offer's reference, e.g. #12.</comment>
+  </data>
+  <data name="StoreSaidOfferCanceled" xml:space="preserve">
+    <value>The offer of {0} from {1} was canceled.</value>
+    <comment>Spoken. {0} is the item with its count when more than one, {1} the seller.</comment>
+  </data>
   <data name="IskBillions" xml:space="preserve">
     <value>{0:0.##} billion ISK</value>
     <comment>A price read out when a store order arrives. {0} is the amount in billions, e.g. 12.4.</comment>

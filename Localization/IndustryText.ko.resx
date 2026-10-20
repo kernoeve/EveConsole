@@ -314,10 +314,88 @@
     <value>대기열에 추가</value>
   </data>
   <data name="IncludeFinalBpcCost" xml:space="preserve">
-    <value>최종 BPC 비용 포함</value>
+    <value>BPC 비용 포함</value>
+  </data>
+  <data name="TipClearQueue" xml:space="preserve">
+    <value>대기열의 모든 아이템을 빼고 결과도 지웁니다.</value>
+  </data>
+  <data name="TipQueueQuantity" xml:space="preserve">
+    <value>생산할 수량입니다. 여기서 바꾸고 다시 계산하면 새 수치가 나옵니다.</value>
+  </data>
+  <data name="TipQueueMe" xml:space="preserve">
+    <value>이 아이템을 만드는 블루프린트의 재료 효율입니다.</value>
+  </data>
+  <data name="ColMe" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="TipRemoveFromQueue" xml:space="preserve">
+    <value>대기열에서 제거</value>
+  </data>
+  <data name="CalcResultsStale" xml:space="preserve">
+    <value>이 결과를 계산한 뒤 대기열이 바뀌었습니다.</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>다시 계산</value>
+  </data>
+  <data name="KpiNetCost" xml:space="preserve">
+    <value>순비용</value>
+  </data>
+  <data name="KpiMarketValue" xml:space="preserve">
+    <value>시장 가치</value>
+  </data>
+  <data name="KpiProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="KpiRawVolume" xml:space="preserve">
+    <value>원자재 부피</value>
+  </data>
+  <data name="KpiJobTime" xml:space="preserve">
+    <value>작업 시간</value>
+  </data>
+  <data name="TipJobTime" xml:space="preserve">
+    <value>큰 숫자는 차례로 실행해야 하는 가장 긴 작업 사슬입니다. 모든 작업에 슬롯이 있을 때 계획을 끝낼 수 있는 가장 빠른 시간입니다. 그 아래는 모든 작업 시간의 합계입니다. 모든 스킬 V, TE는 ME의 두 배(최대 20), 계획이 각 작업을 배치한 구조물을 가정합니다.</value>
+  </data>
+  <data name="FmtSlotTime" xml:space="preserve">
+    <value>작업 합계 {0}</value>
+  </data>
+  <data name="CalcSkippedBpcs" xml:space="preserve">
+    <value>포함하지 않은 블루프린트 복제본 비용 ({0})</value>
+  </data>
+  <data name="CalcSkippedBpcsNote" xml:space="preserve">
+    <value>'BPC 비용 포함'이 꺼져 있어 이 아이템들은 필요한 복제본 가격 없이 계산되며 합계에도 들어가지 않습니다.</value>
+  </data>
+  <data name="BpcCostLeftOut" xml:space="preserve">
+    <value>{0} (블루프린트 복제본)</value>
+  </data>
+  <data name="FmtIskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="FmtMeLevel" xml:space="preserve">
+    <value>ME{0}</value>
+  </data>
+  <data name="ColProducedValue" xml:space="preserve">
+    <value>생산 가치</value>
+  </data>
+  <data name="TipProducedValue" xml:space="preserve">
+    <value>작업이 만드는 모든 것을 제작 가치로 나타냅니다. 저장된 제작 비용, 없으면 시장 가격입니다.</value>
+  </data>
+  <data name="FmtJobTime" xml:space="preserve">
+    <value>시간: {0}</value>
+  </data>
+  <data name="TipJobDuration" xml:space="preserve">
+    <value>이 작업의 모든 실행분입니다. 모든 스킬 V, TE는 ME의 두 배(최대 20), 계획이 배치한 구조물을 가정합니다.</value>
+  </data>
+  <data name="FmtDaysHours" xml:space="preserve">
+    <value>{0}일 {1}시간</value>
+  </data>
+  <data name="FmtHoursMinutes" xml:space="preserve">
+    <value>{0}시간 {1}분</value>
+  </data>
+  <data name="FmtMinutes" xml:space="preserve">
+    <value>{0}분</value>
   </data>
   <data name="TipAddTheFinalProducts" xml:space="preserve">
-    <value>최종 생산품의 블루프린트 복제본(계약 가격)을 투입 비용에 넣습니다. 팩션 / BPC 전용 아이템은 항상 포함되며, 일반 BPO 아이템은 선택 사항입니다.</value>
+    <value>블루프린트 복제본(계약 가격)을 투입 비용으로 셉니다. 최종 생산품의 것과, 복제본으로만 만들 수 있는 아이템의 것입니다. 그런 아이템을 대기열에 넣으면 켜지며, 끄면 복제본 없이 제작 비용을 볼 수 있습니다.</value>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>아이템 브라우저에서 열기</value>
@@ -429,6 +507,12 @@
   </data>
   <data name="ColNeeded" xml:space="preserve">
     <value>필요량</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="TipRawVolume" xml:space="preserve">
+    <value>전체 수량의 포장 부피</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
     <value>생산량</value>
@@ -1044,6 +1128,60 @@
   </data>
   <data name="SourceBuy" xml:space="preserve">
     <value>구매</value>
+  </data>
+  <data name="ToastCopied" xml:space="preserve">
+    <value>클립보드에 복사됨</value>
+  </data>
+  <data name="ToastNothingToCopy" xml:space="preserve">
+    <value>복사할 내용 없음</value>
+  </data>
+  <data name="JobsViewHierarchy" xml:space="preserve">
+    <value>계층</value>
+  </data>
+  <data name="JobsViewByStation" xml:space="preserve">
+    <value>정거장별</value>
+  </data>
+  <data name="TipJobsViewHierarchy" xml:space="preserve">
+    <value>각 작업을 그 생산물이 필요한 작업 아래에 표시</value>
+  </data>
+  <data name="TipJobsViewByStation" xml:space="preserve">
+    <value>각 작업을 실행되는 시설 아래에 표시하고, 그 시설의 작업들에 함께 필요한 재료를 보여줍니다</value>
+  </data>
+  <data name="PlanStationJobsOther" xml:space="preserve">
+    <value>작업 {0:N0}개</value>
+  </data>
+  <data name="PlanStationMaterialsOther" xml:space="preserve">
+    <value>재료 {0:N0}종</value>
+  </data>
+  <data name="PlanStationShortOther" xml:space="preserve">
+    <value>{0:N0}종 부족</value>
+  </data>
+  <data name="PlanStationAllOnHand" xml:space="preserve">
+    <value>모두 보유</value>
+  </data>
+  <data name="PlanStationUnlinked" xml:space="preserve">
+    <value>연결된 시설이 없어 이곳의 재고를 셀 수 없습니다</value>
+  </data>
+  <data name="PlanStationNone" xml:space="preserve">
+    <value>시설 없음</value>
+  </data>
+  <data name="SourceBuiltHere" xml:space="preserve">
+    <value>이곳에서 제조</value>
+  </data>
+  <data name="SourceBuiltElsewhere" xml:space="preserve">
+    <value>다른 곳에서 제조</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>보유</value>
+  </data>
+  <data name="TipStationMissing" xml:space="preserve">
+    <value>이 시설의 재고 대비 부족량으로, 시설의 모든 작업을 합친 것입니다. 이곳의 다른 작업이 만드는 재료는 부족으로 세지 않습니다.</value>
+  </data>
+  <data name="TipStationShoppingList" xml:space="preserve">
+    <value>이 시설의 작업에 필요한 모든 구매 재료 복사 (이름과 수량, 탭으로 구분)</value>
+  </data>
+  <data name="TipStationShoppingListMissing" xml:space="preserve">
+    <value>이 시설에서 부족한 구매 재료만 복사</value>
   </data>
   <data name="SourceBuild" xml:space="preserve">
     <value>제조</value>

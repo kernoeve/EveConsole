@@ -117,6 +117,9 @@ public class WorklistMarketAltsViewModel : ReactiveObject
             await LoadAsync();
         });
 
+        // Characters added or removed: the combo's list follows without a restart.
+        OwnerList.Changed += () => _ = LoadAsync();
+
         _ = LoadAsync();
     }
 
@@ -183,12 +186,14 @@ public class WorklistMarketAltsViewModel : ReactiveObject
         {
             // Characters first: the rows carry one each and the grid combo binds its ItemsSource
             // here, so a row realised against an empty list draws blank and pushes null back.
-            Characters.Clear();
-            foreach (var c in options) Characters.Add(c);
+            // ⚠️ In place, never cleared: the rows still on screen bind their combo to this list,
+            // and clearing it blanked each one's character and pushed the blank back to be saved.
+            // Rows below point at the entries that survived, so a character keeps its instance.
+            ListSync.Sync(Characters, options, c => c.Id);
 
             MarketAlts.Clear();
             foreach (var d in rows)
-                MarketAlts.Add(new MarketAltRow(d, options.FirstOrDefault(o => o.Id == d.CharacterId),
+                MarketAlts.Add(new MarketAltRow(d, Characters.FirstOrDefault(o => o.Id == d.CharacterId),
                                                 Characters, SaveRowAsync));
 
             Status = rows.Count == 0

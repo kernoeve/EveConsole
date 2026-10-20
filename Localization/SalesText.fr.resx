@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>Prix d'achat</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Sens</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>Les contrats demandent {0}, plus que les {1} convenus pour les unités qu'ils contiennent. Vérifiez-les avant de les accepter.</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Statut</value>
   </data>
@@ -604,6 +610,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Annulés</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>Visites</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>Visiteurs uniques</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>Dernières 48 h : {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>En dessous : objets actifs commandés au cours des dernières 48 heures.</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>En dessous : soldés au cours des dernières 48 heures. Une commande ne garde que la date de son règlement (heure EVE) : le compte part du début de ce jour et peut inclure jusqu'à un jour de plus.</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>Un acheteur qui se connecte au site web de la boutique, ou qui revient après une absence.</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>Acheteurs différents parmi les visites, quel que soit le nombre de passages de chacun.</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>Commandes actives</value>
   </data>
@@ -676,8 +706,134 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>Utilisée pour les notifications de statut des commandes, et pour les demandes adressées à la boutique quand la boutique par courrier EVE est ouverte.</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>Liste de prix</value>
+  <data name="Listings" xml:space="preserve">
+    <value>Listes</value>
+  </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ Lieux</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>Liste tout ce qui se trouve dans les stations, hangars, divisions ou conteneurs choisis, tel quel au moment où l'annonce est générée, au lieu d'objets choisis un à un.</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>ses objets apparaissent dans l'onglet Annonce</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>titre de la section</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>Lieux d'où lister les objets</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>Choisissez n'importe quel niveau — une station ou structure, un propriétaire sur place, un hangar ou une division de corporation, ou un conteneur à l'intérieur — et ajoutez-le. L'annonce liste ce que contiennent ces lieux à chaque génération : leurs objets apparaissent dans l'onglet Annonce, pas dans la grille. Les vaisseaux ne sont pas proposés, et rien de ce qu'ils contiennent n'est listé.</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>Filtrer : une station, un propriétaire, une division ou un conteneur</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOne" xml:space="preserve">
+    <value>{0:N0} objet</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} objets</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>Ajouter →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>Lieux listés par cette annonce</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>Aucun de nos personnages ni aucune de nos corporations n'a quoi que ce soit dans une station ou une structure.</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>Impossible de lire les lieux : {0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Lieu {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0} (personnel)</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0} (corporation)</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>Hangar personnel</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>Livraisons</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>Division {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>Division {0} : {1}</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>Vente</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>Achat</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>Titre de l'onglet (facultatif)</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>Ajouter une liste</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>Chaque liste est un courrier de liste de prix à part et un onglet à part sur le site web, dans cet ordre. Vente : les acheteurs commandent sur votre stock et vos fabrications, comme avant. Achat : les prix que vous payez, sans quantités ; un vendeur fait une offre, puis établit pour vous un contrat de troc demandant ce montant en ISK, et la commande est terminée quand vous l'acceptez.</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>Contrats d'achat pour</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>Choisissez qui les reçoit</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>Les vendeurs sont invités à établir leurs contrats de troc pour ce destinataire, et chaque offre est rapprochée des contrats qu'il reçoit. Les contrats d'une corporation ou d'une alliance ne sont visibles que par une connexion de corporation qui en fait partie.</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>Les listes d'achat n'acceptent aucune offre tant que personne n'est choisi pour recevoir leurs contrats.</value>
+  </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>Contrats d'achat à</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>Rechercher une station ou une structure (facultatif)</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>Les vendeurs sont informés : créer tous les contrats à {0}.</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>Facultatif. Où les vendeurs doivent créer leurs contrats : le courrier de la liste de prix, les réponses aux offres et le site web le leur indiquent. Un contrat créé ailleurs est quand même rapproché.</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0} (personnage)</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0} (corporation)</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0} (alliance)</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>Langue</value>
@@ -1577,6 +1733,12 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   <data name="SourceContracted" xml:space="preserve">
     <value>Sous contrat</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>Offre · en attente de son contrat</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>Offre · son contrat à accepter</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Sans source</value>
   </data>
@@ -1639,6 +1801,12 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>La boutique n'a aucune annonce sur laquelle baser les prix.</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL a été envoyé, mais la boutique n'a aucune liste d'achat.</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>Offre refusée : la boutique n'a désigné personne pour recevoir les contrats d'achat.</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>Rien de reconnu. Sans correspondance : {0}</value>

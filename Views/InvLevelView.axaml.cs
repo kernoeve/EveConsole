@@ -36,7 +36,8 @@ public partial class InvLevelView : UserControl
             var existing = new InvGroupDialogResult(
                 group.GroupName, group.Scope, group.LocationId, group.LocationName,
                 group.IncludeAssets, group.IncludeIndustryJobs, group.IncludeMarketBuyOrders,
-                group.IncludeContractsBuying, group.PackagedOnly, group.Multiplier, group.CollectionId);
+                group.IncludeContractsBuying, group.PackagedOnly, group.Multiplier, group.CollectionId,
+                group.IncludeMarketSellOrders, group.IncludeContractsSelling);
             var dialog = new AddEditInvGroupDialog(existing,
                 (scope, text) => vm.SearchLocationsAsync(scope, text),
                 collections);

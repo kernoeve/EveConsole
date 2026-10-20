@@ -13,6 +13,12 @@
   <data name="Refresh" xml:space="preserve">
     <value>更新</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>自動更新</value>
+  </data>
+  <data name="TipAutoRefresh" xml:space="preserve">
+    <value>数分ごとにリストを作り直します。運搬の周回中はオフにしてください。作り直すと各パイロットの現在地から計画し直すため、途中で計画が変わります。「更新」ボタンでは引き続き作り直せます。</value>
+  </data>
   <data name="ReadyNow" xml:space="preserve">
     <value>今すぐ実行可能</value>
   </data>
@@ -775,6 +781,15 @@
   <data name="KindHaul" xml:space="preserve">
     <value>運搬</value>
   </data>
+  <data name="KindHaulInSystem" xml:space="preserve">
+    <value>運搬 — 星系内</value>
+  </data>
+  <data name="KindHaulNearby" xml:space="preserve">
+    <value>運搬 — 近隣</value>
+  </data>
+  <data name="KindHaulLongDistance" xml:space="preserve">
+    <value>運搬 — 長距離</value>
+  </data>
   <data name="KindRefine" xml:space="preserve">
     <value>再処理</value>
   </data>
@@ -1456,6 +1471,24 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>到着時に開始</value>
   </data>
+  <data name="WaitStartsWithOtherLoop" xml:space="preserve">
+    <value>もう一方の周回も終わると開始</value>
+  </data>
+  <data name="HaulRestartsWithOtherLoops" xml:space="preserve">
+    <value>さらに{0:N0}件は、この星系のもう一方の周回も終わると開始します。</value>
+  </data>
+  <data name="WaitStartsAfterLoop" xml:space="preserve">
+    <value>周回が終わると開始</value>
+  </data>
+  <data name="WaitTipStartsAfterLoop" xml:space="preserve">
+    <value>この周回がすべての停泊先でここに降ろす分で、ジョブの不足がすべて満たされるため、周回が終わると開始します。</value>
+  </data>
+  <data name="HaulLoopRestartsJobs" xml:space="preserve">
+    <value>周回が終わると、止まっているジョブ{0:N0}件が再開します：{1}。</value>
+  </data>
+  <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
+    <value>周回が終わると、止まっているジョブ{0:N0}件が再開します：{1}、ほか{2:N0}件。</value>
+  </data>
   <data name="WaitWants" xml:space="preserve">
     <value>{0:N0}個必要</value>
   </data>
@@ -1494,6 +1527,9 @@
   </data>
   <data name="HaulOthersWantPart" xml:space="preserve">
     <value>ほかにジョブ{0:N0}件がこの積荷の一部を必要としていますが、この積荷だけでは開始しません。</value>
+  </data>
+  <data name="HaulJobsWantPart" xml:space="preserve">
+    <value>停止中のジョブ{0:N0}件がこの積荷の一部を必要としていますが、この積荷だけでは開始しません。</value>
   </data>
   <data name="HaulPlannedWantIt" xml:space="preserve">
     <value>ここにあるほかのアイテム{0:N0}件は、止まっているジョブのない計画中の作業が必要としています。</value>
@@ -1867,8 +1903,245 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>アイテム{0}種類</value>
   </data>
+  <data name="HaulTitleItemsContract" xml:space="preserve">
+    <value>{0} 種類のアイテム、契約 {1}/{2}</value>
+  </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>ジョブがこれを待っています。</value>
+  </data>
+  <data name="HaulWhyForWork" xml:space="preserve">
+    <value>目的地で予定されている作業用です。</value>
+  </data>
+  <data name="HaulLaneInSystem" xml:space="preserve">
+    <value>星系内</value>
+  </data>
+  <data name="HaulLaneNearby" xml:space="preserve">
+    <value>近隣の星系</value>
+  </data>
+  <data name="HaulLaneLongDistance" xml:space="preserve">
+    <value>長距離</value>
+  </data>
+  <data name="HaulMethodService" xml:space="preserve">
+    <value>輸送サービス</value>
+  </data>
+  <data name="HaulMethodBridgedFreighter" xml:space="preserve">
+    <value>ジャンプブリッジ経由の超大型輸送艦</value>
+  </data>
+  <data name="HaulMethodJumpFreighter" xml:space="preserve">
+    <value>ジャンプドライブ搭載型輸送艦</value>
+  </data>
+  <data name="HaulMethodGating" xml:space="preserve">
+    <value>スターゲート経由</value>
+  </data>
+  <data name="HaulMethodFly" xml:space="preserve">
+    <value>自分で飛ぶ</value>
+  </data>
+  <data name="HaulJumps" xml:space="preserve">
+    <value>{0:N0}ジャンプ</value>
+  </data>
+  <data name="HaulNoGateRoute" xml:space="preserve">
+    <value>ゲート経路なし</value>
+  </data>
+  <data name="HaulLoads" xml:space="preserve">
+    <value>{0:N0}回分</value>
+  </data>
+  <data name="HaulLoadsShared" xml:space="preserve">
+    <value>{0:N0}回分、パイロット{1:N0}人で各{2:N0}回</value>
+  </data>
+  <data name="TipHaulPlan" xml:space="preserve">
+    <value>設定 → 運搬 でのこの種類の運搬の設定：星系間の方法とジャンプ数、艦船、積荷が何回分のカーゴになるか。回数は容積をカーゴ容量で割って切り上げた値です。</value>
+  </data>
+  <data name="HaulPilotPrimary" xml:space="preserve">
+    <value>メイン</value>
+  </data>
+  <data name="HaulLaneInSystemNote" xml:space="preserve">
+    <value>ジョブの完了に合わせて、同じ星系内のストラクチャー間で物を動かします。パイロットの現在地と現在の艦船から、カーゴが空の状態で計画します。</value>
+  </data>
+  <data name="HaulLaneNearbyNote" xml:space="preserve">
+    <value>上で設定したジャンプ数以内の星系への運搬。</value>
+  </data>
+  <data name="HaulLaneLongDistanceNote" xml:space="preserve">
+    <value>それより遠いもの、またはゲート経路のないもの——たいていは交易ハブです。</value>
+  </data>
+  <data name="HaulHullNumbered" xml:space="preserve">
+    <value>艦船 {0}</value>
+  </data>
+  <data name="HaulHullCurrentShip" xml:space="preserve">
+    <value>パイロットの現在の艦船</value>
+  </data>
+  <data name="HaulHoldM3" xml:space="preserve">
+    <value>カーゴ {0:N0} m³</value>
+  </data>
+  <data name="HaulingSettingsNote" xml:space="preserve">
+    <value>運搬の種類ごとの方法と担当パイロット。変更するとすぐ保存され、少し後にワークリストが再作成されます。</value>
+  </data>
+  <data name="HaulNearbyUpTo" xml:space="preserve">
+    <value>近隣とする上限</value>
+  </data>
+  <data name="HaulJumpsSuffix" xml:space="preserve">
+    <value>ゲートジャンプ。それより遠いものは長距離です。</value>
+  </data>
+  <data name="TipHaulNearbyUpTo" xml:space="preserve">
+    <value>スターゲートのみで数えます。ジャンプブリッジは含みません。</value>
+  </data>
+  <data name="HaulMethodLabel" xml:space="preserve">
+    <value>方法</value>
+  </data>
+  <data name="HaulShipLabel" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="HaulHoldLabel" xml:space="preserve">
+    <value>カーゴ (m³)</value>
+  </data>
+  <data name="HaulContractLabel" xml:space="preserve">
+    <value>契約あたり (m³)</value>
+  </data>
+  <data name="HintContractDefault" xml:space="preserve">
+    <value>350,000</value>
+  </data>
+  <data name="TipHaulContract" xml:space="preserve">
+    <value>1件の輸送契約に入れられる最大量です。これを超える輸送は契約ごとに1つのタスクに分けられ、最も必要な貨物が最初の契約に入ります。空欄なら 350,000 m³ です。</value>
+  </data>
+  <data name="HintHullsOwnHold" xml:space="preserve">
+    <value>艦船の既定値</value>
+  </data>
+  <data name="TipHaulShip" xml:space="preserve">
+    <value>運搬回数を計算する艦船。現在の艦船は、リストの最初のパイロットについてゲームから読み取ります。</value>
+  </data>
+  <data name="TipHaulHold" xml:space="preserve">
+    <value>計画に使うカーゴ容量。空欄なら艦船の基本カーゴを使います（拡張モジュール、リグ、スキル、輸送艦のフリートハンガーは含みません）。</value>
+  </data>
+  <data name="HaulPilotsLabel" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TipHaulPilotUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="TipHaulPilotRemove" xml:space="preserve">
+    <value>この運搬から外す</value>
+  </data>
+  <data name="HintAddPilot" xml:space="preserve">
+    <value>パイロットを追加…</value>
+  </data>
+  <data name="HaulLoopRoute" xml:space="preserve">
+    <value>{0}から始まる周回</value>
+  </data>
+  <data name="HaulLoopStops" xml:space="preserve">
+    <value>{0:N0}か所</value>
+  </data>
+  <data name="HaulLoopTurns" xml:space="preserve">
+    <value>{0:N0}回反転</value>
+  </data>
+  <data name="HaulLoopTooBig" xml:space="preserve">
+    <value>{0:N0}件は計画できません：1単位がカーゴより大きいためです。</value>
+  </data>
+  <data name="HaulLoopMore" xml:space="preserve">
+    <value>最初の{0:N0}か所を計画しました。残り{1:N0} m³は次回以降の周回で運びます。</value>
+  </data>
+  <data name="HaulStopTurn" xml:space="preserve">
+    <value>反転あり</value>
+  </data>
+  <data name="TipHaulStopTurn" xml:space="preserve">
+    <value>前のストラクチャーはこちらと反対を向いているため、アンドック後に反転します。超大型輸送艦では最も時間のかかる部分です。向きはストラクチャーブラウザで設定します。</value>
+  </data>
+  <data name="HaulStopPickUp" xml:space="preserve">
+    <value>積み込み</value>
+  </data>
+  <data name="HaulStopDropOff" xml:space="preserve">
+    <value>荷下ろし</value>
+  </data>
+  <data name="HaulStopFor" xml:space="preserve">
+    <value>{0}行き</value>
+  </data>
+  <data name="HaulStopFrom" xml:space="preserve">
+    <value>{0}から</value>
+  </data>
+  <data name="HaulInHold" xml:space="preserve">
+    <value>{0}のカーゴ</value>
+  </data>
+  <data name="HaulDeliverToLabel" xml:space="preserve">
+    <value>配送先</value>
+  </data>
+  <data name="HaulDeliverToEach" xml:space="preserve">
+    <value>各アイテムのステーション</value>
+  </data>
+  <data name="TipHaulDeliverTo" xml:space="preserve">
+    <value>同じ出発地からの長距離輸送はすべて1つのタスクとしてこのステーションへ運ばれ、到着後は近距離輸送と星系内輸送がそこから引き継ぎます。「各アイテムのステーション」のままにすると、必要な場所へ直接運びます。</value>
+  </data>
+  <data name="HaulDropStationsLabel" xml:space="preserve">
+    <value>星系ごとの荷下ろしステーション</value>
+  </data>
+  <data name="HaulDropStationsNote" xml:space="preserve">
+    <value>同じ出発地から星系内の複数のステーション宛ての貨物がある場合、その星系の荷下ろしステーションへ1つのタスクとして運び、そこから星系内ループが配ります。その星系の1つのステーションだけ宛ての貨物は引き続き直接運び、荷下ろしステーションのない星系へは常に直接運びます。</value>
+  </data>
+  <data name="HintAddDropStation" xml:space="preserve">
+    <value>ステーションをその星系の荷下ろし先に設定…</value>
+  </data>
+  <data name="TipHaulDropRemove" xml:space="preserve">
+    <value>この星系のステーションへ再び直接運ぶ</value>
+  </data>
+  <data name="HaulOnwardTo" xml:space="preserve">
+    <value>その後、そこから{0}へ。</value>
+  </data>
+  <data name="HaulOnwardMore" xml:space="preserve">
+    <value>{0}ほか{1}件</value>
+  </data>
+  <data name="HaulMarkHauled" xml:space="preserve">
+    <value>✓ 運搬済み</value>
+  </data>
+  <data name="TipHaulMarkHauled" xml:space="preserve">
+    <value>この停泊先を完了としてチェックします。ここで積んだものはカーゴ内、降ろしたものは配送済みとして扱い、周回が進み、待っているジョブも開始できます。次の資産更新で反映されるまで有効です。</value>
+  </data>
+  <data name="TipHaulMarkTrip" xml:space="preserve">
+    <value>この輸送を配送済みにします。貨物はすぐに目的地にあるものとして扱われ、それを待つジョブを開始でき、中継または荷下ろしステーションからの次の区間が計画されます。次の資産更新で反映されるまで有効です。</value>
+  </data>
+  <data name="HaulMarkContracted" xml:space="preserve">
+    <value>✓ 契約済み</value>
+  </data>
+  <data name="ContractedDialogTitle" xml:space="preserve">
+    <value>契約済み</value>
+  </data>
+  <data name="ContractedRoute" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ContractedDialogNote" xml:space="preserve">
+    <value>輸送契約に実際に入れたものです。最初は計画どおりの内容です。数量を変える、入れなかったものを外す、またはゲーム内でコピーした契約のアイテムを貼り付けて一覧を置き換えてください。ここにあるものだけが記録され、輸送中として数えられます。残りは作業リストに残ります。</value>
+  </data>
+  <data name="ContractedTotals" xml:space="preserve">
+    <value>{0} を記載</value>
+  </data>
+  <data name="ContractedTotalsOver" xml:space="preserve">
+    <value>{0} を記載。1件の契約に入る {1} を超えています</value>
+  </data>
+  <data name="ContractedEmpty" xml:space="preserve">
+    <value>何も記載されていません。契約のアイテムを貼り付けるか、キャンセルしてください。</value>
+  </data>
+  <data name="ContractedUnknown" xml:space="preserve">
+    <value>認識できず、一覧に追加していません：{0}</value>
+  </data>
+  <data name="ContractedRecord" xml:space="preserve">
+    <value>記録</value>
+  </data>
+  <data name="TipContractedAdd" xml:space="preserve">
+    <value>貼り付けたアイテムを一覧に追加します。すでにあるアイテムは数量を合算します。</value>
+  </data>
+  <data name="TipContractedReplace" xml:space="preserve">
+    <value>貼り付けたアイテムで一覧全体を置き換えます。ゲーム内でコピーした契約のアイテムを貼り付ければ、中身をそのまま記録できます。</value>
+  </data>
+  <data name="TipHaulMarkContracted" xml:space="preserve">
+    <value>運送契約を作成したらチェックします。貨物は輸送中として扱われるので再び購入・輸送されず、運送契約と一緒に保存されます（契約の更新で見つかり次第、出発地と目的地で特定）。契約ツールで修正できます。資産には何も追加されません。</value>
+  </data>
+  <data name="HaulMarkFailed" xml:space="preserve">
+    <value>運搬を記録できませんでした：{0}</value>
+  </data>
+  <data name="HaulShipHold" xml:space="preserve">
+    <value>{0}（{1:N0} m³）</value>
+  </data>
+  <data name="HaulStopDropTotal" xml:space="preserve">
+    <value>荷下ろし {0} · {1}</value>
+  </data>
+  <data name="HaulStopPickTotal" xml:space="preserve">
+    <value>積み込み {0} · {1}</value>
   </data>
   <data name="HaulWhyRestock" xml:space="preserve">
     <value>ステーションを在庫レベルまで補充します。</value>

@@ -277,6 +277,15 @@
               <TextBlock Text="{x:Static loc:MapText.LiveMarkOwn}" FontSize="10.5" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
             </StackPanel>
+            <!-- Officer spawns: the map's lower-left tag, in its own colours. -->
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Border Background="#E879F9" CornerRadius="3" Width="13" Height="13" VerticalAlignment="Center">
+                <TextBlock Text="★" FontSize="9" FontWeight="Bold" Foreground="#3B0742"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LiveMarkOfficers}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="7">
               <Line StartPoint="0,6" EndPoint="11,6" Stroke="#c084fc" StrokeThickness="1.8" StrokeDashArray="2,1.5"
                     VerticalAlignment="Center" />

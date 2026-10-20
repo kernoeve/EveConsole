@@ -370,6 +370,12 @@
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>購入価格</value>
   </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="TipContractsAskMore" xml:space="preserve">
+    <value>契約の要求額は {0} で、含まれる数量に対する見積もり {1} を上回っています。受諾する前に確認してください。</value>
+  </data>
   <data name="ColStatus" xml:space="preserve">
     <value>ステータス</value>
   </data>
@@ -604,6 +610,30 @@
   <data name="Cancelled" xml:space="preserve">
     <value>キャンセル済み</value>
   </data>
+  <data name="StatVisits" xml:space="preserve">
+    <value>訪問数</value>
+  </data>
+  <data name="StatVisitors" xml:space="preserve">
+    <value>ユニーク訪問者</value>
+  </data>
+  <data name="StatLast48h" xml:space="preserve">
+    <value>直近48時間: {0:N0}</value>
+  </data>
+  <data name="TipStatActive48h" xml:space="preserve">
+    <value>下段: 直近48時間に注文された進行中の品目。</value>
+  </data>
+  <data name="TipStatSettled48h" xml:space="preserve">
+    <value>下段: 直近48時間に決着した注文。注文には決着した日付（EVE時間）しか記録されないため、その日の始まりから数えます。最大で1日分多く含まれることがあります。</value>
+  </data>
+  <data name="TipStatVisits" xml:space="preserve">
+    <value>買い手がストアのウェブサイトにログインした、またはしばらくして戻ってきた回数。</value>
+  </data>
+  <data name="TipStatVisitors" xml:space="preserve">
+    <value>訪問した買い手の人数。同じ買い手は何度訪問しても1人と数えます。</value>
+  </data>
+  <data name="WebEventItem" xml:space="preserve">
+    <value>{0} × {1:N0}</value>
+  </data>
   <data name="ActiveOrders" xml:space="preserve">
     <value>進行中の注文</value>
   </data>
@@ -676,8 +706,131 @@
   <data name="UsedForOrderStatusNote" xml:space="preserve">
     <value>注文ステータスの通知に使われます。EVEメールのストアが開いているときは、ストアへのリクエストにも使われます。</value>
   </data>
-  <data name="PriceList" xml:space="preserve">
-    <value>価格表</value>
+  <data name="Listings" xml:space="preserve">
+    <value>リスト</value>
+  </data>
+  <data name="Places" xml:space="preserve">
+    <value>+ 場所</value>
+  </data>
+  <data name="TipPlaces" xml:space="preserve">
+    <value>アイテムを1つずつ選ぶ代わりに、選んだステーション、ハンガー、部署、コンテナにあるものを、出品を作成した時点の内容ですべて一覧にします。</value>
+  </data>
+  <data name="PlaceRowNote" xml:space="preserve">
+    <value>アイテムは「出品」タブに表示されます</value>
+  </data>
+  <data name="PlaceHeadingWatermark" xml:space="preserve">
+    <value>セクション見出し</value>
+  </data>
+  <data name="PlacesTitle" xml:space="preserve">
+    <value>アイテムを一覧にする場所</value>
+  </data>
+  <data name="PlacesNote" xml:space="preserve">
+    <value>ステーションやストラクチャー、そこにいる所有者、ハンガーやコーポレーションの部署、その中のコンテナなど、どの階層でも選んで追加できます。出品を作成するたびに、それらの場所にあるものが一覧になります。アイテムは表ではなく「出品」タブに表示されます。艦船は選べず、その中のものも一覧にはなりません。</value>
+  </data>
+  <data name="PlacesFilterWatermark" xml:space="preserve">
+    <value>絞り込み：ステーション、所有者、部門、コンテナ</value>
+  </data>
+  <data name="PlacesContainerHolds" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="PlacesItemsOther" xml:space="preserve">
+    <value>{0:N0} 個</value>
+  </data>
+  <data name="PlacesAdd" xml:space="preserve">
+    <value>追加 →</value>
+  </data>
+  <data name="PlacesChosen" xml:space="preserve">
+    <value>この出品が一覧にする場所</value>
+  </data>
+  <data name="PlacesSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PlacesNone" xml:space="preserve">
+    <value>キャラクターやコーポレーションのいずれも、ステーションやストラクチャーに何も持っていません。</value>
+  </data>
+  <data name="PlacesNamedContainer" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="PlacesLoadFailed" xml:space="preserve">
+    <value>場所を読み込めませんでした：{0}</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>場所 {0}</value>
+  </data>
+  <data name="LocationPersonalOwner" xml:space="preserve">
+    <value>{0}（個人）</value>
+  </data>
+  <data name="LocationCorpOwner" xml:space="preserve">
+    <value>{0}（コーポレーション）</value>
+  </data>
+  <data name="LocationHangar" xml:space="preserve">
+    <value>アイテムハンガー</value>
+  </data>
+  <data name="LocationDeliveries" xml:space="preserve">
+    <value>デリバリーズ</value>
+  </data>
+  <data name="LocationDivision" xml:space="preserve">
+    <value>部門 {0}</value>
+  </data>
+  <data name="LocationDivisionNamed" xml:space="preserve">
+    <value>部門 {0}：{1}</value>
+  </data>
+  <data name="ListingSell" xml:space="preserve">
+    <value>販売</value>
+  </data>
+  <data name="ListingBuy" xml:space="preserve">
+    <value>買取</value>
+  </data>
+  <data name="ListingTitleWatermark" xml:space="preserve">
+    <value>タブのタイトル（任意）</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>上へ</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>下へ</value>
+  </data>
+  <data name="AddListing" xml:space="preserve">
+    <value>リストを追加</value>
+  </data>
+  <data name="ListingsNote" xml:space="preserve">
+    <value>各リストは、この順番で、それぞれ別の価格表メールとして送られ、ウェブサイトでは別のタブになります。販売：これまでどおり、購入者が在庫と製造から注文します。買取：支払う価格で、数量は表示しません。売り手が売却を申し込み、その ISK を要求するアイテム交換契約をあなた宛てに作成し、あなたが受諾すると注文が完了します。</value>
+  </data>
+  <data name="BuyContractsTo" xml:space="preserve">
+    <value>買取契約の宛先</value>
+  </data>
+  <data name="BuyAssigneeNone" xml:space="preserve">
+    <value>受取先を選択</value>
+  </data>
+  <data name="BuyContractsToNote" xml:space="preserve">
+    <value>売り手にはアイテム交換契約をこの宛先にするよう案内し、各売却申込はここが受け取った契約と照合されます。コーポレーションやアライアンス宛ての契約は、そこに所属するコーポレーションのログインからのみ見えます。</value>
+  </data>
+  <data name="BuyNoAssigneeWarn" xml:space="preserve">
+    <value>契約の受取先を選ぶまで、買取リストは売却申込を受け付けません。</value>
+  </data>
+  <data name="BuyContractsAt" xml:space="preserve">
+    <value>買取契約の場所</value>
+  </data>
+  <data name="BuyLocationHint" xml:space="preserve">
+    <value>ステーションまたはストラクチャーを検索（任意）</value>
+  </data>
+  <data name="BuyLocationChosen" xml:space="preserve">
+    <value>売り手への案内：すべての契約を{0}で作成。</value>
+  </data>
+  <data name="BuyLocationClear" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="BuyLocationNote" xml:space="preserve">
+    <value>任意。売り手が契約を作成する場所です。価格表メール、申し出への返信、ウェブサイトで案内されます。別の場所で作成された契約も照合されます。</value>
+  </data>
+  <data name="AssigneeCharacter" xml:space="preserve">
+    <value>{0}（キャラクター）</value>
+  </data>
+  <data name="AssigneeCorporation" xml:space="preserve">
+    <value>{0}（コーポレーション）</value>
+  </data>
+  <data name="AssigneeAlliance" xml:space="preserve">
+    <value>{0}（アライアンス）</value>
   </data>
   <data name="StoreLanguage" xml:space="preserve">
     <value>言語</value>
@@ -1571,6 +1724,12 @@
   <data name="SourceContracted" xml:space="preserve">
     <value>契約済み</value>
   </data>
+  <data name="SourceOfferWaiting" xml:space="preserve">
+    <value>売却申込 · 相手の契約待ち</value>
+  </data>
+  <data name="SourceOfferContracted" xml:space="preserve">
+    <value>売却申込 · 相手の契約を受諾</value>
+  </data>
   <data name="SourceUnsourced" xml:space="preserve">
     <value>調達元なし</value>
   </data>
@@ -1624,6 +1783,12 @@
   </data>
   <data name="MailStoreNoPosting" xml:space="preserve">
     <value>ストアに、価格の基準となる投稿がありません。</value>
+  </data>
+  <data name="MailStoreNoBuyListing" xml:space="preserve">
+    <value>SELL が送られましたが、ストアに買取リストがありません。</value>
+  </data>
+  <data name="MailStoreNoBuyAssignee" xml:space="preserve">
+    <value>売却申込を拒否：買取契約の宛先がストアに設定されていません。</value>
   </data>
   <data name="MailStoreNothingRecognised" xml:space="preserve">
     <value>認識できたものはありません。一致しなかったもの：{0}</value>

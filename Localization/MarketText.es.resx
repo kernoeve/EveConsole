@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>Ofrecidos</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>Carga — introducida a mano</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI nunca indica qué hay en un contrato de mensajería, así que su carga se introduce aquí: marcada en un viaje de transporte de la lista de trabajo, escrita o pegada. Para la planificación cuenta como en camino al destino mientras el mensajero está fuera, y como allí una vez entregada, hasta que la actualización de activos lo muestre. Nunca se añade a tus activos.</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>Aún no hay nada introducido.</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>{0} introducidos, de los {1} del contrato</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>Pega objetos copiados en el juego, o escribe uno por línea: Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>Reemplazar todo</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>Añadir estos a la carga. Un objeto que ya esté se suma en cantidad.</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>Poner estos en lugar de todo lo introducido hasta ahora — para una lista copiada del contrato ya creado.</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>Cuántos hay en el mensajero. Se guarda al escribir; 0 quita la línea.</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>Quitar esta línea de la carga</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>Guardado.</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>El resto está guardado. No reconocidos: {0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>Nada que añadir: primero pega o escribe los objetos.</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>Carga de mensajería no guardada</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>Objeto</value>
   </data>

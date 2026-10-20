@@ -94,6 +94,51 @@
   <data name="Offered" xml:space="preserve">
     <value>Предлагается</value>
   </data>
+  <data name="CourierCargoTitle" xml:space="preserve">
+    <value>Груз — введён вручную</value>
+  </data>
+  <data name="CourierCargoNote" xml:space="preserve">
+    <value>ESI никогда не сообщает, что лежит в курьерском контракте, поэтому груз вводится здесь: отметкой перевозки в рабочем списке, вручную или вставкой. Для планирования он считается находящимся в пути к пункту назначения, пока курьер в пути, и находящимся там после доставки — пока обновление имущества это не покажет. В ваше имущество он никогда не добавляется.</value>
+  </data>
+  <data name="CourierCargoEmpty" xml:space="preserve">
+    <value>Пока ничего не введено.</value>
+  </data>
+  <data name="CourierCargoTotals" xml:space="preserve">
+    <value>Введено {0} из {1} по контракту</value>
+  </data>
+  <data name="CourierCargoPasteHint" xml:space="preserve">
+    <value>Вставьте предметы, скопированные в игре, или вводите по одному в строке: Tritanium 1000</value>
+  </data>
+  <data name="CourierCargoAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="CourierCargoReplace" xml:space="preserve">
+    <value>Заменить всё</value>
+  </data>
+  <data name="TipCourierCargoAdd" xml:space="preserve">
+    <value>Добавить это к грузу. Количества уже имеющегося предмета суммируются.</value>
+  </data>
+  <data name="TipCourierCargoReplace" xml:space="preserve">
+    <value>Поставить это вместо всего введённого — для списка, скопированного из готового контракта.</value>
+  </data>
+  <data name="TipCourierCargoQuantity" xml:space="preserve">
+    <value>Сколько их в курьере. Сохраняется по мере ввода; 0 убирает строку.</value>
+  </data>
+  <data name="TipCourierCargoRemove" xml:space="preserve">
+    <value>Убрать эту строку из груза</value>
+  </data>
+  <data name="CourierCargoSaved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="CourierCargoUnknown" xml:space="preserve">
+    <value>Остальное сохранено. Не распознано: {0}</value>
+  </data>
+  <data name="CourierCargoNothingPasted" xml:space="preserve">
+    <value>Нечего добавлять: сначала вставьте или введите предметы.</value>
+  </data>
+  <data name="CourierCargoFailed" xml:space="preserve">
+    <value>Груз курьера не сохранён</value>
+  </data>
   <data name="ColItem" xml:space="preserve">
     <value>Предмет</value>
   </data>

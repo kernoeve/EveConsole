@@ -200,7 +200,7 @@ public sealed record ScopeStock(
                     : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
                 .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId) && Ours(a.OwnerType, a.OwnerId))
             .GroupBy(a => (a.TypeId, a.OwnerType, a.OwnerId))
             .Select(g => new { g.Key.TypeId, g.Key.OwnerType, g.Key.OwnerId,
                                Qty = g.Sum(a => (long)a.Quantity) })
@@ -490,7 +490,7 @@ public class IndustryDemandService(
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                 if (target <= 0) continue;
 
-                var wanted = (long)Math.Ceiling(target * (rule.FillTargetPercent / 100.0));
+                var wanted = InvRuleShortfall.FillLevel(target, rule.FillTargetPercent);
 
                 var g = At(gi.TypeId);
                 // Two rules on one item are two statements of the same shelf, not two shelves.
@@ -785,8 +785,9 @@ public class IndustryDemandService(
         // ⚠️ By the unit, not the order. An order for two with one hull on a contract still
         // wants the other built, and skipping every order with a contract dropped it from the
         // plan; what is delivered or made out is taken off, and the rest is demand.
+        // ⚠️ Sell orders only. A buy order is goods coming in from a seller, not anything to make.
         var orders = (await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.Status == "pending").ToListAsync(ct))
+                .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
             .Where(o => OrderContractLinks.StillToSupply(o) > 0)
             .ToList();
         if (orders.Count == 0) return [];
@@ -803,7 +804,7 @@ public class IndustryDemandService(
                 .Where(a => wanted.Contains(a.TypeId))
                 .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => !wrapped.Contains(a.ItemId)
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
                         && (scope is null || scope.Contains(a.RootLocationId))
                         && (a.OwnerType != "corporation"
                             || corps is null || corps.Contains(a.OwnerId)))

@@ -151,6 +151,7 @@ public static class NotificationBody
         Isk, Number, Decimal2, Percent, Fraction, Bool,
         Date, Duration, Seconds, Hours,
         Killmail, TypeQuantities, OreVolumes, Wants, LinkDataEntity, StructureIdType,
+        StructureInfoList, ReinforcementHour, Weekday,
         OreValue, OreValueTotal,
     }
 
@@ -340,6 +341,18 @@ public static class NotificationBody
         ["StructureLostArmor"]   = Over(("timestamp", new(CommsText.NotifLabelReinforcedUntil, K.Date))),
         // timeStarted is when the fighting starts: the declaration plus delayHours.
         ["WarDeclared"]          = Over(("timeStarted", new(CommsText.NotifLabelFightingStarts, K.Date))),
+
+        // A corporation's structures moved to a new reinforcement hour, all at once. hour is the
+        // new hour in EVE time, held to within three hours either way; timestamp is when they
+        // switch over — the notice plus 30 days, or the first moment after that each one is
+        // undamaged; weekday 255 is no day at all. allStructureInfo is every structure changed,
+        // each as [id, name, typeId]. Meanings from the game's own text for this notice.
+        ["StructuresReinforcementChanged"] = Over(
+            ("allStructureInfo", new(CommsText.NotifLabelStructuresChanged, K.StructureInfoList)),
+            ("hour",             new(CommsText.NotifLabelReinforcementHour, K.ReinforcementHour, 55)),
+            ("weekday",          new(CommsText.NotifLabelReinforcementDay, K.Weekday, 56)),
+            ("numStructures",    new(CommsText.NotifLabelStructures, K.Number, 57)),
+            ("timestamp",        new(CommsText.NotifLabelTakesEffect, K.Date))),
     };
 
     private static Dictionary<string, F> Over(params (string Key, F Def)[] defs) =>
@@ -444,6 +457,7 @@ public static class NotificationBody
             case IDictionary<object, object> map:
             {
                 Hints(map, r);
+                var summary = type == "StructuresReinforcementChanged" ? ReinforcementChanged(map) : null;
                 var overrides = ByType.GetValueOrDefault(type);
                 var hqLinked  = Get(map, "warHQ_IdType") is IList<object>;
                 foreach (var (k, v) in map)
@@ -453,7 +467,7 @@ public static class NotificationBody
                     if (hqLinked && key.Equals("warHQ", StringComparison.OrdinalIgnoreCase)) continue;
                     AddField(key, v, overrides, r, parts);
                 }
-                return new Prepared(type, parts, null, null);
+                return new Prepared(type, parts, summary, null);
             }
             default:
                 return new Prepared(type, parts, null, text);
@@ -587,6 +601,22 @@ public static class NotificationBody
             case K.StructureIdType when value is IList<object> { Count: >= 2 } idType:  // [id, typeId]
                 parts.Field(key, def.Label, r.Structure(Long(idType[0]), Int(idType[1])), rank);
                 return;
+
+            case K.StructureInfoList when value is IList<object> infos:       // [[id, name, typeId], ...]
+            {
+                // Named by the notice where our own tables have never seen the structure.
+                var rows = new List<(Pending, Pending?, Pending?)>();
+                foreach (var info in infos.OfType<IList<object>>().Where(i => i.Count >= 3))
+                {
+                    var (id, typeId) = (Long(info[0]), Int(info[2]));
+                    if (id <= 0) continue;
+                    r.StructureHint(id, info[1]?.ToString(), typeId);
+                    rows.Add((r.Structure(id, typeId), typeId > 0 ? r.Type(typeId) : null, null));
+                }
+                if (rows.Count > 0)
+                    parts.Table(key, new PendingTable(def.Label, CommsText.NotifColStructure, CommsText.NotifColType, "", rows));
+                return;
+            }
         }
 
         if (scalar is null)
@@ -670,8 +700,28 @@ public static class NotificationBody
         K.Duration  => Pending.Plain(Span(TimeSpan.FromTicks(Long(s)))),
         K.Seconds   => Pending.Plain(Span(TimeSpan.FromSeconds(Dbl(s)))),
         K.Hours     => Pending.Plain(Hours(Dbl(s))),
+        K.ReinforcementHour => Int(s) is >= 0 and < 24 and var h
+            ? Pending.Plain(string.Format(CommsText.NotifReinforcementHourValue, $"{h:00}:00"))
+            : null,
+        // 255 is no day: reinforcement days are long gone from the game. Any other value is shown
+        // as it came, its numbering never having been seen.
+        K.Weekday   => Int(s) is >= 0 and < 255 ? Pending.Plain(s) : null,
         _           => Strip(s).Trim() is { Length: > 0 } t ? Pending.Plain(t) : null,
     };
+
+    /// <summary>"Reinforcement time moves to 18:00 EVE time (±3 hours) for 166 structure(s) from
+    /// 2026-11-07 19:00…" — the notice in a sentence, for its card and its heading.</summary>
+    private static Func<Resolution, string>? ReinforcementChanged(IDictionary<object, object> map)
+    {
+        if (Get(map, "hour") is not { } h || Int(h) is var hour && hour is < 0 or >= 24) return null;
+        var count = Get(map, "numStructures") is { } n ? Long(n)
+                  : Get(map, "allStructureInfo") is IList<object> l ? l.Count : 0;
+        var when  = Date(Long(Get(map, "timestamp")));
+        var text  = when is null
+            ? string.Format(CommsText.NotifSentenceReinforcementChanged, $"{hour:00}:00", count)
+            : string.Format(CommsText.NotifSentenceReinforcementChangedFrom, $"{hour:00}:00", count, when);
+        return _ => text;
+    }
 
     // ── Standings ─────────────────────────────────────────────────────────────────
     //

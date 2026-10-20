@@ -65,7 +65,7 @@ public partial class FitTabView : UserControl
 
     private Border? _markedRow;
 
-    private static CatalogEntry? Dragged(DragEventArgs e) => e.Data.Get(FittingView.ItemFormat) as CatalogEntry;
+    private static CatalogEntry? Dragged(DragEventArgs e) => InProcessDrag.Get<CatalogEntry>(e, FittingView.ItemFormat);
 
     /// <summary>The slot under the pointer, and what marks it while dragging: the ring's slot, or
     /// the row's border. No slot: null.</summary>

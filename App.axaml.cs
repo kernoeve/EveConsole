@@ -33,17 +33,24 @@ public class App : Application
 
     public override void Initialize()
     {
-        LiveCharts.Configure(config =>
+        // Not for a worker, which draws no charts. ⚠️ Skia is native, and on Linux its library
+        // wants fontconfig, which a minimal container image has no reason to carry for a process
+        // that never draws.
+        if (!AppRuntime.IsHeadless)
         {
-            config.AddSkiaSharp().AddDefaultMappers();
+            LiveCharts.Configure(config =>
+            {
+                config.AddSkiaSharp().AddDefaultMappers();
 
-            // Charts draw their text with Skia, outside Avalonia's font fallback. LiveCharts finds
-            // a face for a character its own lacks, but by the character alone — and Chinese,
-            // Japanese and Korean share characters with different shapes, so a Chinese label
-            // could come out in a Japanese face. The language's own face, when it has one.
-            if (EveConsole.Localization.Languages.ChartTypeface() is { } face)
-                config.HasTextSettings(new TextSettings { DefaultTypeface = face });
-        });
+                // Charts draw their text with Skia, outside Avalonia's font fallback. LiveCharts
+                // finds a face for a character its own lacks, but by the character alone — and
+                // Chinese, Japanese and Korean share characters with different shapes, so a
+                // Chinese label could come out in a Japanese face. The language's own face, when
+                // it has one.
+                if (EveConsole.Localization.Languages.ChartTypeface() is { } face)
+                    config.HasTextSettings(new TextSettings { DefaultTypeface = face });
+            });
+        }
         AvaloniaXamlLoader.Load(this);
 
         // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the
@@ -653,7 +660,92 @@ public class App : Application
         // ⚠️ The RECORDED version, not a live worker's. It names the last build that owned the
         // background processing, which is the build the schema was made by, and that is still the
         // right answer when nothing is running now. It is, in effect, the database's own version.
-        var dbVersion = (await WorkerLease.ReadStatusAsync())?.Version;
+        //
+        // On SQLite there is no lease row; the file records its own version (DatabaseVersion), and
+        // a file from before it did reads as "unrecorded" — older, and asked about below.
+        var workerStatus = await WorkerLease.ReadStatusAsync();
+        string? dbVersion;
+        var unrecorded = false;
+        if (DbEngine.IsPostgres)
+            dbVersion = workerStatus?.Version;
+        else
+        {
+            var lite = DatabaseVersion.ReadSqlite(AppConfig.GetDbPath());
+            dbVersion  = lite?.Version;
+            unrecorded = lite is { Fresh: false, Version: null };
+        }
+
+        // ── An older database is upgraded only when the user says so ──────────
+        //
+        // ⚠️ Asked BEFORE the lease is taken, and that order is the whole point. Winning the lease
+        // stamps this build's version into the database (WorkerLease.ClaimAsync), and every step
+        // after it brings the schema up — so a "no" given any later would leave the database half
+        // moved to a version the user declined. Nothing above this line has written to it.
+        //
+        // Not asked when another client is already running the background work: it keeps the
+        // lease, this client could not upgrade anything, and the version check below stops it.
+        {
+            Version.TryParse(dbVersion ?? "", out var dbOld);
+            Version.TryParse(AppVersion.Number, out var appNow);
+            var older = unrecorded || (dbOld is not null && appNow is not null && dbOld < appNow);
+            var heldElsewhere = workerStatus is not null && WorkerLease.IsLive(workerStatus);
+
+            if (older && !heldElsewhere)
+            {
+                var from  = dbVersion ?? ShellText.DatabaseVersionUnrecorded;
+                var where = DescribeDatabase();
+
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime asking)
+                {
+                    var question = new Views.ConfirmDialog(
+                        string.Format(ShellText.UpgradeDatabaseQuestion, from, AppVersion.Number, where),
+                        title: ShellText.UpgradeDatabaseTitle);
+
+                    if (!await AskAsync(question, splash))
+                    {
+                        // ⚠️ The file log, not the error log: the error log is a table in the very
+                        // database the user just declined to have changed.
+                        ServiceLog.Write($"database upgrade declined — {from} → {AppVersion.Number}, {where}; exiting without changing it");
+                        asking.Shutdown();
+                        return;
+                    }
+                    ServiceLog.Write($"database upgrade confirmed — {from} → {AppVersion.Number}, {where}");
+                }
+                else
+                {
+                    // Headless has nobody to ask. A service is updated unattended, and refusing here
+                    // would stop the background work for good after every update; it goes ahead,
+                    // and says so where its operator will look.
+                    Console.Error.WriteLine($"EVE Console: upgrading the database from {from} to {AppVersion.Number} ({where}).");
+                    ServiceLog.Write($"database upgrade (headless) — {from} → {AppVersion.Number}, {where}");
+                }
+            }
+        }
+
+        // Which database, for the question above: the server and database name on PostgreSQL —
+        // never the password — or the file's path.
+        static string DescribeDatabase()
+        {
+            if (!DbEngine.IsPostgres) return AppConfig.GetDbPath();
+            try
+            {
+                var b = new Npgsql.NpgsqlConnectionStringBuilder(AppConfig.GetPostgresConnection() ?? "");
+                return $"PostgreSQL {b.Host}/{b.Database}";
+            }
+            catch { return "PostgreSQL"; }
+        }
+
+        // A yes/no before the main window exists: over the splash when there is one, on its own
+        // when a tray start has none.
+        static async Task<bool> AskAsync(Views.ConfirmDialog dialog, Avalonia.Controls.Window? owner)
+        {
+            if (owner is not null) return await dialog.ShowDialog<bool>(owner);
+            var closed = new TaskCompletionSource<bool>();
+            dialog.Closed += (_, _) => closed.TrySetResult(dialog.Confirmed);
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen;
+            dialog.Show();
+            return await closed.Task;
+        }
 
         var ownsSchema = await lease.AcquireAsync();
         var skipSchema = !ownsSchema;
@@ -748,6 +840,57 @@ public class App : Application
                 }
 
                 return;
+            }
+        }
+
+        // ⚠️ The same question asked of the tables themselves, by a client that may not change the
+        // schema. Versions only tell builds apart that have been numbered apart: a build from the
+        // same version with a table added — any development build — passed the check above, found
+        // its table missing, and failed inside the worklist generators instead ("relation
+        // CourierCargo does not exist", four of them at once), which is exactly the scattered
+        // breakage the version check exists to prevent. Every table the model maps must be there.
+        if (skipSchema && DbEngine.IsPostgres && await MissingTablesAsync() is { Count: > 0 } missing)
+        {
+            var list = string.Join(", ", missing.Take(8)) + (missing.Count > 8 ? ", …" : "");
+            errorLogger.Log("Startup", "the database lacks tables this build expects",
+                new InvalidOperationException($"missing tables: {string.Join(", ", missing)}"));
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
+            {
+                splash?.ReportProgress(0, ShellText.SplashStoppingMismatch);
+                await ShowAndWaitAsync(new FatalDialog(ShellText.VersionMismatchHeading,
+                                                       string.Format(ShellText.SchemaBehindWorker, list)), splash);
+                stopping.Shutdown();
+            }
+            else
+            {
+                Console.Error.WriteLine(
+                    $"EVE Console: this build expects tables the database does not have ({list}). " +
+                    "Another client is running the background processes, and only it may change the schema: " +
+                    "update it to this build, or stop it and start this one first.");
+                Environment.Exit(1);
+            }
+            return;
+        }
+
+        // The model's tables the database does not have. Empty when it cannot be told — the check
+        // itself never stops a start.
+        async Task<List<string>> MissingTablesAsync()
+        {
+            try
+            {
+                using var scope = Services.CreateScope();
+                var db       = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var expected = db.Model.GetEntityTypes().Select(e => e.GetTableName()).OfType<string>().Distinct();
+                var have     = (await db.Database.SqlQueryRaw<string>(
+                        """SELECT table_name AS "Value" FROM information_schema.tables WHERE table_schema = current_schema()""")
+                    .ToListAsync()).ToHashSet();
+                return [.. expected.Where(t => !have.Contains(t)).OrderBy(t => t, StringComparer.Ordinal)];
+            }
+            catch (Exception ex)
+            {
+                errorLogger.Log("Startup", "checking the database's tables", ex);
+                return [];
             }
         }
 
@@ -970,6 +1113,11 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContracts" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsDelivered" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsContracted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // Orders off a store's Buy listing: the side, the listing, and what the
+                // contracts ask. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "Side" TEXT NOT NULL DEFAULT 'sell'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "PostingId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "ContractedPrice" REAL NOT NULL DEFAULT 0"""); } catch { }
 
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
@@ -1103,6 +1251,27 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // The language the shop speaks to buyers; empty for the app's own.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Language" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Who a Buy listing's contracts go to, and the store's listings. Mirrored for
+                // PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeType" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyAssigneeName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Where those contracts are to be made, when the store says.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "StorePostings" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "StoreId"   INTEGER NOT NULL DEFAULT 0,
+                        "PostingId" INTEGER NOT NULL DEFAULT 0,
+                        "Ordinal"   INTEGER NOT NULL DEFAULT 0,
+                        "Side"      TEXT    NOT NULL DEFAULT 'sell',
+                        "Title"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")
+                    """);
 
 
                 db.Database.ExecuteSqlRaw("""
@@ -1294,6 +1463,22 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "HeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingPosts" ADD COLUMN "FooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
+                // Places a posting lists whatever is found in. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SalePostingLocations" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "PostingId"   INTEGER NOT NULL DEFAULT 0,
+                        "Ordinal"     INTEGER NOT NULL DEFAULT 0,
+                        "StationId"   INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"   TEXT    NOT NULL DEFAULT '',
+                        "OwnerId"     INTEGER NOT NULL DEFAULT 0,
+                        "Flag"        TEXT    NOT NULL DEFAULT '',
+                        "ContainerId" INTEGER NOT NULL DEFAULT 0,
+                        "Path"        TEXT    NOT NULL DEFAULT '',
+                        "Title"       TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+
                 // Market price history — on-demand ESI fetch cache
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "MarketTypeHistories" (
@@ -1370,6 +1555,8 @@ public class App : Application
                         "IncludeIndustryJobs"    INTEGER NOT NULL DEFAULT 0,
                         "IncludeMarketBuyOrders" INTEGER NOT NULL DEFAULT 0,
                         "IncludeContractsBuying" INTEGER NOT NULL DEFAULT 0,
+                        "IncludeMarketSellOrders" INTEGER NOT NULL DEFAULT 0,
+                        "IncludeContractsSelling" INTEGER NOT NULL DEFAULT 0,
                         "PackagedOnly"           INTEGER NOT NULL DEFAULT 0,
                         "CollectionId"           INTEGER
                     )
@@ -1397,6 +1584,11 @@ public class App : Application
                 // Packaged-only arrived after the table did, so an existing database needs it added.
                 // Throws "duplicate column" on one that already has it, which is the success case.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelGroups" ADD COLUMN "PackagedOnly" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+
+                // Sell orders and contracts we are selling through, later still. Off for every
+                // existing group, so nothing a level already reads changes. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelGroups" ADD COLUMN "IncludeMarketSellOrders" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelGroups" ADD COLUMN "IncludeContractsSelling" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 // ── Collections (new tables + alter existing tables) ─────────────
                 db.Database.ExecuteSqlRaw("""
@@ -1872,6 +2064,42 @@ public class App : Application
                         "UpgradeLevel"  INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("CharacterId", "PlanetId")
                     )
+                    """);
+
+                // ── Hauls ticked off at a loop's stops ──────────────────────────────
+                // Held only until the asset poll catches up. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "HaulMarks" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "PilotId"     INTEGER NOT NULL DEFAULT 0,
+                        "FromId"      INTEGER NOT NULL DEFAULT 0,
+                        "ToId"        INTEGER NOT NULL DEFAULT 0,
+                        "TypeId"      INTEGER NOT NULL DEFAULT 0,
+                        "Units"       INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"   TEXT    NOT NULL DEFAULT 'character',
+                        "OwnerId"     INTEGER NOT NULL DEFAULT 0,
+                        "PickedAt"    TEXT    NOT NULL,
+                        "DeliveredAt" TEXT    NULL
+                    )
+                    """);
+
+                // ── What is in our courier contracts, entered by hand ───────────────
+                // ESI never lists a courier's cargo. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "CourierCargo" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ContractId" INTEGER NOT NULL DEFAULT 0,
+                        "FromId"     INTEGER NOT NULL DEFAULT 0,
+                        "ToId"       INTEGER NOT NULL DEFAULT 0,
+                        "TypeId"     INTEGER NOT NULL DEFAULT 0,
+                        "Quantity"   INTEGER NOT NULL DEFAULT 0,
+                        "OwnerType"  TEXT    NOT NULL DEFAULT 'character',
+                        "OwnerId"    INTEGER NOT NULL DEFAULT 0,
+                        "AddedAt"    TEXT    NOT NULL
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_CourierCargo_ContractId" ON "CourierCargo" ("ContractId")
                     """);
 
                 // ── Planetary Industry: colony layouts ──────────────────────────────
@@ -2410,12 +2638,15 @@ public class App : Application
                         "UpdatedAt"       TEXT    NOT NULL DEFAULT '',
                         "IsStatic"        INTEGER NOT NULL DEFAULT 0,
                         "DetailUnavailable" INTEGER NOT NULL DEFAULT 0,
+                        "ContributorsPending" INTEGER NOT NULL DEFAULT 0,
                         "ConfigType"      TEXT,
                         "ConfigurationJson" TEXT,
                         PRIMARY KEY ("CorporationId", "ProjectId")
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "DetailUnavailable" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // Finished projects made static without their contributors. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "ContributorsPending" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "DeniedEndpoints" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
@@ -3257,9 +3488,14 @@ public class App : Application
                         "NearestCelestial"   TEXT    NOT NULL DEFAULT '',
                         "Status"             INTEGER NOT NULL DEFAULT 0,
                         "Notes"              TEXT    NOT NULL DEFAULT '',
+                        "FacesTowardId"      INTEGER NOT NULL DEFAULT 0,
                         "UpdatedBy"          TEXT    NOT NULL DEFAULT 'esi',
                         "UpdatedAt"          TEXT    NOT NULL DEFAULT '2000-01-01 00:00:00+00:00')
                     """,
+                    // Which way a structure faces, added later: 0, not set, for every existing row.
+                    // Throws "duplicate column" where it is already there, which the loop's catch
+                    // takes as success. Mirrored in PostgresSchema.
+                    """ALTER TABLE "Structures" ADD COLUMN "FacesTowardId" INTEGER NOT NULL DEFAULT 0""",
                     """
                     CREATE TABLE IF NOT EXISTS "StructureFittings" (
                         "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -3717,6 +3953,15 @@ public class App : Application
             // is up — the same silent import a first launch gets.
             SdeSchemaGrew  = SchemaFingerprint.ColumnsUnder(db, "Sde")  > sdeBefore;
             HoboSchemaGrew = SchemaFingerprint.ColumnsUnder(db, "Hobo") > hoboBefore;
+
+            // ⚠️ Last, once the schema is this build's: a SQLite file records the version that
+            // brought it up, which is what the next start compares against — to ask before an
+            // upgrade, and to refuse an older build. PostgreSQL records it with the lease.
+            if (!DbEngine.IsPostgres)
+            {
+                try { DatabaseVersion.StampSqlite(db); }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Startup", "recording the database version", ex); }
+            }
         }
         }); // end Task.Run — schema migration complete
 
@@ -3879,6 +4124,7 @@ public class App : Application
                 signals.Received += payload =>
                 {
                     if (activity.TryApplySignal(payload)) return;
+                    if (OwnerList.TryApplySignal(payload)) return;
                     if (SdeNames.TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
@@ -4154,7 +4400,7 @@ public class App : Application
             // pragma EF re-issues on every connection open, the other reports SQLITE_BUSY write
             // contention. Postgres has neither problem, and PRAGMA is not SQL it will parse.
             services.AddDbContextFactory<AppDbContext>((_, options) =>
-                options.UseNpgsql(AppDb.PostgresConnectionString(conn))
+                options.UseNpgsql(AppDb.PostgresConnectionString(conn), AppDb.KeepCollectionParameter)
                        .AddInterceptors(new PostgresParameterInterceptor()));
         }
         else
@@ -4166,7 +4412,7 @@ public class App : Application
             // IServiceScopeFactory, so nothing is constructed early and there is no cycle back
             // into this factory.
             services.AddDbContextFactory<AppDbContext>((sp, options) =>
-                options.UseSqlite($"Data Source={dbPath}")
+                options.UseSqlite($"Data Source={dbPath}", AppDb.KeepCollectionParameter)
                        .AddInterceptors(
                            new DisableForeignKeysInterceptor(),
                            new WriteContentionInterceptor(sp.GetRequiredService<AppErrorLogger>())));

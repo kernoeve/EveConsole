@@ -343,6 +343,24 @@
   <data name="SeriesExpense" xml:space="preserve">
     <value>Gastos</value>
   </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Ingresos</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Gastos</value>
+  </data>
+  <data name="JournalEntriesTotalOne" xml:space="preserve">
+    <value>{0:N0} entrada · {1} ISK</value>
+  </data>
+  <data name="JournalEntriesTotalOther" xml:space="preserve">
+    <value>{0:N0} entradas · {1} ISK</value>
+  </data>
+  <data name="TipFromThru" xml:space="preserve">
+    <value>Días en hora de EVE, ambos incluidos. Borra una fecha para dejar ese extremo abierto.</value>
+  </data>
   <data name="SeriesCashflow" xml:space="preserve">
     <value>Flujo de caja</value>
   </data>

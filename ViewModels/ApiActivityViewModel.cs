@@ -256,11 +256,53 @@ public class ApiActivityViewModel : ReactiveObject
         UpdateCountText();
     }
 
-    /// <summary>A name or endpoint seen for the first time joins its dropdown, in order after "All".</summary>
+    /// <summary>A name or endpoint seen for the first time joins its dropdown, in order after "All".
+    /// ⚠️ A name only if it is one of ours — see <see cref="_ours"/>.</summary>
     private void Offer(ActivityEntry entry)
     {
-        Offer(CharacterOptions, entry.OwnerName);
-        Offer(EndpointOptions,  entry.Endpoint);
+        if (_ours.Contains(entry.OwnerName)) Offer(CharacterOptions, entry.OwnerName);
+        Offer(EndpointOptions, entry.Endpoint);
+    }
+
+    /// <summary>
+    /// The user's own characters and corporations, by name — the only names the Entity filter
+    /// offers.
+    ///
+    /// <para>⚠️ A log line carries only a name, and calls made on behalf of a region or a system
+    /// (market history, public contracts) log under that region's or system's name. Offering every
+    /// name seen let the list, which starts as the user's own characters and corporations, fill up
+    /// with regions and systems as those calls ran. They still show in the log; they just do not
+    /// crowd the filter.</para>
+    /// </summary>
+    private HashSet<string> _ours = new(StringComparer.Ordinal);
+
+    /// <summary>Reads who is ours, then brings the filter's list in line with it — in place, so the
+    /// chosen entry stays chosen. Again whenever a character or corporation is added or removed.</summary>
+    private async Task LoadOursAsync()
+    {
+        try
+        {
+            var names = await Task.Run(async () =>
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var chars = await db.Characters.AsNoTracking().Select(c => c.Name).ToListAsync();
+                var corps = await db.Corporations.AsNoTracking().Select(c => c.Name).ToListAsync();
+                return chars.Concat(corps).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal);
+            });
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _ours = names;
+                var wanted = Entries.Select(e => e.OwnerName).Where(_ours.Contains).Distinct()
+                    .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                    .Select(n => new Choice<string>(n, n))
+                    .Prepend(AllOption).ToList();
+                ListSync.Sync(CharacterOptions, wanted, o => o.Value);
+                if (!CharacterOptions.Any(o => o.Value == _characterFilter)) CharacterFilter = AllOption;
+            });
+        }
+        catch { /* the filter keeps what it had; the log itself is unaffected */ }
     }
 
     private static void Offer(ObservableCollection<Choice<string>> options, string value)
@@ -389,9 +431,12 @@ public class ApiActivityViewModel : ReactiveObject
         _visible       = Entries;
         foreach (var entry in Entries) Offer(entry);
         Entries.CollectionChanged += OnEntriesChanged;
+        // Who is ours, for the Entity filter: now, and again as characters come and go.
+        OwnerList.Changed += () => _ = LoadOursAsync();
         ClearLogFiltersCommand = ReactiveCommand.Create(() => { CharacterFilter = AllOption; EndpointFilter = AllOption; });
         UpdateCountText();
         _scopeFactory  = scopeFactory;
+        _ = LoadOursAsync();
         _sampler       = sampler;
         _conditions    = conditions;
         _polling       = polling;
