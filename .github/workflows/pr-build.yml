@@ -96,6 +96,14 @@ jobs:
       - name: PI engine check
         run: dotnet run --project tools/PiEngineCheck/PiEngineCheck.csproj -c Release
 
+      # ⚠️ Does the job planner still give a reaction slot to the item a hull is actually waiting
+      # on? Slots go out in ranking order, so a ranking that favours stocked items over an empty
+      # one looks like a full list, not an error: every racial composite sat at zero with no job
+      # while broad, part-stocked intermediates took all 131 slots. This checks, on a constructed
+      # chain, that a waiting final counts only for its most-starved input.
+      - name: Worklist rank check
+        run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no
