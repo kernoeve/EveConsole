@@ -59,13 +59,19 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <StackPanel Spacing="5">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
         <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="{x:Static loc:AlarmsText.NewTask}" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
                 Content="{x:Static loc:AlarmsText.Refresh}" Margin="8 0 0 0" />
-        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="8 0 0 0">
+          <Button Classes="tool" Content="{x:Static loc:IndustryText.Export}" Click="OnExportClick"
+                  ToolTip.Tip="{x:Static loc:AlarmsText.TipExportTasks}" />
+          <Button Classes="tool" Content="{x:Static loc:IndustryText.Import}" Click="OnImportClick"
+                  ToolTip.Tip="{x:Static loc:AlarmsText.TipImportTasks}" />
+        </StackPanel>
+        <TextBlock Grid.Column="3" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
-        <TextBlock Grid.Column="3" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
+        <TextBlock Grid.Column="4" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
         <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"

@@ -824,6 +824,62 @@
     <value>Section {0} ({1}): {2} takes a number of 0 or more, or nothing.</value>
     <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading, {2} the label of the box holding something that is not a number.</comment>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Export scheduled tasks</value>
+    <comment>Scheduler: title of the save-file dialog for the task export.</comment>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Import scheduled tasks</value>
+    <comment>Scheduler: title of the open-file dialog for a task import.</comment>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Saves every task to a JSON file.</value>
+    <comment>Scheduler: tooltip of the Export button.</comment>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Adds the tasks in a JSON export as new tasks, switched off until you look them over. Nothing here is replaced; a task already here is skipped.</value>
+    <comment>Scheduler: tooltip of the Import button.</comment>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Tasks exported: {0}.</value>
+    <comment>Scheduler status line after Export. {0} is the number of tasks.</comment>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Tasks imported: {0}, switched off until you look them over. Already here, skipped: {1}.</value>
+    <comment>Scheduler status line after Import. {0} tasks added, {1} skipped as identical to one already here.</comment>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>That file is not a scheduled tasks export.</value>
+    <comment>Scheduler status line when the chosen file is not a task export.</comment>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Export alarms</value>
+    <comment>Alarms: title of the save-file dialog for the alarm export.</comment>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Import alarms</value>
+    <comment>Alarms: title of the open-file dialog for an alarm import.</comment>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Saves every alarm and its actions to a JSON file.</value>
+    <comment>Alarms: tooltip of the Export button.</comment>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Adds the alarms in a JSON export as new alarms, actions and all. Nothing here is replaced; an alarm already here is skipped.</value>
+    <comment>Alarms: tooltip of the Import button.</comment>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Alarms exported: {0}.</value>
+    <comment>Alarms status line after Export. {0} is the number of alarms.</comment>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Alarms imported: {0}. Already here, skipped: {1}. Checks this version does not have, skipped: {2}.</value>
+    <comment>Alarms status line after Import. {0} added, {1} skipped as identical to one here, {2} skipped because their check type is unknown to this version.</comment>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>That file is not an alarms export.</value>
+    <comment>Alarms status line when the chosen file is not an alarm export.</comment>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Section {0} ({1}) needs at least one list.</value>
     <comment>Scheduler status line on Save of a Top 10 section with no list ticked. {0} is the section's number, {1} its heading in lower case.</comment>

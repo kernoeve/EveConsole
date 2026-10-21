@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>섹션 {0}({1}): {2}에는 0 이상의 숫자를 넣거나 비워 두십시오.</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>예약 작업 내보내기</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>예약 작업 가져오기</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>모든 작업을 JSON 파일로 저장합니다.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>JSON 내보내기의 작업을 새 작업으로 추가하며, 확인할 때까지 꺼진 상태로 둡니다. 기존 항목은 바뀌지 않으며, 이미 있는 작업은 건너뜁니다.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>내보낸 작업: {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>가져온 작업: {0}, 확인할 때까지 꺼져 있습니다. 이미 있어 건너뜀: {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>이 파일은 예약 작업 내보내기 파일이 아닙니다.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>알람 내보내기</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>알람 가져오기</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>모든 알람과 그 동작을 JSON 파일로 저장합니다.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>JSON 내보내기의 알람을 동작까지 포함해 새 알람으로 추가합니다. 기존 항목은 바뀌지 않으며, 이미 있는 알람은 건너뜁니다.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>내보낸 알람: {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>가져온 알람: {0}. 이미 있어 건너뜀: {1}. 이 버전에 없는 검사라 건너뜀: {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>이 파일은 알람 내보내기 파일이 아닙니다.</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>섹션 {0} ({1})에는 목록이 하나 이상 필요합니다.</value>
   </data>

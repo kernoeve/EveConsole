@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>セクション {0}（{1}）：{2} には 0 以上の数値を入力するか、空欄にしてください。</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>予定タスクをエクスポート</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>予定タスクをインポート</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>すべてのタスクを JSON ファイルに保存します。</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>JSON エクスポートのタスクを新しいタスクとして追加します。確認するまでオフのままです。既存のものは置き換えられず、すでにあるタスクはスキップされます。</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>エクスポートしたタスク：{0}。</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>インポートしたタスク：{0}（確認するまでオフ）。既存のためスキップ：{1}。</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>このファイルは予定タスクのエクスポートではありません。</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>アラームをエクスポート</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>アラームをインポート</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>すべてのアラームとそのアクションを JSON ファイルに保存します。</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>JSON エクスポートのアラームをアクションごと新しいアラームとして追加します。既存のものは置き換えられず、すでにあるアラームはスキップされます。</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>エクスポートしたアラーム：{0}。</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>インポートしたアラーム：{0}。既存のためスキップ：{1}。このバージョンにないチェックのためスキップ：{2}。</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>このファイルはアラームのエクスポートではありません。</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>セクション{0}（{1}）ではリストを1つ以上選択する必要があります。</value>
   </data>

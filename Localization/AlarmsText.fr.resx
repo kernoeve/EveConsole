@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>Section {0} ({1}) : {2} accepte un nombre supérieur ou égal à 0, ou rien.</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Exporter les tâches planifiées</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Importer des tâches planifiées</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Enregistre toutes les tâches dans un fichier JSON.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Ajoute les tâches d'un export JSON comme nouvelles tâches, désactivées jusqu'à ce que vous les ayez vérifiées. Rien n'est remplacé ; une tâche déjà présente est ignorée.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Tâches exportées : {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Tâches importées : {0}, désactivées jusqu'à ce que vous les ayez vérifiées. Déjà présentes, ignorées : {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>Ce fichier n'est pas un export de tâches planifiées.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Exporter les alarmes</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Importer des alarmes</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Enregistre toutes les alarmes et leurs actions dans un fichier JSON.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Ajoute les alarmes d'un export JSON comme nouvelles alarmes, avec leurs actions. Rien n'est remplacé ; une alarme déjà présente est ignorée.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Alarmes exportées : {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Alarmes importées : {0}. Déjà présentes, ignorées : {1}. Vérifications que cette version ne connaît pas, ignorées : {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>Ce fichier n'est pas un export d'alarmes.</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>La section {0} ({1}) nécessite au moins une liste.</value>
   </data>

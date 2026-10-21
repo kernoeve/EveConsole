@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>Abschnitt {0} ({1}): {2} nimmt eine Zahl ab 0 oder nichts.</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Geplante Aufgaben exportieren</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Geplante Aufgaben importieren</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Speichert alle Aufgaben in einer JSON-Datei.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Fügt die Aufgaben aus einem JSON-Export als neue Aufgaben hinzu, ausgeschaltet, bis du sie geprüft hast. Hier wird nichts ersetzt; eine schon vorhandene Aufgabe wird übersprungen.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Exportierte Aufgaben: {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Importierte Aufgaben: {0}, ausgeschaltet, bis du sie geprüft hast. Schon vorhanden, übersprungen: {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>Diese Datei ist kein Export geplanter Aufgaben.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Alarme exportieren</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Alarme importieren</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Speichert alle Alarme mit ihren Aktionen in einer JSON-Datei.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Fügt die Alarme aus einem JSON-Export samt Aktionen als neue Alarme hinzu. Hier wird nichts ersetzt; ein schon vorhandener Alarm wird übersprungen.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Exportierte Alarme: {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Importierte Alarme: {0}. Schon vorhanden, übersprungen: {1}. Prüfungen, die diese Version nicht kennt, übersprungen: {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>Diese Datei ist kein Alarm-Export.</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht mindestens eine Liste.</value>
   </data>

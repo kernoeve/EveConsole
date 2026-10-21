@@ -30,6 +30,40 @@ public partial class AlarmsView : UserControl
         if (DataContext is AlarmsViewModel vm) vm.ToggleMute();
     }
 
+    // ── Export / import: the file pickers need a TopLevel, which only the view has ──
+
+    private async void OnExportClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not AlarmsViewModel vm || TopLevel.GetTopLevel(this) is not { } top) return;
+
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title             = AlarmsText.TitleExportAlarms,
+            SuggestedFileName = "alarms.json",
+            FileTypeChoices   = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+        });
+        if (file is null) return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await vm.ExportAsync(stream);
+    }
+
+    private async void OnImportClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not AlarmsViewModel vm || TopLevel.GetTopLevel(this) is not { } top) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title          = AlarmsText.TitleImportAlarms,
+            AllowMultiple  = false,
+            FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+        });
+        if (files.Count == 0) return;
+
+        await using var stream = await files[0].OpenReadAsync();
+        await vm.ImportAsync(stream);
+    }
+
     /// <summary>
     /// Browses for an audio file. Lives here because the picker needs a TopLevel, which the
     /// view model has no business knowing about.

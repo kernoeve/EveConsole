@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>第 {0} 部分（{1}）：{2} 需要填写 0 或以上的数字，或留空。</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>导出计划任务</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>导入计划任务</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>将所有任务保存到 JSON 文件。</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>将 JSON 导出文件中的任务添加为新任务，在你检查之前保持关闭。不会替换这里已有的内容；已存在的任务会被跳过。</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>已导出任务：{0}。</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>已导入任务：{0}，在你检查之前保持关闭。已存在而跳过：{1}。</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>该文件不是计划任务的导出文件。</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>导出警报</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>导入警报</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>将所有警报及其动作保存到 JSON 文件。</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>将 JSON 导出文件中的警报（连同其动作）添加为新警报。不会替换这里已有的内容；已存在的警报会被跳过。</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>已导出警报：{0}。</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>已导入警报：{0}。已存在而跳过：{1}。此版本没有的检查类型，跳过：{2}。</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>该文件不是警报的导出文件。</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>第 {0} 个区块（{1}）至少需要一个榜单。</value>
   </data>

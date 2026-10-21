@@ -1665,6 +1665,73 @@ public sealed class SchedulerViewModel : ReactiveObject
         }
     }
 
+    // ── Export / import ──────────────────────────────────────────────────────
+
+    /// <summary>Every task, as saved, to a JSON file.</summary>
+    public async Task ExportAsync(Stream stream)
+    {
+        var rows = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            return await db.ScheduledTasks.AsNoTracking().OrderBy(t => t.Name).ToListAsync();
+        });
+
+        await AlarmTaskTransfer.WriteTasksAsync(stream, rows,
+            (kind, id) => Destinations.FirstOrDefault(d => d.Kind == kind && d.Id == id)?.Label);
+        StatusText = string.Format(AlarmsText.StatusTasksExported, rows.Count);
+    }
+
+    /// <summary>
+    /// Adds the tasks in an export as new tasks. Nothing already here is replaced, and a task
+    /// identical to one here is skipped, so importing the same file twice adds nothing.
+    ///
+    /// <para>⚠️ Switched off, every one. An imported task posts to a channel the moment it comes
+    /// due, and where it posts may not mean the same thing here: a webhook's id is a row in the
+    /// exporting database. It is matched by name when the id does not fit, and left blank when
+    /// neither does — the editor then asks for it on Save.</para>
+    /// </summary>
+    public async Task ImportAsync(Stream stream)
+    {
+        var entries = await AlarmTaskTransfer.ReadTasksAsync(stream);
+        if (entries is null) { StatusText = AlarmsText.ErrNotATasksExport; return; }
+
+        var added = new List<ScheduledTask>();
+        foreach (var e in entries)
+        {
+            var cfg = ScheduledTaskConfig.FromJson(AlarmTaskTransfer.Text(e.Config));
+            if (cfg.DestinationKind.Length > 0
+                && !Destinations.Any(d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId))
+            {
+                var byName = Destinations.FirstOrDefault(d => d.Kind == cfg.DestinationKind && d.Label == e.DestinationLabel);
+                cfg.DestinationKind = byName?.Kind ?? "";
+                cfg.DestinationId   = byName?.Id   ?? "";
+            }
+
+            var task = AlarmTaskTransfer.ToTask(e, cfg);
+            task.Enabled = false;
+            added.Add(task);
+        }
+
+        var (imported, skipped) = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var here = (await db.ScheduledTasks.AsNoTracking().ToListAsync())
+                       .Select(t => (t.Name, t.TaskType, t.Config)).ToHashSet();
+            var n = 0;
+            foreach (var t in added)
+            {
+                if (!here.Add((t.Name, t.TaskType, t.Config))) continue;
+                db.ScheduledTasks.Add(t);
+                n++;
+            }
+            await db.SaveChangesAsync();
+            return (n, added.Count - n);
+        });
+
+        await LoadAsync();
+        StatusText = string.Format(AlarmsText.StatusTasksImported, imported, skipped);
+    }
+
     /// <summary>
     /// Runs the SAVED task now, for real.
     ///

@@ -619,6 +619,48 @@
   <data name="SectionBadNumber" xml:space="preserve">
     <value>Раздел {0} ({1}): в поле «{2}» нужно число от 0 или пусто.</value>
   </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Экспорт запланированных задач</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Импорт запланированных задач</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Сохраняет все задачи в файл JSON.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Добавляет задачи из экспорта JSON как новые, выключенными, пока вы их не проверите. Ничего здесь не заменяется; уже существующая задача пропускается.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Экспортировано задач: {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Импортировано задач: {0}, они выключены, пока вы их не проверите. Уже есть, пропущено: {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>Этот файл не является экспортом запланированных задач.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Экспорт тревог</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Импорт тревог</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Сохраняет все тревоги и их действия в файл JSON.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Добавляет тревоги из экспорта JSON как новые, вместе с действиями. Ничего здесь не заменяется; уже существующая тревога пропускается.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Экспортировано тревог: {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Импортировано тревог: {0}. Уже есть, пропущено: {1}. Проверки, которых нет в этой версии, пропущено: {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>Этот файл не является экспортом тревог.</value>
+  </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Для раздела {0} ({1}) нужен хотя бы один список.</value>
   </data>
