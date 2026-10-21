@@ -985,7 +985,7 @@
     <comment>Alarm editor, Check pick list: the check that wakes you when a ship sits in space too long after an undock or a jump.</comment>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Wakes you up. Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or replying anything at all to the agent, quiets it for a while; when that lapses and the ship is still there, the stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
+    <value>Wakes you up. Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or typing or speaking in the agent chat at all, quiets it for a while; when that lapses and the ship is still there, the stages start over. Typing or speaking there before any stage is due restarts its clock instead. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
     <comment>Alarm editor, under the Check pick list when Undocked too long is picked. "TTS direct" is the action that speaks without the agent.</comment>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
@@ -1161,7 +1161,7 @@
     <comment>Alarm editor, Undocked too long check: label of how many minutes an acknowledgement keeps the alarm quiet.</comment>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>How long a reply or the dialog's button keeps this quiet while the ship stays undocked — long enough to wait on a titan bridge. Then the stages start over.</value>
+    <value>How long the dialog's button, or typing or speaking in the agent chat, keeps this quiet while the ship stays undocked — long enough to wait on a titan bridge. Then the stages start over.</value>
     <comment>Alarm editor, Undocked too long check, under Quiet after an acknowledgement.</comment>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">

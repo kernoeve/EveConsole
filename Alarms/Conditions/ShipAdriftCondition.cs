@@ -22,11 +22,15 @@ namespace EveConsole.Alarms.Conditions;
 /// the ordinary seen-key ledger gives "once per stage" for free. When several stages are due at
 /// once — the app was away — only the highest is raised.</para>
 ///
-/// <para>An acknowledgement — the dialog's button, or anything at all said in the agent chat — quiets the
-/// episode for a number of minutes (they may be waiting on a bridge). When that lapses and the
-/// ship is still there, the first stage fires again at once and the later ones follow at their
-/// usual distances after it. The snooze belongs to the episode: a pilot who docks and undocks
-/// again is awake, and the next undock gets its own stages.</para>
+/// <para>An acknowledgement — the dialog's button, or typing or talking in the agent chat at
+/// all — quiets the episode for a number of minutes (they may be waiting on a bridge). When that
+/// lapses and the ship is still there, the first stage fires again at once and the later ones
+/// follow at their usual distances after it. The snooze belongs to the episode: a pilot who
+/// docks and undocks again is awake, and the next undock gets its own stages.</para>
+///
+/// <para>The same activity before any stage is due restarts the clock instead: the first stage
+/// comes its usual seconds after the last word, not after the undock. A word is not a promise to
+/// stay awake for half an hour.</para>
 ///
 /// <para>The same check has a second mode, for the other way to lose a jump freighter: it
 /// <em>landed</em> — by jump drive or bridge, somewhere no stargate leads from where it was —
@@ -74,16 +78,16 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         "freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump " +
         "arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in " +
         "space — the thirty seconds after a jump. Docking, leaving the " +
-        "system or logging off ends it. Pressing the dialog's button, or replying anything at all " +
-        "to the agent, quiets it for a while; when that lapses and the ship is still there, the " +
-        "stages start over. Stopping the ship after the undock (the game log's \"Ship stopping\") ends " +
+        "system or logging off ends it. Pressing the dialog's button, or typing or speaking in the " +
+        "agent chat at all, quiets it for a while; when that lapses and the ship is still there, the " +
+        "stages start over; doing so before any stage is due restarts its clock instead. Stopping the ship after the undock (the game log's \"Ship stopping\") ends " +
         "it too, unless unticked. Each stage has its own actions — TTS direct or the agent to say the stage's " +
         "line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.";
 
     public int Stages => StageCount;
 
-    /// <summary>A person talking to the agent is awake, whatever they say and whether or not the
-    /// model ever answers — the model need not call anything.</summary>
+    /// <summary>A person typing or talking to the agent is there, whatever they say and whether or
+    /// not the model ever answers — the model need not call anything.</summary>
     public bool ActivityAcknowledges => true;
 
     public object ParameterSchema => new
@@ -155,7 +159,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                 @default    = DefaultSnooze,
                 title       = "Quiet after an acknowledgement",
                 suffix      = "minutes",
-                description = "How long a reply or the dialog's button keeps this quiet while the ship " +
+                description = "How long the dialog's button, or typing or speaking in the agent chat, keeps this quiet while the ship " +
                               "stays undocked — long enough to wait on a titan bridge. Then the stages " +
                               "start over.",
             },
@@ -307,8 +311,118 @@ public sealed class ShipAdriftCondition : IAlarmCondition
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
+    /// <summary>
+    /// One watched character in space on an episode: where it stands against the stages now.
+    /// <see cref="Due"/> is the highest stage due, 0 for none yet; <see cref="Quiet"/> holds the
+    /// snooze when one is running for this episode, which keeps every stage back.
+    /// </summary>
+    private sealed record Situation(
+        CharacterStatus Status, string HullName, string HullGroup, bool IsPod,
+        DateTimeOffset StartedAt, int SystemId, string Episode, string ScopeKey,
+        AlarmSnooze? Snooze, bool Quiet, int Due);
+
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
+    {
+        var stages = StageSeconds(config);
+        if (stages.Count == 0) return [];
+        var arrivals      = ReadBool(config, "arrivals");
+        var snoozeMinutes = Snooze(config);
+        var now           = ctx.Now;
+
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var due = (await SituationsAsync(db, config, ctx, ct)).Where(x => x.Due > 0).ToList();
+        if (due.Count == 0) return [];
+
+        var charIds = due.Select(x => x.Status.CharacterId).ToList();
+        var names   = await db.Characters.AsNoTracking()
+            .Where(c => charIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+        var sysIds  = due.Select(x => x.SystemId).Distinct().ToList();
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => sysIds.Contains(s.SolarSystemId)).ToDictionaryAsync(s => s.SolarSystemId, s => s.Name, ct);
+
+        // Who to address: the name the person gave the agent, shared in the database like the
+        // rest of the agent's personalisation, so every client says the same thing.
+        var user = (await db.AppPreferences.AsNoTracking()
+            .Where(p => p.Key == "agent.user_name").Select(p => p.Value).FirstOrDefaultAsync(ct))?.Trim();
+
+        var matches = new List<AlarmMatch>();
+        foreach (var x in due)
+        {
+            var s          = x.Status;
+            var generation = x.Snooze is not null ? x.Snooze.Until.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "-";
+            var seconds    = (int)Math.Round((now - x.StartedAt).TotalSeconds);
+            var minutes    = (int)Math.Round(seconds / 60.0);
+            var detail     = new Dictionary<string, object?>
+            {
+                ["character_id"]   = s.CharacterId,
+                ["character"]      = names.GetValueOrDefault(s.CharacterId) ?? $"Character {s.CharacterId}",
+                ["user"]           = string.IsNullOrEmpty(user) ? null : user,
+                ["hull"]           = x.HullName,
+                ["ship_class"]     = x.HullGroup,
+                ["is_pod"]         = x.IsPod,
+                ["ship_name"]      = s.ShipName,
+                ["system"]         = systems.GetValueOrDefault(x.SystemId) ?? "an unknown system",
+                ["system_id"]      = x.SystemId,
+                ["arrival"]        = arrivals,
+                ["from_system_id"] = arrivals ? s.PreviousSystemId : null,
+                ["undocked_at"]    = x.StartedAt,
+                ["seconds"]        = seconds,
+                ["minutes"]        = minutes,
+                ["stage"]          = x.Due,
+                ["stage_seconds"]  = stages.First(st => st.Stage == x.Due).Seconds,
+                ["scope_key"]      = x.ScopeKey,
+                ["episode"]        = x.Episode,
+                ["snooze_minutes"] = snoozeMinutes,
+            };
+
+            matches.Add(new AlarmMatch(
+                $"{(arrivals ? "landed" : "adrift")}:{x.ScopeKey}|{x.Episode}|{generation}|{x.Due}",
+                arrivals
+                    ? $"{detail["character"]} — {x.HullName} landed in {detail["system"]} {Span(detail)} ago, not docked (stage {x.Due})"
+                    : $"{detail["character"]} — {x.HullName} undocked in {detail["system"]} for {minutes} min, not docked (stage {x.Due})")
+            {
+                Detail = detail,
+            });
+        }
+        return matches;
+    }
+
+    /// <summary>
+    /// The capsuleer is at the keyboard. A situation with a stage due is acknowledged: quiet for
+    /// the snooze, as the dialog's button would. One with none due yet has its clock restarted,
+    /// so the first stage comes its usual seconds from now; one already quiet is never shortened.
+    /// </summary>
+    public async Task<IReadOnlyList<AlarmActivityReset>> ActivityResetsAsync(
+        JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
+    {
+        var stages = StageSeconds(config);
+        if (stages.Count == 0) return [];
+        var firstStage = TimeSpan.FromSeconds(stages[0].Seconds);
+        var snooze     = TimeSpan.FromMinutes(Snooze(config));
+        var now        = ctx.Now.ToUniversalTime();
+
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var resets = new List<AlarmActivityReset>();
+        foreach (var x in await SituationsAsync(db, config, ctx, ct))
+        {
+            if (x.Due > 0)
+                resets.Add(new(x.ScopeKey, x.Episode, now + snooze, Ringing: true));
+            else
+            {
+                // A snooze lapsing sets the clock back by the first stage (see SituationsAsync),
+                // so quiet until now + that is "the first stage that long from now".
+                var until = now + firstStage;
+                if (x.Quiet && x.Snooze!.Until > until) until = x.Snooze.Until.ToUniversalTime();
+                resets.Add(new(x.ScopeKey, x.Episode, until, Ringing: false));
+            }
+        }
+        return resets;
+    }
+
+    /// <summary>Every watched character on an episode now, due or not.</summary>
+    private async Task<List<Situation>> SituationsAsync(
+        AppDbContext db, JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct)
     {
         var arrivals  = ReadBool(config, "arrivals");
         var shipNames = ReadList(config, "ships");
@@ -317,10 +431,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
 
         var stages = StageSeconds(config);
         if (stages.Count == 0) return [];
-        var snoozeMinutes = Snooze(config);
-        var now           = ctx.Now;
-
-        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var now    = ctx.Now;
 
         // Every character in space right now with the episode's stamp on record. For undocks,
         // still in the system they undocked in; for arrivals, the last change of system is by
@@ -366,22 +477,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
             if (adrift.Count == 0) return [];
         }
 
-        var charIds = adrift.Select(s => s.CharacterId).ToList();
-        var names   = await db.Characters.AsNoTracking()
-            .Where(c => charIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
-        var sysIds  = adrift.Select(s => arrivals ? s.SolarSystemId!.Value : s.UndockedSystemId!.Value).Distinct().ToList();
-        var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => sysIds.Contains(s.SolarSystemId)).ToDictionaryAsync(s => s.SolarSystemId, s => s.Name, ct);
         var snoozes = await db.AlarmSnoozes.AsNoTracking()
             .Where(s => s.AlarmId == ctx.Alarm.Id).ToDictionaryAsync(s => s.ScopeKey, ct);
 
-        // Who to address: the name the person gave the agent, shared in the database like the
-        // rest of the agent's personalisation, so every client says the same thing.
-        var user = (await db.AppPreferences.AsNoTracking()
-            .Where(p => p.Key == "agent.user_name").Select(p => p.Value).FirstOrDefaultAsync(ct))?.Trim();
-
         var firstStage = stages[0].Seconds;
-        var matches    = new List<AlarmMatch>();
+        var found      = new List<Situation>();
         foreach (var s in adrift)
         {
             if (!hulls.TryGetValue(s.ShipTypeId!.Value, out var hull)) continue;
@@ -398,51 +498,17 @@ public sealed class ShipAdriftCondition : IAlarmCondition
 
             // A snooze counts only for the episode it was given in.
             var snooze = snoozes.TryGetValue(scopeKey, out var sn) && sn.Episode == episode ? sn : null;
-            if (snooze is not null && now < snooze.Until) continue;
+            var quiet  = snooze is not null && now < snooze.Until;
 
             // After a snooze lapses the first stage is due at once and the rest keep their
             // distances from it; the clock is set back so the arithmetic says the same thing.
             var clockStart = snooze is not null ? snooze.Until.AddSeconds(-firstStage) : undockedAt;
             var elapsed    = (now - clockStart).TotalSeconds;
-            var due        = stages.Where(st => elapsed >= st.Seconds).Select(st => st.Stage).DefaultIfEmpty(0).Max();
-            if (due == 0) continue;
+            var due        = quiet ? 0 : stages.Where(st => elapsed >= st.Seconds).Select(st => st.Stage).DefaultIfEmpty(0).Max();
 
-            var generation = snooze is not null ? snooze.Until.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "-";
-            var seconds    = (int)Math.Round((now - undockedAt).TotalSeconds);
-            var minutes    = (int)Math.Round(seconds / 60.0);
-            var detail     = new Dictionary<string, object?>
-            {
-                ["character_id"]   = s.CharacterId,
-                ["character"]      = names.GetValueOrDefault(s.CharacterId) ?? $"Character {s.CharacterId}",
-                ["user"]           = string.IsNullOrEmpty(user) ? null : user,
-                ["hull"]           = hull.Name,
-                ["ship_class"]     = hull.Group,
-                ["is_pod"]         = isPod,
-                ["ship_name"]      = s.ShipName,
-                ["system"]         = systems.GetValueOrDefault(systemId) ?? "an unknown system",
-                ["system_id"]      = systemId,
-                ["arrival"]        = arrivals,
-                ["from_system_id"] = arrivals ? s.PreviousSystemId : null,
-                ["undocked_at"]    = undockedAt,
-                ["seconds"]        = seconds,
-                ["minutes"]        = minutes,
-                ["stage"]          = due,
-                ["stage_seconds"]  = stages.First(st => st.Stage == due).Seconds,
-                ["scope_key"]      = scopeKey,
-                ["episode"]        = episode,
-                ["snooze_minutes"] = snoozeMinutes,
-            };
-
-            matches.Add(new AlarmMatch(
-                $"{(arrivals ? "landed" : "adrift")}:{scopeKey}|{episode}|{generation}|{due}",
-                arrivals
-                    ? $"{detail["character"]} — {hull.Name} landed in {detail["system"]} {Span(detail)} ago, not docked (stage {due})"
-                    : $"{detail["character"]} — {hull.Name} undocked in {detail["system"]} for {minutes} min, not docked (stage {due})")
-            {
-                Detail = detail,
-            });
+            found.Add(new Situation(s, hull.Name, hull.Group, isPod, undockedAt, systemId, episode, scopeKey, snooze, quiet, due));
         }
-        return matches;
+        return found;
     }
 
     /// <summary>

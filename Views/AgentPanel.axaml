@@ -201,7 +201,6 @@
                  CornerRadius="6"
                  FontSize="11"
                  Padding="8 6"
-                 IsEnabled="{Binding !IsBusy}"
                  KeyDown="OnInputKeyDown"/>
 
         <!-- Mic button — click to start recording, click again to stop + transcribe -->
@@ -214,7 +213,6 @@
                 CornerRadius="6"
                 FontSize="13"
                 Padding="8 5"
-                IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasSpeechInput}"
                 ToolTip.Tip="{x:Static loc:AgentText.TipHoldToTalkRelease}">
           <Panel>

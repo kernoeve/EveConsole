@@ -740,7 +740,7 @@
     <value>Zu lange abgedockt (Weckruf)</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Weckt Sie auf. Löst in bis zu drei Stufen aus, wenn einer Ihrer Charaktere in einem bestimmten Rumpf oder einer bestimmten Schiffsklasse abdockt und nach einer Anzahl Sekunden immer noch im selben System ist – ein angebundener Frachter oder Sprungfrachter, während sein Pilot eindöst. Oder, bei angekreuzten Sprungankünften, wenn ein sprungfähiger Rumpf per Sprungantrieb oder Brücke angekommen ist und sich noch im All befindet – die dreißig Sekunden nach einem Sprung. Andocken, das Verlassen des Systems oder Ausloggen beendet ihn. Ein Klick auf die Schaltfläche des Dialogs oder eine beliebige Antwort an den KI-Assistenten stellt ihn eine Weile ruhig; läuft diese Zeit ab und ist das Schiff noch da, beginnen die Stufen von vorn. Jede Stufe hat eigene Aktionen – „TTS direkt“ oder der KI-Assistent spricht den Text der Stufe, ein Dialog, ein Ton, der sich bis zur Bestätigung wiederholt. Wiederholung und Abklingzeit gelten hier nicht.</value>
+    <value>Weckt Sie auf. Löst in bis zu drei Stufen aus, wenn einer Ihrer Charaktere in einem bestimmten Rumpf oder einer bestimmten Schiffsklasse abdockt und nach einer Anzahl Sekunden immer noch im selben System ist – ein angebundener Frachter oder Sprungfrachter, während sein Pilot eindöst. Oder, bei angekreuzten Sprungankünften, wenn ein sprungfähiger Rumpf per Sprungantrieb oder Brücke angekommen ist und sich noch im All befindet – die dreißig Sekunden nach einem Sprung. Andocken, das Verlassen des Systems oder Ausloggen beendet ihn. Ein Klick auf die Schaltfläche des Dialogs oder überhaupt Tippen oder Sprechen im Chat mit dem KI-Assistenten stellt ihn eine Weile ruhig; läuft diese Zeit ab und ist das Schiff noch da, beginnen die Stufen von vorn. Tippen oder Sprechen dort, bevor eine Stufe fällig ist, startet stattdessen ihre Uhr neu. Jede Stufe hat eigene Aktionen – „TTS direkt“ oder der KI-Assistent spricht den Text der Stufe, ein Dialog, ein Ton, der sich bis zur Bestätigung wiederholt. Wiederholung und Abklingzeit gelten hier nicht.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>Ereignisse zu Shop-Bestellungen</value>
@@ -872,7 +872,7 @@
     <value>Ruhe nach einer Bestätigung</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>Wie lange eine Antwort oder die Schaltfläche des Dialogs diesen Alarm ruhigstellt, solange das Schiff abgedockt bleibt – lang genug, um auf eine Titan-Brücke zu warten. Danach beginnen die Stufen von vorn.</value>
+    <value>Wie lange die Schaltfläche des Dialogs oder Tippen oder Sprechen im Chat mit dem KI-Assistenten diesen Alarm ruhigstellt, solange das Schiff abgedockt bleibt – lang genug, um auf eine Titan-Brücke zu warten. Danach beginnen die Stufen von vorn.</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>Minuten</value>

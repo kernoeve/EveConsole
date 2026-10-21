@@ -740,7 +740,7 @@
     <value>Trop longtemps dans l'espace (réveil)</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Vous réveille. Se déclenche en trois étapes au plus quand l'un de vos personnages, dans une coque ou une classe de vaisseau indiquée, appareille et se trouve toujours dans le même système après un certain nombre de secondes — un transport de fret ou un transport de fret hyperspatial arrimé pendant que son pilote s'assoupit. Ou, si les arrivées par saut sont cochées, quand une coque capable de sauter est arrivée par propulseur hyperspatial ou par pont et se trouve toujours dans l'espace — les trente secondes qui suivent un saut. S'amarrer, quitter le système ou se déconnecter y met fin. Appuyer sur le bouton de la boîte de dialogue, ou répondre quoi que ce soit à l'assistant, la fait taire un moment ; quand ce délai expire et que le vaisseau est toujours là, les étapes recommencent. Chaque étape a ses propres actions — TTS direct ou l'assistant pour prononcer la phrase de l'étape, une boîte de dialogue, un son qui se répète jusqu'à l'acquittement. La répétition et le délai de réarmement ne s'appliquent pas.</value>
+    <value>Vous réveille. Se déclenche en trois étapes au plus quand l'un de vos personnages, dans une coque ou une classe de vaisseau indiquée, appareille et se trouve toujours dans le même système après un certain nombre de secondes — un transport de fret ou un transport de fret hyperspatial arrimé pendant que son pilote s'assoupit. Ou, si les arrivées par saut sont cochées, quand une coque capable de sauter est arrivée par propulseur hyperspatial ou par pont et se trouve toujours dans l'espace — les trente secondes qui suivent un saut. S'amarrer, quitter le système ou se déconnecter y met fin. Appuyer sur le bouton de la boîte de dialogue, ou écrire ou parler dans le chat de l'assistant, la fait taire un moment ; quand ce délai expire et que le vaisseau est toujours là, les étapes recommencent. Écrire ou parler là avant qu'une étape soit due relance plutôt son chronomètre. Chaque étape a ses propres actions — TTS direct ou l'assistant pour prononcer la phrase de l'étape, une boîte de dialogue, un son qui se répète jusqu'à l'acquittement. La répétition et le délai de réarmement ne s'appliquent pas.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>Événements des commandes de boutique</value>
@@ -872,7 +872,7 @@
     <value>Silence après un acquittement</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>Durée pendant laquelle une réponse ou le bouton de la boîte de dialogue fait taire l'alarme tant que le vaisseau reste dans l'espace — assez longtemps pour attendre un pont de titan. Ensuite, les étapes recommencent.</value>
+    <value>Durée pendant laquelle le bouton de la boîte de dialogue, ou écrire ou parler dans le chat de l'assistant, fait taire l'alarme tant que le vaisseau reste dans l'espace — assez longtemps pour attendre un pont de titan. Ensuite, les étapes recommencent.</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>minutes</value>

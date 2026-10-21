@@ -68,6 +68,10 @@ public sealed class AlarmActionRunner
     /// <summary>The repeating sound for a situation has ended of itself — close its window. Set by MainWindow.</summary>
     public Action<AlarmAck>? SoundStoppedCallback { get; set; }
 
+    /// <summary>Cuts off what the voice is saying — a wake-up line the capsuleer has already
+    /// answered by typing or speaking. Set by MainWindow.</summary>
+    public Action? StopSpeechCallback { get; set; }
+
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
 
@@ -315,20 +319,8 @@ public sealed class AlarmActionRunner
 
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var until = DateTimeOffset.UtcNow.AddMinutes(Math.Max(1, ack.SnoozeMinutes));
-            var row   = await db.AlarmSnoozes.FindAsync([ack.AlarmId, ack.ScopeKey], ct);
-            if (row is null)
-                db.AlarmSnoozes.Add(new AlarmSnooze
-                {
-                    AlarmId = ack.AlarmId, ScopeKey = ack.ScopeKey, Episode = ack.Episode, Until = until,
-                });
-            else
-            {
-                row.Episode = ack.Episode;
-                row.Until   = until;
-            }
-            await db.SaveChangesAsync(ct);
+            await WriteSnoozeAsync(ack.AlarmId, ack.ScopeKey, ack.Episode,
+                                   DateTimeOffset.UtcNow.AddMinutes(Math.Max(1, ack.SnoozeMinutes)), ct);
         }
         catch (Exception ex)
         {
@@ -345,41 +337,120 @@ public sealed class AlarmActionRunner
     private readonly object _awaitingLock = new();
     private readonly Dictionary<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)> _awaiting = new();
 
+    private readonly SemaphoreSlim _activityGate = new(1, 1);
+    private DateTimeOffset _lastActivityPass = DateTimeOffset.MinValue;
+
     /// <summary>
-    /// The capsuleer said something in the agent chat: every wake-up call still going on and
-    /// unacknowledged is acknowledged by it, on every client, and its repeating sound and window
-    /// stop. <paramref name="replyTo"/>, the situation the agent's last line asked about, is
-    /// acknowledged in any case, as a reply always was.
+    /// How often a burst of keys with nothing ringing reads the database. A first-stage clock
+    /// restarted up to this late is the price; anything ringing or asked is never held back.
+    /// </summary>
+    private static readonly TimeSpan ActivityPassGap = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// The capsuleer is typing or speaking in the agent chat — called on the first key and the
+    /// moment the microphone opens, not when a message is finally sent. Nothing about what they
+    /// say is judged: being there is the answer.
+    ///
+    /// <para>At once, before any database: a repeating sound and its window stop, and so does a
+    /// wake-up line still being spoken. Then every <see cref="IAlarmCondition.ActivityAcknowledges"/>
+    /// check is asked what the activity does to each of its situations — acknowledged when a
+    /// stage is due, the clock restarted when none is yet — and that is written for every
+    /// client. <paramref name="replyTo"/>, the situation the agent's last line asked about, and
+    /// anything that fired here which the pass did not reach, are acknowledged as a reply
+    /// always was.</para>
     /// </summary>
     public async Task UserActiveAsync(AlarmAck? replyTo, CancellationToken ct = default)
     {
         KeyValuePair<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)>[] awaiting;
         lock (_awaitingLock) awaiting = _awaiting.ToArray();
 
-        var done = new HashSet<(long, string)>();
-        foreach (var kv in awaiting)
+        var urgent = awaiting.Length > 0 || replyTo is not null;
+        if (urgent)
         {
-            var holds = false;
+            foreach (var kv in awaiting) EndLoop(kv.Key, tellWindow: true);
+            if (replyTo is not null) EndLoop((replyTo.AlarmId, replyTo.ScopeKey), tellWindow: true);
+            try { StopSpeechCallback?.Invoke(); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+        }
+        else if (DateTimeOffset.UtcNow - _lastActivityPass < ActivityPassGap) return;
+
+        // One pass at a time. A key with nothing ringing does not queue behind one.
+        if (!await _activityGate.WaitAsync(urgent ? Timeout.Infinite : 0, ct)) return;
+        try
+        {
+            _lastActivityPass = DateTimeOffset.UtcNow;
+            var written = new HashSet<(long, string)>();
+            var rang    = false;
             try
             {
-                // Still going on and not yet acknowledged, here or on another client.
-                holds = _registry.Find(kv.Value.ConditionType) is { } condition
-                     && await condition.StillHoldsAsync(kv.Key.AlarmId, kv.Key.ScopeKey, kv.Value.Ack.Episode, _dbFactory, ct);
+                var types = _registry.All.Where(c => c.ActivityAcknowledges).Select(c => c.TypeKey).ToList();
+                List<Alarm> alarms;
+                await using (var db = await _dbFactory.CreateDbContextAsync(ct))
+                    alarms = await db.Alarms.AsNoTracking()
+                        .Where(a => a.Enabled && types.Contains(a.ConditionType)).ToListAsync(ct);
+
+                var now = DateTimeOffset.UtcNow;
+                foreach (var alarm in alarms)
+                {
+                    if (_registry.Find(alarm.ConditionType) is not { } condition) continue;
+                    using var config = JsonDocument.Parse(string.IsNullOrWhiteSpace(alarm.ConditionJson) ? "{}" : alarm.ConditionJson);
+                    var resets = await condition.ActivityResetsAsync(config.RootElement, new AlarmEvaluationContext
+                    {
+                        DbFactory = _dbFactory, ConnectionString = "", Alarm = alarm, Now = now,
+                    }, ct);
+                    foreach (var r in resets)
+                    {
+                        await WriteSnoozeAsync(alarm.Id, r.ScopeKey, r.Episode, r.Until, ct);
+                        written.Add((alarm.Id, r.ScopeKey));
+                        rang |= r.Ringing;
+                    }
+                }
             }
-            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", "resetting wake-up calls on activity", ex); }
 
-            lock (_awaitingLock) _awaiting.Remove(kv.Key);
-            if (!holds) continue;
-            EndLoop(kv.Key, tellWindow: true);
-            await AcknowledgeAsync(kv.Value.Ack, ct);
-            done.Add(kv.Key);
+            // Ringing on another client, so nothing here knew to cut the voice.
+            if (rang && !urgent)
+            {
+                try { StopSpeechCallback?.Invoke(); }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+            }
+
+            foreach (var kv in awaiting)
+            {
+                lock (_awaitingLock) _awaiting.Remove(kv.Key);
+                if (written.Contains(kv.Key)) continue;
+                var holds = false;
+                try
+                {
+                    // Still going on and not yet acknowledged, here or on another client.
+                    holds = _registry.Find(kv.Value.ConditionType) is { } condition
+                         && await condition.StillHoldsAsync(kv.Key.AlarmId, kv.Key.ScopeKey, kv.Value.Ack.Episode, _dbFactory, ct);
+                }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
+                if (!holds) continue;
+                await AcknowledgeAsync(kv.Value.Ack, ct);
+                written.Add(kv.Key);
+            }
+
+            if (replyTo is not null && !written.Contains((replyTo.AlarmId, replyTo.ScopeKey)))
+                await AcknowledgeAsync(replyTo, ct);
         }
+        finally { _activityGate.Release(); }
+    }
 
-        if (replyTo is not null && !done.Contains((replyTo.AlarmId, replyTo.ScopeKey)))
+    /// <summary>The situation's episode is quiet until then, for the worker's condition and every client.</summary>
+    private async Task WriteSnoozeAsync(long alarmId, string scopeKey, string episode, DateTimeOffset until, CancellationToken ct)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = await db.AlarmSnoozes.FindAsync([alarmId, scopeKey], ct);
+        if (row is null)
+            db.AlarmSnoozes.Add(new AlarmSnooze { AlarmId = alarmId, ScopeKey = scopeKey, Episode = episode, Until = until });
+        else
         {
-            EndLoop((replyTo.AlarmId, replyTo.ScopeKey), tellWindow: true);
-            await AcknowledgeAsync(replyTo, ct);
+            row.Episode = episode;
+            row.Until   = until;
         }
+        await db.SaveChangesAsync(ct);
     }
 
     // ── A sound that will not stop until someone is awake ──────────────────────

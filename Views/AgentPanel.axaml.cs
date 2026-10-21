@@ -50,6 +50,8 @@ public partial class AgentPanel : ReactiveUserControl<AgentPanelViewModel>
 
     private void OnInputKeyDown(object? sender, KeyEventArgs e)
     {
+        // Any key at all: somebody is at the keyboard, which is all a wake-up call asks.
+        ViewModel?.NoteActivity();
         if (e.Key == Key.Enter && ViewModel is not null)
         {
             e.Handled = true;

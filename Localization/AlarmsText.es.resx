@@ -740,7 +740,7 @@
     <value>Demasiado tiempo en el espacio (despertador)</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Te despierta. Se dispara en hasta tres fases cuando uno de tus personajes desacopla con un casco o una clase de nave concretos y sigue en ese mismo sistema al cabo de unos segundos: un carguero o un carguero de salto amarrado mientras su piloto se queda dormido. O, si se marcan las llegadas por salto, cuando un casco con capacidad de salto ha llegado mediante motor de salto o puente y sigue en el espacio: los treinta segundos posteriores a un salto. Acoplar, salir del sistema o cerrar sesión lo termina. Pulsar el botón del cuadro de diálogo, o responder cualquier cosa al asistente, lo silencia durante un rato; cuando pasa ese tiempo y la nave sigue allí, las fases vuelven a empezar. Cada fase tiene sus propias acciones: TTS directo o el asistente para decir la frase de la fase, un cuadro de diálogo, un sonido que se repite hasta que se confirma. La repetición y la espera no se aplican.</value>
+    <value>Te despierta. Se dispara en hasta tres fases cuando uno de tus personajes desacopla con un casco o una clase de nave concretos y sigue en ese mismo sistema al cabo de unos segundos: un carguero o un carguero de salto amarrado mientras su piloto se queda dormido. O, si se marcan las llegadas por salto, cuando un casco con capacidad de salto ha llegado mediante motor de salto o puente y sigue en el espacio: los treinta segundos posteriores a un salto. Acoplar, salir del sistema o cerrar sesión lo termina. Pulsar el botón del cuadro de diálogo, o escribir o hablar en el chat del asistente, lo silencia durante un rato; cuando pasa ese tiempo y la nave sigue allí, las fases vuelven a empezar. Escribir o hablar allí antes de que toque ninguna fase reinicia su reloj. Cada fase tiene sus propias acciones: TTS directo o el asistente para decir la frase de la fase, un cuadro de diálogo, un sonido que se repite hasta que se confirma. La repetición y la espera no se aplican.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>Eventos de encargos de la tienda</value>
@@ -872,7 +872,7 @@
     <value>Silencio tras una confirmación</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>Cuánto tiempo la silencia una respuesta o el botón del cuadro de diálogo mientras la nave sigue desacoplada: lo bastante para esperar un puente de titán. Después, las fases vuelven a empezar.</value>
+    <value>Cuánto tiempo la silencia el botón del cuadro de diálogo, o escribir o hablar en el chat del asistente, mientras la nave sigue desacoplada: lo bastante para esperar un puente de titán. Después, las fases vuelven a empezar.</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>minutos</value>

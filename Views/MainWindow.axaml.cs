@@ -355,6 +355,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // acknowledgement goes back through the runner, which is what quiets every client.
         vm.AlarmActions.AwaitReplyCallback  = (ack, said) => vm.AgentVm.ExpectReply(ack, said);
         vm.AgentVm.UserActivityCallback     = replyTo  => vm.AlarmActions.UserActiveAsync(replyTo);
+        vm.AlarmActions.StopSpeechCallback  = ()       => vm.AgentVm.StopSpeaking();
 
         // A repeating sound brings its own window with the one button that stops it, whether or
         // not a Dialog action was chosen; the runner closes it when the sound ends of itself.
