@@ -165,21 +165,24 @@ public class AlertSettingsViewModel : ReactiveObject
     private async Task SaveAsync()
     {
         int days      = (int)Math.Clamp(SkillQueueEmptyDays, 1, 365);
-        int empty     = SkillQueueEmpty             ? 1 : 0;
-        int paused    = SkillQueuePaused            ? 1 : 0;
-        int emptyDay  = SkillQueueEmptyInDays       ? 1 : 0;
-        int safety    = AssetSafety                 ? 1 : 0;
-        int inactive  = InactiveStandingProjects    ? 1 : 0;
-        int buyOrders = StandingBuyOrdersAttention  ? 1 : 0;
-        int unrigged  = UnriggedIndustryJobs        ? 1 : 0;
-        int ready     = IndustryJobsReady           ? 1 : 0;
-        int outstanding = OutstandingContracts      ? 1 : 0;
-        int expiring  = ExpiringContracts           ? 1 : 0;
-        int piExtract = PiExtractors                ? 1 : 0;
-        int piStorage = PiStorage                   ? 1 : 0;
-        int piInputs  = PiInputs                    ? 1 : 0;
-        int piSlots   = PiFreeSlots                 ? 1 : 0;
-        int piStale   = PiStaleData                 ? 1 : 0;
+        // ⚠️ bool, never 1/0: these columns are BOOLEAN on PostgreSQL, which refuses an integer
+        // for one, so every save of this tab failed there — every box came back ticked on the next
+        // open. SQLite stores a bool as 1/0 anyway.
+        bool empty     = SkillQueueEmpty;
+        bool paused    = SkillQueuePaused;
+        bool emptyDay  = SkillQueueEmptyInDays;
+        bool safety    = AssetSafety;
+        bool inactive  = InactiveStandingProjects;
+        bool buyOrders = StandingBuyOrdersAttention;
+        bool unrigged  = UnriggedIndustryJobs;
+        bool ready     = IndustryJobsReady;
+        bool outstanding = OutstandingContracts;
+        bool expiring  = ExpiringContracts;
+        bool piExtract = PiExtractors;
+        bool piStorage = PiStorage;
+        bool piInputs  = PiInputs;
+        bool piSlots   = PiFreeSlots;
+        bool piStale   = PiStaleData;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>

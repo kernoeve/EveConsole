@@ -670,9 +670,11 @@ public class MarketSettingsViewModel : ReactiveObject
         int?    mfgConfigId   = SelectedManufacturingConfig?.Id;
         string  mfgType       = ManufacturingPriceType;
         decimal markup        = MissingPriceMarkupPct;
-        int     filterLowball = FilterLowballBuyOrders ? 1 : 0;
+        // ⚠️ bool, never 1/0: BOOLEAN on PostgreSQL, which refuses an integer and so failed the
+        // whole save there. SQLite stores a bool as 1/0 anyway.
+        bool    filterLowball = FilterLowballBuyOrders;
         decimal lowballPct    = LowballBuyOrderThresholdPct;
-        int     buyCheaper    = PurchaseWhenCheaper ? 1 : 0;
+        bool    buyCheaper    = PurchaseWhenCheaper;
         decimal buyThreshold  = PurchaseThresholdPct;
 
         // Read above, on the UI thread; written off it.
