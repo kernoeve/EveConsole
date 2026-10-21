@@ -436,8 +436,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
         _pendingAckText = spokenText;
     }
 
-    /// <summary>Set by MainWindow: takes the acknowledgement back to the alarm runner.</summary>
-    public Func<AlarmAck, Task>? AcknowledgeCallback { get; set; }
+    /// <summary>
+    /// Set by MainWindow: the capsuleer said something here, with the situation the last line
+    /// asked about if one is waiting. The alarm runner takes it as an acknowledgement of that and
+    /// of every wake-up call still ringing.
+    /// </summary>
+    public Func<AlarmAck?, Task>? UserActivityCallback { get; set; }
 
     public async Task NotifyAsync(string message)
     {
@@ -517,21 +521,31 @@ public sealed class AgentPanelViewModel : ReactiveObject
     private async Task SendAsync(bool showUserMessage)
     {
         var text = Input.Trim();
-        if (string.IsNullOrEmpty(text) || IsBusy) return;
+        if (string.IsNullOrEmpty(text)) return;
+
+        // ⚠️ Before the busy check: a person who answers while the model is still on its last
+        // turn — a local model can take a while over "acknowledge in a few words" — is awake all
+        // the same, though the message waits. That reply was dropped here, and the next stage
+        // fired at them. Only a message the capsuleer wrote counts; an alarm's own prompt
+        // arrives this way too.
+        if (showUserMessage && UserActivityCallback is { } active)
+        {
+            var ack = _pendingAck;
+            _pendingAck = null;
+            _ = active(ack);
+        }
+        if (IsBusy) return;
 
         // "/data …" or "/chat …": this one message goes where the capsuleer says.
         var forced = TakeOverride(ref text);
         if (string.IsNullOrEmpty(text)) return;
 
-        // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
+        // What the app said aloud, handed to the model with the reply to it.
         string? replyingTo = null;
-        if (showUserMessage && _pendingAck is { } ack)
+        if (showUserMessage && _pendingAckText is { } said)
         {
-            _pendingAck     = null;
-            replyingTo      = _pendingAckText;
+            replyingTo      = said;
             _pendingAckText = null;
-            if (AcknowledgeCallback is { } acknowledge)
-                _ = acknowledge(ack);
         }
 
         ApplyNavigationIntent(text);

@@ -125,6 +125,15 @@ public interface IAlarmCondition
     int Stages => 0;
 
     /// <summary>
+    /// For a staged check: whether anything the capsuleer says in the agent chat — typed or
+    /// spoken, about anything — acknowledges every situation of this check that has fired and
+    /// is still unacknowledged. True for a wake-up call, whose whole question is whether a person
+    /// is at the keyboard; false, the default, for a check where talking about something else
+    /// says nothing about what it raised.
+    /// </summary>
+    bool ActivityAcknowledges => false;
+
+    /// <summary>
     /// How often a new alarm of this check looks, in seconds, when the editor's general default
     /// would be too slow for it — or null for that default. Only a starting value: the person
     /// can change it, and an alarm already saved keeps its own.

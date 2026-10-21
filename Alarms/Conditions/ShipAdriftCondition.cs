@@ -22,7 +22,7 @@ namespace EveConsole.Alarms.Conditions;
 /// the ordinary seen-key ledger gives "once per stage" for free. When several stages are due at
 /// once — the app was away — only the highest is raised.</para>
 ///
-/// <para>An acknowledgement — the dialog's button, or any reply at all to the agent — quiets the
+/// <para>An acknowledgement — the dialog's button, or anything at all said in the agent chat — quiets the
 /// episode for a number of minutes (they may be waiting on a bridge). When that lapses and the
 /// ship is still there, the first stage fires again at once and the later ones follow at their
 /// usual distances after it. The snooze belongs to the episode: a pilot who docks and undocks
@@ -81,6 +81,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         "line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.";
 
     public int Stages => StageCount;
+
+    /// <summary>A person talking to the agent is awake, whatever they say and whether or not the
+    /// model ever answers — the model need not call anything.</summary>
+    public bool ActivityAcknowledges => true;
 
     public object ParameterSchema => new
     {

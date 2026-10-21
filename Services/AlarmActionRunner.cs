@@ -242,6 +242,10 @@ public sealed class AlarmActionRunner
 
         if (s is null || s.Kind != AlarmSignal.SignalKind) return;
 
+        // Before the mute: a muted client is still a keyboard somebody can answer at.
+        if (s.Ack is { } fired && s.ConditionType is { } type && _registry.Find(type) is { ActivityAcknowledges: true })
+            lock (_awaitingLock) _awaiting[(fired.AlarmId, fired.ScopeKey)] = (fired, type);
+
         // ⚠️ Checked here, on the receiving side, and never on the worker. Muting is a fact about
         // this machine — one client can be quiet while another is not — and a worker that filtered
         // on its own setting would silence everybody's.
@@ -329,6 +333,52 @@ public sealed class AlarmActionRunner
         catch (Exception ex)
         {
             _errors.Log("AlarmActionRunner", $"acknowledging alarm {ack.AlarmId} for {ack.ScopeKey}", ex);
+        }
+    }
+
+    // ── Anything said in the agent chat ────────────────────────────────────────
+    //
+    // The situations of an ActivityAcknowledges check (the wake-up call) that have fired here
+    // and may still be unanswered, whatever their actions were — a stage with only a dialog
+    // and a sound is answered by a word in the chat as much as one the agent spoke. Left when
+    // acknowledged or found over.
+    private readonly object _awaitingLock = new();
+    private readonly Dictionary<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)> _awaiting = new();
+
+    /// <summary>
+    /// The capsuleer said something in the agent chat: every wake-up call still going on and
+    /// unacknowledged is acknowledged by it, on every client, and its repeating sound and window
+    /// stop. <paramref name="replyTo"/>, the situation the agent's last line asked about, is
+    /// acknowledged in any case, as a reply always was.
+    /// </summary>
+    public async Task UserActiveAsync(AlarmAck? replyTo, CancellationToken ct = default)
+    {
+        KeyValuePair<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)>[] awaiting;
+        lock (_awaitingLock) awaiting = _awaiting.ToArray();
+
+        var done = new HashSet<(long, string)>();
+        foreach (var kv in awaiting)
+        {
+            var holds = false;
+            try
+            {
+                // Still going on and not yet acknowledged, here or on another client.
+                holds = _registry.Find(kv.Value.ConditionType) is { } condition
+                     && await condition.StillHoldsAsync(kv.Key.AlarmId, kv.Key.ScopeKey, kv.Value.Ack.Episode, _dbFactory, ct);
+            }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
+
+            lock (_awaitingLock) _awaiting.Remove(kv.Key);
+            if (!holds) continue;
+            EndLoop(kv.Key, tellWindow: true);
+            await AcknowledgeAsync(kv.Value.Ack, ct);
+            done.Add(kv.Key);
+        }
+
+        if (replyTo is not null && !done.Contains((replyTo.AlarmId, replyTo.ScopeKey)))
+        {
+            EndLoop((replyTo.AlarmId, replyTo.ScopeKey), tellWindow: true);
+            await AcknowledgeAsync(replyTo, ct);
         }
     }
 
