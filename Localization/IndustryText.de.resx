@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>Diese Gruppe entfernen</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Min. Marge % 30 Tg.</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Nur Gegenstände, deren Marge zum 30-Tage-Durchschnittspreis (die Spalte Marge 30 Tg.) mindestens so viele Prozent beträgt. Gegenstände, die in den letzten 30 Tagen nicht verkauft wurden, fallen weg. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Bitte gib eine gültige 30-Tage-Mindestmarge in Prozent ein (oder lass das Feld leer, um nicht zu filtern).</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>
   </data>
@@ -165,6 +174,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>Umsatz 30 Tg.</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Ø-Preis 30 Tg.</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Marge 30 Tg.</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Gewinn 30 Tg.</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Suche nach Industriechancen…</value>

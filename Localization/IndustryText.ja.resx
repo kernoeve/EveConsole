@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>このグループを削除</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30日間の最低利益率 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>30日間の平均価格での利益率（30日間の利益率の列）がこの割合以上のアイテムのみ。過去30日間に売れなかったアイテムは除外されます。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>有効な30日間の最低利益率をパーセントで入力してください（空欄なら絞り込みなし）。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>
   </data>
@@ -165,6 +174,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>30日間の販売額</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30日間の平均価格</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30日間の利益率</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30日間の利益</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>生産チャンスを検索中…</value>

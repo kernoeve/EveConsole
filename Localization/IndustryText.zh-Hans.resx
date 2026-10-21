@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>移除此分组</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30 天最低利润率 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>仅显示按 30 天均价计算的利润率（即 30 天利润率一栏）不低于此百分比的物品。过去 30 天未售出的物品不显示。下次计算时生效。</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>请输入有效的 30 天最低利润率百分比（留空则不筛选）。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>排除分组</value>
   </data>
@@ -164,7 +173,16 @@
     <value>30 天销量</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>30 天 ISK 销售额</value>
+    <value>30 天销售额</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30 天均价</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30 天利润率</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30 天利润</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>正在扫描工业机会…</value>

@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>이 그룹 제거</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30일 최소 마진 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>30일 평균가 기준 마진(30일 마진 열)이 이 비율 이상인 아이템만 표시합니다. 최근 30일간 판매되지 않은 아이템은 제외됩니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>올바른 30일 최소 마진을 퍼센트로 입력하십시오(비워 두면 필터 없음).</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>
   </data>
@@ -165,6 +174,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>30일 판매액</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30일 평균가</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30일 마진</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30일 이익</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>산업 기회 검색 중…</value>

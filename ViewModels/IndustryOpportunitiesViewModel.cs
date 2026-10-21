@@ -37,6 +37,14 @@ public class IndustryRow
     public double UnitVol30d       { get; init; }   // units traded in the config region, last 30d
     public double IskVol30d        { get; init; }   // ISK traded in the config region, last 30d
 
+    // What the last 30 days actually paid, beside what the order book says now. With no sales
+    // there is no price to judge by: the margin is NaN (shown "–", sorted below every number,
+    // never passing a filter) and the profit 0.
+    public bool   HasSales30d      => UnitVol30d > 0;
+    public double AvgPrice30d      => HasSales30d ? IskVol30d / UnitVol30d : 0;   // volume-weighted
+    public double Margin30d        => HasSales30d ? (AvgPrice30d - BuildCost) / BuildCost : double.NaN;
+    public double Profit30d        => HasSales30d ? IskVol30d - BuildCost * UnitVol30d : 0;   // every unit sold, built at BuildCost
+
     public string BuildCostDisplay     => FormatIsk(BuildCost);
     // "*" marks a sell price derived from 30-day history because there are no sell orders.
     public string SellPriceDisplay     => HasSellOrders ? FormatIsk(SellPrice) : FormatIsk(SellPrice) + " *";
@@ -47,6 +55,9 @@ public class IndustryRow
     public string ProfitPerSlotDayDisplay => FormatIsk(ProfitPerSlotDay);
     public string UnitVol30dDisplay     => $"{UnitVol30d:N0}";
     public string IskVol30dDisplay      => FormatIsk(IskVol30d);
+    public string AvgPrice30dDisplay    => HasSales30d ? FormatIsk(AvgPrice30d) : "–";
+    public string Margin30dDisplay      => HasSales30d ? $"{Margin30d * 100:N1}%" : "–";
+    public string Profit30dDisplay      => HasSales30d ? FormatIsk(Profit30d) : "–";
 
     private static string FormatDuration(double seconds)
     {
@@ -139,6 +150,15 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         get => _minMargin;
         set => this.RaiseAndSetIfChanged(ref _minMargin, value);
+    }
+
+    /// <summary>Lowest 30-day margin kept, in percent — the Margin 30d column's figure. An item
+    /// that did not sell in the last 30 days has none, so it is left out while this is set.</summary>
+    private string _minMargin30d = UiState.Get(UiState.IndustryOppsMinMargin30d) ?? "";
+    public string MinMargin30d
+    {
+        get => _minMargin30d;
+        set => this.RaiseAndSetIfChanged(ref _minMargin30d, value);
     }
 
     private string _minIskVolume = UiState.Get(UiState.IndustryOppsMinIskVol) ?? "";
@@ -470,10 +490,22 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minMargin = mm / 100;
         }
 
+        double? minMargin30d = null;
+        if (!string.IsNullOrWhiteSpace(MinMargin30d))
+        {
+            if (!double.TryParse(MinMargin30d.Trim().TrimEnd('%'), out var mm30) || mm30 < 0)
+            {
+                StatusText = IndustryText.OppsErrMinMargin30d;
+                return;
+            }
+            minMargin30d = mm30 / 100;
+        }
+
         // Remembered once they have been used; see MinIskVolume.
         UiState.Set(UiState.IndustryOppsMinIskVol,  (MinIskVolume  ?? "").Trim());
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
         UiState.Set(UiState.IndustryOppsMinMargin,  (MinMargin     ?? "").Trim());
+        UiState.Set(UiState.IndustryOppsMinMargin30d, (MinMargin30d ?? "").Trim());
 
         Results.Clear();
         StatusText = IndustryText.OppsStatusCalculating;
@@ -488,7 +520,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             // sell orders off their 30-day history average. Resolve it best-effort.
             int?   regionId   = await ResolveRegionAsync(SelectedConfig);
             string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : IndustryText.OppsRegionUnresolved;
-            bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue;
+            bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue || minMargin30d.HasValue;
             if (needsVolume && !regionId.HasValue)
             {
                 StatusText = IndustryText.OppsErrNoRegion;
@@ -498,9 +530,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             var (typesWithSell, typesWithBuy, configHasRawOrders) =
                 await LoadOrderPresenceAsync(SelectedConfig.ConfigId);
 
-            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol, minMargin,
+            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol, minMargin, minMargin30d,
                                             typesWithSell, typesWithBuy, configHasRawOrders);
-            // ResultsView sorts them — by the sort the user left, ISK Sold 30d if none. Added in
+            // ResultsView sorts them — by the sort the user left, Sales 30d if none. Added in
             // that default order anyway, so the list reads the same with the sort cleared.
             foreach (var r in rows.OrderByDescending(r => r.IskVol30d).ThenByDescending(r => r.ProfitPerSlotDay))
                 Results.Add(r);
@@ -655,7 +687,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     }
 
     private async Task<List<IndustryRow>> BuildRowsAsync(
-        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d, double? minMargin,
+        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d, double? minMargin, double? minMargin30d,
         HashSet<int> typesWithSell, HashSet<int> typesWithBuy, bool configHasRawOrders)
     {
         var result = new List<IndustryRow>();
@@ -708,6 +740,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 iskVol  = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
                 if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
                 if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
+                // The Margin 30d column's figure; no sales, no margin, not kept.
+                if (minMargin30d.HasValue
+                    && !(unitVol > 0 && (iskVol / unitVol - c.BuildCost) / c.BuildCost >= minMargin30d.Value)) continue;
             }
 
             double slotDays = c.BuildSeconds / SecondsPerDay;

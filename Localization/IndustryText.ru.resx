@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>Убрать эту группу</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Мин. маржа % 30 д</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Только предметы, у которых маржа по средней цене за 30 дней (столбец «Маржа 30 д») не ниже этого процента. Предметы, не продававшиеся последние 30 дней, исключаются. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Введите корректную минимальную маржу за 30 дней в процентах (или оставьте пустым, чтобы не фильтровать).</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Исключить группы</value>
   </data>
@@ -164,7 +173,16 @@
     <value>Прод. 30 д, ед.</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>Прод. 30 д, ISK</value>
+    <value>Продажи 30 д</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Ср. цена 30 д</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Маржа 30 д</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Прибыль 30 д</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Поиск возможностей производства…</value>

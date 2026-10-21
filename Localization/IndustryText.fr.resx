@@ -124,6 +124,15 @@
   <data name="TipRemoveThisInclusion" xml:space="preserve">
     <value>Retirer ce groupe</value>
   </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Marge min. % 30 j</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Seulement les objets dont la marge au prix moyen sur 30 jours (la colonne Marge 30 j) atteint au moins ce pourcentage. Les objets non vendus ces 30 derniers jours sont exclus. S'applique au prochain calcul.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Veuillez saisir une marge minimale sur 30 jours valide en pourcentage (ou laisser vide pour ne pas filtrer).</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclure des groupes</value>
   </data>
@@ -164,7 +173,16 @@
     <value>Qté vendue 30 j</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>ISK vendus 30 j</value>
+    <value>Ventes 30 j</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Prix moyen 30 j</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Marge 30 j</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Bénéfice 30 j</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Recherche d'opportunités industrielles…</value>

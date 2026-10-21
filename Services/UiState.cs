@@ -62,6 +62,7 @@ public static class UiState
     public const string IndustryOppsMinIskVol   = "industryopps.min_isk_vol";
     public const string IndustryOppsMinUnitVol  = "industryopps.min_unit_vol";
     public const string IndustryOppsMinMargin   = "industryopps.min_margin";
+    public const string IndustryOppsMinMargin30d = "industryopps.min_margin_30d";
     public const string IndustryOppsSkipFaction = "industryopps.skip_faction";
     public const string IndustryOppsBpoOnly     = "industryopps.bpo_only";
     /// <summary>Industry Ops: only items whose blueprint the user holds (issue #152).</summary>
