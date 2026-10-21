@@ -124,6 +124,13 @@
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
           </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{x:Static loc:IndustryText.MetaGroupsLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+          <views:MultiChoiceDropDown DataContext="{Binding MetaGroups}" Width="200" FontSize="12"
+                                     ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+          </StackPanel>
+
           <CheckBox IsChecked="{Binding BpoOnly}"
                     Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
@@ -215,25 +222,6 @@
                 Padding="8 3" FontSize="11"
                 Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-      </StackPanel>
-
-      <!-- ── Meta groups: tech level or kind of item; all ticked is no filter ── -->
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="{x:Static loc:IndustryText.MetaGroupsLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
-                   VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
-        <ItemsControl ItemsSource="{Binding MetaGroups}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:CategoryChoice">
-              <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
-                        Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0 0 12 0" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
       </StackPanel>
 
       <!-- ── Name filter: narrows the list as typed, no recalculation ───────── -->

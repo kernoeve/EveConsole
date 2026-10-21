@@ -243,8 +243,8 @@ public sealed class MessageBlockVm : ReactiveObject
         _oppsMinMargin     = Num(model.OppsMinMarginPct);
         _oppsMinMargin30d  = Num(model.OppsMinMargin30dPct);
         int[] meta = fresh && IsOpps ? OppsMetaGroups.Default : [.. model.MetaGroupsOrDefault()];
-        foreach (var (id, label) in OppsMetaGroups.All)
-            OppsMetaGroupChoices.Add(new CategoryChoice(id.ToString(), label) { Selected = meta.Contains(id) });
+        OppsMetaPicker = new MultiChoice(OppsMetaGroups.All.Select(g =>
+            new CategoryChoice(g.Id.ToString(), g.Label) { Selected = meta.Contains(g.Id) }));
         _oppsBpoOnly       = model.OppsBpoOnly;
         _oppsOwnedOnly     = model.OppsOwnedOnly;
         _oppsExcludedIds   = [.. model.OppsExcludedGroupIds];
@@ -574,8 +574,8 @@ public sealed class MessageBlockVm : ReactiveObject
 
     private bool _oppsBpoOnly, _oppsOwnedOnly;
 
-    /// <summary>The meta groups, ticked or not. A new section starts as the tool does.</summary>
-    public ObservableCollection<CategoryChoice> OppsMetaGroupChoices { get; } = [];
+    /// <summary>The meta groups, ticked or not, as one dropdown. A new section starts as the tool does.</summary>
+    public MultiChoice OppsMetaPicker { get; }
     public bool OppsBpoOnly     { get => _oppsBpoOnly;     set => this.RaiseAndSetIfChanged(ref _oppsBpoOnly, value); }
     public bool OppsOwnedOnly   { get => _oppsOwnedOnly;   set => this.RaiseAndSetIfChanged(ref _oppsOwnedOnly, value); }
 
@@ -689,7 +689,7 @@ public sealed class MessageBlockVm : ReactiveObject
         OppsMinUnitVol30d    = Parse(OppsMinUnitVol),
         OppsMinMarginPct     = Parse(OppsMinMargin),
         OppsMinMargin30dPct  = Parse(OppsMinMargin30d),
-        OppsMetaGroups       = [.. OppsMetaGroupChoices.Where(c => c.Selected).Select(c => int.Parse(c.Key))],
+        OppsMetaGroups       = [.. OppsMetaPicker.SelectedKeys.Select(int.Parse)],
         OppsBpoOnly          = OppsBpoOnly,
         OppsOwnedOnly        = OppsOwnedOnly,
         OppsExcludedGroupIds = [.. _oppsExcludedIds],
@@ -1509,7 +1509,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return string.Format(AlarmsText.SectionEmpty, n, heading);
             if (b.IsOpps    && b.OppsMarket is null)                return string.Format(AlarmsText.SectionNeedsMarket, n, heading);
             if (b.IsOpps    && b.OppsBadField is { } field)         return string.Format(AlarmsText.SectionBadNumber, n, heading, field);
-            if (b.IsOpps    && b.OppsMetaGroupChoices.All(c => !c.Selected))
+            if (b.IsOpps    && b.OppsMetaPicker.AllSelected == false)
                 return string.Format(AlarmsText.SectionNeedsMetaGroup, n, heading);
 
             // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section

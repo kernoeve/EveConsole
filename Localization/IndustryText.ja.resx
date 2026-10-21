@@ -157,14 +157,8 @@
   <data name="MetaStoryline" xml:space="preserve">
     <value>ストーリーライン</value>
   </data>
-  <data name="MetaOfficer" xml:space="preserve">
-    <value>オフィサー</value>
-  </data>
   <data name="MetaAbyssal" xml:space="preserve">
     <value>アビサル</value>
-  </data>
-  <data name="MetaLimitedTime" xml:space="preserve">
-    <value>期間限定</value>
   </data>
   <data name="MetaStructureTech1" xml:space="preserve">
     <value>ストラクチャー テック I</value>

@@ -346,6 +346,12 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>名称的全部或一部分</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>已选 {0} 项</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>除{0}外全部</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>只显示名称中包含这段文字的物品，不区分大小写。列表随输入即时缩小，无需重新计算。</value>
   </data>

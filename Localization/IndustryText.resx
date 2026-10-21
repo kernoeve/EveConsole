@@ -208,17 +208,9 @@
     <value>Storyline</value>
     <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Storyline.</comment>
   </data>
-  <data name="MetaOfficer" xml:space="preserve">
-    <value>Officer</value>
-    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Officer.</comment>
-  </data>
   <data name="MetaAbyssal" xml:space="preserve">
     <value>Abyssal</value>
     <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Abyssal.</comment>
-  </data>
-  <data name="MetaLimitedTime" xml:space="preserve">
-    <value>Limited Time</value>
-    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Limited Time (event items).</comment>
   </data>
   <data name="MetaStructureTech1" xml:space="preserve">
     <value>Structure Tech I</value>

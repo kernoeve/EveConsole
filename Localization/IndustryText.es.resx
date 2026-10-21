@@ -157,14 +157,8 @@
   <data name="MetaStoryline" xml:space="preserve">
     <value>Argumental</value>
   </data>
-  <data name="MetaOfficer" xml:space="preserve">
-    <value>Oficial</value>
-  </data>
   <data name="MetaAbyssal" xml:space="preserve">
     <value>Abisal</value>
-  </data>
-  <data name="MetaLimitedTime" xml:space="preserve">
-    <value>Tiempo limitado</value>
   </data>
   <data name="MetaStructureTech1" xml:space="preserve">
     <value>Estructura Tech I</value>

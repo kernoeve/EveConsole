@@ -346,6 +346,12 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>Название целиком или его часть</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>Выбрано: {0}</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>Все, кроме {0}</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>Показывает только предметы, в названии которых есть этот текст, без учёта регистра. Список сужается по мере ввода; пересчитывать не нужно.</value>
   </data>

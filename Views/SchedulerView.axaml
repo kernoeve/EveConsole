@@ -3,6 +3,7 @@
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:svc="clr-namespace:EveConsole.Services"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.SchedulerView"
              x:DataType="vm:SchedulerViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -471,6 +472,11 @@
                                     <TextBox Text="{Binding OppsMinMargin30d}" Width="90"
                                              Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
                                   </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMetaGroupsLabel}"
+                                               ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding OppsMetaPicker}" Width="190" FontSize="11" />
+                                  </StackPanel>
                                 </WrapPanel>
 
                                 <WrapPanel Orientation="Horizontal" ItemSpacing="14" LineSpacing="4">
@@ -480,23 +486,6 @@
                                             ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
                                 </WrapPanel>
 
-                                <StackPanel Spacing="3">
-                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMetaGroupsLabel}"
-                                             ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
-                                  <ItemsControl ItemsSource="{Binding OppsMetaGroupChoices}">
-                                    <ItemsControl.ItemsPanel>
-                                      <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                      </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                      <DataTemplate x:DataType="vm:CategoryChoice">
-                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
-                                                  Margin="0 0 12 0" />
-                                      </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                  </ItemsControl>
-                                </StackPanel>
 
                                 <StackPanel Spacing="3">
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsExcludeGroupsLabel}" />

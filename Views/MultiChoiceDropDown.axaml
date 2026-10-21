@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.MultiChoiceDropDown"
+             x:DataType="vm:MultiChoice">
+
+  <!-- A list of tick boxes as one dropdown. The DataContext is the MultiChoice. -->
+  <DropDownButton HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                  Foreground="{DynamicResource TextPrimaryBrush}">
+    <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
+    <DropDownButton.Flyout>
+      <Flyout Placement="BottomEdgeAlignedLeft">
+        <StackPanel Spacing="2" MinWidth="200">
+          <CheckBox IsChecked="{Binding AllSelected}" Content="{x:Static loc:AlarmsText.All}" FontWeight="SemiBold" />
+          <Separator Margin="0 2" />
+          <ItemsControl ItemsSource="{Binding Items}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CategoryChoice">
+                <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Flyout>
+    </DropDownButton.Flyout>
+  </DropDownButton>
+</UserControl>

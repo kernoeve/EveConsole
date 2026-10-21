@@ -157,14 +157,8 @@
   <data name="MetaStoryline" xml:space="preserve">
     <value>故事线</value>
   </data>
-  <data name="MetaOfficer" xml:space="preserve">
-    <value>官员</value>
-  </data>
   <data name="MetaAbyssal" xml:space="preserve">
     <value>深渊</value>
-  </data>
-  <data name="MetaLimitedTime" xml:space="preserve">
-    <value>限时</value>
   </data>
   <data name="MetaStructureTech1" xml:space="preserve">
     <value>建筑一级科技</value>

@@ -346,6 +346,12 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>이름 전체 또는 일부</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0}개 선택</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>{0} 제외 전체</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>이름에 이 텍스트가 들어 있는 아이템만 표시합니다(대소문자 구분 없음). 입력하는 대로 목록이 좁혀지며, 다시 계산할 필요가 없습니다.</value>
   </data>

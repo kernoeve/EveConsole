@@ -157,14 +157,8 @@
   <data name="MetaStoryline" xml:space="preserve">
     <value>스토리라인</value>
   </data>
-  <data name="MetaOfficer" xml:space="preserve">
-    <value>오피서</value>
-  </data>
   <data name="MetaAbyssal" xml:space="preserve">
     <value>어비설</value>
-  </data>
-  <data name="MetaLimitedTime" xml:space="preserve">
-    <value>기간 한정</value>
   </data>
   <data name="MetaStructureTech1" xml:space="preserve">
     <value>구조물 테크 I</value>

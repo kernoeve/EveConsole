@@ -460,6 +460,14 @@
     <value>All or part of a name</value>
     <comment>Industry and Trade Opportunities, placeholder in the item name filter box.</comment>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0} selected</value>
+    <comment>A multi-select dropdown's button when more than three of its items are ticked. {0} is how many.</comment>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>All but {0}</value>
+    <comment>A multi-select dropdown's button when every item but one is ticked. {0} is the one left out.</comment>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>Shows only the items whose name contains this text, in any case. The list narrows as you type; there is no need to calculate again.</value>
     <comment>Industry and Trade Opportunities, tooltip on the item name filter box.</comment>

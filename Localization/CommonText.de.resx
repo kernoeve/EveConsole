@@ -346,6 +346,12 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>Ganzer Name oder ein Teil davon</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0} ausgewählt</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>Alle außer {0}</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>Zeigt nur die Artikel, deren Name diesen Text enthält, ohne Rücksicht auf Groß- und Kleinschreibung. Die Liste wird beim Tippen eingegrenzt; eine neue Berechnung ist nicht nötig.</value>
   </data>

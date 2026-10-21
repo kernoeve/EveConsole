@@ -178,7 +178,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     /// building, which is why the box this replaced, "Skip faction", was on by default. Somebody
     /// who had turned that off starts with Faction ticked.</para>
     /// </summary>
-    public ObservableCollection<CategoryChoice> MetaGroups { get; } = [];
+    public MultiChoice MetaGroups { get; private set; } = null!;
 
     private void LoadMetaGroups()
     {
@@ -189,14 +189,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 ? OppsMetaGroups.Default
                 : [.. OppsMetaGroups.All.Select(g => g.Id)];
 
-        foreach (var (id, label) in OppsMetaGroups.All)
-        {
-            var choice = new CategoryChoice(id.ToString(), label) { Selected = on.Contains(id) };
-            choice.WhenAnyValue(c => c.Selected).Skip(1).Subscribe(_ =>
-                UiState.Set(UiState.IndustryOppsMetaGroups,
-                            string.Join(",", MetaGroups.Where(m => m.Selected).Select(m => m.Key))));
-            MetaGroups.Add(choice);
-        }
+        MetaGroups = new MultiChoice(OppsMetaGroups.All.Select(g =>
+            new CategoryChoice(g.Id.ToString(), g.Label) { Selected = on.Contains(g.Id) }));
+        MetaGroups.SelectionChanged += () =>
+            UiState.Set(UiState.IndustryOppsMetaGroups, string.Join(",", MetaGroups.SelectedKeys));
     }
 
     // Only items whose blueprint is a buyable BPO, or is invented from one (T2 from a T1
@@ -497,7 +493,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minMargin30d = mm30 / 100;
         }
 
-        if (MetaGroups.All(m => !m.Selected))
+        if (MetaGroups.AllSelected == false)
         {
             StatusText = IndustryText.OppsErrNoMetaGroup;
             return;
@@ -523,7 +519,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 MinUnitVol30d    = minUnitVol,
                 MinMargin        = minMargin,
                 MinMargin30d     = minMargin30d,
-                MetaGroups       = [.. MetaGroups.Where(m => m.Selected).Select(m => int.Parse(m.Key))],
+                MetaGroups       = [.. MetaGroups.SelectedKeys.Select(int.Parse)],
                 BpoOnly          = BpoOnly,
                 OwnedOnly        = OwnedOnly,
                 ExcludedGroupIds = [.. ExcludedMarketGroups.Select(g => g.MarketGroupId)],

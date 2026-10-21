@@ -346,6 +346,12 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>名前の全部または一部</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0} 件選択</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>{0} 以外すべて</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>名前にこの文字列を含むアイテムだけを表示します（大文字・小文字は区別しません）。入力に合わせて一覧が絞り込まれるので、再計算は不要です。</value>
   </data>
