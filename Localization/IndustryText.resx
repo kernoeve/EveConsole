@@ -140,6 +140,30 @@
     <value>Only items whose own blueprint, an original or a copy, is held by one of your characters or a corporation marked personal. Applies at the next Calculate.</value>
     <comment>Tooltip of that checkbox.</comment>
   </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Min Margin %</value>
+    <comment>Industry Ops filter label: the lowest margin kept, in percent.</comment>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Only items whose margin (profit over build cost, the Margin column) is at least this many percent. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Min Margin % box.</comment>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Please enter a valid minimum margin in percent (or leave blank for no filter).</value>
+    <comment>Industry Ops status line when the Min Margin % box holds something that is not a number of 0 or more.</comment>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Include Groups</value>
+    <comment>Industry Ops: label of the list of market groups an item must be in (beside Exclude Groups).</comment>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>When any are chosen, only items in these market groups or the groups under them. Exclude Groups still apply inside them. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Include Groups label.</comment>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Remove this group</value>
+    <comment>Tooltip of the ✕ on an included group.</comment>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclude Groups</value>
     <comment>Text in IndustryOpportunitiesView.</comment>

@@ -106,6 +106,24 @@
   <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
     <value>해당 아이템의 설계도(원본 또는 사본)를 내 캐릭터나 개인용으로 표시한 콥이 보유한 아이템만 표시합니다. 다음 계산부터 적용됩니다.</value>
   </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>최소 마진 %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>마진(이익을 제조 비용으로 나눈 값, 마진 열)이 이 비율 이상인 아이템만 표시합니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>올바른 최소 마진을 퍼센트로 입력하십시오(비워 두면 필터 없음).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>포함할 그룹</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>선택하면 이 마켓 그룹과 그 하위 그룹의 아이템만 표시합니다. 제외 그룹은 그 안에서도 계속 적용됩니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>이 그룹 제거</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>
   </data>

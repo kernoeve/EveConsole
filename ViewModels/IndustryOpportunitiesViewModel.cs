@@ -132,6 +132,15 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     // The two volume boxes are remembered when Calculate uses them rather than on every
     // keystroke; until then the view model, which outlives the tab, holds what was typed.
+    /// <summary>Lowest margin kept, as a percentage of the build cost — the Margin column's
+    /// figure. Remembered when Calculate uses it, as the volume boxes are.</summary>
+    private string _minMargin = UiState.Get(UiState.IndustryOppsMinMargin) ?? "";
+    public string MinMargin
+    {
+        get => _minMargin;
+        set => this.RaiseAndSetIfChanged(ref _minMargin, value);
+    }
+
     private string _minIskVolume = UiState.Get(UiState.IndustryOppsMinIskVol) ?? "";
     public string MinIskVolume
     {
@@ -203,32 +212,56 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit>                  AddExcludedGroupCommand    { get; }
     public ReactiveCommand<ExcludedMarketGroupVm, Unit> RemoveExcludedGroupCommand { get; }
 
-    private async Task AddExcludedGroupAsync()
+    // ── Included market groups: when any are chosen, only items in them (or nested under them) ──
+
+    public ObservableCollection<ExcludedMarketGroupVm> IncludedMarketGroups { get; } = [];
+
+    public ReactiveCommand<Unit, Unit>                  AddIncludedGroupCommand    { get; }
+    public ReactiveCommand<ExcludedMarketGroupVm, Unit> RemoveIncludedGroupCommand { get; }
+
+    private const string ExcludedColumn = "ExcludedMarketGroupIds";
+    private const string IncludedColumn = "IncludedMarketGroupIds";
+
+    private Task AddExcludedGroupAsync() => AddGroupAsync(ExcludedMarketGroups, ExcludedColumn);
+    private Task AddIncludedGroupAsync() => AddGroupAsync(IncludedMarketGroups, IncludedColumn);
+
+    private Task RemoveExcludedGroupAsync(ExcludedMarketGroupVm group) => RemoveGroupAsync(ExcludedMarketGroups, ExcludedColumn, group);
+    private Task RemoveIncludedGroupAsync(ExcludedMarketGroupVm group) => RemoveGroupAsync(IncludedMarketGroups, IncludedColumn, group);
+
+    private async Task AddGroupAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column)
     {
         if (ShowMarketGroupPickerDialog is null) return;
         var pick = await ShowMarketGroupPickerDialog();
         if (pick is null) return;
-        if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
+        if (list.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
 
-        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
+        list.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
             SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
-        await SaveExcludedGroupsAsync();
+        await SaveGroupsAsync(list, column);
     }
 
-    private async Task RemoveExcludedGroupAsync(ExcludedMarketGroupVm group)
+    private async Task RemoveGroupAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column, ExcludedMarketGroupVm group)
     {
-        ExcludedMarketGroups.Remove(group);
-        await SaveExcludedGroupsAsync();
+        list.Remove(group);
+        await SaveGroupsAsync(list, column);
     }
 
     private async Task LoadExcludedGroupsAsync()
+    {
+        await LoadGroupsAsync(ExcludedMarketGroups, ExcludedColumn);
+        await LoadGroupsAsync(IncludedMarketGroups, IncludedColumn);
+    }
+
+    /// <summary>One of the two lists from the settings row. ⚠️ The column is one of the two
+    /// constants above, never anything a user typed: it is interpolated.</summary>
+    private static async Task LoadGroupsAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column)
     {
         // The names are shown once and kept, so they wait for the interface language's first.
         await SdeNames.EnsureLoadedAsync();
 
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
+        using var cmd = conn.Command($"""SELECT "{column}" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
         var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
 
         var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -244,26 +277,27 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             while (await reader.ReadAsync())
                 names[reader.GetInt32(0)] = reader.GetString(1);
 
-        ExcludedMarketGroups.Clear();
+        list.Clear();
         foreach (var id in ids)
             if (names.TryGetValue(id, out var name))
-                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
+                list.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
     }
 
-    private async Task SaveExcludedGroupsAsync()
+    private static async Task SaveGroupsAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column)
     {
-        var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
+        var csv = string.Join(",", list.Select(g => g.MarketGroupId));
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.Command("""UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""");
+        using var cmd = conn.Command($"""UPDATE "IndustryOpportunitiesSettings" SET "{column}" = @ids WHERE "Id" = 1""");
         cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
 
-    private async Task<HashSet<int>> GetExcludedGroupIdsRecursiveAsync()
+    /// <summary>The groups chosen, and every group nested under them.</summary>
+    private async Task<HashSet<int>> GroupIdsRecursiveAsync(IEnumerable<ExcludedMarketGroupVm> list)
     {
         var result = new HashSet<int>();
-        foreach (var g in ExcludedMarketGroups)
+        foreach (var g in list)
             result.UnionWith(await _batchSvc.GetDescendantGroupIdsAsync(g.MarketGroupId));
         return result;
     }
@@ -342,6 +376,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
+        AddIncludedGroupCommand    = ReactiveCommand.CreateFromTask(AddIncludedGroupAsync);
+        RemoveIncludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveIncludedGroupAsync);
     }
 
     public async Task InitializeAsync()
@@ -422,9 +458,22 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minUnitVol = uv;
         }
 
+        double? minMargin = null;
+        if (!string.IsNullOrWhiteSpace(MinMargin))
+        {
+            // "15" and "15%" both mean fifteen percent.
+            if (!double.TryParse(MinMargin.Trim().TrimEnd('%'), out var mm) || mm < 0)
+            {
+                StatusText = IndustryText.OppsErrMinMargin;
+                return;
+            }
+            minMargin = mm / 100;
+        }
+
         // Remembered once they have been used; see MinIskVolume.
         UiState.Set(UiState.IndustryOppsMinIskVol,  (MinIskVolume  ?? "").Trim());
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
+        UiState.Set(UiState.IndustryOppsMinMargin,  (MinMargin     ?? "").Trim());
 
         Results.Clear();
         StatusText = IndustryText.OppsStatusCalculating;
@@ -449,7 +498,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             var (typesWithSell, typesWithBuy, configHasRawOrders) =
                 await LoadOrderPresenceAsync(SelectedConfig.ConfigId);
 
-            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol,
+            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol, minMargin,
                                             typesWithSell, typesWithBuy, configHasRawOrders);
             // ResultsView sorts them — by the sort the user left, ISK Sold 30d if none. Added in
             // that default order anyway, so the list reads the same with the sort cleared.
@@ -484,9 +533,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task<List<Candidate>> FetchCandidatesAsync(int configId)
     {
-        var excludedGroupIds = await GetExcludedGroupIdsRecursiveAsync();
+        var excludedGroupIds = await GroupIdsRecursiveAsync(ExcludedMarketGroups);
         var exclusionClause  = excludedGroupIds.Count > 0
             ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
+            : "";
+
+        // Included: only items in the chosen groups or nested under them. An exclusion inside an
+        // included group still applies — the two clauses both hold.
+        var includedGroupIds = await GroupIdsRecursiveAsync(IncludedMarketGroups);
+        var inclusionClause  = includedGroupIds.Count > 0
+            ? $"""AND t."MarketGroupId" IN ({string.Join(",", includedGroupIds)}) """
             : "";
 
         // Faction items are MetaGroupId 4.
@@ -550,6 +606,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.Command(CandidateSql
             .Replace("/*EXCLUSION*/", exclusionClause)
+            .Replace("/*INCLUSION*/", inclusionClause)
             .Replace("/*FACTION*/", factionClause)
             .Replace("/*BPO*/", bpoClause)
             .Replace("/*OWNED*/", ownedClause));
@@ -598,7 +655,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     }
 
     private async Task<List<IndustryRow>> BuildRowsAsync(
-        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d,
+        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d, double? minMargin,
         HashSet<int> typesWithSell, HashSet<int> typesWithBuy, bool configHasRawOrders)
     {
         var result = new List<IndustryRow>();
@@ -639,6 +696,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
             double profit = sellInto - c.BuildCost;
             if (profit <= 0) continue; // only surface opportunities
+            // The Margin column's own figure: profit over build cost.
+            if (minMargin.HasValue && profit / c.BuildCost < minMargin.Value) continue;
 
             // 30-day volumes (config region), from history cached by the background sweep —
             // no ESI here. Always read them for the columns; also apply them as filters.
@@ -767,6 +826,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
         WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
         /*EXCLUSION*/
+        /*INCLUSION*/
         /*FACTION*/
         /*BPO*/
         /*OWNED*/

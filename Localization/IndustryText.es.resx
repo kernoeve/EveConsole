@@ -106,6 +106,24 @@
   <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
     <value>Solo objetos cuyo propio plano, original o copia, tenga uno de tus personajes o una corporación marcada como personal. Se aplica en el próximo cálculo.</value>
   </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Margen mín. %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Solo objetos cuyo margen (beneficio sobre coste de fabricación, la columna Margen) sea al menos este porcentaje. Se aplica en el próximo cálculo.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Introduce un margen mínimo válido en porcentaje (o déjalo en blanco para no filtrar).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Incluir grupos</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>Si eliges alguno, solo objetos de esos grupos de mercado o de los grupos que cuelgan de ellos. Los grupos excluidos siguen aplicándose dentro. Se aplica en el próximo cálculo.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Quitar este grupo</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Excluir grupos</value>
   </data>

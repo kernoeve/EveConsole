@@ -105,6 +105,15 @@
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
           </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{x:Static loc:IndustryText.MinMarginPct}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}" />
+          <TextBox Text="{Binding MinMargin}" Width="80" FontSize="12"
+                   Watermark="{x:Static loc:IndustryText.HintNoFilter}"
+                   ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}"
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+
           <CheckBox IsChecked="{Binding SkipFactionItems}"
                     Content="{x:Static loc:IndustryText.SkipFaction}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
@@ -159,6 +168,45 @@
 
         <Button Content="{x:Static loc:IndustryText.AddGroup}"
                 Command="{Binding AddExcludedGroupCommand}"
+                Padding="8 3" FontSize="11"
+                Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+      </StackPanel>
+
+      <!-- ── Included market groups: only items in these, when any are chosen ─ -->
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{x:Static loc:IndustryText.IncludeGroups}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipIncludeGroups}" />
+
+        <ItemsControl ItemsSource="{Binding IncludedMarketGroups}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:ExcludedMarketGroupVm">
+              <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                      CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Button x:CompileBindings="False"
+                          Content="✕"
+                          Command="{Binding $parent[UserControl].DataContext.RemoveIncludedGroupCommand}"
+                          CommandParameter="{Binding}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                          Cursor="Hand" VerticalAlignment="Center"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipRemoveThisInclusion}" />
+                  <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                             VerticalAlignment="Center" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button Content="{x:Static loc:IndustryText.AddGroup}"
+                Command="{Binding AddIncludedGroupCommand}"
                 Padding="8 3" FontSize="11"
                 Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />

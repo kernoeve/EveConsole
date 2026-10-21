@@ -106,6 +106,24 @@
   <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
     <value>Nur Gegenstände, deren eigene Blaupause (Original oder Kopie) einer deiner Charaktere oder eine als persönlich markierte Corporation besitzt. Gilt ab dem nächsten Berechnen.</value>
   </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Min. Marge %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Nur Gegenstände, deren Marge (Gewinn geteilt durch Baukosten, die Spalte Marge) mindestens so viele Prozent beträgt. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Bitte gib eine gültige Mindestmarge in Prozent ein (oder lass das Feld leer, um nicht zu filtern).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Gruppen einschließen</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>Wenn welche gewählt sind, nur Gegenstände in diesen Marktgruppen oder den Gruppen darunter. Ausgeschlossene Gruppen gelten darin weiterhin. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Diese Gruppe entfernen</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>
   </data>

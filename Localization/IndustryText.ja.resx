@@ -106,6 +106,24 @@
   <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
     <value>そのアイテム自体の設計図（オリジナルまたはコピー）を、あなたのキャラクターまたは個人用に指定したコーポレーションが持っているアイテムのみ。次回の計算から適用されます。</value>
   </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>最低利益率 %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>利益率（利益を製造コストで割ったもの、利益率の列）がこの割合以上のアイテムのみ。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>有効な最低利益率をパーセントで入力してください（空欄なら絞り込みなし）。</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>含めるグループ</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>選択すると、これらのマーケットグループとその下のグループのアイテムのみになります。除外グループはその中でも適用されます。次回の計算から適用されます。</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>このグループを削除</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>
   </data>

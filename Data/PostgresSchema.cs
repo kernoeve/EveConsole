@@ -1446,5 +1446,9 @@ public static class PostgresSchema
         VALUES (1, '')
         ON CONFLICT DO NOTHING
         """,
+        // Groups an item must be in to be listed; empty for every group. Mirrored in App.axaml.cs.
+        """
+        ALTER TABLE "IndustryOpportunitiesSettings" ADD COLUMN IF NOT EXISTS "IncludedMarketGroupIds" TEXT NOT NULL DEFAULT ''
+        """,
     ];
 }
