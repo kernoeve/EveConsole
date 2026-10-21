@@ -1084,7 +1084,12 @@ public class EsiPollingService : ReactiveObject
             if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
             if (r.Data.Count == 0) { reachedEnd = true; break; }
 
+            // ⚠️ Once per id. ESI can send the same entry twice in one page, and two objects with
+            // one key cannot be added to the same save: it threw, nothing from the page was kept,
+            // and the next poll met the same page again — the character's wallet never filled
+            // (issue #153). The corporation fetches below have always done this.
             var newEntries = r.Data
+                .DistinctBy(e => e.Id)
                 .Where(e => !existingIds.Contains(e.Id))
                 .Select(e => new WalletJournalEntry
                 {
@@ -1157,7 +1162,10 @@ public class EsiPollingService : ReactiveObject
             if (!r.IsSuccess || r.Data is null) { interrupted = true; break; }
             if (r.Data.Count == 0) { reachedEnd = true; break; }
 
+            // ⚠️ Once per id, as the journal above (issue #153): the most active trader's market
+            // transactions never loaded, because one page carried a transaction twice.
             var newEntries = r.Data
+                .DistinctBy(t => t.TransactionId)
                 .Where(t => !existingIds.Contains(t.TransactionId))
                 .Select(t => new WalletTransaction
                 {
