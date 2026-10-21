@@ -481,6 +481,9 @@
   <data name="AlertJobsReadyOther" xml:space="preserve">
     <value>你有 {0} 个工业任务可以交付。</value>
   </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>你有 {0} 封未读的 EVE 邮件。</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>有 {0} 个指派给你的未完成合同。</value>
   </data>

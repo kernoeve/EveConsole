@@ -1201,6 +1201,12 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>统计由你发布或指派给你、已进入有效期最后 15% 的有效合同：例如两周期限的合同从第 12 天起。个人军团也算作你本人。</value>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>有未读 EVE 邮件时提醒</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>统计应用为其读取邮件的每个角色的未读邮件，每个角色的副本单独计算：一封发给你两个角色的邮件算两封，与游戏中的计数方式相同。在游戏中读过的邮件会在下次邮件轮询（计时器）后不再计入。点击提醒会打开 EVE 邮件工具。</value>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>数据库类型</value>
   </data>

@@ -508,6 +508,12 @@
   <data name="AlertJobsReadyOther" xml:space="preserve">
     <value>Vous avez {0} travaux d'industrie prêts à être livrés.</value>
   </data>
+  <data name="AlertUnreadMailOne" xml:space="preserve">
+    <value>Vous avez {0} EVE mail non lu.</value>
+  </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>Vous avez {0} EVE mails non lus.</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} contrat en attente vous est destiné.</value>
   </data>

@@ -657,6 +657,10 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiStaleData" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // Unread EVE mail. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "UnreadMail" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The HTTP status ESI answered a contract's item pull with, and the repair it makes
         // possible: corporation contracts issued by another corporation were once marked pulled
@@ -1432,8 +1436,8 @@ public static class PostgresSchema
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
              "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
              "OutstandingContracts", "ExpiringContracts",
-             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
-        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true)
+             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

@@ -109,6 +109,9 @@ public class AlertSettingsViewModel : ReactiveObject
     private bool _piStaleData = true;
     public bool PiStaleData { get => _piStaleData; set => this.RaiseAndSetIfChanged(ref _piStaleData, value); }
 
+    private bool _unreadMail = true;
+    public bool UnreadMail { get => _unreadMail; set => this.RaiseAndSetIfChanged(ref _unreadMail, value); }
+
     public string Status
     {
         get => _status;
@@ -160,6 +163,7 @@ public class AlertSettingsViewModel : ReactiveObject
         PiInputs                   = s.PiInputs;
         PiFreeSlots                = s.PiFreeSlots;
         PiStaleData                = s.PiStaleData;
+        UnreadMail                 = s.UnreadMail;
     }
 
     private async Task SaveAsync()
@@ -183,6 +187,7 @@ public class AlertSettingsViewModel : ReactiveObject
         bool piInputs  = PiInputs;
         bool piSlots   = PiFreeSlots;
         bool piStale   = PiStaleData;
+        bool mail      = UnreadMail;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
@@ -191,9 +196,9 @@ public class AlertSettingsViewModel : ReactiveObject
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO "AlertSettings"
                     ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
-                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData")
+                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail")
                 VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
-                        {piExtract},{piStorage},{piInputs},{piSlots},{piStale})
+                        {piExtract},{piStorage},{piInputs},{piSlots},{piStale},{mail})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -210,7 +215,8 @@ public class AlertSettingsViewModel : ReactiveObject
                     "PiStorage"                   = excluded."PiStorage",
                     "PiInputs"                    = excluded."PiInputs",
                     "PiFreeSlots"                 = excluded."PiFreeSlots",
-                    "PiStaleData"                 = excluded."PiStaleData"
+                    "PiStaleData"                 = excluded."PiStaleData",
+                    "UnreadMail"                  = excluded."UnreadMail"
                 """).ConfigureAwait(false);
         });
 

@@ -1201,6 +1201,12 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>Zählt aktive Verträge, die Sie erstellt haben oder die Ihnen zugewiesen sind und sich in den letzten 15 % ihrer Laufzeit befinden: bei einem Zwei-Wochen-Vertrag ab dem zwölften Tag. Persönliche Corporations zählen als Sie.</value>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>Bei ungelesener EVE-Mail warnen</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>Zählt ungelesene Mails aller Charaktere, deren Mails die App liest, jede Charakterkopie für sich: Eine Mail an zwei deiner Charaktere zählt doppelt, wie im Spiel. Im Spiel gelesene Mails zählen ab der nächsten Mail-Abfrage (Timer) nicht mehr. Der Hinweis öffnet das Werkzeug EVE-Mail.</value>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>Datenbanktyp</value>
   </data>

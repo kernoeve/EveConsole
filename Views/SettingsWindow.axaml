@@ -3138,6 +3138,22 @@
           </StackPanel>
         </Border>
 
+        <!-- EVE Mail alert -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:ShellText.NavEveMail}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="{x:Static loc:SettingsText.AlertUnreadMail}"
+                      IsChecked="{Binding AlertsVm.UnreadMail}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.UnreadMailNote}" />
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
   </TabItem>

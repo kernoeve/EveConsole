@@ -1201,6 +1201,12 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>自分が発行した、または自分に割り当てられた有効な契約のうち、有効期間の最後の15%に入ったものを数えます。2週間の契約なら12日目からです。個人コーポレーションは自分として数えます。</value>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>未読の EVE メールがあるときに通知</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>アプリがメールを読み込んでいるすべてのキャラクターの未読メールを、キャラクターごとのコピーを別々に数えます。2 人のキャラクターに送られた 1 通のメールはゲームと同じく 2 通と数えます。ゲームで読んだメールは次のメール取得（タイマー）で数えられなくなります。通知をクリックすると EVE メールツールが開きます。</value>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>データベースの種類</value>
   </data>

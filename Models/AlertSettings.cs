@@ -33,4 +33,7 @@ public class AlertSettings
     public bool PiFreeSlots  { get; set; } = true;
     /// <summary>A colony not opened in game for longer than the staleness setting.</summary>
     public bool PiStaleData  { get; set; } = true;
+
+    /// <summary>Unread EVE mail on any of the user's characters.</summary>
+    public bool UnreadMail   { get; set; } = true;
 }

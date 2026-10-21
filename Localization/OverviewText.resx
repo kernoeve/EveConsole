@@ -676,6 +676,14 @@
     <value>You have {0} industry jobs ready to deliver.</value>
     <comment>Overview alert, several jobs. {0} is the number.</comment>
   </data>
+  <data name="AlertUnreadMailOne" xml:space="preserve">
+    <value>You have {0} unread EVE mail.</value>
+    <comment>Overview alert, clicked to open the EVE Mail tool. {0} is the number of unread mails across the user's characters.</comment>
+  </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>You have {0} unread EVE mails.</value>
+    <comment>Overview alert, clicked to open the EVE Mail tool. {0} is the number of unread mails across the user's characters.</comment>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} outstanding contract issued to you.</value>
     <comment>Overview alert, one contract waiting on the user. {0} is the number.</comment>

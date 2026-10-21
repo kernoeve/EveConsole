@@ -3242,7 +3242,8 @@ public class App : Application
                         "PiStorage"                  INTEGER NOT NULL DEFAULT 1,
                         "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
                         "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
-                        "PiStaleData"                INTEGER NOT NULL DEFAULT 1
+                        "PiStaleData"                INTEGER NOT NULL DEFAULT 1,
+                        "UnreadMail"                 INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -3257,6 +3258,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiInputs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiFreeSlots" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Unread EVE mail. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnreadMail" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -3267,8 +3270,8 @@ public class App : Application
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
                          "OutstandingContracts", "ExpiringContracts",
-                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""

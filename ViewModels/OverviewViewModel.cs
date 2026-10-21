@@ -381,6 +381,7 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToIndustryJobs                  { get; set; }
     /// <summary>The Contracts tool on every character and personal corporation, active only, soonest to expire first.</summary>
     public Action?          NavigateToActiveContracts               { get; set; }
+    public Action?          NavigateToEveMail                       { get; set; }
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
@@ -1720,6 +1721,26 @@ public class OverviewViewModel : ReactiveObject
                 }
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "ContractAlerts", ex); }
+        }
+
+        // Unread EVE mail, each character's copy on its own — one mail to two of the user's
+        // characters waits to be read twice, as the game counts it. Only characters still here:
+        // a removed character's headers may linger until the next cleanup.
+        if (_alertSettings.UnreadMail)
+        {
+            try
+            {
+                var unread = await Off(() => _db.EsiMailHeaders.AsNoTracking()
+                    .Where(m => !m.IsRead && _db.Characters.Any(c => c.Id == m.CharacterId))
+                    .CountAsync());
+                if (unread > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = Counted(nameof(OverviewText.AlertUnreadMailOther), unread),
+                        NavigateCommand = NavigateToEveMail is not null ? ReactiveCommand.Create(NavigateToEveMail) : null,
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadMailAlert", ex); }
         }
 
         // Planetary Industry: only the characters that do PI (PiService returns no one else).

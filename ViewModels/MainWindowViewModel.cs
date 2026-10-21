@@ -1185,6 +1185,7 @@ public class MainWindowViewModel : ReactiveObject
         // ContractsVm is built further down; the lambda runs long after, so the flow analysis is the only thing objecting.
         OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
+        OverviewVm.NavigateToEveMail           = () => OpenTool("eve_mail");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");

@@ -1566,6 +1566,14 @@
     <value>Counts active contracts you issued, or that are assigned to you, that are in the last 15% of their life: a two-week contract from its twelfth day. Personal corporations count as you.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>Alert when there is unread EVE mail</value>
+    <comment>Settings → Alerts: tick box for the unread EVE mail alert.</comment>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>Counts unread mail on every character the app reads mail for, each character's copy on its own: one mail sent to two of your characters counts twice, as the game counts it. Mail read in the game stops counting at the next mail poll (Timers). The alert opens the EVE Mail tool.</value>
+    <comment>Settings → Alerts: note under the unread EVE mail tick box.</comment>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>Database Type</value>
     <comment>Text in SettingsWindow.</comment>

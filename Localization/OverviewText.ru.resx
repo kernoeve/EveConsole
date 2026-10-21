@@ -562,6 +562,18 @@
   <data name="AlertJobsReadyMany" xml:space="preserve">
     <value>{0} промышленных проектов готовы к доставке.</value>
   </data>
+  <data name="AlertUnreadMailOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное письмо EVE.</value>
+  </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного письма EVE.</value>
+  </data>
+  <data name="AlertUnreadMailFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных письма EVE.</value>
+  </data>
+  <data name="AlertUnreadMailMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных писем EVE.</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} размещённый контракт адресован вам.</value>
   </data>

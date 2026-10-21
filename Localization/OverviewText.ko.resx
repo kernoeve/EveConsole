@@ -481,6 +481,9 @@
   <data name="AlertJobsReadyOther" xml:space="preserve">
     <value>수령할 수 있는 산업 작업이 {0}건 있습니다.</value>
   </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>읽지 않은 EVE 메일이 {0}개 있습니다.</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>나에게 발행된 미체결 계약이 {0}건 있습니다.</value>
   </data>

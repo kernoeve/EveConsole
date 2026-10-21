@@ -1201,6 +1201,12 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>Cuenta los contratos activos que emitiste, o que te han asignado, que están en el último 15 % de su vida: un contrato de dos semanas a partir de su duodécimo día. Las corporaciones personales cuentan como tú.</value>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>Avisar cuando haya correo de EVE sin leer</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>Cuenta el correo sin leer de cada personaje cuyo correo lee la aplicación, la copia de cada personaje por separado: un correo enviado a dos de tus personajes cuenta dos veces, como en el juego. El correo leído en el juego deja de contar en la siguiente consulta de correo (Temporizadores). El aviso abre la herramienta Correo de EVE.</value>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>Tipo de base de datos</value>
   </data>

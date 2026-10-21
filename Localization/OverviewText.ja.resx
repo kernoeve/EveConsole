@@ -481,6 +481,9 @@
   <data name="AlertJobsReadyOther" xml:space="preserve">
     <value>配送可能な生産ジョブが{0}件あります。</value>
   </data>
+  <data name="AlertUnreadMailOther" xml:space="preserve">
+    <value>未読の EVE メールが {0} 件あります。</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>自分宛ての未締結の契約が{0}件あります。</value>
   </data>

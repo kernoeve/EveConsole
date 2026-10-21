@@ -1201,6 +1201,12 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>내가 발행했거나 나에게 지정된 활성 계약 중 기간의 마지막 15%에 들어선 계약을 셉니다: 2주짜리 계약이라면 12일째부터입니다. 개인 코퍼레이션도 나로 간주합니다.</value>
   </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>읽지 않은 EVE 메일이 있으면 알림</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>앱이 메일을 읽는 모든 캐릭터의 읽지 않은 메일을 캐릭터별 사본으로 따로 셉니다. 내 캐릭터 둘에게 보낸 메일 한 통은 게임에서처럼 두 통으로 셉니다. 게임에서 읽은 메일은 다음 메일 조회(타이머) 때부터 세지 않습니다. 알림을 누르면 EVE 메일 도구가 열립니다.</value>
+  </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>데이터베이스 유형</value>
   </data>
