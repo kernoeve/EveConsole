@@ -391,6 +391,12 @@
   <data name="OppsIncludeGroupsLabel" xml:space="preserve">
     <value>包含分组</value>
   </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>元组</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>第 {0} 部分（{1}）需要至少勾选一个元组。</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>

@@ -120,10 +120,6 @@
     <value>Min 30d Unit Vol</value>
     <comment>Text in IndustryOpportunitiesView.</comment>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Skip faction</value>
-    <comment>Button or option in IndustryOpportunitiesView.</comment>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Skip Non BPO traceable Items</value>
     <comment>Button or option in IndustryOpportunitiesView.</comment>
@@ -179,6 +175,66 @@
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* No sell orders: priced at the 30-day average.</value>
     <comment>Scheduled post: note under an Industry Ops table when a sell price is marked * (from 30-day history).</comment>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Meta Groups</value>
+    <comment>Industry Ops filter label: the row of meta group tick boxes.</comment>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Only items in the ticked meta groups: the tech level or kind of item (Tech I, Tech II, Faction…). All ticked is no filter. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Meta Groups label.</comment>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Tick at least one meta group.</value>
+    <comment>Industry Ops status line when every meta group box is unticked.</comment>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech I.</comment>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech II.</comment>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech III.</comment>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Faction</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Faction.</comment>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Storyline</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Storyline.</comment>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>Officer</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Officer.</comment>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Abyssal</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Abyssal.</comment>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>Limited Time</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Limited Time (event items).</comment>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Structure Tech I</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Tech I.</comment>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Structure Tech II</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Tech II.</comment>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Structure Faction</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Faction.</comment>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>None (materials, components…)</value>
+    <comment>Industry Ops, Meta Groups filter: the tick box for items with no meta group at all, such as materials, components and ammunition.</comment>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclude Groups</value>

@@ -391,6 +391,12 @@
   <data name="OppsIncludeGroupsLabel" xml:space="preserve">
     <value>Включить группы</value>
   </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>Мета-группы</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>В разделе {0} ({1}) должна быть отмечена хотя бы одна мета-группа.</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Столбцы</value>
   </data>

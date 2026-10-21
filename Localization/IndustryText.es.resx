@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>Vol. unid. mín. 30 d</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Omitir facción</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Omitir objetos sin BPO de origen</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* Sin órdenes de venta: precio según la media de 30 días.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Metagrupos</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Solo objetos de los metagrupos marcados: el nivel tecnológico o tipo de objeto (Tech I, Tech II, facción…). Todos marcados es sin filtro. Se aplica en el próximo cálculo.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Marca al menos un metagrupo.</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Facción</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Argumental</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>Oficial</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Abisal</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>Tiempo limitado</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Estructura Tech I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Estructura Tech II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Estructura de facción</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>Ninguno (materiales, componentes…)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Excluir grupos</value>

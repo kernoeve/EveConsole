@@ -391,6 +391,12 @@
   <data name="OppsIncludeGroupsLabel" xml:space="preserve">
     <value>含めるグループ</value>
   </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>メタグループ</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>セクション {0}（{1}）では少なくとも 1 つのメタグループをチェックする必要があります。</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>

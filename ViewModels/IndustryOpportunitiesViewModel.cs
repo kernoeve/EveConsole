@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Collections;
 using EveConsole.Models;
 using EveConsole.Services;
@@ -170,15 +171,31 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _minUnitVolume, value);
     }
 
-    // Faction items (MetaGroupId = 4) are ME0 BPCs that are often not worth building.
-    private bool _skipFactionItems = UiState.GetBool(UiState.IndustryOppsSkipFaction, true);
-    public bool SkipFactionItems
+    /// <summary>
+    /// The meta groups kept, each a tick box, remembered as they are ticked.
+    ///
+    /// <para>Faction starts unticked: its items are mostly ME0 copies that are often not worth
+    /// building, which is why the box this replaced, "Skip faction", was on by default. Somebody
+    /// who had turned that off starts with Faction ticked.</para>
+    /// </summary>
+    public ObservableCollection<CategoryChoice> MetaGroups { get; } = [];
+
+    private void LoadMetaGroups()
     {
-        get => _skipFactionItems;
-        set
+        var saved = UiState.Get(UiState.IndustryOppsMetaGroups);
+        int[] on = saved is not null
+            ? [.. saved.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => int.TryParse(s, out var id) ? id : -1)]
+            : UiState.GetBool(UiState.IndustryOppsSkipFaction, true)
+                ? OppsMetaGroups.Default
+                : [.. OppsMetaGroups.All.Select(g => g.Id)];
+
+        foreach (var (id, label) in OppsMetaGroups.All)
         {
-            this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
-            UiState.SetBool(UiState.IndustryOppsSkipFaction, value);
+            var choice = new CategoryChoice(id.ToString(), label) { Selected = on.Contains(id) };
+            choice.WhenAnyValue(c => c.Selected).Skip(1).Subscribe(_ =>
+                UiState.Set(UiState.IndustryOppsMetaGroups,
+                            string.Join(",", MetaGroups.Where(m => m.Selected).Select(m => m.Key))));
+            MetaGroups.Add(choice);
         }
     }
 
@@ -379,6 +396,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         Results.CollectionChanged += (_, _) => NameFilter.Update();
         RestoreSort();
         ResultsView.SortDescriptions.CollectionChanged += (_, _) => SaveSort();
+        LoadMetaGroups();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
@@ -470,6 +488,12 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minMargin30d = mm30 / 100;
         }
 
+        if (MetaGroups.All(m => !m.Selected))
+        {
+            StatusText = IndustryText.OppsErrNoMetaGroup;
+            return;
+        }
+
         // Remembered once they have been used; see MinIskVolume.
         UiState.Set(UiState.IndustryOppsMinIskVol,  (MinIskVolume  ?? "").Trim());
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
@@ -490,7 +514,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 MinUnitVol30d    = minUnitVol,
                 MinMargin        = minMargin,
                 MinMargin30d     = minMargin30d,
-                SkipFaction      = SkipFactionItems,
+                MetaGroups       = [.. MetaGroups.Where(m => m.Selected).Select(m => int.Parse(m.Key))],
                 BpoOnly          = BpoOnly,
                 OwnedOnly        = OwnedOnly,
                 ExcludedGroupIds = [.. ExcludedMarketGroups.Select(g => g.MarketGroupId)],

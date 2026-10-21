@@ -391,6 +391,12 @@
   <data name="OppsIncludeGroupsLabel" xml:space="preserve">
     <value>Inclure des groupes</value>
   </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>Méta-groupes</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>La section {0} ({1}) a besoin d'au moins un méta-groupe coché.</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Colonnes</value>
   </data>

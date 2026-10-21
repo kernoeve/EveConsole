@@ -242,7 +242,9 @@ public sealed class MessageBlockVm : ReactiveObject
         _oppsMinUnitVol    = Num(model.OppsMinUnitVol30d);
         _oppsMinMargin     = Num(model.OppsMinMarginPct);
         _oppsMinMargin30d  = Num(model.OppsMinMargin30dPct);
-        _oppsSkipFaction   = model.OppsSkipFaction;
+        int[] meta = fresh && IsOpps ? OppsMetaGroups.Default : [.. model.MetaGroupsOrDefault()];
+        foreach (var (id, label) in OppsMetaGroups.All)
+            OppsMetaGroupChoices.Add(new CategoryChoice(id.ToString(), label) { Selected = meta.Contains(id) });
         _oppsBpoOnly       = model.OppsBpoOnly;
         _oppsOwnedOnly     = model.OppsOwnedOnly;
         _oppsExcludedIds   = [.. model.OppsExcludedGroupIds];
@@ -570,8 +572,10 @@ public sealed class MessageBlockVm : ReactiveObject
     public string OppsMinMargin    { get => _oppsMinMargin;    set => this.RaiseAndSetIfChanged(ref _oppsMinMargin, value); }
     public string OppsMinMargin30d { get => _oppsMinMargin30d; set => this.RaiseAndSetIfChanged(ref _oppsMinMargin30d, value); }
 
-    private bool _oppsSkipFaction, _oppsBpoOnly, _oppsOwnedOnly;
-    public bool OppsSkipFaction { get => _oppsSkipFaction; set => this.RaiseAndSetIfChanged(ref _oppsSkipFaction, value); }
+    private bool _oppsBpoOnly, _oppsOwnedOnly;
+
+    /// <summary>The meta groups, ticked or not. A new section starts as the tool does.</summary>
+    public ObservableCollection<CategoryChoice> OppsMetaGroupChoices { get; } = [];
     public bool OppsBpoOnly     { get => _oppsBpoOnly;     set => this.RaiseAndSetIfChanged(ref _oppsBpoOnly, value); }
     public bool OppsOwnedOnly   { get => _oppsOwnedOnly;   set => this.RaiseAndSetIfChanged(ref _oppsOwnedOnly, value); }
 
@@ -685,7 +689,7 @@ public sealed class MessageBlockVm : ReactiveObject
         OppsMinUnitVol30d    = Parse(OppsMinUnitVol),
         OppsMinMarginPct     = Parse(OppsMinMargin),
         OppsMinMargin30dPct  = Parse(OppsMinMargin30d),
-        OppsSkipFaction      = OppsSkipFaction,
+        OppsMetaGroups       = [.. OppsMetaGroupChoices.Where(c => c.Selected).Select(c => int.Parse(c.Key))],
         OppsBpoOnly          = OppsBpoOnly,
         OppsOwnedOnly        = OppsOwnedOnly,
         OppsExcludedGroupIds = [.. _oppsExcludedIds],
@@ -1505,6 +1509,8 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return string.Format(AlarmsText.SectionEmpty, n, heading);
             if (b.IsOpps    && b.OppsMarket is null)                return string.Format(AlarmsText.SectionNeedsMarket, n, heading);
             if (b.IsOpps    && b.OppsBadField is { } field)         return string.Format(AlarmsText.SectionBadNumber, n, heading, field);
+            if (b.IsOpps    && b.OppsMetaGroupChoices.All(c => !c.Selected))
+                return string.Format(AlarmsText.SectionNeedsMetaGroup, n, heading);
 
             // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section
             // saved before its projects finished loading would store an empty list and quietly

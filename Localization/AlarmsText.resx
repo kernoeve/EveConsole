@@ -520,6 +520,14 @@
     <value>INCLUDE GROUPS</value>
     <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Include Groups' in this editor's style.</comment>
   </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>META GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Meta Groups' in this editor's style.</comment>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one meta group ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>COLUMNS</value>
     <comment>Scheduler, Industry Ops section: label over the tick boxes choosing the table's columns.</comment>

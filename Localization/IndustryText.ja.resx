@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>30日間の最低取引数量</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>勢力アイテムを除外</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>BPOに由来しないアイテムを除外</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* 売り注文なし：30日間の平均価格で算出。</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>メタグループ</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>チェックしたメタグループのアイテムのみ：テックレベルやアイテムの種類（テック I、テック II、勢力…）です。すべてチェックすると絞り込みなし。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>メタグループを少なくとも 1 つチェックしてください。</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>テック I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>テック II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>テック III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>ストーリーライン</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>オフィサー</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>アビサル</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>期間限定</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>ストラクチャー テック I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>ストラクチャー テック II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>ストラクチャー 勢力</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>なし（素材、部品など）</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>

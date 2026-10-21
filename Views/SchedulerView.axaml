@@ -474,12 +474,29 @@
                                 </WrapPanel>
 
                                 <WrapPanel Orientation="Horizontal" ItemSpacing="14" LineSpacing="4">
-                                  <CheckBox IsChecked="{Binding OppsSkipFaction}" Content="{x:Static loc:IndustryText.SkipFaction}" />
                                   <CheckBox IsChecked="{Binding OppsBpoOnly}" Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
                                             ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
                                   <CheckBox IsChecked="{Binding OppsOwnedOnly}" Content="{x:Static loc:IndustryText.OnlyBlueprintsIOwn}"
                                             ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
                                 </WrapPanel>
+
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMetaGroupsLabel}"
+                                             ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+                                  <ItemsControl ItemsSource="{Binding OppsMetaGroupChoices}">
+                                    <ItemsControl.ItemsPanel>
+                                      <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                      </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:CategoryChoice">
+                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
+                                                  Margin="0 0 12 0" />
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                </StackPanel>
 
                                 <StackPanel Spacing="3">
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsExcludeGroupsLabel}" />

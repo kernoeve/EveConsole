@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>Мин. объём торгов за 30 д (ед.)</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Пропускать фракционные</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Пропускать предметы без доступного BPO</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* Нет ордеров на продажу: цена по средней за 30 дней.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Мета-группы</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Только предметы из отмеченных мета-групп: технический уровень или вид предмета (Tech I, Tech II, фракционные…). Всё отмечено — без фильтра. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Отметьте хотя бы одну мета-группу.</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Фракционные</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Сюжетные</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>Офицерские</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Бездна</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>Ограниченные по времени</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Структуры Tech I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Структуры Tech II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Фракционные структуры</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>Нет (материалы, компоненты…)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Исключить группы</value>

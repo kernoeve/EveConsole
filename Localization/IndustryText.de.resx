@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>Min. Handelsvol. 30 Tg. (Einh.)</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Fraktionsgegenstände auslassen</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Gegenstände ohne BPO-Herkunft auslassen</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* Keine Verkaufsaufträge: zum 30-Tage-Durchschnitt bewertet.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Metagruppen</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Nur Gegenstände in den angekreuzten Metagruppen: Techstufe oder Art des Gegenstands (Tech I, Tech II, Fraktion …). Alle angekreuzt heißt kein Filter. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Kreuze mindestens eine Metagruppe an.</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Storyline</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>Offizier</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Abyssal</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>Zeitlich begrenzt</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Struktur Tech I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Struktur Tech II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Struktur Fraktion</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>Keine (Materialien, Komponenten …)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>

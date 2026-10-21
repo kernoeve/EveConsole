@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>30 天成交量下限</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>跳过势力物品</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>跳过无法追溯到 BPO 的物品</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* 没有卖单：按 30 天均价定价。</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>元组</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>仅显示勾选元组中的物品：即科技等级或物品类别（一级科技、二级科技、势力……）。全部勾选即不筛选。下次计算时生效。</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>请至少勾选一个元组。</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>一级科技</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>二级科技</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>三级科技</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>故事线</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>官员</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>深渊</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>限时</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>建筑一级科技</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>建筑二级科技</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>建筑势力</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>无（材料、组件等）</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>排除分组</value>

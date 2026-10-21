@@ -6,6 +6,47 @@ using EveConsole.ViewModels;
 namespace EveConsole.Services;
 
 /// <summary>
+/// The meta groups the Meta Groups filter offers: what tech level or kind of item a thing is.
+/// Every group a buildable item has in the SDE, and None for items with no group at all
+/// (materials, components, ammunition…), which is stored as 0.
+/// </summary>
+public static class OppsMetaGroups
+{
+    public const int None    = 0;
+    public const int Faction = 4;
+
+    /// <summary>In the order the tick boxes show them. A property, so the labels follow the
+    /// interface language.</summary>
+    public static IReadOnlyList<(int Id, string Label)> All =>
+    [
+        (1,  IndustryText.MetaTech1),
+        (2,  IndustryText.MetaTech2),
+        (14, IndustryText.MetaTech3),
+        (Faction, IndustryText.MetaFaction),
+        (3,  IndustryText.MetaStoryline),
+        (5,  IndustryText.MetaOfficer),
+        (15, IndustryText.MetaAbyssal),
+        (19, IndustryText.MetaLimitedTime),
+        (54, IndustryText.MetaStructureTech1),
+        (53, IndustryText.MetaStructureTech2),
+        (52, IndustryText.MetaStructureFaction),
+        (None, IndustryText.MetaNone),
+    ];
+
+    /// <summary>What the tool and a new section start with: everything but Faction, which is
+    /// what the old "Skip faction" box did, ticked by default.</summary>
+    public static int[] Default => [.. All.Select(g => g.Id).Where(id => id != Faction)];
+
+    /// <summary>Every group ticked: no filter at all, so a group the SDE adds later is not
+    /// quietly left out.</summary>
+    public static bool IsEvery(IEnumerable<int> ids)
+    {
+        var set = ids.ToHashSet();
+        return All.All(g => set.Contains(g.Id));
+    }
+}
+
+/// <summary>
 /// One Industry Ops calculation, as asked: the mode, where to price, and every filter.
 ///
 /// <para>Percentages are fractions here (0.15 for 15%); the boxes that collect them take
@@ -19,7 +60,8 @@ public sealed record IndustryOppsQuery
     public double?      MinUnitVol30d { get; init; }
     public double?      MinMargin     { get; init; }
     public double?      MinMargin30d  { get; init; }
-    public bool         SkipFaction   { get; init; } = true;
+    /// <summary>The meta groups kept (<see cref="OppsMetaGroups"/>); null, or every one, keeps all.</summary>
+    public IReadOnlyCollection<int>? MetaGroups { get; init; }
     public bool         BpoOnly       { get; init; } = true;
     public bool         OwnedOnly     { get; init; }
     public IReadOnlyCollection<int> ExcludedGroupIds { get; init; } = [];
@@ -145,9 +187,9 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
             ? $"""AND t."MarketGroupId" IN ({string.Join(",", includedGroupIds)}) """
             : "";
 
-        // Faction items are MetaGroupId 4.
-        var factionClause = q.SkipFaction
-            ? """AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 4) """
+        // Meta groups: an item with none counts as 0, the None box. Ids only: interpolated.
+        var metaClause = q.MetaGroups is { } meta && !OppsMetaGroups.IsEvery(meta)
+            ? $"""AND COALESCE(t."MetaGroupId", 0) IN ({string.Join(",", meta.DefaultIfEmpty(-1))}) """
             : "";
 
         // BPO-only: keep items whose (published) manufacturing/reaction blueprint either is
@@ -207,7 +249,7 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
         using var cmd = conn.Command(CandidateSql
             .Replace("/*EXCLUSION*/", exclusionClause)
             .Replace("/*INCLUSION*/", inclusionClause)
-            .Replace("/*FACTION*/", factionClause)
+            .Replace("/*FACTION*/", metaClause)
             .Replace("/*BPO*/", bpoClause)
             .Replace("/*OWNED*/", ownedClause));
         cmd.AddWithValue("@configId", q.ConfigId);

@@ -91,9 +91,6 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>최소 30일 거래량</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>팩션 아이템 제외</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>BPO 출처가 없는 아이템 제외</value>
   </data>
@@ -135,6 +132,51 @@
   </data>
   <data name="OppsReportHistoryPriced" xml:space="preserve">
     <value>* 판매 주문 없음: 30일 평균가로 산정.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>메타 그룹</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>체크한 메타 그룹의 아이템만 표시합니다. 테크 레벨이나 아이템 종류(테크 I, 테크 II, 팩션…)입니다. 모두 체크하면 필터가 없습니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>메타 그룹을 하나 이상 체크하십시오.</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>테크 I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>테크 II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>테크 III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>팩션</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>스토리라인</value>
+  </data>
+  <data name="MetaOfficer" xml:space="preserve">
+    <value>오피서</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>어비설</value>
+  </data>
+  <data name="MetaLimitedTime" xml:space="preserve">
+    <value>기간 한정</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>구조물 테크 I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>구조물 테크 II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>구조물 팩션</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>없음(재료, 부품 등)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>

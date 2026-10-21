@@ -148,10 +148,25 @@ public sealed class MessageBlock
     public double? OppsMinMarginPct   { get; set; }
     public double? OppsMinMargin30dPct { get; set; }
 
-    /// <summary>Industry Ops blocks: the tool's three tick boxes, with its defaults.</summary>
-    public bool OppsSkipFaction { get; set; } = true;
+    /// <summary>Industry Ops blocks: the tool's two tick boxes, with its defaults.</summary>
     public bool OppsBpoOnly     { get; set; } = true;
     public bool OppsOwnedOnly   { get; set; }
+
+    /// <summary>
+    /// Industry Ops blocks: the meta groups ticked (see OppsMetaGroups).
+    ///
+    /// <para>⚠️ Null on a section saved before there was a choice, which had a "Skip faction"
+    /// box instead: <see cref="OppsSkipFaction"/> then says what it meant.</para>
+    /// </summary>
+    public List<int>? OppsMetaGroups { get; set; }
+
+    /// <summary>Read only from sections saved before Meta Groups; never written by the editor.</summary>
+    public bool OppsSkipFaction { get; set; } = true;
+
+    /// <summary>The meta groups this section keeps, old sections included.</summary>
+    public List<int> MetaGroupsOrDefault() => OppsMetaGroups
+        ?? [.. EveConsole.Services.OppsMetaGroups.All.Select(g => g.Id)
+                .Where(id => !OppsSkipFaction || id != EveConsole.Services.OppsMetaGroups.Faction)];
 
     /// <summary>Industry Ops blocks: the market groups chosen, as chosen; what is nested under
     /// them is worked out when the post is made, so a group the SDE adds later is covered.</summary>
@@ -174,7 +189,7 @@ public sealed class MessageBlock
         MinUnitVol30d    = OppsMinUnitVol30d,
         MinMargin        = OppsMinMarginPct / 100,
         MinMargin30d     = OppsMinMargin30dPct / 100,
-        SkipFaction      = OppsSkipFaction,
+        MetaGroups       = MetaGroupsOrDefault(),
         BpoOnly          = OppsBpoOnly,
         OwnedOnly        = OppsOwnedOnly,
         ExcludedGroupIds = OppsExcludedGroupIds,
