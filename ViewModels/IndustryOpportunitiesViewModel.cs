@@ -284,8 +284,13 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         await LoadGroupsAsync(IncludedMarketGroups, IncludedColumn);
     }
 
-    /// <summary>One of the two lists from the settings row. ⚠️ The column is one of the two
-    /// constants above, never anything a user typed: it is interpolated.</summary>
+    /// <summary>
+    /// One of the two lists from the settings row.
+    ///
+    /// <para>⚠️ Each statement is written out whole, chosen by the column, never the column name
+    /// spliced in: PgSqlCheck can only typecheck SQL it can read, and took a spliced name for a
+    /// parameter.</para>
+    /// </summary>
     private static async Task LoadGroupsAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column)
     {
         // The names are shown once and kept, so they wait for the interface language's first.
@@ -293,7 +298,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.Command($"""SELECT "{column}" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
+        using var cmd = conn.Command(column == IncludedColumn
+            ? """SELECT "IncludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1"""
+            : """SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
         var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
 
         var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -320,7 +327,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var csv = string.Join(",", list.Select(g => g.MarketGroupId));
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.Command($"""UPDATE "IndustryOpportunitiesSettings" SET "{column}" = @ids WHERE "Id" = 1""");
+        using var cmd = conn.Command(column == IncludedColumn
+            ? """UPDATE "IndustryOpportunitiesSettings" SET "IncludedMarketGroupIds" = @ids WHERE "Id" = 1"""
+            : """UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""");
         cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
