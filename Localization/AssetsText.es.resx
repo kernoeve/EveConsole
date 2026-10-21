@@ -1330,6 +1330,45 @@ con Enter. Una vez valorada, la lista se pliega:
   <data name="DivisionNumbered" xml:space="preserve">
     <value>División {0}</value>
   </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Expandir todo</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Contraer todo</value>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} objeto</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} objetos</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Tipo {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Entregas</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Trabajo de industria</value>
   </data>

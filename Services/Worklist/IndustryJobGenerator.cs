@@ -328,26 +328,43 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
+        // For every final product, the items it waits on: everything whose Dependents reach it.
+        // Fixed for the run — the edges do not change as jobs are planned, only how short each
+        // item is.
+        var inputsOfFinal = new Dictionary<int, List<PlanState>>();
+        foreach (var s in queue)
+            foreach (var t in s.Demand.Dependents)
+                if (byType.TryGetValue(t, out var f) && f.Demand.IsFinal)
+                {
+                    if (!inputsOfFinal.TryGetValue(t, out var list)) inputsOfFinal[t] = list = [];
+                    list.Add(s);
+                }
+
+        // How short a final's most-starved input is, THIS PASS. Refreshed at the top of every pass,
+        // before the sort, because every planned job moves it. See FinalBottleneck for why.
+        var bindingNow = new Dictionary<int, double>();
+        void RefreshBinding() => FinalBottleneck.Binding(inputsOfFinal, Starving, bindingNow);
+
         // How much finished output stands behind this item — what the operation sells or flies,
         // rather than every task of any kind.
-        int BlockedFinalNow(PlanState s)
-        {
-            var starving = Starving(s);
-            if (starving <= 0) return 0;
-
-            // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item,
-            // and nothing consumes a hull, so counting only dependents scored every finished
-            // product zero on the one key meant to protect it. Its components each scored one
-            // for blocking it — so the parts outranked the ship, and the moment they were made
-            // the hull dropped level with any intermediate being built to top up a shelf. The
-            // flag exists precisely to stop a titan queueing behind stock work.
-            var n = s.Demand.IsFinal ? 1 : 0;
-
-            foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal)
-                    n++;
-            return (int)Math.Ceiling(n * starving);
-        }
+        //
+        // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item, and
+        // nothing consumes a hull, so counting only dependents scored every finished product zero
+        // on the one key meant to protect it. Its components each scored one for blocking it — so
+        // the parts outranked the ship, and the moment they were made the hull dropped level with
+        // any intermediate being built to top up a shelf. The flag exists precisely to stop a
+        // titan queueing behind stock work.
+        //
+        // ⚠️ And a waiting final counts only for the input HOLDING IT UP, its most-starved input
+        // this pass — never for every input it happens to use. A hull needs all of its parts.
+        // Counting every input let a broad, part-stocked intermediate take every reaction slot
+        // ahead of an empty composite: see FinalBottleneck for the Tungsten Carbide case.
+        int BlockedFinalNow(PlanState s) => FinalBottleneck.FinalsHeldUp(
+            s.Demand.IsFinal,
+            Starving(s),
+            s.Demand.Dependents,
+            t => byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal,
+            bindingNow);
 
         // What the item's OWN shelf justifies, measured where that shelf stands NOW.
         //
@@ -521,6 +538,8 @@ public class IndustryJobGenerator(
 
         while (true)
         {
+            RefreshBinding();
+
             var state = queue
                 .Where(s => !s.Done)
                 // ⚠️ Priority first, and every key below it re-evaluated on every pass. An

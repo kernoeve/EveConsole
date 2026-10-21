@@ -1457,6 +1457,51 @@ Warrior II 5
   <data name="DivisionNumbered" xml:space="preserve">
     <value>Подразделение {0}</value>
   </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Развернуть все</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Свернуть все</value>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} предмет</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} предмета</value>
+  </data>
+  <data name="GroupRowItemsFew" xml:space="preserve">
+    <value>{1} — {0:N0} предмета</value>
+  </data>
+  <data name="GroupRowItemsMany" xml:space="preserve">
+    <value>{1} — {0:N0} предметов</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Доставки</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Промышленный проект</value>
   </data>

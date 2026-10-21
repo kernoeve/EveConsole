@@ -1267,6 +1267,42 @@ Warrior II 5
   <data name="DivisionNumbered" xml:space="preserve">
     <value>部門{0}</value>
   </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>すべて展開</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>すべて折りたたむ</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} 件</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>タイプ {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>配達物</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>生産ジョブ</value>
   </data>

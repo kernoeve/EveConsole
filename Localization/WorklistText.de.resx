@@ -2407,11 +2407,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} in {1} – {2:N0} m³</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>{0:N0} Transport(e) planen</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} Transport(e) halten {1:N0} Auftrag/Aufträge auf</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>Aufträge, die auf bereits vorhandenes Material warten, ohne dass etwas unterwegs ist: {0:N0}.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>Für {0:N0} davon steht noch kein Transport auf der Arbeitsliste.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Alle stehen bereits auf der Arbeitsliste: Werden sie geflogen, läuft die Arbeit wieder an.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Fertigungsslots hinzufügen</value>
@@ -2436,12 +2439,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} – gibt {1:N0} Aufgabe(n) frei</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} nach {1} – {2:N0} ({3:N0} m³), startet {4:N0} Aufträge neu</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} nach {1} – {2:N0} ({3:N0} m³), von {4:N0} Aufträgen gebraucht, keiner allein dadurch neu gestartet</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Die schlimmsten {0} werden angezeigt; der Rest steht im Tab.</value>

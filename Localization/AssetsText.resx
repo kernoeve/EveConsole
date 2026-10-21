@@ -1769,6 +1769,58 @@ away: Edit list brings it back.</value>
     <value>Division {0}</value>
     <comment>Asset Browser and the Item Browser's Assets tab, Container column: a corporation hangar division the corporation has not named, as one step of the container path. {0} is its number (1–7).</comment>
   </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Asset Browser, Detailed View: Group by option: no grouping, the grid as it always was.</comment>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Asset Browser, Detailed View: Group by option: by the character or corporation owning the assets.</comment>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Asset Browser, Detailed View: Group by option: by solar system.</comment>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Asset Browser, Detailed View: Group by option: by station or structure (or the system, for assets in space).</comment>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Asset Browser, Detailed View: Group by option: station or structure, then owner, then each container (hangar division, POS structure, ship, asset safety wrap, container), as deep as they go.</comment>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Expand all</value>
+    <comment>Asset Browser, Detailed View: Button: open every group.</comment>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Collapse all</value>
+    <comment>Asset Browser, Detailed View: Button: close every group.</comment>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} item</value>
+    <comment>Asset Browser, Detailed View: A group's own row. {1} is the group's name, {0} how many asset rows are in it.</comment>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} items</value>
+    <comment>Asset Browser, Detailed View: A group's own row. {1} is the group's name, {0} how many asset rows are in it.</comment>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Asset Browser, Detailed View: A System group's name. {0} is the solar system, {1} its region.</comment>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Asset Browser, Detailed View: A container group named by an item type the SDE does not have. {0} is the type id.</comment>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Deliveries</value>
+    <comment>Asset Browser, Detailed View: A Location group: a corporation's deliveries hangar, beside its hangar divisions.</comment>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Asset Browser, Detailed View: a Station or Location group the app has no name for, told apart by its id. {0} is the label (&lt;Unknown Structure&gt;), {1} the station or structure id.</comment>
+  </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Industry Job</value>
     <comment>Asset Browser and the Item Browser's Assets tab, Flag column: the item is in a running industry job (the blueprint, or the product not delivered yet) rather than in a hangar. The other flags are the game's own words.</comment>

@@ -2443,11 +2443,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} ({1}) — {2:N0} m³</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>Создать перевозки ({0:N0})</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} перевоз(ок) задерживают {1:N0} работ(ы)</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>Проектов, ждущих уже имеющихся материалов, которые никто не везёт: {0:N0}.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>Для {0:N0} из нужного ещё нет перевозки в списке задач.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Все они уже в списке задач: выполните перевозки, и работа возобновится.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Добавить производственные слоты</value>
@@ -2472,12 +2475,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — разблокирует задач: {1:N0}</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} → {1} — {2:N0} ({3:N0} m³), перезапустит проектов: {4:N0}</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} → {1} — {2:N0} ({3:N0} m³), нужно проектам ({4:N0}), но ни один не перезапустится только от этой доставки</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Показаны худшие ({0}); остальные — на вкладке.</value>

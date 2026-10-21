@@ -1267,6 +1267,42 @@
   <data name="DivisionNumbered" xml:space="preserve">
     <value>제{0}구획</value>
   </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>성계</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>모두 펼치기</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>모두 접기</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0}개</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>유형 {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>배송</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>산업 작업</value>
   </data>

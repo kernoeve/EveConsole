@@ -29,7 +29,8 @@ namespace EveConsole.Services.Worklist;
 /// hangars and one of them covers the job.</param>
 /// <summary>One thing a stopped job is waiting for, kept structured so deliveries that
 /// serve several jobs can be found across rows.</summary>
-public sealed record HaulWant(int TypeId, string TypeName, long Units, double Volume);
+/// <param name="Moving">A haul on the worklist is bringing this item to this place.</param>
+public sealed record HaulWant(int TypeId, string TypeName, long Units, double Volume, bool Moving = false);
 
 public sealed record HaulBlock(
     string TaskKey,
@@ -83,10 +84,50 @@ public sealed record HaulBlock(
             : "";
 }
 
+/// <summary>
+/// Whether a shortage of material that is owned is a trip: a haul is already bringing it, or the
+/// haul plan could still find some spare somewhere else.
+///
+/// <para>⚠️ The one rule the Hauling rows and Item Contention divide owned shortages by, so each
+/// lands on exactly one of them. Owned but spoken for everywhere — every unit needed by the
+/// station holding it, or promised to someone first in line — is not a trip but a shortage, and
+/// the answer is building or buying more.</para>
+/// </summary>
+public sealed class HaulReach
+{
+    private readonly HaulPlanFacts? _facts;
+    private readonly Dictionary<long, HashSet<int>> _coming;
+    private readonly Dictionary<int, List<long>> _spareAt;
+
+    public HaulReach(IReadOnlyList<WorklistItem> items, HaulPlanFacts? facts)
+    {
+        _facts  = facts;
+        _coming = items.Where(i => i.Kind == WorklistKind.Haul)
+            .SelectMany(i => i.Deliveries())
+            .GroupBy(d => d.Destination)
+            .ToDictionary(g => g.Key, g => g.Select(d => d.TypeId).ToHashSet());
+        _spareAt = facts is null ? []
+            : facts.SpareLeft.Where(kv => kv.Value > 0)
+                .GroupBy(kv => kv.Key.TypeId)
+                .ToDictionary(g => g.Key, g => g.Select(kv => kv.Key.Station).ToList());
+    }
+
+    /// <summary>A haul on the worklist is bringing this item to this place.</summary>
+    public bool Coming(long here, int typeId) => _coming.TryGetValue(here, out var t) && t.Contains(typeId);
+
+    /// <summary>A trip. Without a plan to go by, every owned shortage is one, as it always was.</summary>
+    public bool CanHaul(long here, int typeId) =>
+        _facts is null || Coming(here, typeId)
+     || (_spareAt.TryGetValue(typeId, out var at) && at.Any(s => s != here));
+}
+
 /// <summary>Builds the Hauling rows from the worklist and the asset table.</summary>
+/// <param name="planner">The haul planner, whose last plan says what can actually move. Without
+/// it the rows fall back to counting every unit held anywhere.</param>
 public class HaulPressureService(
     IDbContextFactory<AppDbContext> dbFactory,
-    WorklistSettings                settings)
+    WorklistSettings                settings,
+    LogisticsGenerator?             planner = null)
 {
     public async Task<List<HaulBlock>> PressuresAsync(
         IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
@@ -151,12 +192,25 @@ public class HaulPressureService(
                      .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct))
             places[x.StructureId] = x.Name;
 
+        // ⚠️ What can actually move, as the haul plan reckons it: a station gives up only what it
+        // holds beyond its own need. Counted from the asset table alone, every unit in a hangar
+        // was a pickup — 783 Capital Antimatter Reactor Units at a station that needs 4,668
+        // itself read as a trip nobody had raised, and the card asked for nine of them while the
+        // one trip actually holding up 132 jobs was left off it.
+        var facts = planner?.LastFacts;
+        Dictionary<int, List<(long Loc, long Qty)>> BySource(IReadOnlyDictionary<(long Station, int TypeId), long> d) =>
+            d.Where(kv => kv.Value > 0 && ids.Contains(kv.Key.TypeId))
+             .GroupBy(kv => kv.Key.TypeId)
+             .ToDictionary(g => g.Key, g => g.Select(kv => (kv.Key.Station, kv.Value)).OrderByDescending(x => x.Value).ToList());
+        var spare = facts is null ? held : BySource(facts.Spare);
+        var reach = new HaulReach(items, facts);
+
         // Largest first until the shortfall is covered: the stops a hauler would actually make.
         List<long> Pickups(int typeId, long shortBy, long here)
         {
             var stops = new List<long>();
             var left  = shortBy;
-            foreach (var (loc, qty) in held.GetValueOrDefault(typeId, []))
+            foreach (var (loc, qty) in spare.GetValueOrDefault(typeId, []))
             {
                 if (left <= 0) break;
                 if (loc == here) continue;
@@ -183,10 +237,16 @@ public class HaulPressureService(
 
         var rows = new List<HaulBlock>();
 
-        foreach (var (item, short_) in blocked)
+        foreach (var (item, owned) in blocked)
         {
+            var here = item.LocationId;
+
+            // ⚠️ A trip only where one is coming or could still be raised; the rest of what is
+            // owned is short, and Item Contention's (HaulReach).
+            var short_ = owned.Where(s => reach.CanHaul(here, s.TypeId)).ToList();
+            if (short_.Count == 0) continue;
+
             var types = short_.Select(s => s.TypeId).Distinct().ToList();
-            var here  = item.LocationId;
 
             // What this job would have made is missing from whatever was waiting on it. Seeded
             // from the OUTPUT, so the job itself is not counted among the things it blocks.
@@ -250,7 +310,8 @@ public class HaulPressureService(
                 detail,
                 [.. short_.Select(sh => new HaulWant(
                     sh.TypeId, sh.TypeName, sh.Short,
-                    sh.Short * volumes.GetValueOrDefault(sh.TypeId)))]));
+                    sh.Short * volumes.GetValueOrDefault(sh.TypeId),
+                    reach.Coming(here, sh.TypeId)))]));
         }
 
         // What is holding up the most work first, then the trips nobody has raised: a job with a

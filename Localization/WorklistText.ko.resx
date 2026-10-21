@@ -2389,11 +2389,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{1}의 {0} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>운반 {0:N0}건 등록</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>운송 {0:N0}건이 작업 {1:N0}건을 막고 있습니다</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>작업 {0:N0}개가 이미 보유한 재료를 기다리고 있지만 운반 중인 것이 없습니다.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>필요한 것 중 {0:N0}건은 아직 작업 목록에 운송이 없습니다.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>모두 작업 목록에 있습니다. 운송하면 작업이 다시 시작됩니다.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>제조 슬롯 추가</value>
@@ -2418,12 +2421,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — 작업 항목 {1:N0}개 해소</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개 재시작</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개가 원하지만 이것만으로 재시작되는 작업 없음</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>가장 심각한 {0}개만 표시합니다. 나머지는 해당 탭에 있습니다.</value>

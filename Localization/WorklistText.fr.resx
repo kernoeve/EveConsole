@@ -2407,11 +2407,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} à {1} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>Créer {0:N0} transport(s)</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} transport(s) bloquent {1:N0} tâche(s)</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>{0:N0} travail(aux) en attente de matériaux déjà possédés, sans que rien ne bouge.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>{0:N0} de ce dont elles ont besoin n'ont encore aucun transport sur la liste de travail.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Tous sont déjà sur la liste de travail : les effectuer relance le travail.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Ajouter des créneaux de production</value>
@@ -2436,12 +2439,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — débloque {1:N0} tâche(s)</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} vers {1} — {2:N0} ({3:N0} m3), relance {4:N0} travaux</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} vers {1} — {2:N0} ({3:N0} m3), demandé par {4:N0} travaux, aucun relancé par cette seule livraison</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Les {0} pires affichés ; les autres sont dans l'onglet.</value>

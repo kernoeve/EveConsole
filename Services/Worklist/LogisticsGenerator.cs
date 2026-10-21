@@ -57,6 +57,19 @@ public sealed record NeedDriver(
 }
 
 /// <summary>
+/// What a haul plan worked from, by station and item: the station's own need, what it could spare
+/// beyond that, and what it still can once the plan's hauls have taken their share.
+/// </summary>
+public sealed record HaulPlanFacts(
+    IReadOnlyDictionary<(long Station, int TypeId), long> Need,
+    IReadOnlyDictionary<(long Station, int TypeId), long> Spare,
+    IReadOnlyDictionary<(long Station, int TypeId), long> SpareLeft)
+{
+    public static readonly HaulPlanFacts None = new(
+        new Dictionary<(long, int), long>(), new Dictionary<(long, int), long>(), new Dictionary<(long, int), long>());
+}
+
+/// <summary>
 /// What sort of demand a <see cref="NeedDriver"/> is.
 ///
 /// <para>⚠️ The key drivers are merged on, not the words shown. Those come from
@@ -142,6 +155,18 @@ public class LogisticsGenerator(
 {
     public string Id          => "logistics";
     public string DisplayName => WorklistText.SourceLogistics;
+
+    /// <summary>
+    /// What the last plan worked from: each station's own need, and what each station could spare
+    /// before the plan's hauls and after them. Null until a plan has run.
+    ///
+    /// <para>⚠️ For the Bottlenecks Hauling analysis, which has to agree with this plan about what
+    /// can move. Reckoned on its own from the asset table it counted every unit in a hangar as a
+    /// pickup, so it reported trips this plan will never raise — components the station holding
+    /// them needs four times over — while the one trip holding up 132 jobs, already raised, was
+    /// left off the card altogether.</para>
+    /// </summary>
+    public HaulPlanFacts? LastFacts { get; private set; }
 
     /// <param name="Priority">Inherited from whatever asked for it. A haul feeding an urgent
     /// order has to outrank one feeding a routine top-up, and the reason alone cannot say that:
@@ -606,7 +631,9 @@ public class LogisticsGenerator(
                     Key          = pilot.Id > 0 ? $"haulloop:{sys.Key}:{pilot.Id}" : $"haulloop:{sys.Key}",
                     Source       = Id,
                     Kind         = WorklistKind.Haul,
-                    Title        = string.Format(WorklistText.HaulTitleItems, manifest.Count),
+                    // ⚠️ One item: its name. "1 item(s)" hid 945 million Tritanium for 132 stopped jobs.
+                    Title        = manifest.Count == 1 ? SdeNames.Type(manifest[0].TypeId, Name(manifest[0].TypeId))
+                                                       : string.Format(WorklistText.HaulTitleItems, manifest.Count),
                     Detail       = Because(reason)
                                  + (later > 0 ? " " + string.Format(WorklistText.HaulLoopMore, stops.Count, later) : "")
                                  + (plan.TooBig.Count > 0 ? " " + string.Format(WorklistText.HaulLoopTooBig, plan.TooBig.Count) : ""),
@@ -1611,7 +1638,7 @@ public class LogisticsGenerator(
         Dictionary<long, int> systems, CancellationToken ct)
     {
         var moves = new List<Move>();
-        if (want.Count == 0) return moves;
+        if (want.Count == 0) { LastFacts = HaulPlanFacts.None; return moves; }
 
         // Spare stock: what a station holds beyond whatever it wants itself.
         var spare = new Dictionary<(long Station, int TypeId), long>();
@@ -1621,6 +1648,7 @@ public class LogisticsGenerator(
             var free = qty - mine;
             if (free > 0) spare[key] = free;
         }
+        var spareBefore = new Dictionary<(long Station, int TypeId), long>(spare);
 
         var jumpCache = new Dictionary<int, Dictionary<int, int>>();
 
@@ -1719,6 +1747,9 @@ public class LogisticsGenerator(
             }
         }
 
+        LastFacts = new HaulPlanFacts(
+            want.ToDictionary(kv => kv.Key, kv => kv.Value.Qty), spareBefore,
+            spare.Where(kv => kv.Value > 0).ToDictionary(kv => kv.Key, kv => kv.Value));
         return moves;
     }
 
@@ -1880,7 +1911,9 @@ public class LogisticsGenerator(
                 Source       = Id,
                 Kind         = WorklistKind.Haul,
                 Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContract, cargo.Count, part + 1, parts)
-                                         : string.Format(WorklistText.HaulTitleItems, cargo.Count),
+                             // One item: its name, as the loop's are.
+                             : cargo.Count == 1 ? SdeNames.Type(cargo[0].TypeId, names.GetValueOrDefault(cargo[0].TypeId, string.Format(WorklistText.TypeWithId, cargo[0].TypeId)))
+                             : string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
                 Detail       = Because(reason) + Onward(run.Select(m => m.FinalTo).Where(t => t != run.Key.To).Distinct(), places),

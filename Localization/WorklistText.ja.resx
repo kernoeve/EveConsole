@@ -2389,11 +2389,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{1}の{0} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>運搬タスクを{0:N0}件作成する</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} 件の輸送が {1:N0} 件の作業を止めています</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>ジョブ{0:N0}件がすでに所有している資源を待っていますが、何も運ばれていません。</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>そのうち {0:N0} 件の必要物資には、まだ作業リストに輸送がありません。</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>すべて作業リストに載っています。輸送すれば作業が再開します。</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>製造スロットを増やす</value>
@@ -2418,12 +2421,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — タスク{1:N0}件のブロックを解除</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が再開</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が必要としていますが、これだけで再開するものはありません</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>深刻な上位{0}件を表示しています。残りはタブにあります。</value>
