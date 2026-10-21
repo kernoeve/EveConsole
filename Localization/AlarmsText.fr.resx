@@ -361,6 +361,60 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>Graphique d'extraction minière de la corporation</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Opportunités industrielles</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Opportunités industrielles</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>Prix à</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>Vol. ISK min. 30 j</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>Vol. unités min. 30 j</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>Marge min. %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>Marge min. % 30 j</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>Exclure des groupes</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>Inclure des groupes</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>Colonnes</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>L'objet est toujours la première colonne.</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>Trier par</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Du plus grand au plus petit</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Du plus petit au plus grand</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>Lignes</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>Toutes</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Calculé à l'envoi de la publication, à partir des coûts de fabrication et des prix du marché disponibles à ce moment-là. Tout se règle ici : les choix propres à l'outil Opportunités industrielles ne sont pas utilisés.</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>Texte</value>
   </data>
@@ -417,6 +471,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>Graphique d'extraction minière de la corporation</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Opportunités industrielles</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>À intervalles réguliers</value>
@@ -555,6 +612,12 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>La section {0} ({1}) nécessite une annonce.</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>La section {0} ({1}) a besoin d'un marché où établir les prix.</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Section {0} ({1}) : {2} accepte un nombre supérieur ou égal à 0, ou rien.</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>La section {0} ({1}) nécessite au moins une liste.</value>

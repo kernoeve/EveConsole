@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>Bitte gib eine gültige 30-Tage-Mindestmarge in Prozent ein (oder lass das Feld leer, um nicht zu filtern).</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* Keine Verkaufsaufträge: zum 30-Tage-Durchschnitt bewertet.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>
   </data>

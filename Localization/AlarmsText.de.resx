@@ -361,6 +361,60 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>Diagramm: Bergbau der Corp</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Industriechancen</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Industriechancen</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>Preise aus</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>Min. Handelsvol. 30 Tg. (ISK)</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>Min. Handelsvol. 30 Tg. (Einh.)</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>Min. Marge %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>Min. Marge % 30 Tg.</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>Gruppen ausschließen</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>Gruppen einschließen</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>Spalten</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>Der Gegenstand ist immer die erste Spalte.</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>Sortieren nach</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Höchste zuerst</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Niedrigste zuerst</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>Zeilen</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Wird beim Senden des Beitrags aus den dann vorliegenden Baukosten und Marktpreisen berechnet. Alles wird hier eingestellt: Die eigenen Einstellungen des Werkzeugs „Industriechancen“ werden nicht verwendet.</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>Text</value>
   </data>
@@ -417,6 +471,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>Diagramm: Bergbau der Corp</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Industriechancen</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>In Abständen</value>
@@ -555,6 +612,12 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht eine Verkaufsanzeige.</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>Abschnitt {0} ({1}) braucht einen Markt für die Preise.</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Abschnitt {0} ({1}): {2} nimmt eine Zahl ab 0 oder nichts.</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht mindestens eine Liste.</value>

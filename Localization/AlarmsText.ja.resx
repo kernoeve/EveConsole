@@ -361,6 +361,60 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>コーポの採掘グラフ</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>価格の取得先</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>30日間の最低取引額</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>30日間の最低取引数量</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>最低利益率 %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>30日間の最低利益率 %</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>除外するグループ</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>含めるグループ</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>アイテムは常に最初の列です。</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>並べ替え</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>大きい順</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>小さい順</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>行数</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>投稿の送信時に、その時点の製造コストと市場価格から計算されます。設定はすべてここで行います。生産チャンスツール自体の選択は使われません。</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>テキスト</value>
   </data>
@@ -417,6 +471,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>コーポの採掘グラフ</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>生産チャンス</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>一定間隔</value>
@@ -555,6 +612,12 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>セクション{0}（{1}）では投稿を選択する必要があります。</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>セクション {0}（{1}）には価格を付ける市場が必要です。</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>セクション {0}（{1}）：{2} には 0 以上の数値を入力するか、空欄にしてください。</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>セクション{0}（{1}）ではリストを1つ以上選択する必要があります。</value>

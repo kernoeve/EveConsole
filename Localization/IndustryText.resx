@@ -176,6 +176,10 @@
     <value>Please enter a valid minimum 30-day margin in percent (or leave blank for no filter).</value>
     <comment>Industry Ops status line when the Min Margin % 30d box holds something that is not a number of 0 or more.</comment>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* No sell orders: priced at the 30-day average.</value>
+    <comment>Scheduled post: note under an Industry Ops table when a sell price is marked * (from 30-day history).</comment>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclude Groups</value>
     <comment>Text in IndustryOpportunitiesView.</comment>

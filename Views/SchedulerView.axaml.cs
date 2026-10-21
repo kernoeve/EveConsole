@@ -14,7 +14,14 @@ public partial class SchedulerView : UserControl
         DataContextChanged += (_, _) =>
         {
             if (DataContext is SchedulerViewModel vm)
-                vm.ConfirmDiscard = AskAsync;
+            {
+                vm.ConfirmDiscard  = AskAsync;
+                vm.PickMarketGroup = async () =>
+                    TopLevel.GetTopLevel(this) is Window owner
+                        ? await new MarketGroupPickerWindow(new MarketGroupPickerViewModel(vm.Batch))
+                              .ShowDialog<MarketGroupPickerResult?>(owner)
+                        : null;
+            }
         };
     }
 

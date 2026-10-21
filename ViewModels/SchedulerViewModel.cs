@@ -65,7 +65,35 @@ public sealed class PostingChoice(int id, string name)
     public override string ToString() => Name;
 }
 
-/// <summary>One of the five Top 10 lists, ticked or not.</summary>
+/// <summary>A market config an Industry Ops section can price at, plus its id.</summary>
+public sealed class MarketConfigChoice(int id, string name)
+{
+    public int    Id   { get; } = id;
+    public string Name { get; } = name;
+    public override string ToString() => Name;
+}
+
+/// <summary>
+/// A market group chosen in an Industry Ops section, with its own ✕.
+///
+/// <para>⚠️ The command is on the chip rather than reached from the template through a
+/// <c>$parent</c> cast, which can fail to resolve at run time and take the app down with it.</para>
+/// </summary>
+public sealed class MarketGroupChip
+{
+    public MarketGroupChip(int id, string name, Action<MarketGroupChip> remove)
+    {
+        MarketGroupId = id;
+        Name          = name;
+        RemoveCommand = ReactiveCommand.Create(() => remove(this));
+    }
+
+    public int    MarketGroupId { get; }
+    public string Name          { get; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+}
+
+/// <summary>One of the five Top 10 lists, ticked or not. Also one column of an Industry Ops table.</summary>
 public sealed class CategoryChoice(string key, string title) : ReactiveObject
 {
     public string Key   { get; } = key;
@@ -169,9 +197,13 @@ public sealed class MessageBlockVm : ReactiveObject
         IReadOnlyList<PostingChoice>  postings,
         Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null,
         bool                          fresh = false,
-        Func<bool>?                   destinationIsWebhook = null)
+        Func<bool>?                   destinationIsWebhook = null,
+        IReadOnlyList<MarketConfigChoice>?           markets   = null,
+        Func<Task<MarketGroupPickerResult?>>?        pickGroup = null)
     {
         _destinationIsWebhook = destinationIsWebhook ?? (() => false);
+        Markets       = markets ?? [];
+        _pickGroup    = pickGroup;
         Corps         = corps;
         Postings      = postings;
         _loadProjects = loadProjects;
@@ -201,6 +233,32 @@ public sealed class MessageBlockVm : ReactiveObject
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
+        // Industry Ops. A new section starts from the tool's defaults, never from what the tool
+        // last remembered: each section is set up on its own.
+        _oppsMode   = OppsModeOptions.FirstOrDefault(o => o.Key == model.OppsMode) ?? OppsModeOptions[0];
+        _oppsMarket = Markets.FirstOrDefault(m => m.Id == model.OppsConfigId)
+                      ?? (fresh ? Markets.FirstOrDefault() : null);
+        _oppsMinIskVol     = Num(model.OppsMinIskVol30d);
+        _oppsMinUnitVol    = Num(model.OppsMinUnitVol30d);
+        _oppsMinMargin     = Num(model.OppsMinMarginPct);
+        _oppsMinMargin30d  = Num(model.OppsMinMargin30dPct);
+        _oppsSkipFaction   = model.OppsSkipFaction;
+        _oppsBpoOnly       = model.OppsBpoOnly;
+        _oppsOwnedOnly     = model.OppsOwnedOnly;
+        _oppsExcludedIds   = [.. model.OppsExcludedGroupIds];
+        _oppsIncludedIds   = [.. model.OppsIncludedGroupIds];
+        string[] columns = fresh && IsOpps ? IndustryOppsReport.DefaultColumns : [.. model.OppsColumns];
+        foreach (var c in IndustryOppsReport.Columns.Where(c => c.Key != IndustryOppsReport.Item))
+            OppsColumns.Add(new CategoryChoice(c.Key, c.Header) { Selected = columns.Contains(c.Key) });
+        _oppsSortBy        = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
+                             ?? OppsSortOptions.First(o => o.Key == IndustryOppsReport.DefaultSort);
+        _oppsSortDirection = model.OppsSortDescending ? SortDirectionOptions[0] : SortDirectionOptions[1];
+        _oppsRowLimit      = model.OppsRowLimit > 0 ? model.OppsRowLimit.ToString() : "";
+
+        AddOppsExcludedCommand    = ReactiveCommand.CreateFromTask(() => AddOppsGroupAsync(_oppsExcludedIds, OppsExcluded));
+        AddOppsIncludedCommand    = ReactiveCommand.CreateFromTask(() => AddOppsGroupAsync(_oppsIncludedIds, OppsIncluded));
+        if (_oppsExcludedIds.Count + _oppsIncludedIds.Count > 0) _ = LoadOppsGroupNamesAsync();
+
         SelectAllCommand  = ReactiveCommand.Create(() => SelectAllProjects(true));
         SelectNoneCommand = ReactiveCommand.Create(() => SelectAllProjects(false));
 
@@ -208,6 +266,8 @@ public sealed class MessageBlockVm : ReactiveObject
         // will be posted rather than promising it from behind a watermark.
         if (fresh && IsProjects && _sectionTitle.Length == 0)
             _sectionTitle = DefaultTitle;
+        if (fresh && IsOpps && _sectionTitle.Length == 0)
+            _sectionTitle = AlarmsText.OppsDefaultTitle;
 
         if (IsProjects) _ = ReloadProjectsAsync();
     }
@@ -230,7 +290,7 @@ public sealed class MessageBlockVm : ReactiveObject
             foreach (var n in new[]
                      {
                          nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
-                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart),
+                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart), nameof(IsOpps),
                          nameof(Heading), nameof(ShowWebhookChartWarning),
                      })
                 this.RaisePropertyChanged(n);
@@ -247,6 +307,7 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool IsTop10    => Type == MessageBlock.TypeTop10;
     public bool IsSale     => Type == MessageBlock.TypeSale;
     public bool IsProjects => Type == MessageBlock.TypeProjects;
+    public bool IsOpps     => Type == MessageBlock.TypeIndustryOpps;
 
     /// <summary>Standing projects need a corp too; only the two report blocks need a month.</summary>
     public bool NeedsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly
@@ -263,6 +324,7 @@ public sealed class MessageBlockVm : ReactiveObject
         MessageBlock.TypeMonthly  => AlarmsText.HeadingMonthlySummary,
         MessageBlock.TypeSale     => AlarmsText.HeadingSalePosting,
         MessageBlock.TypeProjects => AlarmsText.HeadingStandingProjects,
+        MessageBlock.TypeIndustryOpps => AlarmsText.HeadingIndustryOpps,
         MessageBlock.TypeIskChart      => AlarmsText.HeadingIskChart,
         MessageBlock.TypeActivityChart => AlarmsText.HeadingActivityChart,
         MessageBlock.TypeKillChart     => AlarmsText.HeadingKillChart,
@@ -472,6 +534,124 @@ public sealed class MessageBlockVm : ReactiveObject
         }
     }
 
+    // ── Industry Ops ─────────────────────────────────────────────────────────
+
+    public static readonly LabelledChoice[] OppsModeOptions =
+    [
+        new(nameof(IndustryMode.BuildAndSellOrder),      IndustryText.ModeBuildSellOrder),
+        new(nameof(IndustryMode.BuildAndSellToBuyOrder), IndustryText.ModeBuildSellToBuyOrder),
+    ];
+
+    /// <summary>Any column, the item included, can be the sort.</summary>
+    public static readonly LabelledChoice[] OppsSortOptions =
+        [.. IndustryOppsReport.Columns.Select(c => new LabelledChoice(c.Key, c.Header))];
+
+    public static readonly LabelledChoice[] SortDirectionOptions =
+    [
+        new("desc", AlarmsText.SortHighestFirst),
+        new("asc",  AlarmsText.SortLowestFirst),
+    ];
+
+    public IReadOnlyList<LabelledChoice>     OppsModes          => OppsModeOptions;
+    public IReadOnlyList<LabelledChoice>     OppsSorts          => OppsSortOptions;
+    public IReadOnlyList<LabelledChoice>     SortDirections     => SortDirectionOptions;
+    public IReadOnlyList<MarketConfigChoice> Markets            { get; }
+
+    private LabelledChoice _oppsMode;
+    public LabelledChoice OppsMode { get => _oppsMode; set => this.RaiseAndSetIfChanged(ref _oppsMode, value ?? OppsModeOptions[0]); }
+
+    private MarketConfigChoice? _oppsMarket;
+    public MarketConfigChoice? OppsMarket { get => _oppsMarket; set => this.RaiseAndSetIfChanged(ref _oppsMarket, value); }
+
+    // The four boxes hold what was typed; a blank box is no filter. Checked on Save.
+    private string _oppsMinIskVol, _oppsMinUnitVol, _oppsMinMargin, _oppsMinMargin30d;
+    public string OppsMinIskVol    { get => _oppsMinIskVol;    set => this.RaiseAndSetIfChanged(ref _oppsMinIskVol, value); }
+    public string OppsMinUnitVol   { get => _oppsMinUnitVol;   set => this.RaiseAndSetIfChanged(ref _oppsMinUnitVol, value); }
+    public string OppsMinMargin    { get => _oppsMinMargin;    set => this.RaiseAndSetIfChanged(ref _oppsMinMargin, value); }
+    public string OppsMinMargin30d { get => _oppsMinMargin30d; set => this.RaiseAndSetIfChanged(ref _oppsMinMargin30d, value); }
+
+    private bool _oppsSkipFaction, _oppsBpoOnly, _oppsOwnedOnly;
+    public bool OppsSkipFaction { get => _oppsSkipFaction; set => this.RaiseAndSetIfChanged(ref _oppsSkipFaction, value); }
+    public bool OppsBpoOnly     { get => _oppsBpoOnly;     set => this.RaiseAndSetIfChanged(ref _oppsBpoOnly, value); }
+    public bool OppsOwnedOnly   { get => _oppsOwnedOnly;   set => this.RaiseAndSetIfChanged(ref _oppsOwnedOnly, value); }
+
+    /// <summary>
+    /// The groups chosen, by id. ⚠️ The ids are the record, the chips beside them are only how
+    /// they are shown: the names arrive a moment after the section is built, and reading the
+    /// chips then would make a freshly opened task look edited.
+    /// </summary>
+    private readonly List<int> _oppsExcludedIds, _oppsIncludedIds;
+    public ObservableCollection<MarketGroupChip> OppsExcluded { get; } = [];
+    public ObservableCollection<MarketGroupChip> OppsIncluded { get; } = [];
+
+    public ReactiveCommand<Unit, Unit> AddOppsExcludedCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddOppsIncludedCommand { get; }
+
+    private readonly Func<Task<MarketGroupPickerResult?>>? _pickGroup;
+
+    private async Task AddOppsGroupAsync(List<int> ids, ObservableCollection<MarketGroupChip> shown)
+    {
+        if (_pickGroup is null || await _pickGroup() is not { } pick) return;
+        if (ids.Contains(pick.MarketGroupId)) return;
+        ids.Add(pick.MarketGroupId);
+        shown.Add(Chip(ids, shown, pick.MarketGroupId, SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
+    }
+
+    /// <summary>A chip whose ✕ takes the group out of both the ids and the chips.</summary>
+    private static MarketGroupChip Chip(List<int> ids, ObservableCollection<MarketGroupChip> shown, int id, string name) =>
+        new(id, name, chip => { ids.Remove(chip.MarketGroupId); shown.Remove(chip); });
+
+    private async Task LoadOppsGroupNamesAsync()
+    {
+        Dictionary<int, string> names;
+        try { names = await Task.Run(() => IndustryOpportunitiesService.MarketGroupNamesAsync([.. _oppsExcludedIds, .. _oppsIncludedIds])); }
+        catch { names = []; }
+        // A group the SDE no longer has is still shown, by number, so it can be removed.
+        foreach (var id in _oppsExcludedIds) OppsExcluded.Add(Chip(_oppsExcludedIds, OppsExcluded, id, names.GetValueOrDefault(id, $"#{id}")));
+        foreach (var id in _oppsIncludedIds) OppsIncluded.Add(Chip(_oppsIncludedIds, OppsIncluded, id, names.GetValueOrDefault(id, $"#{id}")));
+    }
+
+    /// <summary>The table's columns after the item, ticked or not.</summary>
+    public ObservableCollection<CategoryChoice> OppsColumns { get; } = [];
+
+    private LabelledChoice _oppsSortBy;
+    public LabelledChoice OppsSortBy { get => _oppsSortBy; set => this.RaiseAndSetIfChanged(ref _oppsSortBy, value ?? OppsSortOptions[0]); }
+
+    private LabelledChoice _oppsSortDirection;
+    public LabelledChoice OppsSortDirection { get => _oppsSortDirection; set => this.RaiseAndSetIfChanged(ref _oppsSortDirection, value ?? SortDirectionOptions[0]); }
+
+    /// <summary>How many rows, as typed. Blank is all of them.</summary>
+    private string _oppsRowLimit;
+    public string OppsRowLimit { get => _oppsRowLimit; set => this.RaiseAndSetIfChanged(ref _oppsRowLimit, value); }
+
+    private static string Num(double? v) => v?.ToString("0.##########") ?? "";
+
+    /// <summary>A box's number: null when blank, and when it is not a number of 0 or more
+    /// (which <see cref="OppsBadField"/> reports). "15%" reads as 15.</summary>
+    private static double? Parse(string text) =>
+        double.TryParse(text.Trim().TrimEnd('%'), out var v) && v >= 0 ? v : null;
+
+    /// <summary>The label of the first box holding something other than a number of 0 or more
+    /// (or, for Rows, a whole one), or null when all of them are fine.</summary>
+    public string? OppsBadField
+    {
+        get
+        {
+            foreach (var (text, label) in new[]
+                     {
+                         (OppsMinIskVol,    IndustryText.Min30dIskVol),
+                         (OppsMinUnitVol,   IndustryText.Min30dUnitVol),
+                         (OppsMinMargin,    IndustryText.MinMarginPct),
+                         (OppsMinMargin30d, IndustryText.MinMargin30dPct),
+                     })
+                if (text.Trim().Length > 0 && Parse(text) is null) return label;
+
+            if (OppsRowLimit.Trim().Length > 0 && !(int.TryParse(OppsRowLimit.Trim(), out var n) && n >= 0))
+                return AlarmsText.RowLimitLabel;
+            return null;
+        }
+    }
+
     /// <summary>
     /// This section is now on disk, so stop defaulting new projects to ticked.
     ///
@@ -498,6 +678,22 @@ public sealed class MessageBlockVm : ReactiveObject
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
+
+        OppsMode             = OppsMode.Key,
+        OppsConfigId         = OppsMarket?.Id ?? 0,
+        OppsMinIskVol30d     = Parse(OppsMinIskVol),
+        OppsMinUnitVol30d    = Parse(OppsMinUnitVol),
+        OppsMinMarginPct     = Parse(OppsMinMargin),
+        OppsMinMargin30dPct  = Parse(OppsMinMargin30d),
+        OppsSkipFaction      = OppsSkipFaction,
+        OppsBpoOnly          = OppsBpoOnly,
+        OppsOwnedOnly        = OppsOwnedOnly,
+        OppsExcludedGroupIds = [.. _oppsExcludedIds],
+        OppsIncludedGroupIds = [.. _oppsIncludedIds],
+        OppsColumns          = [.. OppsColumns.Where(c => c.Selected).Select(c => c.Key)],
+        OppsSortBy           = OppsSortBy.Key,
+        OppsSortDescending   = OppsSortDirection.Key == "desc",
+        OppsRowLimit         = int.TryParse(OppsRowLimit.Trim(), out var limit) && limit > 0 ? limit : 0,
     };
 }
 
@@ -516,6 +712,15 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly SalePostingService              _sales;
     private readonly AppErrorLogger                  _errors;
 
+    /// <summary>For the market group picker an Industry Ops section opens.</summary>
+    public BatchAddService Batch { get; }
+
+    /// <summary>
+    /// Opens the market group picker and returns what was chosen. Set by the view, which is the
+    /// only thing with a window to hang the dialog off.
+    /// </summary>
+    public Func<Task<MarketGroupPickerResult?>>? PickMarketGroup { get; set; }
+
     public SchedulerViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         SchedulerService                scheduler,
@@ -524,8 +729,10 @@ public sealed class SchedulerViewModel : ReactiveObject
         DiscordService                  discord,
         CorpActivityService             corp,
         SalePostingService              sales,
-        AppErrorLogger                  errors)
+        AppErrorLogger                  errors,
+        BatchAddService                 batch)
     {
+        Batch      = batch;
         _dbFactory = dbFactory;
         _scheduler = scheduler;
         _renderer  = renderer;
@@ -617,6 +824,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     public ObservableCollection<DayChoice>          Days        { get; } = [];
     public ObservableCollection<CorpChoice>         Corps       { get; } = [];
     public ObservableCollection<PostingChoice>      Postings    { get; } = [];
+    public ObservableCollection<MarketConfigChoice> Markets     { get; } = [];
 
     public List<LabelledChoice> TaskTypes { get; } =
     [
@@ -632,6 +840,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         new(MessageBlock.TypeMonthly,  AlarmsText.SectionTypeMonthly),
         new(MessageBlock.TypeSale,     AlarmsText.SectionTypeSale),
         new(MessageBlock.TypeProjects, AlarmsText.SectionTypeProjects),
+        new(MessageBlock.TypeIndustryOpps, AlarmsText.SectionTypeIndustryOpps),
         new(MessageBlock.TypeIskChart,      AlarmsText.SectionTypeIskChart),
         new(MessageBlock.TypeActivityChart, AlarmsText.SectionTypeActivityChart),
         new(MessageBlock.TypeKillChart,     AlarmsText.SectionTypeKillChart),
@@ -911,6 +1120,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         await LoadCorpsAsync();
         await LoadPostingsAsync();
+        await LoadMarketsAsync();
 
         // ⚠️ Only when there is nothing to show. This also runs on every background tick that
         // changed a task, and asking Slack for its channel list once a minute would be a network
@@ -982,6 +1192,18 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         foreach (var p in rows)
             if (Postings.All(x => x.Id != p.Id)) Postings.Add(new PostingChoice(p.Id, p.Name));
+    }
+
+    /// <summary>The markets an Industry Ops section can price at. Merged for the same reason the
+    /// corps are: a section's chosen market is bound to this collection.</summary>
+    private async Task LoadMarketsAsync()
+    {
+        List<IndustryMarketConfig> rows;
+        try   { rows = await Task.Run(IndustryOpportunitiesService.LoadMarketConfigsAsync); }
+        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "markets", ex); return; }
+
+        foreach (var m in rows)
+            if (Markets.All(x => x.Id != m.ConfigId)) Markets.Add(new MarketConfigChoice(m.ConfigId, m.Name));
     }
 
     /// <summary>
@@ -1133,7 +1355,8 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
         new(model, Corps, Postings, LoadStandingProjectsAsync, fresh,
-            () => Destination?.IsWebhook == true);
+            () => Destination?.IsWebhook == true, Markets,
+            () => PickMarketGroup?.Invoke() ?? Task.FromResult<MarketGroupPickerResult?>(null));
 
     private void AddSection()
     {
@@ -1280,6 +1503,8 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (b.IsSale    && b.Posting is null)                   return string.Format(AlarmsText.SectionNeedsPosting, n, heading);
             if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return string.Format(AlarmsText.SectionNeedsList, n, heading);
             if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return string.Format(AlarmsText.SectionEmpty, n, heading);
+            if (b.IsOpps    && b.OppsMarket is null)                return string.Format(AlarmsText.SectionNeedsMarket, n, heading);
+            if (b.IsOpps    && b.OppsBadField is { } field)         return string.Format(AlarmsText.SectionBadNumber, n, heading, field);
 
             // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section
             // saved before its projects finished loading would store an empty list and quietly

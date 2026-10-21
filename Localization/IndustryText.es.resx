@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>Introduce un margen mínimo de 30 días válido en porcentaje (o déjalo en blanco para no filtrar).</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* Sin órdenes de venta: precio según la media de 30 días.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Excluir grupos</value>
   </data>

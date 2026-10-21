@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>请输入有效的 30 天最低利润率百分比（留空则不筛选）。</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 没有卖单：按 30 天均价定价。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>排除分组</value>
   </data>

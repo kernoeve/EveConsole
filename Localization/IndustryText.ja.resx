@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>有効な30日間の最低利益率をパーセントで入力してください（空欄なら絞り込みなし）。</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 売り注文なし：30日間の平均価格で算出。</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>
   </data>

@@ -361,6 +361,60 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>军团采矿图表</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>工业机会</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>工业机会</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>价格取自</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>30 天 ISK 成交额下限</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>30 天成交量下限</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>最低利润率 %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>30 天最低利润率 %</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>排除分组</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>包含分组</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>物品始终是第一列。</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>排序依据</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>从高到低</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>从低到高</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>行数</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>在发帖时根据当时的制造成本和市场价格计算。所有设置都在这里完成：不使用工业机会工具自己的选择。</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>文本</value>
   </data>
@@ -417,6 +471,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>军团采矿图表</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>工业机会</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>每隔一段时间</value>
@@ -555,6 +612,12 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>第 {0} 个区块（{1}）需要选择销售发布。</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>第 {0} 部分（{1}）需要一个定价市场。</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>第 {0} 部分（{1}）：{2} 需要填写 0 或以上的数字，或留空。</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>第 {0} 个区块（{1}）至少需要一个榜单。</value>

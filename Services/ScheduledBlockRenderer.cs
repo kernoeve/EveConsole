@@ -23,6 +23,7 @@ public sealed class MessageBlock
     public const string TypeMonthly = "corp_monthly";
     public const string TypeSale    = "sale_posting";
     public const string TypeProjects = "standing_projects";
+    public const string TypeIndustryOpps = "industry_opps";
 
     /// <summary>
     /// The monthly trend charts. Pictures, not text.
@@ -127,6 +128,58 @@ public sealed class MessageBlock
     /// written today. Nothing joins a saved post without somebody putting it there.</para>
     /// </summary>
     public List<long> IncludedProjectIds { get; set; } = [];
+
+    // ── Industry Ops blocks ──────────────────────────────────────────────────
+    //
+    // ⚠️ Every filter the tool has, kept in the section itself. Nothing is read from the tool's
+    // remembered choices: a post written today must not change because somebody narrowed the
+    // tool to Ships tomorrow. SectionTitle and ShowHeaders above serve this table too.
+
+    /// <summary>Industry Ops blocks: an <see cref="IndustryMode"/> name.</summary>
+    public string OppsMode { get; set; } = nameof(IndustryMode.BuildAndSellOrder);
+
+    /// <summary>Industry Ops blocks: the market config to price at ("Price At").</summary>
+    public int OppsConfigId { get; set; }
+
+    /// <summary>Industry Ops blocks: the four boxes, as typed — percent for the margins, ISK and
+    /// units for the volumes. Null is a blank box: no filter.</summary>
+    public double? OppsMinIskVol30d  { get; set; }
+    public double? OppsMinUnitVol30d { get; set; }
+    public double? OppsMinMarginPct   { get; set; }
+    public double? OppsMinMargin30dPct { get; set; }
+
+    /// <summary>Industry Ops blocks: the tool's three tick boxes, with its defaults.</summary>
+    public bool OppsSkipFaction { get; set; } = true;
+    public bool OppsBpoOnly     { get; set; } = true;
+    public bool OppsOwnedOnly   { get; set; }
+
+    /// <summary>Industry Ops blocks: the market groups chosen, as chosen; what is nested under
+    /// them is worked out when the post is made, so a group the SDE adds later is covered.</summary>
+    public List<int> OppsExcludedGroupIds { get; set; } = [];
+    public List<int> OppsIncludedGroupIds { get; set; } = [];
+
+    /// <summary>Industry Ops blocks: the columns printed after the item, by key (see
+    /// IndustryOppsReport.Columns); the sort column and direction; how many rows, 0 for all.</summary>
+    public List<string> OppsColumns { get; set; } = [];
+    public string OppsSortBy        { get; set; } = IndustryOppsReport.DefaultSort;
+    public bool   OppsSortDescending { get; set; } = true;
+    public int    OppsRowLimit       { get; set; } = 10;
+
+    /// <summary>The calculation this section asks for.</summary>
+    public IndustryOppsQuery ToOppsQuery() => new()
+    {
+        Mode             = Enum.TryParse<IndustryMode>(OppsMode, out var m) ? m : IndustryMode.BuildAndSellOrder,
+        ConfigId         = OppsConfigId,
+        MinIskVol30d     = OppsMinIskVol30d,
+        MinUnitVol30d    = OppsMinUnitVol30d,
+        MinMargin        = OppsMinMarginPct / 100,
+        MinMargin30d     = OppsMinMargin30dPct / 100,
+        SkipFaction      = OppsSkipFaction,
+        BpoOnly          = OppsBpoOnly,
+        OwnedOnly        = OppsOwnedOnly,
+        ExcludedGroupIds = OppsExcludedGroupIds,
+        IncludedGroupIds = OppsIncludedGroupIds,
+    };
 }
 
 /// <summary>How much of a standing project list to report.</summary>
@@ -221,7 +274,8 @@ public class ScheduledBlockRenderer(
     CorpActivityService     corp,
     SalePostingService      sales,
     CorpTop10ExcludeService excludes,
-    CorpReportTitles         titles)
+    CorpReportTitles         titles,
+    IndustryOpportunitiesService opps)
 {
     /// <summary>The five lists, in the order the exports print them. Defined by CorpReportTitles,
     /// which is also what the settings tab overrides and what names them on screen.</summary>
@@ -279,6 +333,7 @@ public class ScheduledBlockRenderer(
                 MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, formatName, ct),
                 MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
                 MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
+                MessageBlock.TypeIndustryOpps => await IndustryOppsAsync(b, formatName, ct),
 
                 // A chart contributes no text. It is uploaded separately, by whoever is posting.
                 _                         => "",
@@ -526,6 +581,25 @@ public class ScheduledBlockRenderer(
 
         return StandingProjectReport.Export(
             [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+    }
+
+    /// <summary>
+    /// An Industry Ops list, calculated now with the section's own filters, sorted and cut to
+    /// its row limit.
+    ///
+    /// <para>Nothing when the market it prices at is gone or switched off, or a 30-day filter
+    /// needs a region the market does not resolve to — the same answer the tool would give,
+    /// which is no list.</para>
+    /// </summary>
+    private async Task<string> IndustryOppsAsync(MessageBlock b, string formatName, CancellationToken ct)
+    {
+        if (b.OppsConfigId <= 0) return "";
+
+        var result = await opps.CalculateAsync(b.ToOppsQuery(), ct);
+        if (result is null || result.NoRegion) return "";
+
+        var top = IndustryOppsReport.Top(result.Rows, b.OppsSortBy, b.OppsSortDescending, b.OppsRowLimit);
+        return IndustryOppsReport.Export(top, b.OppsColumns, b.SectionTitle, b.ShowHeaders, formatName);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

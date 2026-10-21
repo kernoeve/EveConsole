@@ -480,6 +480,78 @@
     <value>CORP MINING CHART</value>
     <comment>Scheduler: heading of a message section that posts a chart.</comment>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: heading over an Industry Ops section in the editor.</comment>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: the title a new Industry Ops section starts with, printed bold over its table in the post.</comment>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>MODE</value>
+    <comment>Scheduler, Industry Ops section: label over the build-and-sell mode choice.</comment>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>PRICE AT</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Price at' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>MIN 30D ISK VOL</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min 30d ISK Vol' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>MIN 30D UNIT VOL</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min 30d Unit Vol' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>MIN MARGIN %</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min Margin %' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>MIN MARGIN % 30D</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min Margin % 30d' in this editor's style.</comment>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>EXCLUDE GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Exclude Groups' in this editor's style.</comment>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>INCLUDE GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Include Groups' in this editor's style.</comment>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>COLUMNS</value>
+    <comment>Scheduler, Industry Ops section: label over the tick boxes choosing the table's columns.</comment>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>The item is always the first column.</value>
+    <comment>Scheduler, Industry Ops section: note under the column tick boxes.</comment>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>SORT BY</value>
+    <comment>Scheduler, Industry Ops section: label over the column the table is sorted by.</comment>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Highest first</value>
+    <comment>Scheduler, Industry Ops section: sort direction, descending.</comment>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Lowest first</value>
+    <comment>Scheduler, Industry Ops section: sort direction, ascending.</comment>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>ROWS</value>
+    <comment>Scheduler, Industry Ops section: label over the box limiting the table to its top N rows.</comment>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>All</value>
+    <comment>Scheduler, Industry Ops section: watermark of the Rows box when empty, meaning every row.</comment>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Worked out when the post goes out, from the build costs and market prices held then. Everything is set here: the Industry Ops tool's own choices are not used.</value>
+    <comment>Scheduler, Industry Ops section: note at the foot of the section.</comment>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>TEXT</value>
     <comment>Scheduler: heading of a message section of plain text. Also shown lower-cased in "Section {0} ({1}) is empty."</comment>
@@ -555,6 +627,10 @@
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>Corp Mining Chart</value>
     <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: a kind of message section, in the Add list: the Industry Ops list.</comment>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>Every so often</value>
@@ -739,6 +815,14 @@
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>Section {0} ({1}) needs a posting.</value>
     <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>Section {0} ({1}) needs a market to price at.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Section {0} ({1}): {2} takes a number of 0 or more, or nothing.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading, {2} the label of the box holding something that is not a number.</comment>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Section {0} ({1}) needs at least one list.</value>

@@ -85,14 +85,9 @@ public class IndustryRow
 
 public class IndustryOpportunitiesViewModel : ReactiveObject
 {
-    private readonly string               _connString;
-    private readonly MarketHistoryService _historyService;
-    private readonly BatchAddService      _batchSvc;
-
-    // Per-unit build time is computed and cached in BuildCosts.BuildSeconds by
-    // BuildCostService (using the default park's blueprint TE, skills, and structure
-    // role/rig time bonuses) — we just read it here and convert to slot-days.
-    private const double SecondsPerDay = 86_400.0;
+    private readonly string                        _connString;
+    private readonly BatchAddService               _batchSvc;
+    private readonly IndustryOpportunitiesService  _service;
 
     // ── Mode ──────────────────────────────────────────────────────────────────
 
@@ -313,15 +308,6 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         await cmd.ExecuteNonQueryAsync();
     }
 
-    /// <summary>The groups chosen, and every group nested under them.</summary>
-    private async Task<HashSet<int>> GroupIdsRecursiveAsync(IEnumerable<ExcludedMarketGroupVm> list)
-    {
-        var result = new HashSet<int>();
-        foreach (var g in list)
-            result.UnionWith(await _batchSvc.GetDescendantGroupIdsAsync(g.MarketGroupId));
-        return result;
-    }
-
     // ── Item navigation callback (set by MainWindow) ──────────────────────────
 
     public Action<int, string>? ItemNavigationRequested { get; set; }
@@ -383,8 +369,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel(string connString, MarketHistoryService historyService, BatchAddService batchSvc)
     {
         _connString     = connString;
-        _historyService = historyService;
         _batchSvc       = batchSvc;
+        _service        = new IndustryOpportunitiesService(historyService, batchSvc);
         _selectedMode   = ModeOptions.FirstOrDefault(m => m.Kind.ToString() == UiState.Get(UiState.IndustryOppsMode))
                        ?? ModeOptions[0];
 
@@ -410,24 +396,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadMarketConfigsAsync()
     {
-        using var conn = AppDb.Connect();
-        await conn.OpenAsync();
-
-        using var cmd = conn.Command("""
-            SELECT "Id", "LocationName", "Method", "LocationId"
-            FROM "MarketPricingConfigs"
-            WHERE "IsEnabled" = TRUE
-            ORDER BY "SortOrder"
-            """);
-
-        var fresh = new List<IndustryMarketConfig>();
-        using (var reader = await cmd.ExecuteReaderAsync())
-            while (await reader.ReadAsync())
-                fresh.Add(new IndustryMarketConfig(
-                    reader.GetInt32(0),
-                    reader.GetString(1),
-                    reader.GetString(2),
-                    reader.GetInt64(3)));
+        var fresh = await IndustryOpportunitiesService.LoadMarketConfigsAsync();
 
         // ⚠️ The choice is carried across by id. The list is rebuilt from new objects every time
         // the tab is shown, and the old choice is none of them — keeping the object, as this did,
@@ -513,28 +482,39 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         try
         {
-            await SdeNames.EnsureLoadedAsync();   // the rows and the status line carry the names shown
-            var candidates = await FetchCandidatesAsync(SelectedConfig.ConfigId);
+            var query = new IndustryOppsQuery
+            {
+                Mode             = SelectedMode.Kind,
+                ConfigId         = SelectedConfig.ConfigId,
+                MinIskVol30d     = minIskVol,
+                MinUnitVol30d    = minUnitVol,
+                MinMargin        = minMargin,
+                MinMargin30d     = minMargin30d,
+                SkipFaction      = SkipFactionItems,
+                BpoOnly          = BpoOnly,
+                OwnedOnly        = OwnedOnly,
+                ExcludedGroupIds = [.. ExcludedMarketGroups.Select(g => g.MarketGroupId)],
+                IncludedGroupIds = [.. IncludedMarketGroups.Select(g => g.MarketGroupId)],
+            };
+            var needsVolume = query.NeedsVolume;
 
-            // Region is needed for the volume filters AND to price items that have no
-            // sell orders off their 30-day history average. Resolve it best-effort.
-            int?   regionId   = await ResolveRegionAsync(SelectedConfig);
-            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : IndustryText.OppsRegionUnresolved;
-            bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue || minMargin30d.HasValue;
-            if (needsVolume && !regionId.HasValue)
+            var result = await _service.CalculateAsync(query);
+            if (result is null)
+            {
+                StatusText = IndustryText.OppsErrNoConfig;
+                return;
+            }
+            if (result.NoRegion)
             {
                 StatusText = IndustryText.OppsErrNoRegion;
                 return;
             }
+            var rows       = result.Rows;
+            var regionName = result.RegionName;
 
-            var (typesWithSell, typesWithBuy, configHasRawOrders) =
-                await LoadOrderPresenceAsync(SelectedConfig.ConfigId);
-
-            var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol, minMargin, minMargin30d,
-                                            typesWithSell, typesWithBuy, configHasRawOrders);
-            // ResultsView sorts them — by the sort the user left, Sales 30d if none. Added in
+            // ResultsView sorts them — by the sort the user left, Sales 30d if none. They come in
             // that default order anyway, so the list reads the same with the sort cleared.
-            foreach (var r in rows.OrderByDescending(r => r.IskVol30d).ThenByDescending(r => r.ProfitPerSlotDay))
+            foreach (var r in rows)
                 Results.Add(r);
 
             int noSell = rows.Count(r => !r.HasSellOrders);
@@ -555,315 +535,4 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             IsCalculating = false;
         }
     }
-
-    // ── Core algorithm ────────────────────────────────────────────────────────
-
-    private record Candidate(
-        int TypeId, string TypeName,
-        double BuildCost, double SellOrderPrice, double BuyOrderPrice,
-        double BuildSeconds);
-
-    private async Task<List<Candidate>> FetchCandidatesAsync(int configId)
-    {
-        var excludedGroupIds = await GroupIdsRecursiveAsync(ExcludedMarketGroups);
-        var exclusionClause  = excludedGroupIds.Count > 0
-            ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
-            : "";
-
-        // Included: only items in the chosen groups or nested under them. An exclusion inside an
-        // included group still applies — the two clauses both hold.
-        var includedGroupIds = await GroupIdsRecursiveAsync(IncludedMarketGroups);
-        var inclusionClause  = includedGroupIds.Count > 0
-            ? $"""AND t."MarketGroupId" IN ({string.Join(",", includedGroupIds)}) """
-            : "";
-
-        // Faction items are MetaGroupId 4.
-        var factionClause = SkipFactionItems
-            ? """AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 4) """
-            : "";
-
-        // BPO-only: keep items whose (published) manufacturing/reaction blueprint either is
-        // sold on the market (a buyable BPO) OR is invented from a source blueprint that is
-        // sold on the market (e.g. a T2 BPC invented from a T1 BPO). Excludes items whose BPC
-        // has no BPO and cannot be derived from one (faction/limited-run BPCs), plus
-        // "Limited Time" items (MetaGroupId 19) — event blueprints that have a market group
-        // in the SDE but can no longer be bought in game.
-        //
-        // ⚠️ A market group is not proof of a BPO. Storyline (3), Officer (5) and Deadspace (6)
-        // products are skipped outright, the same loot tiers BuildCostService refuses to treat
-        // as BPO-sourced: the one officer module with a blueprint — an event reward, never sold —
-        // files it beside the ordinary T1 weapon-upgrade BPOs, and topped the list priced at
-        // officer-module prices. Faction (4) keeps its own checkbox.
-        var bpoClause = BpoOnly
-            ? """
-              AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" NOT IN (3, 5, 6, 19))
-              AND EXISTS (
-                SELECT 1 FROM "SdeBlueprintProducts" bp
-                JOIN "SdeTypes" bpt ON bpt."TypeId" = bp."TypeId"
-                WHERE bp."ProductTypeId" = bc."TypeId"
-                  AND bp."Activity" IN ('manufacturing','reaction')
-                  AND bpt."Published" = TRUE
-                  AND (
-                    bpt."MarketGroupId" IS NOT NULL
-                    OR EXISTS (
-                      SELECT 1 FROM "SdeBlueprintProducts" inv
-                      JOIN "SdeTypes" src ON src."TypeId" = inv."TypeId"
-                      WHERE inv."Activity" = 'invention'
-                        AND inv."ProductTypeId" = bp."TypeId"
-                        AND src."MarketGroupId" IS NOT NULL)
-                  ))
-              """
-            : "";
-
-        // Owned: the item's own manufacturing or reaction blueprint held by one of the user's
-        // characters, or by a corporation marked personal — the Asset Browser's "characters and
-        // personal corps". A copy counts as much as an original; an original that could only be
-        // invented into this item does not, since that is a further job before this one.
-        // ⚠️ IsPersonal stands on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL.
-        var ownedClause = OwnedOnly
-            ? """
-              AND EXISTS (
-                SELECT 1 FROM "SdeBlueprintProducts" obp
-                JOIN "EsiBlueprints" ob ON ob."TypeId" = obp."TypeId"
-                WHERE obp."ProductTypeId" = bc."TypeId"
-                  AND obp."Activity" IN ('manufacturing','reaction')
-                  AND (ob."OwnerType" = 'character'
-                       OR (ob."OwnerType" = 'corporation'
-                           AND ob."OwnerId" IN (SELECT pc."Id" FROM "Corporations" pc WHERE pc."IsPersonal"))))
-              """
-            : "";
-
-        using var conn = AppDb.Connect();
-        await conn.OpenAsync();
-
-        using var cmd = conn.Command(CandidateSql
-            .Replace("/*EXCLUSION*/", exclusionClause)
-            .Replace("/*INCLUSION*/", inclusionClause)
-            .Replace("/*FACTION*/", factionClause)
-            .Replace("/*BPO*/", bpoClause)
-            .Replace("/*OWNED*/", ownedClause));
-        cmd.AddWithValue("@configId", configId);
-
-        var list = new List<Candidate>();
-        using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            list.Add(new Candidate(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetDouble(2),
-                reader.GetDouble(3),
-                reader.GetDouble(4),
-                reader.GetDouble(5)));
-        }
-        return list;
-    }
-
-    // Which types have live buy/sell orders for this config (from the raw order snapshot),
-    // and whether the config has any raw orders at all (Fuzzwork configs have none — for
-    // those we trust the stored prices and treat every item as having sell orders).
-    private async Task<(HashSet<int> WithSell, HashSet<int> WithBuy, bool HasRawOrders)>
-        LoadOrderPresenceAsync(int configId)
-    {
-        var withSell = new HashSet<int>();
-        var withBuy  = new HashSet<int>();
-
-        using var conn = AppDb.Connect();
-        await conn.OpenAsync();
-        using var cmd = conn.Command("""
-            SELECT DISTINCT "TypeId", "IsBuyOrder"
-            FROM "MarketRawOrders"
-            WHERE "ConfigId" = @configId
-            """);
-        cmd.AddWithValue("@configId", configId);
-        using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            int typeId = reader.GetInt32(0);
-            if (reader.GetBoolean(1)) withBuy.Add(typeId);
-            else                      withSell.Add(typeId);
-        }
-        return (withSell, withBuy, withSell.Count > 0 || withBuy.Count > 0);
-    }
-
-    private async Task<List<IndustryRow>> BuildRowsAsync(
-        List<Candidate> candidates, int? regionId, double? minIskVol30d, double? minUnitVol30d, double? minMargin, double? minMargin30d,
-        HashSet<int> typesWithSell, HashSet<int> typesWithBuy, bool configHasRawOrders)
-    {
-        var result = new List<IndustryRow>();
-
-        foreach (var c in candidates)
-        {
-            if (c.BuildCost <= 0) continue;
-
-            double sellInto;
-            bool   hasSellOrders = true;
-
-            if (SelectedMode.Kind == IndustryMode.BuildAndSellToBuyOrder)
-            {
-                // No buy orders for this item → nobody to sell to → skip.
-                if (configHasRawOrders && !typesWithBuy.Contains(c.TypeId)) continue;
-                sellInto = c.BuyOrderPrice;
-            }
-            else
-            {
-                bool sellOrders = !configHasRawOrders || typesWithSell.Contains(c.TypeId);
-                if (sellOrders)
-                {
-                    sellInto = c.SellOrderPrice; // real lowest sell
-                }
-                else
-                {
-                    // No sell orders — these are often the most lucrative if in demand.
-                    // Price them off the 30-day history average (what they actually trade
-                    // at) rather than the build-cost gap-fill, and flag them with a "*".
-                    sellInto = regionId.HasValue
-                        ? await _historyService.Get30DayAveragePriceAsync(regionId.Value, c.TypeId)
-                        : 0;
-                    hasSellOrders = false;
-                }
-            }
-
-            if (sellInto <= 0) continue;
-
-            double profit = sellInto - c.BuildCost;
-            if (profit <= 0) continue; // only surface opportunities
-            // The Margin column's own figure: profit over build cost.
-            if (minMargin.HasValue && profit / c.BuildCost < minMargin.Value) continue;
-
-            // 30-day volumes (config region), from history cached by the background sweep —
-            // no ESI here. Always read them for the columns; also apply them as filters.
-            double unitVol = 0, iskVol = 0;
-            if (regionId.HasValue)
-            {
-                unitVol = await _historyService.Get30DayUnitVolumeAsync(regionId.Value, c.TypeId);
-                iskVol  = await _historyService.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
-                if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
-                if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
-                // The Margin 30d column's figure; no sales, no margin, not kept.
-                if (minMargin30d.HasValue
-                    && !(unitVol > 0 && (iskVol / unitVol - c.BuildCost) / c.BuildCost >= minMargin30d.Value)) continue;
-            }
-
-            double slotDays = c.BuildSeconds / SecondsPerDay;
-
-            result.Add(new IndustryRow
-            {
-                TypeId           = c.TypeId,
-                TypeName         = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
-                BuildCost        = c.BuildCost,
-                SellPrice        = sellInto,
-                HasSellOrders    = hasSellOrders,
-                ProfitPerUnit    = profit,
-                Margin           = profit / c.BuildCost,
-                BuildSeconds     = c.BuildSeconds,
-                SlotDays         = slotDays,
-                ProfitPerSlotDay = slotDays > 0 ? profit / slotDays : 0,
-                UnitVol30d       = unitVol,
-                IskVol30d        = iskVol,
-            });
-        }
-
-        return result;
-    }
-
-    /// <summary>The region as the status line shows it, in the interface language.</summary>
-    private async Task<string> GetRegionNameAsync(int regionId)
-    {
-        using var conn = AppDb.Connect();
-        await conn.OpenAsync();
-        using var cmd = conn.Command("""SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""");
-        cmd.AddWithValue("@id", regionId);
-        return (await cmd.ExecuteScalarAsync()) is string name
-            ? SdeNames.Region(regionId, name)
-            : string.Format(IndustryText.OppsRegionNumbered, regionId);
-    }
-
-    // Resolves the region id used for the 30-day volume lookups from a market config.
-    private async Task<int?> ResolveRegionAsync(IndustryMarketConfig cfg)
-    {
-        // ESI Region configs store the region id directly in LocationId.
-        if (cfg.Method == MarketMethod.EsiRegion) return (int)cfg.LocationId;
-
-        using var conn = AppDb.Connect();
-        await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-
-        // Maybe LocationId is already a region id (Fuzzwork region configs).
-        cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "RegionId" FROM "SdeRegions" WHERE "RegionId" = @loc""");
-        cmd.AddWithValue("@loc", cfg.LocationId);
-        var region = ToRegionId(await cmd.ExecuteScalarAsync());
-        if (region.HasValue) return region;
-
-        // NPC station: resolve via its solar system. SdeStations.RegionId is populated now
-        // (by the importer, and by a startup repair for databases imported before that fix),
-        // but the join is kept deliberately — it is correct whatever state the column is in.
-        cmd.CommandText = AppDb.CaseInsensitiveLike("""
-            SELECT ss."RegionId"
-            FROM "SdeStations"     s
-            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
-            WHERE s."StationId" = @sid AND s."SolarSystemId" != 0
-            """);
-        cmd.Parameters.Clear();
-        cmd.AddWithValue("@sid", (int)Math.Min(cfg.LocationId, int.MaxValue));
-        region = ToRegionId(await cmd.ExecuteScalarAsync());
-        if (region.HasValue) return region;
-
-        // Player structure: resolved name record already has SolarSystemId.
-        cmd.CommandText = AppDb.CaseInsensitiveLike("""
-            SELECT ss."RegionId"
-            FROM "EsiStructureNames" sn
-            JOIN "SdeSolarSystems"   ss ON ss."SolarSystemId" = sn."SolarSystemId"
-            WHERE sn."StructureId" = @lid AND sn."SolarSystemId" != 0
-            """);
-        cmd.Parameters.Clear();
-        cmd.AddWithValue("@lid", cfg.LocationId);
-        region = ToRegionId(await cmd.ExecuteScalarAsync());
-        if (region.HasValue) return region;
-
-        // Fallback: derive from any cached order at that location.
-        cmd.CommandText = AppDb.CaseInsensitiveLike("""
-            SELECT ss."RegionId"
-            FROM "MarketRawOrders" o
-            JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = o."SystemId"
-            WHERE o."LocationId" = @lid AND o."SystemId" != 0
-            LIMIT 1
-            """);
-        cmd.Parameters.Clear();
-        cmd.AddWithValue("@lid", cfg.LocationId);
-        region = ToRegionId(await cmd.ExecuteScalarAsync());
-        return region;
-    }
-
-    // Treats NULL/DBNull and a 0 region id as "unresolved" so callers fall through.
-    private static int? ToRegionId(object? scalar)
-    {
-        if (scalar is null or DBNull) return null;
-        var id = Convert.ToInt32(scalar);
-        return id != 0 ? id : null;
-    }
-
-    // ── SQL ───────────────────────────────────────────────────────────────────
-
-    // Joins cached build cost + build time (from BuildCostService) with market prices
-    // for the chosen config. One BuildCosts row per item (TypeId is PK), so no dedupe.
-    private const string CandidateSql = """
-        SELECT
-            bc."TypeId",
-            bc."TypeName",
-            CAST(bc."TotalCost"    AS DOUBLE PRECISION)   AS "BuildCost",
-            CAST(mip."SellPrice"   AS DOUBLE PRECISION)   AS "SellPrice",
-            CAST(mip."BuyPrice"    AS DOUBLE PRECISION)   AS "BuyPrice",
-            CAST(bc."BuildSeconds" AS DOUBLE PRECISION)   AS "BuildSeconds"
-        FROM "BuildCosts" bc
-        JOIN "MarketItemPrices" mip
-              ON mip."TypeId" = bc."TypeId" AND mip."ConfigId" = @configId
-        JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
-        WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
-        /*EXCLUSION*/
-        /*INCLUSION*/
-        /*FACTION*/
-        /*BPO*/
-        /*OWNED*/
-        """;
 }

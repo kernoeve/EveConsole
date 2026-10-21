@@ -1285,7 +1285,7 @@ public class MainWindowViewModel : ReactiveObject
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
-                                                        corpActivityService, salePostingService, errorLogger);
+                                                        corpActivityService, salePostingService, errorLogger, batchAddService);
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>

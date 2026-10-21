@@ -361,6 +361,60 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>코퍼레이션 채굴 차트</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>산업 기회</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>산업 기회</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>모드</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>가격 기준</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>최소 30일 ISK 거래액</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>최소 30일 거래량</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>최소 마진 %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>30일 최소 마진 %</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>제외할 그룹</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>포함할 그룹</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>열</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>아이템은 항상 첫 번째 열입니다.</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>정렬 기준</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>높은 순</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>낮은 순</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>행 수</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>전체</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>게시물이 전송될 때 그 시점의 제조 비용과 시장 가격으로 계산됩니다. 모든 설정은 여기서 합니다. 산업 기회 도구 자체의 선택은 사용되지 않습니다.</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>텍스트</value>
   </data>
@@ -417,6 +471,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>코퍼레이션 채굴 차트</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>산업 기회</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>일정 간격마다</value>
@@ -555,6 +612,12 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>섹션 {0} ({1})에는 게시물이 필요합니다.</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>섹션 {0}({1})에는 가격을 매길 시장이 필요합니다.</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>섹션 {0}({1}): {2}에는 0 이상의 숫자를 넣거나 비워 두십시오.</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>섹션 {0} ({1})에는 목록이 하나 이상 필요합니다.</value>

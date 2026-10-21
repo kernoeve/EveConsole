@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>올바른 30일 최소 마진을 퍼센트로 입력하십시오(비워 두면 필터 없음).</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 판매 주문 없음: 30일 평균가로 산정.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>
   </data>

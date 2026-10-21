@@ -429,6 +429,159 @@
                                 </StackPanel>
                               </StackPanel>
 
+                              <!-- Industry Ops: every filter of the tool, set here and nowhere else; then the table. -->
+                              <StackPanel IsVisible="{Binding IsOpps}" Spacing="8">
+                                <Grid ColumnDefinitions="*,10,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsModeLabel}" />
+                                    <ComboBox ItemsSource="{Binding OppsModes}" SelectedItem="{Binding OppsMode}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsPriceAtLabel}" />
+                                    <ComboBox ItemsSource="{Binding Markets}" SelectedItem="{Binding OppsMarket}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinIskVolLabel}" />
+                                    <TextBox Text="{Binding OppsMinIskVol}" Width="110"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinUnitVolLabel}" />
+                                    <TextBox Text="{Binding OppsMinUnitVol}" Width="110"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinMarginLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}" />
+                                    <TextBox Text="{Binding OppsMinMargin}" Width="90"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinMargin30dLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin30d}" />
+                                    <TextBox Text="{Binding OppsMinMargin30d}" Width="90"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                </WrapPanel>
+
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="14" LineSpacing="4">
+                                  <CheckBox IsChecked="{Binding OppsSkipFaction}" Content="{x:Static loc:IndustryText.SkipFaction}" />
+                                  <CheckBox IsChecked="{Binding OppsBpoOnly}" Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
+                                            ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
+                                  <CheckBox IsChecked="{Binding OppsOwnedOnly}" Content="{x:Static loc:IndustryText.OnlyBlueprintsIOwn}"
+                                            ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
+                                </WrapPanel>
+
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsExcludeGroupsLabel}" />
+                                  <WrapPanel Orientation="Horizontal">
+                                    <ItemsControl ItemsSource="{Binding OppsExcluded}">
+                                      <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                          <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                      </ItemsControl.ItemsPanel>
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MarketGroupChip">
+                                          <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                                  CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                              <Button Content="✕" Command="{Binding RemoveCommand}"
+                                                      Background="Transparent" BorderThickness="0"
+                                                      Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                                                      Cursor="Hand" VerticalAlignment="Center" />
+                                              <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                          </Border>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Classes="small" Content="{x:Static loc:IndustryText.AddGroup}"
+                                            Command="{Binding AddOppsExcludedCommand}" Margin="0 0 0 4" />
+                                  </WrapPanel>
+                                </StackPanel>
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsIncludeGroupsLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipIncludeGroups}" />
+                                  <WrapPanel Orientation="Horizontal">
+                                    <ItemsControl ItemsSource="{Binding OppsIncluded}">
+                                      <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                          <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                      </ItemsControl.ItemsPanel>
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MarketGroupChip">
+                                          <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                                  CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                              <Button Content="✕" Command="{Binding RemoveCommand}"
+                                                      Background="Transparent" BorderThickness="0"
+                                                      Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                                                      Cursor="Hand" VerticalAlignment="Center" />
+                                              <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                          </Border>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Classes="small" Content="{x:Static loc:IndustryText.AddGroup}"
+                                            Command="{Binding AddOppsIncludedCommand}" Margin="0 0 0 4" />
+                                  </WrapPanel>
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}"
+                                             Watermark="{x:Static loc:AlarmsText.HintNoTitle}" />
+                                  </StackPanel>
+                                  <CheckBox Grid.Column="2" IsChecked="{Binding ShowHeaders}"
+                                            Content="{x:Static loc:AlarmsText.ColumnHeaders}"
+                                            VerticalAlignment="Bottom" Margin="0 0 0 5" />
+                                </Grid>
+
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ColumnsLabel}" />
+                                  <ItemsControl ItemsSource="{Binding OppsColumns}">
+                                    <ItemsControl.ItemsPanel>
+                                      <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                      </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:CategoryChoice">
+                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
+                                                  Margin="0 0 12 0" />
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*,10,150,10,80">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SortByLabel}" />
+                                    <ComboBox ItemsSource="{Binding OppsSorts}" SelectedItem="{Binding OppsSortBy}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text=" " />
+                                    <ComboBox ItemsSource="{Binding SortDirections}" SelectedItem="{Binding OppsSortDirection}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="4">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.RowLimitLabel}" />
+                                    <TextBox Text="{Binding OppsRowLimit}"
+                                             Watermark="{x:Static loc:AlarmsText.HintAllRows}" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsSectionNote}" />
+                              </StackPanel>
+
                             </StackPanel>
                           </Border>
                         </DataTemplate>

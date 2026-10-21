@@ -4524,6 +4524,7 @@ public class App : Application
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
         services.AddSingleton<DiscordService>();
+        services.AddSingleton<IndustryOpportunitiesService>();
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();

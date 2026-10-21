@@ -201,7 +201,7 @@ public static class StandingProjectReport
     /// in whitespace inside the fence. Right-aligning it adds LEADING spaces, which is why that
     /// stays safe.</para>
     /// </summary>
-    private static string Row(string[] cells, int[] widths, bool[] right)
+    internal static string Row(string[] cells, int[] widths, bool[] right)
     {
         var last = cells.Length - 1;
         while (last > 0 && string.IsNullOrEmpty(cells[last])) last--;

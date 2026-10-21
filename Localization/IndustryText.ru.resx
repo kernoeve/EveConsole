@@ -133,6 +133,9 @@
   <data name="OppsErrMinMargin30d" xml:space="preserve">
     <value>Введите корректную минимальную маржу за 30 дней в процентах (или оставьте пустым, чтобы не фильтровать).</value>
   </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* Нет ордеров на продажу: цена по средней за 30 дней.</value>
+  </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Исключить группы</value>
   </data>
