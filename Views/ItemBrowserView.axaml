@@ -336,7 +336,7 @@
                       <Setter Property="Width" Value="34" />
                       <Setter Property="Padding" Value="0 6" />
                       <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
-                      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
                       <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
                       <Setter Property="BorderThickness" Value="1" />
                       <Setter Property="HorizontalContentAlignment" Value="Center" />
