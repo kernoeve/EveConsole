@@ -75,6 +75,10 @@ public static class SystemIndexReport
             string.Format(IndustryText.IndexChartsNote, days[0], days[^1]));
     }
 
+    /// <summary>An index as a percent, always two decimals, so a column of them lines up on the
+    /// decimal point: 2.00%, not 2%.</summary>
+    public static string Pct(double index) => $"{index * 100:0.00}%";
+
     /// <summary>Today's index for every activity, a row a system, as a monospaced table.</summary>
     public static string Table(
         IReadOnlyList<IndexSystem> systems, IReadOnlyDictionary<(int SystemId, string Activity), double> current,
@@ -84,7 +88,7 @@ public static class SystemIndexReport
         string[] heads = [IndustryText.IndexColSystem, .. CostIndexHistoryService.Activities.Select(ActivityName)];
         bool[]   right = [false, .. CostIndexHistoryService.Activities.Select(_ => true)];
         var cells = systems.Select(s => new[] { s.Name }
-            .Concat(CostIndexHistoryService.Activities.Select(a => current.TryGetValue((s.SystemId, a), out var v) ? $"{v * 100:0.##}%" : "–"))
+            .Concat(CostIndexHistoryService.Activities.Select(a => current.TryGetValue((s.SystemId, a), out var v) ? Pct(v) : "–"))
             .ToArray()).ToList();
 
         var widths = new int[heads.Length];

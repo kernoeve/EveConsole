@@ -56,7 +56,7 @@ public sealed class SystemIndexRowVm : ReactiveObject
             this.RaisePropertyChanged(n);
     }
 
-    private string Pct(string activity) => _current.TryGetValue(activity, out var v) ? $"{v * 100:0.##}%" : "–";
+    private string Pct(string activity) => _current.TryGetValue(activity, out var v) ? SystemIndexReport.Pct(v) : "–";
     public string Manufacturing => Pct("manufacturing");
     public string Reaction      => Pct("reaction");
     public string Invention     => Pct("invention");
