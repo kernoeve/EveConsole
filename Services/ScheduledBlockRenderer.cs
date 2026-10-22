@@ -470,7 +470,7 @@ public class ScheduledBlockRenderer(
     /// <summary>One section's comparison, worked out once: its tables and its pictures both come
     /// from it within a post.</summary>
     private sealed record CompareRun(List<ParkCost> Costs, List<RankedCost> Ranked, List<string> Labels,
-        Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> History, int ParkCount);
+        Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> History);
 
     /// <summary>
     /// ⚠️ Keyed by the section itself. A post renders its text and then its pictures from the
@@ -498,10 +498,8 @@ public class ScheduledBlockRenderer(
             [.. costs.SelectMany(c => c.Terms).Select(t => t.SystemId).Distinct()],
             [.. costs.SelectMany(c => c.Terms).Select(t => t.Activity).Distinct()], ct);
 
-        return new CompareRun(costs, ParkCompareReport.Rank(costs), [.. b.CompareJobs.Select(j => j.Label)], history, parks.Count);
+        return new CompareRun(costs, ParkCompareReport.Rank(costs), [.. b.CompareJobs.Select(j => j.Label)], history);
     }
-
-    private static string CompareNote(CompareRun run) => string.Format(AlarmsText.CompareReportNote, run.Labels.Count, run.ParkCount);
 
     private async Task<string> ParkCompareAsync(MessageBlock b, string formatName, CancellationToken ct)
     {
@@ -509,17 +507,21 @@ public class ScheduledBlockRenderer(
         if (tables.Count == 0) return "";
         if (await CompareRunAsync(b, ct) is not { } run) return "";
 
-        var format = OutputFormat.ByName(formatName);
-        var parts  = new List<string> { format.Bold(CompareHeading(b)) + "\n" + CompareNote(run) };
-        foreach (var key in tables)
-            parts.Add(key switch
-            {
-                ParkCompareOutputs.SummaryJobsTable  => ParkCompareReport.SummaryTable(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), ParkCompareOutputs.Title(key), formatName),
-                ParkCompareOutputs.SummaryParksTable => ParkCompareReport.SummaryTable(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), ParkCompareOutputs.Title(key), formatName),
-                _ => ParkCompareReport.DetailTable(run.Ranked, ParkCompareOutputs.Title(key), formatName),
-            });
+        string Table(string key, string heading) => key switch
+        {
+            ParkCompareOutputs.SummaryJobsTable  => ParkCompareReport.SummaryTable(
+                ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), heading, formatName),
+            ParkCompareOutputs.SummaryParksTable => ParkCompareReport.SummaryTable(
+                ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), heading, formatName),
+            _ => ParkCompareReport.DetailTable(run.Ranked, heading, formatName),
+        };
+
+        // One table goes under the section's own title, which says enough; with more, the title
+        // heads the section and each table is named under it.
+        if (tables.Count == 1) return Table(tables[0], CompareHeading(b));
+
+        var parts = new List<string> { OutputFormat.ByName(formatName).Bold(CompareHeading(b)) };
+        parts.AddRange(tables.Select(key => Table(key, ParkCompareOutputs.Title(key))));
         return string.Join("\n\n", parts.Where(p => p.Length > 0));
     }
 
@@ -538,9 +540,9 @@ public class ScheduledBlockRenderer(
             byte[]? png = key switch
             {
                 ParkCompareOutputs.SummaryJobsImage  => ParkCompareReport.SummaryPng(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), title, CompareNote(run)),
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), title),
                 ParkCompareOutputs.SummaryParksImage => ParkCompareReport.SummaryPng(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), title, CompareNote(run)),
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), title),
                 ParkCompareOutputs.CostChart => ParkCompareReport.CostChart(run.Costs, run.History, null, labels, separators) is { } cost
                     ? ParkCompareReport.ChartPng(cost) : null,
                 // Taller: the job names under the bars are tilted once there are a few.

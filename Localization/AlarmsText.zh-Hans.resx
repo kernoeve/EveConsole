@@ -439,9 +439,6 @@
   <data name="CompareTitleDetail" xml:space="preserve">
     <value>各园区的每项作业</value>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{1} 个园区中的 {0} 项作业，按今日价格和星系成本指数计算；时间按技能 V 级计算。</value>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>今日指数（表格）</value>
   </data>

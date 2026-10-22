@@ -439,9 +439,6 @@
   <data name="CompareTitleDetail" xml:space="preserve">
     <value>全パークの全ジョブ</value>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{1} パークで {0} ジョブ。今日の価格と星系コスト指数、スキルはすべて V で計算。</value>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>今日の指数（表）</value>
   </data>

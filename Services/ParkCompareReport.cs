@@ -382,14 +382,14 @@ public static class ParkCompareReport
         (new SolidColorPaint(new SKColor(120, 120, 140)), new SolidColorPaint(new SKColor(30, 30, 42)));
 
     /// <summary>
-    /// The summary as a PNG: a heading and a note, then each group's four columns under its name
+    /// The summary as a PNG: a heading, then each group's four columns under its name
     /// and wash, a line where each group begins, best in green and a quarter or more behind in red.
     /// </summary>
-    public static byte[] SummaryPng(ComparePivot pivot, string heading, string note)
+    public static byte[] SummaryPng(ComparePivot pivot, string heading)
     {
         string[] heads = [IndustryText.CompareColCost, IndustryText.CompareColVsBest, IndustryText.CompareColTime, IndustryText.CompareColVsBest];
         var first = pivot.ByPark ? IndustryText.CompareColPark : IndustryText.CompareColJob;
-        var texts = new List<string> { heading, note, first };
+        var texts = new List<string> { heading, first };
         texts.AddRange(heads); texts.AddRange(pivot.Groups);
         foreach (var row in pivot.Rows)
         {
@@ -403,7 +403,6 @@ public static class ParkCompareReport
         using var body     = new SKFont(typeface, 11);
         using var strong   = new SKFont(bold, 11);
         using var title    = new SKFont(bold, 12.5f);
-        using var small    = new SKFont(typeface, 10.5f);
 
         const float pad = 14, cellPad = 8, rowH = 22;
         float Text(SKFont f, string s) => Measure(f, s);
@@ -427,8 +426,8 @@ public static class ParkCompareReport
         }
 
         var tableW = titleW + widths.Sum();
-        var width  = Math.Max(tableW, Math.Max(Text(title, heading), Text(small, note))) + 2 * pad;
-        var top    = pad + 18 + 18 + 6;
+        var width  = Math.Max(tableW, Text(title, heading)) + 2 * pad;
+        var top    = pad + 18 + 8;
         var height = top + rowH * (2 + pivot.Rows.Count) + pad;
 
         var info = new SKImageInfo((int)Math.Ceiling(width * Scale), (int)Math.Ceiling(height * Scale));
@@ -448,7 +447,6 @@ public static class ParkCompareReport
         }
 
         fill.Color = Muted;  canvas.DrawText(heading, pad, pad + 13, title, fill);
-        fill.Color = Faint;  canvas.DrawText(note,    pad, pad + 31, small, fill);
 
         float x0 = pad, yBand = top, yHead = top + rowH, yRows = top + 2 * rowH;
         Box(x0, yHead, tableW, rowH, Header);

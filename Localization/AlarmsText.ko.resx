@@ -439,9 +439,6 @@
   <data name="CompareTitleDetail" xml:space="preserve">
     <value>모든 파크의 모든 작업</value>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{1}개 파크의 {0}개 작업, 오늘 가격과 항성계 비용 지수 기준이며 시간은 스킬 V 기준입니다.</value>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>오늘 지수(표)</value>
   </data>

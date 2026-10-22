@@ -439,9 +439,6 @@
   <data name="CompareTitleDetail" xml:space="preserve">
     <value>Chaque travail dans chaque parc</value>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{0} travaux dans {1} parcs, aux prix et indices de coût système du jour ; durées avec compétences au niveau V.</value>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>Indices du jour (tableau)</value>
   </data>

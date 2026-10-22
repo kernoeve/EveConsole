@@ -584,10 +584,6 @@
     <value>Every job in every park</value>
     <comment>Scheduler post: heading over the Indy Park Compare detail table.</comment>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{0} jobs in {1} parks, at today's prices and system cost indices; times with skills at V.</value>
-    <comment>Scheduler post: the line under an Indy Park Compare section's heading and on its summary pictures. {0} jobs, {1} parks.</comment>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>Today's indices (table)</value>
     <comment>Scheduler, System Index section: a choice in the Post dropdown.</comment>

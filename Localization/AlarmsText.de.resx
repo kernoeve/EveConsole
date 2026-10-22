@@ -439,9 +439,6 @@
   <data name="CompareTitleDetail" xml:space="preserve">
     <value>Jeder Job in jedem Park</value>
   </data>
-  <data name="CompareReportNote" xml:space="preserve">
-    <value>{0} Jobs in {1} Parks, zu heutigen Preisen und Systemkostenindizes; Zeiten mit Skills auf V.</value>
-  </data>
   <data name="IndexOutTable" xml:space="preserve">
     <value>Heutige Indizes (Tabelle)</value>
   </data>
