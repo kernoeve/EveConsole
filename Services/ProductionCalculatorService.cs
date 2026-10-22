@@ -893,8 +893,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             decimal jobGross = Math.Round((decimal)(eiv * costIndex * roleBonus), 0);
             decimal jobTaxes = Math.Round((decimal)(eiv * (facTax + SccSurcharge)), 0);
 
-            job.MaterialCost = matCost;
-            job.JobCost      = jobGross + jobTaxes;
+            job.MaterialCost      = matCost;
+            job.JobCost           = jobGross + jobTaxes;
+            job.IndexWeight       = eiv * roleBonus;
+            job.JobGross          = jobGross;
+            job.CostIndexActivity = activity;
+            job.CostIndexSystemId = structure is not null && systemIds.TryGetValue(structure.SystemName, out var ciSys) ? ciSys : 0;
         }
 
         // ── Build raw materials list ────────────────────────────────────────

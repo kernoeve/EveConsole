@@ -142,6 +142,138 @@
   <data name="OppsErrNoMetaGroup" xml:space="preserve">
     <value>Отметьте хотя бы одну мета-группу.</value>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Сравнение</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Предметы для сравнения</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Введите предмет для добавления…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Единиц</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>Сколько построить. План запускает столько работ, сколько для этого нужно.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>ME чертежа самого предмета, от 0 до 10. Для компонентов — обычная ME калькулятора.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Парк</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Стоимость работ</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Излишки</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Итого — это материалы плюс стоимость работ за вычетом излишков: компоненты, сделанные сверх нужного, остаются, а не расходуются, как в чистой стоимости калькулятора производства.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Итого</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>За единицу</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>К лучшему</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Лучший</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Здесь не строится</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Добавьте предметы, отметьте парки для сравнения и нажмите «Рассчитать».</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Добавьте хотя бы один предмет.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Отметьте хотя бы один парк.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Расчёт…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Предметов: {0}  ·  Парков: {1}. Стоимость — по сегодняшним ценам и индексам; график ниже следует прошлым индексам.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>Все предметы вместе</value>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>Во времени</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>Для систем этих парков истории индексов стоимости пока нет.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Итоговая стоимость за каждый день с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}: сегодняшние план, материалы и налоги с индексами стоимости того дня.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>На графике — первые {0}; в таблице — все.</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Изобретение</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>Добавить систему</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Введите название системы…</value>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>График</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Добавьте систему, чтобы увидеть её индексы стоимости.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Систем: {0}. Сегодняшние индексы; на графике — история.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>Для этих систем по этому виду работ истории пока нет.</value>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>Индекс стоимости ({0}) за каждый день с {1:yyyy-MM-dd} по {2:yyyy-MM-dd}.</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

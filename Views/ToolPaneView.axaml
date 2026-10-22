@@ -146,6 +146,9 @@
         <DataTemplate DataType="vm:IndyParksViewModel">
           <views:IndyParksView />
         </DataTemplate>
+        <DataTemplate DataType="vm:SystemIndexViewModel">
+          <views:SystemIndexView />
+        </DataTemplate>
         <DataTemplate DataType="vm:ProductionCalculatorViewModel">
           <views:ProductionCalculatorView />
         </DataTemplate>

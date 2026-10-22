@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>산업 단지</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>항성계 지수</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>생산 계산기</value>
   </data>

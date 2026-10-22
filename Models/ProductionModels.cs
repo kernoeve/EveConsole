@@ -96,6 +96,15 @@ public class PlanJob
     public decimal MaterialCost    { get; set; }
     public decimal JobCost         { get; set; }
 
+    // The part of JobCost the system cost index sets, kept so it can be worked out again for
+    // another day's index without planning again (Indy Parks, Compare over time):
+    // JobGross = Round(IndexWeight x index[CostIndexSystemId, CostIndexActivity]); the rest of
+    // JobCost (facility tax, SCC surcharge) does not move with the index.
+    public double  IndexWeight        { get; set; }   // estimated item value x structure role bonus
+    public decimal JobGross           { get; set; }
+    public int     CostIndexSystemId  { get; set; }   // 0: the structure's system is not known
+    public string  CostIndexActivity  { get; set; } = "";
+
     // Material efficiency modifiers applied to this job (for UI debugging/verification)
     public double MeReductionPct { get; set; }   // e.g. 10.0 for ME10
     public double RigBonusPct    { get; set; }   // e.g. 4.18 for T1 ME rig in highsec

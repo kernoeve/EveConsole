@@ -188,6 +188,182 @@
     <value>Tick at least one meta group.</value>
     <comment>Industry Ops status line when every meta group box is unticked.</comment>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Indy Parks: the tab holding the parks themselves.</comment>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Compare</value>
+    <comment>Indy Parks: the tab comparing build costs across parks.</comment>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Indy Parks, Compare tab: label over the dropdown of parks to compare.</comment>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Items to compare</value>
+    <comment>Indy Parks, Compare tab: label over the job list.</comment>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Type an item to add…</value>
+    <comment>Indy Parks, Compare tab: watermark of the search box that adds items.</comment>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Indy Parks, Compare tab: column header and label: how many units to build.</comment>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>How many to build. The plan runs as many jobs as that takes.</value>
+    <comment>Indy Parks, Compare tab: tooltip of a job's units box.</comment>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>The item's own blueprint ME, 0 to 10. Components use the calculator's usual ME.</value>
+    <comment>Indy Parks, Compare tab: tooltip of a job's ME box.</comment>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Park</value>
+    <comment>Indy Parks, Compare tab: results column: the park.</comment>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Materials</value>
+    <comment>Indy Parks, Compare tab: results column: what the bought inputs cost.</comment>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Job Cost</value>
+    <comment>Indy Parks, Compare tab: results column: job installation costs, every step.</comment>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Leftovers</value>
+    <comment>Indy Parks, Compare tab: results column: the value of components made beyond need, kept and so taken off the total.</comment>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Total is materials plus job cost, less the leftovers: components made beyond need are kept, not used up, as in the Production Calculator's Net Cost.</value>
+    <comment>Indy Parks, Compare tab: note under the status line, over the results.</comment>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Indy Parks, Compare tab: results column: materials and job costs together.</comment>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>Per Unit</value>
+    <comment>Indy Parks, Compare tab: results column: total over units made.</comment>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>vs Best</value>
+    <comment>Indy Parks, Compare tab: results column: how much dearer than the cheapest park, or 'Best'.</comment>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Best</value>
+    <comment>Indy Parks, Compare tab: the cheapest park for an item, in the vs Best column.</comment>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Not built here</value>
+    <comment>Indy Parks, Compare tab: an item this park's plan does not build (bought, or no usable blueprint).</comment>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Add items, tick the parks to compare, then Calculate.</value>
+    <comment>Indy Parks, Compare tab: status line before the first calculation.</comment>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Add at least one item.</value>
+    <comment>Indy Parks, Compare tab: status line: Calculate with an empty job list.</comment>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Tick at least one park.</value>
+    <comment>Indy Parks, Compare tab: status line: Calculate with no park ticked.</comment>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Calculating…</value>
+    <comment>Indy Parks, Compare tab: status line while calculating.</comment>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Items: {0}  ·  Parks: {1}. Costs use today's prices and indices; the chart below follows past indices.</value>
+    <comment>Indy Parks, Compare tab: status line after calculating. {0} items, {1} parks.</comment>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>All items together</value>
+    <comment>Indy Parks, Compare tab: the chart choice summing the whole job list.</comment>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>Over time</value>
+    <comment>Indy Parks, Compare tab: label beside the chart's item choice.</comment>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>No system cost index history for these parks' systems yet.</value>
+    <comment>Indy Parks, Compare tab: note where the chart would be, with no index history.</comment>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Total cost each day from {0:yyyy-MM-dd} to {1:yyyy-MM-dd}: today's plan, materials and taxes, with that day's system cost indices.</value>
+    <comment>Indy Parks, Compare tab: note over the chart. {0} first day, {1} last day.</comment>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>The chart draws the first {0}; the table lists them all.</value>
+    <comment>Indy Parks, Compare tab: added to the chart note when there are more lines than colours. {0} the number drawn.</comment>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>System Index tool: column and chart choice: the manufacturing index.</comment>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>System Index tool: column and chart choice: the reaction index.</comment>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>System Index tool: column and chart choice: the invention index.</comment>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>System Index tool: column and chart choice: the copying index.</comment>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME Research</value>
+    <comment>System Index tool: column and chart choice: material efficiency research.</comment>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE Research</value>
+    <comment>System Index tool: column and chart choice: time efficiency research.</comment>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>System Index tool: table column: the solar system.</comment>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>System Index tool: table column: the system's region.</comment>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>Add system</value>
+    <comment>System Index tool: label of the search box.</comment>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Type a system name…</value>
+    <comment>System Index tool: watermark of the search box.</comment>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>Chart</value>
+    <comment>System Index tool: label of the activity the chart draws.</comment>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>System Index tool: button reading the indices again.</comment>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Add a system to see its cost indices.</value>
+    <comment>System Index tool: status line with no systems listed.</comment>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Systems: {0}. Today's indices; the chart shows the history.</value>
+    <comment>System Index tool: status line. {0} systems listed.</comment>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>No history for these systems in this activity yet.</value>
+    <comment>System Index tool: note where the chart would be.</comment>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>{0} cost index each day from {1:yyyy-MM-dd} to {2:yyyy-MM-dd}.</value>
+    <comment>System Index tool: note over the chart. {0} activity, {1} first day, {2} last day.</comment>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
     <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech I.</comment>

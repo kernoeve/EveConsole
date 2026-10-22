@@ -65,6 +65,14 @@ public static class UiState
     public const string IndustryOppsMinMargin30d = "industryopps.min_margin_30d";
     public const string IndustryOppsSkipFaction = "industryopps.skip_faction";   // read once, to seed the meta groups
     public const string IndustryOppsMetaGroups  = "industryopps.meta_groups";
+
+    // Indy Parks, Compare: the job list (JSON) and the parks left unticked (ids).
+    public const string IndyCompareJobs     = "indyparks.compare.jobs";
+    public const string IndyCompareParksOff = "indyparks.compare.parks_off";
+
+    // System Index: the systems listed (ids) and the activity charted.
+    public const string SystemIndexSystems  = "systemindex.systems";
+    public const string SystemIndexActivity = "systemindex.activity";
     public const string IndustryOppsBpoOnly     = "industryopps.bpo_only";
     /// <summary>Industry Ops: only items whose blueprint the user holds (issue #152).</summary>
     public const string IndustryOppsOwnedOnly   = "industryopps.owned_only";

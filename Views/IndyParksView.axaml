@@ -3,6 +3,7 @@
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:services="clr-namespace:EveConsole.Services"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.IndyParksView"
              x:DataType="vm:IndyParksViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -29,6 +30,20 @@
     </Style>
   </UserControl.Styles>
 
+  <TabControl Padding="0" Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
+    <TabControl.Styles>
+      <Style Selector="TabItem">
+        <Setter Property="FontSize"    Value="11" />
+        <Setter Property="Foreground"  Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="Background"  Value="Transparent" />
+        <Setter Property="Padding"     Value="14 6" />
+      </Style>
+      <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      </Style>
+    </TabControl.Styles>
+
+    <TabItem Header="{x:Static loc:IndustryText.TabParks}">
   <Grid ColumnDefinitions="220,1,*">
 
     <!-- ── Left: park list ──────────────────────────────────────────────── -->
@@ -603,4 +618,11 @@
     </Grid>
 
   </Grid>
+    </TabItem>
+
+    <!-- The same items built in every park ticked, side by side. -->
+    <TabItem Header="{x:Static loc:IndustryText.TabCompare}">
+      <views:ParkComparisonView DataContext="{Binding Compare}" />
+    </TabItem>
+  </TabControl>
 </UserControl>

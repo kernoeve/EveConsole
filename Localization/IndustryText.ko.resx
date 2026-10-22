@@ -142,6 +142,138 @@
   <data name="OppsErrNoMetaGroup" xml:space="preserve">
     <value>메타 그룹을 하나 이상 체크하십시오.</value>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>비교</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>비교할 아이템</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>추가할 아이템 입력…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>만들 수량입니다. 계획은 필요한 만큼 작업을 잡습니다.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>아이템 자체 청사진의 ME(0~10)입니다. 부품은 계산기의 기본 ME를 씁니다.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>작업 비용</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>잉여</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>합계는 재료와 작업 비용의 합에서 잉여를 뺀 값입니다. 필요 이상으로 만든 부품은 소모되지 않고 남으므로 생산 계산기의 순비용과 같습니다.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>개당</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>최저 대비</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>최저</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>여기서 만들지 않음</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>아이템을 추가하고 비교할 파크를 체크한 뒤 계산하십시오.</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>아이템을 하나 이상 추가하십시오.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>파크를 하나 이상 체크하십시오.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>계산 중…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>아이템: {0}  ·  파크: {1}. 비용은 오늘의 가격과 지수로 계산하며, 아래 차트는 과거 지수를 따릅니다.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>모든 아이템 합계</value>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>기간별</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>이 파크들의 항성계에는 아직 비용 지수 기록이 없습니다.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}부터 {1:yyyy-MM-dd}까지 날마다의 총비용: 오늘의 계획·재료·세금에 그날의 항성계 비용 지수를 적용했습니다.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>차트는 처음 {0}개만 그리며, 표에는 모두 나옵니다.</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>반응</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME 연구</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE 연구</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>항성계 추가</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>항성계 이름 입력…</value>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>차트</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>새로 고침</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>항성계를 추가하면 비용 지수가 표시됩니다.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>항성계: {0}. 오늘의 지수이며, 차트는 기록을 보여 줍니다.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>이 활동에는 아직 이 항성계들의 기록이 없습니다.</value>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>{1:yyyy-MM-dd}부터 {2:yyyy-MM-dd}까지 날마다의 {0} 비용 지수.</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>테크 I</value>
   </data>

@@ -79,6 +79,10 @@
     <value>Indy Parks</value>
     <comment>The user's industry sites: the structures and stations where jobs run.</comment>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>System Index</value>
+    <comment>Tool name in the menu (Industry group) and its tab: system cost indices compared.</comment>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Production Calc</value>
   </data>

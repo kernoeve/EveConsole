@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.ParkComparisonView"
+             x:DataType="vm:ParkComparisonViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="DataGridCell TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="340,1,*">
+
+    <!-- ── Left: parks and the job list ─────────────────────────────────── -->
+    <DockPanel Grid.Column="0" Margin="12 10">
+      <StackPanel DockPanel.Dock="Top" Spacing="8">
+        <StackPanel Spacing="3">
+          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareParksLabel}" />
+          <views:MultiChoiceDropDown DataContext="{Binding Parks}" FontSize="12" />
+        </StackPanel>
+
+        <StackPanel Spacing="3">
+          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareJobsLabel}" />
+          <TextBox Text="{Binding SearchText}" FontSize="12"
+                   Watermark="{x:Static loc:IndustryText.CompareSearchHint}" />
+          <Border IsVisible="{Binding ShowResults}" MaxHeight="200"
+                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                  BorderThickness="1" CornerRadius="3">
+            <!-- Picking a result adds it: the selection is the command, so the template needs no
+                 reach back to the view model. -->
+            <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding PickedResult}"
+                     Background="Transparent" FontSize="12">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ProdTypeSearchResult">
+                  <TextBlock Text="{Binding DisplayName}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Border>
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,70,46,Auto" IsVisible="{Binding Jobs.Count}">
+          <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.ColItem}" />
+          <TextBlock Grid.Column="1" Classes="flabel" Text="{x:Static loc:IndustryText.CompareUnits}" Margin="4 0" />
+          <TextBlock Grid.Column="2" Classes="flabel" Text="ME" Margin="4 0" />
+        </Grid>
+      </StackPanel>
+
+      <Button DockPanel.Dock="Bottom" Content="{x:Static loc:IndustryText.Calculate}" Command="{Binding CalculateCommand}"
+              HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0 8 0 0" Padding="18 6"
+              Background="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" FontSize="12" />
+
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Jobs}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:CompareJobVm">
+              <Grid ColumnDefinitions="*,70,46,Auto" Margin="0 0 0 3">
+                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBox Grid.Column="1" Text="{Binding QuantityText}" FontSize="12" Margin="4 0"
+                         ToolTip.Tip="{x:Static loc:IndustryText.TipCompareUnits}" />
+                <TextBox Grid.Column="2" Text="{Binding MeText}" FontSize="12" Margin="4 0"
+                         ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMe}" />
+                <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                        Command="{Binding RemoveCommand}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </DockPanel>
+
+    <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
+
+    <!-- ── Right: the costs, then the costs over time ──────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto,280" Margin="12 10">
+      <StackPanel Grid.Row="0" Spacing="2" Margin="0 0 0 6">
+        <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+        <TextBlock Text="{x:Static loc:IndustryText.CompareTotalNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
+                   TextWrapping="Wrap" IsVisible="{Binding Results.Count}" />
+      </StackPanel>
+
+      <DataGrid Grid.Row="1" ItemsSource="{Binding Results}" x:CompileBindings="False"
+                AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False"
+                Background="{DynamicResource SurfaceBaseBrush}">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.ColItem}"         Binding="{Binding ItemName}"      Width="*" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPark}"  Binding="{Binding ParkName}"      Width="160" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareUnits}"    Binding="{Binding UnitsText}"     SortMemberPath="Units"   Width="80" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColMaterials}" Binding="{Binding MaterialsText}" Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColJobCost}"   Binding="{Binding JobCostText}"   Width="100" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColLeftovers}" Binding="{Binding LeftoversText}" Width="100" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColTotal}"     Binding="{Binding TotalText}"     SortMemberPath="Total"   Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPerUnit}"   Binding="{Binding PerUnitText}"   SortMemberPath="PerUnit" Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColVsBest}"    Binding="{Binding OverBestText}"  SortMemberPath="OverBest" Width="90" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0 10 0 4" IsVisible="{Binding ChartChoices.Count}">
+        <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.CompareOverTime}" Margin="0 0 10 0" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding ChartChoices}" SelectedItem="{Binding ChartChoice}"
+                  Width="280" HorizontalAlignment="Left" FontSize="12" />
+      </Grid>
+      <TextBlock Grid.Row="3" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
+                 TextWrapping="Wrap" />
+      <lvc:CartesianChart Grid.Row="4" Series="{Binding Series}" IsVisible="{Binding HasChart}"
+                          XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                          LegendPosition="Bottom" LegendTextSize="11"
+                          LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                          EasingFunction="{x:Null}" Background="Transparent" />
+    </Grid>
+  </Grid>
+</UserControl>

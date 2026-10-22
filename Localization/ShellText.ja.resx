@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>インディパーク</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>星系指数</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生産計算</value>
   </data>

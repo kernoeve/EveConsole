@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.SystemIndexView"
+             x:DataType="vm:SystemIndexViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,300" Margin="12 10">
+
+    <!-- Toolbar: add a system, pick the activity the chart draws -->
+    <WrapPanel Grid.Row="0" Orientation="Horizontal" ItemSpacing="12" LineSpacing="6">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.IndexAddSystem}" />
+        <TextBox Text="{Binding SearchText}" Width="240" FontSize="12"
+                 Watermark="{x:Static loc:IndustryText.IndexSearchHint}" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.IndexChartActivity}" />
+        <ComboBox ItemsSource="{Binding Activities}" SelectedItem="{Binding Activity}" Width="200" FontSize="12" />
+      </StackPanel>
+      <Button Content="{x:Static loc:IndustryText.IndexRefresh}" Command="{Binding RefreshCommand}"
+              Padding="12 4" FontSize="12" />
+      <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+    </WrapPanel>
+
+    <!-- Search results: picking one adds it -->
+    <Border Grid.Row="1" IsVisible="{Binding ShowResults}" MaxHeight="200" Width="360" HorizontalAlignment="Left"
+            Margin="0 4 0 0"
+            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+            BorderThickness="1" CornerRadius="3">
+      <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding PickedResult}" Background="Transparent" FontSize="12">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:SystemSearchResult">
+            <TextBlock Text="{Binding Label}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+
+    <!-- The table: every activity, today -->
+    <Grid Grid.Row="2" ColumnDefinitions="200,*,90,90,90,90,90,90,40" Margin="0 10 0 4" IsVisible="{Binding Systems.Count}">
+      <TextBlock Grid.Column="0" Classes="head" HorizontalAlignment="Left" Text="{x:Static loc:IndustryText.IndexColSystem}" />
+      <TextBlock Grid.Column="1" Classes="head" HorizontalAlignment="Left" Text="{x:Static loc:IndustryText.IndexColRegion}" />
+      <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IndustryText.IndexManufacturing}" />
+      <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IndustryText.IndexReaction}" />
+      <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IndustryText.IndexInvention}" />
+      <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IndustryText.IndexCopying}" />
+      <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IndustryText.IndexMeResearch}" />
+      <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IndustryText.IndexTeResearch}" />
+    </Grid>
+    <ScrollViewer Grid.Row="3">
+      <ItemsControl ItemsSource="{Binding Systems}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:SystemIndexRowVm">
+            <Grid ColumnDefinitions="200,*,90,90,90,90,90,90,40" Margin="0 2">
+              <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="1" Text="{Binding Region}" FontSize="12" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="2" Classes="num" Text="{Binding Manufacturing}" />
+              <TextBlock Grid.Column="3" Classes="num" Text="{Binding Reaction}" />
+              <TextBlock Grid.Column="4" Classes="num" Text="{Binding Invention}" />
+              <TextBlock Grid.Column="5" Classes="num" Text="{Binding Copying}" />
+              <TextBlock Grid.Column="6" Classes="num" Text="{Binding MeResearch}" />
+              <TextBlock Grid.Column="7" Classes="num" Text="{Binding TeResearch}" />
+              <Button Grid.Column="8" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                      HorizontalAlignment="Right" Command="{Binding RemoveCommand}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <TextBlock Grid.Row="4" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
+               TextWrapping="Wrap" Margin="0 8 0 2" />
+    <lvc:CartesianChart Grid.Row="5" Series="{Binding Series}" IsVisible="{Binding HasChart}"
+                        XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                        LegendPosition="Bottom" LegendTextSize="11"
+                        LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                        EasingFunction="{x:Null}" Background="Transparent" />
+  </Grid>
+</UserControl>

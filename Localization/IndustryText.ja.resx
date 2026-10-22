@@ -142,6 +142,138 @@
   <data name="OppsErrNoMetaGroup" xml:space="preserve">
     <value>メタグループを少なくとも 1 つチェックしてください。</value>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>比較</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>比較するアイテム</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>追加するアイテムを入力…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>製造する数です。計画は必要なだけジョブを組みます。</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>そのアイテム自体の設計図の ME（0〜10）。部品は計算機の通常の ME を使います。</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>材料</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>ジョブ費用</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>余剰</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>合計は材料とジョブ費用の和から余剰を引いたものです。必要以上に作った部品は消費されずに残るため、生産計算機の純コストと同じ扱いです。</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>単価</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>最安との差</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>最安</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>ここでは製造しない</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>アイテムを追加し、比較するパークにチェックを入れて計算します。</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>アイテムを少なくとも 1 つ追加してください。</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>パークを少なくとも 1 つチェックしてください。</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>計算中…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>アイテム：{0}  ·  パーク：{1}。費用は今日の価格と指数で計算し、下のグラフは過去の指数に従います。</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>全アイテムの合計</value>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>推移</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>これらのパークの星系にはまだコスト指数の履歴がありません。</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>{0:yyyy-MM-dd} から {1:yyyy-MM-dd} までの日ごとの総費用：今日の計画・材料・税に、その日の星系コスト指数を当てたもの。</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>グラフは最初の {0} 件のみ描きます。表にはすべて表示されます。</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>リアクション</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>インベンション</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME 研究</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE 研究</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>星系を追加</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>星系名を入力…</value>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>グラフ</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>星系を追加するとコスト指数が表示されます。</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>星系：{0}。今日の指数を表示し、グラフは履歴を示します。</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>このアクティビティではこれらの星系の履歴がまだありません。</value>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>{1:yyyy-MM-dd} から {2:yyyy-MM-dd} までの日ごとの{0}コスト指数。</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>テック I</value>
   </data>

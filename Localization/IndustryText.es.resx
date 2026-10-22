@@ -142,6 +142,138 @@
   <data name="OppsErrNoMetaGroup" xml:space="preserve">
     <value>Marca al menos un metagrupo.</value>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Parques</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Comparar</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Parques</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Objetos a comparar</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Escribe un objeto para añadirlo…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Unidades</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>Cuántas fabricar. El plan lanza los trabajos que hagan falta.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>La ME del plano del propio objeto, de 0 a 10. Los componentes usan la ME habitual de la calculadora.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Parque</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Materiales</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Coste de trabajos</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Sobrantes</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>El total es materiales más coste de trabajos, menos los sobrantes: los componentes fabricados de más se conservan, no se consumen, como en el coste neto de la calculadora de producción.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>Por unidad</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>vs. mejor</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Mejor</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>No se fabrica aquí</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Añade objetos, marca los parques a comparar y pulsa Calcular.</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Añade al menos un objeto.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Marca al menos un parque.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Calculando…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Objetos: {0}  ·  Parques: {1}. Los costes usan los precios e índices de hoy; el gráfico de abajo sigue los índices pasados.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>Todos los objetos juntos</value>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>A lo largo del tiempo</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>Aún no hay historial de índices de coste para los sistemas de estos parques.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Coste total de cada día del {0:yyyy-MM-dd} al {1:yyyy-MM-dd}: el plan, los materiales y los impuestos de hoy, con los índices de coste de ese día.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>El gráfico dibuja los primeros {0}; la tabla los muestra todos.</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Reacción</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Invención</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>Investigación ME</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>Investigación TE</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>Añadir sistema</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Escribe un sistema…</value>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>Gráfico</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Añade un sistema para ver sus índices de coste.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Sistemas: {0}. Índices de hoy; el gráfico muestra el historial.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>Aún no hay historial de estos sistemas en esta actividad.</value>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>Índice de coste de {0} de cada día, del {1:yyyy-MM-dd} al {2:yyyy-MM-dd}.</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

@@ -142,6 +142,138 @@
   <data name="OppsErrNoMetaGroup" xml:space="preserve">
     <value>Kreuze mindestens eine Metagruppe an.</value>
   </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Parks</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Vergleich</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Parks</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Zu vergleichende Gegenstände</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Gegenstand zum Hinzufügen eingeben …</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>Wie viele gebaut werden. Der Plan setzt so viele Aufträge an, wie dafür nötig sind.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>ME der Blaupause des Gegenstands selbst, 0 bis 10. Komponenten nutzen die übliche ME des Rechners.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Park</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Auftragskosten</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Überschuss</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Gesamt ist Material plus Auftragskosten, abzüglich Überschuss: Über Bedarf gebaute Komponenten bleiben erhalten und werden nicht verbraucht, wie bei den Nettokosten des Produktionsrechners.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>Pro Einheit</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>ggü. Bestem</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Bester</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Hier nicht gebaut</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Gegenstände hinzufügen, die zu vergleichenden Parks ankreuzen, dann Berechnen.</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Mindestens einen Gegenstand hinzufügen.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Mindestens einen Park ankreuzen.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Berechne …</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Gegenstände: {0}  ·  Parks: {1}. Die Kosten nutzen heutige Preise und Indizes; das Diagramm unten folgt früheren Indizes.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>Alle Gegenstände zusammen</value>
+  </data>
+  <data name="CompareOverTime" xml:space="preserve">
+    <value>Im Zeitverlauf</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>Für die Systeme dieser Parks gibt es noch keinen Kostenindex-Verlauf.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Gesamtkosten je Tag von {0:yyyy-MM-dd} bis {1:yyyy-MM-dd}: heutiger Plan, heutige Materialien und Steuern, mit dem Systemkostenindex des jeweiligen Tages.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>Das Diagramm zeigt die ersten {0}; die Tabelle listet alle.</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Fertigung</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Reaktion</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Erfindung</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME-Forschung</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE-Forschung</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>System hinzufügen</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Systemnamen eingeben …</value>
+  </data>
+  <data name="IndexChartActivity" xml:space="preserve">
+    <value>Diagramm</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Ein System hinzufügen, um seine Kostenindizes zu sehen.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Systeme: {0}. Heutige Indizes; das Diagramm zeigt den Verlauf.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>Für diese Systeme gibt es in dieser Tätigkeit noch keinen Verlauf.</value>
+  </data>
+  <data name="IndexChartNote" xml:space="preserve">
+    <value>{0}-Kostenindex je Tag von {1:yyyy-MM-dd} bis {2:yyyy-MM-dd}.</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

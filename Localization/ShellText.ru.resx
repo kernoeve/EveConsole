@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>Промпарки</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>Индекс систем</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Расчёт производства</value>
   </data>

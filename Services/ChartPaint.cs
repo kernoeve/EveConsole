@@ -33,6 +33,30 @@ public static class ChartPaint
     /// <summary>An axis title carrying the app's accent, as the ISK axes do.</summary>
     public static SolidColorPaint AccentLabels => Make("Accent");
 
+    // ── Series that are things, not measures ─────────────────────────────────
+
+    /// <summary>
+    /// Colours for lines that each stand for one thing — a park, a system — in a fixed order.
+    ///
+    /// <para>⚠️ Checked, not chosen by eye: every adjacent pair stays apart under the three common
+    /// colour-vision deficiencies and for full colour, and all eight clear 3:1 on the dark
+    /// surfaces (dataviz validate_palette, surface #14141c). On the light theme's grey ground
+    /// they fall under 3:1, which every chart drawn with them answers with a legend and a table
+    /// beside it.</para>
+    ///
+    /// <para>⚠️ Never cycled: a ninth thing is left off the chart (the table still lists it), so
+    /// two lines never share a colour. A thing keeps its slot by its place in the user's own list,
+    /// so unticking another does not repaint it.</para>
+    /// </summary>
+    public static readonly string[] SeriesHex =
+        ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+
+    public static int MaxSeries => SeriesHex.Length;
+
+    /// <summary>The line for slot <paramref name="slot"/>, two pixels wide.</summary>
+    public static SolidColorPaint Series(int slot) =>
+        new(SkiaSharp.SKColor.Parse(SeriesHex[slot % SeriesHex.Length])) { StrokeThickness = 2 };
+
     // ── Remembering what a paint was for ──────────────────────────────────────
 
     /// <summary>

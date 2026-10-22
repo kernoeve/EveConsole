@@ -769,6 +769,9 @@ public class IndyParksViewModel : ReactiveObject
     /// them.</summary>
     private readonly EsiPollingService?        _polling;
 
+    /// <summary>The Compare tab: the same items built in every park, side by side. Set by MainWindow.</summary>
+    public ParkComparisonViewModel? Compare { get; set; }
+
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
