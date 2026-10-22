@@ -166,7 +166,7 @@ public static class ParkCompareReport
     public static CompareChart? CostChart(
         IReadOnlyList<ParkCost> costs,
         IReadOnlyDictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> history,
-        int? line, SolidColorPaint labels, SolidColorPaint separators)
+        int? line, Func<SolidColorPaint> labels, Func<SolidColorPaint> separators)
     {
         var byPark = costs.Where(x => x.Buildable && (line is null || x.Job.Line == line))
                           .GroupBy(x => (x.ParkId, x.ParkName, x.Slot))
@@ -198,13 +198,13 @@ public static class ParkCompareReport
             })],
             [new Axis
             {
-                Labels = [.. days.Select(d => d.ToString("MM-dd"))], LabelsPaint = labels, TextSize = 10,
+                Labels = [.. days.Select(d => d.ToString("MM-dd"))], LabelsPaint = labels(), TextSize = 10,
                 MinStep = Math.Max(1, days.Count / 6), SeparatorsPaint = null,
             }],
             [new Axis
             {
-                Labeler = v => flat ? v.ToString("N0") : MarketFmt.Isk(v), LabelsPaint = labels, TextSize = 10,
-                SeparatorsPaint = separators,
+                Labeler = v => flat ? v.ToString("N0") : MarketFmt.Isk(v), LabelsPaint = labels(), TextSize = 10,
+                SeparatorsPaint = separators(),
             }],
             string.Format(IndustryText.CompareChartNote, days[0], days[^1])
                 + (left > 0 ? "  " + string.Format(IndustryText.CompareChartTooMany, ChartPaint.MaxSeries) : ""));
@@ -219,7 +219,7 @@ public static class ParkCompareReport
     /// </summary>
     public static CompareChart? TimeChart(
         IReadOnlyList<ParkCost> costs, IReadOnlyList<string> lineLabels, int? line,
-        SolidColorPaint labels, SolidColorPaint separators)
+        Func<SolidColorPaint> labels, Func<SolidColorPaint> separators)
     {
         var lines = line is { } only ? [only] : Enumerable.Range(0, lineLabels.Count).ToList();
         var parks = costs.Where(x => x.Buildable && x.Slot < ChartPaint.MaxSeries && (line is null || x.Job.Line == line))
@@ -243,14 +243,14 @@ public static class ParkCompareReport
             })],
             [new Axis
             {
-                Labels = [.. lines.Select(l => lineLabels[l])], LabelsPaint = labels, TextSize = 10,
+                Labels = [.. lines.Select(l => lineLabels[l])], LabelsPaint = labels(), TextSize = 10,
                 // Job names side by side collide past a few; tilted, each keeps its own room.
                 LabelsRotation = lines.Count > 3 ? 20 : 0, MinStep = 1, SeparatorsPaint = null,
             }],
             [new Axis
             {
-                Labeler = v => v <= 0 ? "0" : PlanTime.Format(v * 3600), LabelsPaint = labels, TextSize = 10,
-                MinLimit = 0, SeparatorsPaint = separators,
+                Labeler = v => v <= 0 ? "0" : PlanTime.Format(v * 3600), LabelsPaint = labels(), TextSize = 10,
+                MinLimit = 0, SeparatorsPaint = separators(),
             }],
             "");
     }
@@ -377,9 +377,10 @@ public static class ParkCompareReport
         return stream.ToArray();
     }
 
-    /// <summary>The paints a posted chart's axes use: the dark palette, whatever the app's theme.</summary>
-    public static (SolidColorPaint Labels, SolidColorPaint Separators) PostPaints() =>
-        (new SolidColorPaint(new SKColor(120, 120, 140)), new SolidColorPaint(new SKColor(30, 30, 42)));
+    /// <summary>The paints a posted chart's axes use: the dark palette, whatever the app's theme.
+    /// Makers, not paints: each axis gets its own.</summary>
+    public static (Func<SolidColorPaint> Labels, Func<SolidColorPaint> Separators) PostPaints() =>
+        (() => new SolidColorPaint(new SKColor(120, 120, 140)), () => new SolidColorPaint(new SKColor(30, 30, 42)));
 
     /// <summary>
     /// The summary as a PNG: a heading, then each group's four columns under its name

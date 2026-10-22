@@ -117,7 +117,7 @@
             <Grid RowDefinitions="Auto,*">
               <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="11" FontWeight="SemiBold"
                          Foreground="{DynamicResource TextMutedBrush}" />
-              <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}" IsVisible="{Binding HasChart}"
+              <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}" Opacity="{Binding ChartOpacity}"
                                   XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
                                   LegendPosition="Hidden" EasingFunction="{x:Null}" Background="Transparent" />
             </Grid>

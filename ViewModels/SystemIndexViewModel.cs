@@ -256,7 +256,15 @@ public sealed class IndexChartVm : ReactiveObject
     public Axis[] YAxes { get => _yAxes; private set => this.RaiseAndSetIfChanged(ref _yAxes, value); }
 
     private bool _hasChart;
-    public bool HasChart { get => _hasChart; private set => this.RaiseAndSetIfChanged(ref _hasChart, value); }
+    public bool HasChart
+    {
+        get => _hasChart;
+        private set { this.RaiseAndSetIfChanged(ref _hasChart, value); this.RaisePropertyChanged(nameof(ChartOpacity)); }
+    }
+
+    /// <summary>Transparent rather than hidden when empty: a chart hidden while its series
+    /// arrive keeps no size and stays blank once shown.</summary>
+    public double ChartOpacity => HasChart ? 1 : 0;
 
     /// <summary>The report's chart for this activity; a day with no sample is a gap in its line.
     /// No legend here: the table's dot beside each system is the key.</summary>
@@ -270,7 +278,7 @@ public sealed class IndexChartVm : ReactiveObject
         if (days.Count == 0 || !list.Any(s => daily.ContainsKey((s.SystemId, Activity)))) { HasChart = false; Series = []; return; }
         var chart = SystemIndexReport.Chart(Activity,
             [.. list.Select(s => new IndexSystem(s.SystemId, s.Name, s.Region, s.Slot))],
-            daily, ChartPaint.Labels, ChartPaint.Separators);
+            daily, () => ChartPaint.Labels, () => ChartPaint.Separators);
         HasChart = chart is not null;
         if (chart is null) { Series = []; return; }
         (Series, XAxes, YAxes) = (chart.Series, chart.XAxes, chart.YAxes);

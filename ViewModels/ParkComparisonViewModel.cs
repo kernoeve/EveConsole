@@ -115,7 +115,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         CalculateCommand.ThrownExceptions.Subscribe(ex => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         ChartPaint.TrackAxesOf(this);
-        this.WhenAnyValue(x => x.ChartChoice).Skip(1).Subscribe(_ => BuildCharts());
+        this.WhenAnyValue(x => x.ChartChoice).Skip(1).Subscribe(_ => { if (!_refilling) BuildCharts(); });
     }
 
     // ── Parks ────────────────────────────────────────────────────────────────
@@ -199,10 +199,18 @@ public sealed class ParkComparisonViewModel : ReactiveObject
             foreach (var r in _ranked) Results.Add(new ParkCompareRowVm(r));
             BuildSummary();
 
-            ChartChoices.Clear();
-            ChartChoices.Add(new LabelledChoice("", IndustryText.CompareAllItems));
-            for (var i = 0; i < _lineLabels.Count; i++) ChartChoices.Add(new LabelledChoice(i.ToString(), _lineLabels[i]));
-            ChartChoice = ChartChoices[0];
+            // The charts are built once, after the list is refilled. Refilling it moves the
+            // selection twice (cleared, then the first entry), and each move rebuilt the charts:
+            // three sets of series in a row, the first Calculate showing none of them.
+            _refilling = true;
+            try
+            {
+                ChartChoices.Clear();
+                ChartChoices.Add(new LabelledChoice("", IndustryText.CompareAllItems));
+                for (var i = 0; i < _lineLabels.Count; i++) ChartChoices.Add(new LabelledChoice(i.ToString(), _lineLabels[i]));
+                ChartChoice = ChartChoices[0];
+            }
+            finally { _refilling = false; }
             BuildCharts();
 
             StatusText = string.Format(IndustryText.CompareStatusDone, jobs.Count, parks.Count);
@@ -262,6 +270,9 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     /// <summary>All lines together, or one of them; both charts follow it.</summary>
     public ObservableCollection<LabelledChoice> ChartChoices { get; } = [];
 
+    /// <summary>The chart list is being refilled: its selection moving is not a choice to redraw for.</summary>
+    private bool _refilling;
+
     private LabelledChoice? _chartChoice;
     public LabelledChoice? ChartChoice { get => _chartChoice; set => this.RaiseAndSetIfChanged(ref _chartChoice, value); }
 
@@ -296,7 +307,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     {
         var line = ChartChoice is { Key.Length: > 0 } c ? int.Parse(c.Key) : (int?)null;
 
-        if (ParkCompareReport.CostChart(_costs, _indexHistory, line, ChartPaint.Labels, ChartPaint.Separators) is { } cost)
+        if (ParkCompareReport.CostChart(_costs, _indexHistory, line, () => ChartPaint.Labels, () => ChartPaint.Separators) is { } cost)
             (Series, XAxes, YAxes, ChartNote) = (cost.Series, cost.XAxes, cost.YAxes, cost.Note);
         else
         {
@@ -304,7 +315,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
             ChartNote = _costs.Count == 0 ? "" : IndustryText.CompareNoHistory;
         }
 
-        if (ParkCompareReport.TimeChart(_costs, _lineLabels, line, ChartPaint.Labels, ChartPaint.Separators) is { } time)
+        if (ParkCompareReport.TimeChart(_costs, _lineLabels, line, () => ChartPaint.Labels, () => ChartPaint.Separators) is { } time)
             (TimeSeries, TimeXAxes, TimeYAxes) = (time.Series, time.XAxes, time.YAxes);
         else
             TimeSeries = [];

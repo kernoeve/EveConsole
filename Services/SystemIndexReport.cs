@@ -42,7 +42,7 @@ public static class SystemIndexReport
     public static CompareChart? Chart(
         string activity, IReadOnlyList<IndexSystem> systems,
         IReadOnlyDictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> daily,
-        SolidColorPaint labels, SolidColorPaint separators, double textSize = 9)
+        Func<SolidColorPaint> labels, Func<SolidColorPaint> separators, double textSize = 9)
     {
         var days  = daily.Values.SelectMany(v => v.Keys).Distinct().OrderBy(d => d).ToList();
         var drawn = systems.Where(s => s.Slot < ChartPaint.MaxSeries && daily.ContainsKey((s.SystemId, activity))).ToList();
@@ -64,13 +64,13 @@ public static class SystemIndexReport
             })],
             [new Axis
             {
-                Labels = [.. days.Select(d => d.ToString("MM-dd"))], LabelsPaint = labels, TextSize = textSize,
+                Labels = [.. days.Select(d => d.ToString("MM-dd"))], LabelsPaint = labels(), TextSize = textSize,
                 MinStep = Math.Max(1, days.Count / 6), SeparatorsPaint = null,
             }],
             [new Axis
             {
-                Labeler = v => $"{v:0.#}%", LabelsPaint = labels, TextSize = textSize, MinLimit = 0,
-                SeparatorsPaint = separators,
+                Labeler = v => $"{v:0.#}%", LabelsPaint = labels(), TextSize = textSize, MinLimit = 0,
+                SeparatorsPaint = separators(),
             }],
             string.Format(IndustryText.IndexChartsNote, days[0], days[^1]));
     }
