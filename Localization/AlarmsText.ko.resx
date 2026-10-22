@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>열</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>열 추가</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>이 열이 게시물에 표시하는 머리글입니다. 그대로 두거나 비워 두면 열 자체의 머리글을 씁니다.</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>아이템은 항상 첫 번째 열입니다.</value>
+    <value>아이템은 항상 첫 번째 열입니다. 그대로 둔 머리글은 인터페이스 언어를 따르며, 덮어쓰면 이름을 바꿀 수 있습니다.</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>정렬 기준</value>

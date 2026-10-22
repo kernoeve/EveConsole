@@ -14,8 +14,9 @@ public static class IndustryOppsReport
     /// One column the section can print: its stored key, its header, the cell, the number it
     /// sorts by (null for the item name, which sorts by text), and whether it lines up right.
     ///
-    /// <para>⚠️ The headers are the Industry Ops grid's own, and the cells its own display
-    /// strings, so a post reads exactly as the screen does.</para>
+    /// <para>The headers are the Industry Ops grid's own unless renamed. ISK is shortened one step
+    /// further than the grid does it, to K under a million (<see cref="Isk"/>): a post is read
+    /// at a glance, and a column of "17,880.00" is wider than it is useful.</para>
     /// </summary>
     public sealed record Column(string Key, string Header, Func<IndustryRow, string> Cell,
                                 Func<IndustryRow, double>? Number, bool Right);
@@ -26,19 +27,35 @@ public static class IndustryOppsReport
     public static IReadOnlyList<Column> Columns { get; } =
     [
         new(Item,              IndustryText.ColItem,          r => r.TypeName,                null,                   false),
-        new("build_cost",      IndustryText.ColBuildCost,     r => r.BuildCostDisplay,        r => r.BuildCost,       true),
-        new("sell_price",      IndustryText.ColSellPrice,     r => r.SellPriceDisplay,        r => r.SellPrice,       true),
-        new("profit_unit",     IndustryText.ColProfitUnit,    r => r.ProfitUnitDisplay,       r => r.ProfitPerUnit,   true),
+        new("build_cost",      IndustryText.ColBuildCost,     r => Isk(r.BuildCost),          r => r.BuildCost,       true),
+        // "*": priced from 30-day history, there being no sell orders, as the grid marks it.
+        new("sell_price",      IndustryText.ColSellPrice,     r => Isk(r.SellPrice) + (r.HasSellOrders ? "" : " *"), r => r.SellPrice, true),
+        new("profit_unit",     IndustryText.ColProfitUnit,    r => Isk(r.ProfitPerUnit),      r => r.ProfitPerUnit,   true),
         new("margin",          IndustryText.ColMargin,        r => r.MarginDisplay,           r => r.Margin,          true),
         new("build_time",      IndustryText.ColBuildTime,     r => r.BuildTimeDisplay,        r => r.BuildSeconds,    true),
         new("slot_days",       IndustryText.ColSlotDays,      r => r.SlotDaysDisplay,         r => r.SlotDays,        true),
-        new("profit_slot_day", IndustryText.ColProfitSlotDay, r => r.ProfitPerSlotDayDisplay, r => r.ProfitPerSlotDay, true),
+        new("profit_slot_day", IndustryText.ColProfitSlotDay, r => Isk(r.ProfitPerSlotDay),   r => r.ProfitPerSlotDay, true),
         new("units_30d",       IndustryText.ColUnitsSold30d,  r => r.UnitVol30dDisplay,       r => r.UnitVol30d,      true),
-        new("avg_price_30d",   IndustryText.ColAvgPrice30d,   r => r.AvgPrice30dDisplay,      r => r.AvgPrice30d,     true),
+        new("avg_price_30d",   IndustryText.ColAvgPrice30d,   r => r.HasSales30d ? Isk(r.AvgPrice30d) : "–", r => r.AvgPrice30d, true),
         new("margin_30d",      IndustryText.ColMargin30d,     r => r.Margin30dDisplay,        r => r.Margin30d,       true),
-        new("sales_30d",       IndustryText.ColIskSold30d,    r => r.IskVol30dDisplay,        r => r.IskVol30d,       true),
-        new("profit_30d",      IndustryText.ColProfit30d,     r => r.Profit30dDisplay,        r => r.Profit30d,       true),
+        new("sales_30d",       IndustryText.ColIskSold30d,    r => Isk(r.IskVol30d),          r => r.IskVol30d,       true),
+        new("profit_30d",      IndustryText.ColProfit30d,     r => r.HasSales30d ? Isk(r.Profit30d) : "–", r => r.Profit30d, true),
     ];
+
+    /// <summary>ISK as T, B, M or K with two decimals, and as it is under a thousand.</summary>
+    public static string Isk(double v)
+    {
+        var abs  = Math.Abs(v);
+        var sign = v < 0 ? "-" : "";
+        return abs switch
+        {
+            >= 1_000_000_000_000 => $"{sign}{abs / 1_000_000_000_000:N2}T",
+            >= 1_000_000_000     => $"{sign}{abs / 1_000_000_000:N2}B",
+            >= 1_000_000         => $"{sign}{abs / 1_000_000:N2}M",
+            >= 1_000             => $"{sign}{abs / 1_000:N2}K",
+            _                    => $"{sign}{abs:N2}",
+        };
+    }
 
     /// <summary>What a new section prints: what it is, what it makes, and whether it sells.</summary>
     public static readonly string[] DefaultColumns = [Item, "profit_unit", "margin", "units_30d", "sales_30d"];
@@ -72,19 +89,21 @@ public static class IndustryOppsReport
     }
 
     /// <summary>
-    /// The table. The item always comes first, then the columns asked for in the grid's order.
-    /// Nothing at all for no rows.
+    /// The table. The item always comes first, then the columns asked for in the order given,
+    /// each under its renamed header if it has one. Nothing at all for no rows.
     /// </summary>
     public static string Export(
         IReadOnlyList<IndustryRow> rows, IEnumerable<string> columnKeys, string heading,
-        bool showHeaders, string formatName = "Slack")
+        bool showHeaders, string formatName = "Slack", IReadOnlyDictionary<string, string>? headerNames = null)
     {
         if (rows.Count == 0) return "";
 
-        var want = columnKeys.ToHashSet();
-        var cols = Columns.Where(c => c.Key == Item || want.Contains(c.Key)).ToList();
+        var byKey = Columns.ToDictionary(c => c.Key);
+        var cols  = new List<Column> { byKey[Item] };
+        foreach (var key in columnKeys.Distinct())
+            if (key != Item && byKey.TryGetValue(key, out var c)) cols.Add(c);
 
-        var headers = cols.Select(c => c.Header).ToArray();
+        var headers = cols.Select(c => headerNames?.GetValueOrDefault(c.Key) is { Length: > 0 } named ? named : c.Header).ToArray();
         var aligns  = cols.Select(c => c.Right).ToArray();
         var cells   = rows.Select(r => cols.Select(c => c.Cell(r)).ToArray()).ToList();
 

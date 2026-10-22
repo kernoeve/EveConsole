@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Columnas</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Añadir columna</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>El encabezado que muestra esta columna en la publicación. Déjalo como está, o vacío, para usar el propio de la columna.</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>El objeto es siempre la primera columna.</value>
+    <value>El objeto es siempre la primera columna. Un encabezado que no se cambia sigue el idioma de la interfaz; escribe encima para renombrarlo.</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>Ordenar por</value>

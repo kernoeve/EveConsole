@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>添加列</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>此列在帖子中显示的标题。保持不变或留空即使用该列自己的标题。</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>物品始终是第一列。</value>
+    <value>物品始终是第一列。保持不变的标题会随界面语言变化；直接改写即可重命名。</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>排序依据</value>

@@ -557,19 +557,33 @@
 
                                 <StackPanel Spacing="3">
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ColumnsLabel}" />
-                                  <ItemsControl ItemsSource="{Binding OppsColumns}">
-                                    <ItemsControl.ItemsPanel>
-                                      <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                      </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
+                                  <!-- One row per column, in the order printed: its name, the header it
+                                       prints, and up, down, remove. The item stays first. -->
+                                  <ItemsControl ItemsSource="{Binding OppsTable}">
                                     <ItemsControl.ItemTemplate>
-                                      <DataTemplate x:DataType="vm:CategoryChoice">
-                                        <CheckBox IsChecked="{Binding Selected}" Content="{Binding Title}"
-                                                  Margin="0 0 12 0" />
+                                      <DataTemplate x:DataType="vm:OppsColumnVm">
+                                        <Grid ColumnDefinitions="130,*,Auto" Margin="0 0 0 3">
+                                          <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"
+                                                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                     TextTrimming="CharacterEllipsis" Margin="2 0 8 0" />
+                                          <TextBox Grid.Column="1" Text="{Binding Header}" Watermark="{Binding Name}"
+                                                   ToolTip.Tip="{x:Static loc:AlarmsText.TipColumnHeader}" />
+                                          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0"
+                                                      IsVisible="{Binding CanMove}">
+                                            <Button Classes="small" Content="↑" Command="{Binding MoveUpCommand}" />
+                                            <Button Classes="small" Content="↓" Command="{Binding MoveDownCommand}" />
+                                            <Button Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                                                    Command="{Binding RemoveCommand}" />
+                                          </StackPanel>
+                                        </Grid>
                                       </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                   </ItemsControl>
+                                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding OppsAddable.Count}">
+                                    <ComboBox ItemsSource="{Binding OppsAddable}" SelectedItem="{Binding OppsToAdd}" Width="200" />
+                                    <Button Classes="small" Content="{x:Static loc:AlarmsText.AddColumn}" Padding="10 3"
+                                            Command="{Binding AddOppsColumnCommand}" />
+                                  </StackPanel>
                                   <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
                                 </StackPanel>
 

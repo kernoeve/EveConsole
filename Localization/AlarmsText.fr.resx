@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Colonnes</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Ajouter la colonne</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>L'en-tête que cette colonne affiche dans la publication. Laissez-le tel quel, ou vide, pour garder celui de la colonne.</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>L'objet est toujours la première colonne.</value>
+    <value>L'objet est toujours la première colonne. Un en-tête laissé tel quel suit la langue de l'interface ; écrivez par-dessus pour le renommer.</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>Trier par</value>

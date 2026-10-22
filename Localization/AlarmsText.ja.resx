@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>列を追加</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>この列が投稿で表示する見出しです。そのまま、または空欄にすると列本来の見出しになります。</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>アイテムは常に最初の列です。</value>
+    <value>アイテムは常に最初の列です。変更しない見出しはインターフェイスの言語に従います。上書きすると名前を変更できます。</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>並べ替え</value>

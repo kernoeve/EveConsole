@@ -174,8 +174,15 @@ public sealed class MessageBlock
     public List<int> OppsIncludedGroupIds { get; set; } = [];
 
     /// <summary>Industry Ops blocks: the columns printed after the item, by key (see
-    /// IndustryOppsReport.Columns); the sort column and direction; how many rows, 0 for all.</summary>
+    /// IndustryOppsReport.Columns), in the order printed; the sort column and direction; how
+    /// many rows, 0 for all.</summary>
     public List<string> OppsColumns { get; set; } = [];
+
+    /// <summary>
+    /// Industry Ops blocks: headers renamed, by column key, the item ("item") included. A column
+    /// not here prints its own header, in the interface language of the moment.
+    /// </summary>
+    public Dictionary<string, string> OppsHeaders { get; set; } = [];
     public string OppsSortBy        { get; set; } = IndustryOppsReport.DefaultSort;
     public bool   OppsSortDescending { get; set; } = true;
     public int    OppsRowLimit       { get; set; } = 10;
@@ -614,7 +621,7 @@ public class ScheduledBlockRenderer(
         if (result is null || result.NoRegion) return "";
 
         var top = IndustryOppsReport.Top(result.Rows, b.OppsSortBy, b.OppsSortDescending, b.OppsRowLimit);
-        return IndustryOppsReport.Export(top, b.OppsColumns, b.SectionTitle, b.ShowHeaders, formatName);
+        return IndustryOppsReport.Export(top, b.OppsColumns, b.SectionTitle, b.ShowHeaders, formatName, b.OppsHeaders);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Spalten</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Spalte hinzufügen</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>Die Überschrift, die diese Spalte im Beitrag zeigt. Unverändert oder leer gelassen gilt die eigene der Spalte.</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>Der Gegenstand ist immer die erste Spalte.</value>
+    <value>Der Gegenstand ist immer die erste Spalte. Eine unveränderte Überschrift folgt der Oberflächensprache; zum Umbenennen einfach überschreiben.</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>Sortieren nach</value>

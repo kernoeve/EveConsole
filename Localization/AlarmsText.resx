@@ -532,8 +532,16 @@
     <value>COLUMNS</value>
     <comment>Scheduler, Industry Ops section: label over the tick boxes choosing the table's columns.</comment>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Add column</value>
+    <comment>Scheduler, Industry Ops section: button adding the column picked in the dropdown beside it.</comment>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>The header this column prints in the post. Leave it as it is, or blank, for the column's own.</value>
+    <comment>Scheduler, Industry Ops section: tooltip of a column's header box.</comment>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>The item is always the first column.</value>
+    <value>The item is always the first column. A header left as it is follows the interface language; type over it to rename it.</value>
     <comment>Scheduler, Industry Ops section: note under the column tick boxes.</comment>
   </data>
   <data name="SortByLabel" xml:space="preserve">

@@ -400,8 +400,14 @@
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Столбцы</value>
   </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Добавить столбец</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>Заголовок, который этот столбец показывает в сообщении. Оставьте как есть или пустым, чтобы использовать собственный заголовок столбца.</value>
+  </data>
   <data name="OppsItemAlwaysNote" xml:space="preserve">
-    <value>Предмет — всегда первый столбец.</value>
+    <value>Предмет — всегда первый столбец. Неизменённый заголовок следует языку интерфейса; чтобы переименовать, просто впишите свой.</value>
   </data>
   <data name="SortByLabel" xml:space="preserve">
     <value>Сортировать по</value>
