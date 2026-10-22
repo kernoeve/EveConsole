@@ -201,11 +201,11 @@
     <comment>Indy Parks, Compare tab: label over the dropdown of parks to compare.</comment>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>Items to compare</value>
+    <value>Jobs to compare</value>
     <comment>Indy Parks, Compare tab: label over the job list.</comment>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>Type an item to add…</value>
+    <value>Type an item or blueprint to add…</value>
     <comment>Indy Parks, Compare tab: watermark of the search box that adds items.</comment>
   </data>
   <data name="CompareUnits" xml:space="preserve">
@@ -261,7 +261,7 @@
     <comment>Indy Parks, Compare tab: an item this park's plan does not build (bought, or no usable blueprint).</comment>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>Add items, tick the parks to compare, then Calculate.</value>
+    <value>Add items or blueprints, pick each one's operation, tick the parks to compare, then Calculate.</value>
     <comment>Indy Parks, Compare tab: status line before the first calculation.</comment>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
@@ -284,10 +284,6 @@
     <value>All items together</value>
     <comment>Indy Parks, Compare tab: the chart choice summing the whole job list.</comment>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>Over time</value>
-    <comment>Indy Parks, Compare tab: label beside the chart's item choice.</comment>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>No system cost index history for these parks' systems yet.</value>
     <comment>Indy Parks, Compare tab: note where the chart would be, with no index history.</comment>
@@ -299,6 +295,122 @@
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>The chart draws the first {0}; the table lists them all.</value>
     <comment>Indy Parks, Compare tab: added to the chart note when there are more lines than colours. {0} the number drawn.</comment>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Indy Parks Compare: operation dropdown, build what the item or blueprint makes.</comment>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Compare operation: blueprint copying.</comment>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>Compare operation: invention.</comment>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME research</value>
+    <comment>Compare operation: material efficiency research.</comment>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE research</value>
+    <comment>Compare operation: time efficiency research.</comment>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Compare, copy line: label of the box for runs on each copy.</comment>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Runs wanted</value>
+    <comment>Compare, invention line: label of the box for runs of the invented blueprint wanted.</comment>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Copies</value>
+    <comment>Compare, copy line: label of the box for the number of copies.</comment>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>To ME</value>
+    <comment>Compare, ME research line: label of the box for the ME level to research to.</comment>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>To TE %</value>
+    <comment>Compare, TE research line: label of the box for the TE percent to research to.</comment>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Runs on each copy.</value>
+    <comment>Tooltip on the copy line's runs box.</comment>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Runs of the invented blueprint wanted. Enough attempts are planned to expect that many, with skills at V, as the Worklist plans them.</value>
+    <comment>Tooltip on the invention line's runs box.</comment>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>How many copies.</value>
+    <comment>Tooltip on the copy line's copies box.</comment>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>The ME to research to, 1 to 10, starting from ME 0.</value>
+    <comment>Tooltip on the ME research line's box.</comment>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>The TE to research to, 2 to 20 percent, starting from TE 0.</value>
+    <comment>Tooltip on the TE research line's box.</comment>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>No decryptor</value>
+    <comment>Compare, invention line: the decryptor dropdown's first choice, and the detail column when none is used.</comment>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} ({1:0.##}× chance, {2:+0;-0;0} runs, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+    <comment>Compare, invention line: one decryptor in the dropdown. {0} name, {1} chance multiplier, {2} run modifier, {3} ME modifier, {4} TE modifier.</comment>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × {1}-run copies</value>
+    <comment>Compare, Detail column of a copy line. {0} copies, {1} runs on each.</comment>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} attempts at {1:P1} for {2} × {3}-run BPCs (ME {4}, TE {5}); {6} copy runs; {7}</value>
+    <comment>Compare, Detail column of an invention line. {0} attempts, {1} success chance, {2} successes needed, {3} runs per invented copy, {4} its ME, {5} its TE, {6} source copy runs, {7} decryptor name or 'No decryptor'.</comment>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+    <comment>Compare, Detail column of an ME research line. {0} target ME level.</comment>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+    <comment>Compare, Detail column of a TE research line. {0} target TE percent.</comment>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Operation</value>
+    <comment>Compare results grid: column header.</comment>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Time</value>
+    <comment>Compare results grid: column header, total job time.</comment>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Compare results grid: column header, what the line does in numbers.</comment>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Time is every job's duration added up, as if run one after another, with skills at V.</value>
+    <comment>Compare: note above the results grid, under the total note.</comment>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Charts for</value>
+    <comment>Compare: label of the dropdown choosing which line both charts show.</comment>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Cost with each day's indices</value>
+    <comment>Compare: title of the left chart, cost over time.</comment>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Job time per park</value>
+    <comment>Compare: title of the right chart, job time as a bar per park.</comment>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>Job time</value>
+    <comment>Compare: the time chart's one category label under the bars.</comment>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>Manufacturing</value>

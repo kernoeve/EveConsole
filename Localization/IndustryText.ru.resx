@@ -152,10 +152,10 @@
     <value>Парки</value>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>Предметы для сравнения</value>
+    <value>Работы для сравнения</value>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>Введите предмет для добавления…</value>
+    <value>Введите предмет или чертёж для добавления…</value>
   </data>
   <data name="CompareUnits" xml:space="preserve">
     <value>Единиц</value>
@@ -197,7 +197,7 @@
     <value>Здесь не строится</value>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>Добавьте предметы, отметьте парки для сравнения и нажмите «Рассчитать».</value>
+    <value>Добавьте предметы или чертежи, выберите операцию для каждого, отметьте парки для сравнения и нажмите «Рассчитать».</value>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
     <value>Добавьте хотя бы один предмет.</value>
@@ -214,9 +214,6 @@
   <data name="CompareAllItems" xml:space="preserve">
     <value>Все предметы вместе</value>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>Во времени</value>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>Для систем этих парков истории индексов стоимости пока нет.</value>
   </data>
@@ -225,6 +222,93 @@
   </data>
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>На графике — первые {0}; в таблице — все.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Изобретение</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Прогоны</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Нужно прогонов</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Копий</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>До ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>До TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Прогонов на каждой копии.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Нужное число прогонов изобретённого чертежа. Планируется столько попыток, чтобы ожидать столько, при всех навыках на V, как их планирует список работ.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>Сколько копий.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>До какого ME исследовать, от 1 до 10, начиная с ME 0.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>До какого TE исследовать, от 2 до 20 процентов, начиная с TE 0.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>Без декриптора</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} (шанс {1:0.##}×, прогоны {2:+0;-0;0}, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × копии по {1} прогонов</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} попыток при {1:P1} на {2} × BPC по {3} прогонов (ME {4}, TE {5}); {6} прогонов копирования; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Операция</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Время — сумма длительностей всех работ, как если бы они шли одна за другой, при навыках на V.</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Графики для</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Стоимость по индексам каждого дня</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Время работ по паркам</value>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>Время работ</value>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>Производство</value>

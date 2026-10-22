@@ -15,60 +15,205 @@ using SkiaSharp;
 
 namespace EveConsole.ViewModels;
 
-/// <summary>One line of the comparison's job list: an item, how many, at what ME.</summary>
+/// <summary>
+/// One line of the comparison's job list: an item or a blueprint, what to do with it, and that
+/// operation's numbers. A blueprint offers building what it makes, copying, invention (when it
+/// can be invented from) and ME and TE research; an item offers building only.
+/// </summary>
 public sealed class CompareJobVm : ReactiveObject
 {
-    public CompareJobVm(int typeId, string typeName, long quantity, int me, Action<CompareJobVm> remove, Action changed)
+    private readonly Action _changed;
+
+    public CompareJobVm(int typeId, string typeName, bool isBlueprint, bool inventable, CompareOp op,
+                        long quantity, int second, int decryptorTypeId,
+                        ObservableCollection<LabelledChoice> decryptors, Action<CompareJobVm> remove, Action changed)
     {
-        TypeId    = typeId;
-        TypeName  = typeName;
-        _quantity = Math.Max(1, quantity).ToString();
-        _me       = Math.Clamp(me, 0, 10).ToString();
+        TypeId      = typeId;
+        TypeName    = typeName;
+        IsBlueprint = isBlueprint;
+        Inventable  = inventable;
+        Decryptors  = decryptors;
+        _changed    = changed;
+
+        Operations = [new(nameof(CompareOp.Build), IndustryText.CompareOpBuild)];
+        if (isBlueprint)
+        {
+            Operations.Add(new(nameof(CompareOp.Copy), IndustryText.CompareOpCopy));
+            if (inventable) Operations.Add(new(nameof(CompareOp.Invention), IndustryText.CompareOpInvention));
+            Operations.Add(new(nameof(CompareOp.MeResearch), IndustryText.CompareOpMeResearch));
+            Operations.Add(new(nameof(CompareOp.TeResearch), IndustryText.CompareOpTeResearch));
+        }
+        _operation   = Operations.FirstOrDefault(o => o.Key == op.ToString()) ?? Operations[0];
+        _quantity    = Math.Max(1, quantity).ToString();
+        _second      = second.ToString();
+        _decryptorId = decryptorTypeId;
+
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
-        this.WhenAnyValue(x => x.QuantityText, x => x.MeText).Skip(1).Subscribe(_ => changed());
+        this.WhenAnyValue(x => x.QuantityText, x => x.SecondText).Skip(1).Subscribe(_ => changed());
     }
 
-    public int    TypeId   { get; }
-    public string TypeName { get; }
+    public int    TypeId      { get; }
+    public string TypeName    { get; }
+    public bool   IsBlueprint { get; }
+    public bool   Inventable  { get; }
     public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
-    // Boxes hold what was typed; a word reads as the default (1 unit, ME 10).
-    private string _quantity, _me;
-    public string QuantityText { get => _quantity; set => this.RaiseAndSetIfChanged(ref _quantity, value); }
-    public string MeText       { get => _me;       set => this.RaiseAndSetIfChanged(ref _me, value); }
+    public List<LabelledChoice> Operations { get; }
 
-    public long Quantity => long.TryParse(QuantityText.Replace(",", "").Trim(), out var q) && q > 0 ? q : 1;
-    public int  Me       => int.TryParse(MeText.Trim(), out var m) ? Math.Clamp(m, 0, 10) : 10;
+    private LabelledChoice _operation;
+    /// <summary>What to do. Changing it fills the boxes with that operation's starting numbers.</summary>
+    public LabelledChoice Operation
+    {
+        get => _operation;
+        set
+        {
+            if (value is null || value.Key == _operation.Key) return;
+            this.RaiseAndSetIfChanged(ref _operation, value);
+            (QuantityText, SecondText) = Op switch
+            {
+                CompareOp.Copy       => ("10", "1"),
+                CompareOp.Invention  => ("10", "0"),
+                CompareOp.MeResearch => ("1", "10"),
+                CompareOp.TeResearch => ("1", "20"),
+                _                    => ("1", "10"),
+            };
+            foreach (var n in new[] { nameof(Op), nameof(ShowQuantity), nameof(ShowSecond), nameof(ShowDecryptor),
+                                      nameof(QuantityLabel), nameof(SecondLabel), nameof(QuantityTip), nameof(SecondTip) })
+                this.RaisePropertyChanged(n);
+            _changed();
+        }
+    }
+
+    public CompareOp Op => Enum.TryParse<CompareOp>(Operation.Key, out var op) ? op : CompareOp.Build;
+
+    // The boxes hold what was typed; what they mean depends on the operation, and a word reads
+    // as the operation's default.
+    private string _quantity, _second;
+    public string QuantityText { get => _quantity; set => this.RaiseAndSetIfChanged(ref _quantity, value); }
+    public string SecondText   { get => _second;   set => this.RaiseAndSetIfChanged(ref _second, value); }
+
+    public bool ShowQuantity  => Op is CompareOp.Build or CompareOp.Copy or CompareOp.Invention;
+    public bool ShowSecond    => Op is not CompareOp.Invention;
+    public bool ShowDecryptor => Op is CompareOp.Invention;
+
+    public string QuantityLabel => Op switch
+    {
+        CompareOp.Copy      => IndustryText.CompareRunsPerCopy,
+        CompareOp.Invention => IndustryText.CompareRunsWanted,
+        _                   => IndustryText.CompareUnits,
+    };
+    public string SecondLabel => Op switch
+    {
+        CompareOp.Copy       => IndustryText.CompareCopies,
+        CompareOp.MeResearch => IndustryText.CompareToMe,
+        CompareOp.TeResearch => IndustryText.CompareToTe,
+        _                    => "ME",
+    };
+    public string QuantityTip => Op switch
+    {
+        CompareOp.Copy      => IndustryText.TipCompareRunsPerCopy,
+        CompareOp.Invention => IndustryText.TipCompareRunsWanted,
+        _                   => IndustryText.TipCompareUnits,
+    };
+    public string SecondTip => Op switch
+    {
+        CompareOp.Copy       => IndustryText.TipCompareCopies,
+        CompareOp.MeResearch => IndustryText.TipCompareToMe,
+        CompareOp.TeResearch => IndustryText.TipCompareToTe,
+        _                    => IndustryText.TipCompareMe,
+    };
+
+    /// <summary>"No decryptor", then every decryptor; shared by every line.</summary>
+    public ObservableCollection<LabelledChoice> Decryptors { get; }
+
+    private int _decryptorId;
+    public LabelledChoice? Decryptor
+    {
+        get => Decryptors.FirstOrDefault(d => d.Key == _decryptorId.ToString()) ?? Decryptors.FirstOrDefault();
+        set
+        {
+            if (value is null) return;   // the list refilling, not a choice
+            var id = int.TryParse(value.Key, out var v) ? v : 0;
+            if (id == _decryptorId) return;
+            _decryptorId = id;
+            this.RaisePropertyChanged();
+            _changed();
+        }
+    }
+
+    /// <summary>Called when the decryptor list arrives, so a saved choice shows.</summary>
+    public void DecryptorsLoaded() => this.RaisePropertyChanged(nameof(Decryptor));
+
+    private static long Number(string text, long fallback) =>
+        long.TryParse(text.Replace(",", "").Trim().TrimEnd('%'), out var v) && v > 0 ? v : fallback;
+
+    public long Quantity => Number(QuantityText, Op is CompareOp.Copy or CompareOp.Invention ? 10 : 1);
+
+    /// <summary>The second box: ME for a build, copies, the ME level, or the TE percent.</summary>
+    public int Second => Op switch
+    {
+        CompareOp.Build      => int.TryParse(SecondText.Trim(), out var me) ? Math.Clamp(me, 0, 10) : 10,
+        CompareOp.Copy       => (int)Math.Clamp(Number(SecondText, 1), 1, 1000),
+        CompareOp.MeResearch => (int)Math.Clamp(Number(SecondText, 10), 1, 10),
+        CompareOp.TeResearch => (int)Math.Clamp(Number(SecondText, 20), 2, 20),
+        _                    => 0,
+    };
+    public int DecryptorTypeId => _decryptorId;
+
+    /// <summary>The line as the service takes it. TE research is asked in percent, two a level.</summary>
+    public ParkCompareJob ToJob(int line) => new(TypeId, TypeName, Quantity,
+        Op == CompareOp.Build ? Second : 10, Op,
+        Copies:          Op == CompareOp.Copy ? Second : 1,
+        TargetLevel:     Op switch { CompareOp.MeResearch => Second, CompareOp.TeResearch => Second / 2, _ => 10 },
+        DecryptorTypeId: Op == CompareOp.Invention ? _decryptorId : 0,
+        Line:            line);
+
+    /// <summary>The line as the chart choice names it: the item, and the operation unless a build.</summary>
+    public string LineLabel => Op == CompareOp.Build ? DisplayName : $"{DisplayName} — {Operation.Label}";
 
     public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
 }
 
-/// <summary>One item in one park, as the results grid shows it.</summary>
+/// <summary>One line in one park, as the results grid shows it.</summary>
 public sealed class ParkCompareRowVm
 {
     public required ParkCost Cost { get; init; }
-    /// <summary>The cheapest park for this item.</summary>
+    public required string OperationLabel { get; init; }
+    /// <summary>The cheapest park for this line.</summary>
     public bool IsBest { get; init; }
     /// <summary>How much dearer than the cheapest, as a fraction; 0 for the cheapest.</summary>
     public double OverBest { get; init; }
+    /// <summary>The quickest park for this line.</summary>
+    public bool IsFastest { get; init; }
+    /// <summary>How much slower than the quickest, as a fraction; 0 for the quickest.</summary>
+    public double SlowerBy { get; init; }
 
     public string ItemName   => SdeNames.Type(Cost.Job.TypeId, Cost.Job.TypeName);
     public string ParkName   => Cost.ParkName;
     public long   Units      => Cost.Produced;
     public decimal Total     => Cost.Total;
     public decimal PerUnit   => Cost.PerUnit;
+    public double Seconds    => Cost.Seconds ?? double.MaxValue;
+    public string Detail     => Cost.Detail;
     public string UnitsText     => Cost.Buildable ? Units.ToString("N0") : "–";
     public string MaterialsText => Cost.Buildable ? MarketFmt.Isk((double)Cost.Materials) : "–";
     public string JobCostText   => Cost.Buildable ? MarketFmt.Isk((double)Cost.JobCost) : "–";
     public string LeftoversText => !Cost.Buildable ? "–" : Cost.Leftovers > 0 ? "−" + MarketFmt.Isk((double)Cost.Leftovers) : "0";
     public string TotalText     => Cost.Buildable ? MarketFmt.Isk((double)Cost.Total) : IndustryText.CompareNotBuilt;
     public string PerUnitText   => Cost.Buildable ? MarketFmt.Isk((double)Cost.PerUnit) : "–";
-    public string OverBestText  => !Cost.Buildable ? "" : IsBest ? IndustryText.CompareBest : $"+{OverBest:P1}";
+    public string OverBestText  => !Cost.Buildable ? "" : IsBest ? IndustryText.CompareBest : Over(OverBest);
+    public string TimeText      => Cost.Buildable && Cost.Seconds is { } s ? PlanTime.Format(s) : "–";
+    public string SlowerText    => !Cost.Buildable || Cost.Seconds is null ? "" : IsFastest ? IndustryText.CompareBest : Over(SlowerBy);
+
+    /// <summary>A gap under a tenth of a percent — invention, where materials swamp the job cost —
+    /// gets two decimals, so it does not read as a tie.</summary>
+    private static string Over(double fraction) => fraction < 0.001 ? $"+{fraction:P2}" : $"+{fraction:P1}";
 }
 
 /// <summary>
-/// Indy Parks, Compare: the same items built in every park ticked, side by side, and the cost
-/// again for each past day of system cost indices.
+/// Indy Parks, Compare: the same job list done in every park ticked — builds, copies, invention,
+/// research — side by side for cost and time, and the cost again for each past day of system
+/// cost indices.
 ///
 /// <para>The job list and the parks left unticked are remembered on this machine (UiState); a
 /// park defined later starts ticked, as all of them do.</para>
@@ -86,8 +231,9 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         _history   = history;
         _dbFactory = dbFactory;
 
+        Decryptors.Add(new LabelledChoice("0", IndustryText.CompareNoDecryptor));
+
         CalculateCommand = ReactiveCommand.CreateFromTask(CalculateAsync);
-        AddCommand       = ReactiveCommand.Create<ProdTypeSearchResult>(Add);
         CalculateCommand.ThrownExceptions.Subscribe(ex => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         LoadJobs();
@@ -98,7 +244,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(t => _ = SearchAsync(t ?? ""));
 
-        this.WhenAnyValue(x => x.ChartChoice).Skip(1).Subscribe(_ => BuildChart());
+        this.WhenAnyValue(x => x.ChartChoice).Skip(1).Subscribe(_ => BuildCharts());
     }
 
     // ── Parks ────────────────────────────────────────────────────────────────
@@ -107,7 +253,8 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     /// <summary>Every park, as one dropdown; all ticked unless unticked here before.</summary>
     public MultiChoice Parks { get => _parks; private set => this.RaiseAndSetIfChanged(ref _parks, value); }
 
-    /// <summary>The park list, read again — the tab is shown, or a park was added or renamed.</summary>
+    /// <summary>The park list, read again — the tab is shown, or a park was added or renamed. The
+    /// decryptors come with it, the first time.</summary>
     public async Task LoadParksAsync()
     {
         var parks = await Task.Run(() => _service.ParksAsync());
@@ -117,47 +264,70 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         choice.SelectionChanged += () => UiState.Set(UiState.IndyCompareParksOff,
             string.Join(",", choice.Items.Where(i => !i.Selected).Select(i => i.Key)));
         Parks = choice;
+
+        if (Decryptors.Count == 1)
+        {
+            await SdeNames.EnsureLoadedAsync();
+            var all = await Task.Run(() => _service.DecryptorsAsync());
+            foreach (var d in all.Select(d => (d, Name: SdeNames.Type(d.TypeId, d.Name))).OrderBy(x => x.Name, StringComparer.CurrentCulture))
+                Decryptors.Add(new LabelledChoice(d.d.TypeId.ToString(), string.Format(IndustryText.CompareDecryptorChoice,
+                    d.Name, d.d.ChanceMultiplier, d.d.RunModifier, d.d.MeModifier, d.d.TeModifier)));
+            foreach (var j in Jobs) j.DecryptorsLoaded();
+        }
     }
+
+    /// <summary>"No decryptor", then every decryptor with what it does.</summary>
+    public ObservableCollection<LabelledChoice> Decryptors { get; } = [];
 
     // ── The job list ─────────────────────────────────────────────────────────
 
     public ObservableCollection<CompareJobVm> Jobs { get; } = [];
 
-    private sealed record SavedJob(int T, string N, long Q, int Me);
+    // T type, N name, Q the first box, Me the second box (named for what it held first), Op the
+    // operation, D the decryptor, B a blueprint, I inventable from.
+    private sealed record SavedJob(int T, string N, long Q, int Me, string? Op = null, int D = 0, bool B = false, bool I = false);
 
     private void LoadJobs()
     {
         try
         {
             var saved = JsonSerializer.Deserialize<List<SavedJob>>(UiState.Get(UiState.IndyCompareJobs) ?? "[]") ?? [];
-            foreach (var s in saved) Jobs.Add(NewJob(s.T, s.N, s.Q, s.Me));
+            foreach (var s in saved)
+                Jobs.Add(NewJob(s.T, s.N, s.B, s.I, Enum.TryParse<CompareOp>(s.Op, out var op) ? op : CompareOp.Build, s.Q, s.Me, s.D));
         }
         catch (JsonException) { /* a list that cannot be read starts empty */ }
     }
 
     private void SaveJobs() => UiState.Set(UiState.IndyCompareJobs,
-        JsonSerializer.Serialize(Jobs.Select(j => new SavedJob(j.TypeId, j.TypeName, j.Quantity, j.Me))));
+        JsonSerializer.Serialize(Jobs.Select(j => new SavedJob(j.TypeId, j.TypeName, j.Quantity, j.Second, j.Op.ToString(),
+                                                               j.DecryptorTypeId, j.IsBlueprint, j.Inventable))));
 
-    private CompareJobVm NewJob(int typeId, string name, long quantity, int me) =>
-        new(typeId, name, quantity, me, j => { Jobs.Remove(j); SaveJobs(); }, SaveJobs);
-
-    public ReactiveCommand<ProdTypeSearchResult, Unit> AddCommand { get; }
+    private CompareJobVm NewJob(int typeId, string name, bool isBlueprint, bool inventable, CompareOp op, long quantity, int second, int decryptor) =>
+        new(typeId, name, isBlueprint, inventable, op, quantity, second, decryptor, Decryptors, j => { Jobs.Remove(j); SaveJobs(); }, SaveJobs);
 
     /// <summary>A search result picked: added to the list, after the click that picked it.</summary>
     public ProdTypeSearchResult? PickedResult
     {
         get => null;
-        set { if (value is { } pick) Avalonia.Threading.Dispatcher.UIThread.Post(() => Add(pick)); }
+        set { if (value is { } pick) Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = AddAsync(pick)); }
     }
 
-    private void Add(ProdTypeSearchResult pick)
+    /// <summary>
+    /// Adds a line. A blueprint starts on copying, an item on building. The same blueprint may
+    /// be listed more than once, each line its own operation.
+    /// </summary>
+    private async Task AddAsync(ProdTypeSearchResult pick)
     {
-        if (Jobs.All(j => j.TypeId != pick.TypeId)) Jobs.Add(NewJob(pick.TypeId, pick.TypeName, 1, 10));
-        SaveJobs();
         SearchText = "";
+        var bps  = await Task.Run(() => _service.BlueprintsAsync([pick.TypeId]));
+        var isBp = bps.TryGetValue(pick.TypeId, out var bp);
+        if (!isBp && Jobs.Any(j => j.TypeId == pick.TypeId)) return;
+        Jobs.Add(NewJob(pick.TypeId, pick.TypeName, isBp, bp.Inventable,
+                        isBp ? CompareOp.Copy : CompareOp.Build, isBp ? 10 : 1, isBp ? 1 : 10, 0));
+        SaveJobs();
     }
 
-    // ── Search: only what can be built ───────────────────────────────────────
+    // ── Search: what can be built, and blueprints ────────────────────────────
 
     private string _searchText = "";
     public string SearchText { get => _searchText; set => this.RaiseAndSetIfChanged(ref _searchText, value); }
@@ -178,13 +348,15 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         var matches = await Task.Run(async () =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-            // As the Production Calculator offers them: the products of a manufacturing or reaction blueprint.
+            // The products of a manufacturing or reaction blueprint, as the Production Calculator
+            // offers them, and the blueprints themselves, for copying, invention and research.
             return await db.SdeTypes.AsNoTracking()
                 .Where(t => t.Published
                          && (EF.Functions.Like(t.Name, $"%{text}%") || shownIds.Contains(t.TypeId))
-                         && db.SdeBlueprintProducts.Any(p => p.ProductTypeId == t.TypeId
-                                && (p.Activity == "manufacturing" || p.Activity == "reaction")))
-                .OrderBy(t => t.Name).Take(50)
+                         && (db.SdeBlueprintProducts.Any(p => p.ProductTypeId == t.TypeId
+                                && (p.Activity == "manufacturing" || p.Activity == "reaction"))
+                             || db.SdeBlueprints.Any(b => b.TypeId == t.TypeId)))
+                .OrderBy(t => t.Name).Take(60)
                 .Select(t => new { t.TypeId, t.Name }).ToListAsync();
         });
         if (SearchText.Trim() != text) return;   // typed on since
@@ -219,7 +391,8 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         var parks = slots.Where(p => p.Selected).Select(p => (p.Id, p.Title, p.Slot)).ToList();
         if (parks.Count == 0) { StatusText = IndustryText.CompareErrNoParks; return; }
 
-        var jobs = Jobs.Select(j => new ParkCompareJob(j.TypeId, j.TypeName, j.Quantity, j.Me)).ToList();
+        var lines = Jobs.ToList();
+        var jobs  = lines.Select((j, i) => j.ToJob(i)).ToList();
         IsCalculating = true;
         StatusText    = IndustryText.CompareCalculating;
         try
@@ -231,32 +404,38 @@ public sealed class ParkComparisonViewModel : ReactiveObject
             _indexHistory  = await Task.Run(() => _history.DailyAsync(systems, activities));
 
             Results.Clear();
-            foreach (var item in _costs.GroupBy(c => c.Job.TypeId))
+            foreach (var line in _costs.GroupBy(c => c.Job.Line))
             {
-                var best = item.Where(c => c.Buildable).Select(c => c.Total).DefaultIfEmpty(0).Min();
-                foreach (var c in item.OrderBy(c => !c.Buildable).ThenBy(c => c.Total))
+                var done    = line.Where(c => c.Buildable).ToList();
+                var best    = done.Select(c => c.Total).DefaultIfEmpty(0).Min();
+                var fastest = done.Where(c => c.Seconds is not null).Select(c => c.Seconds!.Value).DefaultIfEmpty(0).Min();
+                var opLabel = lines[line.Key].Operation.Label;
+                foreach (var c in line.OrderBy(c => !c.Buildable).ThenBy(c => c.Total))
                     Results.Add(new ParkCompareRowVm
                     {
-                        Cost     = c,
-                        IsBest   = c.Buildable && c.Total == best,
-                        OverBest = c.Buildable && best > 0 ? (double)((c.Total - best) / best) : 0,
+                        Cost           = c,
+                        OperationLabel = opLabel,
+                        IsBest         = c.Buildable && c.Total == best,
+                        OverBest       = c.Buildable && best > 0 ? (double)((c.Total - best) / best) : 0,
+                        IsFastest      = c.Buildable && c.Seconds == fastest,
+                        SlowerBy       = c.Buildable && c.Seconds is { } s && fastest > 0 ? (s - fastest) / fastest : 0,
                     });
             }
 
             ChartChoices.Clear();
             ChartChoices.Add(new LabelledChoice("", IndustryText.CompareAllItems));
-            foreach (var j in Jobs) ChartChoices.Add(new LabelledChoice(j.TypeId.ToString(), j.DisplayName));
+            for (var i = 0; i < lines.Count; i++) ChartChoices.Add(new LabelledChoice(i.ToString(), lines[i].LineLabel));
             ChartChoice = ChartChoices[0];
-            BuildChart();
+            BuildCharts();
 
             StatusText = string.Format(IndustryText.CompareStatusDone, jobs.Count, parks.Count);
         }
         finally { IsCalculating = false; }
     }
 
-    // ── The chart: today's plan, past days' indices ──────────────────────────
+    // ── The charts: cost over time, and time per park ────────────────────────
 
-    /// <summary>All items together, or one of them.</summary>
+    /// <summary>All lines together, or one of them; both charts follow it.</summary>
     public ObservableCollection<LabelledChoice> ChartChoices { get; } = [];
 
     private LabelledChoice? _chartChoice;
@@ -271,27 +450,47 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     private Axis[] _yAxes = [new Axis()];
     public Axis[] YAxes { get => _yAxes; private set => this.RaiseAndSetIfChanged(ref _yAxes, value); }
 
+    private ISeries[] _timeSeries = [];
+    public ISeries[] TimeSeries { get => _timeSeries; private set => this.RaiseAndSetIfChanged(ref _timeSeries, value); }
+
+    private Axis[] _timeXAxes = [new Axis()];
+    public Axis[] TimeXAxes { get => _timeXAxes; private set => this.RaiseAndSetIfChanged(ref _timeXAxes, value); }
+
+    private Axis[] _timeYAxes = [new Axis()];
+    public Axis[] TimeYAxes { get => _timeYAxes; private set => this.RaiseAndSetIfChanged(ref _timeYAxes, value); }
+
     public SolidColorPaint LegendPaint     => ChartPaint.Labels;
     public SolidColorPaint LegendBackPaint { get; } = new(Palette.Sk("SurfacePanel"));
 
     private string _chartNote = "";
     public string ChartNote { get => _chartNote; private set => this.RaiseAndSetIfChanged(ref _chartNote, value); }
 
-    public bool HasChart => Series.Length > 0;
+    public bool HasChart     => Series.Length > 0;
+    public bool HasTimeChart => TimeSeries.Length > 0;
 
-    /// <summary>
-    /// One line per park: the chosen item, or the whole list, costed with each day's indices.
-    /// Days are those the history has for any of the systems involved; a day a system's index
-    /// is missing carries its last known value forward.
-    /// </summary>
-    private void BuildChart()
+    private void BuildCharts()
     {
-        var typeFilter = ChartChoice is { Key.Length: > 0 } c ? int.Parse(c.Key) : (int?)null;
-        var byPark = _costs.Where(x => x.Buildable && (typeFilter is null || x.Job.TypeId == typeFilter))
+        var lineFilter = ChartChoice is { Key.Length: > 0 } c ? int.Parse(c.Key) : (int?)null;
+        var byPark = _costs.Where(x => x.Buildable && (lineFilter is null || x.Job.Line == lineFilter))
                            .GroupBy(x => (x.ParkId, x.ParkName, x.Slot))
                            .OrderBy(g => g.Key.Slot)
                            .ToList();
+        var drawn = byPark.Where(g => g.Key.Slot < ChartPaint.MaxSeries).ToList();
+        BuildCostChart(byPark, drawn);
+        BuildTimeChart(drawn);
+        this.RaisePropertyChanged(nameof(HasChart));
+        this.RaisePropertyChanged(nameof(HasTimeChart));
+    }
 
+    /// <summary>
+    /// One line per park: the chosen line, or all of them, costed with each day's indices. Days
+    /// are those the history has for any of the systems involved; a day a system's index is
+    /// missing carries its last known value forward.
+    /// </summary>
+    private void BuildCostChart(
+        List<IGrouping<(int ParkId, string ParkName, int Slot), ParkCost>> byPark,
+        List<IGrouping<(int ParkId, string ParkName, int Slot), ParkCost>> drawn)
+    {
         var keys = byPark.SelectMany(g => g).SelectMany(x => x.Terms).Select(t => (t.SystemId, t.Activity)).Distinct().ToList();
         var days = keys.SelectMany(k => _indexHistory.TryGetValue(k, out var s) ? s.Keys : Enumerable.Empty<DateOnly>())
                        .Distinct().OrderBy(d => d).ToList();
@@ -300,19 +499,23 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         {
             Series    = [];
             ChartNote = _costs.Count == 0 ? "" : IndustryText.CompareNoHistory;
-            this.RaisePropertyChanged(nameof(HasChart));
             return;
         }
 
-        var drawn = byPark.Where(g => g.Key.Slot < ChartPaint.MaxSeries).ToList();
-        Series = drawn.Select(g => (ISeries)new LineSeries<double?>
+        var lines = drawn.Select(g => (g.Key, Values: days.Select(d => (double?)(double)g.Sum(x => ParkComparisonService.TotalAt(x,
+                              (sys, act) => CostIndexHistoryService.On(_indexHistory.GetValueOrDefault((sys, act)), d)))).ToArray())).ToList();
+        // Where the index moves the total by under 2% (invention: materials swamp the job cost),
+        // abbreviated ISK would label every gridline the same; whole ISK tells them apart.
+        var all  = lines.SelectMany(l => l.Values).OfType<double>().DefaultIfEmpty(0).ToList();
+        var flat = all.Max() > 0 && (all.Max() - all.Min()) < 0.02 * all.Max();
+
+        Series = lines.Select(l => (ISeries)new LineSeries<double?>
         {
-            Name           = g.Key.ParkName,
-            Values         = days.Select(d => (double?)(double)g.Sum(x => ParkComparisonService.TotalAt(x,
-                                  (sys, act) => CostIndexHistoryService.On(_indexHistory.GetValueOrDefault((sys, act)), d)))).ToArray(),
+            Name           = l.Key.ParkName,
+            Values         = l.Values,
             GeometrySize   = 0,
             LineSmoothness = 0,
-            Stroke         = ChartPaint.Series(g.Key.Slot),
+            Stroke         = ChartPaint.Series(l.Key.Slot),
             Fill           = null,
         }).ToArray();
 
@@ -323,7 +526,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
                 Labels          = days.Select(d => d.ToString("MM-dd")).ToArray(),
                 LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
-                MinStep         = Math.Max(1, days.Count / 10),
+                MinStep         = Math.Max(1, days.Count / 6),
                 SeparatorsPaint = null,
             },
         ];
@@ -331,7 +534,7 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         [
             new Axis
             {
-                Labeler         = v => MarketFmt.Isk(v),
+                Labeler         = v => flat ? v.ToString("N0") : MarketFmt.Isk(v),
                 LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
                 SeparatorsPaint = ChartPaint.Separators,
@@ -341,6 +544,49 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         var left = byPark.Count - drawn.Count;
         ChartNote = string.Format(IndustryText.CompareChartNote, days[0], days[^1])
                   + (left > 0 ? "  " + string.Format(IndustryText.CompareChartTooMany, ChartPaint.MaxSeries) : "");
-        this.RaisePropertyChanged(nameof(HasChart));
+    }
+
+    /// <summary>
+    /// A bar per park, in the park's colour on the cost chart: the job time of the chosen line,
+    /// or of all of them end to end. A park with a line whose time is unknown is left off.
+    /// </summary>
+    private void BuildTimeChart(List<IGrouping<(int ParkId, string ParkName, int Slot), ParkCost>> drawn)
+    {
+        var timed = drawn.Where(g => g.All(x => x.Seconds is not null)).ToList();
+        if (timed.Count == 0) { TimeSeries = []; return; }
+
+        TimeSeries = timed.Select(g => (ISeries)new ColumnSeries<double>
+        {
+            Name        = g.Key.ParkName,
+            Values      = [g.Sum(x => x.Seconds!.Value) / 3600.0],
+            Fill        = new SolidColorPaint(SKColor.Parse(ChartPaint.SeriesHex[g.Key.Slot])),
+            Stroke      = null,
+            MaxBarWidth = 48,
+            Padding     = 4,
+            Rx          = 3,
+            Ry          = 3,
+        }).ToArray();
+
+        TimeXAxes =
+        [
+            new Axis
+            {
+                Labels          = [IndustryText.CompareTimeAxis],
+                LabelsPaint     = ChartPaint.Labels,
+                TextSize        = 10,
+                SeparatorsPaint = null,
+            },
+        ];
+        TimeYAxes =
+        [
+            new Axis
+            {
+                Labeler         = v => v <= 0 ? "0" : PlanTime.Format(v * 3600),
+                LabelsPaint     = ChartPaint.Labels,
+                TextSize        = 10,
+                MinLimit        = 0,
+                SeparatorsPaint = ChartPaint.Separators,
+            },
+        ];
     }
 }

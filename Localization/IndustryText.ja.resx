@@ -152,10 +152,10 @@
     <value>パーク</value>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>比較するアイテム</value>
+    <value>比較するジョブ</value>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>追加するアイテムを入力…</value>
+    <value>追加するアイテムか設計図を入力…</value>
   </data>
   <data name="CompareUnits" xml:space="preserve">
     <value>数量</value>
@@ -197,7 +197,7 @@
     <value>ここでは製造しない</value>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>アイテムを追加し、比較するパークにチェックを入れて計算します。</value>
+    <value>アイテムか設計図を追加し、それぞれの作業を選び、比較するパークにチェックを入れて計算します。</value>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
     <value>アイテムを少なくとも 1 つ追加してください。</value>
@@ -214,9 +214,6 @@
   <data name="CompareAllItems" xml:space="preserve">
     <value>全アイテムの合計</value>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>推移</value>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>これらのパークの星系にはまだコスト指数の履歴がありません。</value>
   </data>
@@ -225,6 +222,93 @@
   </data>
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>グラフは最初の {0} 件のみ描きます。表にはすべて表示されます。</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>発明</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME 研究</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE 研究</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>ラン</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>必要ラン</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>コピー数</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>目標 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>目標 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>コピー 1 枚あたりのラン数。</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>発明される設計図の必要ラン数。スキルをすべて V として、その数が見込めるだけの試行を作業リストと同じ方法で計画します。</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>コピーの枚数。</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>研究する目標 ME（1〜10）。ME 0 から始めます。</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>研究する目標 TE（2〜20%）。TE 0 から始めます。</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>デクリプターなし</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}（確率 {1:0.##}×、ラン {2:+0;-0;0}、ME {3:+0;-0;0}、TE {4:+0;-0;0}）</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} 枚 × {1} ランのコピー</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} 回の試行（成功率 {1:P1}）で {2} × {3} ランの BPC（ME {4}、TE {5}）；コピー {6} ラン；{7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>作業</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>時間はすべてのジョブの所要時間の合計です（順に実行した場合、スキルはすべて V）。</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>グラフの対象</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>各日の指数で計算したコスト</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>パークごとのジョブ時間</value>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>ジョブ時間</value>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>製造</value>

@@ -152,10 +152,10 @@
     <value>园区</value>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>要比较的物品</value>
+    <value>要比较的作业</value>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>输入要添加的物品…</value>
+    <value>输入要添加的物品或蓝图…</value>
   </data>
   <data name="CompareUnits" xml:space="preserve">
     <value>数量</value>
@@ -197,7 +197,7 @@
     <value>此处不制造</value>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>添加物品，勾选要比较的园区，然后点击计算。</value>
+    <value>添加物品或蓝图，为每项选择作业，勾选要比较的园区，然后点击计算。</value>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
     <value>请至少添加一个物品。</value>
@@ -214,9 +214,6 @@
   <data name="CompareAllItems" xml:space="preserve">
     <value>全部物品合计</value>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>随时间变化</value>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>这些园区所在星系暂无成本指数历史。</value>
   </data>
@@ -225,6 +222,93 @@
   </data>
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>图表只绘制前 {0} 条；表格列出全部。</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>材料效率研究</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>时间效率研究</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>所需流程</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>份数</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>目标 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>目标 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>每份拷贝的流程数。</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>所需的发明蓝图流程数。按全部技能 V 级计划足够的尝试次数以期望得到这么多，与工作清单的计划方式相同。</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>拷贝份数。</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>研究到的 ME，1 到 10，从 ME 0 开始。</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>研究到的 TE，2% 到 20%，从 TE 0 开始。</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>不使用解码器</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}（几率 {1:0.##}×，流程 {2:+0;-0;0}，ME {3:+0;-0;0}，TE {4:+0;-0;0}）</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} 份 × 每份 {1} 流程</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} 次尝试，成功率 {1:P1}，得到 {2} × {3} 流程拷贝（ME {4}，TE {5}）；拷贝 {6} 流程；{7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>作业</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>时间是所有作业时长之和，按依次运行计算，技能均为 V 级。</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>图表对象</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>按每日指数计算的成本</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>各园区作业时间</value>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>作业时间</value>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>制造</value>

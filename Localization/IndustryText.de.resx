@@ -152,10 +152,10 @@
     <value>Parks</value>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>Zu vergleichende Gegenstände</value>
+    <value>Zu vergleichende Jobs</value>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>Gegenstand zum Hinzufügen eingeben …</value>
+    <value>Gegenstand oder Blaupause zum Hinzufügen eingeben …</value>
   </data>
   <data name="CompareUnits" xml:space="preserve">
     <value>Einheiten</value>
@@ -197,7 +197,7 @@
     <value>Hier nicht gebaut</value>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>Gegenstände hinzufügen, die zu vergleichenden Parks ankreuzen, dann Berechnen.</value>
+    <value>Gegenstände oder Blaupausen hinzufügen, für jede den Vorgang wählen, die zu vergleichenden Parks ankreuzen, dann Berechnen.</value>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
     <value>Mindestens einen Gegenstand hinzufügen.</value>
@@ -214,9 +214,6 @@
   <data name="CompareAllItems" xml:space="preserve">
     <value>Alle Gegenstände zusammen</value>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>Im Zeitverlauf</value>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>Für die Systeme dieser Parks gibt es noch keinen Kostenindex-Verlauf.</value>
   </data>
@@ -225,6 +222,93 @@
   </data>
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>Das Diagramm zeigt die ersten {0}; die Tabelle listet alle.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Erfindung</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME-Forschung</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE-Forschung</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Läufe</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Gewünschte Läufe</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Kopien</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>Bis ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>Bis TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Läufe je Kopie.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Gewünschte Läufe der erfundenen Blaupause. Es werden so viele Versuche geplant, dass so viele zu erwarten sind, mit allen Skills auf V, wie die Arbeitsliste sie plant.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>Wie viele Kopien.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>Das ME, bis zu dem geforscht wird, 1 bis 10, ab ME 0.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>Das TE, bis zu dem geforscht wird, 2 bis 20 Prozent, ab TE 0.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>Kein Decryptor</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} ({1:0.##}× Chance, {2:+0;-0;0} Läufe, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × Kopie mit {1} Läufen</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} Versuche zu {1:P1} für {2} × BPC mit {3} Läufen (ME {4}, TE {5}); {6} Kopierläufe; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0 % → {0} %</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Vorgang</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Zeit</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Die Zeit ist die Summe aller Jobdauern, als liefen sie nacheinander, mit Skills auf V.</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Diagramme für</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Kosten mit den Indizes jedes Tages</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Jobzeit je Park</value>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>Jobzeit</value>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>Fertigung</value>

@@ -27,7 +27,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid ColumnDefinitions="340,1,*">
+  <Grid ColumnDefinitions="380,1,*">
 
     <!-- ── Left: parks and the job list ─────────────────────────────────── -->
     <DockPanel Grid.Column="0" Margin="12 10">
@@ -57,11 +57,6 @@
           </Border>
         </StackPanel>
 
-        <Grid ColumnDefinitions="*,70,46,Auto" IsVisible="{Binding Jobs.Count}">
-          <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.ColItem}" />
-          <TextBlock Grid.Column="1" Classes="flabel" Text="{x:Static loc:IndustryText.CompareUnits}" Margin="4 0" />
-          <TextBlock Grid.Column="2" Classes="flabel" Text="ME" Margin="4 0" />
-        </Grid>
       </StackPanel>
 
       <Button DockPanel.Dock="Bottom" Content="{x:Static loc:IndustryText.Calculate}" Command="{Binding CalculateCommand}"
@@ -73,16 +68,32 @@
         <ItemsControl ItemsSource="{Binding Jobs}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:CompareJobVm">
-              <Grid ColumnDefinitions="*,70,46,Auto" Margin="0 0 0 3">
-                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <TextBox Grid.Column="1" Text="{Binding QuantityText}" FontSize="12" Margin="4 0"
-                         ToolTip.Tip="{x:Static loc:IndustryText.TipCompareUnits}" />
-                <TextBox Grid.Column="2" Text="{Binding MeText}" FontSize="12" Margin="4 0"
-                         ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMe}" />
-                <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
-                        Command="{Binding RemoveCommand}" />
-              </Grid>
+              <!-- A line: the name, then the operation and its numbers, then (invention) the decryptor. -->
+              <Border Margin="0 0 0 5" Padding="6 4" CornerRadius="3"
+                      Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                <StackPanel Spacing="4">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <Button Grid.Column="1" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                            Command="{Binding RemoveCommand}" />
+                  </Grid>
+                  <Grid ColumnDefinitions="118,Auto,Auto">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Operations}" SelectedItem="{Binding Operation}"
+                              HorizontalAlignment="Stretch" FontSize="11.5" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowQuantity}">
+                      <TextBlock Classes="flabel" Text="{Binding QuantityLabel}" />
+                      <TextBox Text="{Binding QuantityText}" FontSize="12" Width="52" ToolTip.Tip="{Binding QuantityTip}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowSecond}">
+                      <TextBlock Classes="flabel" Text="{Binding SecondLabel}" />
+                      <TextBox Text="{Binding SecondText}" FontSize="12" Width="44" ToolTip.Tip="{Binding SecondTip}" />
+                    </StackPanel>
+                  </Grid>
+                  <ComboBox ItemsSource="{Binding Decryptors}" SelectedItem="{Binding Decryptor}" IsVisible="{Binding ShowDecryptor}"
+                            HorizontalAlignment="Stretch" FontSize="11.5" />
+                </StackPanel>
+              </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -91,11 +102,13 @@
 
     <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
-    <!-- ── Right: the costs, then the costs over time ──────────────────── -->
+    <!-- ── Right: the costs and times, then the two charts ──────────────── -->
     <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto,280" Margin="12 10">
       <StackPanel Grid.Row="0" Spacing="2" Margin="0 0 0 6">
         <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
         <TextBlock Text="{x:Static loc:IndustryText.CompareTotalNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
+                   TextWrapping="Wrap" IsVisible="{Binding Results.Count}" />
+        <TextBlock Text="{x:Static loc:IndustryText.CompareTimeNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
                    TextWrapping="Wrap" IsVisible="{Binding Results.Count}" />
       </StackPanel>
 
@@ -104,30 +117,51 @@
                 CanUserSortColumns="True" CanUserResizeColumns="True" CanUserReorderColumns="False"
                 Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.ColItem}"         Binding="{Binding ItemName}"      Width="*" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPark}"  Binding="{Binding ParkName}"      Width="160" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareUnits}"    Binding="{Binding UnitsText}"     SortMemberPath="Units"   Width="80" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColMaterials}" Binding="{Binding MaterialsText}" Width="110" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColJobCost}"   Binding="{Binding JobCostText}"   Width="100" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColLeftovers}" Binding="{Binding LeftoversText}" Width="100" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColTotal}"     Binding="{Binding TotalText}"     SortMemberPath="Total"   Width="110" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPerUnit}"   Binding="{Binding PerUnitText}"   SortMemberPath="PerUnit" Width="110" />
-          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColVsBest}"    Binding="{Binding OverBestText}"  SortMemberPath="OverBest" Width="90" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.ColItem}"             Binding="{Binding ItemName}"       Width="190" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColOperation}" Binding="{Binding OperationLabel}" Width="105" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPark}"      Binding="{Binding ParkName}"       Width="130" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareUnits}"        Binding="{Binding UnitsText}"      SortMemberPath="Units"    Width="75" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColMaterials}" Binding="{Binding MaterialsText}"  Width="100" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColJobCost}"   Binding="{Binding JobCostText}"    Width="95" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColLeftovers}" Binding="{Binding LeftoversText}"  Width="100" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColTotal}"     Binding="{Binding TotalText}"      SortMemberPath="Total"    Width="90" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColPerUnit}"   Binding="{Binding PerUnitText}"    SortMemberPath="PerUnit"  Width="90" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColVsBest}"    Binding="{Binding OverBestText}"   SortMemberPath="OverBest" Width="85" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColTime}"      Binding="{Binding TimeText}"       SortMemberPath="Seconds"  Width="80" />
+          <!-- The quickest park is Best here, as the cheapest is in the column before Time. -->
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColVsBest}"    Binding="{Binding SlowerText}"     SortMemberPath="SlowerBy" Width="85" />
+          <DataGridTextColumn Header="{x:Static loc:IndustryText.CompareColDetail}"    Binding="{Binding Detail}"         Width="SizeToCells" MinWidth="160" />
         </DataGrid.Columns>
       </DataGrid>
 
       <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0 10 0 4" IsVisible="{Binding ChartChoices.Count}">
-        <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.CompareOverTime}" Margin="0 0 10 0" />
+        <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.CompareChartsFor}" Margin="0 0 10 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding ChartChoices}" SelectedItem="{Binding ChartChoice}"
                   Width="280" HorizontalAlignment="Left" FontSize="12" />
       </Grid>
       <TextBlock Grid.Row="3" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
                  TextWrapping="Wrap" />
-      <lvc:CartesianChart Grid.Row="4" Series="{Binding Series}" IsVisible="{Binding HasChart}"
-                          XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
-                          LegendPosition="Bottom" LegendTextSize="11"
-                          LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
-                          EasingFunction="{x:Null}" Background="Transparent" />
+      <!-- Two charts side by side: cost with past indices, and job time; a park keeps its colour in both. -->
+      <Grid Grid.Row="4" ColumnDefinitions="*,12,*">
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" IsVisible="{Binding HasChart}">
+          <TextBlock Grid.Row="0" Text="{x:Static loc:IndustryText.CompareCostChartTitle}" FontSize="11" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextMutedBrush}" />
+          <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}"
+                              XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                              LegendPosition="Bottom" LegendTextSize="11"
+                              LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                              EasingFunction="{x:Null}" Background="Transparent" />
+        </Grid>
+        <Grid Grid.Column="2" RowDefinitions="Auto,*" IsVisible="{Binding HasTimeChart}">
+          <TextBlock Grid.Row="0" Text="{x:Static loc:IndustryText.CompareTimeChartTitle}" FontSize="11" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextMutedBrush}" />
+          <lvc:CartesianChart Grid.Row="1" Series="{Binding TimeSeries}"
+                              XAxes="{Binding TimeXAxes}" YAxes="{Binding TimeYAxes}"
+                              LegendPosition="Bottom" LegendTextSize="11"
+                              LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                              EasingFunction="{x:Null}" Background="Transparent" />
+        </Grid>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>

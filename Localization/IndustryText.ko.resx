@@ -152,10 +152,10 @@
     <value>파크</value>
   </data>
   <data name="CompareJobsLabel" xml:space="preserve">
-    <value>비교할 아이템</value>
+    <value>비교할 작업</value>
   </data>
   <data name="CompareSearchHint" xml:space="preserve">
-    <value>추가할 아이템 입력…</value>
+    <value>추가할 아이템이나 청사진 입력…</value>
   </data>
   <data name="CompareUnits" xml:space="preserve">
     <value>수량</value>
@@ -197,7 +197,7 @@
     <value>여기서 만들지 않음</value>
   </data>
   <data name="CompareStart" xml:space="preserve">
-    <value>아이템을 추가하고 비교할 파크를 체크한 뒤 계산하십시오.</value>
+    <value>아이템이나 청사진을 추가하고 각각의 작업을 고른 뒤, 비교할 파크를 체크하고 계산하십시오.</value>
   </data>
   <data name="CompareErrNoItems" xml:space="preserve">
     <value>아이템을 하나 이상 추가하십시오.</value>
@@ -214,9 +214,6 @@
   <data name="CompareAllItems" xml:space="preserve">
     <value>모든 아이템 합계</value>
   </data>
-  <data name="CompareOverTime" xml:space="preserve">
-    <value>기간별</value>
-  </data>
   <data name="CompareNoHistory" xml:space="preserve">
     <value>이 파크들의 항성계에는 아직 비용 지수 기록이 없습니다.</value>
   </data>
@@ -225,6 +222,93 @@
   </data>
   <data name="CompareChartTooMany" xml:space="preserve">
     <value>차트는 처음 {0}개만 그리며, 표에는 모두 나옵니다.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME 연구</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE 연구</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>런</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>원하는 런</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>사본 수</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>목표 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>목표 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>사본 하나당 런 수입니다.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>발명될 청사진의 원하는 런 수입니다. 스킬을 모두 V로 보고, 작업 목록과 같은 방식으로 그만큼을 기대할 수 있는 시도 횟수를 계획합니다.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>사본 수입니다.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>연구할 목표 ME(1~10)입니다. ME 0에서 시작합니다.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>연구할 목표 TE(2~20%)입니다. TE 0에서 시작합니다.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>디크립터 없음</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}(확률 {1:0.##}×, 런 {2:+0;-0;0}, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0}개 × {1}런 사본</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0}회 시도(성공률 {1:P1})로 {2} × {3}런 BPC(ME {4}, TE {5}); 복사 {6}런; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>세부</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>시간은 모든 작업 시간의 합계입니다(차례로 실행한 경우, 스킬은 모두 V).</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>차트 대상</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>날짜별 지수로 계산한 비용</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>파크별 작업 시간</value>
+  </data>
+  <data name="CompareTimeAxis" xml:space="preserve">
+    <value>작업 시간</value>
   </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>제조</value>
