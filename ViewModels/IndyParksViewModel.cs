@@ -1780,7 +1780,8 @@ public class IndyParksViewModel : ReactiveObject
             var rigCategory = IndyRigMatching.RigCategoryFromName(name);
             if (rigCategory.Length == 0) continue;
 
-            if (exactOnly ? rigCategory == categoryKey
+            // An ME or TE research rig is an exact match for research, as a copy rig is for copying.
+            if (exactOnly ? rigCategory == categoryKey || IndyRigMatching.StructureCategory(rigCategory) == categoryKey
                           : IndyRigMatching.RigApplies(rigCategory, categoryKey))
                 return true;
         }

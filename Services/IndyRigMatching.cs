@@ -59,7 +59,12 @@ public static class IndyRigMatching
         // Optimization" would otherwise fall through to nothing.
         if (n.Contains("Blueprint Copy"))          return "bp_copying";
         if (n.Contains("Invention"))               return "bp_invention";
-        if (n.Contains("Research"))                return "bp_research";
+        // ⚠️ ME and TE research rigs each bonus their own research only: "L-Set ME Research
+        // Optimization" does nothing for a TE job. Filed together, a lab with both counted both
+        // on every research job, and research there read 3.6x quicker than it ran.
+        if (n.Contains("ME Research"))             return ResearchMe;
+        if (n.Contains("TE Research"))             return ResearchTe;
+        if (n.Contains("Research"))                return Research;
         if (n.Contains("Equipment"))               return "modules_equipment";
         if (n.Contains("Ammunition"))              return "ammo_charges";
         if (n.Contains("Basic Capital Component")) return "capital_components";
@@ -240,6 +245,17 @@ public static class IndyRigMatching
     /// <summary>Does a rig fitted for <paramref name="rigCategory"/> bonus an item in
     /// <paramref name="itemCategory"/>? Straight equality, except that the Tatara's
     /// generic reactor rig covers every reaction subcategory.</summary>
+    /// <summary>Research as a structure's category, and the ME and TE research jobs (and rigs)
+    /// within it.</summary>
+    public const string Research   = "bp_research";
+    public const string ResearchMe = "bp_research_me";
+    public const string ResearchTe = "bp_research_te";
+
+    /// <summary>The structure category a job's category falls under: ME and TE research are
+    /// both done in the park's research structure.</summary>
+    public static string StructureCategory(string itemCategory) =>
+        itemCategory is ResearchMe or ResearchTe ? Research : itemCategory;
+
     public static bool RigApplies(string rigCategory, string itemCategory)
     {
         if (string.IsNullOrEmpty(rigCategory) || string.IsNullOrEmpty(itemCategory)) return false;
@@ -257,6 +273,10 @@ public static class IndyRigMatching
             "structures_components" => itemCategory is "structure_ammo" or "capital_components"
                                                     or "adv_components",
             "science"               => itemCategory.StartsWith("bp_"),
+            // A research rig answers "does this lab research?" (the structure's category), and
+            // its own kind of research job; never the other kind.
+            ResearchMe or ResearchTe => itemCategory == Research,
+            Research                => itemCategory is ResearchMe or ResearchTe,
             "refine_all"            => itemCategory.StartsWith("refine_"),
             _                       => false,
         };

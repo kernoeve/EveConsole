@@ -76,6 +76,10 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
 {
     private const double SciencePerRun  = 0.02;
     private const double SccSurcharge   = 0.04;
+    // ⚠️ ME and TE research pay half the SCC surcharge since the July 2025 "Exploration &
+    // Industry Balance Rework" (CCP calls it temporary). Copying and invention still pay 4%:
+    // your own copy jobs match at 4% to 0.1%, and research jobs only match at 2%.
+    private const double ResearchSccSurcharge = 0.02;
     private const int    AttrRigCost    = 2595;   // a lab rig's cost bonus, percent, negative
     private const int    AttrHullCost   = 2601;   // an engineering complex's job cost multiplier
 
@@ -259,7 +263,7 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
             {
                 var me    = job.Op == CompareOp.MeResearch;
                 var level = Math.Clamp(job.TargetLevel, 1, 10);
-                var job2  = ScienceJob(ctx, time, facts, bp, "bp_research",
+                var job2  = ScienceJob(ctx, time, facts, bp, me ? IndyRigMatching.ResearchMe : IndyRigMatching.ResearchTe,
                                        me ? "researching_material_efficiency" : "researching_time_efficiency",
                                        me ? IndustryTimeService.MeResearchActivity : IndustryTimeService.TeResearchActivity,
                                        Eiv(ctx, bp) * SciencePerRun * IndustryTimeService.ResearchLevelFactor[level] / 105.0,
@@ -299,13 +303,15 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
         var rigs     = RigCost(ctx, facts, structure, categoryKey);
         var weight   = jobEiv * role * Math.Max(0, 1 - rigs);
         var gross    = Math.Round((decimal)(weight * index), 0);
-        var taxes    = Math.Round((decimal)(jobEiv * ((structure is not null ? (double)structure.FacilityTax / 100.0 : 0) + SccSurcharge)), 0);
+        var scc      = timeActivity is IndustryTimeService.MeResearchActivity or IndustryTimeService.TeResearchActivity
+                       ? ResearchSccSurcharge : SccSurcharge;
+        var taxes    = Math.Round((decimal)(jobEiv * ((structure is not null ? (double)structure.FacilityTax / 100.0 : 0) + scc)), 0);
         return (gross + taxes, new IndexTerm(systemId, indexActivity, weight, gross), seconds.Value);
     }
 
     /// <summary>The structure a park gives a kind of job: its assignment, else the park's default.</summary>
     private static IndyStructure? StructureFor(ProductionContext ctx, string categoryKey) =>
-        ctx.StructByCategory.TryGetValue(categoryKey, out var s) && s is not null ? s : ctx.DefaultStructure;
+        ctx.StructByCategory.TryGetValue(IndyRigMatching.StructureCategory(categoryKey), out var s) && s is not null ? s : ctx.DefaultStructure;
 
     /// <summary>The lab rigs' cost reduction for this kind of job, scaled by security as every rig is.</summary>
     private static double RigCost(ProductionContext ctx, ScienceFacts facts, IndyStructure? structure, string categoryKey)
