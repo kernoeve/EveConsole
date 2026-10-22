@@ -142,6 +142,9 @@
   <data name="MailFolderAll" xml:space="preserve">
     <value>Tous les courriers</value>
   </data>
+  <data name="MailFolderUnread" xml:space="preserve">
+    <value>Non lus</value>
+  </data>
   <data name="MailFolderInbox" xml:space="preserve">
     <value>Boîte aux lettres</value>
   </data>

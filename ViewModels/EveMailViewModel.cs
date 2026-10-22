@@ -270,6 +270,7 @@ public class EveMailViewModel : ReactiveObject
 
         // Static folders — always present
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderAll,  null));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderUnread, EveMailService.UnreadFolder));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderInbox,     1));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderSent,      2));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderCorp,      4));
@@ -438,18 +439,41 @@ public class EveMailViewModel : ReactiveObject
         return added;
     }
 
+    /// <summary>All Mail, Unread, Inbox, Sent, Corp, Alliance: the folders that are always there.</summary>
+    private const int StaticFolders = 6;
+
+    /// <summary>
+    /// Every character's unread mail — what the Overview's unread mail alert opens. Both choices
+    /// are set before one load, rather than each loading as it changes.
+    /// </summary>
+    public void ShowUnread()
+    {
+        _suppressFolderLoad = true;
+        try
+        {
+            if (Characters.FirstOrDefault(c => c.IsAllCharacters) is { } all && !ReferenceEquals(_selectedChar, all))
+            {
+                _selectedChar = all;
+                this.RaisePropertyChanged(nameof(SelectedChar));
+            }
+            SelectedFolder = Folders.First(f => f.LabelId == EveMailService.UnreadFolder);
+        }
+        finally { _suppressFolderLoad = false; }
+        _ = LoadMailsAsync();
+    }
+
     private void RebuildFolders(List<EveMailLabelOption> customLabels)
     {
-        // Never remove the 5 static folders — clearing+re-adding them causes the ListBox binding
+        // Never remove the static folders — clearing+re-adding them causes the ListBox binding
         // to push SelectedFolder=null back, which triggers a reload loop.
-        // Only manage the custom label entries at index 5+.
+        // Only manage the custom label entries after them.
         _suppressFolderLoad = true;
         try
         {
             var savedLabelId = _selectedFolder?.LabelId;
 
-            while (Folders.Count > 5)
-                Folders.RemoveAt(5);
+            while (Folders.Count > StaticFolders)
+                Folders.RemoveAt(StaticFolders);
 
             foreach (var lbl in customLabels)
                 Folders.Add(new EveMailFolderVm(lbl.Name, lbl.LabelId));

@@ -360,6 +360,12 @@ public class EveMailService(
     public const int InboxLabel = 1, SentLabel = 2, CorpLabel = 4, AllianceLabel = 8;
 
     /// <summary>
+    /// Not a label: the Unread folder, every unread mail whatever its labels. Negative, so it can
+    /// never be a real label id.
+    /// </summary>
+    public const int UnreadFolder = -1;
+
+    /// <summary>
     /// Headers carrying a label. Labels are stored as a comma-joined list, so a label is matched
     /// as the whole string or as a delimited element of it — never as a substring, or label 1
     /// would match 16.
@@ -386,7 +392,11 @@ public class EveMailService(
             ? db.EsiMailHeaders.Where(h => h.CharacterId == charId.Value)
             : db.EsiMailHeaders.Where(h => charIds == null || charIds.Contains(h.CharacterId));
 
-        if (labelFilter.HasValue)
+        // Unread is filtered the same way the Overview alert counts it, so the folder holds the
+        // mail the alert speaks of — however old, where All Mail shows the newest 500.
+        if (labelFilter == UnreadFolder)
+            q = q.Where(h => !h.IsRead);
+        else if (labelFilter.HasValue)
             q = WithLabel(q, labelFilter.Value);
 
         // Sort by MailId DESC in SQL (int — EF can translate) to get the 500 newest,

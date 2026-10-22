@@ -142,6 +142,9 @@
   <data name="MailFolderAll" xml:space="preserve">
     <value>所有邮件</value>
   </data>
+  <data name="MailFolderUnread" xml:space="preserve">
+    <value>未读</value>
+  </data>
   <data name="MailFolderInbox" xml:space="preserve">
     <value>收件箱</value>
   </data>

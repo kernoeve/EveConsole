@@ -142,6 +142,9 @@
   <data name="MailFolderAll" xml:space="preserve">
     <value>전체 메일</value>
   </data>
+  <data name="MailFolderUnread" xml:space="preserve">
+    <value>읽지 않음</value>
+  </data>
   <data name="MailFolderInbox" xml:space="preserve">
     <value>받은 메일함</value>
   </data>
