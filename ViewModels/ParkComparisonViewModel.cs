@@ -213,6 +213,8 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     private async Task CalculateAsync()
     {
         if (Jobs.Count == 0) { StatusText = IndustryText.CompareErrNoItems; return; }
+        // The list is read when the tab is shown; if that found nothing, read it again now.
+        if (Parks.Items.Count == 0) await LoadParksAsync();
         var slots = Parks.Items.Select((p, i) => (Id: int.Parse(p.Key), p.Title, Slot: i, p.Selected)).ToList();
         var parks = slots.Where(p => p.Selected).Select(p => (p.Id, p.Title, p.Slot)).ToList();
         if (parks.Count == 0) { StatusText = IndustryText.CompareErrNoParks; return; }

@@ -39,7 +39,7 @@ public sealed class MultiChoice : ReactiveObject
     /// </summary>
     public bool? AllSelected
     {
-        get => Items.All(i => i.Selected) ? true : Items.Any(i => i.Selected) ? null : false;
+        get => Items.Count > 0 && Items.All(i => i.Selected) ? true : Items.Any(i => i.Selected) ? null : false;
         set
         {
             // A click on a half-filled All box ticks everything.
@@ -54,8 +54,8 @@ public sealed class MultiChoice : ReactiveObject
         get
         {
             var on = Items.Where(i => i.Selected).ToList();
-            if (on.Count == Items.Count) return AlarmsText.All;
             if (on.Count == 0)           return AlarmsText.None;
+            if (on.Count == Items.Count) return AlarmsText.All;
             if (on.Count == Items.Count - 1 && Items.Count > 2)
                 return string.Format(CommonText.AllBut, Items.First(i => !i.Selected).Title);
             return on.Count <= NamedAtMost
