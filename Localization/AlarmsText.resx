@@ -528,6 +528,118 @@
     <value>Section {0} ({1}) needs at least one meta group ticked.</value>
     <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
   </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Indy Park Compare</value>
+    <comment>Scheduler: a kind of message section, in the Add list: Indy Parks' Compare, set up in the section.</comment>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>System Index</value>
+    <comment>Scheduler: a kind of message section, in the Add list: the System Index tool's table and charts, set up in the section.</comment>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Indy Park Compare</value>
+    <comment>Scheduler: heading over an Indy Park Compare section in the editor, and the post's heading when the section has no title.</comment>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>System Index</value>
+    <comment>Scheduler: heading over a System Index section in the editor, and the post's heading when the section has no title.</comment>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Summary by job (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Summary by park (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>Cost chart (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>Time chart (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Summary by job (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Summary by park (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Every job in every park (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown: the Compare tab's detail grid.</comment>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Summary by job</value>
+    <comment>Scheduler post: heading over the Indy Park Compare summary with a row per job, as a table or a picture.</comment>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Summary by park</value>
+    <comment>Scheduler post: heading over the Indy Park Compare summary with a row per park, as a table or a picture.</comment>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Every job in every park</value>
+    <comment>Scheduler post: heading over the Indy Park Compare detail table.</comment>
+  </data>
+  <data name="CompareReportNote" xml:space="preserve">
+    <value>{0} jobs in {1} parks, at today's prices and system cost indices; times with skills at V.</value>
+    <comment>Scheduler post: the line under an Indy Park Compare section's heading and on its summary pictures. {0} jobs, {1} parks.</comment>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Today's indices (table)</value>
+    <comment>Scheduler, System Index section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>{0} chart (image)</value>
+    <comment>Scheduler, System Index section: a choice in the Post dropdown. {0} the activity, e.g. Manufacturing.</comment>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>PARKS</value>
+    <comment>Scheduler, Indy Park Compare section: label over the parks dropdown.</comment>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>JOBS</value>
+    <comment>Scheduler, Indy Park Compare section: label over the job list.</comment>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>POST</value>
+    <comment>Scheduler, Indy Park Compare and System Index sections: label over the dropdown of what to post (tables, pictures).</comment>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>SYSTEMS</value>
+    <comment>Scheduler, System Index section: label over the systems list.</comment>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Worked out when the post is made, at that day's prices and indices, with skills at V. Nothing is read from the Compare tab.</value>
+    <comment>Scheduler, Indy Park Compare section: hint under the section.</comment>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Each chart is posted with its own legend. Nothing is read from the System Index tool's list.</value>
+    <comment>Scheduler, System Index section: hint under the section.</comment>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>This destination is a webhook, which cannot carry an image: the pictures in this section will be left out and only its tables posted.</value>
+    <comment>Scheduler: warning in an Indy Park Compare or System Index section when the task posts to a webhook and pictures are chosen.</comment>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one job.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one park ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one system.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>Section {0} ({1}) needs something chosen to post.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>COLUMNS</value>
     <comment>Scheduler, Industry Ops section: label over the tick boxes choosing the table's columns.</comment>

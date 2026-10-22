@@ -287,13 +287,21 @@ public static class ParkCompareReport
             (MonoColumns.PadRight(title, titleWidth) + string.Concat(Enumerable.Range(0, pivot.Groups.Count).Select(g => " | " + group(g)))).TrimEnd();
         string Cells(string[] row, int g) =>
             string.Join("  ", Enumerable.Range(0, 4).Select(k => MonoColumns.PadLeft(row[4 * g + k], widths[4 * g + k])));
+        int Span(int g) => widths.Skip(4 * g).Take(4).Sum() + 2 * 3;
+        // A group's name centred over its four columns, so each sits over its own.
+        string Centred(int g)
+        {
+            var name = pivot.Groups[g];
+            var gap  = Span(g) - MonoColumns.Width(name);
+            return MonoColumns.PadRight(new string(' ', Math.Max(0, gap / 2)) + name, Span(g));
+        }
 
         var sb = new StringBuilder();
         if (heading.Trim().Length > 0) sb.AppendLine(OutputFormat.ByName(formatName).Bold(heading.Trim()));
         sb.AppendLine("```");
-        sb.AppendLine(Line("", g => pivot.Groups[g]));
+        sb.AppendLine(Line("", Centred));
         sb.AppendLine(Line(first, g => string.Join("  ", Enumerable.Range(0, 4).Select(k => MonoColumns.PadLeft(heads[k], widths[4 * g + k])))));
-        sb.AppendLine(Line(new string('-', titleWidth), g => new string('-', widths.Skip(4 * g).Take(4).Sum() + 2 * 3)));
+        sb.AppendLine(Line(new string('-', titleWidth), g => new string('-', Span(g))));
         for (var r = 0; r < pivot.Rows.Count; r++) sb.AppendLine(Line(pivot.Rows[r].Title, g => Cells(cells[r], g)));
         sb.AppendLine("```");
         return sb.ToString().TrimEnd();
@@ -350,6 +358,9 @@ public static class ParkCompareReport
     /// <summary>A chart as a PNG, on the dark ground, its legend under it.</summary>
     public static byte[] ChartPng(CompareChart chart, int width = 1100, int height = 460)
     {
+        // Larger labels than on screen: a posted picture is often seen scaled down. The axes
+        // are the post's own, built for this picture, so setting them here touches nothing else.
+        foreach (var axis in chart.XAxes.Concat(chart.YAxes)) axis.TextSize = Math.Max(axis.TextSize, 13);
         var sk = new SKCartesianChart
         {
             Width           = width,

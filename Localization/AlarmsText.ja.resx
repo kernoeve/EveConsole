@@ -397,6 +397,90 @@
   <data name="SectionNeedsMetaGroup" xml:space="preserve">
     <value>セクション {0}（{1}）では少なくとも 1 つのメタグループをチェックする必要があります。</value>
   </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>工業パーク比較</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>星系インデックス</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>工業パーク比較</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>星系インデックス</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>ジョブ別概要（画像）</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>パーク別概要（画像）</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>コストグラフ（画像）</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>時間グラフ（画像）</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>ジョブ別概要（表）</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>パーク別概要（表）</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>全パークの全ジョブ（表）</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>ジョブ別概要</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>パーク別概要</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>全パークの全ジョブ</value>
+  </data>
+  <data name="CompareReportNote" xml:space="preserve">
+    <value>{1} パークで {0} ジョブ。今日の価格と星系コスト指数、スキルはすべて V で計算。</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>今日の指数（表）</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>{0}グラフ（画像）</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>投稿内容</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>投稿時に、その日の価格と指数、スキル V で計算します。比較タブの設定は使いません。</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>各グラフは凡例付きで投稿されます。星系インデックスツールのリストは使いません。</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>この投稿先は Webhook で画像を送れません。このセクションの画像は省かれ、表だけが投稿されます。</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>セクション {0}（{1}）には少なくとも 1 つのジョブが必要です。</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>セクション {0}（{1}）では少なくとも 1 つのパークにチェックが必要です。</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>セクション {0}（{1}）には少なくとも 1 つの星系が必要です。</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>セクション {0}（{1}）では投稿する内容を選んでください。</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>

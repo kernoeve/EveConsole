@@ -92,16 +92,7 @@ public sealed class SystemIndexViewModel : ReactiveObject
             .Subscribe(t => _ = SearchAsync(t ?? ""));
     }
 
-    public static string ActivityName(string activity) => activity switch
-    {
-        "manufacturing"                   => IndustryText.IndexManufacturing,
-        "reaction"                        => IndustryText.IndexReaction,
-        "invention"                       => IndustryText.IndexInvention,
-        "copying"                         => IndustryText.IndexCopying,
-        "researching_material_efficiency" => IndustryText.IndexMeResearch,
-        "researching_time_efficiency"     => IndustryText.IndexTeResearch,
-        _                                 => activity,
-    };
+    public static string ActivityName(string activity) => SystemIndexReport.ActivityName(activity);
 
     // ── The list ─────────────────────────────────────────────────────────────
 
@@ -161,27 +152,10 @@ public sealed class SystemIndexViewModel : ReactiveObject
         await RefreshAsync();
     }
 
-    private async Task<List<SystemSearchResult>> LookUpAsync(IReadOnlyCollection<int> ids)
-    {
-        if (ids.Count == 0) return [];
-        await SdeNames.EnsureLoadedAsync();
-        var rows = await Task.Run(async () =>
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            return await (from s in db.SdeSolarSystems.AsNoTracking()
-                          join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId into rs
-                          from r in rs.DefaultIfEmpty()
-                          where ids.Contains(s.SolarSystemId)
-                          select new { s.SolarSystemId, s.Name, s.RegionId, Region = r != null ? r.Name : "" }).ToListAsync();
-        });
-        var byId = rows.ToDictionary(r => r.SolarSystemId);
-        return ids.Where(byId.ContainsKey).Select(id => byId[id]).Select(r => new SystemSearchResult
-        {
-            SystemId = r.SolarSystemId,
-            Name     = SdeNames.SolarSystem(r.SolarSystemId, r.Name),
-            Region   = r.Region.Length > 0 ? SdeNames.Region(r.RegionId, r.Region) : "",
-        }).ToList();
-    }
+    private async Task<List<SystemSearchResult>> LookUpAsync(IReadOnlyCollection<int> ids) =>
+        [.. (await Task.Run(() => SystemIndexReport.LookUpAsync(_dbFactory, [.. ids]))).Select(Result)];
+
+    private static SystemSearchResult Result(IndexSystem s) => new() { SystemId = s.SystemId, Name = s.Name, Region = s.Region };
 
     // ── Search ───────────────────────────────────────────────────────────────
 
@@ -199,19 +173,10 @@ public sealed class SystemIndexViewModel : ReactiveObject
         SearchResults.Clear();
         if (text.Length < 2) { ShowResults = false; return; }
 
-        await SdeNames.EnsureLoadedAsync();
-        var shownIds = SdeNames.Find(SdeNameKind.SolarSystem, text).Select(id => (int)id).ToList();
-        var ids = await Task.Run(async () =>
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            return await db.SdeSolarSystems.AsNoTracking()
-                .Where(s => EF.Functions.Like(s.Name, $"{text}%") || shownIds.Contains(s.SolarSystemId))
-                .OrderBy(s => s.Name).Take(30).Select(s => s.SolarSystemId).ToListAsync();
-        });
+        var found = await Task.Run(() => SystemIndexReport.SearchAsync(_dbFactory, text));
         if (SearchText.Trim() != text) return;
 
-        foreach (var r in (await LookUpAsync(ids)).OrderBy(r => r.Name, StringComparer.CurrentCulture))
-            SearchResults.Add(r);
+        foreach (var r in found) SearchResults.Add(Result(r));
         ShowResults = SearchResults.Count > 0;
     }
 
@@ -293,50 +258,21 @@ public sealed class IndexChartVm : ReactiveObject
     private bool _hasChart;
     public bool HasChart { get => _hasChart; private set => this.RaiseAndSetIfChanged(ref _hasChart, value); }
 
-    /// <summary>A day with no sample for a system is a gap in its line, not a guess.</summary>
+    /// <summary>The report's chart for this activity; a day with no sample is a gap in its line.
+    /// No legend here: the table's dot beside each system is the key.</summary>
     public void Build(IEnumerable<SystemIndexRowVm> systems,
                       Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> daily,
                       List<DateOnly> days)
     {
-        var drawn = systems.Where(s => s.Slot < ChartPaint.MaxSeries && daily.ContainsKey((s.SystemId, Activity))).ToList();
-        HasChart = drawn.Count > 0 && days.Count > 0;
-        if (!HasChart) { Series = []; return; }
-
-        Series = drawn.Select(s =>
-        {
-            var series = daily[(s.SystemId, Activity)];
-            return (ISeries)new LineSeries<double?>
-            {
-                Name           = s.Name,
-                Values         = days.Select(d => series.TryGetValue(d, out var v) ? v * 100 : (double?)null).ToArray(),
-                GeometrySize   = 0,
-                LineSmoothness = 0,
-                Stroke         = ChartPaint.Series(s.Slot),
-                Fill           = null,
-            };
-        }).ToArray();
-
-        XAxes =
-        [
-            new Axis
-            {
-                Labels          = days.Select(d => d.ToString("MM-dd")).ToArray(),
-                LabelsPaint     = ChartPaint.Labels,
-                TextSize        = 9,
-                MinStep         = Math.Max(1, days.Count / 6),
-                SeparatorsPaint = null,
-            },
-        ];
-        YAxes =
-        [
-            new Axis
-            {
-                Labeler         = v => $"{v:0.#}%",
-                LabelsPaint     = ChartPaint.Labels,
-                TextSize        = 9,
-                MinLimit        = 0,
-                SeparatorsPaint = ChartPaint.Separators,
-            },
-        ];
+        // Nothing to draw: said before the theme's paints are asked for, which only the UI thread
+        // may read; the first refresh, with no systems yet, can run off it.
+        var list = systems.ToList();
+        if (days.Count == 0 || !list.Any(s => daily.ContainsKey((s.SystemId, Activity)))) { HasChart = false; Series = []; return; }
+        var chart = SystemIndexReport.Chart(Activity,
+            [.. list.Select(s => new IndexSystem(s.SystemId, s.Name, s.Region, s.Slot))],
+            daily, ChartPaint.Labels, ChartPaint.Separators);
+        HasChart = chart is not null;
+        if (chart is null) { Series = []; return; }
+        (Series, XAxes, YAxes) = (chart.Series, chart.XAxes, chart.YAxes);
     }
 }

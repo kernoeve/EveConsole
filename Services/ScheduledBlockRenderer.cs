@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using EveConsole.Data;
+using Microsoft.EntityFrameworkCore;
 
 // MarketFmt formats ISK the way every other surface in the app does. It lives with the view
 // models because that is where it was first needed; a scheduled post quoting different figures
@@ -24,6 +27,8 @@ public sealed class MessageBlock
     public const string TypeSale    = "sale_posting";
     public const string TypeProjects = "standing_projects";
     public const string TypeIndustryOpps = "industry_opps";
+    public const string TypeParkCompare  = "park_compare";
+    public const string TypeSystemIndex  = "system_index";
 
     /// <summary>
     /// The monthly trend charts. Pictures, not text.
@@ -55,6 +60,15 @@ public sealed class MessageBlock
     /// chart section only renders where the destination is a channel and the token can upload.</para>
     /// </summary>
     public bool IsChart => Type is TypeIskChart or TypeActivityChart or TypeKillChart or TypeMiningChart;
+
+    /// <summary>
+    /// Whether this section sends any picture: a chart section always, an Indy Park Compare or
+    /// System Index section when one of its chosen outputs is a picture. A webhook cannot carry
+    /// them, as it cannot carry a chart.
+    /// </summary>
+    public bool HasPictures => IsChart
+        || (Type == TypeParkCompare && CompareOutputs.Any(ParkCompareOutputs.IsPicture))
+        || (Type == TypeSystemIndex && IndexOutputs.Any(o => o != SystemIndexOutputs.Table));
 
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
@@ -187,6 +201,36 @@ public sealed class MessageBlock
     public bool   OppsSortDescending { get; set; } = true;
     public int    OppsRowLimit       { get; set; } = 10;
 
+    // ── Indy Park Compare blocks ─────────────────────────────────────────────
+    //
+    // ⚠️ The parks, the jobs and what to post, all kept in the section. Nothing is read from the
+    // Compare tab's remembered list: a post written today must not change because somebody tried
+    // another item on the tab tomorrow. SectionTitle above heads the section.
+
+    /// <summary>
+    /// Indy Park Compare blocks: exactly the parks compared.
+    ///
+    /// <para>⚠️ Inclusions, as for standing projects. A new section ticks every park, but a park
+    /// defined later does not join a post written before it.</para>
+    /// </summary>
+    public List<int> CompareParkIds { get; set; } = [];
+
+    /// <summary>Indy Park Compare blocks: the job list, in order, as the Compare tab keeps one.</summary>
+    public List<CompareJobSpec> CompareJobs { get; set; } = [];
+
+    /// <summary>Indy Park Compare blocks: what to post, by <see cref="ParkCompareOutputs"/> key.</summary>
+    public List<string> CompareOutputs { get; set; } = [];
+
+    // ── System Index blocks ──────────────────────────────────────────────────
+
+    /// <summary>System Index blocks: the systems, in order; the order picks each line's colour.
+    /// Kept in the section, never read from the tool's list.</summary>
+    public List<int> IndexSystemIds { get; set; } = [];
+
+    /// <summary>System Index blocks: the table and the activities charted, by
+    /// <see cref="SystemIndexOutputs"/> key.</summary>
+    public List<string> IndexOutputs { get; set; } = [];
+
     /// <summary>The calculation this section asks for.</summary>
     public IndustryOppsQuery ToOppsQuery() => new()
     {
@@ -202,6 +246,67 @@ public sealed class MessageBlock
         ExcludedGroupIds = OppsExcludedGroupIds,
         IncludedGroupIds = OppsIncludedGroupIds,
     };
+}
+
+/// <summary>What an Indy Park Compare section can post: four pictures and three tables. The
+/// tables say what the pictures show, for a reader who would rather copy the numbers.</summary>
+public static class ParkCompareOutputs
+{
+    public const string SummaryJobsImage  = "summary_jobs_image";
+    public const string SummaryParksImage = "summary_parks_image";
+    public const string CostChart         = "cost_chart";
+    public const string TimeChart         = "time_chart";
+    public const string SummaryJobsTable  = "summary_jobs_table";
+    public const string SummaryParksTable = "summary_parks_table";
+    public const string DetailTable       = "detail_table";
+
+    /// <summary>In the order offered, which is the order posted: tables in the message, then the
+    /// pictures under it.</summary>
+    public static readonly string[] All =
+        [SummaryJobsImage, SummaryParksImage, CostChart, TimeChart, SummaryJobsTable, SummaryParksTable, DetailTable];
+
+    /// <summary>What a new section starts with.</summary>
+    public static readonly string[] Default = [SummaryJobsImage, CostChart, TimeChart];
+
+    public static bool IsPicture(string key) => key is SummaryJobsImage or SummaryParksImage or CostChart or TimeChart;
+
+    public static string Label(string key) => key switch
+    {
+        SummaryJobsImage  => AlarmsText.CompareOutSummaryJobsImage,
+        SummaryParksImage => AlarmsText.CompareOutSummaryParksImage,
+        CostChart         => AlarmsText.CompareOutCostChart,
+        TimeChart         => AlarmsText.CompareOutTimeChart,
+        SummaryJobsTable  => AlarmsText.CompareOutSummaryJobsTable,
+        SummaryParksTable => AlarmsText.CompareOutSummaryParksTable,
+        DetailTable       => AlarmsText.CompareOutDetailTable,
+        _                 => key,
+    };
+
+    /// <summary>What a table or picture is headed with in the post: the choice's name without
+    /// saying it is a picture or a table, which the post shows for itself.</summary>
+    public static string Title(string key) => key switch
+    {
+        SummaryJobsImage or SummaryJobsTable   => AlarmsText.CompareTitleSummaryJobs,
+        SummaryParksImage or SummaryParksTable => AlarmsText.CompareTitleSummaryParks,
+        CostChart                              => IndustryText.CompareCostChartTitle,
+        TimeChart                              => IndustryText.CompareTimeChartTitle,
+        _                                      => AlarmsText.CompareTitleDetail,
+    };
+}
+
+/// <summary>What a System Index section can post: today's table, and a chart per activity. On
+/// screen the table's dots are the charts' key; posted, each chart carries its own legend.</summary>
+public static class SystemIndexOutputs
+{
+    public const string Table = "table";
+
+    public static readonly string[] All = [Table, .. CostIndexHistoryService.Activities];
+
+    /// <summary>What a new section starts with.</summary>
+    public static readonly string[] Default = [Table, "manufacturing"];
+
+    public static string Label(string key) =>
+        key == Table ? AlarmsText.IndexOutTable : string.Format(AlarmsText.IndexOutChart, SystemIndexReport.ActivityName(key));
 }
 
 /// <summary>How much of a standing project list to report.</summary>
@@ -297,7 +402,10 @@ public class ScheduledBlockRenderer(
     SalePostingService      sales,
     CorpTop10ExcludeService excludes,
     CorpReportTitles         titles,
-    IndustryOpportunitiesService opps)
+    IndustryOpportunitiesService opps,
+    ParkComparisonService   parkCompare,
+    CostIndexHistoryService indexHistory,
+    IDbContextFactory<AppDbContext> dbFactory)
 {
     /// <summary>The five lists, in the order the exports print them. Defined by CorpReportTitles,
     /// which is also what the settings tab overrides and what names them on screen.</summary>
@@ -331,6 +439,150 @@ public class ScheduledBlockRenderer(
     }
 
     /// <summary>
+    /// Every picture a section sends, with the title each is posted under: a chart section's
+    /// chart, an Indy Park Compare section's summaries and charts, a System Index section's
+    /// charts. Empty when there is nothing to draw.
+    /// </summary>
+    public async Task<List<(byte[] Png, string Title)>> RenderPicturesAsync(MessageBlock b, CancellationToken ct = default)
+    {
+        if (b.IsChart) return await RenderChartAsync(b, ct) is { } chart ? [chart] : [];
+        if (b.Type == MessageBlock.TypeParkCompare) return await ParkComparePicturesAsync(b, ct);
+        if (b.Type == MessageBlock.TypeSystemIndex) return await SystemIndexPicturesAsync(b, ct);
+        return [];
+    }
+
+    /// <summary>The titles a section's pictures would be posted under, without drawing them:
+    /// what a preview names.</summary>
+    public static List<string> PictureTitles(MessageBlock b) => b.Type switch
+    {
+        MessageBlock.TypeParkCompare => [.. ParkCompareOutputs.All.Where(k => ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k))
+                                              .Select(k => $"{CompareHeading(b)} — {ParkCompareOutputs.Title(k)}")],
+        MessageBlock.TypeSystemIndex => [.. SystemIndexOutputs.All.Where(k => k != SystemIndexOutputs.Table && b.IndexOutputs.Contains(k))
+                                              .Select(k => $"{IndexHeading(b)} — {SystemIndexReport.ActivityName(k)}")],
+        _ => [],
+    };
+
+    // ── Indy Park Compare ────────────────────────────────────────────────────
+
+    private static string CompareHeading(MessageBlock b) =>
+        b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingParkCompare;
+
+    /// <summary>One section's comparison, worked out once: its tables and its pictures both come
+    /// from it within a post.</summary>
+    private sealed record CompareRun(List<ParkCost> Costs, List<RankedCost> Ranked, List<string> Labels,
+        Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> History, int ParkCount);
+
+    /// <summary>
+    /// ⚠️ Keyed by the section itself. A post renders its text and then its pictures from the
+    /// same section objects, and a comparison of a capital build in three parks takes seconds;
+    /// the entry goes when the section does.
+    /// </summary>
+    private readonly ConditionalWeakTable<MessageBlock, Task<CompareRun?>> _compareRuns = new();
+
+    private Task<CompareRun?> CompareRunAsync(MessageBlock b, CancellationToken ct) =>
+        _compareRuns.GetValue(b, block => RunCompareAsync(block, ct));
+
+    private async Task<CompareRun?> RunCompareAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.CompareJobs.Count == 0 || b.CompareParkIds.Count == 0) return null;
+
+        // Each park keeps the colour the Compare tab gives it: its place among all parks.
+        var all   = await parkCompare.ParksAsync(ct);
+        var parks = all.Select((p, i) => (p.Id, p.Name, Slot: i)).Where(p => b.CompareParkIds.Contains(p.Id)).ToList();
+        if (parks.Count == 0) return null;
+
+        await SdeNames.EnsureLoadedAsync();
+        var jobs  = b.CompareJobs.Select((j, i) => j.ToJob(i)).ToList();
+        var costs = await parkCompare.CompareAsync(jobs, parks, ct);
+        var history = await indexHistory.DailyAsync(
+            [.. costs.SelectMany(c => c.Terms).Select(t => t.SystemId).Distinct()],
+            [.. costs.SelectMany(c => c.Terms).Select(t => t.Activity).Distinct()], ct);
+
+        return new CompareRun(costs, ParkCompareReport.Rank(costs), [.. b.CompareJobs.Select(j => j.Label)], history, parks.Count);
+    }
+
+    private static string CompareNote(CompareRun run) => string.Format(AlarmsText.CompareReportNote, run.Labels.Count, run.ParkCount);
+
+    private async Task<string> ParkCompareAsync(MessageBlock b, string formatName, CancellationToken ct)
+    {
+        var tables = ParkCompareOutputs.All.Where(k => !ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k)).ToList();
+        if (tables.Count == 0) return "";
+        if (await CompareRunAsync(b, ct) is not { } run) return "";
+
+        var format = OutputFormat.ByName(formatName);
+        var parts  = new List<string> { format.Bold(CompareHeading(b)) + "\n" + CompareNote(run) };
+        foreach (var key in tables)
+            parts.Add(key switch
+            {
+                ParkCompareOutputs.SummaryJobsTable  => ParkCompareReport.SummaryTable(
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), ParkCompareOutputs.Title(key), formatName),
+                ParkCompareOutputs.SummaryParksTable => ParkCompareReport.SummaryTable(
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), ParkCompareOutputs.Title(key), formatName),
+                _ => ParkCompareReport.DetailTable(run.Ranked, ParkCompareOutputs.Title(key), formatName),
+            });
+        return string.Join("\n\n", parts.Where(p => p.Length > 0));
+    }
+
+    private async Task<List<(byte[] Png, string Title)>> ParkComparePicturesAsync(MessageBlock b, CancellationToken ct)
+    {
+        var pictures = ParkCompareOutputs.All.Where(k => ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k)).ToList();
+        if (pictures.Count == 0 || await CompareRunAsync(b, ct) is not { } run) return [];
+
+        var heading = CompareHeading(b);
+        var (labels, separators) = ParkCompareReport.PostPaints();
+        var drawn = new List<(byte[] Png, string Title)>();
+        foreach (var key in pictures)
+        {
+            ct.ThrowIfCancellationRequested();
+            var title = $"{heading} — {ParkCompareOutputs.Title(key)}";
+            byte[]? png = key switch
+            {
+                ParkCompareOutputs.SummaryJobsImage  => ParkCompareReport.SummaryPng(
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), title, CompareNote(run)),
+                ParkCompareOutputs.SummaryParksImage => ParkCompareReport.SummaryPng(
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), title, CompareNote(run)),
+                ParkCompareOutputs.CostChart => ParkCompareReport.CostChart(run.Costs, run.History, null, labels, separators) is { } cost
+                    ? ParkCompareReport.ChartPng(cost) : null,
+                // Taller: the job names under the bars are tilted once there are a few.
+                _ => ParkCompareReport.TimeChart(run.Costs, run.Labels, null, labels, separators) is { } time
+                    ? ParkCompareReport.ChartPng(time, height: 540) : null,
+            };
+            if (png is not null) drawn.Add((png, title));
+        }
+        return drawn;
+    }
+
+    // ── System Index ─────────────────────────────────────────────────────────
+
+    private static string IndexHeading(MessageBlock b) =>
+        b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingSystemIndex;
+
+    private async Task<string> SystemIndexAsync(MessageBlock b, string formatName, CancellationToken ct)
+    {
+        if (!b.IndexOutputs.Contains(SystemIndexOutputs.Table) || b.IndexSystemIds.Count == 0) return "";
+        var systems = await SystemIndexReport.LookUpAsync(dbFactory, b.IndexSystemIds, ct);
+        var current = await indexHistory.CurrentAsync([.. systems.Select(s => s.SystemId)], ct);
+        return SystemIndexReport.Table(systems, current, IndexHeading(b), formatName);
+    }
+
+    private async Task<List<(byte[] Png, string Title)>> SystemIndexPicturesAsync(MessageBlock b, CancellationToken ct)
+    {
+        var activities = CostIndexHistoryService.Activities.Where(b.IndexOutputs.Contains).ToList();
+        if (activities.Count == 0 || b.IndexSystemIds.Count == 0) return [];
+
+        var systems = await SystemIndexReport.LookUpAsync(dbFactory, b.IndexSystemIds, ct);
+        var daily   = await indexHistory.DailyAsync([.. systems.Select(s => s.SystemId)], activities, ct);
+        var (labels, separators) = ParkCompareReport.PostPaints();
+        var heading = IndexHeading(b);
+
+        var drawn = new List<(byte[] Png, string Title)>();
+        foreach (var activity in activities)
+            if (SystemIndexReport.Chart(activity, systems, daily, labels, separators, textSize: 10) is { } chart)
+                drawn.Add((ParkCompareReport.ChartPng(chart), $"{heading} — {SystemIndexReport.ActivityName(activity)}"));
+        return drawn;
+    }
+
+    /// <summary>
     /// Renders every block, in order, into one message.
     ///
     /// <para><paramref name="formatName"/> is the markup the message is written in: "Slack" for a
@@ -356,6 +608,8 @@ public class ScheduledBlockRenderer(
                 MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
                 MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
                 MessageBlock.TypeIndustryOpps => await IndustryOppsAsync(b, formatName, ct),
+                MessageBlock.TypeParkCompare  => await ParkCompareAsync(b, formatName, ct),
+                MessageBlock.TypeSystemIndex  => await SystemIndexAsync(b, formatName, ct),
 
                 // A chart contributes no text. It is uploaded separately, by whoever is posting.
                 _                         => "",

@@ -397,6 +397,90 @@
   <data name="SectionNeedsMetaGroup" xml:space="preserve">
     <value>第 {0} 部分（{1}）需要至少勾选一个元组。</value>
   </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>工业园区比较</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>星系指数</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>工业园区比较</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>星系指数</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>按作业汇总（图片）</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>按园区汇总（图片）</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>成本图（图片）</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>时间图（图片）</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>按作业汇总（表格）</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>按园区汇总（表格）</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>各园区的每项作业（表格）</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>按作业汇总</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>按园区汇总</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>各园区的每项作业</value>
+  </data>
+  <data name="CompareReportNote" xml:space="preserve">
+    <value>{1} 个园区中的 {0} 项作业，按今日价格和星系成本指数计算；时间按技能 V 级计算。</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>今日指数（表格）</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>{0}图（图片）</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>园区</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>作业</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>发布内容</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>在发布时计算，按当日价格和指数、技能 V 级计算。不读取比较页的任何设置。</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>每张图都附带自己的图例发布。不读取星系指数工具的列表。</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>此目标是 Webhook，无法发送图片：本部分的图片将被省略，只发布表格。</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>第 {0} 部分（{1}）至少需要一项作业。</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>第 {0} 部分（{1}）至少需要勾选一个园区。</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>第 {0} 部分（{1}）至少需要一个星系。</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>第 {0} 部分（{1}）需要选择要发布的内容。</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>列</value>
   </data>

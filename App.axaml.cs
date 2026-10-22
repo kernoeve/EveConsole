@@ -4528,6 +4528,9 @@ public class App : Application
         services.AddSingleton<SlackService>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IndustryOpportunitiesService>();
+        // Indy Parks Compare and the System Index tool, on screen and in scheduled posts.
+        services.AddSingleton<CostIndexHistoryService>();
+        services.AddSingleton<ParkComparisonService>();
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();

@@ -155,7 +155,7 @@ public class SchedulerService(
         // ⚠️ Charts are drawn BEFORE anything is decided, because whether they came out is part
         // of whether there is anything to post. A task of nothing but charts renders no text at
         // all, and testing the text alone would have declared it empty and stopped.
-        var charts  = cfg.Blocks.Where(b => b.IsChart).ToList();
+        var charts  = cfg.Blocks.Where(b => b.HasPictures).ToList();
         var drawn   = new List<(byte[] Png, string Title)>();
         var skipped = 0;
 
@@ -167,7 +167,7 @@ public class SchedulerService(
             // pointed at a webhook says what it could not do rather than looking complete.
             if (viaWebhook) { skipped++; continue; }
 
-            if (await renderer.RenderChartAsync(b, ct) is { } c) drawn.Add(c);
+            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
         }
 
         if (body.Length == 0 && drawn.Count == 0)
@@ -247,10 +247,10 @@ public class SchedulerService(
         var body   = render.Text.Trim();
 
         var drawn = new List<(byte[] Png, string Title)>();
-        foreach (var b in cfg.Blocks.Where(b => b.IsChart))
+        foreach (var b in cfg.Blocks.Where(b => b.HasPictures))
         {
             ct.ThrowIfCancellationRequested();
-            if (await renderer.RenderChartAsync(b, ct) is { } c) drawn.Add(c);
+            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
         }
 
         if (body.Length == 0 && drawn.Count == 0) return (true, AlarmsText.RunRenderedEmpty);

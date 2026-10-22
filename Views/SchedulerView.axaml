@@ -353,6 +353,87 @@
                                            Text="{x:Static loc:AlarmsText.EachListPrintsTheNote}" />
                               </StackPanel>
 
+                              <!-- Indy Park Compare: parks, the job list as the Compare tab edits it, and
+                                   which tables and pictures to post. Nothing comes from the tab. -->
+                              <StackPanel IsVisible="{Binding IsParkCompare}" Spacing="8">
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}" Watermark="{x:Static loc:AlarmsText.HeadingParkCompare}" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionParksLabel}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding CompareParks}" FontSize="12" />
+                                  </StackPanel>
+                                </Grid>
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
+                                  <views:MultiChoiceDropDown DataContext="{Binding CompareOutputsPicker}" FontSize="12" />
+                                </StackPanel>
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionJobsLabel}" />
+                                  <views:CompareJobListView DataContext="{Binding CompareJobList}" MaxHeight="460" />
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.ParkCompareSectionNote}" />
+                                <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
+                                        Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
+                                        CornerRadius="3" Padding="8 6">
+                                  <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
+                                             Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
+                                </Border>
+                              </StackPanel>
+
+                              <!-- System Index: the systems, in order (the order picks each line's colour), and
+                                   the table and charts to post. Nothing comes from the tool's list. -->
+                              <StackPanel IsVisible="{Binding IsSystemIndex}" Spacing="8">
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}" Watermark="{x:Static loc:AlarmsText.HeadingSystemIndex}" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding IndexOutputsPicker}" FontSize="12" />
+                                  </StackPanel>
+                                </Grid>
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionSystemsLabel}" />
+                                  <TextBox Text="{Binding IndexSearchText}" Watermark="{x:Static loc:IndustryText.IndexSearchHint}" />
+                                  <Border IsVisible="{Binding ShowIndexResults}" MaxHeight="180"
+                                          Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                          BorderThickness="1" CornerRadius="3">
+                                    <ListBox ItemsSource="{Binding IndexSearchResults}" SelectedItem="{Binding PickedIndexSystem}" Background="Transparent">
+                                      <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="svc:IndexSystem">
+                                          <TextBlock>
+                                            <Run Text="{Binding Name}" />
+                                            <Run Text="{Binding Region}" Foreground="{DynamicResource TextFaintBrush}" />
+                                          </TextBlock>
+                                        </DataTemplate>
+                                      </ListBox.ItemTemplate>
+                                    </ListBox>
+                                  </Border>
+                                  <ItemsControl ItemsSource="{Binding IndexSystems}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:IndexSystemChoice">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0 2 0 0">
+                                          <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                          <Button Grid.Column="1" Content="✕" Command="{Binding RemoveCommand}" Padding="7 1" FontSize="11"
+                                                  Foreground="{DynamicResource BadBrush}" Background="{DynamicResource SurfaceHeaderBrush}" />
+                                        </Grid>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.SystemIndexSectionNote}" />
+                                <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
+                                        Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
+                                        CornerRadius="3" Padding="8 6">
+                                  <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
+                                             Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
+                                </Border>
+                              </StackPanel>
+
                               <!-- Charts: whose figures, and a word about where they can go -->
                           <StackPanel IsVisible="{Binding IsChart}" Spacing="6">
                             <TextBlock Classes="hint"

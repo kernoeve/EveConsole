@@ -397,6 +397,90 @@
   <data name="SectionNeedsMetaGroup" xml:space="preserve">
     <value>La sección {0} ({1}) necesita al menos un metagrupo marcado.</value>
   </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Comparación de parques industriales</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>Índice de sistemas</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Comparación de parques industriales</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>Índice de sistemas</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Resumen por trabajo (imagen)</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Resumen por parque (imagen)</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>Gráfico de coste (imagen)</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>Gráfico de tiempo (imagen)</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Resumen por trabajo (tabla)</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Resumen por parque (tabla)</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Cada trabajo en cada parque (tabla)</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Resumen por trabajo</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Resumen por parque</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Cada trabajo en cada parque</value>
+  </data>
+  <data name="CompareReportNote" xml:space="preserve">
+    <value>{0} trabajos en {1} parques, a los precios e índices de coste de sistema de hoy; tiempos con habilidades en V.</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Índices de hoy (tabla)</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>Gráfico de {0} (imagen)</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>Parques</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>Trabajos</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>Publicar</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>Sistemas</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Se calcula al publicar, con los precios e índices de ese día y las habilidades en V. No se lee nada de la pestaña Comparar.</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Cada gráfico se publica con su propia leyenda. No se lee nada de la lista de la herramienta Índice de sistemas.</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>Este destino es un webhook, que no puede llevar imágenes: se omitirán las imágenes de esta sección y solo se publicarán sus tablas.</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita al menos un trabajo.</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita al menos un parque marcado.</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita al menos un sistema.</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita que se elija algo para publicar.</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Columnas</value>
   </data>

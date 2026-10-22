@@ -1091,7 +1091,9 @@ public class MainWindowViewModel : ReactiveObject
         EveScoutService                 eveScout,
         SystemGraph                     systemGraph,
         SovCampaignService              sovCampaigns,
-        EveConsole.Services.Pi.PiService piService)
+        EveConsole.Services.Pi.PiService piService,
+        ParkComparisonService           parkCompare,
+        CostIndexHistoryService         costIndexHistory)
     {
         // The main window's selection, as those who ask the main view model for it see it.
         Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
@@ -1205,8 +1207,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         // Indy Parks, Compare, and the System Index tool: one record of cost indices for both.
-        var costIndexHistory = new CostIndexHistoryService(dbFactory);
-        IndyParksVm.Compare = new ParkComparisonViewModel(new ParkComparisonService(prodCalcService, dbFactory), costIndexHistory, dbFactory);
+        IndyParksVm.Compare = new ParkComparisonViewModel(parkCompare, costIndexHistory, dbFactory);
         IndyParksVm.ParksChanged += () => _ = IndyParksVm.Compare.LoadParksAsync();
         SystemIndexVm       = new SystemIndexViewModel(dbFactory, costIndexHistory);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
@@ -1293,7 +1294,8 @@ public class MainWindowViewModel : ReactiveObject
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
-                                                        corpActivityService, salePostingService, errorLogger, batchAddService);
+                                                        corpActivityService, salePostingService, errorLogger, batchAddService,
+                                                        parkCompare);
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>

@@ -397,6 +397,90 @@
   <data name="SectionNeedsMetaGroup" xml:space="preserve">
     <value>В разделе {0} ({1}) должна быть отмечена хотя бы одна мета-группа.</value>
   </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Сравнение промпарков</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>Индексы систем</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Сравнение промпарков</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>Индексы систем</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Сводка по работам (изображение)</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Сводка по паркам (изображение)</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>График стоимости (изображение)</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>График времени (изображение)</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Сводка по работам (таблица)</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Сводка по паркам (таблица)</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Каждая работа в каждом парке (таблица)</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Сводка по работам</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Сводка по паркам</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Каждая работа в каждом парке</value>
+  </data>
+  <data name="CompareReportNote" xml:space="preserve">
+    <value>{0} работ в {1} парках, по сегодняшним ценам и индексам стоимости систем; время при навыках на V.</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Индексы на сегодня (таблица)</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>График: {0} (изображение)</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>Работы</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>Публиковать</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Рассчитывается при публикации, по ценам и индексам того дня, при навыках на V. Со вкладки «Сравнение» ничего не берётся.</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Каждый график публикуется со своей легендой. Список инструмента «Индексы систем» не используется.</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>Это назначение — вебхук, который не может передать изображение: картинки этого раздела будут пропущены, опубликуются только таблицы.</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>Разделу {0} ({1}) нужна хотя бы одна работа.</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>В разделе {0} ({1}) нужно отметить хотя бы один парк.</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>Разделу {0} ({1}) нужна хотя бы одна система.</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>В разделе {0} ({1}) нужно выбрать, что публиковать.</value>
+  </data>
   <data name="ColumnsLabel" xml:space="preserve">
     <value>Столбцы</value>
   </data>
