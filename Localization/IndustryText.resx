@@ -340,10 +340,6 @@
     <value>Type a system name…</value>
     <comment>System Index tool: watermark of the search box.</comment>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>Chart</value>
-    <comment>System Index tool: label of the activity the chart draws.</comment>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>Refresh</value>
     <comment>System Index tool: button reading the indices again.</comment>
@@ -360,9 +356,9 @@
     <value>No history for these systems in this activity yet.</value>
     <comment>System Index tool: note where the chart would be.</comment>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>{0} cost index each day from {1:yyyy-MM-dd} to {2:yyyy-MM-dd}.</value>
-    <comment>System Index tool: note over the chart. {0} activity, {1} first day, {2} last day.</comment>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Each chart is one activity's cost index each day, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}. The dot beside a system is its line.</value>
+    <comment>System Index tool: note over the six charts. {0} first day, {1} last day.</comment>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>

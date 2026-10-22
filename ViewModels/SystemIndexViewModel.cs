@@ -37,8 +37,14 @@ public sealed class SystemIndexRowVm : ReactiveObject
     public int    SystemId { get; }
     public string Name     { get; }
     public string Region   { get; }
-    /// <summary>Its place in the list as added, which picks its colour on the chart.</summary>
+    /// <summary>Its place in the list as added, which picks its colour on the charts.</summary>
     public int    Slot     { get; set; }
+
+    /// <summary>The dot beside its name: its colour in all six charts, the charts' one legend.
+    /// Clear past the eighth, which the charts leave off.</summary>
+    public Avalonia.Media.IBrush Swatch => Slot < ChartPaint.MaxSeries
+        ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(ChartPaint.SeriesHex[Slot]))
+        : Avalonia.Media.Brushes.Transparent;
 
     public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
 
@@ -63,7 +69,7 @@ public sealed class SystemIndexRowVm : ReactiveObject
 
 /// <summary>
 /// The System Index tool: a list of systems, kept on this machine, their cost indices today for
-/// every activity, and one activity's index over time, a line a system.
+/// every activity, and every activity's index over time, six charts, a line a system.
 /// </summary>
 public sealed class SystemIndexViewModel : ReactiveObject
 {
@@ -75,22 +81,15 @@ public sealed class SystemIndexViewModel : ReactiveObject
         _dbFactory = dbFactory;
         _history   = history;
 
-        Activities = [.. CostIndexHistoryService.Activities.Select(a => new LabelledChoice(a, ActivityName(a)))];
-        _activity  = Activities.FirstOrDefault(a => a.Key == UiState.Get(UiState.SystemIndexActivity)) ?? Activities[0];
+        Charts = [.. CostIndexHistoryService.Activities.Select(a => new IndexChartVm(a))];
 
         AddCommand     = ReactiveCommand.CreateFromTask<SystemSearchResult>(AddAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
-        ChartPaint.TrackAxesOf(this);
 
         this.WhenAnyValue(x => x.SearchText)
             .Throttle(TimeSpan.FromMilliseconds(250))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(t => _ = SearchAsync(t ?? ""));
-        this.WhenAnyValue(x => x.Activity).Skip(1).Subscribe(a =>
-        {
-            UiState.Set(UiState.SystemIndexActivity, a.Key);
-            BuildChart();
-        });
     }
 
     public static string ActivityName(string activity) => activity switch
@@ -128,7 +127,7 @@ public sealed class SystemIndexViewModel : ReactiveObject
     {
         Systems.Remove(row);
         Save();
-        BuildChart();
+        BuildCharts();
     });
 
     /// <summary>The lowest colour slot no system in the list holds, so a removal does not
@@ -218,12 +217,6 @@ public sealed class SystemIndexViewModel : ReactiveObject
 
     // ── Numbers ──────────────────────────────────────────────────────────────
 
-    public List<LabelledChoice> Activities { get; }
-
-    private LabelledChoice _activity;
-    /// <summary>The activity the chart draws. The table shows every one.</summary>
-    public LabelledChoice Activity { get => _activity; set => this.RaiseAndSetIfChanged(ref _activity, value ?? Activities[0]); }
-
     private Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> _daily = [];
 
     private string _statusText = "";
@@ -236,7 +229,7 @@ public sealed class SystemIndexViewModel : ReactiveObject
         {
             _daily = [];
             StatusText = IndustryText.IndexStart;
-            BuildChart();
+            BuildCharts();
             return;
         }
 
@@ -247,10 +240,46 @@ public sealed class SystemIndexViewModel : ReactiveObject
                 .Where(a => current.ContainsKey((s.SystemId, a)))
                 .ToDictionary(a => a, a => current[(s.SystemId, a)]));
         StatusText = string.Format(IndustryText.IndexStatus, Systems.Count);
-        BuildChart();
+        BuildCharts();
     }
 
-    // ── The chart ────────────────────────────────────────────────────────────
+    // ── The charts: one an activity, a line a system ──────────────────────────
+
+    /// <summary>The six activities, each its own chart, in the table's order.</summary>
+    public List<IndexChartVm> Charts { get; }
+
+    private string _chartNote = "";
+    public string ChartNote { get => _chartNote; private set => this.RaiseAndSetIfChanged(ref _chartNote, value); }
+
+    private void BuildCharts()
+    {
+        var days = _daily.Values.SelectMany(v => v.Keys).Distinct().OrderBy(d => d).ToList();
+        foreach (var chart in Charts) chart.Build(Systems, _daily, days);
+
+        var withHistory = Systems.Any(s => _daily.Keys.Any(k => k.SystemId == s.SystemId));
+        var left = Systems.Count(s => s.Slot >= ChartPaint.MaxSeries);
+        ChartNote = Systems.Count == 0 ? ""
+                  : !withHistory || days.Count == 0 ? IndustryText.IndexNoHistory
+                  : string.Format(IndustryText.IndexChartsNote, days[0], days[^1])
+                    + (left > 0 ? "  " + string.Format(IndustryText.CompareChartTooMany, ChartPaint.MaxSeries) : "");
+    }
+}
+
+/// <summary>
+/// One activity's cost index over time, a line a system. The colour key is the table's dot
+/// beside each system's name — the same in all six charts, so it is shown once, not six times.
+/// </summary>
+public sealed class IndexChartVm : ReactiveObject
+{
+    public IndexChartVm(string activity)
+    {
+        Activity = activity;
+        Title    = SystemIndexViewModel.ActivityName(activity);
+        ChartPaint.TrackAxesOf(this);
+    }
+
+    public string Activity { get; }
+    public string Title    { get; }
 
     private ISeries[] _series = [];
     public ISeries[] Series { get => _series; private set => this.RaiseAndSetIfChanged(ref _series, value); }
@@ -261,32 +290,21 @@ public sealed class SystemIndexViewModel : ReactiveObject
     private Axis[] _yAxes = [new Axis()];
     public Axis[] YAxes { get => _yAxes; private set => this.RaiseAndSetIfChanged(ref _yAxes, value); }
 
-    public SolidColorPaint LegendPaint     => ChartPaint.Labels;
-    public SolidColorPaint LegendBackPaint { get; } = new(Palette.Sk("SurfacePanel"));
+    private bool _hasChart;
+    public bool HasChart { get => _hasChart; private set => this.RaiseAndSetIfChanged(ref _hasChart, value); }
 
-    private string _chartNote = "";
-    public string ChartNote { get => _chartNote; private set => this.RaiseAndSetIfChanged(ref _chartNote, value); }
-
-    public bool HasChart => Series.Length > 0;
-
-    private void BuildChart()
+    /// <summary>A day with no sample for a system is a gap in its line, not a guess.</summary>
+    public void Build(IEnumerable<SystemIndexRowVm> systems,
+                      Dictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> daily,
+                      List<DateOnly> days)
     {
-        var act   = Activity.Key;
-        var shown = Systems.Where(s => _daily.ContainsKey((s.SystemId, act))).ToList();
-        var days  = shown.SelectMany(s => _daily[(s.SystemId, act)].Keys).Distinct().OrderBy(d => d).ToList();
+        var drawn = systems.Where(s => s.Slot < ChartPaint.MaxSeries && daily.ContainsKey((s.SystemId, Activity))).ToList();
+        HasChart = drawn.Count > 0 && days.Count > 0;
+        if (!HasChart) { Series = []; return; }
 
-        if (shown.Count == 0 || days.Count == 0)
-        {
-            Series    = [];
-            ChartNote = Systems.Count == 0 ? "" : IndustryText.IndexNoHistory;
-            this.RaisePropertyChanged(nameof(HasChart));
-            return;
-        }
-
-        var drawn = shown.Where(s => s.Slot < ChartPaint.MaxSeries).ToList();
         Series = drawn.Select(s =>
         {
-            var series = _daily[(s.SystemId, act)];
+            var series = daily[(s.SystemId, Activity)];
             return (ISeries)new LineSeries<double?>
             {
                 Name           = s.Name,
@@ -304,8 +322,8 @@ public sealed class SystemIndexViewModel : ReactiveObject
             {
                 Labels          = days.Select(d => d.ToString("MM-dd")).ToArray(),
                 LabelsPaint     = ChartPaint.Labels,
-                TextSize        = 10,
-                MinStep         = Math.Max(1, days.Count / 10),
+                TextSize        = 9,
+                MinStep         = Math.Max(1, days.Count / 6),
                 SeparatorsPaint = null,
             },
         ];
@@ -313,17 +331,12 @@ public sealed class SystemIndexViewModel : ReactiveObject
         [
             new Axis
             {
-                Labeler         = v => $"{v:0.##}%",
+                Labeler         = v => $"{v:0.#}%",
                 LabelsPaint     = ChartPaint.Labels,
-                TextSize        = 10,
+                TextSize        = 9,
                 MinLimit        = 0,
                 SeparatorsPaint = ChartPaint.Separators,
             },
         ];
-
-        var left = shown.Count - drawn.Count;
-        ChartNote = string.Format(IndustryText.IndexChartNote, Activity.Label, days[0], days[^1])
-                  + (left > 0 ? "  " + string.Format(IndustryText.CompareChartTooMany, ChartPaint.MaxSeries) : "");
-        this.RaisePropertyChanged(nameof(HasChart));
     }
 }

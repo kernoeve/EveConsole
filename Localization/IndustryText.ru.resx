@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>Введите название системы…</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>График</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>Обновить</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>Для этих систем по этому виду работ истории пока нет.</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>Индекс стоимости ({0}) за каждый день с {1:yyyy-MM-dd} по {2:yyyy-MM-dd}.</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Каждый график — индекс стоимости одного вида работ по дням, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}. Точка рядом с системой — цвет её линии.</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>

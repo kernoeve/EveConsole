@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>星系名を入力…</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>グラフ</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>更新</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>このアクティビティではこれらの星系の履歴がまだありません。</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>{1:yyyy-MM-dd} から {2:yyyy-MM-dd} までの日ごとの{0}コスト指数。</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>各グラフは 1 つのアクティビティの日ごとのコスト指数です（{0:yyyy-MM-dd}〜{1:yyyy-MM-dd}）。星系の横の点がその線の色です。</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>テック I</value>

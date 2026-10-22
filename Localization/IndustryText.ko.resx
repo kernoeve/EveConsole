@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>항성계 이름 입력…</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>차트</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>새로 고침</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>이 활동에는 아직 이 항성계들의 기록이 없습니다.</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>{1:yyyy-MM-dd}부터 {2:yyyy-MM-dd}까지 날마다의 {0} 비용 지수.</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>각 차트는 한 활동의 날짜별 비용 지수입니다({0:yyyy-MM-dd}~{1:yyyy-MM-dd}). 항성계 옆의 점이 그 선의 색입니다.</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>테크 I</value>

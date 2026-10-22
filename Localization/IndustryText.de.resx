@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>Systemnamen eingeben …</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>Diagramm</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>Für diese Systeme gibt es in dieser Tätigkeit noch keinen Verlauf.</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>{0}-Kostenindex je Tag von {1:yyyy-MM-dd} bis {2:yyyy-MM-dd}.</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Jedes Diagramm zeigt den Kostenindex einer Tätigkeit je Tag, {0:yyyy-MM-dd} bis {1:yyyy-MM-dd}. Der Punkt neben einem System ist seine Linie.</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>

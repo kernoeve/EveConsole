@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>输入星系名称…</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>图表</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>刷新</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>这些星系在该活动上暂无历史。</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>{1:yyyy-MM-dd} 至 {2:yyyy-MM-dd} 每天的{0}成本指数。</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>每个图表是一项活动每天的成本指数，{0:yyyy-MM-dd} 至 {1:yyyy-MM-dd}。星系旁的圆点即其线条颜色。</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>一级科技</value>

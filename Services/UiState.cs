@@ -70,9 +70,8 @@ public static class UiState
     public const string IndyCompareJobs     = "indyparks.compare.jobs";
     public const string IndyCompareParksOff = "indyparks.compare.parks_off";
 
-    // System Index: the systems listed (ids) and the activity charted.
+    // System Index: the systems listed (ids).
     public const string SystemIndexSystems  = "systemindex.systems";
-    public const string SystemIndexActivity = "systemindex.activity";
     public const string IndustryOppsBpoOnly     = "industryopps.bpo_only";
     /// <summary>Industry Ops: only items whose blueprint the user holds (issue #152).</summary>
     public const string IndustryOppsOwnedOnly   = "industryopps.owned_only";

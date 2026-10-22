@@ -34,7 +34,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,300" Margin="12 10">
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="12 10">
 
     <!-- Toolbar: add a system, pick the activity the chart draws -->
     <WrapPanel Grid.Row="0" Orientation="Horizontal" ItemSpacing="12" LineSpacing="6">
@@ -42,10 +42,6 @@
         <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.IndexAddSystem}" />
         <TextBox Text="{Binding SearchText}" Width="240" FontSize="12"
                  Watermark="{x:Static loc:IndustryText.IndexSearchHint}" />
-      </StackPanel>
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.IndexChartActivity}" />
-        <ComboBox ItemsSource="{Binding Activities}" SelectedItem="{Binding Activity}" Width="200" FontSize="12" />
       </StackPanel>
       <Button Content="{x:Static loc:IndustryText.IndexRefresh}" Command="{Binding RefreshCommand}"
               Padding="12 4" FontSize="12" />
@@ -77,13 +73,17 @@
       <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IndustryText.IndexMeResearch}" />
       <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IndustryText.IndexTeResearch}" />
     </Grid>
-    <ScrollViewer Grid.Row="3">
+    <ScrollViewer Grid.Row="3" MaxHeight="190">
       <ItemsControl ItemsSource="{Binding Systems}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:SystemIndexRowVm">
             <Grid ColumnDefinitions="200,*,90,90,90,90,90,90,40" Margin="0 2">
-              <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
-                         Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="7">
+                <!-- Its colour in all six charts: the charts' one legend. -->
+                <Ellipse Width="9" Height="9" Fill="{Binding Swatch}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
               <TextBlock Grid.Column="1" Text="{Binding Region}" FontSize="12" VerticalAlignment="Center"
                          Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
               <TextBlock Grid.Column="2" Classes="num" Text="{Binding Manufacturing}" />
@@ -101,11 +101,29 @@
     </ScrollViewer>
 
     <TextBlock Grid.Row="4" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
-               TextWrapping="Wrap" Margin="0 8 0 2" />
-    <lvc:CartesianChart Grid.Row="5" Series="{Binding Series}" IsVisible="{Binding HasChart}"
-                        XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
-                        LegendPosition="Bottom" LegendTextSize="11"
-                        LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
-                        EasingFunction="{x:Null}" Background="Transparent" />
+               TextWrapping="Wrap" Margin="0 8 0 4" />
+
+    <!-- Six charts, three rows of two: every activity at once. -->
+    <ItemsControl Grid.Row="5" ItemsSource="{Binding Charts}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <UniformGrid Rows="3" Columns="2" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:IndexChartVm">
+          <Border Margin="0 0 8 8" Padding="8 6" CornerRadius="3"
+                  Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+            <Grid RowDefinitions="Auto,*">
+              <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}" IsVisible="{Binding HasChart}"
+                                  XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                  LegendPosition="Hidden" EasingFunction="{x:Null}" Background="Transparent" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
   </Grid>
 </UserControl>

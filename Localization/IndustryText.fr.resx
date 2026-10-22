@@ -256,9 +256,6 @@
   <data name="IndexSearchHint" xml:space="preserve">
     <value>Saisissez un système…</value>
   </data>
-  <data name="IndexChartActivity" xml:space="preserve">
-    <value>Graphique</value>
-  </data>
   <data name="IndexRefresh" xml:space="preserve">
     <value>Actualiser</value>
   </data>
@@ -271,8 +268,8 @@
   <data name="IndexNoHistory" xml:space="preserve">
     <value>Pas encore d'historique pour ces systèmes dans cette activité.</value>
   </data>
-  <data name="IndexChartNote" xml:space="preserve">
-    <value>Indice de coût {0} chaque jour du {1:yyyy-MM-dd} au {2:yyyy-MM-dd}.</value>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Chaque graphique montre l'indice de coût d'une activité chaque jour, du {0:yyyy-MM-dd} au {1:yyyy-MM-dd}. Le point à côté d'un système est sa courbe.</value>
   </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
