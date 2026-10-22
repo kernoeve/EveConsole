@@ -412,6 +412,34 @@
     <value>Job time</value>
     <comment>Compare: the time chart's one category label under the bars.</comment>
   </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Indy Parks Compare: heading of the summary grid between the detail grid and the charts.</comment>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>Rows</value>
+    <comment>Compare summary: label of the dropdown choosing what the rows are (jobs or parks).</comment>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Compare summary: rows are the jobs, a group of columns per park.</comment>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Compare summary: rows are the parks, a group of columns per job.</comment>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>Each job's cost and time in each park, each against the best park for that job.</value>
+    <comment>Compare summary: note beside the heading.</comment>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Compare summary: column header, the job's total cost in that park.</comment>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>Job</value>
+    <comment>Compare summary: header of the row-title column when rows are jobs.</comment>
+  </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>Manufacturing</value>
     <comment>System Index tool: column and chart choice: the manufacturing index.</comment>

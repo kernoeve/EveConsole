@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
+using Avalonia.Media;
 using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Models;
@@ -207,7 +208,44 @@ public sealed class ParkCompareRowVm
 
     /// <summary>A gap under a tenth of a percent — invention, where materials swamp the job cost —
     /// gets two decimals, so it does not read as a tie.</summary>
-    private static string Over(double fraction) => fraction < 0.001 ? $"+{fraction:P2}" : $"+{fraction:P1}";
+    internal static string Over(double fraction) => fraction < 0.001 ? $"+{fraction:P2}" : $"+{fraction:P1}";
+}
+
+/// <summary>One job in one park, as a summary cell: cost and time, each against the best park
+/// for that job. Empty where the job is not done there.</summary>
+public sealed class CompareSummaryCellVm(ParkCompareRowVm? row)
+{
+    /// <summary>A quarter dearer or slower than the best shows in red, as Item Valuation does.</summary>
+    private const double FarBehind = 0.25;
+
+    private readonly ParkCompareRowVm? _row = row is { Cost.Buildable: true } ? row : null;
+
+    public bool    Has      => _row is not null;
+    public decimal Total    => _row?.Total ?? decimal.MaxValue;
+    public double  OverBest => _row?.OverBest ?? double.MaxValue;
+    public double  Seconds  => _row?.Seconds ?? double.MaxValue;
+    public double  SlowerBy => _row is { Cost.Seconds: not null } r ? r.SlowerBy : double.MaxValue;
+
+    public string CostText     => _row?.TotalText ?? "–";
+    public string OverBestText => _row?.OverBestText ?? "";
+    public string TimeText     => _row?.TimeText ?? "–";
+    public string SlowerText   => _row?.SlowerText ?? "";
+    /// <summary>The cost cell's tip; none where there is nothing to say, so no empty tip shows.</summary>
+    public string? Detail      => string.IsNullOrEmpty(_row?.Detail) ? null : _row.Detail;
+
+    public IBrush FigureColor => IskText.FigureColour(Has);
+    public IBrush OverColor   => Standing(_row?.IsBest ?? false, OverBest);
+    public IBrush SlowerColor => Standing(_row?.IsFastest ?? false, SlowerBy);
+
+    private IBrush Standing(bool isBest, double behind) =>
+        !Has ? Palette.TextFaint : isBest ? Palette.Good : behind >= FarBehind ? Palette.Bad : Palette.TextPrimary;
+}
+
+/// <summary>A summary row: a job across the parks, or a park across the jobs.</summary>
+public sealed class CompareSummaryRowVm(string title, IReadOnlyList<CompareSummaryCellVm> cells)
+{
+    public string Title { get; } = title;
+    public IReadOnlyList<CompareSummaryCellVm> Cells { get; } = cells;
 }
 
 /// <summary>
@@ -422,6 +460,9 @@ public sealed class ParkComparisonViewModel : ReactiveObject
                     });
             }
 
+            _lineLabels = lines.Select(l => l.LineLabel).ToList();
+            BuildSummary();
+
             ChartChoices.Clear();
             ChartChoices.Add(new LabelledChoice("", IndustryText.CompareAllItems));
             for (var i = 0; i < lines.Count; i++) ChartChoices.Add(new LabelledChoice(i.ToString(), lines[i].LineLabel));
@@ -431,6 +472,60 @@ public sealed class ParkComparisonViewModel : ReactiveObject
             StatusText = string.Format(IndustryText.CompareStatusDone, jobs.Count, parks.Count);
         }
         finally { IsCalculating = false; }
+    }
+
+    // ── The summary: the detail grid as jobs by parks, or parks by jobs ──────
+
+    private const string ByJob = "jobs", ByPark = "parks";
+
+    public List<LabelledChoice> SummaryLayouts { get; } =
+        [new(ByJob, IndustryText.CompareSummaryRowsJobs), new(ByPark, IndustryText.CompareSummaryRowsParks)];
+
+    private LabelledChoice? _summaryLayout;
+    /// <summary>What the summary's rows are; the other becomes its groups of columns. Remembered
+    /// on this machine.</summary>
+    public LabelledChoice SummaryLayout
+    {
+        get => _summaryLayout ??= SummaryLayouts.FirstOrDefault(l => l.Key == UiState.Get(UiState.IndyCompareSummaryBy)) ?? SummaryLayouts[0];
+        set
+        {
+            if (value is null || value.Key == SummaryLayout.Key) return;
+            _summaryLayout = value;
+            this.RaisePropertyChanged();
+            UiState.Set(UiState.IndyCompareSummaryBy, value.Key);
+            BuildSummary();
+        }
+    }
+
+    public bool SummaryByPark => SummaryLayout.Key == ByPark;
+
+    /// <summary>The headings over the groups of four columns: the parks, or the jobs. Set
+    /// before the rows, so the view builds the columns the rows then fill.</summary>
+    public IReadOnlyList<string> SummaryGroups { get; private set; } = [];
+
+    public ObservableCollection<CompareSummaryRowVm> SummaryRows { get; } = [];
+
+    public bool HasSummary => SummaryRows.Count > 0;
+
+    private List<string> _lineLabels = [];
+
+    private void BuildSummary()
+    {
+        var parks = _costs.Select(c => (c.ParkId, c.ParkName, c.Slot)).Distinct().OrderBy(p => p.Slot).ToList();
+        var lines = Enumerable.Range(0, _lineLabels.Count).ToList();
+        var byKey = Results.ToDictionary(r => (r.Cost.Job.Line, r.Cost.ParkId));
+        CompareSummaryCellVm Cell(int line, int parkId) => new(byKey.GetValueOrDefault((line, parkId)));
+
+        SummaryRows.Clear();
+        SummaryGroups = SummaryByPark ? lines.Select(l => _lineLabels[l]).ToList() : parks.Select(p => p.ParkName).ToList();
+        this.RaisePropertyChanged(nameof(SummaryGroups));
+        this.RaisePropertyChanged(nameof(SummaryByPark));
+
+        if (SummaryByPark)
+            foreach (var p in parks) SummaryRows.Add(new(p.ParkName, lines.Select(l => Cell(l, p.ParkId)).ToList()));
+        else
+            foreach (var l in lines) SummaryRows.Add(new(_lineLabels[l], parks.Select(p => Cell(l, p.ParkId)).ToList()));
+        this.RaisePropertyChanged(nameof(HasSummary));
     }
 
     // ── The charts: cost over time, and time per park ────────────────────────

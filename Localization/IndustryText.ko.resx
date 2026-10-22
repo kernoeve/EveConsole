@@ -310,6 +310,27 @@
   <data name="CompareTimeAxis" xml:space="preserve">
     <value>작업 시간</value>
   </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>행</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>각 파크에서 각 작업의 비용과 시간이며, 각각 그 작업에 가장 좋은 파크와 비교합니다.</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>작업</value>
+  </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>제조</value>
   </data>

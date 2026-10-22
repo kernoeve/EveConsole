@@ -3,6 +3,7 @@
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:controls="using:EveConsole.Controls"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.ParkComparisonView"
              x:DataType="vm:ParkComparisonViewModel"
@@ -25,6 +26,12 @@
     <Style Selector="DataGridCell TextBlock">
       <Setter Property="FontSize" Value="11" />
     </Style>
+    <!-- The summary: a wash over each group of four columns, as Item Valuation's compare table
+         has, and a line where one group ends and the next begins. -->
+    <Style Selector="DataGridCell.ga"><Setter Property="Background" Value="{DynamicResource ColumnGroupABrush}" /></Style>
+    <Style Selector="DataGridCell.gb"><Setter Property="Background" Value="{DynamicResource ColumnGroupBBrush}" /></Style>
+    <Style Selector="DataGridCell.gc"><Setter Property="Background" Value="{DynamicResource ColumnGroupCBrush}" /></Style>
+    <Style Selector="DataGridCell.gs"><Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" /><Setter Property="BorderThickness" Value="1 0 0 0" /></Style>
   </UserControl.Styles>
 
   <Grid ColumnDefinitions="380,1,*">
@@ -103,7 +110,7 @@
     <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Right: the costs and times, then the two charts ──────────────── -->
-    <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto,280" Margin="12 10">
+    <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto,Auto,280" Margin="12 10">
       <StackPanel Grid.Row="0" Spacing="2" Margin="0 0 0 6">
         <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
         <TextBlock Text="{x:Static loc:IndustryText.CompareTotalNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
@@ -134,15 +141,32 @@
         </DataGrid.Columns>
       </DataGrid>
 
-      <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0 10 0 4" IsVisible="{Binding ChartChoices.Count}">
+      <!-- The summary: the grid above pivoted, jobs by parks or parks by jobs. Its columns are
+           built in code, four to a group, under a band naming each group. -->
+      <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" Margin="0 10 0 0" IsVisible="{Binding HasSummary}">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0 0 0 4">
+          <TextBlock Text="{x:Static loc:IndustryText.CompareSummaryTitle}" FontSize="11" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryRows}" Margin="8 0 0 0" />
+          <ComboBox ItemsSource="{Binding SummaryLayouts}" SelectedItem="{Binding SummaryLayout}" Width="110" FontSize="12" />
+          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryNote}" Margin="8 0 0 0" />
+        </StackPanel>
+        <controls:DataGridColumnGroups Grid.Row="1" x:Name="SummaryBand" />
+        <DataGrid Grid.Row="2" x:Name="SummaryGrid" ItemsSource="{Binding SummaryRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
+                  FrozenColumnCount="1" CanUserReorderColumns="False" CanUserResizeColumns="True"
+                  Background="{DynamicResource SurfaceBaseBrush}" />
+      </Grid>
+
+      <Grid Grid.Row="3" ColumnDefinitions="Auto,*" Margin="0 10 0 4" IsVisible="{Binding ChartChoices.Count}">
         <TextBlock Grid.Column="0" Classes="flabel" Text="{x:Static loc:IndustryText.CompareChartsFor}" Margin="0 0 10 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding ChartChoices}" SelectedItem="{Binding ChartChoice}"
                   Width="280" HorizontalAlignment="Left" FontSize="12" />
       </Grid>
-      <TextBlock Grid.Row="3" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
+      <TextBlock Grid.Row="4" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
                  TextWrapping="Wrap" />
       <!-- Two charts side by side: cost with past indices, and job time; a park keeps its colour in both. -->
-      <Grid Grid.Row="4" ColumnDefinitions="*,12,*">
+      <Grid Grid.Row="5" ColumnDefinitions="*,12,*">
         <Grid Grid.Column="0" RowDefinitions="Auto,*" IsVisible="{Binding HasChart}">
           <TextBlock Grid.Row="0" Text="{x:Static loc:IndustryText.CompareCostChartTitle}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextMutedBrush}" />

@@ -69,6 +69,7 @@ public static class UiState
     // Indy Parks, Compare: the job list (JSON) and the parks left unticked (ids).
     public const string IndyCompareJobs     = "indyparks.compare.jobs";
     public const string IndyCompareParksOff = "indyparks.compare.parks_off";
+    public const string IndyCompareSummaryBy = "indyparks.compare.summary_by";
 
     // System Index: the systems listed (ids).
     public const string SystemIndexSystems  = "systemindex.systems";

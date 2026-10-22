@@ -310,6 +310,27 @@
   <data name="CompareTimeAxis" xml:space="preserve">
     <value>Время работ</value>
   </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>Работы</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>Стоимость и время каждой работы в каждом парке, в сравнении с лучшим парком для этой работы.</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>Работа</value>
+  </data>
   <data name="IndexManufacturing" xml:space="preserve">
     <value>Производство</value>
   </data>
