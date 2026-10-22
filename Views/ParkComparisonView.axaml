@@ -79,10 +79,14 @@
               <Border Margin="0 0 0 5" Padding="6 4" CornerRadius="3"
                       Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                 <StackPanel Spacing="4">
-                  <Grid ColumnDefinitions="*,Auto">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                     <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <Button Grid.Column="1" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                    <Button Grid.Column="1" Classes="small" Content="▲" Margin="0 0 2 0"
+                            Command="{Binding MoveUpCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveUp}" />
+                    <Button Grid.Column="2" Classes="small" Content="▼" Margin="0 0 6 0"
+                            Command="{Binding MoveDownCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveDown}" />
+                    <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
                             Command="{Binding RemoveCommand}" />
                   </Grid>
                   <Grid ColumnDefinitions="118,Auto,Auto">
@@ -144,13 +148,18 @@
       <!-- The summary: the grid above pivoted, jobs by parks or parks by jobs. Its columns are
            built in code, four to a group, under a band naming each group. -->
       <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" Margin="0 10 0 0" IsVisible="{Binding HasSummary}">
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0 0 0 4">
-          <TextBlock Text="{x:Static loc:IndustryText.CompareSummaryTitle}" FontSize="11" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryRows}" Margin="8 0 0 0" />
-          <ComboBox ItemsSource="{Binding SummaryLayouts}" SelectedItem="{Binding SummaryLayout}" Width="110" FontSize="12" />
-          <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryNote}" Margin="8 0 0 0" />
-        </StackPanel>
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 4">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{x:Static loc:IndustryText.CompareSummaryTitle}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryRows}" Margin="8 0 0 0" />
+            <ComboBox ItemsSource="{Binding SummaryLayouts}" SelectedItem="{Binding SummaryLayout}" Width="110" FontSize="12" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:IndustryText.CompareSummaryNote}" Margin="8 0 0 0" />
+          </StackPanel>
+          <!-- The whole table, every column, however far it is scrolled: drawn afresh for the picture. -->
+          <Button Grid.Column="1" x:Name="CopySummaryButton" Classes="small" Content="{x:Static loc:IndustryText.CompareCopyImage}"
+                  ToolTip.Tip="{x:Static loc:IndustryText.TipCompareCopyImage}" Click="OnCopySummary" VerticalAlignment="Center" />
+        </Grid>
         <controls:DataGridColumnGroups Grid.Row="1" x:Name="SummaryBand" />
         <DataGrid Grid.Row="2" x:Name="SummaryGrid" ItemsSource="{Binding SummaryRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="22"
@@ -165,26 +174,44 @@
       </Grid>
       <TextBlock Grid.Row="4" Text="{Binding ChartNote}" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}"
                  TextWrapping="Wrap" />
-      <!-- Two charts side by side: cost with past indices, and job time; a park keeps its colour in both. -->
+      <!-- Two charts side by side: cost with past indices, and job time; a park keeps its colour in both.
+           Each panel is what its Copy image button pictures: title, the line charted, chart and legend,
+           on the page's own ground (the button itself is left out). -->
       <Grid Grid.Row="5" ColumnDefinitions="*,12,*">
-        <Grid Grid.Column="0" RowDefinitions="Auto,*" IsVisible="{Binding HasChart}">
-          <TextBlock Grid.Row="0" Text="{x:Static loc:IndustryText.CompareCostChartTitle}" FontSize="11" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TextMutedBrush}" />
-          <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}"
-                              XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
-                              LegendPosition="Bottom" LegendTextSize="11"
-                              LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
-                              EasingFunction="{x:Null}" Background="Transparent" />
-        </Grid>
-        <Grid Grid.Column="2" RowDefinitions="Auto,*" IsVisible="{Binding HasTimeChart}">
-          <TextBlock Grid.Row="0" Text="{x:Static loc:IndustryText.CompareTimeChartTitle}" FontSize="11" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TextMutedBrush}" />
-          <lvc:CartesianChart Grid.Row="1" Series="{Binding TimeSeries}"
-                              XAxes="{Binding TimeXAxes}" YAxes="{Binding TimeYAxes}"
-                              LegendPosition="Bottom" LegendTextSize="11"
-                              LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
-                              EasingFunction="{x:Null}" Background="Transparent" />
-        </Grid>
+        <Border Grid.Column="0" x:Name="CostChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6" IsVisible="{Binding HasChart}">
+          <Grid RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+              <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.CompareCostChartTitle}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding ChartChoice.Label}" FontSize="11" Margin="8 0"
+                         Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+              <Button Grid.Column="2" x:Name="CopyCostButton" Classes="small" Content="{x:Static loc:IndustryText.CompareCopyImage}"
+                      ToolTip.Tip="{x:Static loc:IndustryText.TipCompareCopyImage}" Click="OnCopyCostChart" />
+            </Grid>
+            <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}"
+                                XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                LegendPosition="Bottom" LegendTextSize="11"
+                                LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                                EasingFunction="{x:Null}" Background="Transparent" />
+          </Grid>
+        </Border>
+        <Border Grid.Column="2" x:Name="TimeChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6" IsVisible="{Binding HasTimeChart}">
+          <Grid RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+              <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.CompareTimeChartTitle}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding ChartChoice.Label}" FontSize="11" Margin="8 0"
+                         Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+              <Button Grid.Column="2" x:Name="CopyTimeButton" Classes="small" Content="{x:Static loc:IndustryText.CompareCopyImage}"
+                      ToolTip.Tip="{x:Static loc:IndustryText.TipCompareCopyImage}" Click="OnCopyTimeChart" />
+            </Grid>
+            <lvc:CartesianChart Grid.Row="1" Series="{Binding TimeSeries}"
+                                XAxes="{Binding TimeXAxes}" YAxes="{Binding TimeYAxes}"
+                                LegendPosition="Bottom" LegendTextSize="11"
+                                LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
+                                EasingFunction="{x:Null}" Background="Transparent" />
+          </Grid>
+        </Border>
       </Grid>
     </Grid>
   </Grid>

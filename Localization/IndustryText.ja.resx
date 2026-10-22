@@ -307,9 +307,6 @@
   <data name="CompareTimeChartTitle" xml:space="preserve">
     <value>パークごとのジョブ時間</value>
   </data>
-  <data name="CompareTimeAxis" xml:space="preserve">
-    <value>ジョブ時間</value>
-  </data>
   <data name="CompareSummaryTitle" xml:space="preserve">
     <value>概要</value>
   </data>
@@ -324,6 +321,24 @@
   </data>
   <data name="CompareSummaryNote" xml:space="preserve">
     <value>各ジョブの各パークでのコストと時間。それぞれそのジョブで最良のパークと比べます。</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>画像をコピー</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>コピーしました</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>画像としてコピーします。Discord、Slack、文書にそのまま貼り付けられます。</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>画像をコピーできませんでした: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>下へ移動</value>
   </data>
   <data name="CompareColCost" xml:space="preserve">
     <value>コスト</value>

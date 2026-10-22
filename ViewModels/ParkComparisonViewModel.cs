@@ -27,7 +27,8 @@ public sealed class CompareJobVm : ReactiveObject
 
     public CompareJobVm(int typeId, string typeName, bool isBlueprint, bool inventable, CompareOp op,
                         long quantity, int second, int decryptorTypeId,
-                        ObservableCollection<LabelledChoice> decryptors, Action<CompareJobVm> remove, Action changed)
+                        ObservableCollection<LabelledChoice> decryptors, Action<CompareJobVm> remove,
+                        Action<CompareJobVm, int> move, Action changed)
     {
         TypeId      = typeId;
         TypeName    = typeName;
@@ -49,7 +50,9 @@ public sealed class CompareJobVm : ReactiveObject
         _second      = second.ToString();
         _decryptorId = decryptorTypeId;
 
-        RemoveCommand = ReactiveCommand.Create(() => remove(this));
+        RemoveCommand   = ReactiveCommand.Create(() => remove(this));
+        MoveUpCommand   = ReactiveCommand.Create(() => move(this, -1));
+        MoveDownCommand = ReactiveCommand.Create(() => move(this, +1));
         this.WhenAnyValue(x => x.QuantityText, x => x.SecondText).Skip(1).Subscribe(_ => changed());
     }
 
@@ -172,7 +175,9 @@ public sealed class CompareJobVm : ReactiveObject
     /// <summary>The line as the chart choice names it: the item, and the operation unless a build.</summary>
     public string LineLabel => Op == CompareOp.Build ? DisplayName : $"{DisplayName} — {Operation.Label}";
 
-    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand   { get; }
+    public ReactiveCommand<Unit, Unit> MoveUpCommand   { get; }
+    public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
 }
 
 /// <summary>One line in one park, as the results grid shows it.</summary>
@@ -341,7 +346,19 @@ public sealed class ParkComparisonViewModel : ReactiveObject
                                                                j.DecryptorTypeId, j.IsBlueprint, j.Inventable))));
 
     private CompareJobVm NewJob(int typeId, string name, bool isBlueprint, bool inventable, CompareOp op, long quantity, int second, int decryptor) =>
-        new(typeId, name, isBlueprint, inventable, op, quantity, second, decryptor, Decryptors, j => { Jobs.Remove(j); SaveJobs(); }, SaveJobs);
+        new(typeId, name, isBlueprint, inventable, op, quantity, second, decryptor, Decryptors,
+            j => { Jobs.Remove(j); SaveJobs(); }, Move, SaveJobs);
+
+    /// <summary>A line one place up (-1) or down (+1) the list; at either end it stays. The
+    /// results keep the order they were calculated in until Calculate runs again.</summary>
+    private void Move(CompareJobVm job, int by)
+    {
+        var from = Jobs.IndexOf(job);
+        var to   = from + by;
+        if (from < 0 || to < 0 || to >= Jobs.Count) return;
+        Jobs.Move(from, to);
+        SaveJobs();
+    }
 
     /// <summary>A search result picked: added to the list, after the click that picked it.</summary>
     public ProdTypeSearchResult? PickedResult
@@ -413,6 +430,9 @@ public sealed class ParkComparisonViewModel : ReactiveObject
 
     private string _statusText = IndustryText.CompareStart;
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
+
+    /// <summary>A line in the status, for what the view does itself: a picture that would not copy.</summary>
+    public void ShowStatus(string text) => StatusText = text;
 
     private bool _isCalculating;
     public bool IsCalculating { get => _isCalculating; private set => this.RaiseAndSetIfChanged(ref _isCalculating, value); }
@@ -642,18 +662,22 @@ public sealed class ParkComparisonViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// A bar per park, in the park's colour on the cost chart: the job time of the chosen line,
-    /// or of all of them end to end. A park with a line whose time is unknown is left off.
+    /// A group of bars per line — the chosen one, or every line in the list's order — named for
+    /// the job, with a bar per park in the park's colour on the cost chart. A park where a job is
+    /// not done, or its time is unknown, has no bar in that group.
     /// </summary>
     private void BuildTimeChart(List<IGrouping<(int ParkId, string ParkName, int Slot), ParkCost>> drawn)
     {
-        var timed = drawn.Where(g => g.All(x => x.Seconds is not null)).ToList();
-        if (timed.Count == 0) { TimeSeries = []; return; }
+        var lineFilter = ChartChoice is { Key.Length: > 0 } c ? int.Parse(c.Key) : (int?)null;
+        var lines = lineFilter is { } only ? [only] : Enumerable.Range(0, _lineLabels.Count).ToList();
+        var timed = drawn.Where(g => g.Any(x => x.Seconds is not null)).ToList();
+        if (timed.Count == 0 || lines.Count == 0) { TimeSeries = []; return; }
 
-        TimeSeries = timed.Select(g => (ISeries)new ColumnSeries<double>
+        TimeSeries = timed.Select(g => (ISeries)new ColumnSeries<double?>
         {
             Name        = g.Key.ParkName,
-            Values      = [g.Sum(x => x.Seconds!.Value) / 3600.0],
+            Values      = lines.Select(l => g.FirstOrDefault(x => x.Job.Line == l)?.Seconds is { } sec ? sec / 3600.0 : (double?)null).ToArray(),
+            YToolTipLabelFormatter = p => $"{g.Key.ParkName}: {PlanTime.Format(p.Coordinate.PrimaryValue * 3600)}",
             Fill        = new SolidColorPaint(SKColor.Parse(ChartPaint.SeriesHex[g.Key.Slot])),
             Stroke      = null,
             MaxBarWidth = 48,
@@ -666,9 +690,12 @@ public sealed class ParkComparisonViewModel : ReactiveObject
         [
             new Axis
             {
-                Labels          = [IndustryText.CompareTimeAxis],
+                Labels          = lines.Select(l => _lineLabels[l]).ToArray(),
                 LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
+                // Job names side by side collide past a few; tilted, each keeps its own room.
+                LabelsRotation  = lines.Count > 3 ? 20 : 0,
+                MinStep         = 1,
                 SeparatorsPaint = null,
             },
         ];

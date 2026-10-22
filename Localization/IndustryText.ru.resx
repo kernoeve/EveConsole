@@ -307,9 +307,6 @@
   <data name="CompareTimeChartTitle" xml:space="preserve">
     <value>Время работ по паркам</value>
   </data>
-  <data name="CompareTimeAxis" xml:space="preserve">
-    <value>Время работ</value>
-  </data>
   <data name="CompareSummaryTitle" xml:space="preserve">
     <value>Сводка</value>
   </data>
@@ -324,6 +321,24 @@
   </data>
   <data name="CompareSummaryNote" xml:space="preserve">
     <value>Стоимость и время каждой работы в каждом парке, в сравнении с лучшим парком для этой работы.</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>Копировать изображение</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>Скопировать как изображение, чтобы вставить в Discord, Slack или документ.</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>Не удалось скопировать изображение: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>Выше</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>Ниже</value>
   </data>
   <data name="CompareColCost" xml:space="preserve">
     <value>Стоимость</value>

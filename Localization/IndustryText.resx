@@ -408,10 +408,6 @@
     <value>Job time per park</value>
     <comment>Compare: title of the right chart, job time as a bar per park.</comment>
   </data>
-  <data name="CompareTimeAxis" xml:space="preserve">
-    <value>Job time</value>
-    <comment>Compare: the time chart's one category label under the bars.</comment>
-  </data>
   <data name="CompareSummaryTitle" xml:space="preserve">
     <value>Summary</value>
     <comment>Indy Parks Compare: heading of the summary grid between the detail grid and the charts.</comment>
@@ -431,6 +427,30 @@
   <data name="CompareSummaryNote" xml:space="preserve">
     <value>Each job's cost and time in each park, each against the best park for that job.</value>
     <comment>Compare summary: note beside the heading.</comment>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>Copy image</value>
+    <comment>Compare: button over a chart or the summary that copies it to the clipboard as a picture.</comment>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>Copied</value>
+    <comment>Compare: the copy button's text for a moment after the picture is on the clipboard.</comment>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>Copy this as a picture, ready to paste into Discord, Slack or a document.</value>
+    <comment>Tooltip on the Copy image buttons.</comment>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>Could not copy the picture: {0}</value>
+    <comment>Compare: status when putting the picture on the clipboard failed. {0} the reason.</comment>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>Move up the list</value>
+    <comment>Compare job list: button moving a line one place up.</comment>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>Move down the list</value>
+    <comment>Compare job list: button moving a line one place down.</comment>
   </data>
   <data name="CompareColCost" xml:space="preserve">
     <value>Cost</value>

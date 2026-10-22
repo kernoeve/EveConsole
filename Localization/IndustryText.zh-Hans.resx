@@ -307,9 +307,6 @@
   <data name="CompareTimeChartTitle" xml:space="preserve">
     <value>各园区作业时间</value>
   </data>
-  <data name="CompareTimeAxis" xml:space="preserve">
-    <value>作业时间</value>
-  </data>
   <data name="CompareSummaryTitle" xml:space="preserve">
     <value>汇总</value>
   </data>
@@ -324,6 +321,24 @@
   </data>
   <data name="CompareSummaryNote" xml:space="preserve">
     <value>每项作业在各园区的成本和时间，各自与该作业的最佳园区相比。</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>复制图片</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>已复制</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>将其复制为图片，可直接粘贴到 Discord、Slack 或文档中。</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>无法复制图片：{0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>下移</value>
   </data>
   <data name="CompareColCost" xml:space="preserve">
     <value>成本</value>

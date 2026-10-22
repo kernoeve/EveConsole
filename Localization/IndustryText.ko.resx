@@ -307,9 +307,6 @@
   <data name="CompareTimeChartTitle" xml:space="preserve">
     <value>파크별 작업 시간</value>
   </data>
-  <data name="CompareTimeAxis" xml:space="preserve">
-    <value>작업 시간</value>
-  </data>
   <data name="CompareSummaryTitle" xml:space="preserve">
     <value>요약</value>
   </data>
@@ -324,6 +321,24 @@
   </data>
   <data name="CompareSummaryNote" xml:space="preserve">
     <value>각 파크에서 각 작업의 비용과 시간이며, 각각 그 작업에 가장 좋은 파크와 비교합니다.</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>이미지 복사</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>복사됨</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>이미지로 복사합니다. Discord, Slack 또는 문서에 바로 붙여 넣을 수 있습니다.</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>이미지를 복사할 수 없습니다: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>위로 이동</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>아래로 이동</value>
   </data>
   <data name="CompareColCost" xml:space="preserve">
     <value>비용</value>
