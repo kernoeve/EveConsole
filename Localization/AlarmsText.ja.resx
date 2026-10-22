@@ -467,7 +467,7 @@
     <value>各グラフは凡例付きで投稿されます。星系インデックスツールのリストは使いません。</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>この投稿先は Webhook で画像を送れません。このセクションの画像は省かれ、表だけが投稿されます。</value>
+    <value>この投稿先は Slack の Webhook で画像を送れません。このセクションの画像は省かれ、表だけが投稿されます。Slack チャンネルか Discord の Webhook なら画像も送れます。</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>セクション {0}（{1}）には少なくとも 1 つのジョブが必要です。</value>

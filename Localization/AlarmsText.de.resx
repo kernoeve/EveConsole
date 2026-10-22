@@ -467,7 +467,7 @@
     <value>Jedes Diagramm wird mit eigener Legende gepostet. Die Liste des Systemindex-Werkzeugs wird nicht übernommen.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Dieses Ziel ist ein Webhook, der keine Bilder übertragen kann: Die Bilder dieses Abschnitts entfallen, nur die Tabellen werden gepostet.</value>
+    <value>Dieses Ziel ist ein Slack-Webhook, der keine Bilder übertragen kann: Die Bilder dieses Abschnitts entfallen, nur die Tabellen werden gepostet. Ein Slack-Kanal oder ein Discord-Webhook überträgt sie.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht mindestens einen Job.</value>

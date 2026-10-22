@@ -621,7 +621,7 @@
     <comment>Scheduler, System Index section: hint under the section.</comment>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>This destination is a webhook, which cannot carry an image: the pictures in this section will be left out and only its tables posted.</value>
+    <value>This destination is a Slack webhook, which cannot carry an image: the pictures in this section will be left out and only its tables posted. A Slack channel or a Discord webhook carries them.</value>
     <comment>Scheduler: warning in an Indy Park Compare or System Index section when the task posts to a webhook and pictures are chosen.</comment>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">

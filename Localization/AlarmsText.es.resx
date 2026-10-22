@@ -467,7 +467,7 @@
     <value>Cada gráfico se publica con su propia leyenda. No se lee nada de la lista de la herramienta Índice de sistemas.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Este destino es un webhook, que no puede llevar imágenes: se omitirán las imágenes de esta sección y solo se publicarán sus tablas.</value>
+    <value>Este destino es un webhook de Slack, que no puede llevar imágenes: se omitirán las imágenes de esta sección y solo se publicarán sus tablas. Un canal de Slack o un webhook de Discord sí las lleva.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>La sección {0} ({1}) necesita al menos un trabajo.</value>

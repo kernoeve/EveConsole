@@ -467,7 +467,7 @@
     <value>每张图都附带自己的图例发布。不读取星系指数工具的列表。</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>此目标是 Webhook，无法发送图片：本部分的图片将被省略，只发布表格。</value>
+    <value>此目标是 Slack Webhook，无法发送图片：本部分的图片将被省略，只发布表格。Slack 频道或 Discord Webhook 可以发送图片。</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>第 {0} 部分（{1}）至少需要一项作业。</value>
