@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.CompareJobListView"
+             x:DataType="vm:CompareJobListVm">
+
+  <!-- A Compare job list: search to add, then each line with its operation and numbers, moved
+       and removed. The Compare tab and a scheduled post's section both edit one. -->
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*">
+    <TextBox Grid.Row="0" Text="{Binding SearchText}" FontSize="12"
+             Watermark="{x:Static loc:IndustryText.CompareSearchHint}" />
+    <Border Grid.Row="1" IsVisible="{Binding ShowResults}" MaxHeight="200" Margin="0 3 0 0"
+            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+            BorderThickness="1" CornerRadius="3">
+      <!-- Picking a result adds it: the selection is the command, so the template needs no
+           reach back to the view model. -->
+      <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding PickedResult}"
+               Background="Transparent" FontSize="12">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:ProdTypeSearchResult">
+            <TextBlock Text="{Binding DisplayName}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+
+    <ScrollViewer Grid.Row="2" Margin="0 8 0 0">
+      <ItemsControl ItemsSource="{Binding Jobs}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:CompareJobVm">
+            <!-- A line: the name, then the operation and its numbers, then (invention) the decryptor. -->
+            <Border Margin="0 0 0 5" Padding="6 4" CornerRadius="3"
+                    Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <Button Grid.Column="1" Classes="small" Content="▲" Margin="0 0 2 0"
+                          Command="{Binding MoveUpCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveUp}" />
+                  <Button Grid.Column="2" Classes="small" Content="▼" Margin="0 0 6 0"
+                          Command="{Binding MoveDownCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveDown}" />
+                  <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                          Command="{Binding RemoveCommand}" />
+                </Grid>
+                <Grid ColumnDefinitions="118,Auto,Auto">
+                  <ComboBox Grid.Column="0" ItemsSource="{Binding Operations}" SelectedItem="{Binding Operation}"
+                            HorizontalAlignment="Stretch" FontSize="11.5" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowQuantity}">
+                    <TextBlock Classes="flabel" Text="{Binding QuantityLabel}" />
+                    <TextBox Text="{Binding QuantityText}" FontSize="12" Width="52" ToolTip.Tip="{Binding QuantityTip}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowSecond}">
+                    <TextBlock Classes="flabel" Text="{Binding SecondLabel}" />
+                    <TextBox Text="{Binding SecondText}" FontSize="12" Width="44" ToolTip.Tip="{Binding SecondTip}" />
+                  </StackPanel>
+                </Grid>
+                <ComboBox ItemsSource="{Binding Decryptors}" SelectedItem="{Binding Decryptor}" IsVisible="{Binding ShowDecryptor}"
+                          HorizontalAlignment="Stretch" FontSize="11.5" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
