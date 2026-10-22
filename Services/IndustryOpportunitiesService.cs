@@ -110,7 +110,7 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
 
     /// <summary>
     /// Runs the calculation. Null when the market config does not exist or is switched off.
-    /// The rows come in the tool's default order: Sales 30d, then profit per slot-day.
+    /// The rows come in the tool's default order: Profit 30d, then profit per slot-day.
     /// </summary>
     public async Task<IndustryOppsResult?> CalculateAsync(IndustryOppsQuery q, CancellationToken ct = default)
     {
@@ -131,7 +131,7 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
 
         var rows = await BuildRowsAsync(q, candidates, regionId, typesWithSell, typesWithBuy, configHasRawOrders, ct);
         return new IndustryOppsResult(
-            [.. rows.OrderByDescending(r => r.IskVol30d).ThenByDescending(r => r.ProfitPerSlotDay)],
+            [.. rows.OrderByDescending(r => r.Profit30d).ThenByDescending(r => r.ProfitPerSlotDay)],
             regionId, regionName, NoRegion: false);
     }
 

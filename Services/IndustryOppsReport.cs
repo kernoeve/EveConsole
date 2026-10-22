@@ -61,7 +61,7 @@ public static class IndustryOppsReport
     public static readonly string[] DefaultColumns = [Item, "profit_unit", "margin", "units_30d", "sales_30d"];
 
     /// <summary>What a new section sorts by: the tool's own default.</summary>
-    public const string DefaultSort = "sales_30d";
+    public const string DefaultSort = "profit_30d";
 
     /// <summary>
     /// The rows sorted by the column asked for, the first <paramref name="limit"/> of them

@@ -347,7 +347,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     /// <para>⚠️ Owned here, not by the grid. A grid bound to <see cref="Results"/> keeps its sort
     /// in a view of its own, which goes with the grid when the tab is left; bound to this, a
     /// rebuilt grid finds the sort — and draws its header arrow — from where it was left. The sort
-    /// is also remembered between sessions, and starts as ISK Sold 30d, highest first.</para>
+    /// is also remembered between sessions, and starts as Profit 30d, highest first.</para>
     /// </summary>
     public DataGridCollectionView ResultsView { get; }
 
@@ -359,7 +359,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var saved = (UiState.Get(UiState.IndustryOppsSort) ?? "").Split(':');
         var (path, direction) = saved.Length == 2 && SortablePaths.Contains(saved[0])
             ? (saved[0], saved[1] == "asc" ? ListSortDirection.Ascending : ListSortDirection.Descending)
-            : (nameof(IndustryRow.IskVol30d), ListSortDirection.Descending);
+            : (nameof(IndustryRow.Profit30d), ListSortDirection.Descending);
 
         ResultsView.SortDescriptions.Add(DataGridSortDescription.FromPath(path, direction));
     }
@@ -541,7 +541,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             var rows       = result.Rows;
             var regionName = result.RegionName;
 
-            // ResultsView sorts them — by the sort the user left, Sales 30d if none. They come in
+            // ResultsView sorts them — by the sort the user left, Profit 30d if none. They come in
             // that default order anyway, so the list reads the same with the sort cleared.
             foreach (var r in rows)
                 Results.Add(r);
