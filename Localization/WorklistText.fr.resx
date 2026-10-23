@@ -2482,9 +2482,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0} : stockage au moins à moitié plein de production (estimation)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Les chiffres sont estimés à partir de données anciennes : la colonie n'a pas été ouverte dans le jeu depuis un moment.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Apporter des intrants sur {0}</value>
   </data>
@@ -2514,12 +2511,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Niveau {0} actuellement ; Améliorations de centre de commandement permet le niveau {1}. Plus de CPU et de réseau d'alimentation pour les têtes d'extracteur et les usines.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>Ouvrir {0} dans le jeu</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Ses données sont vieilles de {0} : ses estimations ne sont plus fiables. Ouvrir la colonie dans le jeu les actualise.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>choisir une destination pour {0:N0} emballage de sécurité des biens avant le {1:d MMM HH:mm}</value>

@@ -487,9 +487,9 @@ public sealed class PiColonyRowVm : ReactiveObject
         };
         StateTip = StateReasons(a);
 
-        AgeText  = a.Stale ? string.Format(PiText.AgeStale, PiFormat.Duration(a.DataAge)) : PiFormat.Duration(a.DataAge);
-        AgeTip   = string.Format(a.Stale ? PiText.TipAgeStale : PiText.TipAge, PiFormat.When(f.SnapshotAt));
-        AgeColor = a.Stale ? Palette.Warn : Palette.TextSecondary;
+        AgeText  = PiFormat.Duration(a.DataAge);
+        AgeTip   = string.Format(PiText.TipAge, PiFormat.When(f.SnapshotAt));
+        AgeColor = Palette.TextSecondary;
 
         ProfitText = string.Format(PiText.PerDay, MarketFmt.Isk(c.Economics.ProfitPerDay));
         ProfitTip  = string.Format(PiText.TipProfit, MarketFmt.Isk(c.Economics.OutputValuePerDay),
@@ -546,7 +546,6 @@ public sealed class PiColonyRowVm : ReactiveObject
         if (a.InputsLow)          why.Add(PiText.ReasonInputsLow);
         if (a.OutputDestroyedFrom is { } destroyed) why.Add(string.Format(PiText.ReasonOutputDestroyed, PiFormat.When(destroyed)));
         if (a.RawOverflowFrom is { } overflow)      why.Add(string.Format(PiText.ReasonRawOverflow, PiFormat.When(overflow)));
-        if (a.Stale)              why.Add(PiText.ReasonStale);
         return why.Count == 0 ? PiText.ReasonNothingDue : string.Join("\n", why);
     }
 
@@ -682,7 +681,7 @@ public sealed class PiColonyDetailVm
         Title       = row.PlanetName;
         Subtitle    = string.Format(PiText.DetailSubtitle, c.CharacterName, row.SystemName, row.SecurityText,
                                     row.PlanetType, row.KindText);
-        AgeText     = string.Format(row.Attention.Stale ? PiText.DetailAgeStale : PiText.DetailAge,
+        AgeText     = string.Format(PiText.DetailAge,
                                     PiFormat.Duration(row.Attention.DataAge), PiFormat.When(f.SnapshotAt));
         AgeColor    = row.AgeColor;
 

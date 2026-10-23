@@ -3404,7 +3404,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
     <value>惑星インダストリーのアラートとタスク</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>概要のPIアラートとワークリストのPIタスクがどれだけ先まで見るか、コロニーのデータがいつ古すぎて信頼できなくなるか、投入資源の運搬でどれだけ運ぶかを設定します。どのアラートを出すかは「アラート」タブで設定します。</value>
+    <value>概要のPIアラートとワークリストのPIタスクがどれだけ先まで見るか、投入資源の運搬でどれだけ運ぶかを設定します。どのアラートを出すかは「アラート」タブで設定します。</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>エクストラクターの停止</value>
@@ -3420,9 +3420,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>時間前（推定）</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>コロニーのデータを古いとみなす日数</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>投入資源の運搬1回で運ぶ量</value>
@@ -3445,10 +3442,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>PIキャラクターに未使用のコロニースロットがある</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>コロニーが長くゲーム内で開かれておらず、推定値が信頼できない</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先か、どれだけ古いと古すぎるかは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
+    <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先かは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
   </data>
 </root>

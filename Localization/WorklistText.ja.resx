@@ -2461,9 +2461,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}：産出物で半分以上埋まっています（推定）</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>数値は古いデータからの推定です：このコロニーはしばらくゲーム内で開かれていません。</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0}へ投入資源を運ぶ</value>
   </data>
@@ -2484,12 +2481,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>現在はレベル{0}で、司令基地強化の上限は{1}です。エクストラクターの抽出ヘッドと工場に使えるCPUとパワーグリッドが増えます。</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>ゲーム内で{0}を開く</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>データが{0}前のもので、推定値はもう信頼できません。ゲーム内でコロニーを開くと更新されます。</value>
   </data>
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>{1:M月d日 HH:mm}までにアセットセーフティラップ{0:N0}個の配送先を選択</value>

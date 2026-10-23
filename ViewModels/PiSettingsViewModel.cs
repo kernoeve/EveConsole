@@ -7,8 +7,8 @@ namespace EveConsole.ViewModels;
 /// <summary>
 /// Planetary Industry settings, on Settings → Industry: the tax rate charged on a planet until one
 /// is learned for it from the journal — one for customs offices, one for skyhooks — and how far
-/// ahead the PI alerts and worklist tasks look, when a colony's data is too old to trust, and how
-/// many days of input a haul brings. Saved as they are changed.
+/// ahead the PI alerts and worklist tasks look, and how many days of input a haul brings. Saved as
+/// they are changed.
 /// </summary>
 public class PiSettingsViewModel : ReactiveObject
 {
@@ -21,7 +21,6 @@ public class PiSettingsViewModel : ReactiveObject
     private decimal _extractorLeadHours;
     private decimal _storageLeadHours;
     private decimal _inputLeadHours;
-    private decimal _staleDays;
     private decimal _inputDays;
     private string  _status = "";
 
@@ -56,11 +55,6 @@ public class PiSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _inputLeadHours, value);
     }
 
-    public decimal StaleDays
-    {
-        get => _staleDays;
-        set => this.RaiseAndSetIfChanged(ref _staleDays, value);
-    }
 
     public decimal InputDays
     {
@@ -92,7 +86,6 @@ public class PiSettingsViewModel : ReactiveObject
             ExtractorLeadHours = settings.ExtractorLeadHours;
             StorageLeadHours   = settings.StorageLeadHours;
             InputLeadHours     = settings.InputLeadHours;
-            StaleDays          = settings.StaleDays;
             InputDays          = settings.InputDays;
         }
 
@@ -109,7 +102,6 @@ public class PiSettingsViewModel : ReactiveObject
         var extractor = (int)ExtractorLeadHours;
         var storage   = (int)StorageLeadHours;
         var input     = (int)InputLeadHours;
-        var stale     = (int)StaleDays;
         var days      = (int)InputDays;
 
         // Read above, on the UI thread; written off it. Each setter clamps to its own range.
@@ -120,7 +112,6 @@ public class PiSettingsViewModel : ReactiveObject
             await _settings.SetExtractorLeadHoursAsync(extractor).ConfigureAwait(false);
             await _settings.SetStorageLeadHoursAsync(storage).ConfigureAwait(false);
             await _settings.SetInputLeadHoursAsync(input).ConfigureAwait(false);
-            await _settings.SetStaleDaysAsync(stale).ConfigureAwait(false);
             await _settings.SetInputDaysAsync(days).ConfigureAwait(false);
         });
 

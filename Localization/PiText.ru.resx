@@ -202,14 +202,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (устар.)</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>Последний раз открывалась в игре: {0}.</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>Последний раз открывалась в игре: {0} — слишком давно, чтобы доверять оценкам. Откройте колонию в игре, чтобы обновить данные.</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0} в день</value>
@@ -243,9 +237,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>Материалы кончатся в пределах времени упреждения (оценка).</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>Данные слишком старые, чтобы им доверять.</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>В пределах времени упреждения ничего не ожидается.</value>
@@ -309,9 +300,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>Возраст данных — {0}: колонию последний раз открывали в игре {1}. Показатели хранилищ, производственных комплексов и материалов рассчитаны от этого момента.</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>Возраст данных — {0}: колонию последний раз открывали в игре {1}, слишком давно, чтобы доверять оценкам. Откройте колонию в игре, чтобы обновить данные.</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>Командный центр</value>

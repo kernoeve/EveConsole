@@ -2461,9 +2461,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: 생산품이 절반 이상 참 (추정)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>오래된 데이터로 추정한 수치입니다: 한동안 게임에서 콜로니를 열지 않았습니다.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0}에 투입 자원 반입</value>
   </data>
@@ -2484,12 +2481,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>현재 레벨 {0}. 통제센터 업그레이드 스킬로 {1}까지 가능합니다. 추출기 헤드와 제조시설에 쓸 CPU와 파워그리드가 늘어납니다.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>게임에서 {0} 열기</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>데이터가 {0} 지나 추정치를 더 이상 믿을 수 없습니다. 게임에서 콜로니를 열면 갱신됩니다.</value>
   </data>
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>{1:M월 d일 HH:mm}까지 자산 보호 포장 {0:N0}개의 목적지 선택</value>

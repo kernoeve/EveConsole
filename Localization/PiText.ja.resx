@@ -166,14 +166,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0}（古い）</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>ゲーム内で最後に開いたのは{0}です。</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>ゲーム内で最後に開いたのは{0}です。前すぎるため、推定値は信頼できません。ゲーム内でコロニーを開いて更新してください。</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0}/日</value>
@@ -207,9 +201,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>リードタイム内に投入資源が枯渇します（推定）。</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>データが古すぎて信頼できません。</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>リードタイム内に予定されているものはありません。</value>
@@ -264,9 +255,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>データは{0}前のものです：ゲーム内で最後に開いたのは{1}です。保管施設、工場、投入資源の数値はその時点からの推定です。</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>データは{0}前のものです：ゲーム内で最後に開いたのは{1}で、前すぎるため推定値は信頼できません。ゲーム内でコロニーを開いて更新してください。</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>司令基地</value>

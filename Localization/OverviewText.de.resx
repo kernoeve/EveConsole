@@ -902,15 +902,6 @@
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>Material aufgebraucht oder bald aufgebraucht auf {0} Fabrikplaneten (geschätzt).</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}: {1} wurde seit {2} nicht im Spiel geöffnet; den Schätzungen ist nicht mehr zu trauen.</value>
-  </data>
-  <data name="AlertPiStaleManyOne" xml:space="preserve">
-    <value>{0} Kolonie wurde eine Weile nicht im Spiel geöffnet; ihren Schätzungen ist nicht mehr zu trauen.</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>{0} Kolonien wurden eine Weile nicht im Spiel geöffnet; ihren Schätzungen ist nicht mehr zu trauen.</value>
-  </data>
   <data name="AlertPiFreeSlotsOne" xml:space="preserve">
     <value>{1} hat {0} ungenutzten Kolonie-Slot.</value>
   </data>

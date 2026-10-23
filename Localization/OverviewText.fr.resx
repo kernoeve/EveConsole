@@ -902,15 +902,6 @@ Remplacer « {1} » par « {0} » ?</value>
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>Intrants épuisés ou bientôt épuisés sur {0} planètes de production (estimation).</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0} : la colonie de {1} n'a pas été ouverte dans le jeu depuis {2} ; ses estimations ne sont plus fiables.</value>
-  </data>
-  <data name="AlertPiStaleManyOne" xml:space="preserve">
-    <value>{0} colonie n'a pas été ouverte dans le jeu depuis un moment ; ses estimations ne sont plus fiables.</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>{0} colonies n'ont pas été ouvertes dans le jeu depuis un moment ; leurs estimations ne sont plus fiables.</value>
-  </data>
   <data name="AlertPiFreeSlotsOne" xml:space="preserve">
     <value>{1} a {0} emplacement de colonie inutilisé.</value>
   </data>

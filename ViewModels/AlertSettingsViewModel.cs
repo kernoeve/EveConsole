@@ -106,9 +106,6 @@ public class AlertSettingsViewModel : ReactiveObject
     private bool _piFreeSlots = true;
     public bool PiFreeSlots { get => _piFreeSlots; set => this.RaiseAndSetIfChanged(ref _piFreeSlots, value); }
 
-    private bool _piStaleData = true;
-    public bool PiStaleData { get => _piStaleData; set => this.RaiseAndSetIfChanged(ref _piStaleData, value); }
-
     private bool _unreadMail = true;
     public bool UnreadMail { get => _unreadMail; set => this.RaiseAndSetIfChanged(ref _unreadMail, value); }
 
@@ -162,7 +159,6 @@ public class AlertSettingsViewModel : ReactiveObject
         PiStorage                  = s.PiStorage;
         PiInputs                   = s.PiInputs;
         PiFreeSlots                = s.PiFreeSlots;
-        PiStaleData                = s.PiStaleData;
         UnreadMail                 = s.UnreadMail;
     }
 
@@ -186,19 +182,19 @@ public class AlertSettingsViewModel : ReactiveObject
         bool piStorage = PiStorage;
         bool piInputs  = PiInputs;
         bool piSlots   = PiFreeSlots;
-        bool piStale   = PiStaleData;
         bool mail      = UnreadMail;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+            // "PiStaleData" is retired (see AlertSettings) but still NOT NULL, so a first save names it.
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO "AlertSettings"
                     ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
                      "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail")
                 VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
-                        {piExtract},{piStorage},{piInputs},{piSlots},{piStale},{mail})
+                        {piExtract},{piStorage},{piInputs},{piSlots},{false},{mail})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -215,7 +211,6 @@ public class AlertSettingsViewModel : ReactiveObject
                     "PiStorage"                   = excluded."PiStorage",
                     "PiInputs"                    = excluded."PiInputs",
                     "PiFreeSlots"                 = excluded."PiFreeSlots",
-                    "PiStaleData"                 = excluded."PiStaleData",
                     "UnreadMail"                  = excluded."UnreadMail"
                 """).ConfigureAwait(false);
         });

@@ -2108,14 +2108,19 @@ public class EsiPollingService : ReactiveObject
     }
 
     /// <summary>
-    /// Each colony's layout — pins, contents, routes and links — read only when it can have
-    /// changed.
+    /// Each colony's layout — pins, contents, routes and links — read on every pass.
     ///
-    /// <para>A layout describes the colony as of its last_update, which moves only when the owner
-    /// views it in the client, and the colony list already carries that date. So a colony is read
-    /// when it has never been read, or when the list's last_update differs from the stored
-    /// layout's; every other cycle costs nothing. The char-industry group is shared with jobs and
-    /// mining, which is the reason to be this frugal.</para>
+    /// <para>⚠️ Every colony, every time: not only those whose last_update on the colony list has
+    /// moved. Reading only those left a layout wrong for good whenever one read went wrong — a
+    /// cached copy from before the save, stored under the save's date, matched the list ever after
+    /// and was never asked for again (2026-10-23: extractors restarted from the game's colony list
+    /// still read stopped). Read every pass, anything wrong is put right on the next. It is cheap:
+    /// at most six colonies a character every ten minutes, a few percent of the char-industry
+    /// allowance it shares with jobs and mining.</para>
+    ///
+    /// <para>What has not changed is not written again: a layout whose save date is the one stored
+    /// and whose ETag is the one last stored only has its read time moved. The first pass after a
+    /// start writes each colony once, which also replaces any wrong copy kept from before.</para>
     ///
     /// <para>⚠️ Not for a character whose PI box is clear: they are not in the PI tool, so their
     /// layouts are not wanted. Their colony list is still read — it is one cheap call, and
@@ -2128,6 +2133,10 @@ public class EsiPollingService : ReactiveObject
     /// <summary>How long after a colony's save a layout made before it is taken for a stale
     /// cached copy (FetchPlanetLayoutsAsync). ESI caches a layout for ten minutes.</summary>
     private static readonly TimeSpan StaleLayoutWindow = TimeSpan.FromMinutes(30);
+
+    /// <summary>The ETag of the layout last stored for each colony, (character, planet): what lets
+    /// a pass leave an unchanged layout as it is. Kept in memory only, so a start writes each once.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(long, int), string> _layoutETags = new();
 
     private async Task<PollingResult> FetchPlanetLayoutsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
@@ -2146,9 +2155,7 @@ public class EsiPollingService : ReactiveObject
 
         // Compared in memory: ⚠️ DateTimeOffset comparisons do not translate on SQLite.
         var storedAt = stored.ToDictionary(l => l.PlanetId, l => l.LastUpdate);
-        var due = colonies
-            .Where(c => !storedAt.TryGetValue(c.PlanetId, out var at) || at != c.LastUpdate)
-            .ToList();
+        var due = colonies;
 
         PollingResult? last = null;
         if (due.Count > 0)
@@ -2174,10 +2181,29 @@ public class EsiPollingService : ReactiveObject
                 // layout is never held back for good.
                 if (r.LastModified is { } made && made < colony.LastUpdate
                     && DateTimeOffset.UtcNow - colony.LastUpdate < StaleLayoutWindow)
+                {
+                    _errorLogger.Warn(nameof(EsiPollingService), $"PI layout for {charId}",
+                        $"Planet {colony.PlanetId}: ESI answered with a layout made {made:u}, before the colony was saved at "
+                        + $"{colony.LastUpdate:u}. Not stored; read again on the next pass.");
                     continue;
+                }
+
+                // Unchanged since it was stored: only the read time moves.
+                var layoutKey = (charId, colony.PlanetId);
+                if (r.ETag is { Length: > 0 } tag && _layoutETags.TryGetValue(layoutKey, out var storedTag) && storedTag == tag
+                    && storedAt.TryGetValue(colony.PlanetId, out var storedUpdate) && storedUpdate == colony.LastUpdate)
+                {
+                    var readAt = DateTimeOffset.UtcNow;
+                    await db.EsiPlanetaryLayouts
+                        .Where(l => l.CharacterId == charId && l.PlanetId == colony.PlanetId)
+                        .ExecuteUpdateAsync(u => u.SetProperty(l => l.FetchedAt, readAt), ct);
+                    continue;
+                }
 
                 await EveConsole.Services.Pi.PiLayoutStore.ReplaceAsync(db, colony, r.Data, sd,
                     DateTimeOffset.UtcNow, ct);
+                if (r.ETag is { Length: > 0 } stored2) _layoutETags[layoutKey] = stored2;
+                else                                    _layoutETags.TryRemove(layoutKey, out _);
             }
         }
 

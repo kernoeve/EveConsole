@@ -5,7 +5,7 @@ public enum PiColonyState
 {
     /// <summary>Nothing due within the lead times.</summary>
     Ok,
-    /// <summary>Something comes due within its lead time, or the data is too old to trust.</summary>
+    /// <summary>Something comes due within its lead time, or output is being lost.</summary>
     Attention,
     /// <summary>Something has already happened: extractors stopped, storage full, inputs gone.</summary>
     Action,
@@ -41,8 +41,6 @@ public sealed record PiColonyAttention
     public bool InputsLow { get; init; }
 
     public TimeSpan DataAge { get; init; }
-    /// <summary>Older than the staleness setting: the estimates above are no longer trustworthy.</summary>
-    public bool Stale { get; init; }
 
     /// <summary>When something a factory made is first thrown away within the colony's period
     /// (estimated): its storage or launchpad has no room. Null when nothing is.</summary>
@@ -56,7 +54,7 @@ public sealed record PiColonyAttention
 
     public PiColonyState State =>
         ExtractorsStopped || StorageFull || InputsOut ? PiColonyState.Action
-        : ExtractorsStopping || StorageFilling || InputsLow || Stale || OutputDestroyed || RawOverflow
+        : ExtractorsStopping || StorageFilling || InputsLow || OutputDestroyed || RawOverflow
                                                       ? PiColonyState.Attention
         :                                               PiColonyState.Ok;
 
@@ -87,7 +85,6 @@ public sealed record PiColonyAttention
             InputsOut        = empty is { } e && e <= now,
             InputsLow        = empty is { } e2 && e2 > now && e2 <= now + t.InputLead,
             DataAge          = f.DataAge,
-            Stale            = f.DataAge > t.StaleAfter,
             OutputDestroyedFrom = f.Period.Losses.Where(l => l.Kind == PiLossKind.Product).Min(l => (DateTimeOffset?)l.Since),
             RawOverflowFrom     = f.Period.Losses.Where(l => l.Kind == PiLossKind.Raw).Min(l => (DateTimeOffset?)l.Since),
         };

@@ -3404,7 +3404,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>行星开发提醒与工作项</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警、殖民地数据多旧就不再可信，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
+    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>采集器即将停止</value>
@@ -3420,9 +3420,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>小时前预警（预计）</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>殖民地数据过旧阈值</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>一趟原料运送带来</value>
@@ -3445,10 +3442,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>行星开发角色有未使用的殖民地栏位</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>殖民地太久未在游戏中打开，其预计数据已不可信</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久、多旧算过旧，均在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
+    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
   </data>
 </root>

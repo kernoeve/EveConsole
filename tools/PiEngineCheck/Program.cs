@@ -571,7 +571,7 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
     const long PilotOne = 1, PilotTwo = 2;
     const int Jita = 30_000_142, Perimeter = 30_000_144;
     var now = H(t0, 10);
-    var t   = PiThresholds.Default;   // extractors 24 h, storage 24 h, inputs 48 h, stale 7 d, 7 days of input
+    var t   = PiThresholds.Default;   // extractors 24 h, storage 24 h, inputs 48 h, 7 days of input
 
     PiColonyLayout Extractor(long ch, int planet, int system, double stopsInHours, DateTimeOffset? snapshot = null) => new()
     {
@@ -647,7 +647,6 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
         "pi:haul_in:1:104", "pi:haul_in:1:105", "pi:haul_in:1:106", "pi:haul_in:2:203",
         "pi:setup:2",
         "pi:upgrade:1:103",
-        "pi:stale:2:201",
     ];
     Check("tasks: exactly the expected tasks", keys.SetEquals(expected),
           $"missing [{string.Join(", ", expected.Except(keys))}], extra [{string.Join(", ", keys.Except(expected))}]");
@@ -704,9 +703,8 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
     Check("upgrade: only where the skill allows a higher level",
           tasks.Count(x => x.Key.StartsWith("pi:upgrade")) == 1 && Find("pi:upgrade:1:103")?.Priority == WorklistPriority.Housekeeping);
 
-    // Old data: a task of its own only when no other task will open the colony.
-    Check("stale: a lone old colony is to be opened in game", Find("pi:stale:2:201") is { Priority: WorklistPriority.Housekeeping });
-    Check("stale: an old colony with another task gets no second one", !keys.Contains("pi:stale:2:202"));
+    // An old snapshot is not a task: every layout is read every ten minutes, so it is the colony as it is.
+    Check("old data: no task to open a colony in game", !keys.Any(k => k.StartsWith("pi:stale")));
 
     // Keys carry no quantity or time: half an hour later the same work has the same keys.
     now = H(t0, 10.5);
@@ -720,7 +718,8 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
     var stoppedAttention = PiColonyAttention.For(colonies[0].Forecast, t);
     Check("attention: a stopped extractor is Action", stoppedAttention.State == PiColonyState.Action);
     Check("attention: two days out is OK", PiColonyAttention.For(colonies[2].Forecast, t).State == PiColonyState.Ok);
-    Check("attention: old data is Attention", PiColonyAttention.For(colonies[6].Forecast, t).State == PiColonyState.Attention);
+    // Old data alone is nothing to attend to: the snapshot is the colony as it is.
+    Check("attention: old data alone is OK", PiColonyAttention.For(colonies[6].Forecast, t).State == PiColonyState.Ok);
 }
 
 // ── 12. A typical extractor planet ──────────────────────────────────────────────────

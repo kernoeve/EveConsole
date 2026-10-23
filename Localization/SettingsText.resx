@@ -4496,7 +4496,7 @@ The application will restart.</value>
     <comment>Section heading in SettingsWindow, Industry tab.</comment>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, when a colony's data counts as too old to trust, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
+    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
     <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry alerts and tasks heading.</comment>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
@@ -4518,10 +4518,6 @@ The application will restart.</value>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>hours ahead (estimated)</value>
     <comment>After a number box in SettingsWindow, Industry tab. Storage and input times are estimates.</comment>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>Colony data too old after</value>
-    <comment>Label before a number box in SettingsWindow, Industry tab: days since a colony was last opened in the game.</comment>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>An input haul brings</value>
@@ -4551,12 +4547,8 @@ The application will restart.</value>
     <value>A PI character has an unused colony slot</value>
     <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section. "PI" is the game's abbreviation for Planetary Industry.</comment>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>A colony has not been opened in the game for too long to trust its estimates</value>
-    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>Only characters with the PI box ticked on the Characters tab. How soon "soon" is, and how old is too old, are set on the Industry tab, and the Worklist's PI tasks use the same times.</value>
+    <value>Only characters with the PI box ticked on the Characters tab. The Industry tab sets how soon "soon" is, and the Worklist's PI tasks use the same times.</value>
     <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
   </data>
 </root>

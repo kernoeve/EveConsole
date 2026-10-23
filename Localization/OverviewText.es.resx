@@ -902,15 +902,6 @@
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>Suministro agotado o a punto de agotarse en {0} planetas de fábricas (estimación).</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}: {1} lleva {2} sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
-  </data>
-  <data name="AlertPiStaleManyOne" xml:space="preserve">
-    <value>{0} colonia lleva tiempo sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>{0} colonias llevan tiempo sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
-  </data>
   <data name="AlertPiFreeSlotsOne" xml:space="preserve">
     <value>{1} tiene {0} ranura de colonia sin usar.</value>
   </data>

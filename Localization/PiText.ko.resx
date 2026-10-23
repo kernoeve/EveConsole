@@ -166,14 +166,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>정상</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (오래됨)</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>게임에서 마지막으로 연 시각: {0}.</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>게임에서 마지막으로 연 시각: {0}. 너무 오래되어 추정치를 믿을 수 없습니다. 게임에서 콜로니를 열어 갱신하십시오.</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0} / 일</value>
@@ -207,9 +201,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>사전 알림 기간 안에 투입 자원이 떨어집니다 (추정).</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>데이터가 너무 오래되어 믿을 수 없습니다.</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>사전 알림 기간 안에 처리할 일이 없습니다.</value>
@@ -264,9 +255,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>데이터 경과 {0}: 게임에서 마지막으로 연 시각은 {1}입니다. 저장고, 제조시설, 투입 자원 수치는 그 시점부터 추정한 것입니다.</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>데이터 경과 {0}: 게임에서 마지막으로 연 시각은 {1}로, 너무 오래되어 추정치를 믿을 수 없습니다. 게임에서 콜로니를 열어 갱신하십시오.</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>통제센터</value>

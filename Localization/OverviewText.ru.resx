@@ -1004,21 +1004,6 @@
   <data name="AlertPiInputsManyMany" xml:space="preserve">
     <value>Материалы кончились или скоро кончатся на {0} производственных планетах (оценка).</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}: колонию на планете {1} не открывали в игре уже {2}; её оценкам больше нельзя доверять.</value>
-  </data>
-  <data name="AlertPiStaleManyOne" xml:space="preserve">
-    <value>{0} колонию давно не открывали в игре; её оценкам больше нельзя доверять.</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>{0} колонии давно не открывали в игре; их оценкам больше нельзя доверять.</value>
-  </data>
-  <data name="AlertPiStaleManyFew" xml:space="preserve">
-    <value>{0} колонии давно не открывали в игре; их оценкам больше нельзя доверять.</value>
-  </data>
-  <data name="AlertPiStaleManyMany" xml:space="preserve">
-    <value>{0} колоний давно не открывали в игре; их оценкам больше нельзя доверять.</value>
-  </data>
   <data name="AlertPiFreeSlotsOne" xml:space="preserve">
     <value>У персонажа {1} свободен {0} слот для колонии.</value>
   </data>

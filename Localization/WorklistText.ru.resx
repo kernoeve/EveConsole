@@ -2524,9 +2524,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: хранилище заполнено продукцией наполовину или больше (оценка)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Цифры рассчитаны по устаревшим данным: колонию давно не открывали в игре.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0} — доставить материалы</value>
   </data>
@@ -2574,12 +2571,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Сейчас уровень {0}; навык «Модификации наземной базы» позволяет {1}. Больше ЦПУ и энергосети для головок экстракторов и производственных комплексов.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>{0} — открыть в игре</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Возраст данных — {0}, и оценкам больше нельзя доверять. Если открыть колонию в игре, данные обновятся.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>до {1:d MMM HH:mm} выберите место назначения для упаковок имущества ({0:N0})</value>

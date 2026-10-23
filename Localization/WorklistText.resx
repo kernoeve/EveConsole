@@ -3300,10 +3300,6 @@
     <value>{0}: half full of output or more (estimated)</value>
     <comment>Worklist task detail, one per planet. {0} is the planet.</comment>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>The figures are estimated from data that is old: the colony has not been opened in the game for a while.</value>
-    <comment>Worklist task detail, added at the end when a colony's data is older than the setting.</comment>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Bring input to {0}</value>
     <comment>Worklist task: haul a factory planet's input to it. {0} is the planet.</comment>
@@ -3343,14 +3339,6 @@
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Level {0} now; Command Center Upgrades allows {1}. More CPU and powergrid for extractor heads and factories.</value>
     <comment>Worklist task detail. {0} the level now, {1} the highest the skill allows. "Command Center Upgrades" is a skill: use the game's name.</comment>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>Open {0} in the game</value>
-    <comment>Worklist task: open a colony in the game so its data is read again. {0} is the planet.</comment>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Its data is {0} old, so its estimates can no longer be trusted. Opening the colony in the game refreshes it.</value>
-    <comment>Worklist task detail. {0} is a length of time.</comment>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>choose a destination for {0:N0} asset safety wrap by {1:d MMM HH:mm}</value>

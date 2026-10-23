@@ -2482,9 +2482,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: mindestens halb voll mit Ertrag (geschätzt)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Die Werte sind aus alten Daten geschätzt: Die Kolonie wurde eine Weile nicht im Spiel geöffnet.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Material zu {0} bringen</value>
   </data>
@@ -2514,12 +2511,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Jetzt Stufe {0}; Command Center Upgrades erlaubt {1}. Mehr CPU und Stromnetz für Extraktorköpfe und Fabriken.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>{0} im Spiel öffnen</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Die Daten der Kolonie sind {0} alt, daher ist ihren Schätzungen nicht mehr zu trauen. Das Öffnen der Kolonie im Spiel aktualisiert sie.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>Ziel für {0:N0} Besitzsicherheit-Paket bis {1:d. MMM HH:mm} wählen</value>

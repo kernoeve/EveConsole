@@ -1748,7 +1748,7 @@ public class OverviewViewModel : ReactiveObject
         // and opening the tool's list when there are several — twenty-two colonies left alone for
         // a month should be one line, not forty-four.
         if (Pi is { } pi && (_alertSettings.PiExtractors || _alertSettings.PiStorage || _alertSettings.PiInputs
-                             || _alertSettings.PiFreeSlots || _alertSettings.PiStaleData))
+                             || _alertSettings.PiFreeSlots))
         {
             try
             {
@@ -1808,12 +1808,6 @@ public class OverviewViewModel : ReactiveObject
                             : string.Format(OverviewText.AlertPiInputsLow, c.CharacterName, PiNames.Planet(c),
                                             PiFormat.Duration(a.InputsRunOutAt!.Value - a.Now)),
                         nameof(OverviewText.AlertPiInputsManyOther));
-
-                if (_alertSettings.PiStaleData)
-                    await Add(judged.Where(x => x.A.Stale).ToList(),
-                        (c, a) => string.Format(OverviewText.AlertPiStale, c.CharacterName, PiNames.Planet(c),
-                                                PiFormat.Duration(a.DataAge)),
-                        nameof(OverviewText.AlertPiStaleManyOther));
 
                 if (wantSlots)
                 {

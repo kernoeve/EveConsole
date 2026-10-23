@@ -166,14 +166,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>正常</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0}（过旧）</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>最近一次在游戏中打开于 {0}。</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>最近一次在游戏中打开于 {0}：时间太久，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0}/天</value>
@@ -207,9 +201,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>原料将在预警时间内耗尽（预计）。</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>数据过旧，不可信。</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>预警时间内没有到期事项。</value>
@@ -264,9 +255,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>数据已有 {0}：最近一次在游戏中打开于 {1}。储藏、工厂和原料数字均从那时起推算。</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>数据已有 {0}：最近一次在游戏中打开于 {1}，时间太久，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>指挥中心</value>

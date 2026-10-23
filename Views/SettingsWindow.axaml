@@ -891,7 +891,7 @@
               <TextBlock Text="{x:Static loc:SettingsText.PiTimingTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
               <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="{x:Static loc:SettingsText.PiTimingNote}" />
-              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto">
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadExtractors}"
                            FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding ExtractorLeadHours}"
@@ -916,20 +916,12 @@
                 <TextBlock Grid.Row="4" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiStaleAfter}"
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
                            FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding StaleDays}"
-                               Minimum="1" Maximum="365" Increment="1" FormatString="0"
-                               FontSize="12" Width="120" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.Days}" FontSize="12"
-                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
-
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
-                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <NumericUpDown Grid.Row="8" Grid.Column="2" Value="{Binding InputDays}"
+                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding InputDays}"
                                Minimum="1" Maximum="60" Increment="1" FormatString="0"
                                FontSize="12" Width="120" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="8" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
+                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
               </Grid>
               <!-- Both boxes above save as they are changed; this says so for a moment. -->
@@ -3128,9 +3120,6 @@
                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
             <CheckBox Content="{x:Static loc:SettingsText.PiAlertFreeSlots}"
                       IsChecked="{Binding AlertsVm.PiFreeSlots}"
-                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
-            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStale}"
-                      IsChecked="{Binding AlertsVm.PiStaleData}"
                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"

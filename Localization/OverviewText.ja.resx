@@ -851,12 +851,6 @@
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>工場惑星{0}個で投入資源が枯渇した、または枯渇しつつあります（推定）。</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}：{1}は{2}の間ゲーム内で開かれていないため、推定値はもう信頼できません。</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>コロニー{0}か所がしばらくゲーム内で開かれていないため、推定値はもう信頼できません。</value>
-  </data>
   <data name="AlertPiFreeSlotsOther" xml:space="preserve">
     <value>{1}に未使用のコロニースロットが{0}個あります。</value>
   </data>

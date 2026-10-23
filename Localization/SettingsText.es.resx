@@ -3407,7 +3407,7 @@ La aplicación se reiniciará.</value>
     <value>Alertas y tareas de industria planetaria</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>Con cuánta antelación avisan las alertas de IP del Resumen y las tareas de IP de la lista de tareas, cuándo los datos de una colonia son demasiado antiguos para fiarse de ellos y cuánto suministro trae un transporte. Qué alertas se generan se decide en la pestaña Alertas.</value>
+    <value>Con cuánta antelación avisan las alertas de IP del Resumen y las tareas de IP de la lista de tareas, y cuánto suministro trae un transporte. Qué alertas se generan se decide en la pestaña Alertas.</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>Extractores que se detienen</value>
@@ -3423,9 +3423,6 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>horas antes (estimación)</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>Datos de colonia demasiado antiguos tras</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>Un transporte de suministro trae</value>
@@ -3448,10 +3445,7 @@ La aplicación se reiniciará.</value>
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>Un personaje de IP tiene una ranura de colonia sin usar</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>Una colonia lleva demasiado tiempo sin abrirse en el juego para fiarse de sus estimaciones</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>Solo los personajes con la casilla IP marcada en la pestaña Personajes. Cuánto es «pronto» y cuánto es demasiado antiguo se ajusta en la pestaña Industria, y las tareas de IP de la lista de tareas usan los mismos tiempos.</value>
+    <value>Solo los personajes con la casilla IP marcada en la pestaña Personajes. Cuánto es «pronto» se ajusta en la pestaña Industria, y las tareas de IP de la lista de tareas usan los mismos tiempos.</value>
   </data>
 </root>

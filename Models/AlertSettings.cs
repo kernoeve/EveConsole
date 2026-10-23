@@ -31,7 +31,8 @@ public class AlertSettings
     public bool PiInputs     { get; set; } = true;
     /// <summary>A PI character with a colony slot it is not using.</summary>
     public bool PiFreeSlots  { get; set; } = true;
-    /// <summary>A colony not opened in game for longer than the staleness setting.</summary>
+    /// <summary>Retired 2026-10-23: there is no stale PI data — every layout is read every ten
+    /// minutes. The column stays so no schema changes; nothing reads it.</summary>
     public bool PiStaleData  { get; set; } = true;
 
     /// <summary>Unread EVE mail on any of the user's characters.</summary>

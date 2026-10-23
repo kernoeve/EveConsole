@@ -3407,7 +3407,7 @@ L'application va redémarrer.</value>
     <value>Alertes et tâches d'industrie planétaire</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>Jusqu'où regardent les alertes PI de la vue d'ensemble et les tâches PI de la liste de tâches, à partir de quand les données d'une colonie sont trop anciennes pour être fiables, et la quantité d'intrants qu'apporte un transport. Le choix des alertes émises se fait dans l'onglet Alertes.</value>
+    <value>Jusqu'où regardent les alertes PI de la vue d'ensemble et les tâches PI de la liste de tâches, et la quantité d'intrants qu'apporte un transport. Le choix des alertes émises se fait dans l'onglet Alertes.</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>Arrêt des extracteurs</value>
@@ -3423,9 +3423,6 @@ L'application va redémarrer.</value>
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>heures à l'avance (estimation)</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>Données de colonie trop anciennes après</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>Un transport d'intrants apporte</value>
@@ -3448,10 +3445,7 @@ L'application va redémarrer.</value>
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>Un personnage PI a un emplacement de colonie inutilisé</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>Une colonie n'a pas été ouverte dans le jeu depuis trop longtemps pour que ses estimations soient fiables</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>Seuls les personnages dont la case PI est cochée dans l'onglet Personnages. Le sens de « bientôt » et l'âge à partir duquel les données sont trop anciennes se règlent dans l'onglet Industrie, et les tâches PI de la liste de tâches utilisent les mêmes délais.</value>
+    <value>Seuls les personnages dont la case PI est cochée dans l'onglet Personnages. Le sens de « bientôt » se règle dans l'onglet Industrie, et les tâches PI de la liste de tâches utilisent les mêmes délais.</value>
   </data>
 </root>

@@ -178,14 +178,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>Correcto</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (excesiva)</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>Abierta en el juego por última vez el {0}.</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>Abierta en el juego por última vez el {0}: hace demasiado para fiarse de sus estimaciones. Abre la colonia en el juego para actualizarla.</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0} / día</value>
@@ -219,9 +213,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>El suministro se agota dentro del margen de antelación (estimación).</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>Datos demasiado antiguos para fiarse de ellos.</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>Nada pendiente dentro de los márgenes de antelación.</value>
@@ -279,9 +270,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>Datos de hace {0}: abierta en el juego por última vez el {1}. Las cifras de almacén, fábricas y suministro se estiman desde entonces.</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>Datos de hace {0}: abierta en el juego por última vez el {1}, hace demasiado para fiarse de las estimaciones. Abre la colonia en el juego para actualizarla.</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>Centro de mando</value>

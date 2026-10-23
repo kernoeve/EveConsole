@@ -2461,9 +2461,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}：产出已占储藏一半或以上（预计）</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>这些数字是根据旧数据推算的：该殖民地已有一段时间未在游戏中打开。</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>向 {0} 运送原料</value>
   </data>
@@ -2484,12 +2481,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>当前为 {0} 级；指挥中心升级理论允许 {1} 级。升级可为采集点和工厂提供更多 CPU 和能量栅格。</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>在游戏中打开 {0}</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>其数据已有 {0}，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
   </data>
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>在 {1:M月d日 HH:mm} 前为 {0:N0} 个资产安全包裹选择目的地</value>

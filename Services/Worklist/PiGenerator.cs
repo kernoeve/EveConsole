@@ -5,7 +5,7 @@ namespace EveConsole.Services.Worklist;
 
 /// <summary>
 /// Planetary Industry work: extractors to restart, output to take off, input to bring, colonies to
-/// set up, command centers to upgrade, and colonies whose data is too old to trust.
+/// set up, and command centers to upgrade.
 ///
 /// <para>Only characters that do PI (<see cref="PiCharacters"/>): <see cref="PiService"/> returns
 /// no one else, so a character whose PI box is cleared raises nothing here. The lead times are the
@@ -91,9 +91,9 @@ public static class PiTaskPlanner
             {
                 Kind      = WorklistKind.Pi,
                 Title     = string.Format(WorklistText.PiRestartTitle, planet),
-                Detail    = Stale(a, a.ExtractorsStopped
+                Detail    = a.ExtractorsStopped
                     ? string.Format(WorklistText.PiRestartStoppedDetail, PiFormat.Duration(a.Now - stop), PiFormat.When(stop))
-                    : string.Format(WorklistText.PiRestartStoppingDetail, PiFormat.Duration(stop - a.Now), PiFormat.When(stop))),
+                    : string.Format(WorklistText.PiRestartStoppingDetail, PiFormat.Duration(stop - a.Now), PiFormat.When(stop)),
                 Readiness = a.ExtractorsStopped ? WorklistReadiness.Ready : WorklistReadiness.Waiting,
                 BlockedBy = a.ExtractorsStopped ? "" : string.Format(WorklistText.PiRestartWaiting, PiFormat.Duration(stop - a.Now)),
                 Priority  = WorklistPriority.Missing,
@@ -139,8 +139,7 @@ public static class PiTaskPlanner
                 Title         = single
                     ? string.Format(WorklistText.PiHaulOutTitle, PiNames.Planet(first))
                     : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.PiHaulOutSystemOther), list.Count, system),
-                Detail        = string.Join(CommonText.ListSeparator, reasons)
-                                + (list.Any(x => x.A.Stale) ? " " + WorklistText.PiStaleNote : ""),
+                Detail        = string.Join(CommonText.ListSeparator, reasons),
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = first.CharacterId,
                 CharacterName = first.CharacterName,
@@ -174,9 +173,9 @@ public static class PiTaskPlanner
             {
                 Kind            = WorklistKind.Pi,
                 Title           = string.Format(WorklistText.PiHaulInTitle, planet),
-                Detail          = Stale(a, a.InputsOut
+                Detail          = a.InputsOut
                     ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.PiHaulInOutDetailOther), t.InputDays, when)
-                    : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.PiHaulInLowDetailOther), t.InputDays, when)),
+                    : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.PiHaulInLowDetailOther), t.InputDays, when),
                 // Brought from wherever the hauler keeps it, to the planet.
                 LocationId      = 0,
                 LocationName    = "",
@@ -231,20 +230,6 @@ public static class PiTaskPlanner
             }
         }
 
-        // ── Open a colony whose data is too old — when nothing else will open it ────
-        foreach (var (c, a) in judged)
-        {
-            if (!a.Stale || tasked.Contains((c.CharacterId, c.PlanetId))) continue;
-            var planet = PiNames.Planet(c);
-            items.Add(Base(c, "stale") with
-            {
-                Kind     = WorklistKind.Pi,
-                Title    = string.Format(WorklistText.PiOpenTitle, planet),
-                Detail   = string.Format(WorklistText.PiOpenDetail, PiFormat.Duration(a.DataAge)),
-                Priority = WorklistPriority.Housekeeping,
-            });
-        }
-
         return items;
     }
 
@@ -275,8 +260,4 @@ public static class PiTaskPlanner
         ["temperate"] = 11, ["ice"] = 12, ["gas"] = 13, ["oceanic"] = 2014,
         ["lava"] = 2015, ["barren"] = 2016, ["storm"] = 2017, ["plasma"] = 2063,
     };
-
-    /// <summary>The detail, with a note when the estimates behind it come from old data.</summary>
-    private static string Stale(PiColonyAttention a, string detail)
-        => a.Stale ? detail + " " + WorklistText.PiStaleNote : detail;
 }

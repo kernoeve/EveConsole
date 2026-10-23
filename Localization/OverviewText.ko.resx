@@ -851,12 +851,6 @@
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>제조 행성 {0}곳의 투입 자원이 떨어졌거나 곧 떨어집니다 (추정).</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}: {1}을(를) 게임에서 {2} 동안 열지 않아 추정치를 더 이상 믿을 수 없습니다.</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>콜로니 {0}곳을 게임에서 한동안 열지 않아 추정치를 더 이상 믿을 수 없습니다.</value>
-  </data>
   <data name="AlertPiFreeSlotsOther" xml:space="preserve">
     <value>{1}에게 사용하지 않은 콜로니 슬롯이 {0}개 있습니다.</value>
   </data>

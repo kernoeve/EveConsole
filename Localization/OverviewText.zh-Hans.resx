@@ -851,12 +851,6 @@
   <data name="AlertPiInputsManyOther" xml:space="preserve">
     <value>{0} 个工厂行星的原料已耗尽或即将耗尽（预计）。</value>
   </data>
-  <data name="AlertPiStale" xml:space="preserve">
-    <value>{0}：{1} 已有 {2} 未在游戏中打开，其预计数据已不可信。</value>
-  </data>
-  <data name="AlertPiStaleManyOther" xml:space="preserve">
-    <value>{0} 个殖民地已有一段时间未在游戏中打开，其预计数据已不可信。</value>
-  </data>
   <data name="AlertPiFreeSlotsOther" xml:space="preserve">
     <value>{1} 有 {0} 个未使用的殖民地栏位。</value>
   </data>

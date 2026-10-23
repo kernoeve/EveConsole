@@ -178,14 +178,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (alt)</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>Zuletzt im Spiel geöffnet am {0}.</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>Zuletzt im Spiel geöffnet am {0}: zu lange her, um den Schätzungen zu trauen. Öffnen Sie die Kolonie im Spiel, um sie zu aktualisieren.</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0} / Tag</value>
@@ -219,9 +213,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>Material geht innerhalb der Vorlaufzeit aus (geschätzt).</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>Daten zu alt, um ihnen zu trauen.</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>Innerhalb der Vorlaufzeiten ist nichts fällig.</value>
@@ -279,9 +270,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>Daten {0} alt: zuletzt im Spiel geöffnet am {1}. Lager-, Fabrik- und Materialwerte sind ab diesem Zeitpunkt geschätzt.</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>Daten {0} alt: zuletzt im Spiel geöffnet am {1} – zu lange her, um den Schätzungen zu trauen. Öffnen Sie die Kolonie im Spiel, um sie zu aktualisieren.</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>Kommandozentrale</value>

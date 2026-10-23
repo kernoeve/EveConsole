@@ -2482,9 +2482,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: almacén lleno de producción a la mitad o más (estimación)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Las cifras se estiman con datos antiguos: la colonia lleva tiempo sin abrirse en el juego.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Llevar suministro a {0}</value>
   </data>
@@ -2514,12 +2511,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Nivel {0} ahora; Actualizaciones del centro de mando permite el {1}. Más CPU y sistema de potencia para cabezales de extracción y fábricas.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>Abrir {0} en el juego</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Sus datos tienen {0} de antigüedad, así que sus estimaciones ya no son fiables. Abrir la colonia en el juego los actualiza.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>elige un destino para {0:N0} paquete de seguridad de los bienes antes del {1:d MMM HH:mm}</value>

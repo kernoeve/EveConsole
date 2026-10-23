@@ -178,14 +178,8 @@
   <data name="StateOk" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (obsolète)</value>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>Dernière ouverture dans le jeu : {0}.</value>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>Dernière ouverture dans le jeu : {0}, trop ancienne pour que ses estimations soient fiables. Ouvrez la colonie dans le jeu pour l'actualiser.</value>
   </data>
   <data name="PerDay" xml:space="preserve">
     <value>{0} / jour</value>
@@ -219,9 +213,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>Les intrants s'épuisent dans le délai d'alerte (estimation).</value>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>Données trop anciennes pour être fiables.</value>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
     <value>Rien à signaler dans les délais d'alerte.</value>
@@ -279,9 +270,6 @@
   </data>
   <data name="DetailAge" xml:space="preserve">
     <value>Données vieilles de {0} : dernière ouverture dans le jeu le {1}. Les chiffres du stockage, des usines et des intrants sont estimés à partir de ce moment.</value>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>Données vieilles de {0} : dernière ouverture dans le jeu le {1}, trop ancienne pour que les estimations soient fiables. Ouvrez la colonie dans le jeu pour l'actualiser.</value>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>Centre de commandement</value>
