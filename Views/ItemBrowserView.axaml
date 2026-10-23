@@ -29,12 +29,6 @@
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
-    <Style Selector="Button.copyname:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
-    </Style>
-    <Style Selector="Button.copyname:pointerover Rectangle">
-      <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
-    </Style>
   </UserControl.Styles>
 
   <!-- Root Grid: row 0 = main content, row 1 = status bar (guaranteed no overlap) -->
@@ -247,19 +241,7 @@
                       </ContextMenu>
                     </TextBlock.ContextMenu>
                   </TextBlock>
-                  <!-- Copies the name: two overlapping sheets, drawn so they follow the theme. -->
-                  <Button Classes="copyname" Click="OnCopyName" ToolTip.Tip="{x:Static loc:AssetsText.TipCopyName}"
-                          Width="22" Height="22" Padding="0" VerticalAlignment="Center"
-                          Background="Transparent" BorderThickness="0" Cursor="Hand"
-                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                    <Canvas Width="12" Height="13">
-                      <Rectangle Canvas.Left="3" Canvas.Top="0" Width="9" Height="10" RadiusX="1.5" RadiusY="1.5"
-                                 StrokeThickness="1.2" Stroke="{DynamicResource TextMutedBrush}" />
-                      <Rectangle Canvas.Left="0" Canvas.Top="3" Width="9" Height="10" RadiusX="1.5" RadiusY="1.5"
-                                 StrokeThickness="1.2" Stroke="{DynamicResource TextMutedBrush}"
-                                 Fill="{DynamicResource SurfacePanelBrush}" />
-                    </Canvas>
-                  </Button>
+                  <conv:CopyTextButton Text="{Binding Name}" />
                 </StackPanel>
                 <TextBlock Text="{Binding GroupPath}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                 <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 4 0 0">

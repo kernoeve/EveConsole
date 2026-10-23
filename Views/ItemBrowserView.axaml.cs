@@ -117,14 +117,9 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
         ));
     }
 
-    /// <summary>The item's name to the clipboard, as the header shows it, and said so.</summary>
+    /// <summary>Right-click Copy Name on the header's name: as the copy button beside it.</summary>
     private async void OnCopyName(object? sender, RoutedEventArgs e)
-    {
-        if (Vm?.SelectedItem?.Name is not { Length: > 0 } name) return;
-        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
-        await clipboard.SetTextAsync(name);
-        (TopLevel.GetTopLevel(this) as MainWindow)?.ShowToast(string.Format(AssetsText.ToastNameCopied, name));
-    }
+        => await CopyTextButton.CopyAsync(this, Vm?.SelectedItem?.Name);
 
     // ── Right-click: the quickbar and standing buy orders ───────────────────
 
