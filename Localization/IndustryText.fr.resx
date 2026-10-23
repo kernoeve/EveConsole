@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>Chaque graphique montre l'indice de coût d'une activité chaque jour, du {0:yyyy-MM-dd} au {1:yyyy-MM-dd}. Le point à côté d'un système est sa courbe.</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Recalculer avec les filtres ci-dessus. Les onglets Synthèse et Détail partagent un calcul ; les filtres propres à Détail affinent sa liste dès qu'ils changent.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Synthèse</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Détail</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Chaque liste : les 10 objets les plus rentables des 30 derniers jours, tous métagroupes confondus. Les filtres du haut s'appliquent, pas ceux de Détail.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Rien ici ne s'est vendu avec bénéfice ces 30 derniers jours.</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Ventes des 30 derniers jours</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Unités</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Prix moyen</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Ventes</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Bénéfice</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>Vaisseaux T1 — grands</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>Vaisseaux T1 — petits et moyens</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>Vaisseaux T2 — grands</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>Vaisseaux T2 — petits et moyens</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Munitions et drones</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Modules</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Optimisations et sous-systèmes</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Déployables</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Composants</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Modules et optimisations de structure</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

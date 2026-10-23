@@ -66,6 +66,27 @@ public sealed record IndustryOppsQuery
     public bool NeedsVolume => MinIskVol30d.HasValue || MinUnitVol30d.HasValue || MinMargin30d.HasValue;
 }
 
+/// <summary>
+/// The meta group and market group filters of a query, worked out: what the Meta Groups,
+/// Include and Exclude choices keep.
+///
+/// <para>⚠️ The ONE place these are applied. The service applies it to what it calculates, and the
+/// tool's Detail tab to rows already calculated for the Summary tab, so the two can never keep
+/// different items. An item with no meta group is 0, the None choice; one with no market group is
+/// never excluded and never included.</para>
+/// </summary>
+public sealed class IndustryOppsFilter(IReadOnlyCollection<int>? metaGroups, HashSet<int> included, HashSet<int> excluded)
+{
+    private readonly HashSet<int>? _meta = metaGroups is null ? null : [.. metaGroups];
+
+    public bool Keeps(int metaGroupId, int? marketGroupId) =>
+        (_meta is null || _meta.Contains(metaGroupId))
+        && (excluded.Count == 0 || marketGroupId is null || !excluded.Contains(marketGroupId.Value))
+        && (included.Count == 0 || (marketGroupId is { } m && included.Contains(m)));
+
+    public bool Keeps(IndustryRow row) => Keeps(row.MetaGroupId, row.MarketGroupId);
+}
+
 /// <summary>What a calculation found. <see cref="NoRegion"/>: a 30-day filter was asked for and
 /// the market's region could not be worked out, so nothing was calculated.</summary>
 public sealed record IndustryOppsResult(List<IndustryRow> Rows, int? RegionId, string RegionName, bool NoRegion);
@@ -118,7 +139,8 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
         if (config is null) return null;
 
         await SdeNames.EnsureLoadedAsync();   // the rows and the status line carry the names shown
-        var candidates = await FetchCandidatesAsync(q);
+        var filter     = await FilterAsync(q);
+        var candidates = (await FetchCandidatesAsync(q)).Where(c => filter.Keeps(c.MetaGroupId, c.MarketGroupId)).ToList();
 
         // Region is needed for the volume filters AND to price items that have no
         // sell orders off their 30-day history average. Resolve it best-effort.
@@ -134,6 +156,20 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
             [.. rows.OrderByDescending(r => r.Profit30d).ThenByDescending(r => r.ProfitPerSlotDay)],
             regionId, regionName, NoRegion: false);
     }
+
+    /// <summary>
+    /// Every item the query's other filters keep, in any meta group offered and any market group:
+    /// the Meta Groups, Include and Exclude choices left out. What the tool's Summary tab ranks,
+    /// and what its Detail tab then filters with <see cref="FilterAsync"/>, so one calculation
+    /// serves both.
+    /// </summary>
+    public Task<IndustryOppsResult?> CalculateAllAsync(IndustryOppsQuery q, CancellationToken ct = default) =>
+        CalculateAsync(q with { MetaGroups = [.. OppsMetaGroups.All.Select(g => g.Id)], IncludedGroupIds = [], ExcludedGroupIds = [] }, ct);
+
+    /// <summary>The query's meta and market group choices, with the groups expanded to what is
+    /// nested under them.</summary>
+    public async Task<IndustryOppsFilter> FilterAsync(IndustryOppsQuery q) =>
+        new(q.MetaGroups, await GroupIdsRecursiveAsync(q.IncludedGroupIds), await GroupIdsRecursiveAsync(q.ExcludedGroupIds));
 
     /// <summary>Market group names in the interface language, for the ids that exist.</summary>
     public static async Task<Dictionary<int, string>> MarketGroupNamesAsync(IReadOnlyCollection<int> ids)
@@ -163,30 +199,18 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
 
     // ── Core algorithm ────────────────────────────────────────────────────────
 
+    /// <summary>An item with a build cost and a price, and what it is: its meta group (0 for
+    /// none), market group, and inventory group and category, the group by its English name.</summary>
     private record Candidate(
         int TypeId, string TypeName,
         double BuildCost, double SellOrderPrice, double BuyOrderPrice,
-        double BuildSeconds);
+        double BuildSeconds,
+        int MetaGroupId, int? MarketGroupId, int GroupId, int CategoryId, string GroupName);
 
+    /// <summary>Every candidate the BPO and owned choices keep. The meta and market group
+    /// choices are applied afterwards, by <see cref="IndustryOppsFilter"/>.</summary>
     private async Task<List<Candidate>> FetchCandidatesAsync(IndustryOppsQuery q)
     {
-        var excludedGroupIds = await GroupIdsRecursiveAsync(q.ExcludedGroupIds);
-        var exclusionClause  = excludedGroupIds.Count > 0
-            ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
-            : "";
-
-        // Included: only items in the chosen groups or nested under them. An exclusion inside an
-        // included group still applies — the two clauses both hold.
-        var includedGroupIds = await GroupIdsRecursiveAsync(q.IncludedGroupIds);
-        var inclusionClause  = includedGroupIds.Count > 0
-            ? $"""AND t."MarketGroupId" IN ({string.Join(",", includedGroupIds)}) """
-            : "";
-
-        // Meta groups: an item with none counts as 0, the None box. Ids only: interpolated. All
-        // ticked is still a list: a group not offered stays out.
-        var metaClause = q.MetaGroups is { } meta
-            ? $"""AND COALESCE(t."MetaGroupId", 0) IN ({string.Join(",", meta.DefaultIfEmpty(-1))}) """
-            : "";
 
         // BPO-only: keep items whose (published) manufacturing/reaction blueprint either is
         // sold on the market (a buyable BPO) OR is invented from a source blueprint that is
@@ -243,9 +267,6 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
         await conn.OpenAsync();
 
         using var cmd = conn.Command(CandidateSql
-            .Replace("/*EXCLUSION*/", exclusionClause)
-            .Replace("/*INCLUSION*/", inclusionClause)
-            .Replace("/*FACTION*/", metaClause)
             .Replace("/*BPO*/", bpoClause)
             .Replace("/*OWNED*/", ownedClause));
         cmd.AddWithValue("@configId", q.ConfigId);
@@ -260,7 +281,12 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
                 reader.GetDouble(2),
                 reader.GetDouble(3),
                 reader.GetDouble(4),
-                reader.GetDouble(5)));
+                reader.GetDouble(5),
+                reader.GetInt32(6),
+                reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                reader.GetInt32(8),
+                reader.GetInt32(9),
+                reader.GetString(10)));
         }
         return list;
     }
@@ -297,6 +323,11 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
         HashSet<int> typesWithSell, HashSet<int> typesWithBuy, bool configHasRawOrders, CancellationToken ct)
     {
         var result = new List<IndustryRow>();
+
+        // Every candidate's 30-day trade in one read: the same sums as asking type by type.
+        var volumes = regionId.HasValue
+            ? await history.Get30DayVolumesAsync(regionId.Value, [.. candidates.Select(c => c.TypeId)], ct)
+            : [];
 
         foreach (var c in candidates)
         {
@@ -343,8 +374,7 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
             double unitVol = 0, iskVol = 0;
             if (regionId.HasValue)
             {
-                unitVol = await history.Get30DayUnitVolumeAsync(regionId.Value, c.TypeId);
-                iskVol  = await history.Get30DayIskVolumeAsync(regionId.Value, c.TypeId);
+                (unitVol, iskVol) = volumes.GetValueOrDefault(c.TypeId);
                 if (q.MinUnitVol30d.HasValue && unitVol < q.MinUnitVol30d.Value) continue;
                 if (q.MinIskVol30d.HasValue  && iskVol  < q.MinIskVol30d.Value)  continue;
                 // The Margin 30d column's figure; no sales, no margin, not kept.
@@ -368,6 +398,11 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
                 ProfitPerSlotDay = slotDays > 0 ? profit / slotDays : 0,
                 UnitVol30d       = unitVol,
                 IskVol30d        = iskVol,
+                MetaGroupId      = c.MetaGroupId,
+                MarketGroupId    = c.MarketGroupId,
+                GroupId          = c.GroupId,
+                CategoryId       = c.CategoryId,
+                GroupName        = c.GroupName,
             });
         }
 
@@ -461,15 +496,18 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
             CAST(bc."TotalCost"    AS DOUBLE PRECISION)   AS "BuildCost",
             CAST(mip."SellPrice"   AS DOUBLE PRECISION)   AS "SellPrice",
             CAST(mip."BuyPrice"    AS DOUBLE PRECISION)   AS "BuyPrice",
-            CAST(bc."BuildSeconds" AS DOUBLE PRECISION)   AS "BuildSeconds"
+            CAST(bc."BuildSeconds" AS DOUBLE PRECISION)   AS "BuildSeconds",
+            COALESCE(t."MetaGroupId", 0)                  AS "MetaGroupId",
+            t."MarketGroupId",
+            t."GroupId",
+            g."CategoryId",
+            g."Name"                                      AS "GroupName"
         FROM "BuildCosts" bc
         JOIN "MarketItemPrices" mip
               ON mip."TypeId" = bc."TypeId" AND mip."ConfigId" = @configId
         JOIN "SdeTypes" t ON t."TypeId" = bc."TypeId"
+        JOIN "SdeGroups" g ON g."GroupId" = t."GroupId"
         WHERE bc."TotalCost" > 0 AND bc."BuildSeconds" > 0
-        /*EXCLUSION*/
-        /*INCLUSION*/
-        /*FACTION*/
         /*BPO*/
         /*OWNED*/
         """;

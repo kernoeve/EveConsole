@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>Каждый график — индекс стоимости одного вида работ по дням, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}. Точка рядом с системой — цвет её линии.</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Пересчитать с фильтрами выше. Вкладки «Сводка» и «Подробно» используют один расчёт; собственные фильтры «Подробно» сужают её список сразу при изменении.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Каждый список — 10 предметов с наибольшей прибылью за 30 дней во всех метагруппах. Верхние фильтры действуют, фильтры «Подробно» — нет.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Здесь за 30 дней ничего не продалось с прибылью.</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Продажи за последние 30 дней</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Единиц</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Ср. цена</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>Корабли T1 — крупные</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>Корабли T1 — малые и средние</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>Корабли T2 — крупные</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>Корабли T2 — малые и средние</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Боеприпасы и дроны</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Модификаторы и подсистемы</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Развёртываемые</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Компоненты</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Модули и модификаторы сооружений</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

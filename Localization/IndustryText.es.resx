@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>Cada gráfico es el índice de coste de una actividad cada día, del {0:yyyy-MM-dd} al {1:yyyy-MM-dd}. El punto junto a un sistema es su línea.</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Recalcular con los filtros de arriba. Las pestañas Resumen y Detalle comparten un cálculo; los filtros propios de Detalle acotan su lista al cambiar.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Detalle</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Cada lista: los 10 objetos con más beneficio en los últimos 30 días, en todos los metagrupos. Se aplican los filtros de arriba, no los de Detalle.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Aquí no se vendió nada con beneficio en los últimos 30 días.</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Ventas de los últimos 30 días</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Unidades</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Precio medio</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Ventas</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Beneficio</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>Naves T1: grandes</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>Naves T1: pequeñas y medianas</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>Naves T2: grandes</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>Naves T2: pequeñas y medianas</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Munición y drones</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Módulos</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Ajustes y subsistemas</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Desplegables</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Componentes</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Módulos y ajustes de estructura</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
   </data>

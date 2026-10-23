@@ -520,6 +520,90 @@
     <value>Each chart is one activity's cost index each day, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}. The dot beside a system is its line.</value>
     <comment>System Index tool: note over the six charts. {0} first day, {1} last day.</comment>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Industry Ops: the button that recalculates both tabs (was Calculate).</comment>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Recalculate with the filters above. The Summary and Detail tabs share one calculation; the Detail tab's own filters narrow its list as they change.</value>
+    <comment>Industry Ops: tooltip on Refresh.</comment>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Industry Ops: tab with the ten best-of lists.</comment>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Industry Ops: tab with the full grid and its filters.</comment>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Each list: the 10 items that made the most profit over the last 30 days, in every meta group. The filters above apply; the Detail tab's do not.</value>
+    <comment>Industry Ops, Summary tab: note above the lists.</comment>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Nothing here sold at a profit in the last 30 days.</value>
+    <comment>Industry Ops, Summary tab: shown in a list with no items.</comment>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Sales Over the Past 30 Days</value>
+    <comment>Industry Ops, Summary tab: label centred over the Units, Avg Price, Margin, Sales and Profit columns of each list.</comment>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Avg Price</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Sales</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 Ships — Large</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 Ships — Small &amp; Medium</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 Ships — Large</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 Ships — Small &amp; Medium</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Ammo &amp; Drones</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Modules</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Rigs &amp; Subsystems</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Deployables</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Components</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Structure Modules &amp; Rigs</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>Tech I</value>
     <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech I.</comment>

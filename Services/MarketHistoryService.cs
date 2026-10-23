@@ -465,6 +465,35 @@ public class MarketHistoryService : ReactiveObject
     }
 
     /// <summary>
+    /// Units and ISK traded over the last 30 calendar days for many types at once: what
+    /// <see cref="Get30DayUnitVolumeAsync"/> and <see cref="Get30DayIskVolumeAsync"/> give for one.
+    /// A type with no trades in the window is absent.
+    ///
+    /// <para>⚠️ For a list. Asked one type at a time, a list of two thousand items was four
+    /// thousand queries and the better part of two minutes on a cold database; this is one, in
+    /// slices so the id list stays a sensible size.</para>
+    /// </summary>
+    public async Task<Dictionary<int, (double Units, double Isk)>> Get30DayVolumesAsync(
+        int regionId, IReadOnlyCollection<int> typeIds, CancellationToken ct = default)
+    {
+        var result = new Dictionary<int, (double Units, double Isk)>();
+        if (typeIds.Count == 0) return result;
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var cutoff = ThirtyDayCutoff();
+        foreach (var slice in typeIds.Distinct().Chunk(1000))
+        {
+            var rows = await db.MarketTypeHistories
+                .Where(h => h.RegionId == regionId && slice.Contains(h.TypeId)
+                         && string.Compare(h.Date, cutoff) >= 0)
+                .Select(h => new { h.TypeId, h.Volume, h.Average })
+                .ToListAsync(ct);
+            foreach (var g in rows.GroupBy(h => h.TypeId))
+                result[g.Key] = (g.Sum(h => (double)h.Volume), g.Sum(h => (double)h.Volume * h.Average));
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Total units traded over the last 30 calendar days.
     /// </summary>
     public async Task<double> Get30DayUnitVolumeAsync(int regionId, int typeId)

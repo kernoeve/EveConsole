@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>每个图表是一项活动每天的成本指数，{0:yyyy-MM-dd} 至 {1:yyyy-MM-dd}。星系旁的圆点即其线条颜色。</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>按上方筛选条件重新计算。汇总和详情两个页共用一次计算；详情页自己的筛选条件变化时会直接缩小其列表。</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>每个列表：过去 30 天利润最高的 10 件物品，包括所有元组。上方筛选条件适用；详情页的筛选条件不适用。</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>过去 30 天这里没有以盈利价格售出的物品。</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>过去 30 天的销售</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>均价</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>销售额</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 舰船——大型</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 舰船——小型与中型</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 舰船——大型</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 舰船——小型与中型</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>弹药与无人机</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>装备</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>改装件与子系统</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>可部署物</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>组件</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>建筑装备与改装件</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>一级科技</value>
   </data>

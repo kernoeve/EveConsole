@@ -35,6 +35,15 @@ public class IndustryRow
     public double BuildSeconds     { get; init; }   // to build ONE unit (ties up the slot this long)
     public double SlotDays         { get; init; }   // BuildSeconds / 86400
     public double ProfitPerSlotDay { get; init; }
+    /// <summary>What the item is: its meta group (0 for none), market group, and inventory
+    /// group and category, the group by its English name. What the Detail tab's filters and the
+    /// Summary tab's sections go by.</summary>
+    public int    MetaGroupId      { get; init; }
+    public int?   MarketGroupId    { get; init; }
+    public int    GroupId          { get; init; }
+    public int    CategoryId       { get; init; }
+    public string GroupName        { get; init; } = "";
+
     public double UnitVol30d       { get; init; }   // units traded in the config region, last 30d
     public double IskVol30d        { get; init; }   // ISK traded in the config region, last 30d
 
@@ -82,6 +91,14 @@ public class IndustryRow
             _                    => $"{sign}{abs:N2}",
         };
     }
+}
+
+/// <summary>One of the Summary tab's lists: its title and its best items.</summary>
+public sealed class OppsSummarySectionVm(string title, List<IndustryRow> rows)
+{
+    public string            Title   { get; } = title;
+    public List<IndustryRow> Rows    { get; } = rows;
+    public bool              IsEmpty => Rows.Count == 0;
 }
 
 public class IndustryOpportunitiesViewModel : ReactiveObject
@@ -192,7 +209,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         MetaGroups = new MultiChoice(OppsMetaGroups.All.Select(g =>
             new CategoryChoice(g.Id.ToString(), g.Label) { Selected = on.Contains(g.Id) }));
         MetaGroups.SelectionChanged += () =>
+        {
             UiState.Set(UiState.IndustryOppsMetaGroups, string.Join(",", MetaGroups.SelectedKeys));
+            _ = ApplyDetailAsync();
+        };
     }
 
     // Only items whose blueprint is a buyable BPO, or is invented from one (T2 from a T1
@@ -266,12 +286,14 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         list.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
             SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
         await SaveGroupsAsync(list, column);
+        await ApplyDetailAsync();
     }
 
     private async Task RemoveGroupAsync(ObservableCollection<ExcludedMarketGroupVm> list, string column, ExcludedMarketGroupVm group)
     {
         list.Remove(group);
         await SaveGroupsAsync(list, column);
+        await ApplyDetailAsync();
     }
 
     private async Task LoadExcludedGroupsAsync()
@@ -382,9 +404,65 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     private bool _isCalculating;
     public bool IsCalculating { get => _isCalculating; private set => this.RaiseAndSetIfChanged(ref _isCalculating, value); }
 
+    // ── Summary: the best of each kind of item ───────────────────────────────
+
+    /// <summary>The Summary tab's lists, in the order shown, two to a row.</summary>
+    public ObservableCollection<OppsSummarySectionVm> SummarySections { get; } = [];
+
+    /// <summary>
+    /// Everything the last Refresh found, in every meta group and market group: what the Summary
+    /// ranks, and what the Detail tab filters by its Meta Groups and Include / Exclude choices.
+    /// </summary>
+    private List<IndustryRow> _allRows = [];
+    private string _regionName = "";
+    private bool   _needsVolume;
+    /// <summary>A Refresh has run: until then there is nothing for the Detail filters to narrow.</summary>
+    private bool   _hasRefreshed;
+
+    private void BuildSummary()
+    {
+        SummarySections.Clear();
+        foreach (var section in IndustryOppsSections.All)
+            SummarySections.Add(new OppsSummarySectionVm(section.Title, IndustryOppsSections.Top(_allRows, section)));
+    }
+
+    /// <summary>
+    /// The Detail grid: the last Refresh's rows, kept by the Detail tab's Meta Groups and
+    /// Include / Exclude choices. Run again as those change, without recalculating.
+    /// </summary>
+    private async Task ApplyDetailAsync()
+    {
+        if (!_hasRefreshed || SelectedConfig is null) return;
+
+        var filter = await _service.FilterAsync(new IndustryOppsQuery
+        {
+            MetaGroups       = [.. MetaGroups.SelectedKeys.Select(int.Parse)],
+            ExcludedGroupIds = [.. ExcludedMarketGroups.Select(g => g.MarketGroupId)],
+            IncludedGroupIds = [.. IncludedMarketGroups.Select(g => g.MarketGroupId)],
+        });
+        var rows = _allRows.Where(filter.Keeps).ToList();
+
+        Results.Clear();
+        // ResultsView sorts them — by the sort the user left, Profit 30d if none. They come in
+        // that default order anyway, so the list reads the same with the sort cleared.
+        foreach (var r in rows) Results.Add(r);
+
+        int noSell = rows.Count(r => !r.HasSellOrders);
+        var note   = noSell > 0 ? "  ·  " + string.Format(IndustryText.OppsNoteHistoryPriced, noSell) : "";
+        // Show the volume region so it's clear the 30-day filters use the Price At region.
+        var volNote = _needsVolume ? " · " + string.Format(IndustryText.OppsNoteVolumeRegion, _regionName) : "";
+        StatusText = MetaGroups.AllSelected == false ? IndustryText.OppsErrNoMetaGroup
+                   : rows.Count > 0
+                       ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.OppsStatusProfitableOther),
+                                        rows.Count, SelectedConfig.Name) + volNote + note
+                       : IndustryText.OppsStatusNone;
+    }
+
     // ── Command ───────────────────────────────────────────────────────────────
 
-    public ReactiveCommand<Unit, Unit> CalculateCommand { get; }
+    /// <summary>Recalculates both tabs: one calculation, which the Summary ranks and the Detail
+    /// tab filters.</summary>
+    public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
     // ── Construction ──────────────────────────────────────────────────────────
 
@@ -402,7 +480,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         RestoreSort();
         ResultsView.SortDescriptions.CollectionChanged += (_, _) => SaveSort();
         LoadMetaGroups();
-        CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
+        RefreshCommand             = ReactiveCommand.CreateFromTask(RefreshAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
         AddIncludedGroupCommand    = ReactiveCommand.CreateFromTask(AddIncludedGroupAsync);
@@ -438,9 +516,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(SelectedConfig));
     }
 
-    // ── Calculate ─────────────────────────────────────────────────────────────
+    // ── Refresh ───────────────────────────────────────────────────────────────
 
-    private async Task CalculateAsync()
+    private async Task RefreshAsync()
     {
         if (SelectedConfig is null)
         {
@@ -493,12 +571,6 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minMargin30d = mm30 / 100;
         }
 
-        if (MetaGroups.AllSelected == false)
-        {
-            StatusText = IndustryText.OppsErrNoMetaGroup;
-            return;
-        }
-
         // Remembered once they have been used; see MinIskVolume.
         UiState.Set(UiState.IndustryOppsMinIskVol,  (MinIskVolume  ?? "").Trim());
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
@@ -506,28 +578,27 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         UiState.Set(UiState.IndustryOppsMinMargin30d, (MinMargin30d ?? "").Trim());
 
         Results.Clear();
+        SummarySections.Clear();
         StatusText = IndustryText.OppsStatusCalculating;
         IsCalculating = true;
 
         try
         {
+            // The filters both tabs share. Meta groups and market groups are the Detail tab's own,
+            // applied to these rows afterwards: the Summary sorts every kind of item.
             var query = new IndustryOppsQuery
             {
-                Mode             = SelectedMode.Kind,
-                ConfigId         = SelectedConfig.ConfigId,
-                MinIskVol30d     = minIskVol,
-                MinUnitVol30d    = minUnitVol,
-                MinMargin        = minMargin,
-                MinMargin30d     = minMargin30d,
-                MetaGroups       = [.. MetaGroups.SelectedKeys.Select(int.Parse)],
-                BpoOnly          = BpoOnly,
-                OwnedOnly        = OwnedOnly,
-                ExcludedGroupIds = [.. ExcludedMarketGroups.Select(g => g.MarketGroupId)],
-                IncludedGroupIds = [.. IncludedMarketGroups.Select(g => g.MarketGroupId)],
+                Mode          = SelectedMode.Kind,
+                ConfigId      = SelectedConfig.ConfigId,
+                MinIskVol30d  = minIskVol,
+                MinUnitVol30d = minUnitVol,
+                MinMargin     = minMargin,
+                MinMargin30d  = minMargin30d,
+                BpoOnly       = BpoOnly,
+                OwnedOnly     = OwnedOnly,
             };
-            var needsVolume = query.NeedsVolume;
 
-            var result = await _service.CalculateAsync(query);
+            var result = await _service.CalculateAllAsync(query);
             if (result is null)
             {
                 StatusText = IndustryText.OppsErrNoConfig;
@@ -538,22 +609,13 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 StatusText = IndustryText.OppsErrNoRegion;
                 return;
             }
-            var rows       = result.Rows;
-            var regionName = result.RegionName;
 
-            // ResultsView sorts them — by the sort the user left, Profit 30d if none. They come in
-            // that default order anyway, so the list reads the same with the sort cleared.
-            foreach (var r in rows)
-                Results.Add(r);
-
-            int noSell = rows.Count(r => !r.HasSellOrders);
-            var note   = noSell > 0 ? "  ·  " + string.Format(IndustryText.OppsNoteHistoryPriced, noSell) : "";
-            // Show the volume region so it's clear the 30-day filters use the Price At region.
-            var volNote = needsVolume ? " · " + string.Format(IndustryText.OppsNoteVolumeRegion, regionName) : "";
-            StatusText = rows.Count > 0
-                ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.OppsStatusProfitableOther),
-                                 rows.Count, SelectedConfig.Name) + volNote + note
-                : IndustryText.OppsStatusNone;
+            _allRows     = result.Rows;
+            _regionName  = result.RegionName;
+            _needsVolume = query.NeedsVolume;
+            _hasRefreshed = true;
+            BuildSummary();
+            await ApplyDetailAsync();
         }
         catch (Exception ex)
         {

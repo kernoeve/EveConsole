@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>各グラフは 1 つのアクティビティの日ごとのコスト指数です（{0:yyyy-MM-dd}〜{1:yyyy-MM-dd}）。星系の横の点がその線の色です。</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>上のフィルターで再計算します。概要と詳細のタブは 1 回の計算を共有し、詳細タブ独自のフィルターは変更するとすぐに一覧を絞り込みます。</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>各一覧：過去 30 日で利益が最も大きかった 10 アイテム。全メタグループが対象です。上のフィルターは適用され、詳細タブのものは適用されません。</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>過去 30 日、ここで利益を出して売れたものはありません。</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>過去 30 日の販売</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>平均価格</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>売上</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 艦船 — 大型</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 艦船 — 小型・中型</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 艦船 — 大型</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 艦船 — 小型・中型</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>弾薬とドローン</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>モジュール</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>リグとサブシステム</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>展開物</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>コンポーネント</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>ストラクチャーモジュールとリグ</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>テック I</value>
   </data>

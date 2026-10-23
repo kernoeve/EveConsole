@@ -391,6 +391,69 @@
   <data name="IndexChartsNote" xml:space="preserve">
     <value>각 차트는 한 활동의 날짜별 비용 지수입니다({0:yyyy-MM-dd}~{1:yyyy-MM-dd}). 항성계 옆의 점이 그 선의 색입니다.</value>
   </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>새로 고침</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>위의 필터로 다시 계산합니다. 요약과 세부 탭은 한 번의 계산을 함께 쓰며, 세부 탭 자체 필터는 바꾸는 즉시 목록을 좁힙니다.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>세부</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>각 목록: 지난 30일 동안 이익이 가장 큰 10개 아이템이며 모든 메타 그룹이 대상입니다. 위쪽 필터는 적용되고 세부 탭의 필터는 적용되지 않습니다.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>지난 30일 동안 여기서 이익을 내며 팔린 것이 없습니다.</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>지난 30일 판매</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>평균 가격</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>매출</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 함선 — 대형</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 함선 — 소형·중형</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 함선 — 대형</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 함선 — 소형·중형</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>탄약 및 드론</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>모듈</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>리그 및 서브시스템</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>배치물</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>부품</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>구조물 모듈 및 리그</value>
+  </data>
   <data name="MetaTech1" xml:space="preserve">
     <value>테크 I</value>
   </data>
