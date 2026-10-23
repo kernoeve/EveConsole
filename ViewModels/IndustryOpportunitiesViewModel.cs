@@ -491,7 +491,19 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         await LoadMarketConfigsAsync();
         await LoadExcludedGroupsAsync();
+
+        // The first time the tool is opened it fills itself; after that Refresh is the user's.
+        // ⚠️ Once a session, on this view model, which outlives the tab: the view is rebuilt and
+        // calls this every time the tab is shown again.
+        if (!_autoRefreshed && SelectedConfig is not null)
+        {
+            _autoRefreshed = true;
+            RefreshCommand.Execute().Subscribe();
+        }
     }
+
+    /// <summary>The one automatic Refresh has been started.</summary>
+    private bool _autoRefreshed;
 
     // ── Market config loading ─────────────────────────────────────────────────
 
