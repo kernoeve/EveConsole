@@ -547,6 +547,18 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>Añadir a pedidos de compra permanentes…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} objeto añadido a los pedidos de compra permanentes en {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} objetos añadidos a los pedidos de compra permanentes en {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} objeto ya era un pedido de compra permanente en {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} objetos ya eran pedidos de compra permanentes en {1}</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>La mejor oferta de la estación (la nuestra o la de otro, la que sea más alta) como parte del valor de mercado. Más del 100 % significa que la estación paga más de lo que vale el objeto.</value>
   </data>

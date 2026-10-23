@@ -559,6 +559,20 @@
         <!-- The main window's tabs: one side, or two halves (see WorkspaceView). -->
         <views:WorkspaceView Grid.Column="0" x:Name="MainTabs" DataContext="{Binding Main}" />
 
+        <!-- What an action with nothing else to show did — added, copied — said in the middle of
+             the tools and faded out (ShowToast). Over everything, never in the way of a click. -->
+        <Border Grid.Column="0" x:Name="AppToast" HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="20"
+                IsHitTestVisible="False" Opacity="0" Padding="18 10" CornerRadius="6" BoxShadow="0 4 18 0 #66000000"
+                Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
+          <Border.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.35"/>
+            </Transitions>
+          </Border.Transitions>
+          <TextBlock x:Name="AppToastText" FontSize="13" FontWeight="SemiBold" TextAlignment="Center"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+        </Border>
+
         <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
              owns the width (the panel itself has none), so hiding it collapses the column to
              nothing and showing it again brings the width back. The drag itself is in code-behind

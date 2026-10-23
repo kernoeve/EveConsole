@@ -117,6 +117,15 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
         ));
     }
 
+    /// <summary>The item's name to the clipboard, as the header shows it, and said so.</summary>
+    private async void OnCopyName(object? sender, RoutedEventArgs e)
+    {
+        if (Vm?.SelectedItem?.Name is not { Length: > 0 } name) return;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        await clipboard.SetTextAsync(name);
+        (TopLevel.GetTopLevel(this) as MainWindow)?.ShowToast(string.Format(AssetsText.ToastNameCopied, name));
+    }
+
     // ── Right-click: the quickbar and standing buy orders ───────────────────
 
     private ItemBrowserViewModel? Vm => DataContext as ItemBrowserViewModel;
@@ -154,7 +163,7 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
         if (vm.AddToStandingBuyOrders is { } add)
         {
             items.Add(new Separator());
-            items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add(typeId)));
+            items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add([typeId])));
         }
         new ContextMenu { ItemsSource = items }.Open(at);
     }
@@ -194,7 +203,7 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
             if (vm.AddToStandingBuyOrders is { } add)
             {
                 items.Add(new Separator());
-                items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add(typeId)));
+                items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add([typeId])));
             }
         }
         else if (node is { FolderId: { } folderId })

@@ -366,7 +366,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     public Func<IReadOnlyList<IndustryRow>, bool, Task<int>>? QueueForProduction { get; set; }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
-    public Action<int>? AddToStandingBuyOrders { get; set; }
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     public void RequestItemNavigation(int typeId, string typeName)
         => ItemNavigationRequested?.Invoke(typeId, typeName);

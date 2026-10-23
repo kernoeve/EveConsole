@@ -142,6 +142,15 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Открыть в разделе «Просмотр предметов»</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Копировать название</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Скопировать название</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>Скопировано: {0}</value>
+  </data>
   <data name="TabBrowse" xml:space="preserve">
     <value>Обзор</value>
   </data>

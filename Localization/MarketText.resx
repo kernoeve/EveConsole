@@ -728,6 +728,22 @@
     <value>Add to Standing Buy Orders…</value>
     <comment>Item right-click menus in several tools: opens a new standing buy order on the item, for the station to be picked.</comment>
   </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} item added to Standing Buy Orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders" from another tool. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} items added to Standing Buy Orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders" from another tool. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} item was already a standing buy order at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders": items already ordered there. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} items were already standing buy orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders": items already ordered there. {0} is the count, {1} the station.</comment>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>The best bid at the station — ours or anyone's, whichever is higher — as a share of the market value. Over 100% means the station is paying more than the item is worth.</value>
     <comment>Standing Buy Orders: tooltip on the Best Bid / Value column.</comment>

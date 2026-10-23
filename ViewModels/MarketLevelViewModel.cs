@@ -477,7 +477,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         AddFromBlueprintCommand      = ReactiveCommand.CreateFromTask(AddFromBlueprintAsync, hasGroup);
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser, hasItem);
         AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
-            () => { if (_selectedRow is MarketItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); }, hasItem);
+            () => { if (_selectedRow is MarketItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); }, hasItem);
 
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
         Observable.Interval(TimeSpan.FromMinutes(1))
@@ -1136,7 +1136,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
-    public Action<int>? AddToStandingBuyOrders { get; set; }
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

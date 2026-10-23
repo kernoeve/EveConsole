@@ -547,6 +547,30 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>Добавить в постоянные ордера на покупку…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} предмет добавлен в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} предмета добавлено в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedFew" xml:space="preserve">
+    <value>{0} предмета добавлены в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedMany" xml:space="preserve">
+    <value>{0} предметов добавлено в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} предмет уже был в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} предмета уже было в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyFew" xml:space="preserve">
+    <value>{0} предмета уже были в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyMany" xml:space="preserve">
+    <value>{0} предметов уже было в постоянных ордерах на покупку: {1}</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>Лучшая ставка на станции — наша или чужая, какая выше — как доля рыночной стоимости. Больше 100% — станция платит больше, чем стоит предмет.</value>
   </data>

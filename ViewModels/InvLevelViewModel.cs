@@ -717,7 +717,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser,
             this.WhenAnyValue(x => x.IsItemRowSelected));
         AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
-            () => { if (_selectedRow is InvItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); },
+            () => { if (_selectedRow is InvItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); },
             this.WhenAnyValue(x => x.IsItemRowSelected));
 
         // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
@@ -1192,7 +1192,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
-    public Action<int>? AddToStandingBuyOrders { get; set; }
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

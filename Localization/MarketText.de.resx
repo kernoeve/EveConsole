@@ -547,6 +547,18 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>Zu Dauer-Kaufaufträgen hinzufügen…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} Gegenstand zu den Dauer-Kaufaufträgen in {1} hinzugefügt</value>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} Gegenstände zu den Dauer-Kaufaufträgen in {1} hinzugefügt</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} Gegenstand war bereits ein Dauer-Kaufauftrag in {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} Gegenstände waren bereits Dauer-Kaufaufträge in {1}</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>Das höchste Gebot an der Station – unseres oder ein fremdes, je nachdem welches höher ist – als Anteil am Marktwert. Über 100 % zahlt die Station mehr, als der Gegenstand wert ist.</value>
   </data>

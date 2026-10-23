@@ -547,6 +547,12 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>상시 구매 주문에 추가…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>아이템 {0}개를 {1}의 상시 구매 주문에 추가했습니다</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>아이템 {0}개는 이미 {1}의 상시 구매 주문입니다</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>스테이션의 최고 입찰가(우리 것과 다른 사람 것 중 높은 쪽)가 시장 가치의 몇 %인지입니다. 100%를 넘으면 그 스테이션은 가치보다 비싸게 사고 있습니다.</value>
   </data>

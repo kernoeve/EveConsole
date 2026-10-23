@@ -179,20 +179,7 @@ public class StandingBuyOrdersViewModel : ReactiveObject
     public CorpActivityService SearchService { get; }
 
     /// <summary>Set by the view; shows the add/edit dialog and returns the result.</summary>
-    public Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? ShowDialog
-    {
-        get => _showDialog;
-        set
-        {
-            _showDialog = value;
-            if (value is not null && _pendingAdd is { } start)
-            {
-                _pendingAdd = null;
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = AddWithAsync(start));
-            }
-        }
-    }
-    private Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? _showDialog;
+    public Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? ShowDialog { get; set; }
 
     /// <summary>Set by the view; confirms a delete before it happens.</summary>
     public Func<Task<bool>>? ConfirmDelete { get; set; }
@@ -277,23 +264,51 @@ public class StandingBuyOrdersViewModel : ReactiveObject
     }
 
     private Task AddAsync() => AddWithAsync(null);
+    /// <summary>What adding from another tool did: how many were added, how many were already
+    /// standing orders at that station, and where; null when the station was asked for and not given.</summary>
+    public sealed record AddedFromElsewhere(int Added, int AlreadyThere, long LocationId, string LocationName);
 
     /// <summary>
-    /// "Add to Standing Buy Orders" from another tool: the add dialog, the item filled in.
-    ///
-    /// <para>The tool has just been opened for it, and its view hands over the dialog as it
-    /// arrives; until then the item waits (<see cref="ShowDialog"/>).</para>
+    /// "Add to Standing Buy Orders" from another tool: every item, at the station of the standing
+    /// buy order added last — no dialog, and the user stays where they are. With no order yet,
+    /// <paramref name="askStation"/> is shown for the first item (filled in) and its station is
+    /// used for the rest. Each can be moved here afterwards.
     /// </summary>
-    public async Task AddItemAsync(int typeId)
+    public async Task<AddedFromElsewhere?> AddItemsAsync(IReadOnlyList<int> typeIds,
+        Func<StandingBuyOrder, Task<StandingBuyOrder?>> askStation)
     {
-        // ⚠️ The English name, as an order keeps it: the tool asking may show it translated.
-        var name = await _service.TypeNameAsync(typeId) ?? "";
-        var start = new StandingBuyOrder { TypeId = typeId, TypeName = name };
-        if (ShowDialog is null) { _pendingAdd = start; return; }
-        await AddWithAsync(start);
-    }
+        if (typeIds.Count == 0) return null;
+        var added = 0;
+        var already = 0;
+        var queue = typeIds.Distinct().ToList();
 
-    private StandingBuyOrder? _pendingAdd;
+        (long Id, string Name)? station = await _service.LastLocationAsync();
+        if (station is null)
+        {
+            // ⚠️ The English name, as an order keeps it: the tool asking may show it translated.
+            var first  = queue[0];
+            var picked = await askStation(new StandingBuyOrder { TypeId = first, TypeName = await _service.TypeNameAsync(first) ?? "" });
+            if (picked is null) return null;
+            if (await _service.AddAsync(picked)) added++; else already++;
+            station = (picked.LocationId, picked.LocationName);
+            queue.RemoveAt(0);
+        }
+
+        foreach (var typeId in queue)
+        {
+            var order = new StandingBuyOrder
+            {
+                TypeId       = typeId,
+                TypeName     = await _service.TypeNameAsync(typeId) ?? "",
+                LocationId   = station.Value.Id,
+                LocationName = station.Value.Name,
+            };
+            if (await _service.AddAsync(order)) added++; else already++;
+        }
+
+        await LoadAsync();
+        return new AddedFromElsewhere(added, already, station.Value.Id, station.Value.Name);
+    }
 
     private async Task AddWithAsync(StandingBuyOrder? start)
     {

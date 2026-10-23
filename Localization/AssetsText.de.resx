@@ -142,6 +142,15 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Im Gegenstandsbrowser öffnen</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Namen kopieren</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Namen kopieren</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>{0} kopiert</value>
+  </data>
   <data name="TabBrowse" xml:space="preserve">
     <value>Durchsuchen</value>
   </data>

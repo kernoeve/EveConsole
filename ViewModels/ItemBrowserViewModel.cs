@@ -1481,7 +1481,7 @@ public class ItemBrowserViewModel : ReactiveObject
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> ToggleQuickbarCommand { get; }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
-    public Action<int>? AddToStandingBuyOrders { get; set; }
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     public async Task LoadQuickbarAsync()
     {

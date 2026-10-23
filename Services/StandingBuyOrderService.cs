@@ -95,6 +95,18 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
     }
 
     /// <summary>Returns false when an entry for the same type and location already exists.</summary>
+    /// <summary>The station of the standing buy order added last, the place new ones go; null
+    /// when there are none. Last by id: ⚠️ CreatedAt is a DateTimeOffset, which SQLite cannot order.</summary>
+    public async Task<(long LocationId, string LocationName)?> LastLocationAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var last = await db.StandingBuyOrders.AsNoTracking()
+            .OrderByDescending(o => o.Id)
+            .Select(o => new { o.LocationId, o.LocationName })
+            .FirstOrDefaultAsync(ct);
+        return last is null ? null : (last.LocationId, last.LocationName);
+    }
+
     /// <summary>An item's English name, as an order keeps it; null for an unknown type.</summary>
     public async Task<string?> TypeNameAsync(int typeId, CancellationToken ct = default)
     {

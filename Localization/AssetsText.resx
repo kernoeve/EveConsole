@@ -188,6 +188,18 @@
     <value>Open in Item Browser</value>
     <comment>Right-click menu item in InvLevelView and the Asset Browser.</comment>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Copy Name</value>
+    <comment>Item Browser: right-click on the item's name in the header.</comment>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Copy the name</value>
+    <comment>Item Browser: tooltip on the copy button beside the item's name.</comment>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>Copied {0}</value>
+    <comment>Item Browser: message after the item's name is copied. {0} is the name.</comment>
+  </data>
   <data name="TabBrowse" xml:space="preserve">
     <value>Browse</value>
     <comment>Item Browser, left pane: the tab with the market tree and the search results.</comment>

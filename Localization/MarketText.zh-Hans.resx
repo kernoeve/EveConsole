@@ -547,6 +547,12 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>添加到长期收购订单…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>已将 {0} 个物品添加到长期收购订单，地点：{1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} 个物品已是 {1} 的长期收购订单</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>该站点的最高买价（我方或他人，取较高者）占市场价值的比例。超过 100% 表示该站点的出价高于物品价值。</value>
   </data>

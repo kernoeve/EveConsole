@@ -142,6 +142,15 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>在物品浏览器中打开</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>复制名称</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>复制名称</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>已复制 {0}</value>
+  </data>
   <data name="TabBrowse" xml:space="preserve">
     <value>浏览</value>
   </data>

@@ -1086,7 +1086,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         AddFromMarketGroupCommand = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync);
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
         AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
-            () => { if (_selectedRow is SalePostingItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); });
+            () => { if (_selectedRow is SalePostingItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); });
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
         PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
         PostToDiscordCommand      = ReactiveCommand.CreateFromTask(PostSelectedToDiscordAsync);
@@ -1694,7 +1694,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
-    public Action<int>? AddToStandingBuyOrders { get; set; }
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

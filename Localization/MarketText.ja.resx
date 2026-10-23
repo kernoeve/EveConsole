@@ -547,6 +547,12 @@
   <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
     <value>常設の買い注文に追加…</value>
   </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} 個のアイテムを {1} の常設の買い注文に追加しました</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} 個のアイテムはすでに {1} の常設の買い注文です</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>ステーションの最高買値（自分か他人の高い方）が市場価値の何 % か。100% を超えると、そのステーションは価値以上で買っています。</value>
   </data>
