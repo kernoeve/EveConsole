@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>アイテムブラウザで開く</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>閲覧</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>クイックバー</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>まだ何もありません。「閲覧」または検索結果でアイテムを右クリックするか、アイテム名の横のクイックバーボタンを使うと、ここに保存できます。ここを右クリックすると新しいフォルダーを作成できます。</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ クイックバーに追加</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ クイックバーにあり</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>このアイテムをクイックバーに保存します。クイックバーはこのデータベースを使うすべてのアプリで共有されます。</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>このアイテムをクイックバーから外します。</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>最上位</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>クイックバーに追加</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>クイックバーから削除</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>フォルダーへ移動</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>新しいフォルダー…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>フォルダー名を変更…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>フォルダーを削除（中身は一つ上へ）</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>新しいクイックバーフォルダー</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>クイックバーフォルダー名の変更</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>フォルダー名</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} をクイックバーに追加しました</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} はすでにクイックバーにあります</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} をクイックバーから削除しました</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>装備からアイテムを追加</value>
   </data>

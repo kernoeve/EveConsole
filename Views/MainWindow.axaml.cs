@@ -446,6 +446,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.SalePostingVm.AddToStandingBuyOrders           = AddToBuyOrders;
         vm.CorpActivityVm.AddToStandingBuyOrders          = AddToBuyOrders;
         vm.IndustryOpportunitiesVm.AddToStandingBuyOrders = AddToBuyOrders;
+        vm.ItemBrowserVm.AddToStandingBuyOrders           = AddToBuyOrders;
 
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>

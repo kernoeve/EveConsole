@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>在物品浏览器中打开</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>浏览</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>快捷栏</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>这里还没有内容。在“浏览”或搜索结果中右键单击物品，或使用物品名称旁的快捷栏按钮，即可将其保存在这里。在此处右键单击可新建文件夹。</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ 添加到快捷栏</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ 已在快捷栏</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>将此物品保存在快捷栏中，使用此数据库的所有应用共享。</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>将此物品从快捷栏移除。</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>顶层</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>添加到快捷栏</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>从快捷栏移除</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>移动到文件夹</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>新建文件夹…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>重命名文件夹…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>删除文件夹（其中物品上移一级）</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>新建快捷栏文件夹</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>重命名快捷栏文件夹</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>文件夹名称</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} 已添加到快捷栏</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} 已在快捷栏中</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} 已从快捷栏移除</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>从装配添加物品</value>
   </data>

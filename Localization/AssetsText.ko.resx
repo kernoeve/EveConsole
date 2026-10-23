@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>아이템 브라우저에서 열기</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>찾아보기</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>빠른 막대</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>아직 아무것도 없습니다. 찾아보기나 검색 결과에서 아이템을 우클릭하거나 아이템 이름 옆의 빠른 막대 버튼을 사용해 여기에 보관하세요. 여기를 우클릭하면 새 폴더를 만들 수 있습니다.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ 빠른 막대에 추가</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ 빠른 막대에 있음</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>이 아이템을 빠른 막대에 보관합니다. 이 데이터베이스를 쓰는 모든 앱이 공유합니다.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>이 아이템을 빠른 막대에서 뺍니다.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>최상위</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>빠른 막대에 추가</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>빠른 막대에서 제거</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>폴더로 이동</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>새 폴더…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>폴더 이름 바꾸기…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>폴더 삭제(안의 항목은 한 단계 위로)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>새 빠른 막대 폴더</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>빠른 막대 폴더 이름 바꾸기</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>폴더 이름</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0}을(를) 빠른 막대에 추가했습니다</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0}은(는) 이미 빠른 막대에 있습니다</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0}을(를) 빠른 막대에서 제거했습니다</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>피팅에서 아이템 추가</value>
   </data>

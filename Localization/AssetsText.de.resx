@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Im Gegenstandsbrowser öffnen</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Durchsuchen</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Schnellleiste</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Noch leer. Klicken Sie unter „Durchsuchen“ oder in den Suchergebnissen mit der rechten Maustaste auf einen Gegenstand oder nutzen Sie die Schnellleisten-Schaltfläche neben dem Namen, um ihn hier abzulegen. Rechtsklick hier für einen neuen Ordner.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ Zur Schnellleiste</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ In der Schnellleiste</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Legt diesen Gegenstand in der Schnellleiste ab, die alle Apps mit dieser Datenbank teilen.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Entfernt diesen Gegenstand aus der Schnellleiste.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Oberste Ebene</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Zur Schnellleiste hinzufügen</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Aus der Schnellleiste entfernen</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>In Ordner verschieben</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>Neuer Ordner…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Ordner umbenennen…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Ordner löschen (Inhalt rückt eine Ebene hoch)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>Neuer Schnellleisten-Ordner</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Schnellleisten-Ordner umbenennen</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Ordnername</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} zur Schnellleiste hinzugefügt</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} ist bereits in der Schnellleiste</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} aus der Schnellleiste entfernt</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Gegenstände aus Ausrüstung hinzufügen</value>
   </data>

@@ -93,15 +93,39 @@
                    FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    Margin="12 8" />
 
-        <!-- Fill area: tree OR search results, both fill row 3 -->
-        <Grid Grid.Row="3">
+        <!-- Fill area: Browse (the tree OR search results) and the Quickbar, both fill row 3.
+             ⚠️ No MinHeight on the tabs: it squeezed the selected tab's underline into its text. -->
+        <TabControl Grid.Row="3"
+                    SelectedIndex="{Binding LeftTabIndex}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0">
+          <TabControl.Styles>
+            <Style Selector="TabItem">
+              <Setter Property="FontSize" Value="12" />
+              <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
+              <Setter Property="Padding" Value="10 6" />
+              <Setter Property="Background" Value="Transparent" />
+              <Setter Property="Margin" Value="0" />
+            </Style>
+            <Style Selector="TabItem:selected">
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            </Style>
+            <Style Selector="TabItem:pointerover">
+              <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+            </Style>
+          </TabControl.Styles>
+
+        <TabItem Header="{x:Static loc:AssetsText.TabBrowse}">
+        <Grid>
 
           <TreeView x:Name="ItemTree"
                     IsVisible="{Binding IsBrowsing}"
                     ItemsSource="{Binding RootGroups}"
                     SelectedItem="{Binding SelectedNode}"
                     Background="Transparent"
-                    BorderThickness="0">
+                    BorderThickness="0"
+                    ContextRequested="OnTreeContextRequested">
             <TreeView.Styles>
               <Style Selector="TreeViewItem">
                 <!-- Binds IsExpanded so code can expand ancestor nodes programmatically -->
@@ -120,7 +144,8 @@
                    SelectedItem="{Binding SelectedResult}"
                    Background="Transparent"
                    BorderThickness="0"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ContextRequested="OnResultsContextRequested">
             <ListBox.Styles>
               <Style Selector="ListBoxItem">
                 <Setter Property="Padding" Value="10 5" />
@@ -138,6 +163,35 @@
           </ListBox>
 
         </Grid>
+        </TabItem>
+
+        <!-- The quickbar: items kept to hand, in folders; shared through the database. -->
+        <TabItem Header="{x:Static loc:AssetsText.TabQuickbar}">
+          <Grid>
+            <TreeView x:Name="QuickbarTree"
+                      ItemsSource="{Binding Quickbar}"
+                      SelectedItem="{Binding SelectedQuickbarNode}"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      ContextRequested="OnQuickbarContextRequested">
+              <TreeView.Styles>
+                <Style Selector="TreeViewItem">
+                  <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                  <Setter Property="Padding"    Value="2 2" />
+                  <Setter Property="FontSize"   Value="12" />
+                </Style>
+                <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+                  <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+                </Style>
+              </TreeView.Styles>
+            </TreeView>
+            <TextBlock IsVisible="{Binding QuickbarEmpty}" IsHitTestVisible="False"
+                       Text="{x:Static loc:AssetsText.QuickbarEmptyNote}"
+                       FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                       TextWrapping="Wrap" Margin="12 10" />
+          </Grid>
+        </TabItem>
+        </TabControl>
 
       </Grid>
 
@@ -160,6 +214,15 @@
           <!-- Header -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="16 12"
                   BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+            <Grid ColumnDefinitions="*,Auto">
+            <Button Grid.Column="1" VerticalAlignment="Top"
+                    Content="{Binding QuickbarButtonText}"
+                    ToolTip.Tip="{Binding QuickbarButtonTip}"
+                    Command="{Binding ToggleQuickbarCommand}"
+                    FontSize="12" Padding="10 4"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextSecondaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                    CornerRadius="3" />
             <Grid ColumnDefinitions="72,*" DataContext="{Binding SelectedItem}">
 
               <!-- Icon -->
@@ -200,6 +263,7 @@
                 </StackPanel>
               </StackPanel>
 
+            </Grid>
             </Grid>
           </Border>
 

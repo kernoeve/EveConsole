@@ -47,6 +47,28 @@ public class TypeNode
     public int    MarketGroupId { get; init; }
 }
 
+/// <summary>A quickbar folder or item as the Quickbar tab shows it.</summary>
+public class QuickbarNodeVm : ReactiveObject
+{
+    /// <summary>The folder's id; null for an item.</summary>
+    public string? FolderId { get; init; }
+    /// <summary>The item; null for a folder.</summary>
+    public int?    TypeId   { get; init; }
+    public string  Name     { get; init; } = "";
+    public bool    IsFolder => TypeId is null;
+    public ObservableCollection<QuickbarNodeVm> Children { get; } = [];
+
+    /// <summary>Told when the folder is opened or closed, so a rebuild can leave it as it was.</summary>
+    public Action<bool>? Expanded { get; init; }
+
+    private bool _isExpanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set { this.RaiseAndSetIfChanged(ref _isExpanded, value); Expanded?.Invoke(value); }
+    }
+}
+
 // ── Period filter ─────────────────────────────────────────────────────────────
 
 public record PeriodOption(string Label, int Days); // Days=-1 means All Time
@@ -1225,6 +1247,9 @@ public class ItemBrowserViewModel : ReactiveObject
                                this.WhenAnyValue(x => x.CanGoForward));
 
         NavigateToItemCommand = ReactiveCommand.CreateFromTask<int>(NavigateWithHistoryAsync);
+        ToggleQuickbarCommand = ReactiveCommand.CreateFromTask(ToggleQuickbarAsync);
+        // The header's button follows the item on screen.
+        this.WhenAnyValue(x => x.SelectedItem).Subscribe(_ => RaiseQuickbarButton());
 
         // A new item brings its own reprocessing sources for the filter to apply to.
         this.WhenAnyValue(x => x.SelectedItem).Subscribe(_ => RaiseReprocessSources());
@@ -1241,6 +1266,8 @@ public class ItemBrowserViewModel : ReactiveObject
             {
                 this.RaisePropertyChanged(nameof(IsSearching));
                 this.RaisePropertyChanged(nameof(IsBrowsing));
+                // The results are on the Browse tab: typing a search shows them.
+                if (text.Length > 1) LeftTabIndex = LeftTabBrowse;
                 _ = RunSearchAsync(text);
             });
 
@@ -1251,6 +1278,8 @@ public class ItemBrowserViewModel : ReactiveObject
     {
         await LoadTreeAsync();
         await LoadMarketConfigsAsync();
+        // For the header's button, before the tab is ever shown.
+        await LoadQuickbarAsync();
     }
 
     // ── Tree loading ──────────────────────────────────────────────────────────
@@ -1401,6 +1430,205 @@ public class ItemBrowserViewModel : ReactiveObject
         var path = string.Join(" › ", parts);
         _groupPathCache[groupId] = path;
         return path;
+    }
+
+    // ── Quickbar ──────────────────────────────────────────────────────────────
+    //
+    // The items kept to hand, in folders, as the game's market window keeps them. Shared through
+    // the database (ItemQuickbar): every change is made to what the database has at that moment,
+    // and the tab is read again whenever it is shown.
+
+    public const int LeftTabBrowse = 0, LeftTabQuickbar = 1;
+
+    private int _leftTabIndex;
+    /// <summary>The left pane's tab: the market tree (and search), or the quickbar.</summary>
+    public int LeftTabIndex
+    {
+        get => _leftTabIndex;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _leftTabIndex, value);
+            if (value == LeftTabQuickbar) _ = LoadQuickbarAsync();
+        }
+    }
+
+    public ObservableCollection<QuickbarNodeVm> Quickbar { get; } = [];
+    public bool QuickbarEmpty => Quickbar.Count == 0;
+
+    private List<QuickbarEntry> _quickbar = [];
+    // Folders left open, by id: the tab is rebuilt after every change and they stay open.
+    private readonly HashSet<string> _openFolders = [];
+    // The names the tab shows its items by, for the status line.
+    private readonly Dictionary<int, string> _quickbarNames = [];
+
+    private object? _selectedQuickbarNode;
+    public object? SelectedQuickbarNode
+    {
+        get => _selectedQuickbarNode;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedQuickbarNode, value);
+            if (value is QuickbarNodeVm { TypeId: int id }) _ = NavigateWithHistoryAsync(id);
+        }
+    }
+
+    /// <summary>The item on screen is on the quickbar: what the header's button says.</summary>
+    public bool IsInQuickbar => _currentTypeId is int id && ItemQuickbar.Contains(_quickbar, id);
+    public string QuickbarButtonText => IsInQuickbar ? AssetsText.BtnInQuickbar : AssetsText.BtnAddToQuickbar;
+    public string QuickbarButtonTip  => IsInQuickbar ? AssetsText.TipRemoveFromQuickbar : AssetsText.TipAddToQuickbar;
+
+    /// <summary>The header's button: puts the item on screen on the quickbar, or takes it off.</summary>
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> ToggleQuickbarCommand { get; }
+
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<int>? AddToStandingBuyOrders { get; set; }
+
+    public async Task LoadQuickbarAsync()
+    {
+        if (_dbFactory is null) return;
+        try { await ShowQuickbarAsync(await ItemQuickbar.LoadAsync(_dbFactory)); }
+        catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
+    }
+
+    /// <summary>One change, made to the quickbar as the database has it now; then shown.</summary>
+    private async Task<bool> ChangeQuickbarAsync(Func<List<QuickbarEntry>, bool> change)
+    {
+        if (_dbFactory is null) return false;
+        try
+        {
+            var (root, changed) = await ItemQuickbar.ChangeAsync(_dbFactory, change);
+            await ShowQuickbarAsync(root);
+            return changed;
+        }
+        catch (Exception ex)
+        {
+            Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
+            return false;
+        }
+    }
+
+    private async Task ShowQuickbarAsync(List<QuickbarEntry> root)
+    {
+        _quickbar = root;
+        var ids = ItemQuickbar.TypeIds(root).Distinct().ToList();
+        var english = new Dictionary<int, string>();
+        if (ids.Count > 0 && _dbFactory is not null)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            english = await db.SdeTypes.AsNoTracking()
+                .Where(t => ids.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+        }
+        await SdeNames.EnsureLoadedAsync();
+
+        IEnumerable<QuickbarNodeVm> Nodes(IEnumerable<QuickbarEntry> entries)
+            => entries.Select(e =>
+                {
+                    if (e.TypeId is int id)
+                    {
+                        var name = SdeNames.Type(id, english.GetValueOrDefault(id, $"#{id}"));
+                        _quickbarNames[id] = name;
+                        return new QuickbarNodeVm { TypeId = id, Name = name };
+                    }
+                    var folderId = e.Id ?? "";
+                    var folder = new QuickbarNodeVm
+                    {
+                        FolderId = folderId,
+                        Name     = e.Name ?? "",
+                        Expanded = open => { if (open) _openFolders.Add(folderId); else _openFolders.Remove(folderId); },
+                    };
+                    foreach (var child in Nodes(e.Children ?? [])) folder.Children.Add(child);
+                    folder.IsExpanded = _openFolders.Contains(folderId);
+                    return folder;
+                })
+                // Folders first, then items, each by the name shown.
+                .OrderBy(n => n.IsFolder ? 0 : 1)
+                .ThenBy(n => n.Name, StringComparer.CurrentCultureIgnoreCase);
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            Quickbar.Clear();
+            foreach (var n in Nodes(root)) Quickbar.Add(n);
+            this.RaisePropertyChanged(nameof(QuickbarEmpty));
+            RaiseQuickbarButton();
+        });
+    }
+
+    private void RaiseQuickbarButton()
+    {
+        this.RaisePropertyChanged(nameof(IsInQuickbar));
+        this.RaisePropertyChanged(nameof(QuickbarButtonText));
+        this.RaisePropertyChanged(nameof(QuickbarButtonTip));
+    }
+
+    /// <summary>The folders an item or folder can go to, by their path; the top level first.
+    /// A folder is never offered a place inside itself.</summary>
+    public IReadOnlyList<(string? FolderId, string Label)> QuickbarDestinations(string? movingFolderId = null)
+    {
+        var exclude = new HashSet<string>();
+        if (movingFolderId is not null)
+        {
+            exclude.Add(movingFolderId);
+            if (ItemQuickbar.Folders(_quickbar).FirstOrDefault(f => f.Folder.Id == movingFolderId).Folder is { } moving)
+                foreach (var (inner, _) in ItemQuickbar.Folders(moving.Children ?? [])) exclude.Add(inner.Id ?? "");
+        }
+        var list = new List<(string?, string)> { (null, AssetsText.QuickbarTopLevel) };
+        foreach (var (folder, path) in ItemQuickbar.Folders(_quickbar))
+            if (!exclude.Contains(folder.Id ?? ""))
+                list.Add((folder.Id, string.Join(" › ", path)));
+        return list;
+    }
+
+    public bool QuickbarHas(int typeId) => ItemQuickbar.Contains(_quickbar, typeId);
+
+    private string NameOf(int typeId)
+        => _quickbarNames.TryGetValue(typeId, out var name) ? name
+         : SelectedItem is { } shown && _currentTypeId == typeId ? shown.Name
+         : SdeNames.Type(typeId, $"#{typeId}");
+
+    public async Task AddToQuickbarAsync(int typeId, string? folderId = null)
+    {
+        if (folderId is not null) _openFolders.Add(folderId);
+        var added = await ChangeQuickbarAsync(root => ItemQuickbar.AddItem(root, typeId, folderId));
+        Status = string.Format(added ? AssetsText.StatusAddedToQuickbar : AssetsText.StatusAlreadyInQuickbar, NameOf(typeId));
+    }
+
+    public async Task RemoveFromQuickbarAsync(int typeId)
+    {
+        var name = NameOf(typeId);   // before it goes, with its name
+        if (await ChangeQuickbarAsync(root => ItemQuickbar.RemoveItem(root, typeId)))
+            Status = string.Format(AssetsText.StatusRemovedFromQuickbar, name);
+    }
+
+    public Task MoveQuickbarItemAsync(int typeId, string? folderId)
+    {
+        if (folderId is not null) _openFolders.Add(folderId);
+        return ChangeQuickbarAsync(root => ItemQuickbar.MoveItem(root, typeId, folderId));
+    }
+
+    public Task MoveQuickbarFolderAsync(string folderId, string? intoId)
+    {
+        if (intoId is not null) _openFolders.Add(intoId);
+        return ChangeQuickbarAsync(root => ItemQuickbar.MoveFolder(root, folderId, intoId));
+    }
+
+    public Task NewQuickbarFolderAsync(string name, string? parentId)
+    {
+        if (parentId is not null) _openFolders.Add(parentId);
+        return ChangeQuickbarAsync(root => ItemQuickbar.NewFolder(root, name, parentId) is not null);
+    }
+
+    public Task RenameQuickbarFolderAsync(string folderId, string name)
+        => ChangeQuickbarAsync(root => ItemQuickbar.RenameFolder(root, folderId, name));
+
+    public Task DeleteQuickbarFolderAsync(string folderId)
+        => ChangeQuickbarAsync(root => ItemQuickbar.DeleteFolder(root, folderId));
+
+    private async Task ToggleQuickbarAsync()
+    {
+        if (_currentTypeId is not int id) return;
+        if (IsInQuickbar) await RemoveFromQuickbarAsync(id);
+        else              await AddToQuickbarAsync(id);
     }
 
     // ── Item loading ──────────────────────────────────────────────────────────

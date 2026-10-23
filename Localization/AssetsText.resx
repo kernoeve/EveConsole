@@ -188,6 +188,90 @@
     <value>Open in Item Browser</value>
     <comment>Right-click menu item in InvLevelView and the Asset Browser.</comment>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Browse</value>
+    <comment>Item Browser, left pane: the tab with the market tree and the search results.</comment>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Quickbar</value>
+    <comment>Item Browser, left pane: the tab with the items kept to hand, as in the game's market window.</comment>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Nothing here yet. Right-click an item under Browse or in the search results, or use the quickbar button beside an item's name, to keep it here. Right-click here for a new folder.</value>
+    <comment>Item Browser, Quickbar tab, while it is empty.</comment>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ Add to Quickbar</value>
+    <comment>Item Browser, item header button while the item is not on the quickbar.</comment>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ On Quickbar</value>
+    <comment>Item Browser, item header button while the item is on the quickbar; clicking takes it off.</comment>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Keeps this item on the quickbar, shared by every app on this database.</value>
+    <comment>Item Browser, tooltip on the Add to Quickbar button.</comment>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Takes this item off the quickbar.</value>
+    <comment>Item Browser, tooltip on the On Quickbar button.</comment>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Top level</value>
+    <comment>Item Browser, quickbar menus: the place outside every folder.</comment>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Add to Quickbar</value>
+    <comment>Item Browser, right-click on an item.</comment>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Remove from Quickbar</value>
+    <comment>Item Browser, right-click on an item on the quickbar.</comment>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Move to Folder</value>
+    <comment>Item Browser, Quickbar tab right-click: a submenu of the folders.</comment>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>New Folder…</value>
+    <comment>Item Browser, Quickbar tab right-click: on a folder, a folder inside it; elsewhere, at the top level.</comment>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Rename Folder…</value>
+    <comment>Item Browser, Quickbar tab right-click on a folder.</comment>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Delete Folder (Its Items Move Up)</value>
+    <comment>Item Browser, Quickbar tab right-click on a folder: what was in it goes where the folder was.</comment>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>New Quickbar Folder</value>
+    <comment>Item Browser: title of the dialog naming a new quickbar folder.</comment>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Rename Quickbar Folder</value>
+    <comment>Item Browser: title of the dialog renaming a quickbar folder.</comment>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Folder name</value>
+    <comment>Item Browser, quickbar folder dialog: the label over the box.</comment>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Item Browser, quickbar folder dialog: the empty box's hint.</comment>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} added to the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} is already on the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} removed from the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Add Items From Fit</value>
     <comment>Menu item in InvLevelView.</comment>

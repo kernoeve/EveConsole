@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Открыть в разделе «Просмотр предметов»</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Панель быстрого доступа</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Здесь пока пусто. Щёлкните правой кнопкой предмет в «Обзоре» или в результатах поиска либо нажмите кнопку панели рядом с названием предмета, чтобы сохранить его здесь. Щёлкните здесь правой кнопкой, чтобы создать папку.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ На панель</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ На панели</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Сохраняет предмет на панели быстрого доступа, общей для всех приложений с этой базой данных.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Убирает предмет с панели быстрого доступа.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Верхний уровень</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Добавить на панель быстрого доступа</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Убрать с панели быстрого доступа</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Переместить в папку</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>Новая папка…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Переименовать папку…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Удалить папку (содержимое поднимется на уровень выше)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>Новая папка панели</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Переименование папки панели</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Название папки</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0}: добавлено на панель быстрого доступа</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0}: уже на панели быстрого доступа</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0}: убрано с панели быстрого доступа</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Добавить предметы из оснастки</value>
   </data>

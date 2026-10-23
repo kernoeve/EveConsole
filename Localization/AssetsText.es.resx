@@ -142,6 +142,69 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Abrir en el Explorador de objetos</value>
   </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Explorar</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Barra rápida</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Aún no hay nada. Haz clic derecho en un objeto en Explorar o en los resultados de búsqueda, o usa el botón de la barra rápida junto al nombre de un objeto, para guardarlo aquí. Haz clic derecho aquí para crear una carpeta.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ Añadir a la barra rápida</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ En la barra rápida</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Guarda este objeto en la barra rápida, compartida por todas las aplicaciones de esta base de datos.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Quita este objeto de la barra rápida.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Nivel superior</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Añadir a la barra rápida</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Quitar de la barra rápida</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Mover a carpeta</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>Nueva carpeta…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Cambiar nombre de carpeta…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Eliminar carpeta (su contenido sube un nivel)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>Nueva carpeta de la barra rápida</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Cambiar nombre de carpeta de la barra rápida</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Nombre de la carpeta</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} añadido a la barra rápida</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} ya está en la barra rápida</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} quitado de la barra rápida</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Añadir objetos desde un equipamiento</value>
   </data>
