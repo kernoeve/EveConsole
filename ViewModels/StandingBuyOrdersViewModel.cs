@@ -179,7 +179,20 @@ public class StandingBuyOrdersViewModel : ReactiveObject
     public CorpActivityService SearchService { get; }
 
     /// <summary>Set by the view; shows the add/edit dialog and returns the result.</summary>
-    public Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? ShowDialog { get; set; }
+    public Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? ShowDialog
+    {
+        get => _showDialog;
+        set
+        {
+            _showDialog = value;
+            if (value is not null && _pendingAdd is { } start)
+            {
+                _pendingAdd = null;
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = AddWithAsync(start));
+            }
+        }
+    }
+    private Func<StandingBuyOrder?, Task<StandingBuyOrder?>>? _showDialog;
 
     /// <summary>Set by the view; confirms a delete before it happens.</summary>
     public Func<Task<bool>>? ConfirmDelete { get; set; }
@@ -263,10 +276,29 @@ public class StandingBuyOrdersViewModel : ReactiveObject
         StatusText = string.Join("  ·  ", parts);
     }
 
-    private async Task AddAsync()
+    private Task AddAsync() => AddWithAsync(null);
+
+    /// <summary>
+    /// "Add to Standing Buy Orders" from another tool: the add dialog, the item filled in.
+    ///
+    /// <para>The tool has just been opened for it, and its view hands over the dialog as it
+    /// arrives; until then the item waits (<see cref="ShowDialog"/>).</para>
+    /// </summary>
+    public async Task AddItemAsync(int typeId)
+    {
+        // ⚠️ The English name, as an order keeps it: the tool asking may show it translated.
+        var name = await _service.TypeNameAsync(typeId) ?? "";
+        var start = new StandingBuyOrder { TypeId = typeId, TypeName = name };
+        if (ShowDialog is null) { _pendingAdd = start; return; }
+        await AddWithAsync(start);
+    }
+
+    private StandingBuyOrder? _pendingAdd;
+
+    private async Task AddWithAsync(StandingBuyOrder? start)
     {
         if (ShowDialog is null) return;
-        var result = await ShowDialog(null);
+        var result = await ShowDialog(start);
         if (result is null) return;
 
         if (!await _service.AddAsync(result))

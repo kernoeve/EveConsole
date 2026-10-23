@@ -724,6 +724,10 @@
     <value>What a unit costs to build, from the app's build cost pass (the figure Industry Ops and the Production Calculator use). Empty for an item that is not built.</value>
     <comment>Standing Buy Orders: tooltip on the Build Cost column.</comment>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Add to Standing Buy Orders…</value>
+    <comment>Item right-click menus in several tools: opens a new standing buy order on the item, for the station to be picked.</comment>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>The best bid at the station — ours or anyone's, whichever is higher — as a share of the market value. Over 100% means the station is paying more than the item is worth.</value>
     <comment>Standing Buy Orders: tooltip on the Best Bid / Value column.</comment>

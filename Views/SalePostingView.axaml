@@ -103,6 +103,9 @@
           <MenuItem Header="{x:Static loc:SalesText.MenuOpenInItemBrowser}"
                     Command="{Binding OpenInItemBrowserCommand}"
                     IsEnabled="{Binding IsItemRowSelected}" />
+          <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}"
+                    Command="{Binding AddToStandingBuyOrdersCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
           <Separator />
           <MenuItem Header="{x:Static loc:SalesText.MenuAddItemsFromMarketGroup}"
                     Command="{Binding AddFromMarketGroupCommand}" />

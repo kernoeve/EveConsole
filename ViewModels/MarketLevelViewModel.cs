@@ -437,6 +437,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> AddFromMarketGroupCommand    { get; }
     public ReactiveCommand<Unit, Unit> AddFromBlueprintCommand      { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand     { get; }
+    public ReactiveCommand<Unit, Unit> AddToStandingBuyOrdersCommand { get; }
 
     // ── Dialog delegates (wired up by View code-behind) ───────────────────────
     public Func<IReadOnlyList<CollectionOption>, Task<GroupDialogResult?>>?              ShowAddGroupDialog          { get; set; }
@@ -475,6 +476,8 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         AddFromMarketGroupCommand    = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync, hasGroup);
         AddFromBlueprintCommand      = ReactiveCommand.CreateFromTask(AddFromBlueprintAsync, hasGroup);
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser, hasItem);
+        AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
+            () => { if (_selectedRow is MarketItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); }, hasItem);
 
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
         Observable.Interval(TimeSpan.FromMinutes(1))
@@ -1131,6 +1134,9 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (_selectedRow is MarketItemRow itemRow)
             await DeleteItemRowAsync(itemRow);
     }
+
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<int>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

@@ -1721,6 +1721,9 @@
                       <MenuItem Header="{x:Static loc:CorpText.MenuOpenItemInItemBrowser}"
                                 Command="{Binding OpenMaintainItemInBrowserCommand}"
                                 IsVisible="{Binding SelectedMaintainRow.IsDeliverItem}" />
+                      <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}"
+                                Command="{Binding AddMaintainItemToBuyOrdersCommand}"
+                                IsVisible="{Binding SelectedMaintainRow.IsDeliverItem}" />
                     </ContextMenu>
                   </DataGrid.ContextMenu>
                   <DataGrid.Styles>

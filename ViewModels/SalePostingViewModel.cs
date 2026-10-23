@@ -1043,6 +1043,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> DeleteSelectedItemCommand { get; }
     public ReactiveCommand<Unit, Unit> AddFromMarketGroupCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand  { get; }
+    public ReactiveCommand<Unit, Unit> AddToStandingBuyOrdersCommand { get; }
     public ReactiveCommand<Unit, Unit> RenderRefreshCommand      { get; }
     public ReactiveCommand<Unit, Unit> PostToSlackCommand        { get; }
     public ReactiveCommand<Unit, Unit> PostToDiscordCommand      { get; }
@@ -1084,6 +1085,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         DeleteSelectedItemCommand = ReactiveCommand.CreateFromTask(DeleteSelectedItemAsync);
         AddFromMarketGroupCommand = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync);
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
+        AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
+            () => { if (_selectedRow is SalePostingItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); });
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
         PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
         PostToDiscordCommand      = ReactiveCommand.CreateFromTask(PostSelectedToDiscordAsync);
@@ -1689,6 +1692,9 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                     s.AllItems = s.AllItems.Where(i => i.ItemId != item.ItemId).ToList();
         RebuildGridRows();
     }
+
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<int>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

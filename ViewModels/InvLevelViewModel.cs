@@ -626,6 +626,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> AddFromMarketGroupCommand    { get; }
     public ReactiveCommand<Unit, Unit> AddFromBlueprintCommand      { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand     { get; }
+    public ReactiveCommand<Unit, Unit> AddToStandingBuyOrdersCommand { get; }
 
     // ── Dialog delegates ──────────────────────────────────────────────────────
     public Func<IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>?              ShowAddGroupDialog        { get; set; }
@@ -714,6 +715,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         AddFromMarketGroupCommand    = ReactiveCommand.CreateFromTask(AddFromMarketGroupAsync, hasGroups);
         AddFromBlueprintCommand      = ReactiveCommand.CreateFromTask(AddFromBlueprintAsync, hasGroups);
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser,
+            this.WhenAnyValue(x => x.IsItemRowSelected));
+        AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
+            () => { if (_selectedRow is InvItemRow item) AddToStandingBuyOrders?.Invoke(item.TypeId); },
             this.WhenAnyValue(x => x.IsItemRowSelected));
 
         // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
@@ -1186,6 +1190,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (_selectedRow is InvItemRow item)
             await DeleteItemAsync(item.ItemId);
     }
+
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<int>? AddToStandingBuyOrders { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

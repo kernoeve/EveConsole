@@ -544,6 +544,9 @@
   <data name="TipBuildCost" xml:space="preserve">
     <value>앱의 제조 비용 계산에 따른 1개당 제조 비용입니다(산업 기회와 생산 계산기가 쓰는 같은 수치). 제조하지 않는 아이템은 비어 있습니다.</value>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>상시 구매 주문에 추가…</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>스테이션의 최고 입찰가(우리 것과 다른 사람 것 중 높은 쪽)가 시장 가치의 몇 %인지입니다. 100%를 넘으면 그 스테이션은 가치보다 비싸게 사고 있습니다.</value>
   </data>

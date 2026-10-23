@@ -43,7 +43,8 @@ public partial class StandingBuyOrderDialog : Window
 
         if (existing is null) return;
 
-        Title = MarketText.TitleEditStandingBuyOrder;
+        // Not saved yet: a new order started from an item elsewhere, with no station.
+        if (existing.Id != 0) Title = MarketText.TitleEditStandingBuyOrder;
 
         _selectedTypeId   = existing.TypeId;
         _selectedTypeName = existing.TypeName;
@@ -52,6 +53,8 @@ public partial class StandingBuyOrderDialog : Window
         ItemSearchBox.Text          = existing.TypeName;
         ItemSelectedLabel.Text      = SdeNames.Type(existing.TypeId, existing.TypeName);
         ItemSelectedLabel.IsVisible = true;
+
+        if (existing.LocationId == 0) return;
 
         // The station likewise: English in the box, as the screen names it in the label.
         _selectedLocationId   = existing.LocationId;
@@ -65,6 +68,12 @@ public partial class StandingBuyOrderDialog : Window
 
     private async void OnItemSearchChanged(object? sender, TextChangedEventArgs e)
     {
+        // ⚠️ The box saying exactly what was picked is the pick, not typing: the dialog fills the
+        // box itself when it opens on an order, and the change it raises came after the
+        // constructor — it cleared the item, so Edit, and an order started from another tool,
+        // could not be saved without searching for the item again.
+        if (_selectedTypeId is not null && ItemSearchBox.Text == _selectedTypeName) return;
+
         // Typing invalidates any previous pick, so a stale id can't be saved with
         // freshly typed text.
         _selectedTypeId   = null;
@@ -108,6 +117,9 @@ public partial class StandingBuyOrderDialog : Window
 
     private async void OnStationSearchChanged(object? sender, TextChangedEventArgs e)
     {
+        // The box saying exactly what was picked: see OnItemSearchChanged.
+        if (_selectedLocationId is not null && StationSearchBox.Text == _selectedLocationName) return;
+
         _selectedLocationId   = null;
         _selectedLocationName = "";
         StationSelectedLabel.IsVisible = false;

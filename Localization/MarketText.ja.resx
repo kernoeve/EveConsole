@@ -544,6 +544,9 @@
   <data name="TipBuildCost" xml:space="preserve">
     <value>アプリの製造コスト計算による 1 個あたりの製造コストです（インダストリー機会と生産計算機と同じ数字）。製造しないアイテムは空欄です。</value>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文に追加…</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>ステーションの最高買値（自分か他人の高い方）が市場価値の何 % か。100% を超えると、そのステーションは価値以上で買っています。</value>
   </data>

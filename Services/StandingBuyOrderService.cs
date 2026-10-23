@@ -95,6 +95,14 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
     }
 
     /// <summary>Returns false when an entry for the same type and location already exists.</summary>
+    /// <summary>An item's English name, as an order keeps it; null for an unknown type.</summary>
+    public async Task<string?> TypeNameAsync(int typeId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.SdeTypes.AsNoTracking()
+            .Where(t => t.TypeId == typeId).Select(t => t.Name).FirstOrDefaultAsync(ct);
+    }
+
     public async Task<bool> AddAsync(StandingBuyOrder order, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

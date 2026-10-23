@@ -433,6 +433,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             return added;
         };
 
+        // "Add to Standing Buy Orders" from any tool's item menu: the tool shown, and its add
+        // dialog open on the item, for the station to be picked.
+        void AddToBuyOrders(int typeId) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                vm.OpenTool("standing_buy_orders");
+                _ = vm.StandingBuyOrdersVm.AddItemAsync(typeId);
+            });
+        vm.InvLevelVm.AddToStandingBuyOrders              = AddToBuyOrders;
+        vm.MarketLevelVm.AddToStandingBuyOrders           = AddToBuyOrders;
+        vm.SalePostingVm.AddToStandingBuyOrders           = AddToBuyOrders;
+        vm.CorpActivityVm.AddToStandingBuyOrders          = AddToBuyOrders;
+        vm.IndustryOpportunitiesVm.AddToStandingBuyOrders = AddToBuyOrders;
+
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {

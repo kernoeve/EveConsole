@@ -207,6 +207,8 @@
                           <ContextMenu>
                             <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
                             <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+                            <Separator />
+                            <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}" Click="OnAddBuyOrder" />
                           </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
@@ -406,6 +408,8 @@
               <ContextMenu>
                 <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
                 <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+                <Separator />
+                <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}" Click="OnAddBuyOrder" />
               </ContextMenu>
             </DataGrid.ContextMenu>
 

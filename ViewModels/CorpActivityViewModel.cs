@@ -1298,8 +1298,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> CloneStandingProjectCommand        { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> RefreshMaintainCommand             { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> OpenMaintainItemInBrowserCommand   { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> AddMaintainItemToBuyOrdersCommand  { get; private set; } = null!;
 
     public Action<int, string>? RequestOpenInItemBrowser { get; set; }
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<int>? AddToStandingBuyOrders { get; set; }
 
     private StandingProjectRowVm? _selectedMaintainRow;
     public StandingProjectRowVm? SelectedMaintainRow
@@ -1472,6 +1475,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         OpenMaintainItemInBrowserCommand = ReactiveCommand.Create(
             () => { if (SelectedMaintainRow is { IsDeliverItem: true, ItemTypeId: { } id })
                         RequestOpenInItemBrowser?.Invoke(id, SelectedMaintainRow.ItemTypeName); },
+            this.WhenAnyValue(x => x.SelectedMaintainRow)
+                .Select(r => r is { IsDeliverItem: true }));
+        AddMaintainItemToBuyOrdersCommand = ReactiveCommand.Create(
+            () => { if (SelectedMaintainRow is { IsDeliverItem: true, ItemTypeId: { } id })
+                        AddToStandingBuyOrders?.Invoke(id); },
             this.WhenAnyValue(x => x.SelectedMaintainRow)
                 .Select(r => r is { IsDeliverItem: true }));
         OpenMaintainItemInBrowserCommand.ThrownExceptions.Subscribe(_ => { });

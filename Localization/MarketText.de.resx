@@ -544,6 +544,9 @@
   <data name="TipBuildCost" xml:space="preserve">
     <value>Was eine Einheit in der Herstellung kostet, aus der Baukostenberechnung der App (dieselbe Zahl wie in Industry Ops und im Produktionsrechner). Leer bei Gegenständen, die nicht gebaut werden.</value>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Zu Dauer-Kaufaufträgen hinzufügen…</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>Das höchste Gebot an der Station – unseres oder ein fremdes, je nachdem welches höher ist – als Anteil am Marktwert. Über 100 % zahlt die Station mehr, als der Gegenstand wert ist.</value>
   </data>

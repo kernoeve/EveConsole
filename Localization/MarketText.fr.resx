@@ -544,6 +544,9 @@
   <data name="TipBuildCost" xml:space="preserve">
     <value>Ce que coûte la fabrication d'une unité, d'après le calcul des coûts de fabrication de l'application (le même chiffre qu'Industry Ops et le calculateur de production). Vide pour un objet qui ne se fabrique pas.</value>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Ajouter aux ordres d'achat permanents…</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>La meilleure offre de la station — la nôtre ou une autre, la plus haute — en part de la valeur marchande. Au-delà de 100 %, la station paie plus que ce que vaut l'objet.</value>
   </data>

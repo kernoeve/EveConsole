@@ -75,6 +75,14 @@ public partial class IndustryOpportunitiesView : UserControl
             grid.SelectedItem = row;
     }
 
+    /// <summary>One order at a time, so the row the menu was opened on — the first highlighted.</summary>
+    private void OnAddBuyOrder(object? sender, RoutedEventArgs e)
+    {
+        if (_menuGrid?.SelectedItem is IndustryRow row
+            && DataContext is IndustryOpportunitiesViewModel { AddToStandingBuyOrders: { } add })
+            add(row.TypeId);
+    }
+
     private async void OnNewQueue(object? sender, RoutedEventArgs e) => await QueueAsync(replace: true);
     private async void OnAddQueue(object? sender, RoutedEventArgs e) => await QueueAsync(replace: false);
 

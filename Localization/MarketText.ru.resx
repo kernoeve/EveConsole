@@ -544,6 +544,9 @@
   <data name="TipBuildCost" xml:space="preserve">
     <value>Стоимость производства единицы по расчёту себестоимости приложения (та же цифра, что в Industry Ops и калькуляторе производства). Пусто для предметов, которые не производятся.</value>
   </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Добавить в постоянные ордера на покупку…</value>
+  </data>
   <data name="TipBidVsValue" xml:space="preserve">
     <value>Лучшая ставка на станции — наша или чужая, какая выше — как доля рыночной стоимости. Больше 100% — станция платит больше, чем стоит предмет.</value>
   </data>
