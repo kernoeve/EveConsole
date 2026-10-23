@@ -404,7 +404,7 @@
     <value>Détail</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>Chaque liste : les 10 objets les plus rentables des 30 derniers jours, tous métagroupes confondus. Les filtres du haut s'appliquent, pas ceux de Détail.</value>
+    <value>Chaque liste : tous les objets de ce type vendus avec bénéfice ces 30 derniers jours, du plus au moins rentable, tous métagroupes confondus. Les filtres du haut s'appliquent, pas ceux de Détail.</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Rien ici ne s'est vendu avec bénéfice ces 30 derniers jours.</value>

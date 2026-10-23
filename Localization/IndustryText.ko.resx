@@ -404,7 +404,7 @@
     <value>세부</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>각 목록: 지난 30일 동안 이익이 가장 큰 10개 아이템이며 모든 메타 그룹이 대상입니다. 위쪽 필터는 적용되고 세부 탭의 필터는 적용되지 않습니다.</value>
+    <value>각 목록: 지난 30일 동안 이익을 내며 팔린 해당 종류의 모든 아이템을 이익이 큰 순서로 보여 주며 모든 메타 그룹이 대상입니다. 위쪽 필터는 적용되고 세부 탭의 필터는 적용되지 않습니다.</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>지난 30일 동안 여기서 이익을 내며 팔린 것이 없습니다.</value>

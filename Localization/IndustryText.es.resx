@@ -404,7 +404,7 @@
     <value>Detalle</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>Cada lista: los 10 objetos con más beneficio en los últimos 30 días, en todos los metagrupos. Se aplican los filtros de arriba, no los de Detalle.</value>
+    <value>Cada lista: todos los objetos de su tipo vendidos con beneficio en los últimos 30 días, de más a menos beneficio, en todos los metagrupos. Se aplican los filtros de arriba, no los de Detalle.</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Aquí no se vendió nada con beneficio en los últimos 30 días.</value>

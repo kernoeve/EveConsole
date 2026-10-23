@@ -404,7 +404,7 @@
     <value>详情</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>每个列表：过去 30 天利润最高的 10 件物品，包括所有元组。上方筛选条件适用；详情页的筛选条件不适用。</value>
+    <value>每个列表：该类别中过去 30 天以盈利售出的所有物品，按利润从高到低，包括所有元组。上方筛选条件适用；详情页的筛选条件不适用。</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>过去 30 天这里没有以盈利价格售出的物品。</value>

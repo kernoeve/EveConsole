@@ -93,7 +93,7 @@ public class IndustryRow
     }
 }
 
-/// <summary>One of the Summary tab's lists: its title and its best items.</summary>
+/// <summary>One of the Summary tab's lists: its title and its items, most 30-day profit first.</summary>
 public sealed class OppsSummarySectionVm(string title, List<IndustryRow> rows)
 {
     public string            Title   { get; } = title;
@@ -423,7 +423,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         SummarySections.Clear();
         foreach (var section in IndustryOppsSections.All)
-            SummarySections.Add(new OppsSummarySectionVm(section.Title, IndustryOppsSections.Top(_allRows, section)));
+            SummarySections.Add(new OppsSummarySectionVm(section.Title, IndustryOppsSections.Rows(_allRows, section)));
     }
 
     /// <summary>

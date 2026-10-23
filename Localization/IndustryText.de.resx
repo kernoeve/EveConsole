@@ -404,7 +404,7 @@
     <value>Details</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>Jede Liste: die 10 Gegenstände mit dem meisten Gewinn der letzten 30 Tage, in allen Metagruppen. Die Filter oben gelten, die der Details nicht.</value>
+    <value>Jede Liste: alle Gegenstände ihrer Art, die in den letzten 30 Tagen mit Gewinn verkauft wurden, der meiste Gewinn zuerst, in allen Metagruppen. Die Filter oben gelten, die der Details nicht.</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Hier wurde in den letzten 30 Tagen nichts mit Gewinn verkauft.</value>

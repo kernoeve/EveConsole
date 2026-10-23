@@ -7,7 +7,7 @@ namespace EveConsole.Services;
 public sealed record OppsSection(string Key, string Title, Func<IndustryRow, bool> Has);
 
 /// <summary>
-/// The Industry Ops Summary tab's lists, each a kind of item, and its best few by 30-day profit.
+/// The Industry Ops Summary tab's lists, each a kind of item, most 30-day profit first.
 ///
 /// <para>Items are sorted by what they are in the SDE, their inventory category and group, not
 /// by market group: a market group says where an item is sold, the category what it is. Ships
@@ -16,9 +16,6 @@ public sealed record OppsSection(string Key, string Title, Func<IndustryRow, boo
 /// </summary>
 public static class IndustryOppsSections
 {
-    /// <summary>How many items each list shows.</summary>
-    public const int RowsPerSection = 10;
-
     // Inventory categories.
     private const int Ship = 6, Module = 7, Charge = 8, Commodity = 17, Drone = 18, Deployable = 22,
                       Subsystem = 32, StructureModule = 66, Fighter = 87;
@@ -42,11 +39,11 @@ public static class IndustryOppsSections
         new("structure",  IndustryText.OppsSecStructureModules, r => r.CategoryId == StructureModule),
     ];
 
-    /// <summary>A list's best: items that sold in the last 30 days at a profit, most profit first.</summary>
-    public static List<IndustryRow> Top(IEnumerable<IndustryRow> rows, OppsSection section) =>
+    /// <summary>A list: every item of its kind that sold at a profit in the last 30 days, most
+    /// profit first. Not a top few; the list scrolls.</summary>
+    public static List<IndustryRow> Rows(IEnumerable<IndustryRow> rows, OppsSection section) =>
         [.. rows.Where(r => section.Has(r) && r.HasSales30d && r.Profit30d > 0)
-                .OrderByDescending(r => r.Profit30d)
-                .Take(RowsPerSection)];
+                .OrderByDescending(r => r.Profit30d)];
 
     private enum Size { None, SmallMedium, Large }
 

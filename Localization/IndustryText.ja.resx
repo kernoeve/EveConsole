@@ -404,7 +404,7 @@
     <value>詳細</value>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>各一覧：過去 30 日で利益が最も大きかった 10 アイテム。全メタグループが対象です。上のフィルターは適用され、詳細タブのものは適用されません。</value>
+    <value>各一覧：その種類で過去 30 日に利益を出して売れたすべてのアイテムを利益の大きい順に表示。全メタグループが対象です。上のフィルターは適用され、詳細タブのものは適用されません。</value>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>過去 30 日、ここで利益を出して売れたものはありません。</value>

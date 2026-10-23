@@ -537,7 +537,7 @@
     <comment>Industry Ops: tab with the full grid and its filters.</comment>
   </data>
   <data name="OppsSummaryNote" xml:space="preserve">
-    <value>Each list: the 10 items that made the most profit over the last 30 days, in every meta group. The filters above apply; the Detail tab's do not.</value>
+    <value>Each list: every item of its kind that sold at a profit over the last 30 days, most profit first, in every meta group. The filters above apply; the Detail tab's do not.</value>
     <comment>Industry Ops, Summary tab: note above the lists.</comment>
   </data>
   <data name="OppsSummaryEmpty" xml:space="preserve">
