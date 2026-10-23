@@ -443,13 +443,13 @@
     <value>Прибыль</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>Корабли T1 — крупные</value>
+    <value>Корабли T1 — крупные и КБТ</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>Корабли T1 — малые и средние</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>Корабли T2 — крупные</value>
+    <value>Корабли T2 — крупные и КБТ</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>Корабли T2 — малые и средние</value>

@@ -437,13 +437,13 @@
     <value>Beneficio</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>Naves T1: grandes</value>
+    <value>Naves T1: grandes y capitales</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>Naves T1: pequeñas y medianas</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>Naves T2: grandes</value>
+    <value>Naves T2: grandes y capitales</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>Naves T2: pequeñas y medianas</value>

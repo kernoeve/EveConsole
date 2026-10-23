@@ -434,13 +434,13 @@
     <value>利润</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>T1 舰船——大型</value>
+    <value>T1 舰船——大型与旗舰</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>T1 舰船——小型与中型</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>T2 舰船——大型</value>
+    <value>T2 舰船——大型与旗舰</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>T2 舰船——小型与中型</value>

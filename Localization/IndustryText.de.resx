@@ -437,13 +437,13 @@
     <value>Gewinn</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>T1-Schiffe – groß</value>
+    <value>T1-Schiffe – groß und Capital</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>T1-Schiffe – klein und mittel</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>T2-Schiffe – groß</value>
+    <value>T2-Schiffe – groß und Capital</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>T2-Schiffe – klein und mittel</value>

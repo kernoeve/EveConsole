@@ -581,7 +581,7 @@
     <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>T1 Ships — Large</value>
+    <value>T1 Ships — Large &amp; Capital</value>
     <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
@@ -589,7 +589,7 @@
     <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>T2 Ships — Large</value>
+    <value>T2 Ships — Large &amp; Capital</value>
     <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">

@@ -437,13 +437,13 @@
     <value>Bénéfice</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>Vaisseaux T1 — grands</value>
+    <value>Vaisseaux T1 — grands et capitaux</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>Vaisseaux T1 — petits et moyens</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>Vaisseaux T2 — grands</value>
+    <value>Vaisseaux T2 — grands et capitaux</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>Vaisseaux T2 — petits et moyens</value>

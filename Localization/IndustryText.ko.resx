@@ -434,13 +434,13 @@
     <value>이익</value>
   </data>
   <data name="OppsSecT1Large" xml:space="preserve">
-    <value>T1 함선 — 대형</value>
+    <value>T1 함선 — 대형·캐피탈</value>
   </data>
   <data name="OppsSecT1Small" xml:space="preserve">
     <value>T1 함선 — 소형·중형</value>
   </data>
   <data name="OppsSecT2Large" xml:space="preserve">
-    <value>T2 함선 — 대형</value>
+    <value>T2 함선 — 대형·캐피탈</value>
   </data>
   <data name="OppsSecT2Small" xml:space="preserve">
     <value>T2 함선 — 소형·중형</value>
