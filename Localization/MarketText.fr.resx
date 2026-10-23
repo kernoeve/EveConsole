@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>Meilleure offre</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Meilleure offre / valeur</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>Ce que vaut une unité selon la valorisation des actifs de l'application : le marché et le type de prix de la valeur des actifs dans Paramètres → Marché (le même chiffre que la valeur nette).</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>Ce que coûte la fabrication d'une unité, d'après le calcul des coûts de fabrication de l'application (le même chiffre qu'Industry Ops et le calculateur de production). Vide pour un objet qui ne se fabrique pas.</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>La meilleure offre de la station — la nôtre ou une autre, la plus haute — en part de la valeur marchande. Au-delà de 100 %, la station paie plus que ce que vaut l'objet.</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Restant</value>
   </data>

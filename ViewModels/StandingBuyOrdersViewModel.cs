@@ -70,6 +70,34 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public IBrush StationBidColor { get; } = r.IsOutbid ? Palette.Warn
                                            : r.IsLocationTracked ? Palette.TextPrimary : Palette.TextFaint;
 
+    /// <summary>What a unit costs to build; "—" for an item that is not built or not yet costed.</summary>
+    public string BuildCostText { get; } = r.BuildCost is { } b ? $"{b:N2}" : "—";
+    public double BuildCost     { get; } = r.BuildCost ?? -1;
+
+    /// <summary>What a unit is worth, as the asset valuation prices it; "—" with no price.</summary>
+    public string MarketValueText { get; } = r.MarketValue is { } v ? $"{v:N2}" : "—";
+    public double MarketValue     { get; } = r.MarketValue ?? -1;
+
+    /// <summary>
+    /// The best bid at the station — ours or anyone's, whichever is higher — as a share of the
+    /// market value: how close the buying price sits to what the item is worth. Empty without a
+    /// value or a bid.
+    /// </summary>
+    public double BidVsValue { get; } = BestBid(r) is { } bid && r.MarketValue is { } mv and > 0 ? (double)bid / mv : -1;
+    public string BidVsValueText => BidVsValue >= 0 ? $"{BidVsValue:P1}" : "";
+
+    /// <summary>Over 100%: the station is paying more than the item is worth.</summary>
+    public IBrush BidVsValueColor => BidVsValue > 1 ? Palette.Warn : Palette.TextPrimary;
+
+    private static decimal? BestBid(StandingBuyOrderRow r) =>
+        (r.OurBestPrice, r.CompetingBestBid) switch
+        {
+            ({ } ours, { } theirs) => Math.Max(ours, theirs),
+            ({ } ours, null)       => ours,
+            (null, { } theirs)     => theirs,
+            _                      => null,
+        };
+
     public string? PriceTooltip { get; } = !r.IsLocationTracked
         ? MarketText.TipStationNotTracked
         : r.IsOutbid

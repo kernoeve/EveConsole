@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>ステーション最高買値</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>最高買値 / 価値</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>アプリが資産を評価する方法での 1 個あたりの価値です。設定 → マーケットの資産価値のマーケットと価格種別を使います（純資産と同じ数字）。</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>アプリの製造コスト計算による 1 個あたりの製造コストです（インダストリー機会と生産計算機と同じ数字）。製造しないアイテムは空欄です。</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>ステーションの最高買値（自分か他人の高い方）が市場価値の何 % か。100% を超えると、そのステーションは価値以上で買っています。</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>残り</value>
   </data>

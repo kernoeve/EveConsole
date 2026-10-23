@@ -712,6 +712,22 @@
     <value>Station best bid</value>
     <comment>Column header in StandingBuyOrdersView.</comment>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Best Bid / Value</value>
+    <comment>Standing Buy Orders: column header, the station's best bid as a percentage of the market value.</comment>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>What a unit is worth, as the app values assets: the asset-value market and price type in Settings → Market (the same figure as Net Worth).</value>
+    <comment>Standing Buy Orders: tooltip on the Market Value column.</comment>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>What a unit costs to build, from the app's build cost pass (the figure Industry Ops and the Production Calculator use). Empty for an item that is not built.</value>
+    <comment>Standing Buy Orders: tooltip on the Build Cost column.</comment>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>The best bid at the station — ours or anyone's, whichever is higher — as a share of the market value. Over 100% means the station is paying more than the item is worth.</value>
+    <comment>Standing Buy Orders: tooltip on the Best Bid / Value column.</comment>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Remaining</value>
     <comment>Column header in StandingBuyOrdersView.</comment>

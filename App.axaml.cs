@@ -53,6 +53,9 @@ public class App : Application
         }
         AvaloniaXamlLoader.Load(this);
 
+        // Every chart's legend and tooltip in the theme's colours; see ChartPaint.
+        if (!AppRuntime.IsHeadless) ChartPaint.FollowThemeInCharts();
+
         // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the
         // dictionaries this call brings in, so asking for a variant beforehand has nothing to
         // resolve against — and doing it after a window is up means the first frame is drawn in

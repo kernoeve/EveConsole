@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>空间站最高出价</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>最高买价/价值</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>按应用估算资产的方式计算的单件价值：设置 → 市场中的资产价值市场与价格类型（与净资产相同）。</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>单件的建造成本，来自应用的建造成本计算（工业机会和生产计算器使用的同一数字）。非建造物品为空。</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>该站点的最高买价（我方或他人，取较高者）占市场价值的比例。超过 100% 表示该站点的出价高于物品价值。</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>剩余</value>
   </data>

@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>Bestes Gebot (Station)</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Höchstgebot / Wert</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>Wert einer Einheit, wie die App Vermögen bewertet: Markt und Preisart für den Vermögenswert unter Einstellungen → Markt (wie beim Nettovermögen).</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>Was eine Einheit in der Herstellung kostet, aus der Baukostenberechnung der App (dieselbe Zahl wie in Industry Ops und im Produktionsrechner). Leer bei Gegenständen, die nicht gebaut werden.</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>Das höchste Gebot an der Station – unseres oder ein fremdes, je nachdem welches höher ist – als Anteil am Marktwert. Über 100 % zahlt die Station mehr, als der Gegenstand wert ist.</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Verbleibend</value>
   </data>

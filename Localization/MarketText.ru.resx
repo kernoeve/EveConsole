@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>Лучшая цена на станции</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Лучшая ставка / стоимость</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>Стоимость единицы так, как приложение оценивает активы: рынок и тип цены для стоимости активов в Настройки → Рынок (та же цифра, что и в чистых активах).</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>Стоимость производства единицы по расчёту себестоимости приложения (та же цифра, что в Industry Ops и калькуляторе производства). Пусто для предметов, которые не производятся.</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>Лучшая ставка на станции — наша или чужая, какая выше — как доля рыночной стоимости. Больше 100% — станция платит больше, чем стоит предмет.</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Осталось</value>
   </data>

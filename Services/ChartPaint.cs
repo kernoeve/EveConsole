@@ -103,6 +103,54 @@ public static class ChartPaint
         }
     }
 
+    // ── Legends and tooltips: published as resources for every chart ─────────
+
+    /// <summary>Resource keys the application's chart styles read their legend and tooltip paints
+    /// from (App.axaml). Replaced with the theme's on every theme change.</summary>
+    public const string LegendTextKey   = "ChartLegendTextPaint";
+    public const string TooltipTextKey  = "ChartTooltipTextPaint";
+    public const string TooltipBackKey  = "ChartTooltipBackPaint";
+
+    /// <summary>
+    /// Puts the current theme's legend and tooltip paints where every chart's style finds them.
+    ///
+    /// <para>⚠️ Without these LiveCharts picks its own, light or dark, and it asks whether the
+    /// application's theme IS Dark — not whether it inherits it. Blue, Pink and Beige Dark are
+    /// themes of their own built on Dark, so it took them for light and drew near-black legend and
+    /// tooltip text on a dark ground: the Market Overview's pie legends, and every chart like them,
+    /// were unreadable there while plain Dark was fine.</para>
+    /// </summary>
+    public static void PublishChrome()
+    {
+        if (Avalonia.Application.Current is not { } app) return;
+        app.Resources[LegendTextKey]  = Make("TextMuted");
+        app.Resources[TooltipTextKey] = Make("TextPrimary");
+        app.Resources[TooltipBackKey] = new SolidColorPaint(Palette.Sk("SurfaceRaised"));
+    }
+
+    /// <summary>
+    /// Has every chart, as it loads, take its legend and tooltip paints from the resources
+    /// <see cref="PublishChrome"/> keeps current — bound, so a theme change reaches a chart already
+    /// on screen. A chart whose view sets one of them itself keeps its own.
+    ///
+    /// <para>⚠️ A class handler, not an application style: a style on the chart types never took
+    /// (their paints stayed unset), so the charts are reached the one way that is sure to.</para>
+    /// </summary>
+    public static void FollowThemeInCharts()
+    {
+        PublishChrome();
+        Avalonia.Controls.Control.LoadedEvent.AddClassHandler<LiveChartsGeneratedCode.SourceGenChart>((chart, _) =>
+        {
+            void Follow(Avalonia.AvaloniaProperty property, string key)
+            {
+                if (!chart.IsSet(property)) chart.Bind(property, Avalonia.Controls.ResourceNodeExtensions.GetResourceObservable(chart, key));
+            }
+            Follow(LiveChartsGeneratedCode.SourceGenChart.LegendTextPaintProperty,        LegendTextKey);
+            Follow(LiveChartsGeneratedCode.SourceGenChart.TooltipTextPaintProperty,       TooltipTextKey);
+            Follow(LiveChartsGeneratedCode.SourceGenChart.TooltipBackgroundPaintProperty, TooltipBackKey);
+        });
+    }
+
     /// <summary>
     /// Rebuilds the axis chrome of every tracked chart in the current theme.
     ///
@@ -112,6 +160,8 @@ public static class ChartPaint
     /// </summary>
     public static void Restyle()
     {
+        PublishChrome();
+
         List<object> owners;
         lock (Owners)
         {

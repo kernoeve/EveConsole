@@ -535,6 +535,18 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>정거장 최고 입찰가</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>최고 입찰 / 가치</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>앱이 자산을 평가하는 방식의 1개당 가치입니다. 설정 → 마켓의 자산 가치 마켓과 가격 유형을 씁니다(순자산과 같은 수치).</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>앱의 제조 비용 계산에 따른 1개당 제조 비용입니다(산업 기회와 생산 계산기가 쓰는 같은 수치). 제조하지 않는 아이템은 비어 있습니다.</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>스테이션의 최고 입찰가(우리 것과 다른 사람 것 중 높은 쪽)가 시장 가치의 몇 %인지입니다. 100%를 넘으면 그 스테이션은 가치보다 비싸게 사고 있습니다.</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>잔여량</value>
   </data>
