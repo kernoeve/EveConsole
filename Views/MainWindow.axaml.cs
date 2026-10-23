@@ -423,6 +423,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
+        // New: the queue emptied, these put in, the calculator shown. Add: put in after what is
+        // there, the calculator opened if it was not but the user left where they are.
+        vm.IndustryOpportunitiesVm.QueueForProduction = async (rows, replace) =>
+        {
+            var added = await vm.ProductionCalcVm.QueueItemsAsync([.. rows.Select(r => (r.TypeId, r.TypeNameEn))], replace);
+            if (replace) vm.OpenTool("prod_calc");
+            else         vm.OpenToolInBackground("prod_calc");
+            return added;
+        };
+
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {

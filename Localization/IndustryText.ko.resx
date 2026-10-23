@@ -409,6 +409,15 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>지난 30일 동안 여기서 이익을 내며 팔린 것이 없습니다.</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>새 생산 계산기 대기열</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>생산 계산기 대기열에 추가</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>아이템 {0}개를 생산 대기열에 추가했습니다</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>지난 30일 판매</value>
   </data>

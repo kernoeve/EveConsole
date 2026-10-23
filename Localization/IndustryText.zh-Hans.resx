@@ -409,6 +409,15 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>过去 30 天这里没有以盈利价格售出的物品。</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>新建生产计算器队列</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>加入生产计算器队列</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>已将 {0} 件物品加入生产队列</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>过去 30 天的销售</value>
   </data>

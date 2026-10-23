@@ -23,6 +23,8 @@ public class IndustryRow
 {
     public int    TypeId           { get; init; }
     public string TypeName         { get; init; } = "";
+    /// <summary>The English name, which another tool is handed along with the id.</summary>
+    public string TypeNameEn       { get; init; } = "";
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -355,6 +357,13 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     // ── Item navigation callback (set by MainWindow) ──────────────────────────
 
     public Action<int, string>? ItemNavigationRequested { get; set; }
+
+    /// <summary>
+    /// Sends rows to the Production Calculator's queue: a new queue (emptied first, the tool shown)
+    /// or added to what is there (the tool opened if it was not, but not switched to). Returns how
+    /// many went in. Set by the main window.
+    /// </summary>
+    public Func<IReadOnlyList<IndustryRow>, bool, Task<int>>? QueueForProduction { get; set; }
 
     public void RequestItemNavigation(int typeId, string typeName)
         => ItemNavigationRequested?.Invoke(typeId, typeName);

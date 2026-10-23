@@ -409,6 +409,18 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Hier wurde in den letzten 30 Tagen nichts mit Gewinn verkauft.</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>Neue Produktionsrechner-Warteschlange</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Zur Produktionsrechner-Warteschlange hinzufügen</value>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} Gegenstand zur Produktionswarteschlange hinzugefügt</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} Gegenstände zur Produktionswarteschlange hinzugefügt</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Verkäufe der letzten 30 Tage</value>
   </data>

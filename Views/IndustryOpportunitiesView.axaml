@@ -201,8 +201,15 @@
                     <!-- Compact: ten of these share the tab, so every row counts. -->
                     <DataGrid Grid.Row="1" x:CompileBindings="False" ItemsSource="{Binding Rows}" Classes="summary" RowHeight="20"
                               AutoGenerateColumns="False" IsReadOnly="True" CanUserSortColumns="True"
-                              CanUserResizeColumns="True" CanUserReorderColumns="False" ClipboardCopyMode="None"
+                              CanUserResizeColumns="True" CanUserReorderColumns="False"
+                              SelectionMode="Extended" ContextRequested="OnGridContextRequested"
                               Background="Transparent" IsVisible="{Binding !IsEmpty}">
+                        <DataGrid.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
+                            <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+                          </ContextMenu>
+                        </DataGrid.ContextMenu>
                         <DataGrid.Columns>
                           <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                             <DataGridTemplateColumn.CellTemplate>
@@ -395,7 +402,13 @@
                     CanUserSortColumns="True"
                     CanUserResizeColumns="True"
                     CanUserReorderColumns="False"
-                    ClipboardCopyMode="None">
+                    SelectionMode="Extended" ContextRequested="OnGridContextRequested">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
+                <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+              </ContextMenu>
+            </DataGrid.ContextMenu>
 
             <DataGrid.Columns>
 
@@ -549,6 +562,19 @@
         </DockPanel>
       </TabItem>
     </TabControl>
+
+    <!-- What Add to Production Calc Queue did, said in the middle and faded out, as the
+         Production Calculator says a copy. Over everything, and never in the way of a click. -->
+    <Border x:Name="QueueToast" HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="10"
+            IsHitTestVisible="False" Opacity="0" Padding="18 10" CornerRadius="6" BoxShadow="0 4 18 0 #66000000"
+            Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.35"/>
+        </Transitions>
+      </Border.Transitions>
+      <TextBlock x:Name="QueueToastText" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+    </Border>
 
     <!-- Calculating overlay — shown while the scan is running -->
     <Border IsVisible="{Binding IsCalculating}"

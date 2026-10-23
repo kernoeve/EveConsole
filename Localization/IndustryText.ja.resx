@@ -409,6 +409,15 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>過去 30 日、ここで利益を出して売れたものはありません。</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>生産計算機のキューを新規作成</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>生産計算機のキューに追加</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} 個のアイテムを生産キューに追加しました</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>過去 30 日の販売</value>
   </data>

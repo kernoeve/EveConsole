@@ -728,18 +728,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
         if (Queue.FirstOrDefault(q => q.TypeId == PendingType.TypeId) is { } queued)
             queued.Quantity += NewQuantity;
         else
-        {
-            var entry = new ProductionQueueVm
-            {
-                TypeId   = PendingType.TypeId,
-                TypeName = PendingType.TypeName,
-                Quantity = NewQuantity,
-                MeLevel  = NewMeLevel,
-            };
-            entry.RemoveCommand   = ReactiveCommand.Create(() => { Queue.Remove(entry); });
-            entry.NavigateCommand = OpenInItemBrowserCommand;
-            Queue.Add(entry);
-        }
+            Queue.Add(NewEntry(PendingType.TypeId, PendingType.TypeName, NewQuantity, NewMeLevel));
         if (_pendingNeedsBpc) IncludeBpcCost = true;
         _pendingNeedsBpc = false;
         // Reset for next item — suppress the debounced search triggered by clearing SearchText
@@ -748,6 +737,42 @@ public class ProductionCalculatorViewModel : ReactiveObject
         PendingType = null;
         NewQuantity = 1;
         // Keep NewMeLevel as-is for efficiency when adding multiple items at same ME
+    }
+
+    private ProductionQueueVm NewEntry(int typeId, string typeName, int quantity, int me)
+    {
+        var entry = new ProductionQueueVm { TypeId = typeId, TypeName = typeName, Quantity = quantity, MeLevel = me };
+        entry.RemoveCommand   = ReactiveCommand.Create(() => { Queue.Remove(entry); });
+        entry.NavigateCommand = OpenInItemBrowserCommand;
+        return entry;
+    }
+
+    /// <summary>
+    /// Items sent from another tool, one of each, as if each were picked and added here: at the
+    /// ME a new row starts with, into the row already there when the item is queued, and with the
+    /// copy cost switched on when one needs a copy. <paramref name="replace"/> empties the queue
+    /// first. <paramref name="items"/> carry the English name, as the search hands one over.
+    /// Returns how many were added.
+    /// </summary>
+    public async Task<int> QueueItemsAsync(IReadOnlyList<(int TypeId, string TypeName)> items, bool replace)
+    {
+        if (replace) ClearQueue();
+        var added = 0;
+        foreach (var (typeId, typeName) in items.DistinctBy(i => i.TypeId))
+        {
+            if (Queue.FirstOrDefault(q => q.TypeId == typeId) is { } queued) queued.Quantity += 1;
+            else
+            {
+                var (me, needsBpc) = (10, false);
+                try { (me, needsBpc) = await _service.QueueDefaultsAsync(typeId); }
+                catch { /* the usual ME on a failed lookup, as the search leaves it */ }
+                Queue.Add(NewEntry(typeId, typeName, 1, me));
+                if (needsBpc) IncludeBpcCost = true;
+            }
+            added++;
+        }
+        if (added > 0 && Plan is not null) IsStale = true;
+        return added;
     }
 
     private void Remove(ProductionQueueVm item) => Queue.Remove(item);

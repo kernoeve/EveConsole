@@ -388,6 +388,7 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
             {
                 TypeId           = c.TypeId,
                 TypeName         = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
+                TypeNameEn       = c.TypeName,
                 BuildCost        = c.BuildCost,
                 SellPrice        = sellInto,
                 HasSellOrders    = hasSellOrders,

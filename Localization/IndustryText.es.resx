@@ -409,6 +409,18 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Aquí no se vendió nada con beneficio en los últimos 30 días.</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>Nueva cola de la calculadora de producción</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Añadir a la cola de la calculadora de producción</value>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} objeto añadido a la cola de producción</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} objetos añadidos a la cola de producción</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Ventas de los últimos 30 días</value>
   </data>

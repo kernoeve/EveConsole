@@ -409,6 +409,24 @@
   <data name="OppsSummaryEmpty" xml:space="preserve">
     <value>Здесь за 30 дней ничего не продалось с прибылью.</value>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>Новая очередь калькулятора производства</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Добавить в очередь калькулятора производства</value>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} предмет добавлен в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} предмета добавлено в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedFew" xml:space="preserve">
+    <value>{0} предмета добавлено в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedMany" xml:space="preserve">
+    <value>{0} предметов добавлено в очередь производства</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Продажи за последние 30 дней</value>
   </data>

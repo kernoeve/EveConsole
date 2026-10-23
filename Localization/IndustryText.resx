@@ -544,6 +544,22 @@
     <value>Nothing here sold at a profit in the last 30 days.</value>
     <comment>Industry Ops, Summary tab: shown in a list with no items.</comment>
   </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>New Production Calc Queue</value>
+    <comment>Industry Ops grids, right-click: empty the Production Calculator's queue, put the highlighted items in, and go there.</comment>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Add to Production Calc Queue</value>
+    <comment>Industry Ops grids, right-click: add the highlighted items to the Production Calculator's queue, staying here.</comment>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} item added to the production queue</value>
+    <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} items added to the production queue</value>
+    <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Sales Over the Past 30 Days</value>
     <comment>Industry Ops, Summary tab: label centred over the Units, Avg Price, Margin, Sales and Profit columns of each list.</comment>

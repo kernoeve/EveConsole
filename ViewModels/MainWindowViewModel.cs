@@ -939,6 +939,18 @@ public class MainWindowViewModel : ReactiveObject
         if (navItem is not null) navItem.IsOpen = true;
     }
 
+    /// <summary>
+    /// Opens a tool if it is not open, without moving off the tab being worked in. A tool already
+    /// open is left where it is.
+    /// </summary>
+    public void OpenToolInBackground(string toolId)
+    {
+        if (AllTabs.Any(t => t.Id == toolId)) return;
+        var showing = Main.SelectedTab;
+        OpenTool(toolId);
+        if (showing is not null) Show(showing);
+    }
+
     /// <summary>Opens the Background Processes tool at the tab named — what a status-bar label does.
     /// The ask goes to the view model first, so a view already showing acts on it at once and one
     /// built by the open finds it waiting.</summary>
