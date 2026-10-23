@@ -22,6 +22,12 @@
   <data name="Updated" xml:space="preserve">
     <value>更新：{0}</value>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>更新 {0} · ESI に新しいコロニーデータを問い合わせ中…</value>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>更新 {0} · コロニーを最後に ESI から読み込んだ日時 {1}</value>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
   </data>

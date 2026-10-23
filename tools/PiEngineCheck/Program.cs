@@ -346,6 +346,61 @@ PiColonyLayout FactoryPlanet() => new()
     Check("full launchpad: the processor keeps running", f.Factories.Single().StateAt == PiFactoryState.Running);
 }
 
+// ── 4b. Full with nothing routed in; full, then drained ───────────────────────────
+//
+// A launchpad packed by hand that no route brings anything to turns nothing away, so it is not
+// "full". And a store full at the snapshot that a factory then draws down is full no longer: the
+// spell ended before the moment asked about, and it is not reported.
+{
+    var layout = new PiColonyLayout
+    {
+        CharacterId = 1, PlanetId = 31, LastUpdate = t0,
+        Pins =
+        [
+            Pin(4, AdvType) with { SchematicId = SAdv },
+            Pin(5, StorageType, new() { [X] = 1000, [Y] = 1000 }),
+            Pin(6, PadType, new() { [Z] = 13_334 }),          // over capacity, and nothing routed in
+        ],
+        Routes =
+        [
+            new PiLayoutRoute(1, 5, 4, X, 40),
+            new PiLayoutRoute(2, 5, 4, Y, 40),
+            new PiLayoutRoute(3, 4, 5, Z, 5),
+        ],
+    };
+    var f   = PiEngine.Forecast(layout, sd, H(t0, 3));
+    var pad = f.Storage.Single(s => s.PinId == 6);
+    Check("unrouted full launchpad: not full", pad.FullAt is null, $"got {pad.FullAt}");
+    Check("unrouted full launchpad: the colony's storage is not full", f.StorageFullAt is null, $"got {f.StorageFullAt}");
+}
+{
+    // 12,000 m³ of raw: full to the last unit, with the extractor's route into it. The processor
+    // takes 5 m³ a cycle and sends back 3.8 m³, so the store never fills again.
+    var layout = new PiColonyLayout
+    {
+        CharacterId = 1, PlanetId = 32, LastUpdate = t0,
+        Pins =
+        [
+            Pin(2, EcuType),
+            Pin(3, BasicType) with { SchematicId = SBasic },
+            Pin(5, StorageType, new() { [A] = 2_400_000 }),
+        ],
+        Routes =
+        [
+            new PiLayoutRoute(1, 2, 5, A, 500),
+            new PiLayoutRoute(2, 5, 3, A, 1000),
+            new PiLayoutRoute(3, 3, 5, X, 20),
+        ],
+    };
+    var atStart = PiEngine.Forecast(layout, sd, H(t0, -1));
+    Check("drained store: full at the snapshot, seen from before it",
+          atStart.Storage.Single(s => s.PinId == 5).FullAt == t0, $"got {atStart.Storage.Single(s => s.PinId == 5).FullAt}");
+    var f     = PiEngine.Forecast(layout, sd, H(t0, 3));
+    var store = f.Storage.Single(s => s.PinId == 5);
+    Check("drained store: not full once the factory has drawn it down", store.FullAt is null, $"got {store.FullAt}");
+    Check("drained store: the colony's storage is not full", f.StorageFullAt is null, $"got {f.StorageFullAt}");
+}
+
 // ── 5. An idle processor ────────────────────────────────────────────────────────────
 {
     var layout = new PiColonyLayout

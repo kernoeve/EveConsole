@@ -22,6 +22,12 @@
   <data name="Updated" xml:space="preserve">
     <value>Обновлено: {0}</value>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>Обновлено {0} · запрашиваем у ESI более свежие данные колоний…</value>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>Обновлено {0} · колонии последний раз прочитаны из ESI {1}</value>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
   </data>

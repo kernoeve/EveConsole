@@ -28,6 +28,14 @@
     <value>Updated {0}</value>
     <comment>PI tool, beside the Refresh button. {0} is the date and time of the last reading.</comment>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>Updated {0} · asking ESI for newer colony data…</value>
+    <comment>PI tool, beside the Refresh button, just after Refresh asked ESI for the colonies. {0} is the date and time of the last reading.</comment>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>Updated {0} · colonies last read from ESI {1}</value>
+    <comment>PI tool, beside the Refresh button. {0} is when the screen was last updated, {1} when a colony layout was last read from ESI.</comment>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
     <comment>PI tool: what separates the parts of the summary line, as in "22 colonies · 3 extractors stopped". Keep the spaces as your language spaces a list.</comment>

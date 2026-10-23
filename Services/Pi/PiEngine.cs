@@ -636,7 +636,14 @@ public static class PiEngine
         public DateTimeOffset RunEnds;
         public DateTimeOffset? IdleSince;
         public int Cycles;
+        /// <summary>When the store is full at the moment asked about, or first fills after it —
+        /// what the forecast reports. A spell that drained again before that moment is forgotten.</summary>
         public DateTimeOffset? FullAt;
+        /// <summary>The start of the full spell it is in now, while simulating; null with room.</summary>
+        public DateTimeOffset? FullSince;
+        /// <summary>The largest unit of anything routed into it: room for one of these is room
+        /// for whatever comes. Zero when nothing is routed in, and such a store never fills.</summary>
+        public double InboundUnit;
         public double UsedAtStart;
         // Within the period: time spent waiting for input, and cycles finished.
         public double IdleSeconds;
@@ -655,6 +662,8 @@ public static class PiEngine
         private readonly HashSet<int> _local = [];
         private readonly Dictionary<int, long> _initialTotals = [];
         private readonly Dictionary<int, long> _lost = [];
+        // The moment the run is asked about (Run's argument).
+        private DateTimeOffset _at;
 
         // The period (from, to]: what happens after its first moment and by its last. A cycle
         // finishing at the very start belongs to the moment before; one finishing as it closes, to it.
@@ -701,10 +710,6 @@ public static class PiEngine
                         _initialTotals[type] = _initialTotals.GetValueOrDefault(type) + amount;
                     }
                 pin.UsedAtStart = Used(pin);
-                // Full already: no room for another unit of the smallest thing it holds.
-                if (pin.IsStorage && capacity > 0 && pin.Stock.Count > 0
-                    && capacity - pin.UsedAtStart < pin.Stock.Keys.Min(sd.VolumeOf))
-                    pin.FullAt = t0;
                 _pins[p.PinId] = pin;
             }
 
@@ -716,6 +721,22 @@ public static class PiEngine
                 if (!into.TryGetValue(key, out var list)) into[key] = list = [];
                 list.Add(r);
             }
+
+            foreach (var r in layout.Routes)
+                if (_pins.TryGetValue(r.DestinationPinId, out var dest) && dest.IsStorage && _pins.ContainsKey(r.SourcePinId))
+                    dest.InboundUnit = Math.Max(dest.InboundUnit, sd.VolumeOf(r.ContentTypeId));
+
+            // Full already: no room for another unit of the smallest thing routed into it.
+            //
+            // ⚠️ Only a store something is routed into. One packed to the roof by hand, with no
+            // route bringing it anything, turns nothing away — it read "storage full" for good,
+            // on a colony that was running fine.
+            foreach (var pin in _pins.Values)
+                if (pin.IsStorage && pin.Capacity > 0 && pin.InboundUnit > 0
+                    && pin.Capacity - pin.UsedAtStart < layout.Routes
+                        .Where(r => r.DestinationPinId == pin.Source.PinId)
+                        .Min(r => sd.VolumeOf(r.ContentTypeId)))
+                    pin.FullAt = pin.FullSince = t0;
 
             _factories = _pins.Values
                 // ⚠️ A zero cycle time would finish and restart at the same moment forever.
@@ -762,6 +783,7 @@ public static class PiEngine
 
         public Snapshot Run(DateTimeOffset at)
         {
+            _at = at;
             Snapshot? snap = at <= _t0 ? Take(at) : null;
 
             StartIdle(_t0);
@@ -801,7 +823,8 @@ public static class PiEngine
             snap ??= Take(at);
 
             // "Full at" is a fact about the whole run, not about the moment of the snapshot: a
-            // store that fills after it still fills, and that date is the point of asking.
+            // store that fills after it still fills, and that date is the point of asking. A spell
+            // that ended before that moment is not in it (see Pull).
             return snap with
             {
                 Storage = snap.Storage.Select(s => s with { FullAt = _pins[s.PinId].FullAt }).ToList(),
@@ -873,6 +896,7 @@ public static class PiEngine
                 Take(src, type, take);
                 Add(f, type, take);
                 got += take;
+                Drained(src, t);
                 if (InPeriod(t)) Taken[type] = Taken.GetValueOrDefault(type) + take;
             }
             return got;
@@ -935,7 +959,11 @@ public static class PiEngine
                 Add(dest, type, take);
                 if (take > 0 && InPeriod(t)) Delivered[type] = Delivered.GetValueOrDefault(type) + take;
                 // Full: it turned some away, or has no room left for another unit of this.
-                if (take < qty || dest.Capacity - Used(dest) < vol) dest.FullAt ??= t;
+                if (take < qty || dest.Capacity - Used(dest) < vol)
+                {
+                    dest.FullSince ??= t;
+                    dest.FullAt    ??= t;
+                }
                 return take;
             }
 
@@ -949,6 +977,22 @@ public static class PiEngine
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// A store a factory has just taken from: with room again for one of anything routed into
+        /// it, its full spell is over.
+        ///
+        /// <para>⚠️ Ended before the moment asked about, the spell is forgotten. "Full at" was kept
+        /// from the first time the store filled and never let go, so a launchpad that topped out
+        /// for an hour after the snapshot and was then drained by its factories read "storage full"
+        /// for the rest of the forecast.</para>
+        /// </summary>
+        private void Drained(SimPin p, DateTimeOffset t)
+        {
+            if (p.FullSince is null || p.Capacity - Used(p) < p.InboundUnit) return;
+            p.FullSince = null;
+            if (t <= _at) p.FullAt = null;
         }
 
         private double Used(SimPin p) => p.Stock.Sum(kv => kv.Value * _sd.VolumeOf(kv.Key));

@@ -37,6 +37,10 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
     private readonly PiService      _pi;
     private readonly AppErrorLogger _errorLogger;
     private bool _loading;
+    // A refresh asked for while one was running: run once more when it ends, rather than drop it.
+    private bool _again;
+    // When Refresh last asked ESI for the colonies; null once the poll has answered.
+    private DateTimeOffset? _askedEsiAt;
 
     // What the last load read, kept for building a colony's detail without another read.
     private Dictionary<int, string> _typeNames = [];
@@ -89,12 +93,16 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
     /// <summary>Settings → Characters, where the PI switch is. Wired by the main window.</summary>
     public Action? OpenPiSettingsRequested { get; set; }
 
+    /// <summary>Has the poll read the colonies from ESI on its next pass rather than at their own
+    /// interval. Wired by the main window; <see cref="EsiPolled"/> is called when it has.</summary>
+    public Action? AskEsi { get; set; }
+
     public PlanetaryIndustryViewModel(PiService pi, AppErrorLogger errorLogger)
     {
         _pi          = pi;
         _errorLogger = errorLogger;
 
-        RefreshCommand      = ReactiveCommand.CreateFromTask(RefreshAsync);
+        RefreshCommand      = ReactiveCommand.CreateFromTask(RefreshNowAsync);
         OpenColonyCommand   = ReactiveCommand.Create(OpenSelected, this.WhenAnyValue(x => x.HasSelection));
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenPiSettingsRequested?.Invoke());
 
@@ -141,9 +149,32 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
         _ = RefreshAsync();
     }
 
+    /// <summary>
+    /// The Refresh button: asks ESI for the colonies as well as reading again what is stored.
+    ///
+    /// <para>⚠️ It only read the database again. What it shows comes from the poll, so between polls
+    /// nothing changed, and the status line moves by the minute — the button looked dead.</para>
+    /// </summary>
+    private async Task RefreshNowAsync()
+    {
+        if (AskEsi is { } ask)
+        {
+            ask();
+            _askedEsiAt = DateTimeOffset.UtcNow;
+        }
+        await RefreshAsync();
+    }
+
+    /// <summary>The poll has just read the colony layouts: what it brought is shown at once.</summary>
+    public void EsiPolled()
+    {
+        _askedEsiAt = null;
+        _ = RefreshAsync();
+    }
+
     public async Task RefreshAsync()
     {
-        if (_loading) return;
+        if (_loading) { _again = true; return; }
         _loading = true;
         try
         {
@@ -190,7 +221,16 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
 
             Summary = SummaryOf(rows);
             IsEmpty = rows.Count == 0;
-            Status  = string.Format(PiText.Updated, DateTimeOffset.Now.ToString(CommonText.DateMonthDayTime));
+            // When the poll last brought a layout in, beside when this screen read it: a colony
+            // is only as current as its owner's last look at it in the game, and that is what
+            // the poll can bring.
+            var read = colonies.Select(c => c.Forecast.Layout.FetchedAt).Max();
+            if (_askedEsiAt is { } asked && DateTimeOffset.UtcNow - asked > AskEsiPatience) _askedEsiAt = null;
+            var updated = DateTimeOffset.Now.ToString(CommonText.DateMonthDayTime);
+            Status = _askedEsiAt is not null ? string.Format(PiText.UpdatedAskingEsi, updated)
+                   : read is { } lastRead    ? string.Format(PiText.UpdatedReadFromEsi, updated,
+                                                             lastRead.ToLocalTime().ToString(CommonText.DateMonthDayTime))
+                   :                           string.Format(PiText.Updated, updated);
 
             foreach (var r in rows) _ = r.LoadPortraitAsync();
             foreach (var c in Characters) _ = c.LoadPortraitAsync();
@@ -200,8 +240,16 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
             _errorLogger.Log("PlanetaryIndustryViewModel", "Refresh", ex);
             Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
-        finally { _loading = false; }
+        finally
+        {
+            _loading = false;
+            if (_again) { _again = false; _ = RefreshAsync(); }
+        }
     }
+
+    /// <summary>How long "asking ESI" stays on the status line when no poll answers — ESI paused,
+    /// or polling stopped.</summary>
+    private static readonly TimeSpan AskEsiPatience = TimeSpan.FromMinutes(3);
 
     /// <summary>Every type a colony's screens name: products, contents, flows, pins.</summary>
     private static IEnumerable<int> TypesOf(PiColonyForecast f)

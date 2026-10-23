@@ -22,6 +22,12 @@
   <data name="Updated" xml:space="preserve">
     <value>갱신: {0}</value>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>업데이트 {0} · ESI에 최신 콜로니 데이터를 요청하는 중…</value>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>업데이트 {0} · 콜로니를 마지막으로 ESI에서 읽은 시각 {1}</value>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
   </data>

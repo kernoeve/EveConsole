@@ -2125,6 +2125,10 @@ public class EsiPollingService : ReactiveObject
     /// then learned again for the character, since a new snapshot can be exactly what an export
     /// in the journal was waiting for.</para>
     /// </summary>
+    /// <summary>How long after a colony's save a layout made before it is taken for a stale
+    /// cached copy (FetchPlanetLayoutsAsync). ESI caches a layout for ten minutes.</summary>
+    private static readonly TimeSpan StaleLayoutWindow = TimeSpan.FromMinutes(30);
+
     private async Task<PollingResult> FetchPlanetLayoutsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         if (!await EveConsole.Services.Pi.PiCharacters.IsOnAsync(db, charId, ct))
@@ -2159,6 +2163,18 @@ public class EsiPollingService : ReactiveObject
                 // The rest wait for the next cycle: a failure here is ESI's, and asking again at
                 // once for the next colony would only spend more of the error budget.
                 if (!r.IsSuccess || r.Data is null) break;
+
+                // ⚠️ A layout ESI made before the colony's last save is the colony as it was:
+                // the list and the layout are cached apart, so a list read just after the owner
+                // reset the extractors can name the new save while the layout still answers with
+                // the old one. Stored under the new date, it was never read again — stopped
+                // extractors and full storage the owner had already dealt with, until they next
+                // looked at the planet. Left due, it is read again when the cached copy expires.
+                // Only for a recent save: well past one, no cached copy can predate it, and a
+                // layout is never held back for good.
+                if (r.LastModified is { } made && made < colony.LastUpdate
+                    && DateTimeOffset.UtcNow - colony.LastUpdate < StaleLayoutWindow)
+                    continue;
 
                 await EveConsole.Services.Pi.PiLayoutStore.ReplaceAsync(db, colony, r.Data, sd,
                     DateTimeOffset.UtcNow, ct);

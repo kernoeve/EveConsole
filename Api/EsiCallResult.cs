@@ -16,6 +16,10 @@ public class EsiCallResult<T>
     /// none, in which case the caller falls back to its own interval.</summary>
     public DateTimeOffset? Expires  { get; init; }
 
+    /// <summary>When the server made the copy it answered with, from the Last-Modified header;
+    /// null when it sent none. A cached copy can predate a change the caller already knows of.</summary>
+    public DateTimeOffset? LastModified { get; init; }
+
     /// <summary>
     /// The ETag the server sent, to be handed back as If-None-Match next time.
     ///

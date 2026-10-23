@@ -22,6 +22,12 @@
   <data name="Updated" xml:space="preserve">
     <value>更新于 {0}</value>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>更新于 {0} · 正在向 ESI 请求更新的殖民地数据…</value>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>更新于 {0} · 殖民地上次从 ESI 读取于 {1}</value>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
   </data>

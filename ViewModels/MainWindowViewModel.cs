@@ -1282,6 +1282,17 @@ public class MainWindowViewModel : ReactiveObject
                                      appPrefs, indyStructureLink);
         Pi                     = piService;
         PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
+        // Refresh in the PI tool reads the colonies from ESI on the poll's next pass, and the
+        // tool shows what that brings as soon as the layouts are in.
+        PlanetaryIndustryVm.AskEsi = () =>
+        {
+            pollingService.ResetCallTime("char.planets");
+            pollingService.ResetCallTime("char.planets.layouts");
+        };
+        pollingService.EndpointPolled += key =>
+        {
+            if (key == "char.planets.layouts") Dispatcher.UIThread.Post(PlanetaryIndustryVm.EsiPolled);
+        };
         // The Overview's PI alerts open the colony they are about, or the list for several.
         OverviewVm.Pi                     = piService;
         OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
