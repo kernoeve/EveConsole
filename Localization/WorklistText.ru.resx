@@ -1781,16 +1781,16 @@
     <value>Материалов нет в сооружении {0}: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>Нет в наличии: {0}</value>
+    <value>Нет свободных: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>Нет в наличии ({0}): {1}</value>
+    <value>Нет свободных ({0}): {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>Нет в наличии: {0}; в другом месте: {1}</value>
+    <value>Нет свободных: {0}; в другом месте: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>Нет в наличии ({0}): {1}; в другом месте: {2}</value>
+    <value>Нет свободных ({0}): {1}; в другом месте: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} и ещё {1}</value>

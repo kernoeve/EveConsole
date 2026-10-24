@@ -293,6 +293,9 @@ public class IndustryDemandService(
         /// Ravens is the difference between one job at order priority and seventeen.</para>
         /// </summary>
         public long OrderDriven;
+        /// <summary>Of <see cref="OrderDriven"/>, what this item's OWN orders still want built —
+        /// already net of its stock. The rest came down from parents and is gross.</summary>
+        public long OrderSeeded;
 
         /// <summary>Units customers have ordered, and units parent builds will eat.</summary>
         public long Consumed;
@@ -554,6 +557,7 @@ public class IndustryDemandService(
             if (outstanding <= 0) continue;
 
             g.OrderDriven += outstanding;
+            g.OrderSeeded += outstanding;
             // Ranked rather than flat, so the order due first outranks the one due next month.
             // Children inherit this below, so the whole tree under an urgent order stays urgent.
             g.Priority    = Math.Max(g.Priority, WorklistPriority.ForOrder(rank));
@@ -642,12 +646,20 @@ public class IndustryDemandService(
                 // half for an order and half for its shelf passes half its child's requirement
                 // down as order-driven, so an item deep in the tree knows how much of it a
                 // customer is actually waiting for rather than inheriting the whole figure.
-                if (g.OrderDriven > 0)
+                //
+                // ⚠️ What of the order is still to BUILD here, after the parent's own stock — the
+                // order takes stock first. Passed down as a share of everything the parent wanted,
+                // an order already covered by stock still sent its band down: 109 Capital Core
+                // Temperature Regulators on hand covered the capital order, yet a slice of it reached
+                // the Core Temperature Regulators, 56 of which read as short of it, and the first
+                // regulator job sat at order priority 220 above every part a stopped hull waited for.
+                if (g.OrderDriven > 0 && net > 0)
                 {
-                    var parentTotal = g.Level + g.Consumed;
-                    if (parentTotal > 0)
+                    var inherited   = g.OrderDriven - g.OrderSeeded;
+                    var outstanding = g.OrderSeeded + Math.Max(0, inherited - have);
+                    if (outstanding > 0)
                         child.OrderDriven += (long)Math.Ceiling(
-                            qty * Math.Min(1.0, (double)g.OrderDriven / parentTotal));
+                            qty * Math.Min(1.0, (double)outstanding / net));
                 }
 
                 child.Dependents.Add(typeId);

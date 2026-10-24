@@ -1745,16 +1745,16 @@
     <value>{0}에 없는 재료: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>미보유: {0}</value>
+    <value>여유분 없음: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>{0}에 미보유: {1}</value>
+    <value>{0}에 여유분 없음: {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>미보유: {0}; 다른 곳에 있음: {1}</value>
+    <value>여유분 없음: {0}; 다른 곳에 있음: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>{0}에 미보유: {1}; 다른 곳에 있음: {2}</value>
+    <value>{0}에 여유분 없음: {1}; 다른 곳에 있음: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} 외 {1}개</value>

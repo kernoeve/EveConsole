@@ -2333,20 +2333,20 @@
     <comment>Why a Worklist job is blocked: materials are owned but elsewhere. {0} is the structure, {1} a list of the materials.</comment>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>Not owned: {0}</value>
-    <comment>Why a Worklist job is blocked: materials nobody owns. {0} is a list of them.</comment>
+    <value>None to spare: {0}</value>
+    <comment>Why a Worklist job is blocked: materials nobody owns. {0} is a list of them. "None to spare": not owned, or owned only where other work still needs it.</comment>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>Not owned in {0}: {1}</value>
-    <comment>Why a Worklist job is blocked: materials nobody owns within the stock scope. {0} is the region or system, {1} a list of the materials.</comment>
+    <value>None to spare in {0}: {1}</value>
+    <comment>Why a Worklist job is blocked: materials nobody owns within the stock scope. {0} is the region or system, {1} a list of the materials. "None to spare": not owned, or owned only where other work still needs it.</comment>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>Not owned: {0}; elsewhere: {1}</value>
-    <comment>Why a Worklist job is blocked. {0} lists materials nobody owns, {1} materials owned but at another station.</comment>
+    <value>None to spare: {0}; elsewhere: {1}</value>
+    <comment>Why a Worklist job is blocked. {0} lists materials nobody owns, {1} materials owned but at another station. "None to spare": not owned, or owned only where other work still needs it.</comment>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>Not owned in {0}: {1}; elsewhere: {2}</value>
-    <comment>Why a Worklist job is blocked. {0} is the region or system stock is counted in, {1} lists materials nobody owns there, {2} materials owned but at another station.</comment>
+    <value>None to spare in {0}: {1}; elsewhere: {2}</value>
+    <comment>Why a Worklist job is blocked. {0} is the region or system stock is counted in, {1} lists materials nobody owns there, {2} materials owned but at another station. "None to spare": not owned, or owned only where other work still needs it.</comment>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0}, and {1} more</value>

@@ -1745,16 +1745,16 @@
     <value>材料不在 {0}：{1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>未拥有：{0}</value>
+    <value>无富余：{0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>{0} 内未拥有：{1}</value>
+    <value>{0} 内无富余：{1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>未拥有：{0}；在别处：{1}</value>
+    <value>无富余：{0}；在别处：{1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>{0} 内未拥有：{1}；在别处：{2}</value>
+    <value>{0} 内无富余：{1}；在别处：{2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0}，另有 {1} 种</value>

@@ -1745,16 +1745,16 @@
     <value>{0}にない資源：{1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>未所有：{0}</value>
+    <value>余剰なし：{0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>{0}で未所有：{1}</value>
+    <value>{0}で余剰なし：{1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>未所有：{0}、別の場所：{1}</value>
+    <value>余剰なし：{0}、別の場所：{1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>{0}で未所有：{1}、別の場所：{2}</value>
+    <value>{0}で余剰なし：{1}、別の場所：{2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0}、ほか{1}件</value>

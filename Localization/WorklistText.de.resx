@@ -1757,16 +1757,16 @@
     <value>Materialien nicht in {0}: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>Nicht vorhanden: {0}</value>
+    <value>Nichts übrig: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>Nicht vorhanden in {0}: {1}</value>
+    <value>Nichts übrig in {0}: {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>Nicht vorhanden: {0}; anderswo: {1}</value>
+    <value>Nichts übrig: {0}; anderswo: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>Nicht vorhanden in {0}: {1}; anderswo: {2}</value>
+    <value>Nichts übrig in {0}: {1}; anderswo: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} und {1} weitere</value>
