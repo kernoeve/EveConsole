@@ -369,13 +369,18 @@ public class IndustryJobGenerator(
         // wrote, so a part's claim reflects the jobs actually stopped. See FinalBottleneck.
         var blockedFinalNeeds = new List<HashSet<int>>();
         var rowsSeen = 0;
+
+        // What the operation sells: a final product, or anything a customer has ordered — the
+        // ordered item is the product being sold, whether or not a rule calls it final. Only for
+        // what holds jobs up; the stock bands still go by the rule's flag.
+        static bool Sold(PlanState s) => s.Demand.IsFinal || s.Demand.OrderUnits > 0;
         void NoteBlockedFinals()
         {
             for (; rowsSeen < items.Count; rowsSeen++)
             {
                 var row = items[rowsSeen];
                 if (row.Readiness != WorklistReadiness.Blocked || row.Shortages.Count == 0) continue;
-                if (!byType.TryGetValue(row.TypeId, out var final) || !final.Demand.IsFinal) continue;
+                if (!byType.TryGetValue(row.TypeId, out var final) || !Sold(final)) continue;
                 var needs = row.Shortages.Where(m => m.MustBuy).Select(m => m.TypeId).ToHashSet();
                 if (needs.Count > 0) blockedFinalNeeds.Add(needs);
             }
@@ -404,7 +409,7 @@ public class IndustryJobGenerator(
         // Core Temperature Regulator and Tungsten Carbide cases.
         double BlockedFinalNow(PlanState s) => FinalBottleneck.FinalsHeldUp(
             s.Demand.TypeId,
-            s.Demand.IsFinal,
+            Sold(s),
             Starving(s),
             DependentsOf(s),
             blockedFinalNeeds,
