@@ -2487,6 +2487,14 @@
         <TextBlock Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
                    FontSize="10" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
 
+        <!-- Materials held for a job waiting on a busy blueprint that frees within these hours. -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="{x:Static loc:WorklistText.HoldForBusyPrint}" Classes="fieldLabel" VerticalAlignment="Center"/>
+          <TextBox Width="70" FontSize="11" Text="{Binding HoldForBusyPrintHours}"
+                   ToolTip.Tip="{x:Static loc:WorklistText.TipHoldForBusyPrint}"/>
+          <TextBlock Text="{x:Static loc:WorklistText.Hours}" Classes="fieldLabel" VerticalAlignment="Center"/>
+        </StackPanel>
+
         <!-- ── Asset Scope ───────────────────────────────────────────────── -->
         <TextBlock Text="{x:Static loc:WorklistText.AssetScope}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
 

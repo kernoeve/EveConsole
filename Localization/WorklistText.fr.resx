@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>jours</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Réserver les matériaux pour un plan occupé libéré sous</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Lorsqu'un travail classé devant ne peut démarrer que lorsque son plan sortira d'un travail en cours, et que ce travail se termine dans ce nombre d'heures, les matériaux de son site lui sont réservés pour que les travaux classés en dessous ne les consomment pas entre-temps. 0 désactive cette option.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>heures</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Ses matériaux sur le site lui sont réservés : le plan se libère dans moins de {0} heures.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Périmètre des biens</value>
   </data>

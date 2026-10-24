@@ -407,14 +407,26 @@ public class IndustryJobGenerator(
         // it — never every final it happens to feed, and never on its own low coverage. A part
         // no planned final job is short of stops nothing today. See FinalBottleneck for the
         // Core Temperature Regulator and Tungsten Carbide cases.
-        double BlockedFinalNow(PlanState s) => FinalBottleneck.FinalsHeldUp(
-            s.Demand.TypeId,
-            Sold(s),
-            Starving(s),
-            DependentsOf(s),
-            blockedFinalNeeds,
-            // An item with no demand of its own here is not short of anything this run.
-            t => byType.TryGetValue(t, out var m) ? Starving(m) : 0.0);
+        double BlockedFinalNow(PlanState s)
+        {
+            var starving = Starving(s);
+            return starving <= 0 ? 0 : ((Sold(s) ? 1 : 0) + JobsHeldUpNow(s)) * starving;
+        }
+
+        // How many blocked sold jobs this item holds up, this pass — read by the sort key above
+        // and by the band in LivePriority, so counted once a pass and cleared at its top.
+        var jobsHeldUpThisPass = new Dictionary<int, int>();
+        int JobsHeldUpNow(PlanState s)
+        {
+            if (jobsHeldUpThisPass.TryGetValue(s.Demand.TypeId, out var n)) return n;
+            return jobsHeldUpThisPass[s.Demand.TypeId] = FinalBottleneck.JobsHeldUp(
+                s.Demand.TypeId,
+                Starving(s),
+                DependentsOf(s),
+                blockedFinalNeeds,
+                // An item with no demand of its own here is not short of anything this run.
+                t => byType.TryGetValue(t, out var m) ? Starving(m) : 0.0);
+        }
 
         // What the item's OWN shelf justifies, measured where that shelf stands NOW.
         //
@@ -541,6 +553,14 @@ public class IndustryJobGenerator(
                     // buffer. It falls back to what its own level justifies.
                     if (!chainStillShort) continue;
 
+                    // ⚠️ A FINAL's band only while a sold job is actually stopped for this item,
+                    // or for something made from it. Core Temperature Regulators kept 80 for
+                    // feeding Capital Core Temperature Regulators the hulls' levels still wanted,
+                    // with every capital regulator job waiting on its blueprint and no hull short
+                    // of one — and took the fiber ahead of conduits a hull would need next. A band
+                    // from a stock rule below the final band still comes down as before.
+                    if (candidate >= WorklistPriority.ServesOther && JobsHeldUpNow(s) == 0) continue;
+
                     // ⚠️ Capped at ServesOther. Serving a hull is worth less than being the hull,
                     // or the parts sort above the ship and the emptiest hull on the board drags
                     // every shared component up to its own number.
@@ -589,6 +609,7 @@ public class IndustryJobGenerator(
         while (true)
         {
             NoteBlockedFinals();
+            jobsHeldUpThisPass.Clear();
 
             var state = queue
                 .Where(s => !s.Done)
@@ -1158,6 +1179,38 @@ public class IndustryJobGenerator(
                         var npShort = MissingAtSite(
                             stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite);
 
+                        // ⚠️ Its materials held, when only a busy print stops it and that print frees
+                        // soon. Unheld, they went to whatever ranked below and could start: the
+                        // conduits and seals planned ahead of the Core Temperature Regulators had
+                        // their blueprints in jobs ending within hours, claimed no fiber, and the
+                        // regulators took every unit at the site. One job's worth per print that
+                        // frees in time, and only what the site holds — the rest is still a
+                        // shortage to report.
+                        var heldNote = "";
+                        var holdHours = settings.HoldForBusyPrintHours;
+                        if (holdHours > 0 && reference is { LockedInJob: true })
+                        {
+                            var freeBy   = DateTimeOffset.UtcNow.AddHours(holdHours);
+                            var freeSoon = printsByType.GetValueOrDefault(product.TypeId, [])
+                                .Count(b => b.LockedInJob && b.LocationId == siteId.Value
+                                         && b.BusyUntil is { } until && until <= freeBy
+                                         && reaches.Any(r => r.CanUse(b)));
+                            if (state.HeldForPrints < freeSoon)
+                            {
+                                state.HeldForPrints++;
+                                foreach (var (typeId, qty) in npMats)
+                                {
+                                    var here = stock.Reachable(siteId.Value, typeId, eligible[0])
+                                             - committed.GetValueOrDefault((siteId.Value, typeId));
+                                    var take = Math.Min(qty, Math.Max(0, here));
+                                    if (take > 0)
+                                        committed[(siteId.Value, typeId)] = committed.GetValueOrDefault((siteId.Value, typeId)) + take;
+                                }
+                                heldNote = " " + string.Format(WorklistText.JobHeldForBusyPrint,
+                                    holdHours.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture));
+                            }
+                        }
+
                         items.Add(new WorklistItem
                         {
                             Key           = $"industry_job:{d.TypeId}:np{piece}",
@@ -1173,7 +1226,7 @@ public class IndustryJobGenerator(
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = string.Format(WorklistText.JobDetailShort, head, d.Units)
                                           + " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName)
-                                          + assumed,
+                                          + assumed + heldNote,
                             Readiness      = WorklistReadiness.Blocked,
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
@@ -1257,6 +1310,9 @@ public class IndustryJobGenerator(
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
+
+        /// <summary>Jobs waiting on a busy print that have had their materials held.</summary>
+        public int HeldForPrints { get; set; }
 
         /// <summary>
         /// How many rows have been emitted for runs no print could carry.

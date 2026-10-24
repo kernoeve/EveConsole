@@ -964,6 +964,22 @@
     <value>days</value>
     <comment>Text in WorklistView.</comment>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Hold materials for a busy blueprint freeing within</value>
+    <comment>Worklist settings, Industry: label before the hours box. The setting holds the materials of a job waiting only on a busy blueprint.</comment>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>When a job ranked ahead can start only once its blueprint comes out of a running job, and that job ends within this many hours, the materials at its site are held for it, so jobs ranked below it do not use them up meanwhile. 0 turns this off.</value>
+    <comment>Worklist settings, Industry: tooltip on the busy-blueprint hours box.</comment>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>hours</value>
+    <comment>Unit after a box of hours.</comment>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Its materials at the site are held for it: the blueprint frees within {0} hours.</value>
+    <comment>Worklist job detail, after a job waiting on a busy blueprint. {0} is the setting, in hours.</comment>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Asset Scope</value>
     <comment>Text in WorklistView.</comment>

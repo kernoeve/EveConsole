@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>д</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Резервировать материалы для занятого чертежа, который освободится в течение</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Если работа выше в списке не может начаться только потому, что её чертёж занят в идущей работе, и та закончится в течение этого числа часов, материалы на её площадке резервируются для неё, чтобы работы ниже их не израсходовали. 0 отключает это.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>ч</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Материалы на площадке зарезервированы: чертёж освободится в течение {0} ч.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Охват имущества</value>
   </data>

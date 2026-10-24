@@ -478,6 +478,33 @@ public class WorklistIndustryViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _maxJobDaysSci, value); Save(WorklistSettings.MaxJobDaysSciKey, value); }
     }
 
+    /// <summary>
+    /// Hours a busy blueprint may take to free and still have its job's materials held. Text, like
+    /// the job lengths, so a half-typed value is not saved; "0" turns it off, blank means the
+    /// default.
+    /// </summary>
+    private string _holdForBusyPrintHours = "";
+    public string HoldForBusyPrintHours
+    {
+        get => _holdForBusyPrintHours;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _holdForBusyPrintHours, value);
+            if (_loading) return;
+            var text = value.Trim();
+            double hours;
+            if (text.Length == 0) hours = 24;
+            else if (!double.TryParse(text, System.Globalization.NumberStyles.Float,
+                                      System.Globalization.CultureInfo.InvariantCulture, out hours) || hours < 0)
+                return;   // mid-edit garbage: leave the stored value alone
+            _ = Fire(async () =>
+            {
+                await _settings.SetHoldForBusyPrintHoursAsync(hours);
+                if (IndustryChanged is not null) await IndustryChanged();
+            }, "SetHoldForBusyPrintHours");
+        }
+    }
+
     private void Save(string key, string raw)
     {
         if (_loading) return;
@@ -604,6 +631,8 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(MaxJobDaysMfg));
                 this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
                 this.RaisePropertyChanged(nameof(MaxJobDaysSci));
+                _holdForBusyPrintHours = _settings.HoldForBusyPrintHours.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+                this.RaisePropertyChanged(nameof(HoldForBusyPrintHours));
 
                 // Shown in the interface language; the setting keeps the English. Nothing reads
                 // the box's text back â a pick saves the result's English.

@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>일</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>사용 중인 청사진이 다음 시간 안에 비면 재료를 확보</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>앞 순위의 작업이 실행 중인 작업에서 청사진이 풀리기만 기다리고 있고 그 작업이 이 시간 안에 끝나면, 해당 장소의 재료를 그 작업을 위해 확보해 뒤 순위의 작업이 먼저 써 버리지 않게 합니다. 0이면 꺼집니다.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>이 장소의 재료를 확보해 두었습니다. 청사진은 {0}시간 안에 풀립니다.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>자산 범위</value>
   </data>

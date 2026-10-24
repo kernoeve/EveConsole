@@ -79,12 +79,21 @@ public static class FinalBottleneck
         Func<int, double>                    starvingOf)
     {
         if (starving <= 0) return 0;
+        return ((isFinal ? 1 : 0) + JobsHeldUp(typeId, starving, dependents, blockedFinalNeeds, starvingOf)) * starving;
+    }
 
-        var n = isFinal ? 1 : 0;
+    /// <summary>How many of the blocked final jobs this item holds up (see <see cref="HoldsUp"/>).</summary>
+    public static int JobsHeldUp(
+        int                                  typeId,
+        double                               starving,
+        IReadOnlySet<int>                    dependents,
+        IReadOnlyList<IReadOnlySet<int>>     blockedFinalNeeds,
+        Func<int, double>                    starvingOf)
+    {
+        var n = 0;
         foreach (var needs in blockedFinalNeeds)
             if (HoldsUp(typeId, starving, dependents, needs, starvingOf))
                 n++;
-
-        return n * starving;
+        return n;
     }
 }

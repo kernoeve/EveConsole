@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>日</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>使用中の設計図が次の時間内に空く場合は材料を確保</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>上位のジョブが、実行中のジョブから設計図が戻るのを待つだけで開始できず、そのジョブがこの時間内に終わる場合、その場所の材料をそのジョブのために確保し、下位のジョブが先に使い切らないようにします。0 で無効になります。</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>この場所の材料を確保しています。設計図は {0} 時間以内に空きます。</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>資産の対象範囲</value>
   </data>

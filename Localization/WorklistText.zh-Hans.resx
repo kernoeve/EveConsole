@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>天</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>为即将空闲的蓝图保留材料，时限</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>当排在前面的任务只因蓝图正被运行中的任务占用而无法开始，且该任务在这么多小时内结束时，会为它保留其地点的材料，避免排在后面的任务先把材料用掉。设为 0 则关闭。</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>已在该地点为它保留材料：蓝图将在 {0} 小时内空闲。</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>资产范围</value>
   </data>

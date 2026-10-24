@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>Tage</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Material für belegte Blaupausen zurückhalten, die frei werden innerhalb von</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Kann ein weiter oben eingeordneter Auftrag nur deshalb nicht starten, weil seine Blaupause in einem laufenden Auftrag steckt, und endet dieser innerhalb so vieler Stunden, werden die Materialien an seinem Standort für ihn zurückgehalten, damit weiter unten eingeordnete Aufträge sie nicht vorher verbrauchen. 0 schaltet das aus.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>Stunden</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Die Materialien am Standort sind für ihn zurückgehalten: Die Blaupause wird innerhalb von {0} Stunden frei.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Besitzumfang</value>
   </data>
