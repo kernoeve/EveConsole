@@ -32,6 +32,8 @@
   <PropertyGroup>
     <IsWindowsTarget Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOsPlatform('Windows'))</IsWindowsTarget>
     <IsWindowsTarget Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('win'))</IsWindowsTarget>
+    <IsMacTarget Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOsPlatform('OSX'))</IsMacTarget>
+    <IsMacTarget Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('osx'))</IsMacTarget>
   </PropertyGroup>
 
   <!-- An .ico and a Win32 manifest mean nothing on Linux, and the SDK refuses the manifest
@@ -49,6 +51,14 @@
        referenced, and the compiler wants the assembly on every target. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+  </ItemGroup>
+
+  <!-- LibVLC's macOS binaries, Apple Silicon and Intel, for a macOS target only (77 MB each).
+       Published as content into libvlc/osx-arm64 and libvlc/osx-x64, where VlcRuntime loads
+       the one for the Mac it runs on. A build for one architecture carries only that one; a
+       local build on a Mac, with no runtime given, carries both. -->
+  <ItemGroup Condition="'$(IsMacTarget)' == 'true'">
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.2" />
   </ItemGroup>
 
   <ItemGroup>

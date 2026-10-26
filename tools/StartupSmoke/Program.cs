@@ -55,10 +55,26 @@ Console.WriteLine($"data folder   {AppConfig.AppDataDir}");
 }
 
 // ── The app itself ───────────────────────────────────────────────────────────
-void Check()
+async void Check()
 {
     try
     {
+        // ── Sound, through VLC ───────────────────────────────────────────────
+        // VLC has to load where the app carries it (Windows, and macOS from the Mac package);
+        // on Linux it is the system's, which CI does not install, so there it is only reported.
+        // A chime is then played, and what happened reported: a CI runner may have no audio
+        // device to play to, so that part does not decide the verdict.
+        Console.WriteLine($"sound         VLC {(AlarmSoundService.IsAvailable ? "loaded" : "NOT loaded: " + AlarmSoundService.InitError)}");
+        if (!AlarmSoundService.IsAvailable && (OperatingSystem.IsMacOS() || OperatingSystem.IsWindows()))
+            failures.Add($"VLC did not load: {AlarmSoundService.InitError}");
+        if (AlarmSoundService.IsAvailable)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var started = DateTime.UtcNow;
+            await new AlarmSoundService().PlayAsync(AlarmSoundService.DefaultKey, 30, cts.Token);
+            Console.WriteLine($"              chime: {(AlarmSoundService.LastError ?? "played")} ({(DateTime.UtcNow - started).TotalSeconds:0.0}s)");
+        }
+
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime life)
         {
             failures.Add("no desktop lifetime");

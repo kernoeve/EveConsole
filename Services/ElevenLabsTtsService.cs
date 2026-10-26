@@ -28,7 +28,7 @@ public sealed class ElevenLabsTtsService : IDisposable
         _vlcInitialized = true;
         try
         {
-            Core.Initialize();
+            VlcRuntime.Initialize();
             _vlc = new LibVLC(enableDebugLogs: false);
         }
         catch { _vlc = null; }

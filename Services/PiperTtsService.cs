@@ -36,7 +36,7 @@ public sealed class PiperTtsService : IDisposable
     {
         try
         {
-            Core.Initialize();
+            VlcRuntime.Initialize();
             _vlc = new LibVLC(enableDebugLogs: false);
         }
         catch { _vlc = null; }

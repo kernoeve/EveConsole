@@ -109,7 +109,7 @@ jobs:
             '',
             'EVE Console is not signed by Apple yet, so macOS stops it the first time: open **System Settings** -> **Privacy & Security**, scroll down, and click **Open Anyway** (for the installer, and again for the app on its first launch).',
             '',
-            'This first macOS build covers the core app. Alarm sounds, speech and the global hotkey come later.',
+            'VLC comes with the macOS app, so alarm sounds need nothing installed. Speech and the global hotkey come later.',
             '',
             'No .NET install is required on any platform — the runtime is bundled.',
             '',

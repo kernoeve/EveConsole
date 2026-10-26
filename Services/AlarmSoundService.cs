@@ -23,7 +23,7 @@ public sealed class AlarmSoundService
     {
         try
         {
-            Core.Initialize();
+            VlcRuntime.Initialize();
             _vlc = new LibVLC(enableDebugLogs: false);
         }
         catch (Exception ex)
