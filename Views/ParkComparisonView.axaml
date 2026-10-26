@@ -10,12 +10,15 @@
              Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
-    <!-- A chart with nothing to show yet is transparent, not hidden: hidden, it has no size when
-         its series arrive and stays blank once shown (the first Calculate drew nothing until the
-         dropdown was changed). -->
-    <Style Selector="Border.nochart">
-      <Setter Property="Opacity" Value="0" />
-      <Setter Property="IsHitTestVisible" Value="False" />
+    <!-- A chart with nothing to show yet is covered, not hidden and not made transparent. ⚠️ Both
+         of those kept the first Calculate's charts blank, empty 0-10 axes until the dropdown was
+         moved: hidden, the chart had no size when its series arrived; transparent, it was not
+         drawn then, and being shown did not draw it again. Neither shows headless, only on a real
+         window. Covered, the chart is on screen throughout and takes its series as it does every
+         later time. -->
+    <Style Selector="Border.chartcover">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}" />
+      <Setter Property="Grid.RowSpan" Value="2" />
     </Style>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="11" />
@@ -129,7 +132,7 @@
            Each panel is what its Copy image button pictures: title, the line charted, chart and legend,
            on the page's own ground (the button itself is left out). -->
       <Grid Grid.Row="5" ColumnDefinitions="*,12,*">
-        <Border Grid.Column="0" x:Name="CostChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6" Classes.nochart="{Binding !HasChart}">
+        <Border Grid.Column="0" x:Name="CostChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6">
           <Grid RowDefinitions="Auto,*">
             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
               <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.CompareCostChartTitle}" FontSize="11" FontWeight="SemiBold"
@@ -144,9 +147,10 @@
                                 LegendPosition="Bottom" LegendTextSize="11"
                                 LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
                                 EasingFunction="{x:Null}" Background="Transparent" />
+            <Border Classes="chartcover" IsVisible="{Binding !HasChart}" />
           </Grid>
         </Border>
-        <Border Grid.Column="2" x:Name="TimeChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6" Classes.nochart="{Binding !HasTimeChart}">
+        <Border Grid.Column="2" x:Name="TimeChartPanel" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6">
           <Grid RowDefinitions="Auto,*">
             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
               <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.CompareTimeChartTitle}" FontSize="11" FontWeight="SemiBold"
@@ -161,6 +165,7 @@
                                 LegendPosition="Bottom" LegendTextSize="11"
                                 LegendTextPaint="{Binding LegendPaint}" LegendBackgroundPaint="{Binding LegendBackPaint}"
                                 EasingFunction="{x:Null}" Background="Transparent" />
+            <Border Classes="chartcover" IsVisible="{Binding !HasTimeChart}" />
           </Grid>
         </Border>
       </Grid>
