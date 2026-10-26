@@ -45,34 +45,40 @@
       <ItemsControl ItemsSource="{Binding Jobs}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:CompareJobVm">
-            <!-- A line: the name, then the operation and its numbers, then (invention) the decryptor. -->
-            <Border Margin="0 0 0 5" Padding="6 4" CornerRadius="3"
-                    Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
-              <StackPanel Spacing="4">
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
-                             TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <Button Grid.Column="1" Classes="small" Content="▲" Margin="0 0 2 0"
-                          Command="{Binding MoveUpCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveUp}" />
-                  <Button Grid.Column="2" Classes="small" Content="▼" Margin="0 0 6 0"
-                          Command="{Binding MoveDownCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveDown}" />
-                  <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
-                          Command="{Binding RemoveCommand}" />
-                </Grid>
-                <Grid ColumnDefinitions="118,Auto,Auto">
-                  <ComboBox Grid.Column="0" ItemsSource="{Binding Operations}" SelectedItem="{Binding Operation}"
+            <!-- A line: the name on a header strip, then the operation and its numbers, then
+                 (invention) the decryptor. The body sits a step above the page and the boxes in
+                 it a step below, so each card reads as one thing and its fields as places to type. -->
+            <Border Margin="0 0 0 6" CornerRadius="4" ClipToBounds="True"
+                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+              <StackPanel>
+                <Border Background="{DynamicResource SurfaceHeaderBrush}" Padding="8 3 4 3">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <Button Grid.Column="1" Classes="small" Content="▲" Margin="0 0 2 0"
+                            Command="{Binding MoveUpCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveUp}" />
+                    <Button Grid.Column="2" Classes="small" Content="▼" Margin="0 0 6 0"
+                            Command="{Binding MoveDownCommand}" ToolTip.Tip="{x:Static loc:IndustryText.TipCompareMoveDown}" />
+                    <Button Grid.Column="3" Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                            Command="{Binding RemoveCommand}" />
+                  </Grid>
+                </Border>
+                <StackPanel Spacing="5" Margin="8 6 8 7">
+                  <Grid ColumnDefinitions="118,Auto,Auto">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Operations}" SelectedItem="{Binding Operation}"
+                              HorizontalAlignment="Stretch" FontSize="11.5" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowQuantity}">
+                      <TextBlock Classes="flabel" Text="{Binding QuantityLabel}" />
+                      <TextBox Text="{Binding QuantityText}" FontSize="12" Width="52" ToolTip.Tip="{Binding QuantityTip}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowSecond}">
+                      <TextBlock Classes="flabel" Text="{Binding SecondLabel}" />
+                      <TextBox Text="{Binding SecondText}" FontSize="12" Width="44" ToolTip.Tip="{Binding SecondTip}" />
+                    </StackPanel>
+                  </Grid>
+                  <ComboBox ItemsSource="{Binding Decryptors}" SelectedItem="{Binding Decryptor}" IsVisible="{Binding ShowDecryptor}"
                             HorizontalAlignment="Stretch" FontSize="11.5" />
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowQuantity}">
-                    <TextBlock Classes="flabel" Text="{Binding QuantityLabel}" />
-                    <TextBox Text="{Binding QuantityText}" FontSize="12" Width="52" ToolTip.Tip="{Binding QuantityTip}" />
-                  </StackPanel>
-                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0" IsVisible="{Binding ShowSecond}">
-                    <TextBlock Classes="flabel" Text="{Binding SecondLabel}" />
-                    <TextBox Text="{Binding SecondText}" FontSize="12" Width="44" ToolTip.Tip="{Binding SecondTip}" />
-                  </StackPanel>
-                </Grid>
-                <ComboBox ItemsSource="{Binding Decryptors}" SelectedItem="{Binding Decryptor}" IsVisible="{Binding ShowDecryptor}"
-                          HorizontalAlignment="Stretch" FontSize="11.5" />
+                </StackPanel>
               </StackPanel>
             </Border>
           </DataTemplate>

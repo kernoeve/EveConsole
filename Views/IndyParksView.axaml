@@ -4,6 +4,7 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:services="clr-namespace:EveConsole.Services"
              xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:controls="clr-namespace:EveConsole.Controls"
              x:Class="EveConsole.Views.IndyParksView"
              x:DataType="vm:IndyParksViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -201,11 +202,19 @@
                       HorizontalScrollBarVisibility="Disabled">
           <StackPanel Spacing="28">
 
-            <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}">
+            <!-- As many columns as fit at the cards' least width, two or three on most screens,
+                 filled across and then down; a row's cards are as tall as its tallest. The right
+                 margin is the scroll bar's, which is drawn over the content, not beside it. -->
+            <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}" Margin="0 0 14 0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <controls:ColumnFlowPanel MinColumnWidth="520" ColumnSpacing="10" RowSpacing="10" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:StructureVm">
                   <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="14 12"
-                          Margin="0 0 0 8" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                          BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
                       <!-- Row 0: Name + Type + Default + Remove button.
@@ -403,11 +412,12 @@
                                           ItemsSource="{Binding AvailableRigs}"
                                           SelectedItem="{Binding Selected}"
                                           PlaceholderText="{x:Static loc:IndustryText.HintEmpty}"
-                                          FontSize="11"
+                                          FontSize="11" HorizontalAlignment="Stretch"
                                           Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextSecondaryBrush}">
                                   <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="vm:SdeRigOption">
-                                      <TextBlock Text="{Binding DisplayName}" FontSize="11" />
+                                      <TextBlock Text="{Binding DisplayName}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                                 ToolTip.Tip="{Binding DisplayName}" />
                                     </DataTemplate>
                                   </ComboBox.ItemTemplate>
                                 </ComboBox>

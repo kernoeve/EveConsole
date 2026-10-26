@@ -51,6 +51,7 @@ public partial class ParkComparisonView : UserControl
         _vm = vm;
         if (_vm is not null) _vm.PropertyChanged += OnVmChanged;
         RebuildSummaryColumns();
+        SizeSummary();   // ⚠️ else a view made for results already there leaves the scroll bar over the last row
     }
 
     private void OnVmChanged(object? sender, PropertyChangedEventArgs e)
