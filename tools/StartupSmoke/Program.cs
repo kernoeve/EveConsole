@@ -75,6 +75,31 @@ async void Check()
             Console.WriteLine($"              chime: {(AlarmSoundService.LastError ?? "played")} ({(DateTime.UtcNow - started).TotalSeconds:0.0}s)");
         }
 
+        // ── The microphone library, PortAudio ────────────────────────────────
+        // It has to load wherever the app carries it (all three platforms). A runner has no
+        // microphone, so the device count is only reported.
+        try
+        {
+            PortAudioSharp.PortAudio.Initialize();
+            var inputs = Enumerable.Range(0, PortAudioSharp.PortAudio.DeviceCount)
+                                   .Count(i => PortAudioSharp.PortAudio.GetDeviceInfo(i).maxInputChannels > 0);
+            Console.WriteLine($"microphone    PortAudio loaded, {inputs} input device(s)");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"microphone    PortAudio NOT loaded: {ex.Message}");
+            failures.Add($"PortAudio did not load: {ex.Message}");
+        }
+
+        // ── The push-to-talk key ─────────────────────────────────────────────
+        // Reported only: whether a headless process may take a global key is the platform's
+        // call (Linux CI has no X server at all), and nothing is pressed here.
+        using (var hotkey = new GlobalHotkeyService())
+        {
+            hotkey.Configure(0x7C);   // F13
+            Console.WriteLine($"hotkey        F13 {(hotkey.IsInstalled ? "registered" : "not registered" + (hotkey.MacError is { } why ? ": " + why : ""))}");
+        }
+
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime life)
         {
             failures.Add("no desktop lifetime");

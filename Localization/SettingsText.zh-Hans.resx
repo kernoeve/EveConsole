@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ 未在应用目录中找到</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper 在 macOS 上不可用。请在上方选择其他语音引擎。</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>下载语音模型</value>
   </data>
@@ -1774,6 +1777,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>显示通知区域图标，并随桌面会话启动</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>显示菜单栏图标，并在登录时启动</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>需要 PostgreSQL，此客户端正在使用它——后台工作进程和所有客户端共用同一个服务器。</value>
   </data>
@@ -1801,11 +1807,17 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>正在运行，并将随桌面会话启动。</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>正在运行，登录时将自动启动。</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>不会随 Windows 启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>不会随桌面会话启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>登录时不会启动。已显示的图标会保留，直到你在其上选择{0}或注销。</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>无法更改——{0}</value>

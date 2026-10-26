@@ -2325,13 +2325,15 @@
                           <!-- Piper -->
                           <StackPanel IsVisible="{Binding ShowPiper}" Spacing="8">
                             <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                       Text="{x:Static loc:SettingsText.PiperIsAFastNote}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                       Text="{x:Static loc:SettingsText.PiperIsAFastNote}" IsVisible="{Binding !IsPiperUnsupportedHere}" />
+                            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                                       Text="{x:Static loc:SettingsText.PiperNotOnMac}" IsVisible="{Binding IsPiperUnsupportedHere}" />
+                            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding !IsPiperUnsupportedHere}">
                               <TextBlock Text="{x:Static loc:SettingsText.RuntimeLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
                               <TextBlock Text="{x:Static loc:SettingsText.Bundled}" FontSize="11" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"
                                          IsVisible="{Binding IsPiperBinaryAvailable}" />
                               <TextBlock Text="{x:Static loc:SettingsText.NotFoundInAppDirectory}" FontSize="11" Foreground="{DynamicResource WarnBrush}"
-                                         VerticalAlignment="Center" IsVisible="{Binding !IsPiperBinaryAvailable}" />
+                                         VerticalAlignment="Center" IsVisible="{Binding ShowPiperNotFound}" />
                             </StackPanel>
                             <TextBlock Text="{x:Static loc:SettingsText.Voice}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <ComboBox ItemsSource="{Binding PiperVoiceLabels}" SelectedItem="{Binding SelectedPiperVoiceLabel}"

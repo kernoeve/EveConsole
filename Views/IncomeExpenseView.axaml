@@ -71,19 +71,39 @@
 
     <!-- Daily income / expense / cashflow -->
     <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-            CornerRadius="4" Margin="12 0 12 12" Padding="10 8">
+            CornerRadius="4" Margin="12 0 12 12" Padding="10 8" ClipToBounds="True">
       <Grid RowDefinitions="Auto,*">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
+        <!-- ⚠️ The legend is ours, in the title row, not the chart's. On the Overview card this
+             panel is barely a hundred pixels tall: the chart's own legend took a third of that,
+             and with the chart's old 150 px minimum it was drawn over the title (on macOS, whose
+             larger default text made it plain). The colours are the series' own, from
+             IncomeExpenseViewModel's Line(...) calls; change them together. -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0 0 0 6">
           <TextBlock Text="{x:Static loc:FinanceText.DailyIncomeExpenseCashflow}" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="{Binding NetTotal, StringFormat={x:Static loc:FinanceText.FmtNet}}" FontSize="11"
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="16 0 8 0" ClipToBounds="True"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Border Width="10" Height="2" Background="#70AD47" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:FinanceText.SeriesIncome}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Border Width="10" Height="2" Background="#E05252" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:FinanceText.SeriesExpense}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Border Width="10" Height="3" Background="#C8A84B" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:FinanceText.SeriesCashflow}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+          </StackPanel>
+          <TextBlock Grid.Column="2" Text="{Binding NetTotal, StringFormat={x:Static loc:FinanceText.FmtNet}}" FontSize="11"
                      FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
         </Grid>
-        <lvc:CartesianChart Grid.Row="1" MinHeight="150"
+        <lvc:CartesianChart Grid.Row="1" MinHeight="90"
                             Series="{Binding Series}"
                             XAxes="{Binding XAxes}"
                             YAxes="{Binding YAxes}"
-                            LegendPosition="Top"
+                            LegendPosition="Hidden"
                             TooltipPosition="Top"
                             EasingFunction="{x:Null}"
                             Background="Transparent" />

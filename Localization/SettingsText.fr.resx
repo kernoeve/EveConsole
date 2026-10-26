@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ Introuvable dans le dossier de l'application</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper n’est pas disponible sur macOS. Choisissez un autre moteur vocal ci-dessus.</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Télécharger le modèle de voix</value>
   </data>
@@ -1774,6 +1777,9 @@ L'application va redémarrer.</value>
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>Afficher une icône dans la zone de notification, au démarrage de votre session de bureau</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Afficher une icône dans la barre des menus, au démarrage de votre session</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Nécessite PostgreSQL, qu'utilise ce client — le service et tous les clients partagent le même serveur.</value>
   </data>
@@ -1801,11 +1807,17 @@ L'application va redémarrer.</value>
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>En cours d'exécution, et démarrera avec votre session de bureau.</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>En cours d’exécution ; démarrera à l’ouverture de votre session.</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Ne démarrera pas avec Windows. Une icône déjà affichée reste jusqu'à ce que vous choisissiez {0} dans son menu, ou que vous fermiez la session.</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Ne démarrera pas avec votre session de bureau. Une icône déjà affichée reste jusqu'à ce que vous choisissiez {0} dans son menu, ou que vous fermiez la session.</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Ne démarrera pas à l’ouverture de votre session. Une icône déjà affichée reste jusqu’à ce que vous choisissiez {0} dans son menu, ou que vous fermiez la session.</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Modification impossible — {0}</value>

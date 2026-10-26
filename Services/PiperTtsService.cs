@@ -73,7 +73,10 @@ public sealed class PiperTtsService : IDisposable
     private readonly object _playerLock = new();
     private CancellationTokenSource _cts = new();
 
-    public bool IsBinaryAvailable => File.Exists(ExePath);
+    public bool IsBinaryAvailable => !UnsupportedHere && File.Exists(ExePath);
+
+    /// <summary>No Piper runs on this platform (see VoiceProfileVm.IsPiperUnsupportedHere).</summary>
+    public static bool UnsupportedHere => OperatingSystem.IsMacOS();
     public bool IsVoiceDownloaded  => _model is not null || GetVoiceModelPath(_voiceKey) is { } p && Directory.Exists(p);
 
     public static string GetVoiceModelPath(string key) =>

@@ -51,14 +51,16 @@ public sealed class TrayIconController
     private const string RunName    = "EveConsoleTray";
 
     /// <summary>
-    /// ⚠️ HKEY_CURRENT_USER on Windows, and <c>~/.config/autostart</c> on Linux — both per-person
-    /// and per-session, which is exactly what a tray icon is. The machine-wide equivalents would
+    /// ⚠️ HKEY_CURRENT_USER on Windows, <c>~/.config/autostart</c> on Linux and
+    /// <c>~/Library/LaunchAgents</c> on macOS — all per-person and per-session, which is exactly
+    /// what a tray icon is. The machine-wide equivalents would
     /// ask for administrator approval to add an icon to one user's notification area, and would put
     /// it in everyone's.
     /// </summary>
     public static bool StartsAtLogon()
     {
         if (OperatingSystem.IsLinux()) return LinuxAutostart.StartsAtLogin();
+        if (OperatingSystem.IsMacOS()) return MacAutostart.StartsAtLogin();
         if (!OperatingSystem.IsWindows()) return false;
 
         try
@@ -72,6 +74,7 @@ public sealed class TrayIconController
     public static void SetStartsAtLogon(bool on)
     {
         if (OperatingSystem.IsLinux()) { LinuxAutostart.SetStartsAtLogin(on); return; }
+        if (OperatingSystem.IsMacOS()) { MacAutostart.SetStartsAtLogin(on); return; }
         if (!OperatingSystem.IsWindows()) return;
 
         using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKeyPath);
@@ -96,7 +99,10 @@ public sealed class TrayIconController
         {
             _icon = new TrayIcon
             {
-                Icon        = new WindowIcon(AssetLoader.Open(new Uri("avares://EveConsole/Assets/ec.ico"))),
+                // The menu bar draws its icons from a PNG; an .ico there shows as a blank slot.
+                Icon        = new WindowIcon(AssetLoader.Open(new Uri(OperatingSystem.IsMacOS()
+                                  ? "avares://EveConsole/Assets/logo_mark.png"
+                                  : "avares://EveConsole/Assets/ec.ico"))),
                 ToolTipText = "EVE Console",
                 IsVisible   = true,
                 Menu        = BuildMenu(),

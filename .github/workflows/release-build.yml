@@ -109,7 +109,7 @@ jobs:
             '',
             'EVE Console is not signed by Apple yet, so macOS stops it the first time: open **System Settings** -> **Privacy & Security**, scroll down, and click **Open Anyway** (for the installer, and again for the app on its first launch).',
             '',
-            'VLC comes with the macOS app, so alarm sounds need nothing installed. Speech and the global hotkey come later.',
+            'VLC comes with the macOS app, so alarm sounds need nothing installed. For push-to-talk, macOS asks once for the microphone. Piper voices are not available on macOS; the other voice engines are.',
             '',
             'No .NET install is required on any platform — the runtime is bundled.',
             '',
@@ -272,9 +272,10 @@ jobs:
                            -p:Version=$VERSION -p:OfficialRelease=true -o publish-$rid
             vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }} \
                                 --channel $rid --outputDir releases-$rid || true
+            sed -e "s/@VERSION@/$VERSION/" -e "s/@SHORT_VERSION@/${VERSION%%-*}/" packaging/macos/Info.plist > Info-$rid.plist
             vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion $VERSION \
                      --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
-                     --channel $rid --outputDir releases-$rid
+                     --plist Info-$rid.plist --channel $rid --outputDir releases-$rid
             vpk upload github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }} \
                               --merge --channel $rid --outputDir releases-$rid \
                               --releaseName "EVE Console v$VERSION" --tag v$VERSION

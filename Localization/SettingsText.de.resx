@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ Nicht im App-Verzeichnis gefunden</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper ist unter macOS nicht verfügbar. Wählen Sie oben eine andere Sprachausgabe.</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Stimmmodell herunterladen</value>
   </data>
@@ -1774,6 +1777,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>Symbol im Infobereich anzeigen, Start mit Ihrer Desktop-Sitzung</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Symbol in der Menüleiste anzeigen, Start bei der Anmeldung</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Erfordert PostgreSQL, das dieser Client verwendet – der Hintergrunddienst und alle Clients teilen sich denselben Server.</value>
   </data>
@@ -1801,11 +1807,17 @@ Die Anwendung wird neu gestartet.</value>
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>Läuft und startet mit Ihrer Desktop-Sitzung.</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>Läuft und startet bei Ihrer Anmeldung.</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Startet nicht mit Windows. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Startet nicht mit Ihrer Desktop-Sitzung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Startet nicht bei Ihrer Anmeldung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Konnte nicht geändert werden – {0}</value>

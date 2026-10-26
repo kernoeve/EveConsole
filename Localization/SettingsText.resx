@@ -1182,6 +1182,10 @@
     <value>⚠ Not found in app directory</value>
     <comment>Text in SettingsWindow.</comment>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper is not available on macOS. Choose another voice engine above.</value>
+    <comment>Settings → AI Agent → Voices, Piper selected, on macOS: Piper cannot run there.</comment>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Download Voice Model</value>
     <comment>Button or option in SettingsWindow.</comment>
@@ -2319,6 +2323,10 @@ The application will restart.</value>
     <value>Show a notification-area icon, starting with your desktop session</value>
     <comment>Checkbox (Linux): the notification-area icon starts with the desktop session.</comment>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Show a menu bar icon, starting when you log in</value>
+    <comment>Checkbox (macOS): the menu bar icon starts when the person logs in.</comment>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Requires PostgreSQL, which this client is using — the worker and every client share the one server.</value>
     <comment>Polling tab, background service: this client is on PostgreSQL.</comment>
@@ -2355,6 +2363,10 @@ The application will restart.</value>
     <value>Running, and will start with your desktop session.</value>
     <comment>Notification-area icon status.</comment>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>Running, and will start when you log in.</value>
+    <comment>Menu bar icon status (macOS).</comment>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Will not start with Windows. Any icon already showing stays until you choose {0} on it, or log off.</value>
     <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
@@ -2362,6 +2374,10 @@ The application will restart.</value>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Will not start with your desktop session. Any icon already showing stays until you choose {0} on it, or log off.</value>
     <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Will not start when you log in. Any icon already showing stays until you choose {0} on it, or log out.</value>
+    <comment>Status of the menu bar icon's startup setting (macOS). {0} is the icon menu's Exit item.</comment>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Could not change it — {0}</value>

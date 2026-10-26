@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ No se encuentra en la carpeta de la aplicación</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper no está disponible en macOS. Elige otro motor de voz arriba.</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Descargar modelo de voz</value>
   </data>
@@ -1774,6 +1777,9 @@ La aplicación se reiniciará.</value>
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>Mostrar un icono en el área de notificación, que se inicie con tu sesión de escritorio</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Mostrar un icono en la barra de menús, que se inicie al iniciar sesión</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Necesita PostgreSQL, que es lo que usa este cliente: el servicio y todos los clientes comparten el mismo servidor.</value>
   </data>
@@ -1801,11 +1807,17 @@ La aplicación se reiniciará.</value>
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>En ejecución; se iniciará con tu sesión de escritorio.</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>En ejecución; se iniciará cuando inicies sesión.</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>No se iniciará con Windows. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>No se iniciará con tu sesión de escritorio. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>No se iniciará cuando inicies sesión. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>No se ha podido cambiar — {0}</value>

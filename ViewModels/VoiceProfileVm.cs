@@ -249,6 +249,11 @@ public sealed class VoiceProfileVm : ReactiveObject
 
     public bool IsPiperBinaryAvailable => _tts?.Piper.IsBinaryAvailable == true;
 
+    /// <summary>⚠️ No Piper on macOS: its Mac release is missing a library it links against and
+    /// cannot start (rhasspy/piper#404), and the project is archived, so no fix is coming.</summary>
+    public bool IsPiperUnsupportedHere => PiperTtsService.UnsupportedHere;
+    public bool ShowPiperNotFound      => !IsPiperBinaryAvailable && !IsPiperUnsupportedHere;
+
     public bool IsPiperVoiceDownloaded =>
         !string.IsNullOrEmpty(_piperVoiceKey) && Directory.Exists(PiperTtsService.GetVoiceModelPath(_piperVoiceKey));
 

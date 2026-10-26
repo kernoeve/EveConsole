@@ -7,30 +7,43 @@ namespace EveConsole.Services;
 // Windows: low-level keyboard hook via user32.dll (works from any thread; fires on UI thread via callback thread).
 // Linux X11: XGrabKey on root window with a dedicated event-loop thread.
 // Linux Wayland: not supported (no standard mechanism without portal cooperation).
+// macOS: a Carbon hot key on the main thread's event loop (see MacInstall).
 // Must be installed from the UI thread on Windows (which runs the Win32 message loop).
 public sealed class GlobalHotkeyService : IDisposable
 {
     // ── Key option catalogue ───────────────────────────────────────────────────
     // WinVk: Windows Virtual Key code.  X11Keysym: X11 keysym constant.
-    public static readonly IReadOnlyList<(string Name, int WinVk, uint X11Keysym)> KeyOptions =
+    // MacKeyCode: macOS virtual key code (kVK_*); NoMacKey where a Mac keyboard has no such key.
+    // ⚠️ Not 0 for "none": 0 is kVK_ANSI_A on a Mac.
+    public const uint NoMacKey = uint.MaxValue;
+
+    public static readonly IReadOnlyList<(string Name, int WinVk, uint X11Keysym, uint MacKeyCode)> KeyOptions =
     [
-        (SettingsText.PttKeyDisabled,    0,     0x0000),
-        ("F13",         0x7C,  0xFFCA),
-        ("F14",         0x7D,  0xFFCB),
-        ("F15",         0x7E,  0xFFCC),
-        ("F16",         0x7F,  0xFFCD),
-        ("F17",         0x80,  0xFFCE),
-        ("F18",         0x81,  0xFFCF),
-        ("F19",         0x82,  0xFFD0),
-        ("F20",         0x83,  0xFFD1),
-        ("Scroll Lock", 0x91,  0xFF14),
-        ("Pause",       0x13,  0xFF13),
-        ("Insert",      0x2D,  0xFF63),
-        ("Numpad 0",    0x60,  0xFF9E),
-        ("Numpad *",    0x6A,  0xFFAA),
-        ("Numpad /",    0x6F,  0xFFAF),
-        ("Numpad -",    0x6D,  0xFFAD),
+        (SettingsText.PttKeyDisabled,    0,     0x0000, NoMacKey),
+        ("F13",         0x7C,  0xFFCA, 0x69),
+        ("F14",         0x7D,  0xFFCB, 0x6B),
+        ("F15",         0x7E,  0xFFCC, 0x71),
+        ("F16",         0x7F,  0xFFCD, 0x6A),
+        ("F17",         0x80,  0xFFCE, 0x40),
+        ("F18",         0x81,  0xFFCF, 0x4F),
+        ("F19",         0x82,  0xFFD0, 0x50),
+        ("F20",         0x83,  0xFFD1, 0x5A),
+        ("Scroll Lock", 0x91,  0xFF14, NoMacKey),
+        ("Pause",       0x13,  0xFF13, NoMacKey),
+        ("Insert",      0x2D,  0xFF63, 0x72),   // the Help key, where a Mac keyboard has Insert
+        ("Numpad 0",    0x60,  0xFF9E, 0x52),
+        ("Numpad *",    0x6A,  0xFFAA, 0x43),
+        ("Numpad /",    0x6F,  0xFFAF, 0x4B),
+        ("Numpad -",    0x6D,  0xFFAD, 0x4E),
     ];
+
+    /// <summary>Whether this machine can take a key as the push-to-talk key: on a Mac, only the
+    /// ones its keyboard has.</summary>
+    public static bool AvailableHere(int vk) =>
+        vk == 0 || !OperatingSystem.IsMacOS() || VkToMacKeyCode(vk) != NoMacKey;
+
+    public static uint VkToMacKeyCode(int vk) =>
+        KeyOptions.FirstOrDefault(k => k.WinVk == vk) is { Name: not null } k ? k.MacKeyCode : NoMacKey;
 
     public static string VkName(int vk) =>
         KeyOptions.FirstOrDefault(k => k.WinVk == vk).Name ?? $"VK 0x{vk:X2}";
@@ -46,7 +59,7 @@ public sealed class GlobalHotkeyService : IDisposable
     public Action? OnPress   { get; set; }
     public Action? OnRelease { get; set; }
 
-    public bool IsInstalled => _winHookHandle != IntPtr.Zero || _x11Thread?.IsAlive == true;
+    public bool IsInstalled => _winHookHandle != IntPtr.Zero || _x11Thread?.IsAlive == true || _macHotKey != IntPtr.Zero;
 
     public void Configure(int vk)
     {
@@ -64,7 +77,8 @@ public sealed class GlobalHotkeyService : IDisposable
             WinInstall();
         else if (OperatingSystem.IsLinux())
             LinuxInstall();
-        // macOS: not yet implemented
+        else if (OperatingSystem.IsMacOS())
+            MacInstall();
     }
 
     public void Uninstall()
@@ -74,9 +88,128 @@ public sealed class GlobalHotkeyService : IDisposable
             WinUninstall();
         else if (OperatingSystem.IsLinux())
             LinuxUninstall();
+        else if (OperatingSystem.IsMacOS())
+            MacUninstall();
     }
 
     public void Dispose() => Uninstall();
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // macOS implementation — a Carbon hot key
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ RegisterEventHotKey, not a keyboard event tap. It reports the key going down AND coming up,
+    // which push-to-talk needs, and asks for no permission; an event tap sees every key typed and
+    // so needs the Accessibility permission granted in System Settings. Its events arrive on the
+    // main thread's event loop, which AppKit (and so Avalonia) already runs, so it is installed
+    // and removed on the UI thread and needs no thread of its own.
+
+    private const string CarbonLib = "/System/Library/Frameworks/Carbon.framework/Carbon";
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct EventTypeSpec { public uint eventClass; public uint eventKind; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct EventHotKeyID { public uint signature; public uint id; }
+
+    private delegate int CarbonEventHandler(IntPtr nextHandler, IntPtr theEvent, IntPtr userData);
+
+    [DllImport(CarbonLib)] private static extern IntPtr GetApplicationEventTarget();
+    [DllImport(CarbonLib)] private static extern int InstallEventHandler(IntPtr target, IntPtr handler, nuint numTypes,
+        [In] EventTypeSpec[] list, IntPtr userData, out IntPtr handlerRef);
+    [DllImport(CarbonLib)] private static extern int RemoveEventHandler(IntPtr handlerRef);
+    [DllImport(CarbonLib)] private static extern int RegisterEventHotKey(uint keyCode, uint modifiers, EventHotKeyID id,
+        IntPtr target, uint options, out IntPtr hotKeyRef);
+    [DllImport(CarbonLib)] private static extern int UnregisterEventHotKey(IntPtr hotKeyRef);
+    [DllImport(CarbonLib)] private static extern uint GetEventKind(IntPtr theEvent);
+
+    private const uint KEventClassKeyboard  = 0x6B657962;   // 'keyb'
+    private const uint KEventHotKeyPressed  = 5;
+    private const uint KEventHotKeyReleased = 6;
+
+    private IntPtr              _macHotKey;
+    private IntPtr              _macHandler;
+    private CarbonEventHandler? _macCallback;   // kept alive: Carbon holds only a function pointer
+
+    /// <summary>Why the last attempt to register the Mac hot key failed, or null.</summary>
+    public string? MacError { get; private set; }
+
+    private static void OnUiThread(Action action)
+    {
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) action();
+        else Avalonia.Threading.Dispatcher.UIThread.Invoke(action);
+    }
+
+    private void MacInstall() => OnUiThread(() =>
+    {
+        if (_macHotKey != IntPtr.Zero) return;
+        MacError = null;
+
+        var code = VkToMacKeyCode(_configuredVk);
+        if (code == NoMacKey) { MacError = "no such key on a Mac keyboard"; return; }
+
+        try
+        {
+            _macCallback = MacCallback;
+            var target = GetApplicationEventTarget();
+            EventTypeSpec[] kinds =
+            [
+                new() { eventClass = KEventClassKeyboard, eventKind = KEventHotKeyPressed },
+                new() { eventClass = KEventClassKeyboard, eventKind = KEventHotKeyReleased },
+            ];
+
+            var status = InstallEventHandler(target, Marshal.GetFunctionPointerForDelegate(_macCallback),
+                                             (nuint)kinds.Length, kinds, IntPtr.Zero, out _macHandler);
+            if (status != 0) { MacError = $"InstallEventHandler {status}"; _macHandler = IntPtr.Zero; _macCallback = null; return; }
+
+            // 'EVEC': an id of our own; with one hot key there is nothing to tell apart.
+            status = RegisterEventHotKey(code, 0, new EventHotKeyID { signature = 0x45564543, id = 1 },
+                                         target, 0, out _macHotKey);
+            if (status != 0)
+            {
+                MacError = $"RegisterEventHotKey {status}";
+                _macHotKey = IntPtr.Zero;
+                RemoveEventHandler(_macHandler);
+                _macHandler  = IntPtr.Zero;
+                _macCallback = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            MacError = ex.Message;
+            _macHotKey = _macHandler = IntPtr.Zero;
+            _macCallback = null;
+        }
+    });
+
+    private void MacUninstall() => OnUiThread(() =>
+    {
+        try
+        {
+            if (_macHotKey  != IntPtr.Zero) UnregisterEventHotKey(_macHotKey);
+            if (_macHandler != IntPtr.Zero) RemoveEventHandler(_macHandler);
+        }
+        catch { /* shutting down; nothing left to undo */ }
+        _macHotKey   = IntPtr.Zero;
+        _macHandler  = IntPtr.Zero;
+        _macCallback = null;
+    });
+
+    private int MacCallback(IntPtr nextHandler, IntPtr theEvent, IntPtr userData)
+    {
+        switch (GetEventKind(theEvent))
+        {
+            case KEventHotKeyPressed when !_keyDown:
+                _keyDown = true;
+                OnPress?.Invoke();
+                break;
+            case KEventHotKeyReleased when _keyDown:
+                _keyDown = false;
+                OnRelease?.Invoke();
+                break;
+        }
+        return 0;   // noErr: handled
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // Windows implementation — low-level keyboard hook

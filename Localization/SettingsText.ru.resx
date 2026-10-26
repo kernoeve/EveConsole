@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ Не найдено в папке приложения</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper недоступен в macOS. Выберите выше другой голосовой движок.</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Загрузить модель голоса</value>
   </data>
@@ -1774,6 +1777,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>Показывать значок в области уведомлений, запуская его вместе с сеансом рабочего стола</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Показывать значок в строке меню, запуская его при входе в систему</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Нужен PostgreSQL, который этот клиент и использует, — фоновый процесс и все клиенты работают с одним сервером.</value>
   </data>
@@ -1801,11 +1807,17 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>Работает и будет запускаться вместе с сеансом рабочего стола.</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>Работает и будет запускаться при входе в систему.</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Не будет запускаться вместе с Windows. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Не будет запускаться вместе с сеансом рабочего стола. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Не будет запускаться при входе в систему. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Не удалось изменить — {0}</value>

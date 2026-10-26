@@ -256,8 +256,31 @@ jobs:
         run: |
           for rid in osx-arm64 osx-x64; do
             dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true -o publish-$rid
+            sed -e "s/@VERSION@/0.0.1-ci/" -e "s/@SHORT_VERSION@/0.0.1/" packaging/macos/Info.plist > Info-$rid.plist
             vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.0.1-ci \
                      --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
-                     --channel $rid --outputDir releases-$rid
+                     --plist Info-$rid.plist --channel $rid --outputDir releases-$rid
             ls -la releases-$rid
+          done
+
+      # What a user's Mac gets, checked inside the package rather than in the publish folder:
+      # the Info.plist macOS reads (⚠️ without NSMicrophoneUsageDescription macOS ends the app
+      # the first time it opens the microphone, with no dialog), and the native libraries for
+      # sound, speech and the microphone, for that package's own architecture.
+      - name: Check what the packages carry
+        run: |
+          for rid in osx-arm64 osx-x64; do
+            arch=${rid#osx-}
+            rm -rf app-$rid && mkdir app-$rid
+            unzip -q releases-$rid/*-Portable.zip -d app-$rid
+            app=$(find app-$rid -maxdepth 2 -name "*.app" | head -1)
+            echo "== $app"
+            plutil -lint "$app/Contents/Info.plist"
+            plutil -p "$app/Contents/Info.plist"
+            plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist" > /dev/null
+            [ "$(plutil -extract CFBundleExecutable raw "$app/Contents/Info.plist")" = EveConsole ]
+            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib; do
+              found=$(find "$app/Contents/MacOS" -path "*$lib" | head -1)
+              [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
+            done
           done

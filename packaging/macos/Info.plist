@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The macOS app's Info.plist, given to `vpk pack` with ‑‑plist by pr-build.yml and
+  release-build.yml, which fill in @VERSION@ (the release's own version) and @SHORT_VERSION@ (the
+  same without any pre-release suffix, which is all macOS accepts there).
+
+  ⚠️ Velopack writes one of these itself when it is not given one, and this is that file's keys
+  with the same values, plus the ones it has no option for. Keep them in step: the bundle
+  identifier is what macOS files the microphone permission and the Keychain items under, so a
+  change to it makes every existing install ask again, and CFBundleExecutable and
+  CFBundleIconFile must name what `vpk pack` is given as ‑‑mainExe and ‑‑icon.
+
+  NSMicrophoneUsageDescription: macOS shows it when asking for the microphone, for push-to-talk.
+  Without it macOS does not ask: it ends the app the first time the microphone is opened.
+-->
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>EVE Console</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.EveConsole.EveConsole</string>
+  <key>CFBundleVersion</key>
+  <string>@VERSION@</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleSignature</key>
+  <string>????</string>
+  <key>CFBundleExecutable</key>
+  <string>EveConsole</string>
+  <key>CFBundleIconFile</key>
+  <string>EveConsole.icns</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@SHORT_VERSION@</string>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>EVE Console listens while you hold your push-to-talk key, so you can speak to the AI agent.</string>
+</dict>
+</plist>

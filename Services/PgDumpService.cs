@@ -200,6 +200,16 @@ public sealed class PgDumpService
             yield return "/usr/local/pgsql/bin";
             yield return "/opt/homebrew/opt";
         }
+
+        // ⚠️ Searched even when a terminal finds pg_dump. An app opened from the Finder gets
+        // launchd's PATH, /usr/bin:/bin:/usr/sbin:/sbin, and none of these is on it.
+        if (OperatingSystem.IsMacOS())
+        {
+            yield return "/opt/homebrew/bin";                           // Homebrew, Apple Silicon
+            yield return "/usr/local/bin";                              // Homebrew, Intel
+            yield return "/Applications/Postgres.app/Contents/Versions"; // Postgres.app, one folder per version
+            yield return "/Library/PostgreSQL";                         // the EDB installer, likewise
+        }
     }
 
     private static async Task<int> MajorVersionAsync(string exePath, CancellationToken ct)

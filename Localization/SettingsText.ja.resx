@@ -913,6 +913,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ アプリのフォルダーに見つかりません</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper は macOS では利用できません。上で別の音声エンジンを選んでください。</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>音声モデルをダウンロード</value>
   </data>
@@ -1774,6 +1777,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>通知領域のアイコンを表示する（デスクトップセッションの開始時に開始）</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>メニューバーにアイコンを表示する（ログイン時に開始）</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>PostgreSQLが必要です。このクライアントはPostgreSQLを使用しています — ワーカーとすべてのクライアントが1つのサーバーを共有します。</value>
   </data>
@@ -1801,11 +1807,17 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>実行中です。デスクトップセッションの開始時に開始します。</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>実行中です。ログイン時に開始します。</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Windowsの起動時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>デスクトップセッションの開始時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>ログイン時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログアウトするまで残ります。</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>変更できませんでした — {0}</value>
