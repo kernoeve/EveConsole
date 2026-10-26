@@ -154,6 +154,20 @@ jobs:
       - name: Publish (self-contained linux-x64)
         run: dotnet publish EveConsole.csproj -c Release -r linux-x64 --self-contained true -o publish-linux
 
+      # ⚠️ Every Linux build shipped without Piper until #163, and nothing noticed: the download
+      # ran and logged success, but the files never reached the output. So this looks in the
+      # published folder, where the app looks (piper/piper beside it), and runs the binary: it
+      # must be executable, find every library it links against, and start.
+      - name: Piper is in the Linux build and starts
+        run: |
+          piper=publish-linux/piper/piper
+          [ -x "$piper" ] || { echo "::error::$piper is missing or not executable"; ls -la publish-linux/piper 2>&1 | head; exit 1; }
+          [ -d publish-linux/piper/espeak-ng-data ] || { echo "::error::espeak-ng-data is missing beside piper"; exit 1; }
+          if ldd "$piper" | grep "not found"; then echo "::error::piper cannot find the libraries above"; exit 1; fi
+          "$piper" --help > piper-help.txt 2>&1 || true
+          grep -qi "usage" piper-help.txt || { echo "::error::piper did not start"; cat piper-help.txt; exit 1; }
+          echo "piper: $(du -sh publish-linux/piper | cut -f1), starts"
+
       - name: Docker compose file is valid
         run: POSTGRES_PASSWORD=ci docker compose -f packaging/docker/docker-compose.yml config -q
 
