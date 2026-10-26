@@ -2650,6 +2650,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>Das Passwort liegt im Schlüsselbund Ihres Desktops; config.json enthält nur einen Verweis darauf.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>Das Passwort liegt in Ihrem macOS-Schlüsselbund; config.json enthält nur einen Verweis darauf.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>Es wurde kein Schlüsselbund gefunden, daher wird das Passwort so, wie es eingegeben wurde, in config.json gespeichert. Installieren Sie libsecret-tools (secret-tool), damit es stattdessen im Schlüsselbund aufbewahrt wird.</value>
   </data>

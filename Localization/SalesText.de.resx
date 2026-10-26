@@ -1501,6 +1501,9 @@ Klicken, um Vertrag {0} im Tool „Verträge“ zu öffnen.</value>
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>Im Schlüsselbund dieses Rechners ist ein Token gespeichert.</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>Ein Token ist im Schlüsselbund dieses Macs gespeichert.</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>Auf diesem Rechner ist ein Token so, wie es eingegeben wurde, in config.json gespeichert; es war kein Schlüsselbund verfügbar.</value>
   </data>

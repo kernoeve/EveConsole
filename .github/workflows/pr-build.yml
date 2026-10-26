@@ -199,3 +199,65 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
+
+  # ── macOS ──────────────────────────────────────────────────────────────────────────
+  #
+  # Nobody here has a Mac, so this job IS the macOS test. It answers three questions on a real
+  # one, on every PR: does the app start, does a saved secret survive the Keychain, and does an
+  # unsigned Velopack package build for Apple Silicon and for Intel — which release-build.yml
+  # depends on, and which can only be built on a Mac.
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build EveConsole.csproj -c Release
+
+      # The real App on a fresh data folder, Avalonia's headless platform with real drawing: the
+      # main window has to open, and a secret has to come back out of the Keychain. Passing prints
+      # "SMOKE PASS" — see tools/StartupSmoke for why the line and not the exit code.
+      - name: Starts on macOS, and the Keychain keeps a secret
+        run: |
+          dotnet run --project tools/StartupSmoke/StartupSmoke.csproj -c Release -- "$RUNNER_TEMP/smoke" 60 | tee smoke.log
+          grep -q "SMOKE PASS" smoke.log
+
+      - name: The windows it drew
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-startup
+          path: ${{ runner.temp }}/smoke/*.png
+          if-no-files-found: warn
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      # Velopack's macOS bundle wants an .icns. Made here from the logo, with the Mac's own tools,
+      # rather than a generated binary kept in the repository. release-build.yml does the same.
+      - name: App icon
+        run: |
+          mkdir EveConsole.iconset
+          for size in 16 32 128 256 512; do
+            sips -z $size $size Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}.png > /dev/null
+            double=$((size * 2))
+            [ $double -le 512 ] && sips -z $double $double Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}@2x.png > /dev/null
+          done
+          iconutil -c icns EveConsole.iconset -o EveConsole.icns
+
+      # Unsigned, as releases are until there is an Apple Developer ID. A channel per
+      # architecture: both would otherwise be "osx", and each install updates from its own.
+      - name: Package (unsigned) for Apple Silicon and Intel
+        run: |
+          for rid in osx-arm64 osx-x64; do
+            dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true -o publish-$rid
+            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.0.1-ci \
+                     --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
+                     --channel $rid --outputDir releases-$rid
+            ls -la releases-$rid
+          done

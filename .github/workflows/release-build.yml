@@ -102,7 +102,16 @@ jobs:
             'distributions (Debian and Ubuntu also accept `libvlc-dev`). It is the one piece the',
             'build cannot carry itself; everything else works without it.',
             '',
-            'No .NET install is required on either platform — the runtime is bundled.',
+            '### macOS',
+            '',
+            '- **Installer:** `EveConsole-osx-arm64-Setup.pkg` for Apple Silicon (M1 and later), `EveConsole-osx-x64-Setup.pkg` for Intel Macs. It installs EVE Console and keeps it updated.',
+            '- **Portable:** the matching `-Portable.zip`; open it and run the app inside.',
+            '',
+            'EVE Console is not signed by Apple yet, so macOS stops it the first time: open **System Settings** -> **Privacy & Security**, scroll down, and click **Open Anyway** (for the installer, and again for the app on its first launch).',
+            '',
+            'This first macOS build covers the core app. Alarm sounds, speech and the global hotkey come later.',
+            '',
+            'No .NET install is required on any platform — the runtime is bundled.',
             '',
             '### First launch (Windows SmartScreen)',
             'EVE Console is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
@@ -213,6 +222,64 @@ jobs:
           --releaseName "EVE Console v${{ needs.build.outputs.version }}"
           --tag v${{ needs.build.outputs.version }}
 
+  # ══ macOS ═════════════════════════════════════════════════════════════════
+  #
+  # Velopack packs a macOS app only on a Mac, so a job of its own on GitHub's macOS runner, one
+  # package per architecture. pr-build.yml packs the same way on every PR, without uploading.
+  #
+  # ⚠️ A channel per architecture. Both would otherwise be "osx" and overwrite each other's
+  # releases.osx.json; with osx-arm64 and osx-x64, each install updates from its own.
+  #
+  # ⚠️ After Linux, not beside it: each adds to the release the Windows job created, and two
+  # uploads merging into one release at once is a race nobody needs. always(), so a Linux failure
+  # does not cost the Macs their packages; a Windows failure still stops it.
+  #
+  # Unsigned, as the release notes say, until there is an Apple Developer ID.
+  macos:
+    needs: [build, linux]
+    if: always() && needs.build.result == 'success'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      # Velopack's macOS bundle wants an .icns, made here from the logo with the Mac's own tools.
+      - name: App icon
+        run: |
+          mkdir EveConsole.iconset
+          for size in 16 32 128 256 512; do
+            sips -z $size $size Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}.png > /dev/null
+            double=$((size * 2))
+            [ $double -le 512 ] && sips -z $double $double Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}@2x.png > /dev/null
+          done
+          iconutil -c icns EveConsole.iconset -o EveConsole.icns
+
+      - name: Publish, pack and upload for Apple Silicon and Intel
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          for rid in osx-arm64 osx-x64; do
+            dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true \
+                           -p:Version=$VERSION -p:OfficialRelease=true -o publish-$rid
+            vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }} \
+                                --channel $rid --outputDir releases-$rid || true
+            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion $VERSION \
+                     --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
+                     --channel $rid --outputDir releases-$rid
+            vpk upload github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }} \
+                              --merge --channel $rid --outputDir releases-$rid \
+                              --releaseName "EVE Console v$VERSION" --tag v$VERSION
+          done
+
   # ══ Announce ══════════════════════════════════════════════════════════════
   #
   # ⚠️ A job in THIS workflow rather than a separate one on `release: published`. The release is
@@ -220,7 +287,7 @@ jobs:
   # for anything GITHUB_TOKEN does — a `release` workflow would never run, and would look like a
   # broken webhook rather than a trigger that cannot fire.
   announce:
-    needs: [build, linux]
+    needs: [build, linux, macos]
     # ⚠️ always(), so this still runs when the Linux job failed. That job's own note says its
     # failure costs the Linux artifacts and not the release; a good Windows release that nobody
     # hears about is the worse outcome. The guard keeps it to releases that actually happened.

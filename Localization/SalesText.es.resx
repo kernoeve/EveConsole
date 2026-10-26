@@ -1501,6 +1501,9 @@ Haz clic para abrir el contrato {0} en la herramienta Contratos.</value>
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>Hay un token guardado en el llavero de este equipo.</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>Hay un token guardado en el llavero de este Mac.</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>Hay un token guardado en este equipo en config.json tal como se escribió; no había ningún llavero disponible.</value>
   </data>

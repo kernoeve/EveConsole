@@ -3487,6 +3487,10 @@ The application will restart.</value>
     <value>The password is held in your desktop keyring; config.json contains only a reference to it.</value>
     <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on Linux with a desktop keyring. config.json is a file name.</comment>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>The password is held in your macOS Keychain; config.json contains only a reference to it.</value>
+    <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on macOS. Keychain is the macOS name; config.json is a file name.</comment>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>No keyring was found, so the password is stored in config.json as typed. Install libsecret-tools (secret-tool) to have it kept in the keyring instead.</value>
     <comment>Settings → Database → PostgreSQL Server: no keyring was found. config.json is a file name; libsecret-tools and secret-tool are package and program names.</comment>

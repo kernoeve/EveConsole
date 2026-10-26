@@ -1999,6 +1999,10 @@ Click to open contract {0} in the Contracts tool.</value>
     <value>A token is saved in this machine's keyring.</value>
     <comment>Where the Cloudflare token is kept.</comment>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>A token is saved in this Mac's Keychain.</value>
+    <comment>Stores: the Cloudflare token is kept in the macOS Keychain.</comment>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>A token is saved on this machine in config.json as typed; no keyring was available.</value>
     <comment>Where the Cloudflare token is kept.</comment>

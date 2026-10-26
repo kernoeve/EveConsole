@@ -573,7 +573,7 @@
                               ToolTip.Tip="{x:Static loc:SalesText.TipCopyTheRawFormatted}" />
                     </Grid>
                     <SelectableTextBlock v:InlineRenderer.Segments="{Binding Segments}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12"
+                                         FontFamily="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12"
                                          TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>

@@ -1513,6 +1513,9 @@
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>Токен сохранён в связке ключей этого компьютера.</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>Токен сохранён в связке ключей этого Mac.</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>Токен сохранён на этом компьютере в config.json как есть: связка ключей недоступна.</value>
   </data>

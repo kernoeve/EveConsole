@@ -1495,6 +1495,9 @@
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>トークンはこのマシンのキーリングに保存されています。</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>トークンはこの Mac のキーチェーンに保存されています。</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>キーリングを利用できなかったため、トークンはこのマシンのconfig.jsonに入力されたまま保存されています。</value>
   </data>

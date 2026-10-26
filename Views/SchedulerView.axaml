@@ -710,7 +710,7 @@
                                     VerticalScrollBarVisibility="Auto"
                                     MaxHeight="620" IsVisible="{Binding HasPreview}">
                         <SelectableTextBlock Text="{Binding PreviewText}"
-                                             FontFamily="Consolas, DejaVu Sans Mono, Liberation Mono, monospace"
+                                             FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                                              FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                       </ScrollViewer>
                     </StackPanel>

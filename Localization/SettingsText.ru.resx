@@ -2650,6 +2650,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>Пароль хранится в связке ключей рабочего стола; config.json содержит только ссылку на него.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>Пароль хранится в связке ключей macOS; config.json содержит только ссылку на него.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>Связка ключей не найдена, поэтому пароль хранится в config.json в том виде, как введён. Установите libsecret-tools (secret-tool), чтобы он хранился в связке ключей.</value>
   </data>

@@ -2650,6 +2650,9 @@ La aplicación se reiniciará.</value>
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>La contraseña se guarda en el llavero de tu escritorio; config.json solo contiene una referencia a ella.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>La contraseña se guarda en tu llavero de macOS; config.json solo contiene una referencia a ella.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>No se ha encontrado ningún llavero, así que la contraseña se guarda en config.json tal como se escribió. Instala libsecret-tools (secret-tool) para que se guarde en el llavero.</value>
   </data>

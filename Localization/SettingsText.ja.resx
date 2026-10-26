@@ -2650,6 +2650,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>パスワードはデスクトップのキーリングに保存されています。config.jsonにはその参照だけが含まれます。</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>パスワードは macOS のキーチェーンに保存されています。config.jsonにはその参照だけが含まれます。</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>キーリングが見つからないため、パスワードは入力されたままconfig.jsonに保存されています。キーリングに保存するには、libsecret-tools（secret-tool）をインストールしてください。</value>
   </data>

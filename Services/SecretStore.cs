@@ -12,6 +12,8 @@ public enum SecretProtection
     Dpapi,
     /// <summary>Held by the desktop keyring, with only a reference in the config file.</summary>
     LibSecret,
+    /// <summary>Held by the macOS Keychain, with only a reference in the config file.</summary>
+    Keychain,
     /// <summary>Neither was available. The value is in the config file as typed.</summary>
     None,
 }
@@ -40,6 +42,7 @@ public static class SecretStore
 {
     private const string DpapiPrefix     = "dpapi:";
     private const string LibSecretPrefix = "libsecret:";
+    private const string KeychainPrefix  = "keychain:";
 
     // Identifies this app's entries in the keyring. The attribute pair is the lookup key.
     private const string KeyringService = "eveconsole";
@@ -47,6 +50,7 @@ public static class SecretStore
     /// <summary>What protection this machine can actually provide.</summary>
     public static SecretProtection Available =>
         OperatingSystem.IsWindows()  ? SecretProtection.Dpapi
+        : OperatingSystem.IsMacOS()  ? HasSecurityTool() ? SecretProtection.Keychain : SecretProtection.None
         : HasSecretTool()            ? SecretProtection.LibSecret
                                      : SecretProtection.None;
 
@@ -57,6 +61,8 @@ public static class SecretStore
             SettingsText.DbSecretDpapi,
         SecretProtection.LibSecret =>
             SettingsText.DbSecretLibSecret,
+        SecretProtection.Keychain =>
+            SettingsText.DbSecretKeychain,
         _ =>
             SettingsText.DbSecretNone,
     };
@@ -80,7 +86,12 @@ public static class SecretStore
                 return DpapiPrefix + Convert.ToBase64String(blob);
             }
 
-            if (HasSecretTool() && StoreInKeyring(secret, reference))
+            if (OperatingSystem.IsMacOS())
+            {
+                if (HasSecurityTool() && StoreInKeychain(secret, reference))
+                    return KeychainPrefix + reference;
+            }
+            else if (HasSecretTool() && StoreInKeyring(secret, reference))
                 return LibSecretPrefix + reference;
         }
         catch
@@ -116,6 +127,9 @@ public static class SecretStore
 
             if (stored.StartsWith(LibSecretPrefix, StringComparison.Ordinal))
                 return LookupInKeyring(stored[LibSecretPrefix.Length..]);
+
+            if (stored.StartsWith(KeychainPrefix, StringComparison.Ordinal))
+                return OperatingSystem.IsMacOS() ? LookupInKeychain(stored[KeychainPrefix.Length..]) : null;
         }
         catch
         {
@@ -131,7 +145,8 @@ public static class SecretStore
     public static bool IsProtected(string? stored) =>
         stored is not null
         && (stored.StartsWith(DpapiPrefix, StringComparison.Ordinal)
-            || stored.StartsWith(LibSecretPrefix, StringComparison.Ordinal));
+            || stored.StartsWith(LibSecretPrefix, StringComparison.Ordinal)
+            || stored.StartsWith(KeychainPrefix, StringComparison.Ordinal));
 
     // ── libsecret, through its command line tool ─────────────────────────────
     //
@@ -214,5 +229,81 @@ public static class SecretStore
         // is removed.
         if (!proc.HasExited || proc.ExitCode != 0) return null;
         return value.TrimEnd('\n');
+    }
+
+    // ── The macOS Keychain, through its command line tool ────────────────────
+    //
+    // ⚠️ `security -i`, reading its command from stdin: the secret never appears in a command
+    // line, where any process could read it. A bare -w at the end of the arguments would prompt
+    // on the terminal instead, and the app has none.
+    //
+    // ⚠️ The item holds the secret's UTF-8 as HEX TEXT, not the secret. `find-generic-password -w`
+    // prints a password with any non-ASCII byte as hex instead of text, so what came back could not
+    // be told from a password that is itself hex digits. Hex text is plain ASCII both ways and
+    // needs no quoting in the command.
+
+    private static bool? _hasSecurityTool;
+
+    private static bool HasSecurityTool()
+    {
+        if (_hasSecurityTool is { } known) return known;
+        return (_hasSecurityTool = OperatingSystem.IsMacOS() && File.Exists("/usr/bin/security")).Value;
+    }
+
+    private static bool StoreInKeychain(string secret, string reference)
+    {
+        var psi = new ProcessStartInfo("/usr/bin/security")
+        {
+            RedirectStandardInput  = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true,
+        };
+        psi.ArgumentList.Add("-i");
+
+        using var proc = Process.Start(psi);
+        if (proc is null) return false;
+
+        // -U replaces an entry already there, so saving a changed password updates it.
+        var hex = Convert.ToHexString(Encoding.UTF8.GetBytes(secret));
+        proc.StandardInput.WriteLine(
+            $"add-generic-password -U -s {KeyringService} -a {reference} -l \"EVE Console\" -w {hex}");
+        proc.StandardInput.Close();
+        proc.StandardOutput.ReadToEnd();
+        var errors = proc.StandardError.ReadToEnd();
+        proc.WaitForExit(10000);
+
+        // ⚠️ `security -i` exits 0 whatever its commands did, so the entry is read back to be sure
+        // it is there and holds what was written.
+        return proc.HasExited && errors.Trim().Length == 0 && LookupInKeychain(reference) == secret;
+    }
+
+    private static string? LookupInKeychain(string reference)
+    {
+        var psi = new ProcessStartInfo("/usr/bin/security")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true,
+        };
+        psi.ArgumentList.Add("find-generic-password");
+        psi.ArgumentList.Add("-s");
+        psi.ArgumentList.Add(KeyringService);
+        psi.ArgumentList.Add("-a");
+        psi.ArgumentList.Add(reference);
+        psi.ArgumentList.Add("-w");
+
+        using var proc = Process.Start(psi);
+        if (proc is null) return null;
+
+        var value = proc.StandardOutput.ReadToEnd();
+        proc.WaitForExit(10000);
+        if (!proc.HasExited || proc.ExitCode != 0) return null;
+
+        // The hex text StoreInKeychain wrote, and a newline.
+        try { return Encoding.UTF8.GetString(Convert.FromHexString(value.Trim())); }
+        catch (FormatException) { return null; }
     }
 }

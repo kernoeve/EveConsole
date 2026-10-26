@@ -2650,6 +2650,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>密码保存在你的桌面密钥环中；config.json 中只包含对它的引用。</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>密码保存在你的 macOS 钥匙串中；config.json 中只包含对它的引用。</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>未找到密钥环，因此密码按输入的原样保存在 config.json 中。安装 libsecret-tools（secret-tool）后，即可改为保存在密钥环中。</value>
   </data>

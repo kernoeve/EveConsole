@@ -2650,6 +2650,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>비밀번호는 데스크톱 키링에 보관되며, config.json에는 그 참조만 들어 있습니다.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>비밀번호는 macOS 키체인에 보관되며, config.json에는 그 참조만 들어 있습니다.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>키링을 찾을 수 없어 비밀번호가 입력한 그대로 config.json에 저장됩니다. 대신 키링에 보관하려면 libsecret-tools (secret-tool)를 설치하십시오.</value>
   </data>

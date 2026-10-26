@@ -2650,6 +2650,9 @@ L'application va redémarrer.</value>
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>Le mot de passe est conservé dans le trousseau de votre bureau ; config.json n'en contient qu'une référence.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>Le mot de passe est conservé dans votre trousseau macOS ; config.json n'en contient qu'une référence.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>Aucun trousseau n'a été trouvé : le mot de passe est donc stocké dans config.json tel que saisi. Installez libsecret-tools (secret-tool) pour qu'il soit plutôt conservé dans le trousseau.</value>
   </data>

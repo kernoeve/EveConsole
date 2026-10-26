@@ -1450,6 +1450,7 @@ public class StoresViewModel : ReactiveObject
             {
                 SecretProtection.Dpapi     => SalesText.TokenSavedDpapi,
                 SecretProtection.LibSecret => SalesText.TokenSavedKeyring,
+                SecretProtection.Keychain  => SalesText.TokenSavedKeychain,
                 _                          => SalesText.TokenSavedPlain,
             }
             : SalesText.TokenNone;
