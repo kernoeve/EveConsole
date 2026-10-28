@@ -88,6 +88,398 @@
   <data name="ThemeLabel" xml:space="preserve">
     <value>Theme:</value>
   </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>Edit themes…</value>
+    <comment>Settings &gt; Other and the title bar theme menu: opens the theme editor.</comment>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>Make a theme of your own, from scratch or from a copy of another.</value>
+    <comment>Tooltip on the Edit themes button.</comment>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>Themes</value>
+    <comment>Theme editor: window title.</comment>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>THEMES</value>
+    <comment>Theme editor: heading over the list of themes (shown in capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>New theme</value>
+    <comment>Theme editor: button that opens a menu of blank themes to start from.</comment>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>Start a theme of your own from blank colours.</value>
+    <comment>Tooltip on New theme.</comment>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>Blank, dark</value>
+    <comment>Theme editor, New theme menu: a blank theme on a dark background.</comment>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>Blank, light</value>
+    <comment>Theme editor, New theme menu: a blank theme on a light background.</comment>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Theme editor: button that makes a new theme of the user's own from the selected one.</comment>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>Make a theme of your own from this one.</value>
+    <comment>Tooltip on Copy.</comment>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Theme editor: deletes the selected theme (only the user's own).</comment>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>Delete the theme "{0}"? This can't be undone.</value>
+    <comment>Theme editor: asked before deleting. {0} = the theme's name.</comment>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>Built-in</value>
+    <comment>Theme editor list: marks a theme that comes with the application and cannot be changed.</comment>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>Built-in themes can't be changed. Copy this one to make a theme of your own from it.</value>
+    <comment>Theme editor: shown over a built-in theme's colours.</comment>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Theme editor: label of the theme's name box.</comment>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>Ground</value>
+    <comment>Theme editor: label of the dark/light choice — what the theme is drawn on.</comment>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>Whether the theme is dark or light. It also decides the colours not set here: the standard controls, chart lines and security colours.</value>
+    <comment>Tooltip on Ground.</comment>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Theme editor: the dark ground choice.</comment>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>Theme editor: the light ground choice.</comment>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>Quick start</value>
+    <comment>Theme editor: heading of the three starting colours.</comment>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>Pick a background, a text colour and an accent, then work out the rest: every background, line, text and accent shade below is mixed from these three. Status colours are left as they are.</value>
+    <comment>Theme editor: explains the quick start.</comment>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>Background</value>
+    <comment>Theme editor quick start: the background colour.</comment>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>Text</value>
+    <comment>Theme editor quick start: the text colour.</comment>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>Accent</value>
+    <comment>Theme editor quick start: the accent colour.</comment>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>Work out the rest</value>
+    <comment>Theme editor: button that fills every colour from the three quick start colours.</comment>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>Replaces the backgrounds, lines, text and accent below with shades of these three colours.</value>
+    <comment>Tooltip on Work out the rest.</comment>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>These carry meaning in grids and charts. Keep them easy to tell apart from each other and from the backgrounds.</value>
+    <comment>Theme editor: note over the status colours.</comment>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>PREVIEW</value>
+    <comment>Theme editor: heading over the preview (shown in capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>Undo changes</value>
+    <comment>Theme editor: puts back the theme as it was when it was opened.</comment>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>Puts back the colours and name this theme had when you opened it.</value>
+    <comment>Tooltip on Undo changes.</comment>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>Use this theme</value>
+    <comment>Theme editor: applies the selected theme to the application.</comment>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>Saved</value>
+    <comment>Theme editor status line, for two seconds after a change is saved.</comment>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>My theme</value>
+    <comment>Theme editor: the name a new blank theme starts with.</comment>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0} (copy)</value>
+    <comment>Theme editor: the name of a copy. {0} = the name of the theme copied.</comment>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>BACKGROUNDS</value>
+    <comment>Theme editor: heading of the background colours (capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>LINES</value>
+    <comment>Theme editor: heading of the line and border colours.</comment>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>TEXT</value>
+    <comment>Theme editor: heading of the text colours.</comment>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>ACCENT</value>
+    <comment>Theme editor: heading of the accent colours.</comment>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>STATUS COLOURS</value>
+    <comment>Theme editor: heading of good/bad/warning/information colours.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>Page background</value>
+    <comment>Theme editor colour: the window and page background.</comment>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>Panels and cards</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>Banded rows, nested panels</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>Section headers</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>Popups, menus, tooltips</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>Text boxes and drop-downs</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>Under the pointer</value>
+    <comment>Theme editor colour: what is under the mouse pointer.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>Selected row</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>Dividers and grid lines</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>Panel and control edges</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>Emphasis and focus</value>
+    <comment>Theme editor colour: strong borders and focus outlines.</comment>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>Faintest: hints, column headers</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>Dim</value>
+    <comment>Theme editor colour: dim text.</comment>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>Muted: captions</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>Secondary</value>
+    <comment>Theme editor colour: secondary text.</comment>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>Body text</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>Headings</value>
+    <comment>Theme editor colour: the brightest text.</comment>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>Accent</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>Accent under the pointer</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>Accent when pressed</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>Behind accent text</value>
+    <comment>Theme editor colour: the background of notices in the accent colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>Deep accent</value>
+    <comment>Theme editor colour: a darker accent.</comment>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>Pale accent</value>
+    <comment>Theme editor colour: a lighter accent.</comment>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>Good: profit, online</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>Bad: loss, errors</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>Information</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>Behind good</value>
+    <comment>Theme editor colour: background under good text.</comment>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>Behind bad</value>
+    <comment>Theme editor colour: background under bad text.</comment>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>Behind warning</value>
+    <comment>Theme editor colour: background under warning text.</comment>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>Behind information</value>
+    <comment>Theme editor colour: background under information text.</comment>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Theme editor preview: sample tab.</comment>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>Market</value>
+    <comment>Theme editor preview: sample tab, the selected one.</comment>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Theme editor preview: sample tab.</comment>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Theme editor preview: sample label before a date box.</comment>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>All characters</value>
+    <comment>Theme editor preview: sample drop-down choice.</comment>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>Show totals</value>
+    <comment>Theme editor preview: sample tick box.</comment>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Theme editor preview: sample button.</comment>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Theme editor preview: sample accent button.</comment>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>A panel</value>
+    <comment>Theme editor preview: title of the sample panel.</comment>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>Count</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>Change</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>A row</value>
+    <comment>Theme editor preview: a plain grid row.</comment>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>A banded row</value>
+    <comment>Theme editor preview: the alternate-shaded grid row.</comment>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>Under the pointer</value>
+    <comment>Theme editor preview: the grid row under the mouse.</comment>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>Selected</value>
+    <comment>Theme editor preview: the selected grid row.</comment>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>Good</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>Bad</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>Information</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>A notice, on the accent's own background.</value>
+    <comment>Theme editor preview: sample notice.</comment>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>A heading</value>
+    <comment>Theme editor preview: sample heading.</comment>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>Body text, which most of the application is written in.</value>
+    <comment>Theme editor preview: sample body text.</comment>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>Secondary text</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>A caption</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>Dim text</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>A hint</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>A popup, menu or tooltip, raised over the page.</value>
+    <comment>Theme editor preview: sample popup.</comment>
+  </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>UI scale:</value>
   </data>

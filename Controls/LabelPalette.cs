@@ -52,7 +52,8 @@ public static class LabelPalette
 
     /// <summary>⚠️ Keyed by theme as well as by text. The chips are mixed against the ground, so
     /// the same label is genuinely two different chips — and a cache keyed on the label alone
-    /// handed back the dark one for ever after the first switch.</summary>
+    /// handed back the dark one for ever after the first switch. ⚠️ By the ground's colour too: a
+    /// theme of the user's own keeps its variant while its colours are edited.</summary>
     private static readonly Dictionary<(string Variant, string Label), LabelChip> Cache = new();
 
     /// <summary>Everything needed to draw one label.</summary>
@@ -62,7 +63,7 @@ public static class LabelPalette
         // are immutable, so they are made once and shared.
         lock (Cache)
         {
-            var variant = Avalonia.Application.Current?.ActualThemeVariant?.ToString() ?? "";
+            var variant = (Avalonia.Application.Current?.ActualThemeVariant?.ToString() ?? "") + Ground;
             var key     = (variant, label.ToLowerInvariant());
             if (Cache.TryGetValue(key, out var hit)) return hit;
 

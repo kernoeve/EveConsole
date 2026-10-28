@@ -85,6 +85,300 @@
   <data name="ThemeLabel" xml:space="preserve">
     <value>テーマ：</value>
   </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>テーマを編集…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>一から、または既存のテーマをコピーして、自分のテーマを作ります。</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>新しいテーマ</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>無地の配色から自分のテーマを始めます。</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>無地（ダーク）</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>無地（ライト）</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>このテーマから自分のテーマを作ります。</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>テーマ「{0}」を削除しますか？元に戻せません。</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>組み込み</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>組み込みテーマは変更できません。コピーすると、それをもとに自分のテーマを作れます。</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>ベース</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>テーマがダークかライトか。ここで設定しない色（標準コントロール、グラフの線、セキュリティの色）もこれで決まります。</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>クイックスタート</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>背景、文字色、アクセントを選んで残りを算出します。下の背景・線・文字・アクセントの各色は、この3色から混ぜて作られます。ステータスの色はそのままです。</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>残りを算出</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>下の背景・線・文字・アクセントを、この3色の濃淡に置き換えます。</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>これらの色は表やグラフで意味を表します。互いに、また背景とも見分けやすくしてください。</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>変更を元に戻す</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>このテーマを開いたときの色と名前に戻します。</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>このテーマを使う</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>保存しました</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>マイテーマ</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0}（コピー）</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>線</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>ステータスの色</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>ページの背景</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>パネルとカード</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>縞模様の行、入れ子のパネル</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>セクションの見出し</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>ポップアップ、メニュー、ツールチップ</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>テキストボックスとドロップダウン</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>ポインターの下</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>選択した行</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>区切り線とグリッド線</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>パネルとコントロールの枠</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>強調とフォーカス</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>最も淡い：ヒント、列見出し</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>暗め</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>控えめ：キャプション</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>セカンダリ</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>本文</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>見出し</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>ポインターの下のアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>押したときのアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>アクセント文字の背景</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>濃いアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>淡いアクセント</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>良好：利益、オンライン</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>不良：損失、エラー</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>良好の背景</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>不良の背景</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>警告の背景</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>情報の背景</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>すべてのキャラクター</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>合計を表示</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>計算</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>パネル</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>数</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>変化</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>通常の行</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>縞模様の行</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>ポインターの下</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>選択中</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>不良</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>アクセント専用の背景に表示されるお知らせ。</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>見出し</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>本文。アプリのほとんどの文字はこの色です。</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>セカンダリの文字</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>キャプション</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>暗めの文字</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>ヒント</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>ページの上に浮かぶポップアップ、メニュー、ツールチップ。</value>
+  </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>UIの拡大率：</value>
   </data>

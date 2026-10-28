@@ -46,6 +46,8 @@ public static class UiState
     /// <summary>How the Asset Browser's Detailed View groups its rows: an AssetGroupBy name.</summary>
     public const string AssetGroupBy          = "assets.group_by";
     public const string Theme                 = "ui.theme";
+    /// <summary>The user's own themes, as JSON: see CustomThemes.</summary>
+    public const string CustomThemes          = "ui.custom_themes";
     /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
     public const string Scale                 = "ui.scale";
     /// <summary>The interface language's code, "zh-Hans"; absent for the system's language. Read

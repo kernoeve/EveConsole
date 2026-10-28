@@ -698,6 +698,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             menu.Items.Add(item);
         }
 
+        menu.Items.Add(new Separator());
+        var edit = new MenuItem { Header = EveConsole.Localization.SettingsText.EditThemesButton };
+        edit.Click += (_, _) => ThemeEditorWindow.Open(this);
+        menu.Items.Add(edit);
+
         menu.ShowAt(anchor);
     }
 

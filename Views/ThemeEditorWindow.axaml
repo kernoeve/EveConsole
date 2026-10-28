@@ -1,0 +1,189 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:svc="clr-namespace:EveConsole.Services"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:loc="using:EveConsole.Localization"
+        x:Class="EveConsole.Views.ThemeEditorWindow"
+        x:DataType="vm:ThemeEditorViewModel"
+        Title="{x:Static loc:SettingsText.ThemeEdTitle}"
+        Width="1280" Height="820" MinWidth="980" MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Grid ColumnDefinitions="230,420,*" RowDefinitions="*,Auto">
+
+    <!-- ── The themes: built-in ones to look at and copy, the user's own to edit ── -->
+    <Border Grid.Column="0" Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SettingsText.ThemeEdListHeader}" Margin="12 12 12 6"
+                   FontSize="11" FontWeight="SemiBold" LetterSpacing="1" Foreground="{DynamicResource TextFaintBrush}" />
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="10" Spacing="6">
+          <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  Content="{x:Static loc:SettingsText.ThemeEdNew}" ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdNewTip}">
+            <Button.Flyout>
+              <MenuFlyout Placement="TopEdgeAlignedLeft">
+                <MenuItem Header="{x:Static loc:SettingsText.ThemeEdNewDark}" Command="{Binding NewDarkCommand}" />
+                <MenuItem Header="{x:Static loc:SettingsText.ThemeEdNewLight}" Command="{Binding NewLightCommand}" />
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
+          <Grid ColumnDefinitions="*,6,*">
+            <Button Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Content="{x:Static loc:SettingsText.ThemeEdCopy}" ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdCopyTip}"
+                    Command="{Binding CopyCommand}" />
+            <Button Grid.Column="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Content="{x:Static loc:SettingsText.ThemeEdDelete}" Command="{Binding DeleteCommand}" />
+          </Grid>
+        </StackPanel>
+
+        <ListBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Selected}" Background="Transparent" Margin="4 0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="svc:ThemeChoice">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{x:Static loc:SettingsText.ThemeEdBuiltInTag}" IsVisible="{Binding !IsOwn}"
+                           FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- ── The selected theme's colours ─────────────────────────────────────── -->
+    <ScrollViewer Grid.Column="1" Grid.Row="0">
+      <StackPanel Margin="14 12 16 14" Spacing="12">
+
+        <!-- ⚠️ A built-in theme is shown, never changed: the way to one of the user's own is a copy. -->
+        <Border IsVisible="{Binding IsBuiltIn}" Background="{DynamicResource AccentSurfaceBrush}"
+                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="3" Padding="10 8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeEdBuiltInNote}" TextWrapping="Wrap"
+                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Margin="10 0 0 0" VerticalAlignment="Center"
+                    Content="{x:Static loc:SettingsText.ThemeEdCopy}" Command="{Binding CopyCommand}"
+                    Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" />
+          </Grid>
+        </Border>
+
+        <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto" RowSpacing="8">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeEdName}" FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+          <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" IsReadOnly="{Binding IsBuiltIn}" FontSize="12" />
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeEdGround}" FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                     ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdGroundTip}" />
+          <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="16" IsEnabled="{Binding IsOwn}"
+                      ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdGroundTip}">
+            <RadioButton GroupName="ThemeGround" Content="{x:Static loc:SettingsText.ThemeEdGroundDark}" IsChecked="{Binding IsDark}" FontSize="12" />
+            <RadioButton GroupName="ThemeGround" Content="{x:Static loc:SettingsText.ThemeEdGroundLight}" IsChecked="{Binding IsLight}" FontSize="12" />
+          </StackPanel>
+        </Grid>
+
+        <!-- Quick start: three colours, and everything else worked out from them. -->
+        <Border IsVisible="{Binding IsOwn}" Background="{DynamicResource SurfacePanelBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+          <StackPanel>
+            <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="{x:Static loc:SettingsText.ThemeEdStartHeader}" FontWeight="SemiBold" FontSize="12"
+                         Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <StackPanel Margin="10 8 10 10" Spacing="8">
+              <TextBlock Text="{x:Static loc:SettingsText.ThemeEdStartNote}" TextWrapping="Wrap" FontSize="11"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <WrapPanel ItemSpacing="14" LineSpacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{x:Static loc:SettingsText.ThemeEdStartGround}" FontSize="12" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <ColorPicker Color="{Binding StartGround}" ColorSpectrumComponents="SaturationValue"
+                               IsAlphaEnabled="False" IsAlphaVisible="False" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{x:Static loc:SettingsText.ThemeEdStartText}" FontSize="12" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <ColorPicker Color="{Binding StartText}" ColorSpectrumComponents="SaturationValue"
+                               IsAlphaEnabled="False" IsAlphaVisible="False" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{x:Static loc:SettingsText.ThemeEdStartAccent}" FontSize="12" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <ColorPicker Color="{Binding StartAccent}" ColorSpectrumComponents="SaturationValue"
+                               IsAlphaEnabled="False" IsAlphaVisible="False" />
+                </StackPanel>
+              </WrapPanel>
+              <Button Content="{x:Static loc:SettingsText.ThemeEdFill}" ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdFillTip}"
+                      Command="{Binding FillCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Every colour, section by section. -->
+        <ItemsControl ItemsSource="{Binding Groups}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="14" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TokenGroupVm">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding Title}" FontSize="11" FontWeight="SemiBold" LetterSpacing="1"
+                           Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" TextWrapping="Wrap" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 2" />
+                <ItemsControl ItemsSource="{Binding Tokens}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TokenVm">
+                      <Grid ColumnDefinitions="*,88,Auto" Margin="0 2">
+                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Label}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBox Grid.Column="1" Text="{Binding Hex}" IsReadOnly="{Binding !IsEditable}"
+                                 FontSize="12" Padding="6 0" MinHeight="30" Margin="6 0"
+                                 VerticalAlignment="Center" VerticalContentAlignment="Center" />
+                        <!-- ⚠️ The picker only on the user's own: a built-in colour is shown as a
+                             plain swatch, since a picker that opens and then refuses reads as broken. -->
+                        <ColorPicker Grid.Column="2" Color="{Binding Colour}" IsVisible="{Binding IsEditable}"
+                                     ColorSpectrumComponents="SaturationValue"
+                                     IsAlphaEnabled="False" IsAlphaVisible="False" />
+                        <Border Grid.Column="2" IsVisible="{Binding !IsEditable}" Width="64" Height="30" CornerRadius="3"
+                                Background="{Binding Swatch}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ── The preview ──────────────────────────────────────────────────────── -->
+    <DockPanel Grid.Column="2" Grid.Row="0" Margin="4 12 14 14">
+      <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SettingsText.ThemeEdPreviewHeader}" Margin="0 0 0 6"
+                 FontSize="11" FontWeight="SemiBold" LetterSpacing="1" Foreground="{DynamicResource TextFaintBrush}" />
+      <views:ThemePreview x:Name="Preview" />
+    </DockPanel>
+
+    <!-- ── Actions ──────────────────────────────────────────────────────────── -->
+    <Border Grid.Row="1" Grid.ColumnSpan="3" Background="{DynamicResource SurfacePanelBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 1 0 0" Padding="14 10">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding Status}" FontSize="12" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+        <Button Grid.Column="1" Margin="0 0 8 0" Content="{x:Static loc:SettingsText.ThemeEdRevert}"
+                ToolTip.Tip="{x:Static loc:SettingsText.ThemeEdRevertTip}" Command="{Binding RevertCommand}" />
+        <Button Grid.Column="2" Margin="0 0 8 0" Content="{x:Static loc:SettingsText.ThemeEdWear}"
+                Command="{Binding WearCommand}"
+                Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" />
+        <Button Grid.Column="3" Content="{x:Static loc:SettingsText.Close}" Click="OnClose" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
