@@ -218,6 +218,9 @@
         <DataTemplate DataType="vm:CorpActivityViewModel">
           <views:CorpActivityView />
         </DataTemplate>
+        <DataTemplate DataType="vm:CorpStructuresViewModel">
+          <views:CorpStructuresView />
+        </DataTemplate>
         <DataTemplate DataType="vm:KillmailBrowserViewModel">
           <views:KillmailBrowserView />
         </DataTemplate>

@@ -870,6 +870,60 @@ public class CorpStarbase
     public DateTimeOffset? OnlinedSince    { get; set; }
 }
 
+/// <summary>A service an Upwell structure offers, as the structure list names it, and its state
+/// (online / offline / cleanup). Replaced with the structure list on every poll.</summary>
+public class CorpStructureService
+{
+    public long   CorporationId { get; set; }
+    public long   StructureId   { get; set; }
+    public string Name          { get; set; } = "";
+    public string State         { get; set; } = "";
+}
+
+/// <summary>A tower's settings: who may use it, who may run it, and when its guns fire. The
+/// fuel in its bay goes to <see cref="CorpFuelBay"/> with everyone else's.</summary>
+public class CorpStarbaseDetail
+{
+    public long    CorporationId            { get; set; }
+    public long    StarbaseId               { get; set; }
+    public bool    AllowAllianceMembers     { get; set; }
+    public bool    AllowCorporationMembers  { get; set; }
+    public string  Anchor                   { get; set; } = "";
+    public string  Unanchor                 { get; set; } = "";
+    public string  Online                   { get; set; } = "";
+    public string  Offline                  { get; set; } = "";
+    public string  FuelBayTake              { get; set; } = "";
+    public string  FuelBayView              { get; set; } = "";
+    public bool    AttackIfAtWar            { get; set; }
+    public bool    AttackIfSecurityDropping { get; set; }
+    public double? AttackSecurityThreshold  { get; set; }
+    public double? AttackStandingThreshold  { get; set; }
+    public bool    UseAllianceStandings     { get; set; }
+    public DateTimeOffset PulledAt          { get; set; }
+}
+
+/// <summary>
+/// One fuel in one structure's or tower's fuel bay, and how fast it has been going.
+///
+/// <para>Quantity is the latest reading: for a structure from the corp's assets (flag
+/// StructureFuel), for a tower from its starbase detail. The baseline is the reading the current
+/// run started from — set when the row is first seen and again whenever the quantity goes UP,
+/// which is a refuel — so (BaselineQuantity − Quantity) over (SeenAt − BaselineAt) is the
+/// average burn since the bay was last topped up. Measured rather than worked out, it covers what
+/// the game data does not say: Metenox's magmatic gas, a jump bridge's liquid ozone, a tower's
+/// charters and any fuel bonus.</para>
+/// </summary>
+public class CorpFuelBay
+{
+    public long   CorporationId    { get; set; }
+    public long   LocationId       { get; set; }   // structure id or starbase id
+    public int    TypeId           { get; set; }
+    public long   Quantity         { get; set; }
+    public DateTimeOffset SeenAt   { get; set; }
+    public long   BaselineQuantity { get; set; }
+    public DateTimeOffset BaselineAt { get; set; }
+}
+
 public class CorpFacility
 {
     public long   CorporationId { get; set; }

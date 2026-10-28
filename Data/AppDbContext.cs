@@ -84,6 +84,9 @@ public class AppDbContext : DbContext
     public DbSet<StructureName>         EsiStructureNames        => Set<StructureName>();
     public DbSet<StructureNameFailure>  EsiStructureNameFailures => Set<StructureNameFailure>();
     public DbSet<CorpStarbase>          EsiCorpStarbases         => Set<CorpStarbase>();
+    public DbSet<CorpStructureService>  EsiCorpStructureServices => Set<CorpStructureService>();
+    public DbSet<CorpStarbaseDetail>    EsiCorpStarbaseDetails   => Set<CorpStarbaseDetail>();
+    public DbSet<CorpFuelBay>           EsiCorpFuelBays          => Set<CorpFuelBay>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
@@ -1137,6 +1140,25 @@ public class AppDbContext : DbContext
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.StarbaseId).ValueGeneratedNever();
             e.ToTable("EsiCorpStarbases"); });
+
+        mb.Entity<CorpStructureService>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StructureId, x.Name });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EsiCorpStructureServices"); });
+
+        mb.Entity<CorpStarbaseDetail>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StarbaseId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StarbaseId).ValueGeneratedNever();
+            e.ToTable("EsiCorpStarbaseDetails"); });
+
+        mb.Entity<CorpFuelBay>(e => {
+            e.HasKey(x => new { x.CorporationId, x.LocationId, x.TypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.LocationId).ValueGeneratedNever();
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("EsiCorpFuelBays"); });
 
         mb.Entity<CorpFacility>(e => {
             e.HasKey(x => new { x.CorporationId, x.FacilityId });

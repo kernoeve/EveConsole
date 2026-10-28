@@ -1024,6 +1024,54 @@ public static class PostgresSchema
         END $$
         """,
 
+        // ── Corp Structures ──────────────────────────────────────────────────
+        //
+        // Each structure's services, each tower's settings, and the fuel in every bay with the
+        // reading its current run started from — see CorpFuelBay. Mirrored for SQLite in
+        // App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpStructureServices" (
+            "CorporationId" BIGINT NOT NULL,
+            "StructureId"   BIGINT NOT NULL,
+            "Name"          TEXT   NOT NULL,
+            "State"         TEXT   NOT NULL,
+            CONSTRAINT "PK_EsiCorpStructureServices" PRIMARY KEY ("CorporationId", "StructureId", "Name")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpStarbaseDetails" (
+            "CorporationId"            BIGINT           NOT NULL,
+            "StarbaseId"               BIGINT           NOT NULL,
+            "AllowAllianceMembers"     BOOLEAN          NOT NULL,
+            "AllowCorporationMembers"  BOOLEAN          NOT NULL,
+            "Anchor"                   TEXT             NOT NULL,
+            "Unanchor"                 TEXT             NOT NULL,
+            "Online"                   TEXT             NOT NULL,
+            "Offline"                  TEXT             NOT NULL,
+            "FuelBayTake"              TEXT             NOT NULL,
+            "FuelBayView"              TEXT             NOT NULL,
+            "AttackIfAtWar"            BOOLEAN          NOT NULL,
+            "AttackIfSecurityDropping" BOOLEAN          NOT NULL,
+            "AttackSecurityThreshold"  DOUBLE PRECISION NULL,
+            "AttackStandingThreshold"  DOUBLE PRECISION NULL,
+            "UseAllianceStandings"     BOOLEAN          NOT NULL,
+            "PulledAt"                 TIMESTAMPTZ      NOT NULL,
+            CONSTRAINT "PK_EsiCorpStarbaseDetails" PRIMARY KEY ("CorporationId", "StarbaseId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpFuelBays" (
+            "CorporationId"    BIGINT      NOT NULL,
+            "LocationId"       BIGINT      NOT NULL,
+            "TypeId"           INTEGER     NOT NULL,
+            "Quantity"         BIGINT      NOT NULL,
+            "SeenAt"           TIMESTAMPTZ NOT NULL,
+            "BaselineQuantity" BIGINT      NOT NULL,
+            "BaselineAt"       TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiCorpFuelBays" PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
+        )
+        """,
+
         // ── Jump bridges entered by hand ─────────────────────────────────────
         //
         // An entity that arrived after databases existed. Mirrored for SQLite in App.axaml.cs.

@@ -2549,6 +2549,52 @@ public class App : Application
                     )
                     """);
 
+                // Corp Structures: each structure's services, each tower's settings, and the fuel
+                // in every bay with the reading its current run started from — see CorpFuelBay.
+                // Mirrored for PostgreSQL in PostgresSchema.Tables.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpStructureServices" (
+                        "CorporationId" INTEGER NOT NULL,
+                        "StructureId"   INTEGER NOT NULL,
+                        "Name"          TEXT    NOT NULL,
+                        "State"         TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("CorporationId", "StructureId", "Name")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpStarbaseDetails" (
+                        "CorporationId"            INTEGER NOT NULL,
+                        "StarbaseId"               INTEGER NOT NULL,
+                        "AllowAllianceMembers"     INTEGER NOT NULL DEFAULT 0,
+                        "AllowCorporationMembers"  INTEGER NOT NULL DEFAULT 0,
+                        "Anchor"                   TEXT    NOT NULL DEFAULT '',
+                        "Unanchor"                 TEXT    NOT NULL DEFAULT '',
+                        "Online"                   TEXT    NOT NULL DEFAULT '',
+                        "Offline"                  TEXT    NOT NULL DEFAULT '',
+                        "FuelBayTake"              TEXT    NOT NULL DEFAULT '',
+                        "FuelBayView"              TEXT    NOT NULL DEFAULT '',
+                        "AttackIfAtWar"            INTEGER NOT NULL DEFAULT 0,
+                        "AttackIfSecurityDropping" INTEGER NOT NULL DEFAULT 0,
+                        "AttackSecurityThreshold"  REAL,
+                        "AttackStandingThreshold"  REAL,
+                        "UseAllianceStandings"     INTEGER NOT NULL DEFAULT 0,
+                        "PulledAt"                 TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "StarbaseId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpFuelBays" (
+                        "CorporationId"    INTEGER NOT NULL,
+                        "LocationId"       INTEGER NOT NULL,
+                        "TypeId"           INTEGER NOT NULL,
+                        "Quantity"         INTEGER NOT NULL DEFAULT 0,
+                        "SeenAt"           TEXT    NOT NULL,
+                        "BaselineQuantity" INTEGER NOT NULL DEFAULT 0,
+                        "BaselineAt"       TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
+                    )
+                    """);
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpFacilities" (
                         "CorporationId" INTEGER NOT NULL,

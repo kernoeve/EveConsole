@@ -146,6 +146,10 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Corp Activity</value>
   </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>Corp Structures</value>
+    <comment>Sidebar: the Corp Structures tool — a corporation's structures and starbases, their fit and fuel.</comment>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Killmails</value>
   </data>

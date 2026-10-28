@@ -2396,4 +2396,480 @@
     <value>Posted {0} of {1} messages to {2}; Discord refused the next: {3}</value>
     <comment>Corp Activity: status line when a long post was split and Discord refused a later part. {0} is how many parts were posted, {1} how many there were, {2} the webhook's name, {3} the error.</comment>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>Search name, type, system or region</value>
+    <comment>Corp Structures: watermark of the search box above the list.</comment>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>Upwell structures</value>
+    <comment>Corp Structures: tick box, show Upwell structures (citadels, engineering complexes, refineries…).</comment>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>Starbases</value>
+    <comment>Corp Structures: tick box, show starbases (POS control towers).</comment>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>{0} structures · {1} starbases · {2} low on fuel · {3} out</value>
+    <comment>Corp Structures: summary above the list. {0} Upwell structures, {1} starbases, {2} running low, {3} out of fuel.</comment>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>Loading…</value>
+    <comment>Corp Structures: status while reading.</comment>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>Read at {0}</value>
+    <comment>Corp Structures: status after reading; {0} is the local time.</comment>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>Could not read the structures: {0}</value>
+    <comment>Corp Structures: status when reading failed; {0} is the error.</comment>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>No structures or starbases in space for this corporation — or they have not been read yet. Reading them needs a corporation character with a director's access.</value>
+    <comment>Corp Structures: shown in place of an empty list.</comment>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>Nothing matches the search and the boxes ticked.</value>
+    <comment>Corp Structures: shown when the filters hide every row.</comment>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Corp Structures: list column.</comment>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Corp Structures: list column, the structure's type.</comment>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Corp Structures: list column, solar system with security.</comment>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Corp Structures: list column.</comment>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>State</value>
+    <comment>Corp Structures: list column, the structure's state.</comment>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>Services</value>
+    <comment>Corp Structures: list column, services online out of all ("3 / 4").</comment>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>Fuel left</value>
+    <comment>Corp Structures: list column, time until the fuel runs out.</comment>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>Runs out</value>
+    <comment>Corp Structures: list column and fuel table column, the date and time the fuel runs out.</comment>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>Blocks / day</value>
+    <comment>Corp Structures: list column, fuel blocks burned a day.</comment>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Corp Structures: fuel table column, the fuel's name.</comment>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Corp Structures: fuel table column, units in the fuel bay now.</comment>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>Per day</value>
+    <comment>Corp Structures: fuel table column, units burned a day.</comment>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>Lasts</value>
+    <comment>Corp Structures: fuel table column, how long the fuel lasts.</comment>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>Out of fuel</value>
+    <comment>Corp Structures: the fuel has run out.</comment>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>Low power</value>
+    <comment>Corp Structures: an Upwell structure with services but no fuel.</comment>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>No fuel: low power, services offline</value>
+    <comment>Corp Structures: status line for an Upwell structure with services but no fuel.</comment>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>No services</value>
+    <comment>Corp Structures: an Upwell structure with no service modules, which needs no fuel.</comment>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>Not burning</value>
+    <comment>Corp Structures: a fuel the structure is not using (strontium outside reinforcement).</comment>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Corp Structures: detail label, solar system.</comment>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Corp Structures: detail label.</comment>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>Moon</value>
+    <comment>Corp Structures: detail label, the moon a starbase is anchored at.</comment>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>Nearest</value>
+    <comment>Corp Structures: detail label, the nearest planet, moon or stargate.</comment>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>State</value>
+    <comment>Corp Structures: detail label.</comment>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>Fuel runs out</value>
+    <comment>Corp Structures: detail label, when the fuel runs out.</comment>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0} (in {1})</value>
+    <comment>Corp Structures: a moment and the time until it; {0} date and time, {1} a duration like 3d 4h.</comment>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>Fuel blocks</value>
+    <comment>Corp Structures: detail label, fuel block burn.</comment>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>{0} a day ({1} an hour)</value>
+    <comment>Corp Structures: a burn rate; {0} units a day, {1} units an hour.</comment>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>State timer</value>
+    <comment>Corp Structures: detail label, the current state's timer (start → end).</comment>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>Reinforce hour</value>
+    <comment>Corp Structures: detail label, the hour the structure comes out of reinforcement.</comment>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>{0}:00 EVE time</value>
+    <comment>Corp Structures: an hour of the day in EVE time (UTC); {0} is the hour.</comment>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>Reinforce hour change</value>
+    <comment>Corp Structures: detail label, a pending change of the reinforce hour.</comment>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>To {0}:00 EVE time from {1}</value>
+    <comment>Corp Structures: {0} the new hour, {1} the date and time it applies.</comment>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>Unanchors</value>
+    <comment>Corp Structures: detail label, when the structure finishes unanchoring.</comment>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>Online since</value>
+    <comment>Corp Structures: detail label, when a starbase came online.</comment>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>Reinforced until</value>
+    <comment>Corp Structures: detail label, when a starbase leaves reinforcement.</comment>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>Strontium</value>
+    <comment>Corp Structures: detail label, the strontium a starbase holds for reinforcement.</comment>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>{0} hours of reinforcement</value>
+    <comment>Corp Structures: {0} is the hours of reinforcement the strontium buys.</comment>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>Access profile</value>
+    <comment>Corp Structures: detail label, the id of the structure's access profile.</comment>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>expected burn</value>
+    <comment>Corp Structures: fuel table note, the burn worked out from the fit or tower size.</comment>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>expected; measured {0} a day over {1}</value>
+    <comment>Corp Structures: fuel table note; {0} units a day measured, {1} the time measured over.</comment>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>measured over {0}</value>
+    <comment>Corp Structures: fuel table note; {0} the time the burn was measured over.</comment>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>burn not measured yet</value>
+    <comment>Corp Structures: fuel table note, too soon after a refuel to measure.</comment>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0}; the fuel expiry implies {1} a day</value>
+    <comment>Corp Structures: fuel table note when the expected burn and the game's fuel expiry disagree; {0} the note before it, {1} units a day.</comment>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>No fuel reading for this starbase. Its fuel comes from the starbase details, which need a director.</value>
+    <comment>Corp Structures: fuel section of a starbase with no fuel reading.</comment>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>Nothing in the fuel bay — or the corporation's assets have not been read.</value>
+    <comment>Corp Structures: fuel section of an Upwell structure with no fuel reading.</comment>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>Fuel blocks burn at each running service module's rate, less the structure's fuel bonus; the time left is the game's own fuel expiry. Other fuels burn at the rate measured since the bay was last topped up. Amounts come from the corporation's assets, read hourly.</value>
+    <comment>Corp Structures: note under an Upwell structure's fuel table.</comment>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>Fuel blocks burn at the starbase's size and faction rate. Strontium burns only while reinforced. Charters, and the actual burn, are measured since the bay was last topped up. Amounts come from the starbase details, read hourly.</value>
+    <comment>Corp Structures: note under a starbase's fuel table.</comment>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Corp Structures: detail section header.</comment>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Corp Structures: detail section header.</comment>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>Services</value>
+    <comment>Corp Structures: detail section header.</comment>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Corp Structures: detail section header, the structure's fitting.</comment>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>Moon drilling</value>
+    <comment>Corp Structures: detail section header, moon extraction and drilled ore.</comment>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>Starbase settings</value>
+    <comment>Corp Structures: detail section header.</comment>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Corp Structures: detail section header.</comment>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Corp Structures: a service's state.</comment>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Corp Structures: a service's state.</comment>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>Cleaning up</value>
+    <comment>Corp Structures: a service's state, being removed.</comment>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>High slots</value>
+    <comment>Corp Structures: fit group.</comment>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>Medium slots</value>
+    <comment>Corp Structures: fit group.</comment>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>Low slots</value>
+    <comment>Corp Structures: fit group.</comment>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>Rigs</value>
+    <comment>Corp Structures: fit group.</comment>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>Service slots</value>
+    <comment>Corp Structures: fit group.</comment>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>Quantum core</value>
+    <comment>Corp Structures: fit group, the Upwell quantum core.</comment>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>Fighter tubes</value>
+    <comment>Corp Structures: fit group, fighters launched.</comment>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>Fighter bay</value>
+    <comment>Corp Structures: fit group, fighters held.</comment>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>entered by hand</value>
+    <comment>Corp Structures: marks a module typed into the Structure Browser, not read from assets.</comment>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>Modules marked “entered by hand” were typed into the Structure Browser where the assets do not reach.</value>
+    <comment>Corp Structures: note under a fit with hand-entered modules.</comment>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>Nothing fitted.</value>
+    <comment>Corp Structures: an empty fit.</comment>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>Fit not known: the corporation's assets have not been read. They need a director.</value>
+    <comment>Corp Structures: fit section when assets are missing.</comment>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>No modules anchored in this system.</value>
+    <comment>Corp Structures: fit section of a starbase with no modules.</comment>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>Modules not shown: the corporation has more than one starbase in this system, or its assets have not been read, so modules cannot be matched to a starbase.</value>
+    <comment>Corp Structures: fit section of a starbase whose modules cannot be placed.</comment>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>Extraction started</value>
+    <comment>Corp Structures: moon extraction start.</comment>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>Chunk arrives</value>
+    <comment>Corp Structures: when the moon chunk arrives.</comment>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>Fractures on its own</value>
+    <comment>Corp Structures: when the chunk fractures by itself if nobody fires the laser.</comment>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>Corporation members may use it</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>Alliance members may use it</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>Uses alliance standings</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>Fires on standing below</value>
+    <comment>Corp Structures: starbase setting, standing threshold.</comment>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>Fires on security status below</value>
+    <comment>Corp Structures: starbase setting, security status threshold.</comment>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>Fires on war targets</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>Fires on falling security status</value>
+    <comment>Corp Structures: starbase setting, fire on anyone whose security status is dropping.</comment>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>Anchor</value>
+    <comment>Corp Structures: starbase setting, who may anchor modules.</comment>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>Unanchor</value>
+    <comment>Corp Structures: starbase setting, who may unanchor modules.</comment>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Corp Structures: starbase setting, who may online modules.</comment>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Corp Structures: starbase setting, who may offline modules.</comment>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>View fuel bay</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>Take from fuel bay</value>
+    <comment>Corp Structures: starbase setting.</comment>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>Settings read</value>
+    <comment>Corp Structures: when the starbase settings were last read.</comment>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>Settings not read: they need a director.</value>
+    <comment>Corp Structures: starbase settings section when there are none.</comment>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>Alliance members</value>
+    <comment>Corp Structures: who a starbase setting allows.</comment>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>Corporation members</value>
+    <comment>Corp Structures: who a starbase setting allows.</comment>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>Starbase Equipment Config role</value>
+    <comment>Corp Structures: the corporation role of that name.</comment>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>Starbase Fuel Technician role</value>
+    <comment>Corp Structures: the corporation role of that name.</comment>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Corp Structures: a yes/no setting.</comment>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>No</value>
+    <comment>Corp Structures: a yes/no setting.</comment>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>Shield vulnerable</value>
+    <comment>Corp Structures: Upwell state, online and normal.</comment>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>Armor vulnerable</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>Hull vulnerable</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>Armor reinforced</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>Hull reinforced</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>Anchoring</value>
+    <comment>Corp Structures: state.</comment>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>Anchoring (vulnerable)</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>Deploying</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>Fitting (invulnerable)</value>
+    <comment>Corp Structures: Upwell state.</comment>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>Onlining</value>
+    <comment>Corp Structures: state, coming online.</comment>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Corp Structures: state.</comment>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Corp Structures: starbase state.</comment>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>Unanchored</value>
+    <comment>Corp Structures: state.</comment>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>Reinforced</value>
+    <comment>Corp Structures: starbase state.</comment>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>Unanchoring</value>
+    <comment>Corp Structures: starbase state.</comment>
+  </data>
 </root>

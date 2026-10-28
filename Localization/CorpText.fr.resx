@@ -1804,4 +1804,361 @@
   <data name="DiscordPostedPartly" xml:space="preserve">
     <value>{0} message(s) sur {1} publié(s) sur {2} ; Discord a refusé le suivant : {3}</value>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>Rechercher un nom, un type, un système ou une région</value>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>Structures Upwell</value>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>Bases stellaires</value>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>{0} structures · {1} bases stellaires · {2} à court de carburant · {3} à sec</value>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>Chargement…</value>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>Lu à {0}</value>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>Impossible de lire les structures : {0}</value>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>Cette corporation n'a ni structure ni base stellaire dans l'espace, ou elles n'ont pas encore été lues. Les lire demande un personnage de la corporation avec un accès de directeur.</value>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>Rien ne correspond à la recherche et aux cases cochées.</value>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>Région</value>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>État</value>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>Carburant restant</value>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>Épuisé le</value>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>Blocs / jour</value>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>Carburant</value>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>En stock</value>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>Par jour</value>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>Dure</value>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>Plus de carburant</value>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>Basse énergie</value>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>Plus de carburant : basse énergie, services hors ligne</value>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>Aucun service</value>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>Non consommé</value>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>Région</value>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>Lune</value>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>Plus proche</value>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>État</value>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>Fin du carburant</value>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0} (dans {1})</value>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>Blocs de carburant</value>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>{0} par jour ({1} par heure)</value>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>Minuteur d'état</value>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>Heure de renforcement</value>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>{0}:00 heure EVE</value>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>Changement d'heure de renforcement</value>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>À {0}:00 heure EVE à partir du {1}</value>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>Désancrage</value>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>En ligne depuis</value>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>Renforcée jusqu'au</value>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>Strontium</value>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>{0} heures de renforcement</value>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>Profil d'accès</value>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>consommation prévue</value>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>prévue ; mesurée {0} par jour sur {1}</value>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>mesurée sur {0}</value>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>consommation pas encore mesurée</value>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0} ; l'échéance du carburant indique {1} par jour</value>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>Aucun relevé de carburant pour cette base stellaire. Il vient des détails de la base, qui demandent un directeur.</value>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>Rien dans la soute à carburant, ou les actifs de la corporation n'ont pas été lus.</value>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>Les blocs de carburant sont consommés au rythme de chaque module de service en marche, moins le bonus de carburant de la structure ; le temps restant est l'échéance de carburant du jeu lui-même. Les autres carburants sont consommés au rythme mesuré depuis le dernier plein. Les quantités viennent des actifs de la corporation, lus chaque heure.</value>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>Les blocs de carburant sont consommés au rythme de la taille et de la faction de la base. Le strontium n'est consommé que pendant le renforcement. Les chartes et la consommation réelle sont mesurées depuis le dernier plein. Les quantités viennent des détails de la base, lus chaque heure.</value>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>État</value>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>Carburant</value>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>Équipement</value>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>Extraction lunaire</value>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>Réglages de la base stellaire</value>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>Emplacement</value>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>En ligne</value>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>Hors ligne</value>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>En nettoyage</value>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>Emplacements hauts</value>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>Emplacements moyens</value>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>Emplacements bas</value>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>Rigs</value>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>Emplacements de service</value>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>Noyau quantique</value>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>Tubes de chasseurs</value>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>Soute à chasseurs</value>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>saisi à la main</value>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>Les modules marqués « saisi à la main » ont été tapés dans le Navigateur de structures, là où les actifs n'arrivent pas.</value>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>Rien d'équipé.</value>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>Équipement inconnu : les actifs de la corporation n'ont pas été lus. Il faut un directeur.</value>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>Aucun module ancré dans ce système.</value>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>Modules non affichés : la corporation a plus d'une base stellaire dans ce système, ou ses actifs n'ont pas été lus, donc les modules ne peuvent pas être attribués à une base.</value>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>Extraction commencée</value>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>Arrivée du bloc</value>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>Se fracture seul</value>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>Les membres de la corporation peuvent l'utiliser</value>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>Les membres de l'alliance peuvent l'utiliser</value>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>Utilise les standings de l'alliance</value>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>Tire sous un standing de</value>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>Tire sous un statut de sécurité de</value>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>Tire sur les cibles de guerre</value>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>Tire sur un statut de sécurité en baisse</value>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>Ancrer</value>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>Désancrer</value>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>Mettre en ligne</value>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>Mettre hors ligne</value>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>Voir la soute à carburant</value>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>Prendre dans la soute à carburant</value>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>Réglages lus</value>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>Réglages non lus : il faut un directeur.</value>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>Membres de l'alliance</value>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>Membres de la corporation</value>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>Rôle Starbase Equipment Config</value>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>Rôle Starbase Fuel Technician</value>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>Bouclier vulnérable</value>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>Blindage vulnérable</value>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>Coque vulnérable</value>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>Blindage renforcé</value>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>Coque renforcée</value>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>Ancrage</value>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>Ancrage (vulnérable)</value>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>Déploiement</value>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>Équipement (invulnérable)</value>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>Mise en ligne</value>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>En ligne</value>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>Hors ligne</value>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>Désancrée</value>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>Renforcée</value>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>Désancrage</value>
+  </data>
 </root>

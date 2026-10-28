@@ -1828,4 +1828,361 @@
   <data name="DiscordPostedPartly" xml:space="preserve">
     <value>Опубликовано сообщений в {2}: {0} из {1}; следующее Discord отклонил: {3}</value>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>Поиск по названию, типу, системе или региону</value>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>Структуры Upwell</value>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>Старбазы</value>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>Структур: {0} · старбаз: {1} · мало топлива: {2} · без топлива: {3}</value>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>Прочитано в {0}</value>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>Не удалось прочитать структуры: {0}</value>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>У этой корпорации нет структур или старбаз в космосе — или они ещё не прочитаны. Для чтения нужен персонаж корпорации с доступом директора.</value>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>Ничего не подходит под поиск и отмеченные флажки.</value>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>Службы</value>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>Осталось топлива</value>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>Кончится</value>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>Блоков / день</value>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>В день</value>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>Хватит на</value>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>Нет топлива</value>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>Низкое энергопотребление</value>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>Нет топлива: низкое энергопотребление, службы отключены</value>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>Нет служб</value>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>Не расходуется</value>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>Луна</value>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>Ближайший объект</value>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>Топливо кончится</value>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0} (через {1})</value>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>Топливные блоки</value>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>{0} в день ({1} в час)</value>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>Таймер состояния</value>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>Час укрепления</value>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>{0}:00 по времени EVE</value>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>Смена часа укрепления</value>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>На {0}:00 по времени EVE с {1}</value>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>Разъякорение</value>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>В сети с</value>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>Укреплена до</value>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>Стронций</value>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>{0} ч укрепления</value>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>Профиль доступа</value>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>ожидаемый расход</value>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>ожидаемый; измерено {0} в день за {1}</value>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>измерено за {0}</value>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>расход ещё не измерен</value>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0}; по сроку топлива выходит {1} в день</value>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>Нет данных о топливе этой старбазы. Топливо берётся из сведений о старбазе, для них нужен директор.</value>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>Топливный отсек пуст — или активы корпорации ещё не прочитаны.</value>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>Топливные блоки расходуются по норме каждого работающего служебного модуля за вычетом топливного бонуса структуры; оставшееся время — срок топлива самой игры. Остальное топливо расходуется со скоростью, измеренной с последней заправки. Количества берутся из активов корпорации, читаются раз в час.</value>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>Топливные блоки расходуются по норме для размера и фракции старбазы. Стронций расходуется только во время укрепления. Хартии и фактический расход измеряются с последней заправки. Количества берутся из сведений о старбазе, читаются раз в час.</value>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>Службы</value>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>Оснащение</value>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>Лунная добыча</value>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>Настройки старбазы</value>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>В сети</value>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>Отключена</value>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>Очистка</value>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>Верхние слоты</value>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>Средние слоты</value>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>Нижние слоты</value>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>Модификаторы</value>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>Служебные слоты</value>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>Квантовое ядро</value>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>Пусковые трубы истребителей</value>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>Отсек истребителей</value>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>введено вручную</value>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>Модули с пометкой «введено вручную» внесены в Обозревателе структур, куда не доходят активы.</value>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>Ничего не установлено.</value>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>Оснащение неизвестно: активы корпорации не прочитаны. Нужен директор.</value>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>В этой системе нет заякоренных модулей.</value>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>Модули не показаны: у корпорации больше одной старбазы в этой системе или её активы не прочитаны, поэтому модули нельзя отнести к старбазе.</value>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>Добыча начата</value>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>Глыба прибудет</value>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>Расколется сама</value>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>Участники корпорации могут пользоваться</value>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>Участники альянса могут пользоваться</value>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>Использует репутацию альянса</value>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>Стреляет при репутации ниже</value>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>Стреляет при статусе безопасности ниже</value>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>Стреляет по целям войны</value>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>Стреляет по снижающим статус безопасности</value>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>Заякорить</value>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>Разъякорить</value>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>Просмотр топливного отсека</value>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>Изъятие из топливного отсека</value>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>Настройки прочитаны</value>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>Настройки не прочитаны: нужен директор.</value>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>Участники альянса</value>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>Участники корпорации</value>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>Роль Starbase Equipment Config</value>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>Роль Starbase Fuel Technician</value>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>Щит уязвим</value>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>Броня уязвима</value>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>Корпус уязвим</value>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>Броня укреплена</value>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>Корпус укреплён</value>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>Якорение</value>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>Якорение (уязвима)</value>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>Развёртывание</value>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>Оснащение (неуязвима)</value>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>Включение</value>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>В сети</value>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>Отключена</value>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>Разъякорена</value>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>Укреплена</value>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>Разъякорение</value>
+  </data>
 </root>

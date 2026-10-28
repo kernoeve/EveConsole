@@ -2984,6 +2984,16 @@ public class EsiPollingService : ReactiveObject
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
+        // The fuel in the corp's structures, for Corp Structures' burn rates. Every structure the
+        // corp owns is read, so one whose bay has run dry loses its rows.
+        var fuelBays = r.Data!.Where(a => a.LocationFlag == "StructureFuel").ToList();
+        var owned    = await db.EsiCorpStructures.Where(s => s.CorporationId == corpId)
+                           .Select(s => s.StructureId).ToListAsync(ct);
+        await CorpFuelBays.RecordAsync(db, corpId,
+            owned.Concat(fuelBays.Select(a => a.LocationId)).Distinct().ToList(),
+            fuelBays.Select(a => (a.LocationId, a.TypeId, (long)a.Quantity)),
+            DateTimeOffset.UtcNow, ct);
+
         // Corp offices (OfficeFolder, TypeId=27) and SAG divisions appear as items in the
         // asset list with their own ItemId > 1T. A LocationId > 1T is the actual structure
         // only if it doesn't appear as any ItemId — the chain walks itself:
@@ -3821,6 +3831,22 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/structures/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        // One transaction for the structures and their services, so a reader never sees the one
+        // replaced and the other not yet — nor the corp with no structures at all in between.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        await db.EsiCorpStructureServices.Where(s => s.CorporationId == corpId).ExecuteDeleteAsync(ct);
+        db.EsiCorpStructureServices.AddRange(r.Data!
+            .SelectMany(s => (s.Services ?? [])
+                .DistinctBy(v => v.Name)
+                .Select(v => new CorpStructureService
+                {
+                    CorporationId = corpId,
+                    StructureId   = s.StructureId,
+                    Name          = v.Name,
+                    State         = v.State,
+                })));
+
         await db.EsiCorpStructures.Where(s => s.CorporationId == corpId).ExecuteDeleteAsync(ct);
         db.EsiCorpStructures.AddRange(r.Data!.Select(s => new CorpStructure
         {
@@ -3842,6 +3868,17 @@ public class EsiPollingService : ReactiveObject
             ReinforceHour      = s.ReinforceHour,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        // A structure gone from the list takes its fuel readings with it. Towers' bays are the
+        // starbase poll's to clear.
+        var standing = r.Data!.Select(s => s.StructureId).ToList();
+        var towers   = await db.EsiCorpStarbases.Where(b => b.CorporationId == corpId)
+                           .Select(b => b.StarbaseId).ToListAsync(ct);
+        await db.EsiCorpFuelBays
+            .Where(b => b.CorporationId == corpId
+                     && !standing.Contains(b.LocationId) && !towers.Contains(b.LocationId))
+            .ExecuteDeleteAsync(ct);
 
         var corp = await db.Corporations.FindAsync([(int)corpId], ct);
         if (corp?.AuthCharacterId > 0)
@@ -3873,7 +3910,79 @@ public class EsiPollingService : ReactiveObject
             OnlinedSince    = s.OnlinedSince,
         }));
         await db.SaveChangesAsync(ct);
+
+        await FetchStarbaseDetailsAsync(corpId, r.Data!, db, ct);
         return FromResult(r);
+    }
+
+    /// <summary>
+    /// Each tower's settings and fuel, one call a tower.
+    ///
+    /// <para>The detail wants a Director where the list wants less, so the list can succeed and
+    /// every detail fail. The first refusal ends the round — the rest would be refused too, and
+    /// each one spends the error budget everything else shares. What was read before stays, and the
+    /// round's result stays the list's: a missing role here must not mark the starbase list denied.</para>
+    /// </summary>
+    private async Task FetchStarbaseDetailsAsync(
+        long corpId, List<EsiCorpStarbaseEntry> towers, AppDbContext db, CancellationToken ct)
+    {
+        var now      = DateTimeOffset.UtcNow;
+        var details  = new List<CorpStarbaseDetail>();
+        var fuel     = new List<(long, int, long)>();
+        var readIds  = new List<long>();
+
+        foreach (var t in towers)
+        {
+            var d = await _esi.ExecuteCorpAuthAsync<EsiCorpStarbaseDetail>(
+                corpId, $"corporations/{corpId}/starbases/{t.StarbaseId}/?system_id={t.SystemId}", ct);
+            if (!d.IsSuccess || d.Data is not { } s) break;
+
+            readIds.Add(t.StarbaseId);
+            details.Add(new CorpStarbaseDetail
+            {
+                CorporationId            = corpId,
+                StarbaseId               = t.StarbaseId,
+                AllowAllianceMembers     = s.AllowAllianceMembers,
+                AllowCorporationMembers  = s.AllowCorporationMembers,
+                Anchor                   = s.Anchor,
+                Unanchor                 = s.Unanchor,
+                Online                   = s.Online,
+                Offline                  = s.Offline,
+                FuelBayTake              = s.FuelBayTake,
+                FuelBayView              = s.FuelBayView,
+                AttackIfAtWar            = s.AttackIfAtWar,
+                AttackIfSecurityDropping = s.AttackIfSecurityDropping,
+                AttackSecurityThreshold  = s.AttackSecurityThreshold,
+                AttackStandingThreshold  = s.AttackStandingThreshold,
+                UseAllianceStandings     = s.UseAllianceStandings,
+                PulledAt                 = now,
+            });
+            fuel.AddRange((s.Fuels ?? []).Select(f => (t.StarbaseId, f.TypeId, (long)f.Quantity)));
+        }
+
+        // Towers no longer anchored lose their settings and their bays.
+        var anchored = towers.Select(t => t.StarbaseId).ToHashSet();
+        var gone = (await db.EsiCorpStarbaseDetails.Where(d => d.CorporationId == corpId)
+                .Select(d => d.StarbaseId).ToListAsync(ct))
+            .Where(id => !anchored.Contains(id)).ToList();
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        if (gone.Count > 0)
+        {
+            await db.EsiCorpStarbaseDetails
+                .Where(d => d.CorporationId == corpId && gone.Contains(d.StarbaseId)).ExecuteDeleteAsync(ct);
+            await db.EsiCorpFuelBays
+                .Where(b => b.CorporationId == corpId && gone.Contains(b.LocationId)).ExecuteDeleteAsync(ct);
+        }
+        if (readIds.Count > 0)
+        {
+            await db.EsiCorpStarbaseDetails
+                .Where(d => d.CorporationId == corpId && readIds.Contains(d.StarbaseId)).ExecuteDeleteAsync(ct);
+            db.EsiCorpStarbaseDetails.AddRange(details);
+            await db.SaveChangesAsync(ct);
+            await CorpFuelBays.RecordAsync(db, corpId, readIds, fuel, now, ct);
+        }
+        await tx.CommitAsync(ct);
     }
 
     private async Task<PollingResult> FetchCorpFacilitiesAsync(long corpId, AppDbContext db, CancellationToken ct)

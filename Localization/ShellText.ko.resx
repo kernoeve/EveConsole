@@ -124,6 +124,9 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>코퍼레이션 활동</value>
   </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>코프 구조물</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>킬 메일</value>
   </data>

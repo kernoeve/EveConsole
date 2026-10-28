@@ -293,6 +293,23 @@ public static class AppKnowledge
         wallet and contract counterparties who are members now — never its customers, the users
         of its structures or other corporations.
 
+        ### Corp Structures
+        Every structure a corporation has anchored in space — Upwell structures (citadels,
+        engineering complexes, refineries, Metenox drills, jump bridges, cyno beacons) and starbase
+        control towers — picked from the corporation dropdown, which is remembered. The list shows
+        each one's type, system, region, state, services online, fuel left, when it runs out and
+        fuel blocks a day, soonest out first; under 7 days shows amber, under 3 red. Choosing one
+        shows its status and timers (reinforce hour and any change to it, state timer,
+        unanchoring), every fuel in its bay with the burn a day and when it runs out, its services
+        and their state, its fit by slot (from the corp's assets, or entered by hand in the
+        Structure Browser), the quantum core and fighters, a refinery's moon extraction and a
+        Metenox's drilled ore, and a tower's settings (access, defence, roles). Fuel block burn is
+        worked out from the service modules fitted and the structure's own fuel bonus, or from the
+        tower's size and faction; every fuel's actual burn is also measured from the bay since it
+        was last topped up, which is how magmatic gas, liquid ozone and charters get a rate. The
+        time left for an Upwell structure's blocks is the game's own fuel expiry. Needs a corp
+        Director for assets and tower details.
+
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
 
@@ -465,6 +482,7 @@ public static class AppKnowledge
         ("income_expense",      "Income & Expense",       "Income & Expense"),
         ("wallet",              "Wallet",                 "Wallet"),
         ("corp_activity",       "Corp Activity",          "Corp Activity"),
+        ("corp_structures",     "Corp Structures",        "Corp Structures"),
         ("killmails",           "Killmails",              "Killmails"),
         ("player_entities",     "Player Entities",        "Player Entities"),
         ("npc_entities",        "NPC Entities",           "NPC Entities"),

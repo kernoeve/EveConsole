@@ -1792,4 +1792,361 @@
   <data name="DiscordPostedPartly" xml:space="preserve">
     <value>已向 {2} 发布 {1} 条消息中的 {0} 条；Discord 拒绝了下一条：{3}</value>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>搜索名称、类型、星系或星域</value>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>Upwell 建筑</value>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>星堡</value>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>{0} 座建筑 · {1} 座星堡 · {2} 座燃料不足 · {3} 座已耗尽</value>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>读取于 {0}</value>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>无法读取建筑：{0}</value>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>该军团在太空中没有建筑或星堡，或尚未读取。读取需要具有董事权限的军团角色。</value>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>没有符合搜索和所选条件的项目。</value>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>剩余燃料</value>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>耗尽时间</value>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>燃料块/天</value>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>现有</value>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>每天</value>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>可用时长</value>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>燃料耗尽</value>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>低能量</value>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>无燃料：低能量，服务离线</value>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>无服务</value>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>未消耗</value>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>卫星</value>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>最近天体</value>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>燃料耗尽</value>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0}（{1}后）</value>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>燃料块</value>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>每天 {0}（每小时 {1}）</value>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>状态计时</value>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>增强时间</value>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>EVE 时间 {0}:00</value>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>增强时间变更</value>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>自 {1} 起改为 EVE 时间 {0}:00</value>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>解除锚定</value>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>上线时间</value>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>增强至</value>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>锶</value>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>可增强 {0} 小时</value>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>访问配置</value>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>预计消耗</value>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>预计；{1} 内实测每天 {0}</value>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>{0} 内实测</value>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>尚未测得消耗</value>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0}；按燃料到期时间推算为每天 {1}</value>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>该星堡没有燃料读数。燃料来自星堡详情，需要董事权限。</value>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>燃料舱为空，或尚未读取军团资产。</value>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>燃料块按每个运行中服务插件的消耗计算，并扣除建筑的燃料加成；剩余时间采用游戏自身的燃料到期时间。其他燃料按上次补充以来实测的速度计算。数量来自军团资产，每小时读取。</value>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>燃料块按星堡的尺寸和势力速率计算。锶仅在增强期间消耗。许可证和实际消耗按上次补充以来实测。数量来自星堡详情，每小时读取。</value>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>卫星开采</value>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>星堡设置</value>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>清理中</value>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>高槽</value>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>中槽</value>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>低槽</value>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>改装件</value>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>服务槽</value>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>量子核心</value>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>铁骑舰载机发射管</value>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>铁骑舰载机舱</value>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>手动录入</value>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>标记为“手动录入”的插件是在建筑浏览器中输入的，因为资产数据无法覆盖。</value>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>未装配任何插件。</value>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>装配未知：尚未读取军团资产，需要董事权限。</value>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>该星系中没有锚定的插件。</value>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>未显示插件：该军团在此星系有多座星堡，或尚未读取资产，因此无法将插件对应到星堡。</value>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>开采开始</value>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>矿块抵达</value>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>自然破裂</value>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>军团成员可使用</value>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>联盟成员可使用</value>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>使用联盟声望</value>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>声望低于此值时开火</value>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>安全等级低于此值时开火</value>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>攻击战争目标</value>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>攻击安全等级下降者</value>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>锚定</value>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>解除锚定</value>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>上线</value>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>下线</value>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>查看燃料舱</value>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>从燃料舱取出</value>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>设置读取时间</value>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>未读取设置：需要董事权限。</value>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>联盟成员</value>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>军团成员</value>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>星堡设备配置职权</value>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>星堡燃料技师职权</value>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>护盾易受攻击</value>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>装甲易受攻击</value>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>结构易受攻击</value>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>装甲增强</value>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>结构增强</value>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>锚定中</value>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>锚定中（易受攻击）</value>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>部署中</value>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>装配中（无敌）</value>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>上线中</value>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>已解除锚定</value>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>增强</value>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>解除锚定中</value>
+  </data>
 </root>

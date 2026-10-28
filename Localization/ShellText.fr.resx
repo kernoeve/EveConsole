@@ -124,6 +124,9 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Activité de la corporation</value>
   </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>Structures de corpo</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Rapports de victimes</value>
   </data>

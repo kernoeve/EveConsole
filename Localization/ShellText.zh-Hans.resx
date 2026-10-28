@@ -124,6 +124,9 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>军团活动</value>
   </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>军团建筑</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>击毁报告</value>
   </data>
