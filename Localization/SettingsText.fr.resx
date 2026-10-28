@@ -85,6 +85,300 @@
   <data name="ThemeLabel" xml:space="preserve">
     <value>Thème :</value>
   </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>Modifier les thèmes…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>Créez votre propre thème, de zéro ou à partir d’une copie d’un autre.</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>Thèmes</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>THÈMES</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>Nouveau thème</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>Commencez votre propre thème avec des couleurs neutres.</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>Vierge, sombre</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>Vierge, clair</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>Créez votre propre thème à partir de celui-ci.</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>Supprimer le thème « {0} » ? Cette action est irréversible.</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>Intégré</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>Les thèmes intégrés ne peuvent pas être modifiés. Copiez celui-ci pour en faire votre propre thème.</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>Fond</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>Indique si le thème est sombre ou clair. Cela détermine aussi les couleurs non réglées ici : les contrôles standard, les lignes des graphiques et les couleurs de sécurité.</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>Sombre</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>Clair</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>Démarrage rapide</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>Choisissez un fond, une couleur de texte et une couleur d’accent, puis calculez le reste : toutes les nuances de fond, de ligne, de texte et d’accent ci-dessous sont mélangées à partir de ces trois couleurs. Les couleurs d’état restent inchangées.</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>Fond</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>Texte</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>Accent</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>Calculer le reste</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>Remplace les fonds, lignes, texte et accent ci-dessous par des nuances de ces trois couleurs.</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>Ces couleurs ont un sens dans les tableaux et les graphiques. Gardez-les faciles à distinguer entre elles et des fonds.</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>APERÇU</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>Annuler les modifications</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>Rétablit les couleurs et le nom de ce thème au moment où vous l’avez ouvert.</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>Utiliser ce thème</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>Enregistré</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>Mon thème</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0} (copie)</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>FONDS</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>LIGNES</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>TEXTE</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>ACCENT</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>COULEURS D’ÉTAT</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>Fond de page</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>Panneaux et cartes</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>Lignes alternées, panneaux imbriqués</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>En-têtes de section</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>Fenêtres contextuelles, menus, infobulles</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>Zones de texte et listes déroulantes</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>Sous le pointeur</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>Ligne sélectionnée</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>Séparateurs et lignes de grille</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>Bordures des panneaux et contrôles</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>Mise en valeur et focus</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>Le plus pâle : indications, en-têtes de colonne</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>Atténué</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>Discret : légendes</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>Secondaire</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>Texte principal</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>Titres</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>Accent</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>Accent sous le pointeur</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>Accent à l’appui</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>Derrière le texte d’accent</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>Accent foncé</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>Accent pâle</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>Bon : profit, en ligne</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>Mauvais : perte, erreurs</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>Derrière bon</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>Derrière mauvais</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>Derrière avertissement</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>Derrière information</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>Vue d’ensemble</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>Marché</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>Du</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>Tous les personnages</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>Afficher les totaux</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>Calculer</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>Un panneau</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>Variation</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>Une ligne</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>Une ligne alternée</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>Sous le pointeur</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>Sélectionnée</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>Bon</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>Mauvais</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>Un avis, sur le fond propre à l’accent.</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>Un titre</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>Texte principal, dans lequel est écrite la plus grande partie de l’application.</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>Texte secondaire</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>Une légende</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>Texte atténué</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>Une indication</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>Une fenêtre contextuelle, un menu ou une infobulle, au-dessus de la page.</value>
+  </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>Échelle de l'interface :</value>
   </data>

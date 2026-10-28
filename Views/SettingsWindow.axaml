@@ -4,6 +4,7 @@
         xmlns:models="clr-namespace:EveConsole.Models"
         xmlns:agent="clr-namespace:EveConsole.Agent"
         xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:svc="clr-namespace:EveConsole.Services"
         xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
@@ -3963,12 +3964,23 @@
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
-                <Grid ColumnDefinitions="Auto,*">
+                <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <!-- ⚠️ A template on Name rather than the item's ToString: a theme of the user's
+                       own can be renamed in the editor while it is the one selected here. -->
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{Binding Themes}"
-                            SelectedItem="{Binding SelectedTheme}" />
+                            SelectedItem="{Binding SelectedTheme}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="svc:ThemeChoice">
+                        <TextBlock Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Grid.Column="2" Margin="8 0 0 0" Content="{x:Static loc:SettingsText.EditThemesButton}"
+                          ToolTip.Tip="{x:Static loc:SettingsText.EditThemesTip}"
+                          Command="{Binding EditThemesCommand}" />
                 </Grid>
 
                 <Grid ColumnDefinitions="Auto,*">

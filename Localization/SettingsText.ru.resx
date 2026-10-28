@@ -85,6 +85,300 @@
   <data name="ThemeLabel" xml:space="preserve">
     <value>Тема:</value>
   </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>Редактировать темы…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>Создайте свою тему с нуля или из копии другой.</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>Темы</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>ТЕМЫ</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>Новая тема</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>Начать свою тему с нейтральных цветов.</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>Пустая, тёмная</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>Пустая, светлая</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>Сделать свою тему на основе этой.</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>Удалить тему «{0}»? Это нельзя отменить.</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>Встроенная</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>Встроенные темы нельзя изменить. Скопируйте эту, чтобы сделать на её основе свою.</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>Основа</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>Тёмная тема или светлая. От этого зависят и цвета, которые здесь не задаются: стандартные элементы управления, линии графиков и цвета уровня безопасности.</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>Быстрый старт</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>Выберите фон, цвет текста и акцент, затем рассчитайте остальное: все оттенки фона, линий, текста и акцента ниже смешиваются из этих трёх. Цвета состояний не меняются.</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>Фон</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>Акцент</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>Рассчитать остальное</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>Заменяет фон, линии, текст и акцент ниже оттенками этих трёх цветов.</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>Эти цвета несут смысл в таблицах и графиках. Они должны легко отличаться друг от друга и от фона.</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>ПРЕДПРОСМОТР</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>Отменить изменения</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>Возвращает цвета и название, которые были у темы при открытии.</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>Использовать эту тему</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>Сохранено</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>Моя тема</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0} (копия)</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>ФОН</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>ЛИНИИ</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>ТЕКСТ</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>АКЦЕНТ</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>ЦВЕТА СОСТОЯНИЙ</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>Фон страницы</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>Панели и карточки</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>Чередующиеся строки, вложенные панели</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>Заголовки разделов</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>Всплывающие окна, меню, подсказки</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>Поля ввода и выпадающие списки</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>Под указателем</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>Выбранная строка</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>Разделители и линии сетки</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>Края панелей и элементов</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>Выделение и фокус</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>Самый бледный: подсказки, заголовки столбцов</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>Тусклый</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>Приглушённый: подписи</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>Вторичный</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>Основной текст</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>Заголовки</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>Акцент</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>Акцент под указателем</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>Акцент при нажатии</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>Фон под акцентным текстом</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>Глубокий акцент</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>Бледный акцент</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>Хорошо: прибыль, в сети</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>Плохо: убыток, ошибки</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>Предупреждение</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>Фон под «хорошо»</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>Фон под «плохо»</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>Фон под предупреждением</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>Фон под информацией</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>Все персонажи</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>Показывать итоги</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>Рассчитать</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>Панель</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>Изменение</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>Строка</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>Чередующаяся строка</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>Под указателем</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>Выбрана</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>Хорошо</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>Плохо</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>Предупреждение</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>Уведомление на собственном фоне акцента.</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>Основной текст, которым написана большая часть приложения.</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>Вторичный текст</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>Подпись</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>Тусклый текст</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>Подсказка</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>Всплывающее окно, меню или подсказка поверх страницы.</value>
+  </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>Масштаб интерфейса:</value>
   </data>

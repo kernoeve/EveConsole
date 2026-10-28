@@ -87,7 +87,15 @@ public class OtherSettingsViewModel : ReactiveObject
 
     // ── Appearance ────────────────────────────────────────────────────────────
 
-    public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
+    /// <summary>The built-in themes and the user's own. ⚠️ Kept in line with <see cref="ListSync"/>,
+    /// never refilled: a theme added in the editor must not blank the combo's selection.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<ThemeChoice> Themes { get; } = new(ThemeService.All);
+
+    /// <summary>Opens the theme editor, where the user's own themes are made.</summary>
+    public ReactiveCommand<Unit, Unit> EditThemesCommand { get; } =
+        ReactiveCommand.Create(() => Views.ThemeEditorWindow.Open());
+
+    private void OnThemeListChanged() => ListSync.Sync(Themes, ThemeService.All, t => t.Key);
 
     private ThemeChoice? _selectedTheme =
         ThemeService.All.FirstOrDefault(t => t.Key == ThemeService.Current);
@@ -141,6 +149,7 @@ public class OtherSettingsViewModel : ReactiveObject
 
         ThemeService.Changed   += OnThemeChanged;
         UiScaleService.Changed += OnUiScaleChanged;
+        ThemeService.ListChanged += OnThemeListChanged;
 
         var stored = settings.EveTimeUrl;
         var isPreset = stored == UiLinkSettings.EveOnlineTimeUrl
