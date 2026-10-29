@@ -266,6 +266,9 @@ public class EsiPollingService : ReactiveObject
         ["corp.standings"]        = DataText.EndpointStandings,
         ["corp.structures"]       = DataText.EndpointStructures,
         ["corp.starbases"]        = DataText.EndpointStarbases,
+        ["corp.skyhooks"]         = DataText.EndpointSkyhooks,
+        ["char.mercdens"]         = DataText.EndpointMercenaryDens,
+        ["char.mercops"]          = DataText.EndpointMercenaryOperations,
         ["corp.facilities"]       = DataText.EndpointFacilities,
         ["corp.members"]          = DataText.EndpointMembers,
         ["corp.membertracking"]   = DataText.EndpointMemberTracking,
@@ -497,6 +500,8 @@ public class EsiPollingService : ReactiveObject
         // Both PI calls: the colony list and each colony's layout.
         ["char.planets"]         = "esi-planets.manage_planets.v1",
         ["char.planets.layouts"] = "esi-planets.manage_planets.v1",
+        ["char.mercdens"]        = "esi-structures.read_character.v1",
+        ["char.mercops"]         = "esi-activities.read_character.v1",
     };
 
     private const string PiLayoutsKey = "char.planets.layouts";
@@ -1895,6 +1900,110 @@ public class EsiPollingService : ReactiveObject
         return FromResult(r);
     }
 
+    // ── Mercenary dens ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The character's mercenary dens and each one's detail: state, infomorphs, development and
+    /// anarchy. ESI keeps them an hour, and the route allows 30 calls a character per 15 minutes,
+    /// so one pass an hour of a list and a detail a den.
+    ///
+    /// <para>The first refused detail ends the pass: the rest would be refused too. A den keeps
+    /// what was read of it before; one gone from the list goes. Each reading keeps the infomorphs
+    /// of the one before it, which is how fast they build.</para>
+    /// </summary>
+    private async Task<PollingResult> FetchMercenaryDensAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteAuthAsync<EsiMercenaryDenListing>(charId,
+            $"https://esi.evetech.net/characters/{charId}/structures/mercenary-dens", ct);
+        if (!r.IsSuccess) return FromResult(r);
+
+        var listed = r.Data?.MercenaryDens ?? [];
+        var now    = DateTimeOffset.UtcNow;
+        var read   = new List<EsiMercenaryDenDetail>();
+        foreach (var den in listed)
+        {
+            var d = await _esi.ExecuteAuthAsync<EsiMercenaryDenDetail>(charId,
+                $"https://esi.evetech.net/characters/{charId}/structures/mercenary-dens/{den.Id}", ct);
+            if (!d.IsSuccess || d.Data is null) break;
+            read.Add(d.Data);
+        }
+
+        var stored = await db.EsiMercenaryDens.Where(x => x.CharacterId == charId).ToListAsync(ct);
+        var ids    = listed.Select(x => x.Id).ToHashSet();
+        db.EsiMercenaryDens.RemoveRange(stored.Where(x => !ids.Contains(x.DenId)));
+        foreach (var den in listed.Where(x => stored.All(s => s.DenId != x.Id)))
+            db.EsiMercenaryDens.Add(new CharMercenaryDen { CharacterId = charId, DenId = den.Id, PlanetId = den.PlanetId });
+        await db.SaveChangesAsync(ct);
+
+        var rows = await db.EsiMercenaryDens.Where(x => x.CharacterId == charId).ToListAsync(ct);
+        foreach (var d in read)
+        {
+            if (rows.FirstOrDefault(x => x.DenId == d.Id) is not { } row) continue;
+            if (row.PulledAt is { } before)
+            {
+                row.PrevInfomorphs = row.Infomorphs;
+                row.PrevPulledAt   = before;
+            }
+            row.TypeId               = d.TypeId;
+            row.PlanetId             = d.Skyhook.PlanetId;
+            row.SkyhookId            = d.Skyhook.Id;
+            row.SkyhookCorporationId = d.Skyhook.CorporationId;
+            row.State                = d.State;
+            row.Infomorphs           = d.Infomorphs.Amount;
+            row.DevelopmentAmount    = d.Evolution.Development.Amount;
+            row.DevelopmentLevel     = EvolutionLevel(d.Evolution.Development.Level);
+            row.AnarchyAmount        = d.Evolution.Anarchy.Amount;
+            row.AnarchyLevel         = EvolutionLevel(d.Evolution.Anarchy.Level);
+            row.ReinforcedUntil      = d.ReinforcementTimer?.End;
+            row.PulledAt             = now;
+        }
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
+    /// <summary>ESI's "Level0"–"Level4" as 0–4; -1 for anything else ("Unspecified").</summary>
+    internal static int EvolutionLevel(string? level) =>
+        level is { Length: 6 } && level.StartsWith("Level", StringComparison.Ordinal) && char.IsDigit(level[5])
+            ? level[5] - '0' : -1;
+
+    /// <summary>
+    /// The mercenary tactical operations open to the character, and each one's detail. An
+    /// operation keeps the time it was first seen; one gone from the list goes.
+    /// </summary>
+    private async Task<PollingResult> FetchMercenaryOperationsAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteAuthAsync<EsiMtoListing>(charId,
+            $"https://esi.evetech.net/characters/{charId}/mercenary-tactical-operations", ct);
+        if (!r.IsSuccess) return FromResult(r);
+
+        var listed = r.Data?.Operations ?? [];
+        var stored = await db.EsiMercenaryOperations.Where(x => x.CharacterId == charId).ToListAsync(ct);
+        var ids    = listed.Select(x => x.Id).ToHashSet(StringComparer.Ordinal);
+        db.EsiMercenaryOperations.RemoveRange(stored.Where(x => !ids.Contains(x.OperationId)));
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var op in listed)
+        {
+            var row = stored.FirstOrDefault(x => x.OperationId == op.Id);
+            // A finished or lapsed operation does not change: read once.
+            if (row is { State: "Completed" or "Expired" or "Removed" }) continue;
+            var d = await _esi.ExecuteAuthAsync<EsiMtoDetail>(charId,
+                $"https://esi.evetech.net/characters/{charId}/mercenary-tactical-operations/{Uri.EscapeDataString(op.Id)}", ct);
+            if (!d.IsSuccess || d.Data is not { } detail) break;
+            if (row is null)
+            {
+                row = new CharMercenaryOperation { CharacterId = charId, OperationId = op.Id, SeenAt = now };
+                db.EsiMercenaryOperations.Add(row);
+            }
+            row.DenId         = detail.MercenaryDenId;
+            row.DungeonTypeId = detail.DungeonTypeId;
+            row.State         = detail.State;
+            row.Expires       = detail.Expires;
+        }
+        await db.SaveChangesAsync(ct);
+        return FromResult(r);
+    }
+
     private async Task<PollingResult> FetchMiningAsync(long charId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteAllPagesAsync<EsiMiningData>(charId,
@@ -2465,6 +2574,9 @@ public class EsiPollingService : ReactiveObject
         new("char.titles",          3600,  7200, FetchTitlesAsync),
         new("char.roles",           3600,  7200, FetchRolesAsync),
         new("char.fittings",        300,   1800, FetchFittingsAsync),
+        // Mercenary dens: an hour, what ESI keeps them; the route allows 30 calls in 15 minutes.
+        new("char.mercdens",        3600,  3600, FetchMercenaryDensAsync),
+        new("char.mercops",         300,    900, FetchMercenaryOperationsAsync),
         // ⚠️ 30s, which is what ESI actually caches this at (x-server-cache-ttl on
         // /characters/{id}/mail). It was 300 — an order of magnitude over-conservative, and it
         // put a five-minute floor under how fast a store could answer a buyer for no reason at
@@ -3985,6 +4097,80 @@ public class EsiPollingService : ReactiveObject
         await tx.CommitAsync(ct);
     }
 
+    /// <summary>
+    /// The corporation's skyhooks and each one's detail: state, whether it is producing, its
+    /// reagents, its reinforcement timer and theft window, and its workforce (lowered by a
+    /// mercenary den attached to it). Both want a Station_Manager.
+    ///
+    /// <para>The first refused detail ends the pass, as with towers. A skyhook keeps the last
+    /// detail read; one gone from the list goes, with its reagents.</para>
+    /// </summary>
+    private async Task<PollingResult> FetchCorpSkyhooksAsync(long corpId, AppDbContext db, CancellationToken ct)
+    {
+        var r = await _esi.ExecuteCorpAuthAsync<EsiSkyhookListing>(
+            corpId, $"https://esi.evetech.net/corporations/{corpId}/structures/skyhooks", ct);
+        if (!r.IsSuccess) return FromResult(r);
+
+        var listed = r.Data?.Skyhooks ?? [];
+        var read   = new List<EsiSkyhookDetail>();
+        foreach (var s in listed)
+        {
+            var d = await _esi.ExecuteCorpAuthAsync<EsiSkyhookDetail>(
+                corpId, $"https://esi.evetech.net/corporations/{corpId}/structures/skyhooks/{s.Id}", ct);
+            if (!d.IsSuccess || d.Data is null) break;
+            read.Add(d.Data);
+        }
+
+        var now    = DateTimeOffset.UtcNow;
+        var ids    = listed.Select(s => s.Id).ToList();
+        var stored = await db.EsiCorpSkyhooks.Where(s => s.CorporationId == corpId).ToListAsync(ct);
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.EsiCorpSkyhookReagents
+            .Where(x => x.CorporationId == corpId && !ids.Contains(x.SkyhookId)).ExecuteDeleteAsync(ct);
+        db.EsiCorpSkyhooks.RemoveRange(stored.Where(s => !ids.Contains(s.SkyhookId)));
+        foreach (var s in listed.Where(x => stored.All(st => st.SkyhookId != x.Id)))
+        {
+            var row = new CorpSkyhook { CorporationId = corpId, SkyhookId = s.Id, PlanetId = s.PlanetId };
+            db.EsiCorpSkyhooks.Add(row);
+            stored.Add(row);
+        }
+        foreach (var d in read)
+        {
+            var row = stored.First(s => s.SkyhookId == d.Id);
+            row.PlanetId           = d.PlanetId;
+            row.State              = d.State;
+            row.IsActive           = d.IsActive;
+            row.EffectiveWorkforce = d.EffectiveWorkforce;
+            row.ReinforcedUntil    = d.ReinforcementTimer?.End;
+            row.TheftStart         = d.TheftVulnerability?.Start;
+            row.TheftEnd           = d.TheftVulnerability?.End;
+            row.PulledAt           = now;
+        }
+        await db.SaveChangesAsync(ct);
+
+        var readIds = read.Select(d => d.Id).ToList();
+        if (readIds.Count > 0)
+        {
+            await db.EsiCorpSkyhookReagents
+                .Where(x => x.CorporationId == corpId && readIds.Contains(x.SkyhookId)).ExecuteDeleteAsync(ct);
+            db.EsiCorpSkyhookReagents.AddRange(read.SelectMany(d => (d.Reagents ?? [])
+                .GroupBy(g => g.TypeId).Select(g => g.First())
+                .Select(g => new CorpSkyhookReagent
+                {
+                    CorporationId  = corpId,
+                    SkyhookId      = d.Id,
+                    TypeId         = g.TypeId,
+                    SecuredStock   = g.SecuredStock,
+                    UnsecuredStock = g.UnsecuredStock,
+                    LastCycle      = g.LastCycle,
+                })));
+            await db.SaveChangesAsync(ct);
+        }
+        await tx.CommitAsync(ct);
+        return FromResult(r);
+    }
+
     private async Task<PollingResult> FetchCorpFacilitiesAsync(long corpId, AppDbContext db, CancellationToken ct)
     {
         var r = await _esi.ExecuteCorpAuthAsync<List<EsiCorpFacilityEntry>>(
@@ -4631,6 +4817,7 @@ public class EsiPollingService : ReactiveObject
         new("corp.standings",          3600,  7200, FetchCorpStandingsAsync),
         new("corp.structures",          300,  3600, FetchCorpStructuresAsync),
         new("corp.starbases",          3600,  7200, FetchCorpStarbasesAsync),
+        new("corp.skyhooks",           3600,  3600, FetchCorpSkyhooksAsync),
         new("corp.facilities",         3600, 86400, FetchCorpFacilitiesAsync),
         new("corp.members",             600,  3600, FetchCorpMembersAsync),
         // Polled often: each poll can only see the CURRENT logon, so a longer interval
@@ -4664,6 +4851,7 @@ public class EsiPollingService : ReactiveObject
         ["corp.killmails"]          = ["Director"],
         ["corp.structures"]         = ["Station_Manager"],
         ["corp.starbases"]          = ["Config_Starbase_Equipment_Roles"],
+        ["corp.skyhooks"]           = ["Station_Manager"],
         ["corp.facilities"]         = ["Factory_Manager"],
         ["corp.roles"]              = ["Director", "Personnel_Manager"],
         ["corp.titles"]             = ["Director"],

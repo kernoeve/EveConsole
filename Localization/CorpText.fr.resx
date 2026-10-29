@@ -1867,6 +1867,165 @@
   <data name="CsColPickupVolume" xml:space="preserve">
     <value>Vol. à récupérer (m³)</value>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>Skyhooks</value>
+  </data>
+  <data name="CsSummarySkyhooksOne" xml:space="preserve">
+    <value>{0} skyhook</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>{0} skyhooks</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>Skyhook</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>Skyhook</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>En production</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>Pas encore lu</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>Main-d'œuvre</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>Fenêtre de vol</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>Ouverte, jusqu'à {0} ({1})</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1} ({2})</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>Lu à</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>Réactif</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>Sécurisé</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>Non sécurisé</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>Au</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>Repaires de vos personnages dessus</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>L'anarchie n'est visible que pour les repaires de vos personnages. Le repaire de quelqu'un d'autre sur ce skyhook ne se voit qu'à la main-d'œuvre réduite.</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · anarchie {1} ({2}) · développement {3} ({4}) · {5} infomorphes</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>En marche</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>En pause</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>Désactivé</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOne" xml:space="preserve">
+    <value>{0} repaire</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>{0} repaires</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>{0} à l'anarchie {1} ou plus</value>
+  </data>
+  <data name="DenSummaryOpsOne" xml:space="preserve">
+    <value>{0} opération ouverte</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>{0} opérations ouvertes</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>Infomorphes</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0} (+{1} par heure)</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>Développement</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>Anarchie</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>Propriétaire du skyhook</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>Planète</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>Propriétaire du skyhook</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>Infomorphes</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>Par heure</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>Développement</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>Anarchie</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>Opérations</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>Expire</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>Vu pour la première fois</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>Aucun de vos personnages n'a de repaire de mercenaires. Les repaires sont lus toutes les heures pour chaque personnage dont le jeton permet de lire les structures.</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>Repaire</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>Opérations tactiques</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>Aucune opération ouverte.</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>Les repaires sont lus toutes les heures avec le jeton de chaque personnage, les opérations toutes les 10 minutes. Développement et anarchie indiquent le niveau (0–4), puis la valeur sur 100. Les infomorphes par heure viennent des deux dernières lectures.</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>Commencée</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>Terminée</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>Expirée</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>Supprimée</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Carburant</value>
   </data>

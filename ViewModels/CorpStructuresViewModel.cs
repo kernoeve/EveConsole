@@ -203,6 +203,7 @@ public sealed class CorpStructureRowVm : ReactiveObject
     public bool IsCritical     => Urgency is FuelUrgency.Critical or FuelUrgency.Out;
     public bool IsSoon         => Urgency == FuelUrgency.Soon;
     public bool IsTower        => Info.Kind == CorpStructureKind.Tower;
+    public bool IsSkyhook      => Info.Kind == CorpStructureKind.Skyhook;
 
     /// <summary>What is wrong against the structure type's fit, in a few words: "2 missing · ammo
     /// low"; "Matches" when nothing is; empty with no fit set for the type.</summary>
@@ -296,6 +297,13 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         set { this.RaiseAndSetIfChanged(ref _showTowers, value); ApplyFilter(); }
     }
 
+    private bool _showSkyhooks = true;
+    public bool ShowSkyhooks
+    {
+        get => _showSkyhooks;
+        set { this.RaiseAndSetIfChanged(ref _showSkyhooks, value); ApplyFilter(); }
+    }
+
     private string _status = CorpText.StatusSelectCorp;
     public string Status
     {
@@ -361,6 +369,14 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<CorpStructureField> TowerFields    { get; } = [];
 
     private bool _hasMoonBay;   public bool HasMoonBay   { get => _hasMoonBay;   private set => this.RaiseAndSetIfChanged(ref _hasMoonBay, value); }
+
+    public ObservableCollection<CorpStructureField> SkyhookFields { get; } = [];
+    /// <summary>A skyhook's reagents: name, secured, unsecured, last cycle (in the bay row's columns).</summary>
+    public ObservableCollection<CorpBayRowVm>       Reagents      { get; } = [];
+    /// <summary>The user's characters' dens on the skyhook: owner, then the den in a line.</summary>
+    public ObservableCollection<CorpStructureField> SkyhookDens   { get; } = [];
+    private bool _isSkyhookDetail; public bool IsSkyhookDetail { get => _isSkyhookDetail; private set => this.RaiseAndSetIfChanged(ref _isSkyhookDetail, value); }
+    private bool _hasReagents;     public bool HasReagents     { get => _hasReagents;     private set => this.RaiseAndSetIfChanged(ref _hasReagents, value); }
     private string _moonBayFill = "";
     /// <summary>"23,828 of 500,000 m³ (4.8% full)"; empty where the bay's size is not known.</summary>
     public string MoonBayFill { get => _moonBayFill; private set => this.RaiseAndSetIfChanged(ref _moonBayFill, value); }
@@ -459,7 +475,7 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     public void Show(long corpId, long? structureId)
     {
         SelectedTabIndex = 0;
-        if (structureId is not null) { Search = ""; ShowUpwell = true; ShowTowers = true; }
+        if (structureId is not null) { Search = ""; ShowUpwell = true; ShowTowers = true; ShowSkyhooks = true; }
         _showStructure = structureId;
         if (Corps.FirstOrDefault(c => c.Id == corpId) is { } corp && corp != SelectedCorp)
         {
@@ -488,13 +504,15 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
                 .ThenBy(r => r.RunsOutSort)
                 .ThenBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
 
-            var upwell = _all.Count(r => !r.IsTower);
+            var upwell = _all.Count(r => r.Info.Kind == CorpStructureKind.Upwell);
             var towers = _all.Count(r => r.IsTower);
+            var hooks  = _all.Count(r => r.IsSkyhook);
             var low    = _all.Count(r => r.Urgency is FuelUrgency.Soon or FuelUrgency.Critical);
             var outs   = _all.Count(r => r.Urgency == FuelUrgency.Out);
             var unfit  = _all.Count(r => r.Info.FitCheck is { Known: true, HasProblems: true });
             var iskDay = _all.Sum(r => r.Info.FuelIskPerDay ?? 0);
             Summary = string.Format(CorpText.CsSummary, upwell, towers, low, outs)
+                    + (hooks > 0 ? " · " + Plurals.Format(CorpText.ResourceManager, nameof(CorpText.CsSummarySkyhooksOther), hooks) : "")
                     + (unfit > 0 ? " · " + string.Format(CorpText.CsSummaryFit, unfit) : "")
                     + (iskDay > 0 ? " · " + string.Format(CorpText.CsSummaryIskPerDay, Isk(iskDay)) : "");
             Status  = string.Format(CorpText.CsLoadedAt, DateTime.Now.ToString("t", CultureInfo.CurrentCulture));
@@ -585,7 +603,7 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     {
         var words = Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var shown = _all.Where(r =>
-                (r.IsTower ? ShowTowers : ShowUpwell)
+                (r.IsTower ? ShowTowers : r.IsSkyhook ? ShowSkyhooks : ShowUpwell)
                 && words.All(w =>
                        r.Name.Contains(w, StringComparison.CurrentCultureIgnoreCase)
                     || r.TypeName.Contains(w, StringComparison.CurrentCultureIgnoreCase)
@@ -667,7 +685,12 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         LocationFields.Add(new(CorpText.CsSystem, i.Security is { } sec ? $"{i.SystemName} ({SecurityColors.Text(sec)})" : i.SystemName));
         if (i.RegionName.Length > 0) LocationFields.Add(new(CorpText.CsRegion, i.RegionName));
         if (i.Place.Length > 0)
-            LocationFields.Add(new(i.Kind == CorpStructureKind.Tower ? CorpText.CsMoon : CorpText.CsNearest, i.Place));
+            LocationFields.Add(new(i.Kind switch
+            {
+                CorpStructureKind.Tower   => CorpText.CsMoon,
+                CorpStructureKind.Skyhook => CorpText.DenColPlanet,
+                _                         => CorpText.CsNearest,
+            }, i.Place));
 
         // Status.
         StatusFields.Add(new(CorpText.CsState, StateLabel(i.State)));
@@ -792,6 +815,33 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         this.RaisePropertyChanged(nameof(HasMoonBayFill));
         HasMoon = MoonFields.Count > 0 || MoonBay.Count > 0 || HasMoonBayFill;
 
+        // Skyhook: producing or not, workforce, theft window, reagents, and the user's own dens on it.
+        SkyhookFields.Clear(); Reagents.Clear(); SkyhookDens.Clear();
+        if (i.Kind == CorpStructureKind.Skyhook)
+        {
+            SkyhookFields.Add(new(CorpText.CsSkyActive, i.ReadAt is null ? CorpText.CsSkyNotRead : YesNo(i.SkyhookActive),
+                i.ReadAt is not null && !i.SkyhookActive ? FuelUrgency.Soon : FuelUrgency.None));
+            if (i.Workforce is { } wf) SkyhookFields.Add(new(CorpText.CsSkyWorkforce, wf.ToString("N0", c)));
+            if (i.TheftStart is { } ts && i.TheftEnd is { } tend)
+            {
+                var open = ts <= now && now < tend;
+                SkyhookFields.Add(new(CorpText.CsSkyTheft,
+                    open ? string.Format(CorpText.CsSkyTheftOpen, PiFormat.When(tend), PiFormat.Relative(tend, now))
+                         : string.Format(CorpText.CsSkyTheftWindow, PiFormat.When(ts), PiFormat.When(tend), PiFormat.Relative(ts, now)),
+                    open ? FuelUrgency.Critical : FuelUrgency.None));
+            }
+            if (i.ReadAt is { } ra) SkyhookFields.Add(new(CorpText.CsSkyRead, PiFormat.When(ra)));
+            foreach (var r in i.Reagents)
+                Reagents.Add(new CorpBayRowVm(r.Name, r.Secured.ToString("N0", c), r.Unsecured.ToString("N0", c),
+                    PiFormat.When(r.LastCycle), r.TypeId));
+            foreach (var den in i.Dens)
+                SkyhookDens.Add(new(den.Owner, DenLine(den.State, den.AnarchyLevel, den.AnarchyAmount,
+                        den.DevelopmentLevel, den.DevelopmentAmount, den.Infomorphs),
+                    den.AnarchyLevel >= i.AnarchyAlertLevel ? FuelUrgency.Critical : FuelUrgency.None));
+        }
+        IsSkyhookDetail = i.Kind == CorpStructureKind.Skyhook;
+        HasReagents     = Reagents.Count > 0;
+
         // Tower settings.
         if (i.Settings is { } d)
         {
@@ -906,4 +956,22 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     };
 
     private static string YesNo(bool b) => b ? CorpText.CsYes : CorpText.CsNo;
+
+    /// <summary>"Running · anarchy 3 (72) · development 2 (40) · 1,250 infomorphs" — a den in a line,
+    /// here and on Mercenary Dens.</summary>
+    internal static string DenLine(string state, int anarchyLevel, long anarchy, int devLevel, long dev, long infomorphs) =>
+        string.Format(CorpText.CsDenLine, DenStateLabel(state), Level(anarchyLevel), anarchy, Level(devLevel), dev,
+            infomorphs.ToString("N0", CultureInfo.CurrentCulture));
+
+    /// <summary>A den's anarchy or development level, 0–4; "?" when ESI gave none.</summary>
+    internal static string Level(int level) => level >= 0 ? level.ToString(CultureInfo.CurrentCulture) : "?";
+
+    internal static string DenStateLabel(string state) => state switch
+    {
+        "Running"  => CorpText.CsDenRunning,
+        "Paused"   => CorpText.CsDenPaused,
+        "Disabled" => CorpText.CsDenDisabled,
+        ""         => CorpText.CsSkyNotRead,
+        _          => state,
+    };
 }

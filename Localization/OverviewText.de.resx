@@ -583,6 +583,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0} ({1}) wurde zerstört · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>Unterschlupf von {0} bei {1}</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: Anarchiestufe {1} ({2}/100)</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} ist verstärkt bis {1} ({2})</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} wurde verstärkt · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} wird angegriffen · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} bietet eine neue taktische Operation · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>Ein Söldnerunterschlupf von {0}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} ausstehender Vertrag an Sie.</value>
   </data>

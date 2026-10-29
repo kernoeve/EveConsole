@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>Chasseurs sous</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Repaires de mercenaires</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Anarchie d'un repaire au niveau</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>ou plus (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Un repaire attaqué ou renforcé</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Une nouvelle opération tactique de mercenaires</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Les repaires de vos propres personnages (Repaires de mercenaires). Le jeu ne communique l'anarchie d'un repaire qu'à son propriétaire : le repaire de quelqu'un d'autre — même sur le skyhook de votre corporation — n'est pas visible. Les attaques et les nouvelles opérations viennent des notifications du dernier jour et peuvent être ignorées.</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% de l'équipement</value>
   </data>

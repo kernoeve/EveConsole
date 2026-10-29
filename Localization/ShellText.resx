@@ -150,6 +150,10 @@
     <value>Corp Structures</value>
     <comment>Sidebar: the Corp Structures tool — a corporation's structures and starbases, their fit and fuel.</comment>
   </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>Mercenary Dens</value>
+    <comment>Navigation: the Mercenary Dens tool.</comment>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Killmails</value>
   </data>

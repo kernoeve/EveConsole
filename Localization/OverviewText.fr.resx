@@ -583,6 +583,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0} ({1}) a été détruite · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>Repaire de {0} sur {1}</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0} : anarchie niveau {1} ({2}/100)</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} est renforcé jusqu'à {1} ({2})</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} a été renforcé · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} est attaqué · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} propose une nouvelle opération tactique · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>Un repaire de mercenaires de {0}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} contrat en attente vous est destiné.</value>
   </data>

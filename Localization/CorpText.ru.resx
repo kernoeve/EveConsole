@@ -1891,6 +1891,183 @@
   <data name="CsColPickupVolume" xml:space="preserve">
     <value>Объём к вывозу (м³)</value>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>Скайхуки</value>
+  </data>
+  <data name="CsSummarySkyhooksOne" xml:space="preserve">
+    <value>{0} скайхук</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>{0} скайхуков</value>
+  </data>
+  <data name="CsSummarySkyhooksFew" xml:space="preserve">
+    <value>{0} скайхука</value>
+  </data>
+  <data name="CsSummarySkyhooksMany" xml:space="preserve">
+    <value>{0} скайхуков</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>Скайхук</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>Скайхук</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>Производит</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>Ещё не прочитано</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>Рабочая сила</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>Окно кражи</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>Открыто сейчас, до {0} ({1})</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1} ({2})</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>Прочитано</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>Реагент</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>Защищено</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>Не защищено</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>На момент</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>Логова ваших персонажей на нём</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>Анархия видна только у логов ваших персонажей. Чужое логово на этом скайхуке проявляется лишь как снижение рабочей силы.</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · анархия {1} ({2}) · развитие {3} ({4}) · инфоморфов: {5}</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>Приостановлено</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>Отключено</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOne" xml:space="preserve">
+    <value>{0} логово</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>{0} логов</value>
+  </data>
+  <data name="DenSummaryFew" xml:space="preserve">
+    <value>{0} логова</value>
+  </data>
+  <data name="DenSummaryMany" xml:space="preserve">
+    <value>{0} логов</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>с анархией {1} и выше: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOne" xml:space="preserve">
+    <value>открытых операций: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>открытых операций: {0}</value>
+  </data>
+  <data name="DenSummaryOpsFew" xml:space="preserve">
+    <value>открытых операций: {0}</value>
+  </data>
+  <data name="DenSummaryOpsMany" xml:space="preserve">
+    <value>открытых операций: {0}</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>Инфоморфы</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0} (+{1} в час)</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>Развитие</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>Анархия</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>Владелец скайхука</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>Планета</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>Владелец скайхука</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>Инфоморфы</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>В час</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>Развитие</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>Анархия</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>Операции</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>Впервые замечено</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>Ни у одного из ваших персонажей нет логова наёмников. Логова читаются раз в час для каждого персонажа, чей токен позволяет читать сооружения.</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>Логово</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>Тактические операции</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>Нет открытых операций.</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>Логова читаются раз в час по токену каждого персонажа, операции — каждые 10 минут. Развитие и анархия показывают уровень (0–4), затем значение из 100. Инфоморфы в час — по двум последним чтениям.</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>Доступна</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>Начата</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>Завершена</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>Истекла</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>Удалена</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Топливо</value>
   </data>

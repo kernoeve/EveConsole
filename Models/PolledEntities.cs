@@ -870,6 +870,81 @@ public class CorpStarbase
     public DateTimeOffset? OnlinedSince    { get; set; }
 }
 
+/// <summary>
+/// A corporation's skyhook, from /corporations/{id}/structures/skyhooks and its detail (both want
+/// a Station_Manager). A skyhook whose detail was refused keeps the last one read.
+/// </summary>
+public class CorpSkyhook
+{
+    public long   CorporationId { get; set; }
+    public long   SkyhookId     { get; set; }
+    public int    PlanetId      { get; set; }
+    /// <summary>ShieldVulnerable, ArmorReinforced, ArmorVulnerable, HullReinforced, HullVulnerable;
+    /// empty until the detail has been read.</summary>
+    public string State         { get; set; } = "";
+    public bool   IsActive      { get; set; }
+    /// <summary>Lowered by a mercenary den attached to the skyhook.</summary>
+    public long?  EffectiveWorkforce { get; set; }
+    public DateTimeOffset? ReinforcedUntil { get; set; }
+    public DateTimeOffset? TheftStart      { get; set; }
+    public DateTimeOffset? TheftEnd        { get; set; }
+    public DateTimeOffset? PulledAt        { get; set; }
+}
+
+/// <summary>A reagent a skyhook holds, secured and unsecured, as of its last cycle.</summary>
+public class CorpSkyhookReagent
+{
+    public long CorporationId  { get; set; }
+    public long SkyhookId      { get; set; }
+    public int  TypeId         { get; set; }
+    public long SecuredStock   { get; set; }
+    public long UnsecuredStock { get; set; }
+    public DateTimeOffset LastCycle { get; set; }
+}
+
+/// <summary>
+/// A character's mercenary den, from /characters/{id}/structures/mercenary-dens and its detail.
+/// Infomorphs, development and anarchy are as of <see cref="PulledAt"/>; the infomorphs at the
+/// reading before (<see cref="PrevInfomorphs"/>) give how fast they build.
+/// </summary>
+public class CharMercenaryDen
+{
+    public long   CharacterId        { get; set; }
+    public long   DenId              { get; set; }
+    public int    TypeId             { get; set; }
+    public int    PlanetId           { get; set; }
+    public long   SkyhookId          { get; set; }
+    public long   SkyhookCorporationId { get; set; }
+    /// <summary>Running, Paused (e.g. reinforced) or Disabled (e.g. the owner lacks the skills).</summary>
+    public string State              { get; set; } = "";
+    public long   Infomorphs         { get; set; }
+    public long   DevelopmentAmount  { get; set; }
+    /// <summary>0–4, from ESI's "Level0"–"Level4"; -1 when ESI sent none.</summary>
+    public int    DevelopmentLevel   { get; set; }
+    public long   AnarchyAmount      { get; set; }
+    public int    AnarchyLevel       { get; set; }
+    public DateTimeOffset? ReinforcedUntil { get; set; }
+    /// <summary>Null until the detail has been read once.</summary>
+    public DateTimeOffset? PulledAt  { get; set; }
+    public long?  PrevInfomorphs     { get; set; }
+    public DateTimeOffset? PrevPulledAt { get; set; }
+}
+
+/// <summary>A mercenary tactical operation open to a character, from one of their dens.</summary>
+public class CharMercenaryOperation
+{
+    public long   CharacterId   { get; set; }
+    /// <summary>ESI's UUID.</summary>
+    public string OperationId   { get; set; } = "";
+    public long   DenId         { get; set; }
+    public int    DungeonTypeId { get; set; }
+    /// <summary>Available, Started, Completed, Expired or Removed.</summary>
+    public string State         { get; set; } = "";
+    public DateTimeOffset Expires { get; set; }
+    /// <summary>When it was first seen: what the "new operation" alert goes by.</summary>
+    public DateTimeOffset SeenAt  { get; set; }
+}
+
 /// <summary>A service an Upwell structure offers, as the structure list names it, and its state
 /// (online / offline / cleanup). Replaced with the structure list on every poll.</summary>
 public class CorpStructureService

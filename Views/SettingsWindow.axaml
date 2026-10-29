@@ -3252,6 +3252,35 @@
           </StackPanel>
         </Border>
 
+        <!-- Mercenary den alerts: the user's characters' own dens (Mercenary Dens). -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:SettingsText.DenAlertsTitle}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="{x:Static loc:SettingsText.AlertDenAnarchy}"
+                        IsChecked="{Binding AlertsVm.DenAnarchy}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.DenAnarchyLevel}" IsEnabled="{Binding AlertsVm.DenAnarchy}"
+                             Minimum="0" Maximum="4" Increment="1" FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:SettingsText.DenAnarchyOrAbove}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+            <CheckBox Content="{x:Static loc:SettingsText.AlertDenAttacked}"
+                      IsChecked="{Binding AlertsVm.DenAttacked}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.AlertDenNewMto}"
+                      IsChecked="{Binding AlertsVm.DenNewMto}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.DenAlertsNote}" />
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
   </TabItem>

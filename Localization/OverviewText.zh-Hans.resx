@@ -535,6 +535,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0}（{1}）已被摧毁 · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0} 在 {1} 的巢穴</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}：无序度等级 {1}（{2}/100）</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} 处于增强状态，直到 {1}（{2}）</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} 进入增强状态 · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} 正遭到攻击 · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} 提供了新的战术行动 · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>{0} 的一个雇佣兵巢穴</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>有 {0} 个指派给你的未完成合同。</value>
   </data>

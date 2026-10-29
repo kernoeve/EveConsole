@@ -391,6 +391,8 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToPiCharacters                  { get; set; }
     /// <summary>Corp Structures on a corporation, with one structure chosen when not null.</summary>
     public Action<long, long?>? NavigateToCorpStructures            { get; set; }
+    /// <summary>Opens Mercenary Dens, on the den given.</summary>
+    public Action<long?>? NavigateToMercenaryDens                   { get; set; }
 
     /// <summary>Planetary Industry colonies, for the PI alerts. Set by MainWindowViewModel; null
     /// leaves them out.</summary>
@@ -1771,6 +1773,25 @@ public class OverviewViewModel : ReactiveObject
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "StructureAlerts", ex); }
         }
 
+        // Mercenary dens — anarchy, attacks and new operations — on the user's characters' own dens.
+        if (_dbFactory is { } denFactory
+            && (_alertSettings.DenAnarchy || _alertSettings.DenAttacked || _alertSettings.DenNewMto))
+        {
+            try
+            {
+                var settings = new AlertSettings
+                {
+                    DenAnarchy      = _alertSettings.DenAnarchy,
+                    DenAnarchyLevel = (int)Math.Clamp(_alertSettings.DenAnarchyLevel, 0, 4),
+                    DenAttacked     = _alertSettings.DenAttacked,
+                    DenNewMto       = _alertSettings.DenNewMto,
+                };
+                foreach (var a in await Off(() => MercenaryDenAlerts.EvaluateAsync(denFactory, settings)))
+                    newAlerts.Add(DenAlertRow(a));
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "DenAlerts", ex); }
+        }
+
         // Planetary Industry: only the characters that do PI (PiService returns no one else).
         // One row per kind of trouble: named and opening the colony when it is one colony, counted
         // and opening the tool's list when there are several — twenty-two colonies left alone for
@@ -1926,6 +1947,41 @@ public class OverviewViewModel : ReactiveObject
             return new AlertRowVm { Message = a.Message, NavigateCommand = open };
 
         var key = $"structure:{string.Join(",", a.Notifications.Select(n => $"{n.CharacterId}:{n.NotificationId}"))}";
+        AlertRowVm? row = null;
+        row = new AlertRowVm
+        {
+            Message         = a.Message,
+            NavigateCommand = open,
+            IsDismissible   = true,
+            DismissKey      = key,
+            DismissCommand  = ReactiveCommand.CreateFromTask(async () =>
+            {
+                _dismissedDuringLoad.Add(key);
+                foreach (var (charId, notifId) in a.Notifications)
+                    await ExecuteAsync($"""
+                        INSERT INTO "DismissedAlerts" ("CharacterId","NotificationId")
+                        VALUES ({charId},{notifId}) ON CONFLICT DO NOTHING
+                        """);
+                if (Alerts.FirstOrDefault(x => ReferenceEquals(x, row)) is { } toRemove)
+                {
+                    Alerts.Remove(toRemove);
+                    HasAlerts = Alerts.Count > 0;
+                    this.RaisePropertyChanged(nameof(NoAlerts));
+                }
+            }),
+        };
+        return row;
+    }
+
+    /// <summary>A mercenary den alert's row: opening Mercenary Dens on the den, and dismissible
+    /// when it stands for notifications (an attack, a new operation).</summary>
+    private AlertRowVm DenAlertRow(MercenaryDenAlert a)
+    {
+        var open = NavigateToMercenaryDens is { } nav ? ReactiveCommand.Create(() => nav(a.DenId)) : null;
+        if (a.Notifications.Count == 0)
+            return new AlertRowVm { Message = a.Message, NavigateCommand = open };
+
+        var key = $"den:{string.Join(",", a.Notifications.Select(n => $"{n.CharacterId}:{n.NotificationId}"))}";
         AlertRowVm? row = null;
         row = new AlertRowVm
         {

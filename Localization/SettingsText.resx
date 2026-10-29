@@ -69,6 +69,30 @@
     <value>Fighters below</value>
     <comment>Settings → Alerts: tick box, followed by a percentage of the fit's fighters.</comment>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Mercenary dens</value>
+    <comment>Settings → Alerts: section title, mercenary den alerts.</comment>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>A den's anarchy at level</value>
+    <comment>Settings → Alerts: tick box before the level box — a den's anarchy at level N.</comment>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>or above (0–4)</value>
+    <comment>Settings → Alerts: after the level box (0–4).</comment>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>A den attacked or reinforced</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>A new mercenary tactical operation</value>
+    <comment>Settings → Alerts: tick box, a new mercenary tactical operation at a den.</comment>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Your characters' own dens (Mercenary Dens). The game tells a den's anarchy only to its owner, so a den of anyone else's — even on your corporation's skyhook — is not seen. Attacks and new operations come from the notifications of the last day and can be dismissed.</value>
+    <comment>Settings → Alerts: note under the mercenary den alerts.</comment>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% of the fit</value>
     <comment>Settings → Alerts: after a percentage — of what the structure's fit carries.</comment>

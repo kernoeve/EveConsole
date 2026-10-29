@@ -294,20 +294,19 @@ public static class AppKnowledge
         of its structures or other corporations.
 
         ### Corp Structures
-        Every Upwell structure and starbase tower a corporation has in space (corporation dropdown,
-        remembered): type, system, state, services, fuel left, run-out, blocks a day and fuel ISK a
-        day (asset prices), soonest out first (amber under 7 days, red under 3). Choosing one shows
-        status and timers, each fuel's burn and run-out, services, fit by slot (corp assets, or
-        hand-entered in the Structure Browser), core, fighters and ammo hold, moon extraction or
-        Metenox ore (m³, ISK, bay fill of 500,000 m³), and tower settings.
-        Block burn comes from the service modules and the structure's fuel bonus, or the tower's
-        size and faction; every fuel is also measured since its last top-up (gas, ozone,
-        charters). Upwell time left is the game's fuel expiry. Assets and tower details need a
-        Director. Config sets each structure type's saved fit; structures are checked for its
-        modules (any slot, extras fine) and for charges and fighters below a share; a red info
-        icon on the row says what is off on hover. Metenox rows add Pickup value and vol. Settings →
-        Alerts → Structures: fuel, attack, fit and ammo alerts for corporations ticked on
-        Settings → Corporations.
+        A corporation's Upwell structures, towers and skyhooks: state, services, fuel left, run-out,
+        blocks and fuel ISK a day, Metenox pickup value and m³. Detail: timers, each fuel's burn,
+        services, fit by slot, fighters, ammo hold, Metenox ore (bay of 500,000 m³), tower
+        settings; a skyhook's workforce, theft window, reagents and your characters' dens on it.
+        Block burn comes from the service modules and fuel bonus, or the tower's size and faction;
+        Upwell time left is the game's fuel expiry. Assets need a Director. Config sets each type's
+        saved fit; a red info icon shows modules missing or wrong, ammo or fighters low. Alerts →
+        Structures, for corporations ticked on Settings → Corporations.
+
+        ### Mercenary Dens
+        Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,
+        development and anarchy (level 0–4 · amount of 100), open operations. Only a den's owner
+        sees its anarchy. Alerts → Mercenary dens: anarchy at a level, attacked, new operation.
 
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
@@ -483,6 +482,7 @@ public static class AppKnowledge
         ("wallet",              "Wallet",                 "Wallet"),
         ("corp_activity",       "Corp Activity",          "Corp Activity"),
         ("corp_structures",     "Corp Structures",        "Corp Structures"),
+        ("mercenary_dens",      "Mercenary Dens",         "Mercenary Dens"),
         ("killmails",           "Killmails",              "Killmails"),
         ("player_entities",     "Player Entities",        "Player Entities"),
         ("npc_entities",        "NPC Entities",           "NPC Entities"),

@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>파이터가 다음 미만:</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>용병 은신처</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>은신처 무질서도 레벨</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>이상 (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>은신처 공격 또는 강화</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>새 용병 전술 작전</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>내 캐릭터 소유의 은신처(용병 은신처). 게임은 은신처의 무질서도를 소유자에게만 알려 주므로, 다른 사람의 은신처는 (내 코퍼레이션의 스카이훅에 있더라도) 보이지 않습니다. 공격과 새 작전은 최근 하루의 알림에서 가져오며 닫을 수 있습니다.</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>%(피팅 수량 대비)</value>
   </data>

@@ -672,7 +672,11 @@ public static class PostgresSchema
             ADD COLUMN IF NOT EXISTS "StructureAmmoLow"     BOOLEAN NOT NULL DEFAULT TRUE,
             ADD COLUMN IF NOT EXISTS "StructureAmmoPct"     INTEGER NOT NULL DEFAULT 50,
             ADD COLUMN IF NOT EXISTS "StructureFightersLow" BOOLEAN NOT NULL DEFAULT TRUE,
-            ADD COLUMN IF NOT EXISTS "StructureFightersPct" INTEGER NOT NULL DEFAULT 50
+            ADD COLUMN IF NOT EXISTS "StructureFightersPct" INTEGER NOT NULL DEFAULT 50,
+            ADD COLUMN IF NOT EXISTS "DenAnarchy"           BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "DenAnarchyLevel"      INTEGER NOT NULL DEFAULT 3,
+            ADD COLUMN IF NOT EXISTS "DenAttacked"          BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "DenNewMto"            BOOLEAN NOT NULL DEFAULT TRUE
         """,
         """
         ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "StructureAlerts" BOOLEAN NOT NULL DEFAULT TRUE
@@ -1101,6 +1105,66 @@ public static class PostgresSchema
             CONSTRAINT "PK_CorpStructureFits" PRIMARY KEY ("CorporationId", "StructureTypeId")
         )
         """,
+        // Skyhooks (Corp Structures) and mercenary dens (Mercenary Dens).
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpSkyhooks" (
+            "CorporationId"      BIGINT      NOT NULL,
+            "SkyhookId"          BIGINT      NOT NULL,
+            "PlanetId"           INTEGER     NOT NULL DEFAULT 0,
+            "State"              TEXT        NOT NULL DEFAULT '',
+            "IsActive"           BOOLEAN     NOT NULL DEFAULT FALSE,
+            "EffectiveWorkforce" BIGINT,
+            "ReinforcedUntil"    TIMESTAMPTZ,
+            "TheftStart"         TIMESTAMPTZ,
+            "TheftEnd"           TIMESTAMPTZ,
+            "PulledAt"           TIMESTAMPTZ,
+            CONSTRAINT "PK_EsiCorpSkyhooks" PRIMARY KEY ("CorporationId", "SkyhookId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpSkyhookReagents" (
+            "CorporationId"  BIGINT      NOT NULL,
+            "SkyhookId"      BIGINT      NOT NULL,
+            "TypeId"         INTEGER     NOT NULL,
+            "SecuredStock"   BIGINT      NOT NULL DEFAULT 0,
+            "UnsecuredStock" BIGINT      NOT NULL DEFAULT 0,
+            "LastCycle"      TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiCorpSkyhookReagents" PRIMARY KEY ("CorporationId", "SkyhookId", "TypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
+            "CharacterId"          BIGINT      NOT NULL,
+            "DenId"                BIGINT      NOT NULL,
+            "TypeId"               INTEGER     NOT NULL DEFAULT 0,
+            "PlanetId"             INTEGER     NOT NULL DEFAULT 0,
+            "SkyhookId"            BIGINT      NOT NULL DEFAULT 0,
+            "SkyhookCorporationId" BIGINT      NOT NULL DEFAULT 0,
+            "State"                TEXT        NOT NULL DEFAULT '',
+            "Infomorphs"           BIGINT      NOT NULL DEFAULT 0,
+            "DevelopmentAmount"    BIGINT      NOT NULL DEFAULT 0,
+            "DevelopmentLevel"     INTEGER     NOT NULL DEFAULT -1,
+            "AnarchyAmount"        BIGINT      NOT NULL DEFAULT 0,
+            "AnarchyLevel"         INTEGER     NOT NULL DEFAULT -1,
+            "ReinforcedUntil"      TIMESTAMPTZ,
+            "PulledAt"             TIMESTAMPTZ,
+            "PrevInfomorphs"       BIGINT,
+            "PrevPulledAt"         TIMESTAMPTZ,
+            CONSTRAINT "PK_EsiMercenaryDens" PRIMARY KEY ("CharacterId", "DenId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiMercenaryOperations" (
+            "CharacterId"   BIGINT      NOT NULL,
+            "OperationId"   TEXT        NOT NULL,
+            "DenId"         BIGINT      NOT NULL DEFAULT 0,
+            "DungeonTypeId" INTEGER     NOT NULL DEFAULT 0,
+            "State"         TEXT        NOT NULL DEFAULT '',
+            "Expires"       TIMESTAMPTZ NOT NULL,
+            "SeenAt"        TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiMercenaryOperations" PRIMARY KEY ("CharacterId", "OperationId")
+        )
+        """,
 
         // ── Jump bridges entered by hand ─────────────────────────────────────
         //
@@ -1516,9 +1580,11 @@ public static class PostgresSchema
              "OutstandingContracts", "ExpiringContracts",
              "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
              "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
-             "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct")
+             "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct",
+             "DenAnarchy", "DenAnarchyLevel", "DenAttacked", "DenNewMto")
         VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true,
-                true, 3, true, true, true, true, 50, true, 50)
+                true, 3, true, true, true, true, 50, true, 50,
+                true, 3, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

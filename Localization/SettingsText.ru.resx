@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>Истребителей меньше</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Логова наёмников</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Анархия логова на уровне</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>или выше (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Логово атаковано или в укреплении</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Новая тактическая операция наёмников</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Собственные логова ваших персонажей (Логова наёмников). Игра сообщает анархию логова только его владельцу, поэтому чужое логово — даже на скайхуке вашей корпорации — не видно. Атаки и новые операции берутся из уведомлений за последние сутки, их можно скрыть.</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% от оснащения</value>
   </data>

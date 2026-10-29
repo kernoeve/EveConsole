@@ -5,8 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-/// <summary>Whether a row is an Upwell structure or a starbase (POS) control tower.</summary>
-public enum CorpStructureKind { Upwell, Tower }
+/// <summary>Whether a row is an Upwell structure, a starbase (POS) control tower or a skyhook.</summary>
+public enum CorpStructureKind { Upwell, Tower, Skyhook }
+
+/// <summary>A reagent a skyhook holds, secured and unsecured, as of its last cycle.</summary>
+public sealed record CorpReagentInfo(int TypeId, string Name, long Secured, long Unsecured, DateTimeOffset LastCycle);
+
+/// <summary>One of the user's characters' mercenary dens on a skyhook: what its owner can see.</summary>
+public sealed record CorpDenOnSkyhook(long DenId, string Owner, string State, long Infomorphs,
+    int DevelopmentLevel, long DevelopmentAmount, int AnarchyLevel, long AnarchyAmount, DateTimeOffset? ReinforcedUntil);
 
 /// <summary>One service a structure offers, and whether it is running.</summary>
 public sealed record CorpStructureServiceInfo(string Name, string State)
@@ -122,6 +129,21 @@ public sealed class CorpStructureInfo
     /// <summary>Hours of reinforcement the tower's strontium holds, at its size's rate.</summary>
     public double? StrontiumHours          { get; init; }
 
+    // Skyhooks.
+    /// <summary>Producing workforce, power or reagents.</summary>
+    public bool    SkyhookActive      { get; init; }
+    /// <summary>The skyhook's workforce now: lowered by a mercenary den attached to it.</summary>
+    public long?   Workforce          { get; init; }
+    public DateTimeOffset? TheftStart { get; init; }
+    public DateTimeOffset? TheftEnd   { get; init; }
+    public IReadOnlyList<CorpReagentInfo>  Reagents { get; init; } = [];
+    /// <summary>The user's characters' dens on this skyhook. A den of anyone else's is not told.</summary>
+    public IReadOnlyList<CorpDenOnSkyhook> Dens     { get; init; } = [];
+    /// <summary>When the skyhook's detail was last read; null when it never has been.</summary>
+    public DateTimeOffset? ReadAt     { get; init; }
+    /// <summary>The anarchy level the den alert is raised at (Settings → Alerts), to mark a den by.</summary>
+    public int AnarchyAlertLevel      { get; init; } = 3;
+
     // Moon drilling.
     public CorpMiningExtraction? Extraction { get; init; }
 
@@ -167,6 +189,7 @@ public static class CorpStructures
     private const int AttrMoonMaterialBayCapacity = 5693;   // outputMoonMaterialBayCapacity, m³ (Metenox 500,000)
     private const int GroupFuelBlock          = 1136;
     private const int GroupControlTower       = 365;
+    private const int TypeOrbitalSkyhook      = 81080;
     private const int TypeStrontium           = 16275;
     private const int CategoryStarbase        = 23;
     private const int CategoryCharge          = 8;
@@ -308,6 +331,24 @@ public static class CorpStructures
             .Where(c => moonIds.Contains(c.ItemId))
             .ToDictionaryAsync(c => c.ItemId, c => c.Name, ct);
 
+        // Skyhooks: their planets, reagents, and the user's characters' dens on them.
+        var skyhooks = await db.EsiCorpSkyhooks.AsNoTracking()
+            .Where(s => s.CorporationId == corpId).ToListAsync(ct);
+        var skyhookIds = skyhooks.Select(s => s.SkyhookId).ToList();
+        var reagents = (await db.EsiCorpSkyhookReagents.AsNoTracking()
+                .Where(x => x.CorporationId == corpId).ToListAsync(ct))
+            .GroupBy(x => x.SkyhookId).ToDictionary(g => g.Key, g => g.ToList());
+        var planetIds = skyhooks.Select(s => (long)s.PlanetId).Distinct().ToList();
+        var planets = await db.SdeCelestials.AsNoTracking()
+            .Where(c => planetIds.Contains(c.ItemId))
+            .Select(c => new { c.ItemId, c.Name, c.SolarSystemId })
+            .ToDictionaryAsync(c => c.ItemId, ct);
+        var densOn = (await db.EsiMercenaryDens.AsNoTracking()
+                .Where(d => skyhookIds.Contains(d.SkyhookId)).ToListAsync(ct))
+            .GroupBy(d => d.SkyhookId).ToDictionary(g => g.Key, g => g.ToList());
+        Dictionary<long, string> owners = densOn.Count == 0 ? [] : await db.Characters.AsNoTracking()
+            .Select(c => new { c.Id, c.Name }).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+
         // The fit each structure type should carry, and how far below it ammo and fighters may run.
         var required = await CorpStructureFits.RequiredAsync(dbFactory, corpId, ct);
         var alertSettings = await db.AlertSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == 1, ct);
@@ -322,6 +363,8 @@ public static class CorpStructures
             .Concat(byHand.Values.SelectMany(l => l.Select(f => f.TypeId)))
             .Concat(anchored.Values.SelectMany(l => l.Select(a => a.TypeId)))
             .Concat(required.Values.SelectMany(f => f.Items.Select(i => i.TypeId)))
+            .Concat(reagents.Values.SelectMany(l => l.Select(x => x.TypeId)))
+            .Append(TypeOrbitalSkyhook)
             .Distinct().ToList();
         var types = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
@@ -406,7 +449,8 @@ public static class CorpStructures
             .Where(a => a.AttributeId == AttrControlTowerSize && towers.Select(t => t.TypeId).Contains(a.TypeId))
             .ToDictionaryAsync(a => a.TypeId, a => (int)a.Value, ct);
 
-        var systemIds = structures.Select(s => s.SystemId).Concat(towers.Select(t => t.SystemId)).Distinct().ToList();
+        var systemIds = structures.Select(s => s.SystemId).Concat(towers.Select(t => t.SystemId))
+            .Concat(planets.Values.Select(p => p.SolarSystemId)).Distinct().ToList();
         var systems = await db.SdeSolarSystems.AsNoTracking()
             .Where(s => systemIds.Contains(s.SolarSystemId))
             .Select(s => new { s.SolarSystemId, s.Name, s.Security, s.RegionId })
@@ -616,6 +660,44 @@ public static class CorpStructures
             });
         }
 
+        // ── Skyhooks ─────────────────────────────────────────────────────────
+        foreach (var s in skyhooks)
+        {
+            var planet = planets.GetValueOrDefault(s.PlanetId);
+            var (sysName, sec, region) = planet is null ? ("", (double?)null, "") : System(planet.SolarSystemId);
+            result.Add(new CorpStructureInfo
+            {
+                Kind            = CorpStructureKind.Skyhook,
+                Id              = s.SkyhookId,
+                Name            = planet?.Name ?? $"#{s.PlanetId}",
+                TypeId          = TypeOrbitalSkyhook,
+                TypeName        = TypeName(TypeOrbitalSkyhook),
+                GroupName       = GroupName(TypeOrbitalSkyhook),
+                SystemId        = planet?.SolarSystemId ?? 0,
+                SystemName      = sysName,
+                Security        = sec,
+                RegionName      = region,
+                Place           = planet?.Name ?? "",
+                State           = SkyhookState(s.State),
+                StateTimerEnd   = s.ReinforcedUntil,
+                SkyhookActive   = s.IsActive,
+                Workforce       = s.EffectiveWorkforce,
+                TheftStart      = s.TheftStart,
+                TheftEnd        = s.TheftEnd,
+                ReadAt          = s.PulledAt,
+                AnarchyAlertLevel = alertSettings?.DenAnarchyLevel ?? 3,
+                IsPowered       = s.IsActive,
+                Reagents        = [.. (reagents.GetValueOrDefault(s.SkyhookId) ?? [])
+                                      .Select(x => new CorpReagentInfo(x.TypeId, TypeName(x.TypeId), x.SecuredStock, x.UnsecuredStock, x.LastCycle))
+                                      .OrderBy(x => x.Name)],
+                Dens            = [.. (densOn.GetValueOrDefault(s.SkyhookId) ?? [])
+                                      .Select(d => new CorpDenOnSkyhook(d.DenId, owners.GetValueOrDefault(d.CharacterId) ?? $"#{d.CharacterId}",
+                                          d.State, d.Infomorphs, d.DevelopmentLevel, d.DevelopmentAmount, d.AnarchyLevel, d.AnarchyAmount,
+                                          d.ReinforcedUntil))
+                                      .OrderByDescending(d => d.AnarchyAmount)],
+            });
+        }
+
         return result;
     }
 
@@ -714,6 +796,18 @@ public static class CorpStructures
             _                 => (null, 0),
         };
     }
+
+    /// <summary>A skyhook's state as the structure list spells an Upwell structure's, so both read
+    /// the same: "ShieldVulnerable" is "shield_vulnerable". Empty until the detail is read.</summary>
+    internal static string SkyhookState(string state) => state switch
+    {
+        "ShieldVulnerable" => "shield_vulnerable",
+        "ArmorReinforced"  => "armor_reinforce",
+        "ArmorVulnerable"  => "armor_vulnerable",
+        "HullReinforced"   => "hull_reinforce",
+        "HullVulnerable"   => "hull_vulnerable",
+        _                  => state,
+    };
 
     internal static int BandRank(string band) => band switch
     {

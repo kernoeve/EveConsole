@@ -138,6 +138,19 @@ public class AlertSettingsViewModel : ReactiveObject
     private decimal _structureFightersPct = 50;
     public decimal StructureFightersPct { get => _structureFightersPct; set => this.RaiseAndSetIfChanged(ref _structureFightersPct, value); }
 
+    private bool _denAnarchy = true;
+    public bool DenAnarchy { get => _denAnarchy; set => this.RaiseAndSetIfChanged(ref _denAnarchy, value); }
+
+    private decimal _denAnarchyLevel = 3;
+    /// <summary>The anarchy level, 0–4, a den is raised at.</summary>
+    public decimal DenAnarchyLevel { get => _denAnarchyLevel; set => this.RaiseAndSetIfChanged(ref _denAnarchyLevel, value); }
+
+    private bool _denAttacked = true;
+    public bool DenAttacked { get => _denAttacked; set => this.RaiseAndSetIfChanged(ref _denAttacked, value); }
+
+    private bool _denNewMto = true;
+    public bool DenNewMto { get => _denNewMto; set => this.RaiseAndSetIfChanged(ref _denNewMto, value); }
+
     public string Status
     {
         get => _status;
@@ -198,6 +211,10 @@ public class AlertSettingsViewModel : ReactiveObject
         StructureAmmoPct           = s.StructureAmmoPct;
         StructureFightersLow       = s.StructureFightersLow;
         StructureFightersPct       = s.StructureFightersPct;
+        DenAnarchy                 = s.DenAnarchy;
+        DenAnarchyLevel            = s.DenAnarchyLevel;
+        DenAttacked                = s.DenAttacked;
+        DenNewMto                  = s.DenNewMto;
     }
 
     private async Task SaveAsync()
@@ -230,6 +247,10 @@ public class AlertSettingsViewModel : ReactiveObject
         int  stAmmoPct = (int)Math.Clamp(StructureAmmoPct, 1, 100);
         bool stFighter = StructureFightersLow;
         int  stFighterPct = (int)Math.Clamp(StructureFightersPct, 1, 100);
+        bool denAnarchy = DenAnarchy;
+        int  denLevel   = (int)Math.Clamp(DenAnarchyLevel, 0, 4);
+        bool denAttack  = DenAttacked;
+        bool denMto     = DenNewMto;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
@@ -241,10 +262,12 @@ public class AlertSettingsViewModel : ReactiveObject
                     ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
                      "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail",
                      "StructureFuel","StructureFuelDays","StructureAttacked","StructureFitMissing","StructureFitWrong",
-                     "StructureAmmoLow","StructureAmmoPct","StructureFightersLow","StructureFightersPct")
+                     "StructureAmmoLow","StructureAmmoPct","StructureFightersLow","StructureFightersPct",
+                     "DenAnarchy","DenAnarchyLevel","DenAttacked","DenNewMto")
                 VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
                         {piExtract},{piStorage},{piInputs},{piSlots},{false},{mail},
-                        {stFuel},{stDays},{stAttack},{stMissing},{stWrong},{stAmmo},{stAmmoPct},{stFighter},{stFighterPct})
+                        {stFuel},{stDays},{stAttack},{stMissing},{stWrong},{stAmmo},{stAmmoPct},{stFighter},{stFighterPct},
+                        {denAnarchy},{denLevel},{denAttack},{denMto})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -270,7 +293,11 @@ public class AlertSettingsViewModel : ReactiveObject
                     "StructureAmmoLow"            = excluded."StructureAmmoLow",
                     "StructureAmmoPct"            = excluded."StructureAmmoPct",
                     "StructureFightersLow"        = excluded."StructureFightersLow",
-                    "StructureFightersPct"        = excluded."StructureFightersPct"
+                    "StructureFightersPct"        = excluded."StructureFightersPct",
+                    "DenAnarchy"                  = excluded."DenAnarchy",
+                    "DenAnarchyLevel"             = excluded."DenAnarchyLevel",
+                    "DenAttacked"                 = excluded."DenAttacked",
+                    "DenNewMto"                   = excluded."DenNewMto"
                 """).ConfigureAwait(false);
         });
 

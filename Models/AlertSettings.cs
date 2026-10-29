@@ -56,4 +56,15 @@ public class AlertSettings
     /// <summary>A fighter of the fit below StructureFightersPct percent of the fit's amount.</summary>
     public bool StructureFightersLow { get; set; } = true;
     public int  StructureFightersPct { get; set; } = 50;
+
+    // ── Mercenary dens ── the user's characters' own dens (Mercenary Dens tool). ESI tells a den's
+    // anarchy only to its owner, so a den on someone else's skyhook is not seen here.
+
+    /// <summary>A den's anarchy at DenAnarchyLevel (0–4) or above.</summary>
+    public bool DenAnarchy      { get; set; } = true;
+    public int  DenAnarchyLevel { get; set; } = 3;
+    /// <summary>A den attacked or reinforced, from the game's notifications: dismissible.</summary>
+    public bool DenAttacked     { get; set; } = true;
+    /// <summary>A new mercenary tactical operation at a den, from the notifications: dismissible.</summary>
+    public bool DenNewMto       { get; set; } = true;
 }

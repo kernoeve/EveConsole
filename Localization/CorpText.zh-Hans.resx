@@ -1855,6 +1855,156 @@
   <data name="CsColPickupVolume" xml:space="preserve">
     <value>待取体积 (m³)</value>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>天钩</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>{0} 个天钩</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>天钩</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>天钩</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>正在生产</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>尚未读取</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>劳动力</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>可窃取时段</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>现在开放，直到 {0}（{1}）</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1}（{2}）</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>读取时间</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>试剂</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>已保护</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>未保护</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>截至</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>你的角色在其上的巢穴</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>只有你的角色拥有的巢穴才能看到无序度。他人在此天钩上的巢穴只表现为劳动力下降。</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · 无序度 {1}（{2}）· 发展度 {3}（{4}）· {5} 个意识体</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>已暂停</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>{0} 个巢穴</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>{0} 个无序度 ≥ {1}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>{0} 个行动可用</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>意识体</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0}（每小时 +{1}）</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>发展度</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>无序度</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>天钩所有者</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>行星</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>天钩所有者</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>意识体</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>每小时</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>发展度</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>无序度</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>行动</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>到期</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>首次发现</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>你的角色都没有雇佣兵巢穴。对令牌允许读取建筑的角色，每小时读取一次巢穴。</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>巢穴</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>战术行动</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>没有可用的行动。</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>巢穴每小时从各角色的令牌读取一次，行动每 10 分钟读取一次。发展度和无序度先显示等级（0–4），再显示满分 100 的数值。每小时意识体数来自最近两次读取。</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>可用</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>已开始</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>已移除</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>燃料</value>
   </data>

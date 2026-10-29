@@ -2480,6 +2480,218 @@
     <value>Pickup vol (m³)</value>
     <comment>Corp Structures: list column, the m³ a Metenox's moon bay holds to be picked up. Keep m³.</comment>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>Skyhooks</value>
+    <comment>Corp Structures: filter tick box, show skyhooks.</comment>
+  </data>
+  <data name="CsSummarySkyhooksOne" xml:space="preserve">
+    <value>{0} skyhook</value>
+    <comment>Corp Structures: added to the summary above the list; {0} skyhooks. Singular form.</comment>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>{0} skyhooks</value>
+    <comment>Corp Structures: added to the summary above the list; {0} skyhooks.</comment>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>Skyhook</value>
+    <comment>Corp Structures: a skyhook whose planet is not known.</comment>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>Skyhook</value>
+    <comment>Corp Structures: detail section title, the skyhook.</comment>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>Producing</value>
+    <comment>Corp Structures: skyhook detail label — producing workforce, power or reagents.</comment>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>Not read yet</value>
+    <comment>Corp Structures / Mercenary Dens: the detail has not been read from the game yet.</comment>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>Workforce</value>
+    <comment>Corp Structures: skyhook detail label, its workforce now.</comment>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>Theft window</value>
+    <comment>Corp Structures: skyhook detail label, the window in which its reagents can be stolen.</comment>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>Open now, until {0} ({1})</value>
+    <comment>Corp Structures: the theft window is open; {0} when it closes, {1} how long from now.</comment>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1} ({2})</value>
+    <comment>Corp Structures: the theft window; {0} start, {1} end, {2} start relative to now.</comment>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>Read at</value>
+    <comment>Corp Structures / Mercenary Dens: detail label, when it was last read from the game.</comment>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>Reagent</value>
+    <comment>Corp Structures: skyhook reagent table header.</comment>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>Secured</value>
+    <comment>Corp Structures: skyhook reagent table header, stock that cannot be stolen.</comment>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>Unsecured</value>
+    <comment>Corp Structures: skyhook reagent table header, stock that can be stolen.</comment>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>As of</value>
+    <comment>Corp Structures: skyhook reagent table header, the time of the last cycle.</comment>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>Your characters' dens on it</value>
+    <comment>Corp Structures: skyhook detail label over the user's characters' dens on it.</comment>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>Anarchy is seen only for dens your characters own. A den of anyone else's on this skyhook shows only as lower workforce.</value>
+    <comment>Corp Structures: note under a skyhook's dens.</comment>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · anarchy {1} ({2}) · development {3} ({4}) · {5} infomorphs</value>
+    <comment>A den in a line: {0} state, {1} anarchy level, {2} anarchy amount, {3} development level, {4} development amount, {5} infomorphs.</comment>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>Mercenary den state.</comment>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>Paused</value>
+    <comment>Mercenary den state, e.g. while reinforced.</comment>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Mercenary den state, e.g. the owner lacks the skills.</comment>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>Mercenary Dens: a level 0–4, then the amount out of 100: "3 · 72".</comment>
+  </data>
+  <data name="DenSummaryOne" xml:space="preserve">
+    <value>{0} den</value>
+    <comment>Mercenary Dens: summary above the list; {0} dens. Singular form.</comment>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>{0} dens</value>
+    <comment>Mercenary Dens: summary above the list; {0} dens.</comment>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>{0} at anarchy {1} or above</value>
+    <comment>Mercenary Dens: summary; {0} dens at anarchy level {1} or above.</comment>
+  </data>
+  <data name="DenSummaryOpsOne" xml:space="preserve">
+    <value>{0} operation open</value>
+    <comment>Mercenary Dens: summary; {0} tactical operations open. Singular form.</comment>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>{0} operations open</value>
+    <comment>Mercenary Dens: summary; {0} tactical operations open.</comment>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>Infomorphs</value>
+    <comment>Mercenary Dens: detail label.</comment>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0} (+{1} an hour)</value>
+    <comment>Mercenary Dens: {0} infomorphs held, {1} gained an hour between the last two readings.</comment>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>Development</value>
+    <comment>Mercenary Dens: detail label.</comment>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>Anarchy</value>
+    <comment>Mercenary Dens: detail label.</comment>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>Skyhook owner</value>
+    <comment>Mercenary Dens: detail label, the corporation owning the skyhook the den is on.</comment>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Mercenary Dens: column, the character who owns the den.</comment>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>Planet</value>
+    <comment>Mercenary Dens: column.</comment>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>Skyhook owner</value>
+    <comment>Mercenary Dens: column, the corporation owning the skyhook.</comment>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>Infomorphs</value>
+    <comment>Mercenary Dens: column.</comment>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>Per hour</value>
+    <comment>Mercenary Dens: column, infomorphs gained an hour.</comment>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>Development</value>
+    <comment>Mercenary Dens: column.</comment>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>Anarchy</value>
+    <comment>Mercenary Dens: column.</comment>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>Operations</value>
+    <comment>Mercenary Dens: column, tactical operations open.</comment>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Mercenary Dens: operations table header.</comment>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>First seen</value>
+    <comment>Mercenary Dens: operations table header, when the operation was first seen.</comment>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>None of your characters has a mercenary den. Dens are read hourly for each character whose token allows reading structures.</value>
+    <comment>Mercenary Dens: shown when no character has a den.</comment>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>Den</value>
+    <comment>Mercenary Dens: detail section title.</comment>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>Tactical operations</value>
+    <comment>Mercenary Dens: detail section title.</comment>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>No operations open.</value>
+    <comment>Mercenary Dens: no operations at the chosen den.</comment>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>Dens are read hourly from each character's token, operations every 10 minutes. Development and anarchy show the level (0–4), then the amount out of 100. The infomorphs an hour come from the last two readings.</value>
+    <comment>Mercenary Dens: note under the detail.</comment>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>Available</value>
+    <comment>Mercenary tactical operation state.</comment>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>Started</value>
+    <comment>Mercenary tactical operation state.</comment>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Mercenary tactical operation state.</comment>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>Expired</value>
+    <comment>Mercenary tactical operation state.</comment>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>Removed</value>
+    <comment>Mercenary tactical operation state, e.g. the den was removed.</comment>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Fuel</value>
     <comment>Corp Structures: fuel table column, the fuel's name.</comment>

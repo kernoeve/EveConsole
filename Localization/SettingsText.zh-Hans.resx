@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>铁骑舰载机低于</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>雇佣兵巢穴</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>巢穴的无序度达到等级</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>或以上（0–4）</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>巢穴遭到攻击或进入增强</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>新的雇佣兵战术行动</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>你的角色自己的巢穴（雇佣兵巢穴）。游戏只把巢穴的无序度告诉其所有者，因此他人的巢穴——即使在你军团的天钩上——也看不到。攻击和新行动来自最近一天的通知，可以忽略。</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% 的装配数量</value>
   </data>

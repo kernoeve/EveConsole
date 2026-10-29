@@ -1444,6 +1444,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>Bases stellaires</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>Skyhooks</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>Repaires de mercenaires</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>Opérations de mercenaires</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>Installations</value>
   </data>

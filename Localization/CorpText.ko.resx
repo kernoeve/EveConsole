@@ -1855,6 +1855,156 @@
   <data name="CsColPickupVolume" xml:space="preserve">
     <value>회수 부피 (m³)</value>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>스카이훅 {0}개</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>생산 중</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>아직 읽지 않음</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>노동력</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>탈취 가능 시간</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>지금 열림, {0}까지 ({1})</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1} ({2})</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>읽은 시각</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>시약</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>보호됨</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>비보호</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>기준</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>내 캐릭터의 은신처</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>무질서도는 내 캐릭터 소유의 은신처만 보입니다. 이 스카이훅에 있는 다른 사람의 은신처는 노동력 감소로만 나타납니다.</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · 무질서도 {1} ({2}) · 발전도 {3} ({4}) · 인포모프 {5}</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>가동 중</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>일시 정지</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>비활성</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>은신처 {0}개</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>무질서도 {1} 이상: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>작전 {0}개 진행 가능</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>인포모프</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0} (시간당 +{1})</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>발전도</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>무질서도</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>스카이훅 소유자</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>행성</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>스카이훅 소유자</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>인포모프</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>시간당</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>발전도</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>무질서도</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>작전</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>만료</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>처음 확인</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>용병 은신처를 가진 캐릭터가 없습니다. 은신처는 토큰이 구조물 읽기를 허용하는 캐릭터마다 매시간 읽습니다.</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>은신처</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>전술 작전</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>진행 가능한 작전이 없습니다.</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>은신처는 각 캐릭터의 토큰으로 매시간, 작전은 10분마다 읽습니다. 발전도와 무질서도는 레벨(0–4)과 100 기준 수치를 표시합니다. 시간당 인포모프는 최근 두 번의 읽기에서 계산합니다.</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>가능</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>시작됨</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>만료됨</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>제거됨</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>연료</value>
   </data>

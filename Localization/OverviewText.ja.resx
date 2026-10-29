@@ -535,6 +535,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0}（{1}）が破壊されました · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0} の隠れ家（{1}）</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}：アナーキー レベル {1}（{2}/100）</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} は {1} まで強化状態（{2}）</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} が強化状態になりました · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} が攻撃を受けています · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} に新しい戦術作戦があります · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>{0} の傭兵の隠れ家</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>自分宛ての未締結の契約が{0}件あります。</value>
   </data>

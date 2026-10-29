@@ -1474,6 +1474,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>Звёздные базы</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>Скайхуки</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>Логова наёмников</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>Операции наёмников</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>Объекты</value>
   </data>

@@ -535,6 +535,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0}({1}) 파괴됨 · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0}의 은신처({1})</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: 무질서도 레벨 {1} ({2}/100)</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} 강화 상태, {1}까지 ({2})</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} 강화됨 · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} 공격받는 중 · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0}에 새 전술 작전 · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>{0}의 용병 은신처</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>나에게 발행된 미체결 계약이 {0}건 있습니다.</value>
   </data>

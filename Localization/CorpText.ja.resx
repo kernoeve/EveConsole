@@ -1855,6 +1855,156 @@
   <data name="CsColPickupVolume" xml:space="preserve">
     <value>回収量 (m³)</value>
   </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>スカイフック {0} 基</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>生産中</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>未取得</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>労働力</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>窃盗可能時間</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>現在開放中、{0} まで（{1}）</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1}（{2}）</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>取得時刻</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>試薬</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>保護済み</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>未保護</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>時点</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>自キャラクターの隠れ家</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>アナーキーは自キャラクターの隠れ家でのみ見えます。このスカイフック上の他人の隠れ家は、労働力の低下としてしか現れません。</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · アナーキー {1}（{2}）· 発展 {3}（{4}）· インフォモーフ {5}</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>稼働中</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>隠れ家 {0} 件</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>アナーキー {1} 以上: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>作戦 {0} 件</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>インフォモーフ</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0}（1時間 +{1}）</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>発展</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>アナーキー</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>スカイフック所有者</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>惑星</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>スカイフック所有者</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>インフォモーフ</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>毎時</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>発展</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>アナーキー</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>作戦</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>初回確認</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>傭兵の隠れ家を持つキャラクターはいません。隠れ家は、トークンがストラクチャーの読み取りを許可しているキャラクターごとに毎時読み取られます。</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>隠れ家</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>戦術作戦</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>作戦はありません。</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>隠れ家は各キャラクターのトークンで毎時、作戦は10分ごとに読み取ります。発展とアナーキーはレベル（0–4）と100中の値を表示します。1時間あたりのインフォモーフは直近2回の読み取りから算出します。</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>利用可能</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>開始済み</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>削除済み</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>燃料</value>
   </data>

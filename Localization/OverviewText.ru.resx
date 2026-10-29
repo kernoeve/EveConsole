@@ -679,6 +679,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0} ({1}) уничтожена · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>Логово {0} на {1}</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: анархия, уровень {1} ({2}/100)</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} в укреплении до {1} ({2})</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} переведено в укрепление · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} атаковано · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} предлагает новую тактическую операцию · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>Логово наёмников {0}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} размещённый контракт адресован вам.</value>
   </data>

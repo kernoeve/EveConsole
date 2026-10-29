@@ -776,6 +776,34 @@
     <value>{0} ({1}) was destroyed · {2}</value>
     <comment>Overview alert: {0} structure, {1} system, {2} when.</comment>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0}'s den at {1}</value>
+    <comment>Overview alert: names a den — {0} the owning character, {1} its planet.</comment>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: anarchy level {1} ({2}/100)</value>
+    <comment>Overview alert: {0} the den (AlertDenName), {1} anarchy level 0–4, {2} amount 0–100.</comment>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} is reinforced until {1} ({2})</value>
+    <comment>Overview alert: {0} the den, {1} when its reinforcement ends, {2} how long from now.</comment>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} was reinforced · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} is under attack · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} offers a new tactical operation · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>A mercenary den of {0}</value>
+    <comment>Overview alert: a den the notification could not be put to; {0} the character who received it.</comment>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} outstanding contract issued to you.</value>
     <comment>Overview alert, one contract waiting on the user. {0} is the number.</comment>

@@ -583,6 +583,27 @@
   <data name="AlertStructureDestroyed" xml:space="preserve">
     <value>{0} ({1}) ha sido destruida · {2}</value>
   </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>Guarida de {0} en {1}</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: anarquía nivel {1} ({2}/100)</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} está reforzada hasta {1} ({2})</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} ha sido reforzada · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} está siendo atacada · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} ofrece una nueva operación táctica · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>Una guarida de mercenarios de {0}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} contrato pendiente dirigido a ti.</value>
   </data>

@@ -88,6 +88,10 @@ public class AppDbContext : DbContext
     public DbSet<CorpStarbaseDetail>    EsiCorpStarbaseDetails   => Set<CorpStarbaseDetail>();
     public DbSet<CorpFuelBay>           EsiCorpFuelBays          => Set<CorpFuelBay>();
     public DbSet<CorpStructureFit>      CorpStructureFits        => Set<CorpStructureFit>();
+    public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
+    public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
+    public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
+    public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
@@ -1166,6 +1170,30 @@ public class AppDbContext : DbContext
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.StructureTypeId).ValueGeneratedNever();
             e.ToTable("CorpStructureFits"); });
+
+        mb.Entity<CorpSkyhook>(e => {
+            e.HasKey(x => new { x.CorporationId, x.SkyhookId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.SkyhookId).ValueGeneratedNever();
+            e.ToTable("EsiCorpSkyhooks"); });
+
+        mb.Entity<CorpSkyhookReagent>(e => {
+            e.HasKey(x => new { x.CorporationId, x.SkyhookId, x.TypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.SkyhookId).ValueGeneratedNever();
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("EsiCorpSkyhookReagents"); });
+
+        mb.Entity<CharMercenaryDen>(e => {
+            e.HasKey(x => new { x.CharacterId, x.DenId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.DenId).ValueGeneratedNever();
+            e.ToTable("EsiMercenaryDens"); });
+
+        mb.Entity<CharMercenaryOperation>(e => {
+            e.HasKey(x => new { x.CharacterId, x.OperationId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("EsiMercenaryOperations"); });
 
         mb.Entity<CorpFacility>(e => {
             e.HasKey(x => new { x.CorporationId, x.FacilityId });

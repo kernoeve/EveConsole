@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>Cazas por debajo del</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Guaridas de mercenarios</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Anarquía de una guarida en el nivel</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>o superior (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Una guarida atacada o reforzada</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Una nueva operación táctica de mercenarios</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Las guaridas de tus propios personajes (Guaridas de mercenarios). El juego solo comunica la anarquía de una guarida a su propietario, así que la guarida de cualquier otro —incluso en el skyhook de tu corporación— no se ve. Los ataques y las nuevas operaciones salen de las notificaciones del último día y se pueden descartar.</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% del equipamiento</value>
   </data>

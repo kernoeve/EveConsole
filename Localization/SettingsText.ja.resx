@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>ファイターが次を下回る:</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>傭兵の隠れ家</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>隠れ家のアナーキーがレベル</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>以上（0–4）</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>隠れ家が攻撃された、または強化状態になった</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>新しい傭兵戦術作戦</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>自分のキャラクターの隠れ家（傭兵の隠れ家）。ゲームは隠れ家のアナーキーを所有者にしか伝えないため、他人の隠れ家は（自コーポレーションのスカイフック上でも）見えません。攻撃と新しい作戦は直近1日の通知から取得し、非表示にできます。</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>%（装備の数量に対して）</value>
   </data>

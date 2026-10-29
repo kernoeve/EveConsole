@@ -27,7 +27,8 @@ public static partial class CorpStructureAlerts
 {
     /// <summary>The notifications that say a structure or tower is under fire, or has lost to it.</summary>
     public static readonly string[] AttackTypes =
-        ["StructureUnderAttack", "StructureLostShields", "StructureLostArmor", "StructureDestroyed", "TowerAlertMsg"];
+        ["StructureUnderAttack", "StructureLostShields", "StructureLostArmor", "StructureDestroyed", "TowerAlertMsg",
+         "SkyhookUnderAttack", "SkyhookLostShields", "SkyhookDestroyed"];
 
     /// <summary>
     /// How far back an attack is still raised. ⚠️ Without a limit the first run would raise every
@@ -208,6 +209,15 @@ public static partial class CorpStructureAlerts
                 .Select(x => new { x.StarbaseId, x.CorporationId, x.MoonId, x.SystemId })
                 .ToListAsync(ct))
             .GroupBy(x => x.MoonId).ToDictionary(g => g.Key, g => g.First());
+        var skyhooks = await db.EsiCorpSkyhooks.AsNoTracking()
+            .Where(x => corpIds.Contains(x.CorporationId))
+            .Select(x => new { x.SkyhookId, x.CorporationId, x.PlanetId })
+            .ToListAsync(ct);
+        var hookPlanetIds = skyhooks.Select(x => (long)x.PlanetId).Distinct().ToList();
+        var hookPlanets = await db.SdeCelestials.AsNoTracking()
+            .Where(c => hookPlanetIds.Contains(c.ItemId))
+            .Select(c => new { c.ItemId, c.Name, c.SolarSystemId })
+            .ToDictionaryAsync(c => c.ItemId, ct);
 
         // Each notification put to the structure it is about.
         var hits = new List<(long Key, long CorpId, int SystemId, string Name, string Type, DateTimeOffset At,
@@ -219,6 +229,17 @@ public static partial class CorpStructureAlerts
             {
                 if (!Long(f, "moonID", out var moon) || !towers.TryGetValue(moon, out var t)) continue;
                 hits.Add((t.StarbaseId, t.CorporationId, t.SystemId, "", n.Type, n.Timestamp, f, n.CharacterId, n.NotificationId));
+            }
+            else if (n.Type.StartsWith("Skyhook", StringComparison.Ordinal))
+            {
+                // By the skyhook's id where the notification gives one, else by its planet.
+                var hook = skyhooks.FirstOrDefault(x =>
+                               (Long(f, "skyhookID", out var sid) || Long(f, "structureID", out sid) || Long(f, "itemID", out sid)) && x.SkyhookId == sid)
+                        ?? skyhooks.FirstOrDefault(x => Long(f, "planetID", out var pid) && x.PlanetId == pid);
+                if (hook is null) continue;
+                var planet = hookPlanets.GetValueOrDefault(hook.PlanetId);
+                hits.Add((hook.SkyhookId, hook.CorporationId, planet?.SolarSystemId ?? 0, planet?.Name ?? CorpText.CsSkyhook,
+                          n.Type, n.Timestamp, f, n.CharacterId, n.NotificationId));
             }
             else if (Long(f, "structureID", out var id) && structures.TryGetValue(id, out var st))
                 hits.Add((st.StructureId, st.CorporationId, st.SystemId, st.Name, n.Type, n.Timestamp, f, n.CharacterId, n.NotificationId));
@@ -247,9 +268,11 @@ public static partial class CorpStructureAlerts
 
             var message = newest.Type switch
             {
-                "StructureLostShields" => string.Format(OverviewText.AlertStructureLostShields, name, system, Timer(f) ?? "?", ago),
+                "StructureLostShields" or "SkyhookLostShields"
+                                       => string.Format(OverviewText.AlertStructureLostShields, name, system, Timer(f) ?? "?", ago),
                 "StructureLostArmor"   => string.Format(OverviewText.AlertStructureLostArmor, name, system, Timer(f) ?? "?", ago),
-                "StructureDestroyed"   => string.Format(OverviewText.AlertStructureDestroyed, name, system, ago),
+                "StructureDestroyed" or "SkyhookDestroyed"
+                                       => string.Format(OverviewText.AlertStructureDestroyed, name, system, ago),
                 "TowerAlertMsg"        => string.Format(OverviewText.AlertStructureAttacked, name, system,
                                               Pct(f, "shieldValue", 100), Pct(f, "armorValue", 100), Pct(f, "hullValue", 100), ago),
                 _ => (f.GetValueOrDefault("allianceName") is { Length: > 0 } al ? $"{f.GetValueOrDefault("corpName")} ({al})"

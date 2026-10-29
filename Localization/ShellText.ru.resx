@@ -127,6 +127,9 @@
   <data name="NavCorpStructures" xml:space="preserve">
     <value>Структуры корпорации</value>
   </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>Логова наёмников</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Отчёты о боях</value>
   </data>

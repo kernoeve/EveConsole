@@ -2609,6 +2609,67 @@ public class App : Application
                         PRIMARY KEY ("CorporationId", "StructureTypeId")
                     )
                     """);
+                // Skyhooks (Corp Structures) and mercenary dens (Mercenary Dens). Mirrored in
+                // PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpSkyhooks" (
+                        "CorporationId"      INTEGER NOT NULL,
+                        "SkyhookId"          INTEGER NOT NULL,
+                        "PlanetId"           INTEGER NOT NULL DEFAULT 0,
+                        "State"              TEXT    NOT NULL DEFAULT '',
+                        "IsActive"           INTEGER NOT NULL DEFAULT 0,
+                        "EffectiveWorkforce" INTEGER,
+                        "ReinforcedUntil"    TEXT,
+                        "TheftStart"         TEXT,
+                        "TheftEnd"           TEXT,
+                        "PulledAt"           TEXT,
+                        PRIMARY KEY ("CorporationId", "SkyhookId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpSkyhookReagents" (
+                        "CorporationId"  INTEGER NOT NULL,
+                        "SkyhookId"      INTEGER NOT NULL,
+                        "TypeId"         INTEGER NOT NULL,
+                        "SecuredStock"   INTEGER NOT NULL DEFAULT 0,
+                        "UnsecuredStock" INTEGER NOT NULL DEFAULT 0,
+                        "LastCycle"      TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "SkyhookId", "TypeId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
+                        "CharacterId"          INTEGER NOT NULL,
+                        "DenId"                INTEGER NOT NULL,
+                        "TypeId"               INTEGER NOT NULL DEFAULT 0,
+                        "PlanetId"             INTEGER NOT NULL DEFAULT 0,
+                        "SkyhookId"            INTEGER NOT NULL DEFAULT 0,
+                        "SkyhookCorporationId" INTEGER NOT NULL DEFAULT 0,
+                        "State"                TEXT    NOT NULL DEFAULT '',
+                        "Infomorphs"           INTEGER NOT NULL DEFAULT 0,
+                        "DevelopmentAmount"    INTEGER NOT NULL DEFAULT 0,
+                        "DevelopmentLevel"     INTEGER NOT NULL DEFAULT -1,
+                        "AnarchyAmount"        INTEGER NOT NULL DEFAULT 0,
+                        "AnarchyLevel"         INTEGER NOT NULL DEFAULT -1,
+                        "ReinforcedUntil"      TEXT,
+                        "PulledAt"             TEXT,
+                        "PrevInfomorphs"       INTEGER,
+                        "PrevPulledAt"         TEXT,
+                        PRIMARY KEY ("CharacterId", "DenId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiMercenaryOperations" (
+                        "CharacterId"   INTEGER NOT NULL,
+                        "OperationId"   TEXT    NOT NULL,
+                        "DenId"         INTEGER NOT NULL DEFAULT 0,
+                        "DungeonTypeId" INTEGER NOT NULL DEFAULT 0,
+                        "State"         TEXT    NOT NULL DEFAULT '',
+                        "Expires"       TEXT    NOT NULL,
+                        "SeenAt"        TEXT    NOT NULL,
+                        PRIMARY KEY ("CharacterId", "OperationId")
+                    )
+                    """);
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpFacilities" (
@@ -3318,7 +3379,11 @@ public class App : Application
                         "StructureAmmoLow"           INTEGER NOT NULL DEFAULT 1,
                         "StructureAmmoPct"           INTEGER NOT NULL DEFAULT 50,
                         "StructureFightersLow"       INTEGER NOT NULL DEFAULT 1,
-                        "StructureFightersPct"       INTEGER NOT NULL DEFAULT 50
+                        "StructureFightersPct"       INTEGER NOT NULL DEFAULT 50,
+                        "DenAnarchy"                 INTEGER NOT NULL DEFAULT 1,
+                        "DenAnarchyLevel"            INTEGER NOT NULL DEFAULT 3,
+                        "DenAttacked"                INTEGER NOT NULL DEFAULT 1,
+                        "DenNewMto"                  INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -3345,6 +3410,11 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAmmoPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersLow" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
+                // Mercenary den alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAnarchy" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAnarchyLevel" INTEGER NOT NULL DEFAULT 3"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAttacked" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenNewMto" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -3357,9 +3427,11 @@ public class App : Application
                          "OutstandingContracts", "ExpiringContracts",
                          "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
                          "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
-                         "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct")
+                         "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct",
+                         "DenAnarchy", "DenAnarchyLevel", "DenAttacked", "DenNewMto")
                     VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                            1, 3, 1, 1, 1, 1, 50, 1, 50)
+                            1, 3, 1, 1, 1, 1, 50, 1, 50,
+                            1, 3, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""

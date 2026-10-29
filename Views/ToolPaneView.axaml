@@ -221,6 +221,9 @@
         <DataTemplate DataType="vm:CorpStructuresViewModel">
           <views:CorpStructuresView />
         </DataTemplate>
+        <DataTemplate DataType="vm:MercenaryDensViewModel">
+          <views:MercenaryDensView />
+        </DataTemplate>
         <DataTemplate DataType="vm:KillmailBrowserViewModel">
           <views:KillmailBrowserView />
         </DataTemplate>

@@ -55,6 +55,24 @@
   <data name="AlertStructureFightersLow" xml:space="preserve">
     <value>Jäger unter</value>
   </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Söldnerunterschlüpfe</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Anarchie eines Unterschlupfs ab Stufe</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>oder höher (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Ein Unterschlupf angegriffen oder verstärkt</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Eine neue taktische Söldneroperation</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Die eigenen Unterschlüpfe deiner Charaktere (Söldnerunterschlüpfe). Das Spiel teilt die Anarchie eines Unterschlupfs nur seinem Besitzer mit, daher ist der Unterschlupf eines anderen – selbst am Skyhook deiner Corporation – nicht sichtbar. Angriffe und neue Operationen stammen aus den Benachrichtigungen des letzten Tages und können verworfen werden.</value>
+  </data>
   <data name="PercentOfTheFit" xml:space="preserve">
     <value>% der Ausrüstung</value>
   </data>

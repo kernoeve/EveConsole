@@ -127,6 +127,9 @@
   <data name="NavCorpStructures" xml:space="preserve">
     <value>コーポストラクチャ</value>
   </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>傭兵の隠れ家</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>キルレポート</value>
   </data>

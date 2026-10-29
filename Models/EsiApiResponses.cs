@@ -657,6 +657,108 @@ public record EsiStarbaseFuel(
     [property: JsonPropertyName("quantity")] int Quantity
 );
 
+// ── Skyhooks and mercenary dens (new-style routes, no version prefix) ────────
+
+/// <summary>/corporations/{id}/structures/skyhooks — the corporation's skyhooks (Station_Manager).</summary>
+public record EsiSkyhookListing(
+    [property: JsonPropertyName("skyhooks")] List<EsiSkyhookListed> Skyhooks
+);
+
+public record EsiSkyhookListed(
+    [property: JsonPropertyName("id")]        long Id,
+    [property: JsonPropertyName("planet_id")] int  PlanetId
+);
+
+/// <summary>/corporations/{id}/structures/skyhooks/{id} — one skyhook's state, stock and windows.
+/// effective_workforce is lowered by a mercenary den attached to it.</summary>
+public record EsiSkyhookDetail(
+    [property: JsonPropertyName("id")]                  long    Id,
+    [property: JsonPropertyName("planet_id")]           int     PlanetId,
+    [property: JsonPropertyName("state")]               string  State,
+    [property: JsonPropertyName("is_active")]           bool    IsActive,
+    [property: JsonPropertyName("effective_workforce")] long?   EffectiveWorkforce = null,
+    [property: JsonPropertyName("reagents")]            List<EsiSkyhookReagent>? Reagents = null,
+    [property: JsonPropertyName("reinforcement_timer")] EsiTimerEnd? ReinforcementTimer = null,
+    [property: JsonPropertyName("theft_vulnerability")] EsiTimeWindow? TheftVulnerability = null
+);
+
+public record EsiSkyhookReagent(
+    [property: JsonPropertyName("type_id")]         int            TypeId,
+    [property: JsonPropertyName("secured_stock")]   long           SecuredStock,
+    [property: JsonPropertyName("unsecured_stock")] long           UnsecuredStock,
+    [property: JsonPropertyName("last_cycle")]      DateTimeOffset LastCycle
+);
+
+public record EsiTimerEnd(
+    [property: JsonPropertyName("end")] DateTimeOffset End
+);
+
+public record EsiTimeWindow(
+    [property: JsonPropertyName("start")] DateTimeOffset Start,
+    [property: JsonPropertyName("end")]   DateTimeOffset End
+);
+
+/// <summary>/characters/{id}/structures/mercenary-dens — the character's dens.</summary>
+public record EsiMercenaryDenListing(
+    [property: JsonPropertyName("mercenary_dens")] List<EsiMercenaryDenListed> MercenaryDens
+);
+
+public record EsiMercenaryDenListed(
+    [property: JsonPropertyName("id")]        long Id,
+    [property: JsonPropertyName("planet_id")] int  PlanetId
+);
+
+/// <summary>/characters/{id}/structures/mercenary-dens/{id} — one den: its skyhook, state,
+/// infomorphs, development and anarchy, and its reinforcement timer while reinforced.</summary>
+public record EsiMercenaryDenDetail(
+    [property: JsonPropertyName("id")]                  long   Id,
+    [property: JsonPropertyName("type_id")]             int    TypeId,
+    [property: JsonPropertyName("state")]               string State,
+    [property: JsonPropertyName("skyhook")]             EsiMercenaryDenSkyhook Skyhook,
+    [property: JsonPropertyName("infomorphs")]          EsiAmount Infomorphs,
+    [property: JsonPropertyName("evolution")]           EsiMercenaryDenEvolution Evolution,
+    [property: JsonPropertyName("reinforcement_timer")] EsiTimerEnd? ReinforcementTimer = null
+);
+
+public record EsiMercenaryDenSkyhook(
+    [property: JsonPropertyName("id")]             long Id,
+    [property: JsonPropertyName("planet_id")]      int  PlanetId,
+    [property: JsonPropertyName("corporation_id")] long CorporationId
+);
+
+public record EsiAmount(
+    [property: JsonPropertyName("amount")] long Amount
+);
+
+public record EsiMercenaryDenEvolution(
+    [property: JsonPropertyName("development")] EsiEvolutionLevel Development,
+    [property: JsonPropertyName("anarchy")]     EsiEvolutionLevel Anarchy
+);
+
+/// <summary>A den's development or anarchy: amount 0–100, level "Level0" to "Level4".</summary>
+public record EsiEvolutionLevel(
+    [property: JsonPropertyName("amount")] long   Amount,
+    [property: JsonPropertyName("level")]  string Level
+);
+
+/// <summary>/characters/{id}/mercenary-tactical-operations — the operations open to the character.</summary>
+public record EsiMtoListing(
+    [property: JsonPropertyName("operations")] List<EsiMtoListed> Operations
+);
+
+public record EsiMtoListed(
+    [property: JsonPropertyName("id")]               string Id,
+    [property: JsonPropertyName("mercenary_den_id")] long   MercenaryDenId
+);
+
+public record EsiMtoDetail(
+    [property: JsonPropertyName("id")]               string         Id,
+    [property: JsonPropertyName("mercenary_den_id")] long           MercenaryDenId,
+    [property: JsonPropertyName("dungeon_type_id")]  int            DungeonTypeId,
+    [property: JsonPropertyName("state")]            string         State,
+    [property: JsonPropertyName("expires")]          DateTimeOffset Expires
+);
+
 public record EsiCorpFacilityEntry(
     [property: JsonPropertyName("facility_id")] long   FacilityId,
     [property: JsonPropertyName("type_id")]     int    TypeId,

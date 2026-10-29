@@ -1444,6 +1444,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>Sternenbasen</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>Skyhooks</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>Söldnerunterschlüpfe</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>Söldneroperationen</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>Anlagen</value>
   </data>
