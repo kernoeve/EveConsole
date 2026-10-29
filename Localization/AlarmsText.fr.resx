@@ -139,6 +139,12 @@
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Sélectionnez une alarme, ou créez-en une.</value>
   </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarme sélectionnée. Exporter n'enregistre que celle-ci ; sélectionnez-en une seule pour la modifier.</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarmes sélectionnées. Exporter n'enregistre que celles-ci ; sélectionnez-en une seule pour la modifier.</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Enregistrer</value>
   </data>
@@ -740,7 +746,7 @@
     <value>Importer des alarmes</value>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>Enregistre toutes les alarmes et leurs actions dans un fichier JSON.</value>
+    <value>Enregistre les alarmes sélectionnées et leurs actions dans un fichier JSON — toutes les alarmes si aucune n'est sélectionnée. Ctrl ou Maj pour en sélectionner plusieurs.</value>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
     <value>Ajoute les alarmes d'un export JSON comme nouvelles alarmes, avec leurs actions. Rien n'est remplacé ; une alarme déjà présente est ignorée.</value>

@@ -139,6 +139,9 @@
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>알람을 선택하거나 새로 만드십시오.</value>
   </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>알람 {0}개 선택됨. 내보내기는 이것들만 저장합니다. 편집하려면 하나만 선택하세요.</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>저장</value>
   </data>
@@ -740,7 +743,7 @@
     <value>알람 가져오기</value>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>모든 알람과 그 동작을 JSON 파일로 저장합니다.</value>
+    <value>선택한 알람과 그 동작을 JSON 파일로 저장합니다. 선택하지 않으면 모든 알람을 저장합니다. Ctrl 또는 Shift로 여러 개를 선택합니다.</value>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
     <value>JSON 내보내기의 알람을 동작까지 포함해 새 알람으로 추가합니다. 기존 항목은 바뀌지 않으며, 이미 있는 알람은 건너뜁니다.</value>

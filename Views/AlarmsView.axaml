@@ -292,8 +292,10 @@
       <!-- ── Left: alarm list, then open alerts ─────────────────────────── -->
       <Grid Grid.Column="0" RowDefinitions="*,Auto">
 
+        <!-- Multiple: Ctrl adds or removes one, Shift a range. Export saves what is selected. -->
         <ListBox Grid.Row="0" ItemsSource="{Binding Alarms}"
-                 SelectedItem="{Binding SelectedAlarm}"
+                 SelectedItem="{Binding SelectedAlarm}" SelectionMode="Multiple"
+                 SelectionChanged="OnAlarmSelectionChanged"
                  Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:AlarmRowVm">
@@ -358,7 +360,7 @@
         <!-- Margin on the content rather than Padding on the ScrollViewer: padding is not
              counted in the scrollable extent, so the last thing in the panel stays clipped
              however far down you scroll. -->
-        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}">
+        <ScrollViewer Grid.Row="0" IsVisible="{Binding ShowEditor}">
           <StackPanel Spacing="14" MaxWidth="720" HorizontalAlignment="Left" Margin="16 14 16 14">
 
             <!-- Name / enabled -->
@@ -484,14 +486,20 @@
           </StackPanel>
         </ScrollViewer>
 
-        <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
+        <TextBlock Grid.Row="0" IsVisible="{Binding ShowPlaceholder}"
                    Text="{x:Static loc:AlarmsText.SelectAnAlarmOrCreate}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
+
+        <!-- Several selected: the editor edits one, so it gives way to what Export will save. -->
+        <TextBlock Grid.Row="0" IsVisible="{Binding IsMultiSelect}"
+                   Text="{Binding MultiSelectText}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="420"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
 
         <!-- Action bar. Outside the scroll region on purpose: Save must not be something you
              have to scroll to find, and it was being clipped by the history panel below. -->
-        <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
+        <Border Grid.Row="1" IsVisible="{Binding ShowEditor}"
                 Background="{DynamicResource SurfaceBaseBrush}" Padding="16 8"
                 BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
           <StackPanel Orientation="Horizontal" Spacing="10">

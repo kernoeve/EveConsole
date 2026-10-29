@@ -184,6 +184,14 @@
     <value>Select an alarm, or create one.</value>
     <comment>Text in AlarmsView.</comment>
   </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarm selected. Export saves just this one; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more). Singular form.</comment>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarms selected. Export saves just these; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more).</comment>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
     <comment>Button or option in AlarmsView.</comment>
@@ -985,7 +993,7 @@
     <comment>Alarms: title of the open-file dialog for an alarm import.</comment>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>Saves every alarm and its actions to a JSON file.</value>
+    <value>Saves the selected alarms and their actions to a JSON file — every alarm when none is selected. Ctrl or Shift selects more than one.</value>
     <comment>Alarms: tooltip of the Export button.</comment>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
