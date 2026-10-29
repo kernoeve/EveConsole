@@ -1774,7 +1774,7 @@ public class WorklistViewModel : ReactiveObject
     // What each station wants and which demand is asking for it. The worklist says what to do;
     // this says why, which is the question asked when a suggestion looks wrong.
 
-    public ObservableCollection<StationNeedRowVm> Needs { get; } = [];
+    public BulkObservableCollection<StationNeedRowVm> Needs { get; } = [];
 
     /// <summary>
     /// The needs grouped by station, the way the task grid groups by kind.
@@ -1795,9 +1795,9 @@ public class WorklistViewModel : ReactiveObject
     // ── Bottlenecks ───────────────────────────────────────────────────────────
 
     public ObservableCollection<SlotPressureRowVm>  SlotPressure  { get; } = [];
-    public ObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
-    public ObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
-    public ObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
+    public BulkObservableCollection<PrintPressureRowVm> PrintPressure { get; } = [];
+    public BulkObservableCollection<ItemShortageRowVm>  ItemShortages { get; } = [];
+    public BulkObservableCollection<HaulPressureRowVm>  HaulPressures { get; } = [];
 
     // ⚠️ Views, not the lists, for the grids: a grid handed a plain list sorts a copy of its own,
     // and a header click there would scatter a row's task rows. Through a view the family keys

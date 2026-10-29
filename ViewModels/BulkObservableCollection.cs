@@ -24,10 +24,21 @@ namespace EveConsole.ViewModels;
 /// thread — which is the shape that was wanted anyway, because the expensive part is producing
 /// the items, not storing them.</para>
 /// </summary>
-public sealed class BulkObservableCollection<T> : ObservableCollection<T>
+public sealed class BulkObservableCollection<T> : ObservableCollection<T>, IAnnouncesChanges
 {
     public BulkObservableCollection() { }
     public BulkObservableCollection(IEnumerable<T> items) : base(items) { }
+
+    /// <inheritdoc/>
+    public event EventHandler? Changing;
+
+    private void Announce() => Changing?.Invoke(this, EventArgs.Empty);
+
+    protected override void InsertItem(int index, T item) { Announce(); base.InsertItem(index, item); }
+    protected override void RemoveItem(int index)         { Announce(); base.RemoveItem(index); }
+    protected override void SetItem(int index, T item)    { Announce(); base.SetItem(index, item); }
+    protected override void MoveItem(int oldIndex, int newIndex) { Announce(); base.MoveItem(oldIndex, newIndex); }
+    protected override void ClearItems()                  { Announce(); base.ClearItems(); }
 
     /// <summary>
     /// Update in place where the order of the rows has not changed, so a control keeps its scroll
@@ -77,6 +88,7 @@ public sealed class BulkObservableCollection<T> : ObservableCollection<T>
     /// </summary>
     public void ResetTo(IEnumerable<T> items)
     {
+        Announce();
         // Items is the underlying list: mutating it raises nothing, which is the whole point.
         Items.Clear();
         foreach (var item in items) Items.Add(item);
@@ -88,4 +100,21 @@ public sealed class BulkObservableCollection<T> : ObservableCollection<T>
         OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
+}
+
+/// <summary>
+/// A collection that says it is ABOUT to change, before it does — before any subscriber, a
+/// control's collection view among them, hears that it has.
+///
+/// <para>⚠️ What keeps a DataGrid from drawing a blank row. Avalonia's DataGrid (11.3.13) never
+/// recycles the row holding keyboard focus: scrolled off, it is hidden and kept, and its slot
+/// corrected by hand as rows come and go. A row inserted, removed or replaced while it is kept
+/// leaves a hidden row standing in a slot on screen — a blank line, that moves when scrolled, and a
+/// task drawn out of its place. The Worklist was clicked, then refreshed or a loop opened: the
+/// contracteddlg rig 'wlgap' faulted on 70–201 of 300 steps that way, and on none when focus left
+/// the grid before each change (WorklistView.DropRowFocus).</para>
+/// </summary>
+public interface IAnnouncesChanges
+{
+    event EventHandler? Changing;
 }
