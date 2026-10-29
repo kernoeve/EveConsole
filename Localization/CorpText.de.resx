@@ -1858,6 +1858,9 @@
   <data name="CsColBlocksPerDay" xml:space="preserve">
     <value>Blöcke / Tag</value>
   </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / Tag</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Treibstoff</value>
   </data>
@@ -1908,6 +1911,12 @@
   </data>
   <data name="CsBlocksPerDay" xml:space="preserve">
     <value>Treibstoffblöcke</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>Treibstoffkosten</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>{0} ISK pro Tag</value>
   </data>
   <data name="CsPerDayPerHour" xml:space="preserve">
     <value>{0} am Tag ({1} pro Stunde)</value>
@@ -1987,6 +1996,24 @@
   <data name="CsSectionMoon" xml:space="preserve">
     <value>Mondabbau</value>
   </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>Wert (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} von {1} m³ ({2} % voll)</value>
+  </data>
   <data name="CsSectionTower" xml:space="preserve">
     <value>Sternenbasis-Einstellungen</value>
   </data>
@@ -2025,6 +2052,9 @@
   </data>
   <data name="CsBandFighterBay" xml:space="preserve">
     <value>Jägerhangar</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>Munitionsfrachtraum</value>
   </data>
   <data name="CsByHand" xml:space="preserve">
     <value>von Hand eingetragen</value>
@@ -2172,6 +2202,9 @@
   </data>
   <data name="CsSummaryFit" xml:space="preserve">
     <value>{0} ohne passende Ausrüstung</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>Treibstoff {0} ISK pro Tag</value>
   </data>
   <data name="CsSectionFitCheck" xml:space="preserve">
     <value>Ausrüstungsprüfung</value>

@@ -295,10 +295,11 @@ public static class AppKnowledge
 
         ### Corp Structures
         Every Upwell structure and starbase tower a corporation has in space (corporation dropdown,
-        remembered): type, system, state, services, fuel left, run-out and blocks a day, soonest
-        out first (amber under 7 days, red under 3). Choosing one shows status and timers, each
-        fuel's burn and run-out, services, fit by slot (corp assets, or hand-entered in the
-        Structure Browser), core and fighters, moon extraction or Metenox ore, and tower settings.
+        remembered): type, system, state, services, fuel left, run-out, blocks a day and fuel ISK a
+        day (asset prices), soonest out first (amber under 7 days, red under 3). Choosing one shows
+        status and timers, each fuel's burn and run-out, services, fit by slot (corp assets, or
+        hand-entered in the Structure Browser), core, fighters and ammo hold, moon extraction or
+        Metenox ore (m³, ISK, bay fill of 500,000 m³), and tower settings.
         Block burn comes from the service modules and the structure's fuel bonus, or the tower's
         size and faction; every fuel is also measured since its last top-up (gas, ozone,
         charters). Upwell time left is the game's fuel expiry. Assets and tower details need a

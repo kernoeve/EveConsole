@@ -70,6 +70,25 @@ public sealed class CorpFitItemVm : ReactiveObject
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
 }
 
+/// <summary>One type in a Metenox's moon material bay, or the bay's total (no icon, bold).</summary>
+public sealed class CorpBayRowVm : ReactiveObject
+{
+    public CorpBayRowVm(string name, string units, string volume, string value, int typeId, bool isTotal = false)
+    {
+        Name = name; Units = units; Volume = volume; Value = value; IsTotal = isTotal;
+        if (typeId > 0) _ = ItemIcons.LoadAsync(typeId, b => Icon = b);
+    }
+
+    public string Name    { get; }
+    public string Units   { get; }
+    public string Volume  { get; }
+    public string Value   { get; }
+    public bool   IsTotal { get; }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+}
+
 public sealed record CorpServiceVm(string Name, string StateText, bool IsOnline);
 
 /// <summary>
@@ -134,6 +153,8 @@ public sealed class CorpStructureRowVm : ReactiveObject
         Urgency      = CorpStructuresViewModel.UrgencyOf(left, info);
         PerDay       = info.BlocksPerHour is { } h ? (h * 24).ToString("N0", CultureInfo.CurrentCulture) : "";
         PerDaySort   = info.BlocksPerHour ?? -1;
+        IskPerDay    = info.FuelIskPerDay is { } isk ? isk.ToString("N0", CultureInfo.CurrentCulture) : "";
+        IskPerDaySort = info.FuelIskPerDay ?? -1;
         var online   = info.Services.Count(s => s.IsOnline);
         ServicesText = info.Services.Count > 0 ? $"{online} / {info.Services.Count}" : "";
         StateText    = CorpStructuresViewModel.StateLabel(info.State);
@@ -156,6 +177,9 @@ public sealed class CorpStructureRowVm : ReactiveObject
     public DateTimeOffset RunsOutSort { get; }
     public string PerDay       { get; }
     public double PerDaySort   { get; }
+    /// <summary>The fuel it burns a day, in ISK at the asset valuation's prices.</summary>
+    public string IskPerDay    { get; }
+    public double IskPerDaySort { get; }
     public FuelUrgency Urgency { get; }
     public bool IsCritical     => Urgency is FuelUrgency.Critical or FuelUrgency.Out;
     public bool IsSoon         => Urgency == FuelUrgency.Soon;
@@ -314,8 +338,16 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<CorpServiceVm>      Services       { get; } = [];
     public ObservableCollection<CorpFitGroupVm>     FitGroups      { get; } = [];
     public ObservableCollection<CorpStructureField> MoonFields     { get; } = [];
-    public ObservableCollection<CorpFitItemVm>      MoonBay        { get; } = [];
+    public ObservableCollection<CorpBayRowVm>       MoonBay        { get; } = [];
     public ObservableCollection<CorpStructureField> TowerFields    { get; } = [];
+
+    private bool _hasMoonBay;   public bool HasMoonBay   { get => _hasMoonBay;   private set => this.RaiseAndSetIfChanged(ref _hasMoonBay, value); }
+    private string _moonBayFill = "";
+    /// <summary>"23,828 of 500,000 m³ (4.8% full)"; empty where the bay's size is not known.</summary>
+    public string MoonBayFill { get => _moonBayFill; private set => this.RaiseAndSetIfChanged(ref _moonBayFill, value); }
+    private double _moonBayPct;
+    public double MoonBayPct { get => _moonBayPct; private set => this.RaiseAndSetIfChanged(ref _moonBayPct, value); }
+    public bool HasMoonBayFill => MoonBayFill.Length > 0;
 
     private bool _hasFuel;      public bool HasFuel      { get => _hasFuel;      private set => this.RaiseAndSetIfChanged(ref _hasFuel, value); }
     private bool _hasServices;  public bool HasServices  { get => _hasServices;  private set => this.RaiseAndSetIfChanged(ref _hasServices, value); }
@@ -442,8 +474,10 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             var low    = _all.Count(r => r.Urgency is FuelUrgency.Soon or FuelUrgency.Critical);
             var outs   = _all.Count(r => r.Urgency == FuelUrgency.Out);
             var unfit  = _all.Count(r => r.Info.FitCheck is { Known: true, HasProblems: true });
+            var iskDay = _all.Sum(r => r.Info.FuelIskPerDay ?? 0);
             Summary = string.Format(CorpText.CsSummary, upwell, towers, low, outs)
-                    + (unfit > 0 ? " · " + string.Format(CorpText.CsSummaryFit, unfit) : "");
+                    + (unfit > 0 ? " · " + string.Format(CorpText.CsSummaryFit, unfit) : "")
+                    + (iskDay > 0 ? " · " + string.Format(CorpText.CsSummaryIskPerDay, iskDay.ToString("N0", CultureInfo.CurrentCulture)) : "");
             Status  = string.Format(CorpText.CsLoadedAt, DateTime.Now.ToString("t", CultureInfo.CurrentCulture));
 
             var keep = _showStructure ?? Selected?.Info.Id;
@@ -610,6 +644,9 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         if (i.BlocksPerHour is { } bph)
             StatusFields.Add(new(CorpText.CsBlocksPerDay,
                 string.Format(CorpText.CsPerDayPerHour, (bph * 24).ToString("N0"), bph.ToString("0.#"))));
+        if (i.FuelIskPerDay is { } isk)
+            StatusFields.Add(new(CorpText.CsFuelIskPerDay,
+                string.Format(CorpText.CsFuelIskValue, isk.ToString("N0", CultureInfo.CurrentCulture))));
         if (i.StateTimerEnd is { } te)
             StatusFields.Add(new(CorpText.CsStateTimer,
                 i.StateTimerStart is { } ts
@@ -695,9 +732,25 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             MoonFields.Add(new(CorpText.CsChunkArrives, $"{PiFormat.When(x.ChunkArrivalTime)} ({PiFormat.Relative(x.ChunkArrivalTime, now)})"));
             MoonFields.Add(new(CorpText.CsNaturalDecay, $"{PiFormat.When(x.NaturalDecayTime)} ({PiFormat.Relative(x.NaturalDecayTime, now)})"));
         }
+        var c = CultureInfo.CurrentCulture;
+        static string M3(double v) => v.ToString(v < 100 ? "N1" : "N0", CultureInfo.CurrentCulture);
         foreach (var m in i.MoonBay)
-            MoonBay.Add(new CorpFitItemVm(m.Name, m.Quantity.ToString("N0", CultureInfo.CurrentCulture), false, m.TypeId));
-        HasMoon = MoonFields.Count > 0 || MoonBay.Count > 0;
+            MoonBay.Add(new CorpBayRowVm(m.Name, m.Quantity.ToString("N0", c), M3(m.Volume),
+                m.Value is { } v ? v.ToString("N0", c) : "—", m.TypeId));
+        var bayVolume = i.MoonBay.Sum(m => m.Volume);
+        if (i.MoonBay.Count > 1)
+            MoonBay.Add(new CorpBayRowVm(CorpText.CsBayTotal, "", M3(bayVolume),
+                i.MoonBay.Sum(m => m.Value ?? 0).ToString("N0", c), 0, isTotal: true));
+        HasMoonBay = MoonBay.Count > 0;
+        // Only where the corporation's assets are read: otherwise an empty list is not an empty bay.
+        if (i.MoonBayCapacity is > 0 and var cap && i.FitKnown)
+        {
+            MoonBayPct  = Math.Min(100, 100 * bayVolume / cap);
+            MoonBayFill = string.Format(CorpText.CsBayFill, M3(bayVolume), cap.ToString("N0", c), MoonBayPct.ToString("0.#", c));
+        }
+        else MoonBayFill = "";
+        this.RaisePropertyChanged(nameof(HasMoonBayFill));
+        HasMoon = MoonFields.Count > 0 || MoonBay.Count > 0 || HasMoonBayFill;
 
         // Tower settings.
         if (i.Settings is { } d)
@@ -808,7 +861,8 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         "QuantumCoreRoom" => CorpText.CsBandCore,
         "FighterTube"     => CorpText.CsBandFighterTubes,
         "FighterBay"      => CorpText.CsBandFighterBay,
-        _                 => band,   // a tower's modules come grouped by their group's name
+        "Cargo"           => CorpText.CsBandAmmoHold,
+        _                => band,   // a tower's modules come grouped by their group's name
     };
 
     private static string YesNo(bool b) => b ? CorpText.CsYes : CorpText.CsNo;

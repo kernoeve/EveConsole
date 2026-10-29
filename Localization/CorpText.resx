@@ -2468,6 +2468,10 @@
     <value>Blocks / day</value>
     <comment>Corp Structures: list column, fuel blocks burned a day.</comment>
   </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / day</value>
+    <comment>Corp Structures: list column, what the fuel burned a day costs in ISK. Keep ISK.</comment>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Fuel</value>
     <comment>Corp Structures: fuel table column, the fuel's name.</comment>
@@ -2535,6 +2539,14 @@
   <data name="CsBlocksPerDay" xml:space="preserve">
     <value>Fuel blocks</value>
     <comment>Corp Structures: detail label, fuel block burn.</comment>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>Fuel cost</value>
+    <comment>Corp Structures: detail label, what the fuel burned a day costs.</comment>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>{0} ISK a day</value>
+    <comment>Corp Structures: detail value, {0} ISK the fuel costs a day. Keep ISK.</comment>
   </data>
   <data name="CsPerDayPerHour" xml:space="preserve">
     <value>{0} a day ({1} an hour)</value>
@@ -2640,6 +2652,30 @@
     <value>Moon drilling</value>
     <comment>Corp Structures: detail section header, moon extraction and drilled ore.</comment>
   </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>Material</value>
+    <comment>Corp Structures: Metenox bay table header, the moon material.</comment>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Corp Structures: Metenox bay table header, units held.</comment>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+    <comment>Corp Structures: Metenox bay table header, cubic metres they take. Keep m³.</comment>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>Value (ISK)</value>
+    <comment>Corp Structures: Metenox bay table header, what they are worth. Keep ISK.</comment>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Corp Structures: Metenox bay table, the total row.</comment>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} of {1} m³ ({2}% full)</value>
+    <comment>Corp Structures: under the Metenox bay table; {0} m³ held, {1} m³ the bay holds, {2} percent full.</comment>
+  </data>
   <data name="CsSectionTower" xml:space="preserve">
     <value>Starbase settings</value>
     <comment>Corp Structures: detail section header.</comment>
@@ -2691,6 +2727,10 @@
   <data name="CsBandFighterBay" xml:space="preserve">
     <value>Fighter bay</value>
     <comment>Corp Structures: fit group, fighters held.</comment>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>Ammo hold</value>
+    <comment>Corp Structures: fit group, charges held in the structure's ammo hold (not loaded).</comment>
   </data>
   <data name="CsByHand" xml:space="preserve">
     <value>entered by hand</value>
@@ -2887,6 +2927,10 @@
   <data name="CsSummaryFit" xml:space="preserve">
     <value>{0} not matching their fit</value>
     <comment>Corp Structures: added to the summary above the list; {0} structures that do not carry their fit.</comment>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>fuel {0} ISK a day</value>
+    <comment>Corp Structures: added to the summary above the list; {0} ISK all the listed structures' fuel costs a day. Keep ISK.</comment>
   </data>
   <data name="CsSectionFitCheck" xml:space="preserve">
     <value>Fit check</value>

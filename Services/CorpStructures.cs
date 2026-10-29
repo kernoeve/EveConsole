@@ -50,6 +50,10 @@ public sealed record CorpFuelInfo(
 /// <summary>One item fitted to, or held in a working bay of, a structure.</summary>
 public sealed record CorpFitInfo(string Band, int Order, int TypeId, string Name, long Quantity, bool ByHand);
 
+/// <summary>One type in a structure's bay: how many, the room they take and what they are worth
+/// at the asset valuation's prices (null where there is no price).</summary>
+public sealed record CorpBayItem(int TypeId, string Name, long Quantity, double Volume, double? Value);
+
 /// <summary>Modules of one type in a fit band: short of the fit, or fitted in a short one's place.</summary>
 public sealed record CorpFitShortfall(string Band, int TypeId, string Name, int Count);
 
@@ -125,7 +129,9 @@ public sealed class CorpStructureInfo
     public IReadOnlyList<CorpFuelInfo> Fuel  { get; init; } = [];
     public IReadOnlyList<CorpFitInfo>  Fit   { get; init; } = [];
     /// <summary>What a Metenox has drilled and holds: ore by type.</summary>
-    public IReadOnlyList<CorpFitInfo>  MoonBay { get; init; } = [];
+    public IReadOnlyList<CorpBayItem>  MoonBay { get; init; } = [];
+    /// <summary>The moon material bay's size in m³, from the structure type; null for one without.</summary>
+    public double? MoonBayCapacity { get; init; }
     /// <summary>True when the corp's assets reach this structure, so an empty fit means empty.</summary>
     public bool FitKnown { get; init; }
     /// <summary>The structure against the fit set for its type; null when none is set.</summary>
@@ -133,6 +139,11 @@ public sealed class CorpStructureInfo
 
     /// <summary>Fuel blocks an hour across the bay — what the list's burn column shows.</summary>
     public double? BlocksPerHour { get; init; }
+
+    /// <summary>What the fuel it burns costs a day at the asset valuation's prices: the blocks at
+    /// <see cref="BlocksPerHour"/>, and any other fuel with a burn (a Metenox's gas, a tower's
+    /// charters, strontium while reinforced). Null where the blocks a day are not known.</summary>
+    public double? FuelIskPerDay { get; init; }
 
     /// <summary>When the structure runs out of whatever it runs out of first. For an Upwell
     /// structure that is ESI's fuel expiry, or a Metenox's gas if that goes sooner; for a tower,
@@ -153,6 +164,7 @@ public static class CorpStructures
     // Dogma.
     private const int AttrServiceFuelPerHour  = 2109;   // serviceModuleFuelAmount — blocks an hour
     private const int AttrControlTowerSize    = 1031;   // 1 small, 2 medium, 3 large
+    private const int AttrMoonMaterialBayCapacity = 5693;   // outputMoonMaterialBayCapacity, m³ (Metenox 500,000)
     private const int GroupFuelBlock          = 1136;
     private const int GroupControlTower       = 365;
     private const int TypeStrontium           = 16275;
@@ -313,7 +325,7 @@ public static class CorpStructures
             .Distinct().ToList();
         var types = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
-            .Select(t => new { t.TypeId, t.Name, t.GroupId })
+            .Select(t => new { t.TypeId, t.Name, t.GroupId, t.Volume })
             .ToDictionaryAsync(t => t.TypeId, ct);
         var groupIds = types.Values.Select(t => t.GroupId).Distinct().ToList();
         var groups = await db.SdeGroups.AsNoTracking()
@@ -327,6 +339,39 @@ public static class CorpStructures
         int CategoryOf(int id)  => groups.TryGetValue(GroupOf(id), out var g) ? g.CategoryId : 0;
         string GroupName(int id) => types.TryGetValue(id, out var t) && groups.TryGetValue(t.GroupId, out var g)
             ? SdeNames.Group(t.GroupId, g.Name) : "";
+
+        // What a day's fuel costs, at the prices the assets are valued at. Blocks are priced as the
+        // kinds in the bay, by how many of each; with none there, as the average of the four kinds —
+        // any of them runs a structure, and they trade within a few percent of each other.
+        var blockTypeIds = await db.SdeTypes.AsNoTracking()
+            .Where(t => t.GroupId == GroupFuelBlock).Select(t => t.TypeId).ToListAsync(ct);
+        var prices = await TypeValuation.PricesAsync(db,
+            [.. blockTypeIds, .. bays.Values.SelectMany(l => l.Select(b => b.TypeId)),
+             .. contents.Values.SelectMany(l => l).Where(a => a.LocationFlag == "MoonMaterialBay").Select(a => a.TypeId)], ct);
+        var anchoredTypeIds = structures.Select(s => s.TypeId).Distinct().ToList();
+        var moonBaySizes = await db.SdeTypeDogmaAttributes.AsNoTracking()
+            .Where(a => a.AttributeId == AttrMoonMaterialBayCapacity && anchoredTypeIds.Contains(a.TypeId))
+            .ToDictionaryAsync(a => a.TypeId, a => a.Value, ct);
+        var blockPrices = blockTypeIds.Where(id => prices.GetValueOrDefault(id) > 0).Select(id => prices[id]).ToList();
+        double? anyBlock = blockPrices.Count > 0 ? blockPrices.Average() : null;
+
+        CorpBayItem BayItem(int typeId, long quantity) => new(typeId, TypeName(typeId), quantity,
+            quantity * (types.TryGetValue(typeId, out var t) ? t.Volume : 0),
+            prices.GetValueOrDefault(typeId) is > 0 and var p ? quantity * p : null);
+
+        double? IskPerDay(double? blocksPerHour, IReadOnlyList<CorpFuelInfo> fuel)
+        {
+            if (blocksPerHour is not { } bph) return null;
+            var inBay = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock && f.Quantity > 0
+                                        && prices.GetValueOrDefault(f.TypeId) > 0).ToList();
+            var blockPrice = inBay.Count > 0
+                ? inBay.Sum(f => f.Quantity * prices[f.TypeId]) / inBay.Sum(f => f.Quantity)
+                : anyBlock;
+            if (blockPrice is not { } bp) return null;
+            return bph * 24 * bp + fuel
+                .Where(f => GroupOf(f.TypeId) != GroupFuelBlock && f.PerHour > 0)
+                .Sum(f => f.PerHour!.Value * 24 * prices.GetValueOrDefault(f.TypeId));
+        }
 
         // Fuel per hour of each service module, and each structure type's percent off by the
         // module group it bonuses — read from the type's own effects, not a table here.
@@ -407,6 +452,11 @@ public static class CorpStructures
                 if (band is null || f.TypeId <= 0 || !taken.Add((band, f.SlotIndex))) continue;
                 fit.Add(new CorpFitInfo(band, f.SlotIndex, f.TypeId, TypeName(f.TypeId), 1, true));
             }
+            // The ammo hold — the assets call it the structure's cargo — by type: missiles, bombs and
+            // scripts not loaded. Loaded ones sit in their module's slot, listed with it above.
+            fit.AddRange(items.Where(a => a.LocationFlag == "Cargo")
+                .GroupBy(a => a.TypeId)
+                .Select(g => new CorpFitInfo("Cargo", 0, g.Key, TypeName(g.Key), g.Sum(a => (long)a.Quantity), false)));
 
             // Fuel blocks an hour: each running service module's rate, less the structure's
             // bonus for that module's group.
@@ -452,7 +502,9 @@ public static class CorpStructures
                     ammoPct, fightersPct);
             }
 
-            var blocksPerHour = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock).Sum(f => f.PerHour ?? 0);
+            var bayBlocks = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock).Sum(f => f.PerHour ?? 0);
+            var blocksPerHour = fuel.Any(f => GroupOf(f.TypeId) == GroupFuelBlock) || expectedBlocks is not null
+                ? (bayBlocks > 0 ? bayBlocks : expectedBlocks) : null;
             var firstOut = new DateTimeOffset?[] { s.FuelExpires }
                 .Concat(fuel.Where(f => GroupOf(f.TypeId) != GroupFuelBlock && f.PerHour > 0).Select(f => f.RunsOut))
                 .Where(d => d is not null).Min();
@@ -485,12 +537,13 @@ public static class CorpStructures
                 Fit                = [.. fit.OrderBy(f => BandRank(f.Band)).ThenBy(f => f.Order).ThenBy(f => f.Name)],
                 MoonBay            = [.. items.Where(a => a.LocationFlag == "MoonMaterialBay")
                                          .GroupBy(a => a.TypeId)
-                                         .Select(g => new CorpFitInfo("MoonMaterialBay", 0, g.Key, TypeName(g.Key), g.Sum(a => a.Quantity), false))
+                                         .Select(g => BayItem(g.Key, g.Sum(a => (long)a.Quantity)))
                                          .OrderByDescending(f => f.Quantity)],
+                MoonBayCapacity    = moonBaySizes.TryGetValue(s.TypeId, out var bay) ? bay : null,
                 FitKnown           = corpHasAssets,
                 FitCheck           = check,
-                BlocksPerHour      = fuel.Any(f => GroupOf(f.TypeId) == GroupFuelBlock) || expectedBlocks is not null
-                                         ? (blocksPerHour > 0 ? blocksPerHour : expectedBlocks) : null,
+                BlocksPerHour      = blocksPerHour,
+                FuelIskPerDay      = IskPerDay(blocksPerHour, fuel),
                 RunsOut            = firstOut,
                 IsPowered          = powered,
                 NeedsFuel          = svc.Count > 0 || serviceModules.Count > 0,
@@ -530,6 +583,8 @@ public static class CorpStructures
 
             var runsOut = fuel.Where(f => f.TypeId != TypeStrontium && f.PerHour > 0)
                 .Select(f => f.RunsOut).Where(d => d is not null).Min();
+            var blocksPerHour = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock).Select(f => f.PerHour).FirstOrDefault()
+                                ?? (online ? expected : null);
 
             result.Add(new CorpStructureInfo
             {
@@ -553,8 +608,8 @@ public static class CorpStructures
                 Fuel            = fuel,
                 Fit             = fit,
                 FitKnown        = corpHasAssets && towersBySystem[t.SystemId] == 1,
-                BlocksPerHour   = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock).Select(f => f.PerHour).FirstOrDefault()
-                                  ?? (online ? expected : null),
+                BlocksPerHour   = blocksPerHour,
+                FuelIskPerDay   = IskPerDay(blocksPerHour, fuel),
                 RunsOut         = runsOut,
                 IsPowered       = online,
                 NeedsFuel       = online,
@@ -670,6 +725,7 @@ public static class CorpStructures
         "QuantumCoreRoom" => 5,
         "FighterTube"     => 6,
         "FighterBay"      => 7,
-        _                 => 8,
+        "Cargo"           => 8,
+        _                 => 9,
     };
 }

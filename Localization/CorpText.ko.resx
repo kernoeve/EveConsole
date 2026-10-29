@@ -1846,6 +1846,9 @@
   <data name="CsColBlocksPerDay" xml:space="preserve">
     <value>블록/일</value>
   </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / 일</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>연료</value>
   </data>
@@ -1896,6 +1899,12 @@
   </data>
   <data name="CsBlocksPerDay" xml:space="preserve">
     <value>연료 블록</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>연료 비용</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>하루 {0} ISK</value>
   </data>
   <data name="CsPerDayPerHour" xml:space="preserve">
     <value>하루 {0}개 (시간당 {1}개)</value>
@@ -1975,6 +1984,24 @@
   <data name="CsSectionMoon" xml:space="preserve">
     <value>위성 채굴</value>
   </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>가치 (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} / {1} m³ ({2}% 참)</value>
+  </data>
   <data name="CsSectionTower" xml:space="preserve">
     <value>스타베이스 설정</value>
   </data>
@@ -2013,6 +2040,9 @@
   </data>
   <data name="CsBandFighterBay" xml:space="preserve">
     <value>파이터 격납고</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>탄약 격납고</value>
   </data>
   <data name="CsByHand" xml:space="preserve">
     <value>직접 입력</value>
@@ -2160,6 +2190,9 @@
   </data>
   <data name="CsSummaryFit" xml:space="preserve">
     <value>{0}개 피팅 불일치</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>연료 하루 {0} ISK</value>
   </data>
   <data name="CsSectionFitCheck" xml:space="preserve">
     <value>피팅 확인</value>

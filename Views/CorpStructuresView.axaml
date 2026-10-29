@@ -52,6 +52,7 @@
     <Style Selector="TextBlock.critical"> <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
                                           <Setter Property="FontWeight" Value="SemiBold" /></Style>
     <Style Selector="TextBlock.good">     <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.total">    <Setter Property="FontWeight" Value="SemiBold" /></Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*">
@@ -147,6 +148,7 @@
           </DataGridTemplateColumn>
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRunsOut}"  Binding="{Binding RunsOutText}"  Width="130" SortMemberPath="RunsOutSort" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColBlocksPerDay}" Binding="{Binding PerDay}"       Width="90"  SortMemberPath="PerDaySort" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColIskPerDay}" Binding="{Binding IskPerDay}"  Width="120" SortMemberPath="IskPerDaySort" />
         </DataGrid.Columns>
       </DataGrid>
       <TextBlock Grid.Column="0" Text="{Binding EmptyText}" IsVisible="{Binding !HasRows}"
@@ -319,17 +321,30 @@
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <!-- What a Metenox holds: units, the room they take, their worth; then how full. -->
+                <Grid ColumnDefinitions="22,*,74,64,110" IsVisible="{Binding HasMoonBay}">
+                  <TextBlock Grid.Column="1" Classes="note" Text="{x:Static loc:CorpText.CsBayColMaterial}" />
+                  <TextBlock Grid.Column="2" Classes="note" Text="{x:Static loc:CorpText.CsBayColUnits}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="3" Classes="note" Text="{x:Static loc:CorpText.CsBayColVolume}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="4" Classes="note" Text="{x:Static loc:CorpText.CsBayColValue}" HorizontalAlignment="Right" />
+                </Grid>
                 <ItemsControl ItemsSource="{Binding MoonBay}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CorpFitItemVm">
-                      <Grid ColumnDefinitions="22,*,Auto" Margin="0 1">
+                    <DataTemplate x:DataType="vm:CorpBayRowVm">
+                      <Grid ColumnDefinitions="22,*,74,64,110" Margin="0 1">
                         <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18" HorizontalAlignment="Left" />
-                        <TextBlock Grid.Column="1" Classes="value" Text="{Binding Name}" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="2" Classes="value" Text="{Binding Quantity}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Classes="value" Classes.total="{Binding IsTotal}" Text="{Binding Name}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Classes="value" Classes.total="{Binding IsTotal}" Text="{Binding Units}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Classes="value" Classes.total="{Binding IsTotal}" Text="{Binding Volume}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Classes="value" Classes.total="{Binding IsTotal}" Text="{Binding Value}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <StackPanel Spacing="3" IsVisible="{Binding HasMoonBayFill}" Margin="0 4 0 0">
+                  <ProgressBar Minimum="0" Maximum="100" Value="{Binding MoonBayPct}" Height="8" MinWidth="0" />
+                  <TextBlock Classes="note" Text="{Binding MoonBayFill}" />
+                </StackPanel>
               </StackPanel>
             </StackPanel>
           </Border>

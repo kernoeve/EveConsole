@@ -1858,6 +1858,9 @@
   <data name="CsColBlocksPerDay" xml:space="preserve">
     <value>Blocs / jour</value>
   </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / jour</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Carburant</value>
   </data>
@@ -1908,6 +1911,12 @@
   </data>
   <data name="CsBlocksPerDay" xml:space="preserve">
     <value>Blocs de carburant</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>Coût du carburant</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>{0} ISK par jour</value>
   </data>
   <data name="CsPerDayPerHour" xml:space="preserve">
     <value>{0} par jour ({1} par heure)</value>
@@ -1987,6 +1996,24 @@
   <data name="CsSectionMoon" xml:space="preserve">
     <value>Extraction lunaire</value>
   </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>Matériau</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>Unités</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>Valeur (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} sur {1} m³ (plein à {2} %)</value>
+  </data>
   <data name="CsSectionTower" xml:space="preserve">
     <value>Réglages de la base stellaire</value>
   </data>
@@ -2025,6 +2052,9 @@
   </data>
   <data name="CsBandFighterBay" xml:space="preserve">
     <value>Soute à chasseurs</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>Soute à munitions</value>
   </data>
   <data name="CsByHand" xml:space="preserve">
     <value>saisi à la main</value>
@@ -2172,6 +2202,9 @@
   </data>
   <data name="CsSummaryFit" xml:space="preserve">
     <value>{0} non conformes à leur équipement</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>carburant : {0} ISK par jour</value>
   </data>
   <data name="CsSectionFitCheck" xml:space="preserve">
     <value>Vérification de l'équipement</value>

@@ -1882,6 +1882,9 @@
   <data name="CsColBlocksPerDay" xml:space="preserve">
     <value>Блоков / день</value>
   </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / сут.</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Топливо</value>
   </data>
@@ -1932,6 +1935,12 @@
   </data>
   <data name="CsBlocksPerDay" xml:space="preserve">
     <value>Топливные блоки</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>Стоимость топлива</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>{0} ISK в сутки</value>
   </data>
   <data name="CsPerDayPerHour" xml:space="preserve">
     <value>{0} в день ({1} в час)</value>
@@ -2011,6 +2020,24 @@
   <data name="CsSectionMoon" xml:space="preserve">
     <value>Лунная добыча</value>
   </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>Материал</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>Единиц</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>м³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>Стоимость (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>Итого</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} из {1} м³ (заполнено на {2}%)</value>
+  </data>
   <data name="CsSectionTower" xml:space="preserve">
     <value>Настройки старбазы</value>
   </data>
@@ -2049,6 +2076,9 @@
   </data>
   <data name="CsBandFighterBay" xml:space="preserve">
     <value>Отсек истребителей</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>Отсек боеприпасов</value>
   </data>
   <data name="CsByHand" xml:space="preserve">
     <value>введено вручную</value>
@@ -2196,6 +2226,9 @@
   </data>
   <data name="CsSummaryFit" xml:space="preserve">
     <value>не соответствуют оснащению: {0}</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>топливо {0} ISK в сутки</value>
   </data>
   <data name="CsSectionFitCheck" xml:space="preserve">
     <value>Проверка оснащения</value>
