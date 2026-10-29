@@ -125,15 +125,19 @@
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRegion}"   Binding="{Binding Region}"       Width="120" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColState}"    Binding="{Binding StateText}"    Width="130" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColServices}" Binding="{Binding ServicesText}" Width="70" />
-          <!-- Against the fit set for the type on the Config tab: red for a module missing or
-               wrong, amber for ammo or fighters running low. -->
-          <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColFit}" Width="210"
-                                  SortMemberPath="FitSort" ClipboardContentBinding="{Binding FitText}">
+          <!-- Info: a red icon where the structure is off the fit set for its type on the Config
+               tab (a module missing or wrong, ammo or fighters low); what is wrong on hover. -->
+          <DataGridTemplateColumn Width="34" CanUserResize="False"
+                                  SortMemberPath="FitSort" ClipboardContentBinding="{Binding FitTip}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CorpStructureRowVm">
-                <TextBlock Text="{Binding FitText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                           ToolTip.Tip="{Binding FitText}"
-                           Classes.soon="{Binding FitIsLow}" Classes.critical="{Binding FitIsBad}" Classes.good="{Binding FitIsGood}" />
+                <Border IsVisible="{Binding HasFitIssue}" ToolTip.Tip="{Binding FitTip}" ToolTip.ShowDelay="150"
+                        Width="16" Height="16" CornerRadius="8" BorderThickness="1.5"
+                        BorderBrush="{DynamicResource BadBrush}" Background="Transparent"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="i" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BadBrush}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -147,8 +151,10 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRunsOut}"  Binding="{Binding RunsOutText}"  Width="130" SortMemberPath="RunsOutSort" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColBlocksPerDay}" Binding="{Binding PerDay}"       Width="90"  SortMemberPath="PerDaySort" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColIskPerDay}" Binding="{Binding IskPerDay}"  Width="120" SortMemberPath="IskPerDaySort" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColBlocksPerDay}" Binding="{Binding PerDay}"       Width="90"  SortMemberPath="PerDaySort" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColIskPerDay}" Binding="{Binding IskPerDay}"  Width="90" SortMemberPath="IskPerDaySort" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColPickupValue}"  Binding="{Binding PickupValue}"  Width="100" SortMemberPath="PickupValueSort"  CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColPickupVolume}" Binding="{Binding PickupVolume}" Width="110" SortMemberPath="PickupVolumeSort" CellStyleClasses="num" />
         </DataGrid.Columns>
       </DataGrid>
       <TextBlock Grid.Column="0" Text="{Binding EmptyText}" IsVisible="{Binding !HasRows}"

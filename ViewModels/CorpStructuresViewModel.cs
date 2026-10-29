@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -153,8 +153,18 @@ public sealed class CorpStructureRowVm : ReactiveObject
         Urgency      = CorpStructuresViewModel.UrgencyOf(left, info);
         PerDay       = info.BlocksPerHour is { } h ? (h * 24).ToString("N0", CultureInfo.CurrentCulture) : "";
         PerDaySort   = info.BlocksPerHour ?? -1;
-        IskPerDay    = info.FuelIskPerDay is { } isk ? isk.ToString("N0", CultureInfo.CurrentCulture) : "";
+        IskPerDay    = info.FuelIskPerDay is { } isk ? CorpStructuresViewModel.Isk(isk) : "";
         IskPerDaySort = info.FuelIskPerDay ?? -1;
+        if (info.MoonBay.Count > 0)
+        {
+            PickupValueSort  = info.MoonBay.Sum(m => m.Value ?? 0);
+            PickupVolumeSort = info.MoonBay.Sum(m => m.Volume);
+            PickupValue      = CorpStructuresViewModel.Isk(PickupValueSort);
+            PickupVolume     = PickupVolumeSort.ToString("N0", CultureInfo.CurrentCulture);
+        }
+        if (info.FitCheck is { Known: true, HasProblems: true } fc)
+            FitTip = CorpStructuresViewModel.FitCheckAgainst(fc) + Environment.NewLine + string.Join(Environment.NewLine,
+                CorpStructuresViewModel.FitCheckFields(fc).Select(f => $"{f.Label}: {f.Value}"));
         var online   = info.Services.Count(s => s.IsOnline);
         ServicesText = info.Services.Count > 0 ? $"{online} / {info.Services.Count}" : "";
         StateText    = CorpStructuresViewModel.StateLabel(info.State);
@@ -180,6 +190,15 @@ public sealed class CorpStructureRowVm : ReactiveObject
     /// <summary>The fuel it burns a day, in ISK at the asset valuation's prices.</summary>
     public string IskPerDay    { get; }
     public double IskPerDaySort { get; }
+    /// <summary>What a Metenox holds to be picked up: its moon bay's worth and m³. Empty otherwise.</summary>
+    public string PickupValue  { get; } = "";
+    public double PickupValueSort { get; } = -1;
+    public string PickupVolume { get; } = "";
+    public double PickupVolumeSort { get; } = -1;
+    /// <summary>The info icon's tooltip: what is wrong against the fit, line by line. Empty, and
+    /// no icon, when nothing is.</summary>
+    public string FitTip       { get; } = "";
+    public bool   HasFitIssue  => FitTip.Length > 0;
     public FuelUrgency Urgency { get; }
     public bool IsCritical     => Urgency is FuelUrgency.Critical or FuelUrgency.Out;
     public bool IsSoon         => Urgency == FuelUrgency.Soon;
@@ -477,7 +496,7 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             var iskDay = _all.Sum(r => r.Info.FuelIskPerDay ?? 0);
             Summary = string.Format(CorpText.CsSummary, upwell, towers, low, outs)
                     + (unfit > 0 ? " · " + string.Format(CorpText.CsSummaryFit, unfit) : "")
-                    + (iskDay > 0 ? " · " + string.Format(CorpText.CsSummaryIskPerDay, iskDay.ToString("N0", CultureInfo.CurrentCulture)) : "");
+                    + (iskDay > 0 ? " · " + string.Format(CorpText.CsSummaryIskPerDay, Isk(iskDay)) : "");
             Status  = string.Format(CorpText.CsLoadedAt, DateTime.Now.ToString("t", CultureInfo.CurrentCulture));
 
             var keep = _showStructure ?? Selected?.Info.Id;
@@ -584,6 +603,41 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
 
     // ── Detail panel ─────────────────────────────────────────────────────────
 
+    internal static string FitCheckAgainst(CorpFitCheck fc) => fc.FromCopy
+        ? string.Format(CorpText.CsCheckAgainstCopy, fc.FitName, fc.FitSource, PiFormat.When(fc.CopiedAt))
+        : string.Format(CorpText.CsCheckAgainst, fc.FitName, fc.FitSource);
+
+    /// <summary>A structure against its type's fit, line by line — the detail panel's Fit check
+    /// section, and the list's info icon tooltip.</summary>
+    internal static List<CorpStructureField> FitCheckFields(CorpFitCheck fc)
+    {
+        string Line(CorpFitShortfall m) =>
+            $"{(m.Count > 1 ? string.Format(CorpText.CsCountOf, m.Count, m.Name) : m.Name)} ({BandTitle(m.Band)})";
+        string Stock(CorpStockShortfall x) => string.Format(CorpText.CsCheckStock, x.Name,
+            x.Have.ToString("N0", CultureInfo.CurrentCulture), x.Want.ToString("N0", CultureInfo.CurrentCulture),
+            x.Want > 0 ? (100 * x.Have / x.Want).ToString(CultureInfo.CurrentCulture) : "0");
+
+        var lines = new List<CorpStructureField>();
+        if (!fc.Known) lines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckUnknownLong));
+        else if (!fc.HasProblems) lines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckMatches));
+        foreach (var m in fc.Missing)     lines.Add(new(CorpText.CsCheckMissingLabel, Line(m), FuelUrgency.Critical));
+        foreach (var m in fc.Wrong)       lines.Add(new(CorpText.CsCheckWrongLabel,   Line(m), FuelUrgency.Critical));
+        foreach (var m in fc.Instead)     lines.Add(new(CorpText.CsCheckInsteadLabel, Line(m)));
+        foreach (var low in fc.AmmoLow)     lines.Add(new(CorpText.CsCheckAmmoLabel,     Stock(low), FuelUrgency.Soon));
+        foreach (var low in fc.FightersLow) lines.Add(new(CorpText.CsCheckFightersLabel, Stock(low), FuelUrgency.Soon));
+        return lines;
+    }
+
+    /// <summary>ISK as the other tools abbreviate it: 11.2M, 1.27B, 840k.</summary>
+    internal static string Isk(double v) => v switch
+    {
+        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+        >= 1_000_000         => $"{v / 1_000_000:N1}M",
+        >= 1_000             => $"{v / 1_000:N0}k",
+        _                    => v.ToString("N0"),
+    };
+
     private void BuildDetail()
     {
         StatusFields.Clear(); LocationFields.Clear(); FuelRows.Clear(); Services.Clear();
@@ -598,22 +652,8 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         // The fit check: what the structure lacks against its type's fit, or has in its place.
         if (i.FitCheck is { } fc)
         {
-            FitCheckNote = fc.FromCopy
-                ? string.Format(CorpText.CsCheckAgainstCopy, fc.FitName, fc.FitSource, PiFormat.When(fc.CopiedAt))
-                : string.Format(CorpText.CsCheckAgainst, fc.FitName, fc.FitSource);
-            string Line(CorpFitShortfall m) =>
-                $"{(m.Count > 1 ? string.Format(CorpText.CsCountOf, m.Count, m.Name) : m.Name)} ({BandTitle(m.Band)})";
-            string Stock(CorpStockShortfall x) => string.Format(CorpText.CsCheckStock, x.Name,
-                x.Have.ToString("N0", CultureInfo.CurrentCulture), x.Want.ToString("N0", CultureInfo.CurrentCulture),
-                x.Want > 0 ? (100 * x.Have / x.Want).ToString(CultureInfo.CurrentCulture) : "0");
-
-            if (!fc.Known) FitCheckLines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckUnknownLong));
-            else if (!fc.HasProblems) FitCheckLines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckMatches));
-            foreach (var m in fc.Missing)     FitCheckLines.Add(new(CorpText.CsCheckMissingLabel, Line(m), FuelUrgency.Critical));
-            foreach (var m in fc.Wrong)       FitCheckLines.Add(new(CorpText.CsCheckWrongLabel,   Line(m), FuelUrgency.Critical));
-            foreach (var m in fc.Instead)     FitCheckLines.Add(new(CorpText.CsCheckInsteadLabel, Line(m)));
-            foreach (var low in fc.AmmoLow)     FitCheckLines.Add(new(CorpText.CsCheckAmmoLabel,     Stock(low), FuelUrgency.Soon));
-            foreach (var low in fc.FightersLow) FitCheckLines.Add(new(CorpText.CsCheckFightersLabel, Stock(low), FuelUrgency.Soon));
+            FitCheckNote = FitCheckAgainst(fc);
+            foreach (var line in FitCheckFields(fc)) FitCheckLines.Add(line);
         }
         HasFitCheck = i.FitCheck is not null;
 
@@ -646,7 +686,7 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
                 string.Format(CorpText.CsPerDayPerHour, (bph * 24).ToString("N0"), bph.ToString("0.#"))));
         if (i.FuelIskPerDay is { } isk)
             StatusFields.Add(new(CorpText.CsFuelIskPerDay,
-                string.Format(CorpText.CsFuelIskValue, isk.ToString("N0", CultureInfo.CurrentCulture))));
+                string.Format(CorpText.CsFuelIskValue, Isk(isk))));
         if (i.StateTimerEnd is { } te)
             StatusFields.Add(new(CorpText.CsStateTimer,
                 i.StateTimerStart is { } ts
@@ -736,11 +776,11 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         static string M3(double v) => v.ToString(v < 100 ? "N1" : "N0", CultureInfo.CurrentCulture);
         foreach (var m in i.MoonBay)
             MoonBay.Add(new CorpBayRowVm(m.Name, m.Quantity.ToString("N0", c), M3(m.Volume),
-                m.Value is { } v ? v.ToString("N0", c) : "—", m.TypeId));
+                m.Value is { } v ? Isk(v) : "—", m.TypeId));
         var bayVolume = i.MoonBay.Sum(m => m.Volume);
         if (i.MoonBay.Count > 1)
             MoonBay.Add(new CorpBayRowVm(CorpText.CsBayTotal, "", M3(bayVolume),
-                i.MoonBay.Sum(m => m.Value ?? 0).ToString("N0", c), 0, isTotal: true));
+                Isk(i.MoonBay.Sum(m => m.Value ?? 0)), 0, isTotal: true));
         HasMoonBay = MoonBay.Count > 0;
         // Only where the corporation's assets are read: otherwise an empty list is not an empty bay.
         if (i.MoonBayCapacity is > 0 and var cap && i.FitKnown)

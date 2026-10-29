@@ -304,7 +304,8 @@ public static class AppKnowledge
         size and faction; every fuel is also measured since its last top-up (gas, ozone,
         charters). Upwell time left is the game's fuel expiry. Assets and tower details need a
         Director. Config sets each structure type's saved fit; structures are checked for its
-        modules (any slot, extras fine) and for charges and fighters below a share. Settings →
+        modules (any slot, extras fine) and for charges and fighters below a share; a red info
+        icon on the row says what is off on hover. Metenox rows add Pickup value and vol. Settings →
         Alerts → Structures: fuel, attack, fit and ammo alerts for corporations ticked on
         Settings → Corporations.
 

@@ -1861,6 +1861,12 @@
   <data name="CsColIskPerDay" xml:space="preserve">
     <value>ISK / Tag</value>
   </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>Abholwert</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>Abholvolumen (m³)</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Treibstoff</value>
   </data>

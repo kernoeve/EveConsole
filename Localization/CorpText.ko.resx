@@ -1849,6 +1849,12 @@
   <data name="CsColIskPerDay" xml:space="preserve">
     <value>ISK / 일</value>
   </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>회수 가치</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>회수 부피 (m³)</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>연료</value>
   </data>

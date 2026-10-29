@@ -2472,6 +2472,14 @@
     <value>ISK / day</value>
     <comment>Corp Structures: list column, what the fuel burned a day costs in ISK. Keep ISK.</comment>
   </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>Pickup value</value>
+    <comment>Corp Structures: list column, what a Metenox's moon bay holds to be picked up is worth, in ISK.</comment>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>Pickup vol (m³)</value>
+    <comment>Corp Structures: list column, the m³ a Metenox's moon bay holds to be picked up. Keep m³.</comment>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Fuel</value>
     <comment>Corp Structures: fuel table column, the fuel's name.</comment>

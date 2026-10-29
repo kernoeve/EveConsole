@@ -1885,6 +1885,12 @@
   <data name="CsColIskPerDay" xml:space="preserve">
     <value>ISK / сут.</value>
   </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>Стоимость к вывозу</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>Объём к вывозу (м³)</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>Топливо</value>
   </data>

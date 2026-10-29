@@ -1849,6 +1849,12 @@
   <data name="CsColIskPerDay" xml:space="preserve">
     <value>ISK / 天</value>
   </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>待取价值</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>待取体积 (m³)</value>
+  </data>
   <data name="CsColFuel" xml:space="preserve">
     <value>燃料</value>
   </data>
