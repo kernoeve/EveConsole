@@ -2149,4 +2149,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>정박 해제 중</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>피팅 확인</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0}개 피팅 불일치</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>피팅 확인</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>{0}({1})와 비교했습니다.</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>{2} 당시의 {0}({1})와 비교했습니다. 해당 피팅은 더 이상 저장되어 있지 않습니다.</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>피팅과 일치</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>확인 안 됨: 코퍼레이션 자산을 읽지 않았습니다. 디렉터가 필요합니다.</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>읽지 않음</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>일치</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0}개 없음</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0}개 다름</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>탄약 부족</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>파이터 부족</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>장착 안 됨</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>대신 장착됨</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>탄약 부족</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>파이터 부족</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} / {2}({3}%)</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{1} × {0}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>스타베이스</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1}(더 이상 저장되지 않음, 사본으로 확인)</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(이름 없음)</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>피팅 없음 - 확인 안 함</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>{0}의 피팅을 저장했습니다</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>피팅을 저장할 수 없습니다: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>구조물 종류별로 장착해야 할 피팅을 고릅니다. 구조물에 해당 종류 피팅의 모든 모듈이 있는지(같은 종류의 어느 슬롯이든 가능, 추가 모듈과 리그는 문제없음), 탄약과 파이터가 설정 → 경고에서 정한 비율 이상인지 확인합니다. 피팅은 EVE Console 피팅 도구의 것과 캐릭터가 게임에 저장한 피팅에서 고릅니다.</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>구조물 종류</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>장착할 피팅</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0}개 고정 · {1}개 불일치</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0}개 고정 · 모두 일치</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0}개 고정</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0}개 고정 · 자산 읽지 않음</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>이 코퍼레이션에는 Upwell 구조물이 없습니다.</value>
+  </data>
 </root>

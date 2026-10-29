@@ -294,21 +294,18 @@ public static class AppKnowledge
         of its structures or other corporations.
 
         ### Corp Structures
-        Every structure a corporation has anchored in space — Upwell structures (citadels,
-        engineering complexes, refineries, Metenox drills, jump bridges, cyno beacons) and starbase
-        control towers — picked from the corporation dropdown, which is remembered. The list shows
-        each one's type, system, region, state, services online, fuel left, when it runs out and
-        fuel blocks a day, soonest out first; under 7 days shows amber, under 3 red. Choosing one
-        shows its status and timers (reinforce hour and any change to it, state timer,
-        unanchoring), every fuel in its bay with the burn a day and when it runs out, its services
-        and their state, its fit by slot (from the corp's assets, or entered by hand in the
-        Structure Browser), the quantum core and fighters, a refinery's moon extraction and a
-        Metenox's drilled ore, and a tower's settings (access, defence, roles). Fuel block burn is
-        worked out from the service modules fitted and the structure's own fuel bonus, or from the
-        tower's size and faction; every fuel's actual burn is also measured from the bay since it
-        was last topped up, which is how magmatic gas, liquid ozone and charters get a rate. The
-        time left for an Upwell structure's blocks is the game's own fuel expiry. Needs a corp
-        Director for assets and tower details.
+        Every Upwell structure and starbase tower a corporation has in space (corporation dropdown,
+        remembered): type, system, state, services, fuel left, run-out and blocks a day, soonest
+        out first (amber under 7 days, red under 3). Choosing one shows status and timers, each
+        fuel's burn and run-out, services, fit by slot (corp assets, or hand-entered in the
+        Structure Browser), core and fighters, moon extraction or Metenox ore, and tower settings.
+        Block burn comes from the service modules and the structure's fuel bonus, or the tower's
+        size and faction; every fuel is also measured since its last top-up (gas, ozone,
+        charters). Upwell time left is the game's fuel expiry. Assets and tower details need a
+        Director. Config sets each structure type's saved fit; structures are checked for its
+        modules (any slot, extras fine) and for charges and fighters below a share. Settings →
+        Alerts → Structures: fuel, attack, fit and ammo alerts for corporations ticked on
+        Settings → Corporations.
 
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
@@ -424,7 +421,8 @@ public static class AppKnowledge
         Undocking from a player structure writes no log line.
 
         ## Settings (gear icon)
-        Tabs: ESI Tokens (add and manage authenticated characters), SDE (import or update the
+        Tabs: ESI Tokens (add and manage authenticated characters), Corporations (personal, structure
+        alerts), SDE (import or update the
         Static Data Export — needed before item and market lookups work), Market (price sources,
         and the default asset-value and manufacturing-cost pricing), Timers and Polling (each kind
         of ESI data's own refresh interval), Corp Top 10 (the exclude list), AI Agent (this

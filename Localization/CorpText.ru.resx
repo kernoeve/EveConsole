@@ -2185,4 +2185,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>Разъякорение</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>Структуры</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>Настройка</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>Проверка оснащения</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>не соответствуют оснащению: {0}</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>Проверка оснащения</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>Проверено по {0} ({1}).</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>Проверено по {0} ({1}) в виде на {2}: это оснащение там больше не сохранено.</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>Оснащение</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>Соответствует оснащению</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>Не проверено: активы корпорации не прочитаны. Нужен директор.</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>Не прочитано</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>Соответствует</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>нет: {0}</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>не те: {0}</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>мало боеприпасов</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>мало истребителей</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>Не установлен</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>Вместо него стоит</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>Мало боеприпасов</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>Мало истребителей</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} из {2} ({3}%)</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>Старбаза</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1} (больше не сохранено; проверяется по копии)</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(без названия)</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>Без оснащения — не проверяется</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>Оснащение для {0} сохранено</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить оснащение: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>Выберите оснащение, которое должен нести каждый тип структур. Структура проверяется на каждый модуль оснащения своего типа — в любом слоте нужного вида, лишние модули и модификаторы не мешают — а её боеприпасы и истребители сравниваются с долей, заданной в «Настройки → Оповещения». Оснащения берутся из инструмента оснащения EVE Console и из фитов ваших персонажей в игре.</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>Тип структуры</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>Нужное оснащение</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>Структуры</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>Заякорено: {0} · не соответствуют: {1}</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>Заякорено: {0} · все соответствуют</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>Заякорено: {0}</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>Заякорено: {0} · активы не прочитаны</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>У этой корпорации нет структур Upwell.</value>
+  </data>
 </root>

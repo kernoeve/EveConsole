@@ -924,6 +924,29 @@ public class CorpFuelBay
     public DateTimeOffset BaselineAt { get; set; }
 }
 
+/// <summary>
+/// The fit a corporation's structures of one type should carry, set on Corp Structures → Config.
+///
+/// <para>The fit is a saved one — EVE Console's (FitSource "app", FitId a SavedFit) or a
+/// character's in the game ("game", FitId the fitting, FitOwnerId the character). It is read
+/// afresh each time, so editing it changes what is checked. ⚠️ The game cannot change a fitting
+/// in place: saving it again deletes it and makes a new one with a new id, so a fitting gone by
+/// its id is looked for again by its owner, name and hull. Items is the fit as last read, as JSON
+/// in the game's fitting item form (type_id, flag, quantity) — what is checked when the fit itself
+/// can no longer be found.</para>
+/// </summary>
+public class CorpStructureFit
+{
+    public long   CorporationId   { get; set; }
+    public int    StructureTypeId { get; set; }
+    public string FitSource       { get; set; } = "";   // "app" or "game"
+    public long   FitId           { get; set; }
+    public long   FitOwnerId      { get; set; }         // the character, for a game fitting; 0 for the app's
+    public string FitName         { get; set; } = "";
+    public string Items           { get; set; } = "";
+    public DateTimeOffset ItemsAt { get; set; }
+}
+
 public class CorpFacility
 {
     public long   CorporationId { get; set; }

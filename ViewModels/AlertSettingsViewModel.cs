@@ -109,6 +109,35 @@ public class AlertSettingsViewModel : ReactiveObject
     private bool _unreadMail = true;
     public bool UnreadMail { get => _unreadMail; set => this.RaiseAndSetIfChanged(ref _unreadMail, value); }
 
+    // Structures: only corporations with structure alerts on (Settings → Corporations). The fit
+    // each structure type should carry is set on Corp Structures → Config.
+    private bool _structureFuel = true;
+    public bool StructureFuel { get => _structureFuel; set => this.RaiseAndSetIfChanged(ref _structureFuel, value); }
+
+    private decimal _structureFuelDays = 3;
+    public decimal StructureFuelDays { get => _structureFuelDays; set => this.RaiseAndSetIfChanged(ref _structureFuelDays, value); }
+
+    private bool _structureAttacked = true;
+    public bool StructureAttacked { get => _structureAttacked; set => this.RaiseAndSetIfChanged(ref _structureAttacked, value); }
+
+    private bool _structureFitMissing = true;
+    public bool StructureFitMissing { get => _structureFitMissing; set => this.RaiseAndSetIfChanged(ref _structureFitMissing, value); }
+
+    private bool _structureFitWrong = true;
+    public bool StructureFitWrong { get => _structureFitWrong; set => this.RaiseAndSetIfChanged(ref _structureFitWrong, value); }
+
+    private bool _structureAmmoLow = true;
+    public bool StructureAmmoLow { get => _structureAmmoLow; set => this.RaiseAndSetIfChanged(ref _structureAmmoLow, value); }
+
+    private decimal _structureAmmoPct = 50;
+    public decimal StructureAmmoPct { get => _structureAmmoPct; set => this.RaiseAndSetIfChanged(ref _structureAmmoPct, value); }
+
+    private bool _structureFightersLow = true;
+    public bool StructureFightersLow { get => _structureFightersLow; set => this.RaiseAndSetIfChanged(ref _structureFightersLow, value); }
+
+    private decimal _structureFightersPct = 50;
+    public decimal StructureFightersPct { get => _structureFightersPct; set => this.RaiseAndSetIfChanged(ref _structureFightersPct, value); }
+
     public string Status
     {
         get => _status;
@@ -160,6 +189,15 @@ public class AlertSettingsViewModel : ReactiveObject
         PiInputs                   = s.PiInputs;
         PiFreeSlots                = s.PiFreeSlots;
         UnreadMail                 = s.UnreadMail;
+        StructureFuel              = s.StructureFuel;
+        StructureFuelDays          = s.StructureFuelDays;
+        StructureAttacked          = s.StructureAttacked;
+        StructureFitMissing        = s.StructureFitMissing;
+        StructureFitWrong          = s.StructureFitWrong;
+        StructureAmmoLow           = s.StructureAmmoLow;
+        StructureAmmoPct           = s.StructureAmmoPct;
+        StructureFightersLow       = s.StructureFightersLow;
+        StructureFightersPct       = s.StructureFightersPct;
     }
 
     private async Task SaveAsync()
@@ -183,6 +221,15 @@ public class AlertSettingsViewModel : ReactiveObject
         bool piInputs  = PiInputs;
         bool piSlots   = PiFreeSlots;
         bool mail      = UnreadMail;
+        bool stFuel    = StructureFuel;
+        int  stDays    = (int)Math.Clamp(StructureFuelDays, 1, 60);
+        bool stAttack  = StructureAttacked;
+        bool stMissing = StructureFitMissing;
+        bool stWrong   = StructureFitWrong;
+        bool stAmmo    = StructureAmmoLow;
+        int  stAmmoPct = (int)Math.Clamp(StructureAmmoPct, 1, 100);
+        bool stFighter = StructureFightersLow;
+        int  stFighterPct = (int)Math.Clamp(StructureFightersPct, 1, 100);
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
@@ -192,9 +239,12 @@ public class AlertSettingsViewModel : ReactiveObject
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO "AlertSettings"
                     ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
-                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail")
+                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail",
+                     "StructureFuel","StructureFuelDays","StructureAttacked","StructureFitMissing","StructureFitWrong",
+                     "StructureAmmoLow","StructureAmmoPct","StructureFightersLow","StructureFightersPct")
                 VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
-                        {piExtract},{piStorage},{piInputs},{piSlots},{false},{mail})
+                        {piExtract},{piStorage},{piInputs},{piSlots},{false},{mail},
+                        {stFuel},{stDays},{stAttack},{stMissing},{stWrong},{stAmmo},{stAmmoPct},{stFighter},{stFighterPct})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -211,7 +261,16 @@ public class AlertSettingsViewModel : ReactiveObject
                     "PiStorage"                   = excluded."PiStorage",
                     "PiInputs"                    = excluded."PiInputs",
                     "PiFreeSlots"                 = excluded."PiFreeSlots",
-                    "UnreadMail"                  = excluded."UnreadMail"
+                    "UnreadMail"                  = excluded."UnreadMail",
+                    "StructureFuel"               = excluded."StructureFuel",
+                    "StructureFuelDays"           = excluded."StructureFuelDays",
+                    "StructureAttacked"           = excluded."StructureAttacked",
+                    "StructureFitMissing"         = excluded."StructureFitMissing",
+                    "StructureFitWrong"           = excluded."StructureFitWrong",
+                    "StructureAmmoLow"            = excluded."StructureAmmoLow",
+                    "StructureAmmoPct"            = excluded."StructureAmmoPct",
+                    "StructureFightersLow"        = excluded."StructureFightersLow",
+                    "StructureFightersPct"        = excluded."StructureFightersPct"
                 """).ConfigureAwait(false);
         });
 

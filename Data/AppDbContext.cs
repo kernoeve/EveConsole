@@ -87,6 +87,7 @@ public class AppDbContext : DbContext
     public DbSet<CorpStructureService>  EsiCorpStructureServices => Set<CorpStructureService>();
     public DbSet<CorpStarbaseDetail>    EsiCorpStarbaseDetails   => Set<CorpStarbaseDetail>();
     public DbSet<CorpFuelBay>           EsiCorpFuelBays          => Set<CorpFuelBay>();
+    public DbSet<CorpStructureFit>      CorpStructureFits        => Set<CorpStructureFit>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
@@ -1159,6 +1160,12 @@ public class AppDbContext : DbContext
             e.Property(x => x.LocationId).ValueGeneratedNever();
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("EsiCorpFuelBays"); });
+
+        mb.Entity<CorpStructureFit>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StructureTypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StructureTypeId).ValueGeneratedNever();
+            e.ToTable("CorpStructureFits"); });
 
         mb.Entity<CorpFacility>(e => {
             e.HasKey(x => new { x.CorporationId, x.FacilityId });

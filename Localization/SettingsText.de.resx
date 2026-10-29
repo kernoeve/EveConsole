@@ -13,6 +13,54 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>Charaktere</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>Jede Corporation mit einem Token. Persönliche Corporations zählen zu deinen eigenen Summen und Listen – dieselbe Einstellung wie unter ESI-Tokens, an beiden Stellen setzbar. Strukturwarnungen löst die Strukturwarnungen (Registerkarte Warnungen) für die Strukturen der Corporation aus.</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>Kürzel</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>Persönlich</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>Strukturwarnungen</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>Die Strukturwarnungen – Treibstoff, Angriffe und Ausrüstung – für die Strukturen dieser Corporation auslösen.</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>Eine Struktur hat keinen Treibstoff mehr in</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>Eine Struktur wird angegriffen (ausblendbar)</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>Einer Struktur fehlt ein Modul ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>Eine Struktur hat ein anderes Modul, wo ihre Ausrüstung eines vorsieht</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>Munition unter</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>Jäger unter</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% der Ausrüstung</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>Nur für die Corporations, bei denen auf der Registerkarte Corporations Strukturwarnungen angehakt sind. Die Ausrüstung je Strukturtyp wird unter Corp-Strukturen → Konfiguration gewählt; ein Typ ohne gewählte Ausrüstung wird nicht geprüft. Module zählen in jedem Slot der passenden Art, zusätzliche Module oder Rigs sind kein Problem. Angriffe stammen aus den Benachrichtigungen deiner Charaktere und werden einen Tag lang gemeldet.</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>

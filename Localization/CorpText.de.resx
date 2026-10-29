@@ -2161,4 +2161,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>Wird abgebaut</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>Konfiguration</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>Ausrüstungsprüfung</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} ohne passende Ausrüstung</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>Ausrüstungsprüfung</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>Geprüft gegen {0} ({1}).</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>Geprüft gegen {0} ({1}) mit dem Stand vom {2}: Die Ausrüstung ist dort nicht mehr gespeichert.</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>Ausrüstung</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>Entspricht der Ausrüstung</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>Nicht geprüft: Die Assets der Corporation wurden nicht gelesen. Dazu braucht es einen Direktor.</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>Nicht gelesen</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>Passt</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0} fehlen</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0} falsch</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>Munition knapp</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>Jäger knapp</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>Fehlt</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>Nicht ausgerüstet</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>Stattdessen ausgerüstet</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>Munition knapp</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>Jäger knapp</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} von {2} ({3} %)</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>Sternenbasis</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1} (nicht mehr gespeichert; ihre Kopie wird geprüft)</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(ohne Namen)</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>Keine Ausrüstung – nicht geprüft</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>Ausrüstung für {0} gespeichert</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>Die Ausrüstung konnte nicht gespeichert werden: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>Wähle die Ausrüstung, die jeder Strukturtyp tragen soll. Eine Struktur wird auf jedes Modul der Ausrüstung ihres Typs geprüft, in jedem Slot der passenden Art – zusätzliche Module und Rigs sind kein Problem – und ihre Munition und Jäger gegen den unter Einstellungen → Warnungen festgelegten Anteil. Die Ausrüstungen stammen aus EVE Consoles eigenem Fitting-Werkzeug und den Fittings deiner Charaktere im Spiel.</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>Strukturtyp</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>Soll-Ausrüstung</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0} verankert · {1} passen nicht</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0} verankert · alle passen</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0} verankert</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0} verankert · Assets nicht gelesen</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>Diese Corporation hat keine Upwell-Strukturen.</value>
+  </data>
 </root>

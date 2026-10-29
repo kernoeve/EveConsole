@@ -143,6 +143,9 @@ public class Corporation
     public DateTimeOffset? AccessTokenExpiresAt { get; set; }
     public DateTimeOffset  LastUpdated          { get; set; }
     public bool            IsPersonal           { get; set; } = false;
+    /// <summary>Whether the Overview raises the structure alerts (fuel, attacks, fit) for this
+    /// corporation's structures. On for every corporation until the user says otherwise.</summary>
+    public bool            StructureAlerts      { get; set; } = true;
     // As Character.TokenError.
     public string          TokenError           { get; set; } = "";
 

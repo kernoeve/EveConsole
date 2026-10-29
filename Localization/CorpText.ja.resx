@@ -2149,4 +2149,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>アンカー解除中</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>装備チェック</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} 件が装備と不一致</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>装備チェック</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>{0}（{1}）と照合しました。</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>{2} 時点の {0}（{1}）と照合しました。その装備はもう保存されていません。</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>装備と一致</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>未チェック: コーポレーションの資産が読み込まれていません。ディレクターが必要です。</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>未読込</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>一致</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0} 個不足</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0} 個違う</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>弾薬不足</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>ファイター不足</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>不足</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>未装着</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>代わりに装着</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>弾薬不足</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>ファイター不足</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} / {2}（{3}%）</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{1} × {0}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>スターベース</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1}（保存されていません。コピーでチェック）</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>（名前なし）</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>装備なし（チェックしない）</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>{0} の装備を保存しました</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>装備を保存できませんでした: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>ストラクチャの種類ごとに載せるべき装備を選びます。ストラクチャはその種類の装備のモジュールがすべてあるか（同じ種類のどのスロットでも可。余分なモジュールやリグは問題なし）、弾薬とファイターが「設定 → 警告」で決めた割合以上あるかをチェックします。装備は EVE Console のフィッティングツールのものと、キャラクターがゲーム内に保存したものから選べます。</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>ストラクチャの種類</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>載せる装備</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0} 件係留 · {1} 件不一致</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0} 件係留 · すべて一致</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0} 件係留</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0} 件係留 · 資産未読込</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>このコーポレーションには Upwell ストラクチャがありません。</value>
+  </data>
 </root>

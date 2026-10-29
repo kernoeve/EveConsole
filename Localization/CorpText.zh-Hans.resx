@@ -2149,4 +2149,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>解除锚定中</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>装配检查</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} 座与装配不符</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>装配检查</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>对照 {0}（{1}）检查。</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>对照 {0}（{1}）在 {2} 时的样子检查：该装配已不在原处。</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>与装配一致</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>未检查：尚未读取军团资产，需要董事权限。</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>未读取</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>一致</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>缺 {0}</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>错 {0}</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>弹药不足</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>舰载机不足</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>缺少</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>未装配</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>取而代之装配了</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>弹药不足</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>舰载机不足</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}：{1} / {2}（{3}%）</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>星堡</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1}（已不再保存；按其副本检查）</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>（无名称）</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>无装配——不检查</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>已为 {0} 保存装配</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>无法保存装配：{0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>选择每类建筑应有的装配。检查建筑是否装有该类型装配中的每件装备（放在同类的任意槽位均可，多出的装备和改装件不算问题），以及其弹药和舰载机是否达到“设置 → 警报”中设定的比例。装配来自 EVE Console 自己的装配工具和你的角色在游戏中保存的装配。</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>建筑类型</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>应有装配</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>已锚定 {0} · {1} 座不符</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>已锚定 {0} · 全部一致</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>已锚定 {0}</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>已锚定 {0} · 未读取资产</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>该军团没有 Upwell 建筑。</value>
+  </data>
 </root>

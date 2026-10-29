@@ -574,6 +574,111 @@
   <data name="AlertUnreadMailMany" xml:space="preserve">
     <value>У вас {0} непрочитанных писем EVE.</value>
   </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>У {0} ({1}) кончится топливо через {2}</value>
+  </data>
+  <data name="AlertStructureFuelOut" xml:space="preserve">
+    <value>У {0} ({1}) кончилось топливо</value>
+  </data>
+  <data name="AlertStructureFuelManyOne" xml:space="preserve">
+    <value>У {0} структуры {1} мало топлива — первой {2}, через {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyOther" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — первой {2}, через {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyFew" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — первой {2}, через {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyMany" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — первой {2}, через {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyOutOne" xml:space="preserve">
+    <value>У {0} структуры {1} мало топлива — у {2} оно кончилось</value>
+  </data>
+  <data name="AlertStructureFuelManyOutOther" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — у {2} оно кончилось</value>
+  </data>
+  <data name="AlertStructureFuelManyOutFew" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — у {2} оно кончилось</value>
+  </data>
+  <data name="AlertStructureFuelManyOutMany" xml:space="preserve">
+    <value>У {0} структур {1} мало топлива — у {2} оно кончилось</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>У {0} ({1}) нет: {2}</value>
+  </data>
+  <data name="AlertStructureFitMissingManyOne" xml:space="preserve">
+    <value>У {0} структуры {1} нет модулей из её оснащения</value>
+  </data>
+  <data name="AlertStructureFitMissingManyOther" xml:space="preserve">
+    <value>У {0} структур {1} нет модулей из их оснащения</value>
+  </data>
+  <data name="AlertStructureFitMissingManyFew" xml:space="preserve">
+    <value>У {0} структур {1} нет модулей из их оснащения</value>
+  </data>
+  <data name="AlertStructureFitMissingManyMany" xml:space="preserve">
+    <value>У {0} структур {1} нет модулей из их оснащения</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>У {0} ({1}) стоит {2} там, где по оснащению {3}</value>
+  </data>
+  <data name="AlertStructureFitWrongManyOne" xml:space="preserve">
+    <value>У {0} структуры {1} вместо модулей оснащения стоят другие</value>
+  </data>
+  <data name="AlertStructureFitWrongManyOther" xml:space="preserve">
+    <value>У {0} структур {1} вместо модулей оснащения стоят другие</value>
+  </data>
+  <data name="AlertStructureFitWrongManyFew" xml:space="preserve">
+    <value>У {0} структур {1} вместо модулей оснащения стоят другие</value>
+  </data>
+  <data name="AlertStructureFitWrongManyMany" xml:space="preserve">
+    <value>У {0} структур {1} вместо модулей оснащения стоят другие</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>У {0} ({1}) мало боеприпасов: {2}</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyOne" xml:space="preserve">
+    <value>У {0} структуры {1} мало боеприпасов</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyOther" xml:space="preserve">
+    <value>У {0} структур {1} мало боеприпасов</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyFew" xml:space="preserve">
+    <value>У {0} структур {1} мало боеприпасов</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyMany" xml:space="preserve">
+    <value>У {0} структур {1} мало боеприпасов</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>У {0} ({1}) мало истребителей: {2}</value>
+  </data>
+  <data name="AlertStructureFightersLowManyOne" xml:space="preserve">
+    <value>У {0} структуры {1} мало истребителей</value>
+  </data>
+  <data name="AlertStructureFightersLowManyOther" xml:space="preserve">
+    <value>У {0} структур {1} мало истребителей</value>
+  </data>
+  <data name="AlertStructureFightersLowManyFew" xml:space="preserve">
+    <value>У {0} структур {1} мало истребителей</value>
+  </data>
+  <data name="AlertStructureFightersLowManyMany" xml:space="preserve">
+    <value>У {0} структур {1} мало истребителей</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>{0} ({1}) атакована — щит {2}, броня {3}, корпус {4} · {5}</value>
+  </data>
+  <data name="AlertStructureAttackedBy" xml:space="preserve">
+    <value>{0} ({1}) атакована {2} — щит {3}, броня {4}, корпус {5} · {6}</value>
+  </data>
+  <data name="AlertStructureLostShields" xml:space="preserve">
+    <value>{0} ({1}) потеряла щиты — таймер брони {2} · {3}</value>
+  </data>
+  <data name="AlertStructureLostArmor" xml:space="preserve">
+    <value>{0} ({1}) потеряла броню — таймер корпуса {2} · {3}</value>
+  </data>
+  <data name="AlertStructureDestroyed" xml:space="preserve">
+    <value>{0} ({1}) уничтожена · {2}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} размещённый контракт адресован вам.</value>
   </data>

@@ -50,6 +50,42 @@ public sealed record CorpFuelInfo(
 /// <summary>One item fitted to, or held in a working bay of, a structure.</summary>
 public sealed record CorpFitInfo(string Band, int Order, int TypeId, string Name, long Quantity, bool ByHand);
 
+/// <summary>Modules of one type in a fit band: short of the fit, or fitted in a short one's place.</summary>
+public sealed record CorpFitShortfall(string Band, int TypeId, string Name, int Count);
+
+/// <summary>A charge or fighter the structure holds less of than its fit carries.</summary>
+public sealed record CorpStockShortfall(int TypeId, string Name, long Have, long Want);
+
+/// <summary>
+/// How a structure measures up to the fit set for its type on Corp Structures → Config.
+///
+/// <para>Only what the fit names is required, wherever it sits: a module in another slot of the
+/// same band is the module, and a module or rig the fit does not name is no problem in itself. A
+/// fit module the structure lacks is <see cref="Missing"/> while the band has a slot free for it,
+/// and <see cref="Wrong"/> once the band is full — something else is where it should be, listed
+/// in <see cref="Instead"/>.</para>
+/// </summary>
+public sealed class CorpFitCheck
+{
+    public string FitName   { get; init; } = "";
+    /// <summary>Where the fit is kept: EVE Console, or the character whose fitting it is.</summary>
+    public string FitSource { get; init; } = "";
+    /// <summary>The fit could no longer be found; the check used the copy taken <see cref="CopiedAt"/>.</summary>
+    public bool   FromCopy  { get; init; }
+    public DateTimeOffset CopiedAt { get; init; }
+    /// <summary>False when the corporation's assets are not read: nothing could be compared.</summary>
+    public bool   Known     { get; init; }
+    public int    AmmoPct     { get; init; }
+    public int    FightersPct { get; init; }
+    public IReadOnlyList<CorpFitShortfall>  Missing     { get; init; } = [];
+    public IReadOnlyList<CorpFitShortfall>  Wrong       { get; init; } = [];
+    public IReadOnlyList<CorpFitShortfall>  Instead     { get; init; } = [];
+    public IReadOnlyList<CorpStockShortfall> AmmoLow     { get; init; } = [];
+    public IReadOnlyList<CorpStockShortfall> FightersLow { get; init; } = [];
+
+    public bool HasProblems => Missing.Count + Wrong.Count + AmmoLow.Count + FightersLow.Count > 0;
+}
+
 /// <summary>Everything Corp Structures shows about one structure or tower.</summary>
 public sealed class CorpStructureInfo
 {
@@ -92,6 +128,8 @@ public sealed class CorpStructureInfo
     public IReadOnlyList<CorpFitInfo>  MoonBay { get; init; } = [];
     /// <summary>True when the corp's assets reach this structure, so an empty fit means empty.</summary>
     public bool FitKnown { get; init; }
+    /// <summary>The structure against the fit set for its type; null when none is set.</summary>
+    public CorpFitCheck? FitCheck { get; init; }
 
     /// <summary>Fuel blocks an hour across the bay — what the list's burn column shows.</summary>
     public double? BlocksPerHour { get; init; }
@@ -119,7 +157,13 @@ public static class CorpStructures
     private const int GroupControlTower       = 365;
     private const int TypeStrontium           = 16275;
     private const int CategoryStarbase        = 23;
+    private const int CategoryCharge          = 8;
+    private const int CategoryFighter         = 87;
     private const string FuncLocationGroup    = "LocationGroupModifier";
+
+    /// <summary>The slots a structure type has in each band, by dogma attribute.</summary>
+    private static readonly (string Band, int Attribute)[] SlotAttributes =
+        [("HiSlot", 14), ("MedSlot", 13), ("LoSlot", 12), ("RigSlot", 1137), ("ServiceSlot", 2056)];
 
     /// <summary>
     /// A tower's fuel blocks an hour, by size: 10, 20, 40. The game data does not carry these —
@@ -252,6 +296,12 @@ public static class CorpStructures
             .Where(c => moonIds.Contains(c.ItemId))
             .ToDictionaryAsync(c => c.ItemId, c => c.Name, ct);
 
+        // The fit each structure type should carry, and how far below it ammo and fighters may run.
+        var required = await CorpStructureFits.RequiredAsync(dbFactory, corpId, ct);
+        var alertSettings = await db.AlertSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == 1, ct);
+        var ammoPct     = alertSettings?.StructureAmmoPct ?? 50;
+        var fightersPct = alertSettings?.StructureFightersPct ?? 50;
+
         // Names of every type that shows up.
         var typeIds = structures.Select(s => s.TypeId)
             .Concat(towers.Select(t => t.TypeId))
@@ -259,6 +309,7 @@ public static class CorpStructures
             .Concat(bays.Values.SelectMany(l => l.Select(b => b.TypeId)))
             .Concat(byHand.Values.SelectMany(l => l.Select(f => f.TypeId)))
             .Concat(anchored.Values.SelectMany(l => l.Select(a => a.TypeId)))
+            .Concat(required.Values.SelectMany(f => f.Items.Select(i => i.TypeId)))
             .Distinct().ToList();
         var types = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
@@ -267,13 +318,15 @@ public static class CorpStructures
         var groupIds = types.Values.Select(t => t.GroupId).Distinct().ToList();
         var groups = await db.SdeGroups.AsNoTracking()
             .Where(g => groupIds.Contains(g.GroupId))
-            .ToDictionaryAsync(g => g.GroupId, g => g.Name, ct);
+            .Select(g => new { g.GroupId, g.Name, g.CategoryId })
+            .ToDictionaryAsync(g => g.GroupId, ct);
 
         string TypeName(int id) => types.TryGetValue(id, out var t) ? SdeNames.Type(id, t.Name) : $"#{id}";
         string English(int id)  => types.TryGetValue(id, out var t) ? t.Name : "";
         int GroupOf(int id)     => types.TryGetValue(id, out var t) ? t.GroupId : 0;
+        int CategoryOf(int id)  => groups.TryGetValue(GroupOf(id), out var g) ? g.CategoryId : 0;
         string GroupName(int id) => types.TryGetValue(id, out var t) && groups.TryGetValue(t.GroupId, out var g)
-            ? SdeNames.Group(t.GroupId, g) : "";
+            ? SdeNames.Group(t.GroupId, g.Name) : "";
 
         // Fuel per hour of each service module, and each structure type's percent off by the
         // module group it bonuses — read from the type's own effects, not a table here.
@@ -296,6 +349,13 @@ public static class CorpStructures
                    && m.Func == FuncLocationGroup && m.GroupId != null
                 select new { te.TypeId, GroupId = m.GroupId!.Value, a.Value })
             .AsNoTracking().ToListAsync(ct);
+
+        var slotAttributeIds = SlotAttributes.Select(s => s.Attribute).ToList();
+        var slotCounts = (await db.SdeTypeDogmaAttributes.AsNoTracking()
+                .Where(a => structureTypeIds.Contains(a.TypeId) && slotAttributeIds.Contains(a.AttributeId))
+                .Select(a => new { a.TypeId, a.AttributeId, a.Value })
+                .ToListAsync(ct))
+            .ToDictionary(a => (a.TypeId, a.AttributeId), a => (int)a.Value);
 
         var towerSizes = await db.SdeTypeDogmaAttributes.AsNoTracking()
             .Where(a => a.AttributeId == AttrControlTowerSize && towers.Select(t => t.TypeId).Contains(a.TypeId))
@@ -362,12 +422,15 @@ public static class CorpStructures
                     if (!ModuleRunning(English(m.TypeId), svc)) continue;
                     foreach (var b in bonuses.Where(b => b.TypeId == s.TypeId && b.GroupId == GroupOf(m.TypeId)))
                         rate *= 1 + b.Value / 100.0;
-                    // ⚠️ Whole blocks, rounded down. A clone bay (10 an hour) in a citadel (25%
-                    // off) works out at 7.5, but the game's own fuel expiry on two of them gave
-                    // exactly 7.0 an hour against the blocks in their bays.
-                    sum += Math.Floor(rate + 1e-9);
+                    sum += rate;
                 }
-                expectedBlocks = powered ? sum : 0;
+                // ⚠️ Whole blocks, the TOTAL rounded down — not each module. A clone bay (10 an
+                // hour) in a citadel (25% off) is 7.5, and the game's fuel expiry gave exactly 7.0
+                // on two Fortizars. A Tatara's three reactors and reprocessing plant are 11.25 ×
+                // 3 + 7.5 = 41.25: the expiry on two of them gave 41.0, where rounding each
+                // module down gave 40. Measured against every structure of one corporation,
+                // 2026-10-28: all fifty agree to the hour.
+                expectedBlocks = powered ? Math.Floor(sum + 1e-9) : 0;
             }
 
             var fuel = (bays.GetValueOrDefault(s.StructureId) ?? [])
@@ -376,6 +439,18 @@ public static class CorpStructures
                     : Fuel(b, null, null))
                 .OrderBy(f => GroupOf(f.TypeId) == GroupFuelBlock ? 0 : 1).ThenBy(f => f.Name)
                 .ToList();
+
+            CorpFitCheck? check = null;
+            if (required.TryGetValue(s.TypeId, out var req))
+            {
+                var structureTypeId = s.TypeId;
+                check = Check(req, items.Select(a => (a.LocationFlag, a.TypeId, (long)a.Quantity)), corpHasAssets,
+                    CategoryOf, TypeName,
+                    band => SlotAttributes.Where(x => x.Band == band)
+                        .Select(x => slotCounts.TryGetValue((structureTypeId, x.Attribute), out var n) ? n : (int?)null)
+                        .FirstOrDefault(),
+                    ammoPct, fightersPct);
+            }
 
             var blocksPerHour = fuel.Where(f => GroupOf(f.TypeId) == GroupFuelBlock).Sum(f => f.PerHour ?? 0);
             var firstOut = new DateTimeOffset?[] { s.FuelExpires }
@@ -413,6 +488,7 @@ public static class CorpStructures
                                          .Select(g => new CorpFitInfo("MoonMaterialBay", 0, g.Key, TypeName(g.Key), g.Sum(a => a.Quantity), false))
                                          .OrderByDescending(f => f.Quantity)],
                 FitKnown           = corpHasAssets,
+                FitCheck           = check,
                 BlocksPerHour      = fuel.Any(f => GroupOf(f.TypeId) == GroupFuelBlock) || expectedBlocks is not null
                                          ? (blocksPerHour > 0 ? blocksPerHour : expectedBlocks) : null,
                 RunsOut            = firstOut,
@@ -486,6 +562,86 @@ public static class CorpStructures
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// A structure's contents against the fit set for its type: see <see cref="CorpFitCheck"/>.
+    /// Modules are compared by type, band by band; charges and fighters by how many of each the
+    /// structure holds anywhere in it (loaded, in the cargo, in a tube or the bay) against the
+    /// fit's count.
+    /// </summary>
+    /// <param name="items">Everything sitting directly in the structure: flag, type, quantity.</param>
+    /// <param name="slotsIn">The structure type's slots in a band, or null when not known — then
+    /// every module short of the fit counts as missing.</param>
+    internal static CorpFitCheck Check(
+        CorpRequiredFit fit, IEnumerable<(string Flag, int TypeId, long Quantity)> items, bool known,
+        Func<int, int> categoryOf, Func<int, string> nameOf, Func<string, int?> slotsIn, int ammoPct, int fightersPct)
+    {
+        var source = fit.Source == CorpFitChoice.App ? CorpText.CsFitInApp : fit.OwnerName;
+        if (!known)
+            return new CorpFitCheck { FitName = fit.Name, FitSource = source, FromCopy = fit.FromCopy, CopiedAt = fit.CopiedAt,
+                                      AmmoPct = ammoPct, FightersPct = fightersPct };
+
+        static string? Band(string flag) => BandOf(flag).Band is "HiSlot" or "MedSlot" or "LoSlot" or "RigSlot" or "ServiceSlot"
+            ? BandOf(flag).Band : null;
+
+        var have = items.ToList();
+        var needModules = fit.Items
+            .Where(i => Band(i.Flag) is not null && categoryOf(i.TypeId) != CategoryCharge)
+            .GroupBy(i => (Band: Band(i.Flag)!, i.TypeId))
+            .ToDictionary(g => g.Key, g => g.Sum(i => Math.Max(1, i.Quantity)));
+        var haveModules = have
+            .Where(i => Band(i.Flag) is not null && categoryOf(i.TypeId) != CategoryCharge)
+            .GroupBy(i => (Band: Band(i.Flag)!, i.TypeId))
+            .ToDictionary(g => g.Key, g => (int)g.Sum(i => Math.Max(1, i.Quantity)));
+
+        List<CorpFitShortfall> missing = [], wrong = [], instead = [];
+        foreach (var band in SlotAttributes.Select(s => s.Band))
+        {
+            var shorts = needModules
+                .Where(n => n.Key.Band == band && haveModules.GetValueOrDefault(n.Key) < n.Value)
+                .Select(n => (n.Key.TypeId, Count: n.Value - haveModules.GetValueOrDefault(n.Key)))
+                .OrderBy(n => nameOf(n.TypeId), StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+            if (shorts.Count == 0) continue;
+
+            // As many as the band has free slots for are missing; the rest have something else
+            // where they should be.
+            var fitted = haveModules.Where(h => h.Key.Band == band).Sum(h => h.Value);
+            var free   = slotsIn(band) is { } slots ? Math.Max(0, slots - fitted) : int.MaxValue;
+            foreach (var (typeId, count) in shorts)
+            {
+                var m = Math.Min(count, free);
+                free -= m;
+                if (m > 0)         missing.Add(new CorpFitShortfall(band, typeId, nameOf(typeId), m));
+                if (count - m > 0) wrong.Add(new CorpFitShortfall(band, typeId, nameOf(typeId), count - m));
+            }
+            if (wrong.Any(w => w.Band == band))
+                instead.AddRange(haveModules
+                    .Where(h => h.Key.Band == band && h.Value > needModules.GetValueOrDefault(h.Key))
+                    .Select(h => new CorpFitShortfall(band, h.Key.TypeId, nameOf(h.Key.TypeId), h.Value - needModules.GetValueOrDefault(h.Key)))
+                    .OrderBy(h => h.Name, StringComparer.CurrentCultureIgnoreCase));
+        }
+
+        List<CorpStockShortfall> Low(int category, Func<string, bool> where, int pct) =>
+        [
+            .. fit.Items.Where(i => categoryOf(i.TypeId) == category)
+                .GroupBy(i => i.TypeId)
+                .Select(g => (TypeId: g.Key, Want: (long)g.Sum(i => i.Quantity),
+                              Have: have.Where(h => h.TypeId == g.Key && where(h.Flag)).Sum(h => h.Quantity)))
+                .Where(x => x.Want > 0 && x.Have * 100 < x.Want * pct)
+                .Select(x => new CorpStockShortfall(x.TypeId, nameOf(x.TypeId), x.Have, x.Want))
+                .OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase),
+        ];
+
+        return new CorpFitCheck
+        {
+            FitName = fit.Name, FitSource = source, FromCopy = fit.FromCopy, CopiedAt = fit.CopiedAt, Known = true,
+            AmmoPct = ammoPct, FightersPct = fightersPct,
+            Missing = missing, Wrong = wrong, Instead = instead,
+            AmmoLow     = Low(CategoryCharge, _ => true, ammoPct),
+            FightersLow = Low(CategoryFighter, f => f == "FighterBay" || f.StartsWith("FighterTube", StringComparison.Ordinal), fightersPct),
+        };
     }
 
     /// <summary>The band a location flag belongs to, and the slot's index within it. Null for a

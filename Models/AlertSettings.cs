@@ -37,4 +37,23 @@ public class AlertSettings
 
     /// <summary>Unread EVE mail on any of the user's characters.</summary>
     public bool UnreadMail   { get; set; } = true;
+
+    // ── Structures ── only corporations with Corporation.StructureAlerts on. The fit each structure
+    // type should carry is set on Corp Structures → Config.
+
+    /// <summary>A structure or online tower runs out of fuel within StructureFuelDays.</summary>
+    public bool StructureFuel       { get; set; } = true;
+    public int  StructureFuelDays   { get; set; } = 3;
+    /// <summary>A structure or tower attacked, from the game's notifications: dismissible.</summary>
+    public bool StructureAttacked   { get; set; } = true;
+    /// <summary>A module of the structure's fit not fitted, with a slot free for it.</summary>
+    public bool StructureFitMissing { get; set; } = true;
+    /// <summary>A module of the fit not fitted and its slots full: something else is in its place.</summary>
+    public bool StructureFitWrong   { get; set; } = true;
+    /// <summary>A charge of the fit below StructureAmmoPct percent of the fit's amount.</summary>
+    public bool StructureAmmoLow    { get; set; } = true;
+    public int  StructureAmmoPct    { get; set; } = 50;
+    /// <summary>A fighter of the fit below StructureFightersPct percent of the fit's amount.</summary>
+    public bool StructureFightersLow { get; set; } = true;
+    public int  StructureFightersPct { get; set; } = 50;
 }

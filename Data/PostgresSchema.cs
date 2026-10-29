@@ -661,6 +661,22 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "UnreadMail" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // Structure alerts, and which corporations they cover. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AlertSettings"
+            ADD COLUMN IF NOT EXISTS "StructureFuel"        BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFuelDays"    INTEGER NOT NULL DEFAULT 3,
+            ADD COLUMN IF NOT EXISTS "StructureAttacked"    BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFitMissing"  BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFitWrong"    BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureAmmoLow"     BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureAmmoPct"     INTEGER NOT NULL DEFAULT 50,
+            ADD COLUMN IF NOT EXISTS "StructureFightersLow" BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFightersPct" INTEGER NOT NULL DEFAULT 50
+        """,
+        """
+        ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "StructureAlerts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The HTTP status ESI answered a contract's item pull with, and the repair it makes
         // possible: corporation contracts issued by another corporation were once marked pulled
@@ -1069,6 +1085,20 @@ public static class PostgresSchema
             "BaselineQuantity" BIGINT      NOT NULL,
             "BaselineAt"       TIMESTAMPTZ NOT NULL,
             CONSTRAINT "PK_EsiCorpFuelBays" PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
+        )
+        """,
+        // The fit each structure type should carry, per corporation (Corp Structures → Config).
+        """
+        CREATE TABLE IF NOT EXISTS "CorpStructureFits" (
+            "CorporationId"   BIGINT      NOT NULL,
+            "StructureTypeId" INTEGER     NOT NULL,
+            "FitSource"       TEXT        NOT NULL DEFAULT '',
+            "FitId"           BIGINT      NOT NULL DEFAULT 0,
+            "FitOwnerId"      BIGINT      NOT NULL DEFAULT 0,
+            "FitName"         TEXT        NOT NULL DEFAULT '',
+            "Items"           TEXT        NOT NULL DEFAULT '',
+            "ItemsAt"         TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_CorpStructureFits" PRIMARY KEY ("CorporationId", "StructureTypeId")
         )
         """,
 
@@ -1484,8 +1514,11 @@ public static class PostgresSchema
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
              "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
              "OutstandingContracts", "ExpiringContracts",
-             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
-        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true)
+             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
+             "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
+             "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, 3, true, true, true, true, 50, true, 50)
         ON CONFLICT DO NOTHING
         """,
         """

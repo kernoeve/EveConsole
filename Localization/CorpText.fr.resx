@@ -2161,4 +2161,127 @@
   <data name="CsStateUnanchoring" xml:space="preserve">
     <value>Désancrage</value>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>Vérification</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} non conformes à leur équipement</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>Vérification de l'équipement</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>Vérifié par rapport à {0} ({1}).</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>Vérifié par rapport à {0} ({1}) tel qu'il était le {2} : l'équipement n'y est plus enregistré.</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>Équipement</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>Conforme à l'équipement</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>Non vérifié : les actifs de la corporation n'ont pas été lus. Il faut un directeur.</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>Non lu</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>Conforme</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0} manquant(s)</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0} incorrect(s)</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>munitions basses</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>chasseurs bas</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>Manquant</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>Non monté</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>Monté à la place</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>Munitions basses</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>Chasseurs bas</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0} : {1} sur {2} ({3} %)</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>Base stellaire</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1} (plus enregistré ; sa copie est vérifiée)</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(sans nom)</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>Aucun équipement — non vérifié</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>Équipement enregistré pour {0}</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>Impossible d'enregistrer l'équipement : {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>Choisissez l'équipement que doit porter chaque type de structure. On vérifie que la structure porte chaque module de l'équipement de son type, dans n'importe quel emplacement du bon genre — les modules et rigs en plus ne posent pas de problème — ainsi que ses munitions et chasseurs par rapport à la part fixée dans Paramètres → Alertes. Les équipements sont ceux d'EVE Console (l'outil d'équipement) et ceux de vos personnages dans le jeu.</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>Type de structure</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>Équipement prévu</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0} ancrées · {1} non conformes</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0} ancrées · toutes conformes</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0} ancrées</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0} ancrées · actifs non lus</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>Cette corporation n'a aucune structure Upwell.</value>
+  </data>
 </root>

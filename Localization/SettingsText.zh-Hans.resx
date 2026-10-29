@@ -13,6 +13,54 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>角色</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>所有拥有令牌的军团。个人军团计入你自己的总计和列表——与 ESI 令牌页上的设置相同，可在任一处设置。建筑警报会为该军团的建筑发出建筑警报（警报页）。</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>简称</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>个人</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>建筑警报</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>为该军团的建筑发出建筑警报——燃料、遭受攻击和装配。</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>建筑燃料将在以下时间内耗尽</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>建筑遭到攻击（可关闭）</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>建筑缺少其装配中的装备</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>建筑在其装配应有装备的位置装了其他装备</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>弹药低于</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>铁骑舰载机低于</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% 的装配数量</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>仅适用于在军团页勾选了建筑警报的军团。各类建筑应有的装配在“军团建筑 → 配置”中选择；未选择装配的类型不检查。装备放在同类的任意槽位均可，多出的装备或改装件不算问题。攻击来自你的角色收到的通知，显示一天。</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>

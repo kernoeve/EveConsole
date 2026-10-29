@@ -72,6 +72,47 @@ public sealed class CorpFitItemVm : ReactiveObject
 
 public sealed record CorpServiceVm(string Name, string StateText, bool IsOnline);
 
+/// <summary>
+/// One structure type on the Config tab: how many the corporation has anchored, and the fit they
+/// should carry. Choosing a fit saves it at once.
+/// </summary>
+public sealed class CorpFitConfigRowVm : ReactiveObject
+{
+    private readonly Func<CorpFitConfigRowVm, CorpFitChoice, Task> _save;
+
+    public CorpFitConfigRowVm(int typeId, string typeName, string status, IReadOnlyList<CorpFitChoice> choices,
+                              CorpFitChoice selected, Func<CorpFitConfigRowVm, CorpFitChoice, Task> save)
+    {
+        TypeId = typeId; TypeName = typeName; Status = status; Choices = choices;
+        _selected = selected; _save = save;
+        _ = ItemIcons.LoadAsync(typeId, b => Icon = b);
+    }
+
+    public int    TypeId   { get; }
+    public string TypeName { get; }
+    public string Status   { get; }
+    public IReadOnlyList<CorpFitChoice> Choices { get; }
+
+    private CorpFitChoice _selected;
+    /// <summary>⚠️ A null from the list is ignored: a ComboBox passes through null while its items
+    /// are replaced, and taking that as a choice would clear the fit.</summary>
+    public CorpFitChoice? Selected
+    {
+        get => _selected;
+        set
+        {
+            if (value is null || value == _selected) return;
+            var was = _selected;
+            this.RaiseAndSetIfChanged(ref _selected, value);
+            if (!value.IsCopy) _ = _save(this, value);
+            else { _selected = was; this.RaisePropertyChanged(); }
+        }
+    }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+}
+
 /// <summary>One structure or tower in the list.</summary>
 public sealed class CorpStructureRowVm : ReactiveObject
 {
@@ -96,6 +137,7 @@ public sealed class CorpStructureRowVm : ReactiveObject
         var online   = info.Services.Count(s => s.IsOnline);
         ServicesText = info.Services.Count > 0 ? $"{online} / {info.Services.Count}" : "";
         StateText    = CorpStructuresViewModel.StateLabel(info.State);
+        (FitText, FitUrgency) = CorpStructuresViewModel.FitSummary(info.FitCheck);
         Location     = info.Security is { } sec
             ? $"{info.SystemName} {SecurityColors.Text(sec)}"
             : info.SystemName;
@@ -118,6 +160,16 @@ public sealed class CorpStructureRowVm : ReactiveObject
     public bool IsCritical     => Urgency is FuelUrgency.Critical or FuelUrgency.Out;
     public bool IsSoon         => Urgency == FuelUrgency.Soon;
     public bool IsTower        => Info.Kind == CorpStructureKind.Tower;
+
+    /// <summary>What is wrong against the structure type's fit, in a few words: "2 missing · ammo
+    /// low"; "Matches" when nothing is; empty with no fit set for the type.</summary>
+    public string FitText      { get; }
+    public FuelUrgency FitUrgency { get; }
+    public bool FitIsBad       => FitUrgency is FuelUrgency.Critical or FuelUrgency.Out;
+    public bool FitIsLow       => FitUrgency == FuelUrgency.Soon;
+    public bool FitIsGood      => FitUrgency == FuelUrgency.Fine;
+    /// <summary>Problems first when the column is sorted.</summary>
+    public int  FitSort        => FitUrgency switch { FuelUrgency.Critical => 0, FuelUrgency.Soon => 1, FuelUrgency.Fine => 3, _ => 2 };
 
     private Bitmap? _icon;
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
@@ -280,6 +332,26 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     public string FitNote { get => _fitNote; private set => this.RaiseAndSetIfChanged(ref _fitNote, value); }
     public bool HasFitNote => FitNote.Length > 0;
 
+    /// <summary>The structure against its type's fit: what is missing, wrong or low, line by line.</summary>
+    public ObservableCollection<CorpStructureField> FitCheckLines { get; } = [];
+    private bool _hasFitCheck; public bool HasFitCheck { get => _hasFitCheck; private set => this.RaiseAndSetIfChanged(ref _hasFitCheck, value); }
+    private string _fitCheckNote = "";
+    /// <summary>Which fit it was checked against, and where that fit is kept.</summary>
+    public string FitCheckNote { get => _fitCheckNote; private set => this.RaiseAndSetIfChanged(ref _fitCheckNote, value); }
+
+    // ── Config tab ───────────────────────────────────────────────────────────
+
+    private int _selectedTabIndex;
+    /// <summary>0 the structures, 1 the Config tab.</summary>
+    public int SelectedTabIndex { get => _selectedTabIndex; set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value); }
+
+    /// <summary>Each Upwell structure type the corporation has anchored, or has a fit set for.</summary>
+    public ObservableCollection<CorpFitConfigRowVm> ConfigRows { get; } = [];
+    private bool _hasConfigRows; public bool HasConfigRows { get => _hasConfigRows; private set => this.RaiseAndSetIfChanged(ref _hasConfigRows, value); }
+
+    /// <summary>A structure to choose once the next load is in — set by <see cref="Show"/>.</summary>
+    private long? _showStructure;
+
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
     public CorpStructuresViewModel(
@@ -329,6 +401,24 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         finally { _picking = false; }
     }
 
+    /// <summary>
+    /// Opens on <paramref name="corpId"/> with <paramref name="structureId"/> chosen, for an
+    /// Overview alert. Not remembered as the user's choice of corporation: the alert chose it.
+    /// </summary>
+    public void Show(long corpId, long? structureId)
+    {
+        SelectedTabIndex = 0;
+        if (structureId is not null) { Search = ""; ShowUpwell = true; ShowTowers = true; }
+        _showStructure = structureId;
+        if (Corps.FirstOrDefault(c => c.Id == corpId) is { } corp && corp != SelectedCorp)
+        {
+            _picking = true;
+            try { SelectedCorp = corp; }   // loads, once opened
+            finally { _picking = false; }
+        }
+        else if (_opened) _ = LoadAsync();
+    }
+
     private async Task LoadAsync()
     {
         if (SelectedCorp is not { } corp) return;
@@ -351,12 +441,17 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             var towers = _all.Count(r => r.IsTower);
             var low    = _all.Count(r => r.Urgency is FuelUrgency.Soon or FuelUrgency.Critical);
             var outs   = _all.Count(r => r.Urgency == FuelUrgency.Out);
-            Summary = string.Format(CorpText.CsSummary, upwell, towers, low, outs);
+            var unfit  = _all.Count(r => r.Info.FitCheck is { Known: true, HasProblems: true });
+            Summary = string.Format(CorpText.CsSummary, upwell, towers, low, outs)
+                    + (unfit > 0 ? " · " + string.Format(CorpText.CsSummaryFit, unfit) : "");
             Status  = string.Format(CorpText.CsLoadedAt, DateTime.Now.ToString("t", CultureInfo.CurrentCulture));
 
-            var keep = Selected?.Info.Id;
+            var keep = _showStructure ?? Selected?.Info.Id;
+            _showStructure = null;
             ApplyFilter();
             Selected = Rows.FirstOrDefault(r => r.Info.Id == keep) ?? Rows.FirstOrDefault();
+
+            await LoadConfigAsync(corp.Id, infos, seq);
         }
         catch (Exception ex)
         {
@@ -366,6 +461,70 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         finally
         {
             if (seq == _loadSeq) IsLoading = false;
+        }
+    }
+
+    /// <summary>The Config tab: each Upwell structure type anchored, or with a fit set, and the
+    /// saved fits for it to choose from.</summary>
+    private async Task LoadConfigAsync(long corpId, List<CorpStructureInfo> infos, int seq)
+    {
+        var upwell   = infos.Where(i => i.Kind == CorpStructureKind.Upwell).ToList();
+        var required = await Task.Run(() => CorpStructureFits.RequiredAsync(_dbFactory, corpId));
+        var typeIds  = upwell.Select(i => i.TypeId).Concat(required.Keys).Distinct().ToList();
+        var choices  = await Task.Run(() => CorpStructureFits.ChoicesAsync(_dbFactory, typeIds));
+        var unnamed  = typeIds.Where(id => upwell.All(i => i.TypeId != id)).ToList();
+        Dictionary<int, string> names = unnamed.Count == 0 ? [] : await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            return await db.SdeTypes.AsNoTracking().Where(t => unnamed.Contains(t.TypeId))
+                .ToDictionaryAsync(t => t.TypeId, t => SdeNames.Type(t.TypeId, t.Name));
+        });
+        if (seq != _loadSeq) return;
+
+        var rows = new List<CorpFitConfigRowVm>();
+        foreach (var typeId in typeIds)
+        {
+            var mine = upwell.Where(i => i.TypeId == typeId).ToList();
+            var list = new List<CorpFitChoice> { CorpFitChoice.None };
+            list.AddRange(choices.Where(c => c.ShipTypeId == typeId));
+            var selected = CorpFitChoice.None;
+            if (required.TryGetValue(typeId, out var req))
+            {
+                selected = list.FirstOrDefault(c => c.Source == req.Source && c.FitId == req.FitId)
+                        ?? new CorpFitChoice(req.Source, req.FitId, req.OwnerId, req.OwnerName, req.Name, typeId) { IsCopy = true };
+                if (!list.Contains(selected)) list.Add(selected);
+            }
+
+            var known = mine.Count(i => i.FitCheck is { Known: true });
+            var bad   = mine.Count(i => i.FitCheck is { Known: true, HasProblems: true });
+            var status = req is null              ? string.Format(CorpText.CsConfigStatusNoFit, mine.Count)
+                       : mine.Count > 0 && known == 0 ? string.Format(CorpText.CsConfigStatusUnknown, mine.Count)
+                       : bad > 0                  ? string.Format(CorpText.CsConfigStatus, mine.Count, bad)
+                       :                            string.Format(CorpText.CsConfigStatusAllMatch, mine.Count);
+            var name = mine.FirstOrDefault()?.TypeName ?? names.GetValueOrDefault(typeId) ?? $"#{typeId}";
+            rows.Add(new CorpFitConfigRowVm(typeId, name, status, list, selected, SaveFitAsync));
+        }
+
+        ConfigRows.Clear();
+        foreach (var r in rows.OrderBy(r => r.TypeName, StringComparer.CurrentCultureIgnoreCase)) ConfigRows.Add(r);
+        HasConfigRows = ConfigRows.Count > 0;
+    }
+
+    /// <summary>Sets a structure type's fit, then reads everything again so the checks follow.</summary>
+    private async Task SaveFitAsync(CorpFitConfigRowVm row, CorpFitChoice choice)
+    {
+        if (SelectedCorp is not { } corp) return;
+        try
+        {
+            await Task.Run(() => CorpStructureFits.SetAsync(_dbFactory, corp.Id, row.TypeId,
+                choice == CorpFitChoice.None ? null : choice));
+            await LoadAsync();
+            Status = string.Format(CorpText.CsFitSaved, row.TypeName);
+        }
+        catch (Exception ex)
+        {
+            Status = string.Format(CorpText.CsFitSaveFailed, ex.Message);
+            _errorLogger?.Log("CorpStructuresViewModel", "SaveFitAsync", ex);
         }
     }
 
@@ -394,13 +553,35 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     private void BuildDetail()
     {
         StatusFields.Clear(); LocationFields.Clear(); FuelRows.Clear(); Services.Clear();
-        FitGroups.Clear(); MoonFields.Clear(); MoonBay.Clear(); TowerFields.Clear();
+        FitGroups.Clear(); MoonFields.Clear(); MoonBay.Clear(); TowerFields.Clear(); FitCheckLines.Clear();
 
         if (Selected is not { Info: var i })
         {
             HasDetail = false;
             return;
         }
+
+        // The fit check: what the structure lacks against its type's fit, or has in its place.
+        if (i.FitCheck is { } fc)
+        {
+            FitCheckNote = fc.FromCopy
+                ? string.Format(CorpText.CsCheckAgainstCopy, fc.FitName, fc.FitSource, PiFormat.When(fc.CopiedAt))
+                : string.Format(CorpText.CsCheckAgainst, fc.FitName, fc.FitSource);
+            string Line(CorpFitShortfall m) =>
+                $"{(m.Count > 1 ? string.Format(CorpText.CsCountOf, m.Count, m.Name) : m.Name)} ({BandTitle(m.Band)})";
+            string Stock(CorpStockShortfall x) => string.Format(CorpText.CsCheckStock, x.Name,
+                x.Have.ToString("N0", CultureInfo.CurrentCulture), x.Want.ToString("N0", CultureInfo.CurrentCulture),
+                x.Want > 0 ? (100 * x.Have / x.Want).ToString(CultureInfo.CurrentCulture) : "0");
+
+            if (!fc.Known) FitCheckLines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckUnknownLong));
+            else if (!fc.HasProblems) FitCheckLines.Add(new(CorpText.CsCheckLabel, CorpText.CsCheckMatches));
+            foreach (var m in fc.Missing)     FitCheckLines.Add(new(CorpText.CsCheckMissingLabel, Line(m), FuelUrgency.Critical));
+            foreach (var m in fc.Wrong)       FitCheckLines.Add(new(CorpText.CsCheckWrongLabel,   Line(m), FuelUrgency.Critical));
+            foreach (var m in fc.Instead)     FitCheckLines.Add(new(CorpText.CsCheckInsteadLabel, Line(m)));
+            foreach (var low in fc.AmmoLow)     FitCheckLines.Add(new(CorpText.CsCheckAmmoLabel,     Stock(low), FuelUrgency.Soon));
+            foreach (var low in fc.FightersLow) FitCheckLines.Add(new(CorpText.CsCheckFightersLabel, Stock(low), FuelUrgency.Soon));
+        }
+        HasFitCheck = i.FitCheck is not null;
 
         var now = DateTimeOffset.UtcNow;
         DetailTitle    = i.Name;
@@ -550,6 +731,22 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     // ── Labels ───────────────────────────────────────────────────────────────
+
+    /// <summary>The list's fit column: what is wrong in a few words, and how bad. A module
+    /// missing or wrong is a fault; ammo or fighters below the share is running low.</summary>
+    public static (string Text, FuelUrgency Urgency) FitSummary(CorpFitCheck? c)
+    {
+        if (c is null)   return ("", FuelUrgency.None);
+        if (!c.Known)    return (CorpText.CsCheckUnknown, FuelUrgency.None);
+        if (!c.HasProblems) return (CorpText.CsCheckOk, FuelUrgency.Fine);
+        var parts = new List<string>();
+        if (c.Missing.Count > 0) parts.Add(string.Format(CorpText.CsCheckMissing, c.Missing.Sum(m => m.Count)));
+        if (c.Wrong.Count > 0)   parts.Add(string.Format(CorpText.CsCheckWrong, c.Wrong.Sum(m => m.Count)));
+        if (c.AmmoLow.Count > 0)     parts.Add(CorpText.CsCheckAmmo);
+        if (c.FightersLow.Count > 0) parts.Add(CorpText.CsCheckFighters);
+        return (string.Join(" · ", parts),
+                c.Missing.Count + c.Wrong.Count > 0 ? FuelUrgency.Critical : FuelUrgency.Soon);
+    }
 
     internal static FuelUrgency UrgencyOf(TimeSpan? left, CorpStructureInfo i)
     {

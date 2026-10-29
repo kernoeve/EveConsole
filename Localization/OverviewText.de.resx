@@ -514,6 +514,75 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>Du hast {0} ungelesene EVE-Mails.</value>
   </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>{0} ({1}) hat in {2} keinen Treibstoff mehr</value>
+  </data>
+  <data name="AlertStructureFuelOut" xml:space="preserve">
+    <value>{0} ({1}) hat keinen Treibstoff mehr</value>
+  </data>
+  <data name="AlertStructureFuelManyOne" xml:space="preserve">
+    <value>{0} Struktur von {1} hat wenig Treibstoff – zuerst {2}, in {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} haben wenig Treibstoff – zuerst {2}, in {3}</value>
+  </data>
+  <data name="AlertStructureFuelManyOutOne" xml:space="preserve">
+    <value>{0} Struktur von {1} hat wenig Treibstoff – {2} ist leer</value>
+  </data>
+  <data name="AlertStructureFuelManyOutOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} haben wenig Treibstoff – {2} ist leer</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>{0} ({1}) fehlt {2}</value>
+  </data>
+  <data name="AlertStructureFitMissingManyOne" xml:space="preserve">
+    <value>{0} Struktur von {1} fehlen Module ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureFitMissingManyOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} fehlen Module ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>{0} ({1}) hat {2}, wo ihre Ausrüstung {3} vorsieht</value>
+  </data>
+  <data name="AlertStructureFitWrongManyOne" xml:space="preserve">
+    <value>{0} Struktur von {1} hat andere Module statt derer ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureFitWrongManyOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} haben andere Module statt derer ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>{0} ({1}) hat wenig Munition: {2}</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyOne" xml:space="preserve">
+    <value>{0} Struktur von {1} hat wenig Munition</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} haben wenig Munition</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>{0} ({1}) hat wenig Jäger: {2}</value>
+  </data>
+  <data name="AlertStructureFightersLowManyOne" xml:space="preserve">
+    <value>{0} Struktur von {1} hat wenig Jäger</value>
+  </data>
+  <data name="AlertStructureFightersLowManyOther" xml:space="preserve">
+    <value>{0} Strukturen von {1} haben wenig Jäger</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>{0} ({1}) wird angegriffen – Schild {2}, Panzerung {3}, Hülle {4} · {5}</value>
+  </data>
+  <data name="AlertStructureAttackedBy" xml:space="preserve">
+    <value>{0} ({1}) wird von {2} angegriffen – Schild {3}, Panzerung {4}, Hülle {5} · {6}</value>
+  </data>
+  <data name="AlertStructureLostShields" xml:space="preserve">
+    <value>{0} ({1}) hat ihre Schilde verloren – Panzerungs-Timer {2} · {3}</value>
+  </data>
+  <data name="AlertStructureLostArmor" xml:space="preserve">
+    <value>{0} ({1}) hat ihre Panzerung verloren – Hüllen-Timer {2} · {3}</value>
+  </data>
+  <data name="AlertStructureDestroyed" xml:space="preserve">
+    <value>{0} ({1}) wurde zerstört · {2}</value>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} ausstehender Vertrag an Sie.</value>
   </data>

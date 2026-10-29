@@ -1300,6 +1300,8 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.Pi                     = piService;
         OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
         OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
+        // The structure alerts open Corp Structures on the corporation, and the structure they name.
+        OverviewVm.NavigateToCorpStructures = (corp, structure) => { OpenTool("corp_structures"); CorpStructuresVm.Show(corp, structure); };
         var universeMapService = new UniverseMapService(dbFactory);
         // Each system tab gets a page of its own, wired to the Item Browser like the rest.
         SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)

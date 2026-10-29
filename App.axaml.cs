@@ -2594,6 +2594,21 @@ public class App : Application
                         PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
                     )
                     """);
+                // The fit each structure type should carry, per corporation (Corp Structures →
+                // Config). Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "CorpStructureFits" (
+                        "CorporationId"   INTEGER NOT NULL,
+                        "StructureTypeId" INTEGER NOT NULL,
+                        "FitSource"       TEXT    NOT NULL DEFAULT '',
+                        "FitId"           INTEGER NOT NULL DEFAULT 0,
+                        "FitOwnerId"      INTEGER NOT NULL DEFAULT 0,
+                        "FitName"         TEXT    NOT NULL DEFAULT '',
+                        "Items"           TEXT    NOT NULL DEFAULT '',
+                        "ItemsAt"         TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "StructureTypeId")
+                    )
+                    """);
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpFacilities" (
@@ -2700,6 +2715,8 @@ public class App : Application
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Whether the structure alerts cover a corporation; on for all. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "StructureAlerts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Fits saved in the fitting tool, as EFT text. Mirrored in PostgresSchema.
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "SavedFits" (
@@ -3292,7 +3309,16 @@ public class App : Application
                         "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
                         "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
                         "PiStaleData"                INTEGER NOT NULL DEFAULT 1,
-                        "UnreadMail"                 INTEGER NOT NULL DEFAULT 1
+                        "UnreadMail"                 INTEGER NOT NULL DEFAULT 1,
+                        "StructureFuel"              INTEGER NOT NULL DEFAULT 1,
+                        "StructureFuelDays"          INTEGER NOT NULL DEFAULT 3,
+                        "StructureAttacked"          INTEGER NOT NULL DEFAULT 1,
+                        "StructureFitMissing"        INTEGER NOT NULL DEFAULT 1,
+                        "StructureFitWrong"          INTEGER NOT NULL DEFAULT 1,
+                        "StructureAmmoLow"           INTEGER NOT NULL DEFAULT 1,
+                        "StructureAmmoPct"           INTEGER NOT NULL DEFAULT 50,
+                        "StructureFightersLow"       INTEGER NOT NULL DEFAULT 1,
+                        "StructureFightersPct"       INTEGER NOT NULL DEFAULT 50
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -3309,6 +3335,16 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Unread EVE mail. Mirrored for PostgreSQL in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnreadMail" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Structure alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFuel" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFuelDays" INTEGER NOT NULL DEFAULT 3"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAttacked" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFitMissing" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFitWrong" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAmmoLow" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAmmoPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersLow" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -3319,8 +3355,11 @@ public class App : Application
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
                          "OutstandingContracts", "ExpiringContracts",
-                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
+                         "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
+                         "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                            1, 3, 1, 1, 1, 1, 50, 1, 50)
                     """);
 
                 db.Database.ExecuteSqlRaw("""

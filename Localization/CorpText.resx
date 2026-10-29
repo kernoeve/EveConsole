@@ -2872,4 +2872,168 @@
     <value>Unanchoring</value>
     <comment>Corp Structures: starbase state.</comment>
   </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Corp Structures: sub-tab with the list of structures.</comment>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>Config</value>
+    <comment>Corp Structures: sub-tab where each structure type's fit is chosen.</comment>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>Fit check</value>
+    <comment>Corp Structures: list column, the structure against its type's fit.</comment>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} not matching their fit</value>
+    <comment>Corp Structures: added to the summary above the list; {0} structures that do not carry their fit.</comment>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>Fit check</value>
+    <comment>Corp Structures: detail section, the structure against its type's fit.</comment>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>Checked against {0} ({1}).</value>
+    <comment>Corp Structures: under the fit check; {0} the fit's name, {1} where it is kept (EVE Console or a character).</comment>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>Checked against {0} ({1}) as it was on {2}: the fit is no longer saved there.</value>
+    <comment>Corp Structures: under the fit check when the fit is gone; {0} its name, {1} where it was kept, {2} when the copy was taken.</comment>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Corp Structures: fit check label.</comment>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>Matches the fit</value>
+    <comment>Corp Structures: the structure carries all of its fit.</comment>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>Not checked: the corporation's assets have not been read. Reading them needs a director.</value>
+    <comment>Corp Structures: the fit could not be checked.</comment>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>Not read</value>
+    <comment>Corp Structures: list's fit column when the assets are not read.</comment>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>Matches</value>
+    <comment>Corp Structures: list's fit column, nothing wrong.</comment>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0} missing</value>
+    <comment>Corp Structures: list's fit column; {0} modules missing.</comment>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0} wrong</value>
+    <comment>Corp Structures: list's fit column; {0} modules with something else in their place.</comment>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>ammo low</value>
+    <comment>Corp Structures: list's fit column, ammo below the set share of the fit.</comment>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>fighters low</value>
+    <comment>Corp Structures: list's fit column, fighters below the set share of the fit.</comment>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Corp Structures: fit check label, a module of the fit not fitted.</comment>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>Not fitted</value>
+    <comment>Corp Structures: fit check label, a module of the fit not fitted while its slots are full.</comment>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>Fitted instead</value>
+    <comment>Corp Structures: fit check label, a module fitted in place of one of the fit's.</comment>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>Ammo low</value>
+    <comment>Corp Structures: fit check label.</comment>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>Fighters low</value>
+    <comment>Corp Structures: fit check label.</comment>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} of {2} ({3}%)</value>
+    <comment>Corp Structures: {0} the charge or fighter, {1} held, {2} the fit's count, {3} the percentage held.</comment>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+    <comment>Corp Structures: {0} how many, {1} the module.</comment>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+    <comment>Overview alert: {0} the charge or fighter, {1} held, {2} the fit's count.</comment>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>Starbase</value>
+    <comment>Corp Structures: a starbase whose moon is not known.</comment>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+    <comment>Corp Structures → Config: a saved fit; {0} its name, {1} where it is kept.</comment>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1} (no longer saved; its copy is checked)</value>
+    <comment>Corp Structures → Config: the fit set for a type that can no longer be found; {0} its name, {1} where it was kept.</comment>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(no name)</value>
+    <comment>Corp Structures → Config: a saved fit with no name.</comment>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+    <comment>Corp Structures: where a fit is kept — EVE Console's own fitting tool.</comment>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>No fit — not checked</value>
+    <comment>Corp Structures → Config: no fit chosen for a structure type.</comment>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>Fit saved for {0}</value>
+    <comment>Corp Structures: status after choosing a fit; {0} the structure type.</comment>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>Could not save the fit: {0}</value>
+    <comment>Corp Structures: status when a fit could not be saved; {0} the error.</comment>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>Choose the fit each type of structure should carry. A structure is checked for every module of its type's fit, in any slot of the right kind — extra modules and rigs are fine — and for its charges and fighters against the share set on Settings → Alerts. The fits are EVE Console's own (the fitting tool) and your characters' fittings in the game.</value>
+    <comment>Corp Structures → Config: note above the list.</comment>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>Structure type</value>
+    <comment>Corp Structures → Config: column, the structure type.</comment>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>Fit to carry</value>
+    <comment>Corp Structures → Config: column, the fit structures of the type should carry.</comment>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Corp Structures → Config: column, how many of the type are anchored and how they measure up.</comment>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0} anchored · {1} not matching</value>
+    <comment>Corp Structures → Config: {0} anchored of the type, {1} not carrying the fit.</comment>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0} anchored · all match</value>
+    <comment>Corp Structures → Config: {0} anchored of the type, all carrying the fit.</comment>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0} anchored</value>
+    <comment>Corp Structures → Config: {0} anchored of the type; no fit chosen.</comment>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0} anchored · assets not read</value>
+    <comment>Corp Structures → Config: {0} anchored of the type; the corporation's assets are not read.</comment>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>No Upwell structures for this corporation.</value>
+    <comment>Corp Structures → Config: the corporation has no Upwell structures.</comment>
+  </data>
 </root>
