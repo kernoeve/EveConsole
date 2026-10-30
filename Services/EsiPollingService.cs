@@ -3321,6 +3321,15 @@ public class EsiPollingService : ReactiveObject
     private static readonly TimeSpan PublicStructureSweepEvery = TimeSpan.FromHours(24);
 
     /// <summary>
+    /// How many likely refusals one sweep may ask about — see <see cref="SweepPublicStructuresAsync"/>.
+    ///
+    /// <para>Under the 30 errors that move the governor off Normal (<see cref="EsiBudget.SpacedBelow"/>),
+    /// with room for whatever else fails in the same minute. Slow on purpose: at this rate a fresh
+    /// install's ~1,500 takes a couple of months, and each answer is then good for 30 days.</para>
+    /// </summary>
+    private const int LikelyRefusedPerSweep = 25;
+
+    /// <summary>
     /// Walks the public structure list and hands anything unknown to the normal resolver.
     ///
     /// <para>Every other source of structures is incidental — a killmail, a contract, an asset
@@ -3332,6 +3341,17 @@ public class EsiPollingService : ReactiveObject
     /// at but whose owner has not made it public will not appear, and a public structure may still
     /// refuse the name lookup — which the resolver already records as a failure with a 30-day
     /// backoff, so a refusal costs one call a month rather than one a cycle.</para>
+    ///
+    /// <para>⚠️ Structures EVE Ref has seen, but lists as not public and could not name, go to the
+    /// back and are asked about only <see cref="LikelyRefusedPerSweep"/> at a time. Measured on a
+    /// fresh install: 426 of its 433 refusals were in that group, and none of its 912 successes.
+    /// Asked all at once, they spent ESI's error budget for most of the first hour — the governor
+    /// stepping in every minute and slowing everything else the app was fetching. Asked a few a
+    /// day, a character later given docking rights is still found.</para>
+    ///
+    /// <para>⚠️ So it waits for EVE Ref's first download, which runs later in the same cycle: on a
+    /// fresh install the sweep came first and had nothing to sort by. Not stamped while waiting,
+    /// so it runs on the next cycle instead of a day later.</para>
     /// </summary>
     private async Task SweepPublicStructuresAsync(AppDbContext db, CancellationToken ct)
     {
@@ -3341,6 +3361,8 @@ public class EsiPollingService : ReactiveObject
         if (lastSwept > 0 &&
             now - DateTimeOffset.FromUnixTimeSeconds(lastSwept) < PublicStructureSweepEvery)
             return;
+
+        if (!await db.EveRefStructures.AnyAsync(ct)) return;
 
         var ids = await _esi.GetPublicStructureIdsAsync(ct);
         if (ids is null || ids.Count == 0) return;
@@ -3369,8 +3391,14 @@ public class EsiPollingService : ReactiveObject
             .Select(f => f.StructureId)
             .ToHashSet();
 
-        var unknown = ids
-            .Where(id => !known.Contains(id) && !recentlyFailed.Contains(id))
+        var candidates = ids.Where(id => !known.Contains(id) && !recentlyFailed.Contains(id)).ToList();
+
+        var likelyRefused = (await db.EveRefStructures
+            .Where(e => !e.IsPublic && e.Name == "")
+            .Select(e => e.StructureId).ToListAsync(ct)).ToHashSet();
+
+        var unknown = candidates.Where(id => !likelyRefused.Contains(id))
+            .Concat(candidates.Where(likelyRefused.Contains).Take(LikelyRefusedPerSweep))
             .Take(PublicStructureBatch)
             .ToList();
 

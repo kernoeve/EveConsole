@@ -231,8 +231,10 @@ public class App : Application
 
         // A line each time ESI's error budget makes the governor hold background work back further,
         // saying how much is left and which routes spent it — and one when it lets go.
+        // ⚠️ A note, not an error: the governor stepping in is the app protecting itself as designed.
+        // As errors, a fresh install's first hour filled the log with red that nobody could act on.
         EsiBudget.Shared.LevelChanged += (from, to, why) =>
-            errorLogger.Log("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
+            errorLogger.Note("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
 
         // Dates any damage that appears while running, rather than leaving the next launch to
         // find it with no idea when it started. Fifteen minutes is frequent enough to place it

@@ -154,8 +154,9 @@ public sealed class TrayIconController
     public Action? ShowBackgroundProcesses { get; set; }
 
     /// <summary>
-    /// ⚠️ Built fresh on each open rather than once. NativeMenu is small, and a menu assembled at
-    /// construction would keep whatever the first pass decided.
+    /// ⚠️ Built ONCE, when the icon is made. Nothing on it changes, and the menu bar on macOS will
+    /// not have a tray icon's menu replaced: every swap threw "The menu being updated does not
+    /// match" from Avalonia.Native, unhandled, every 30 seconds for as long as the icon was up.
     /// </summary>
     private NativeMenu BuildMenu()
     {
@@ -204,14 +205,10 @@ public sealed class TrayIconController
 
         var tip = $"EVE Console\n{worker}";
 
+        // The tooltip only: the menu is fixed (see BuildMenu).
         Dispatcher.UIThread.Post(() =>
         {
-            if (_icon is null) return;
-
-            // Rebuilt rather than edited: the mute item's text changes with the state, and a
-            // NativeMenu is small enough that replacing it beats tracking which item to update.
-            _icon.Menu        = BuildMenu();
-            _icon.ToolTipText = tip;
+            if (_icon is not null) _icon.ToolTipText = tip;
         });
     }
 }
