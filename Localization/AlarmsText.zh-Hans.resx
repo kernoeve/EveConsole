@@ -1438,6 +1438,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>钟声——柔和</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>钟声——玻璃</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>铃声——水晶</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>钟声——马林巴</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>钟声——三和弦</value>
   </data>

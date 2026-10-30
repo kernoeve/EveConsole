@@ -1468,6 +1468,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Glockenton – sanft</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Glockenton – Glas</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Glocke – Kristall</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Glockenton – Marimba</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Glockenton – Dreiklang</value>
   </data>

@@ -1438,6 +1438,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>チャイム — ソフト</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>チャイム — ガラス</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>ベル — クリスタル</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>チャイム — マリンバ</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>チャイム — 3和音</value>
   </data>

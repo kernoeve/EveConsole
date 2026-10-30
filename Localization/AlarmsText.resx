@@ -1956,6 +1956,18 @@
     <value>Chime — soft</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Chime — glass</value>
+    <comment>Alarm sound picker: a quiet two-note glass chime.</comment>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Bell — crystal</value>
+    <comment>Alarm sound picker: a gentle crystal bell tap with a short shimmer.</comment>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Chime — marimba</value>
+    <comment>Alarm sound picker: a single warm marimba-like note.</comment>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Chime — triad</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app (a three-note chime).</comment>

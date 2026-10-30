@@ -1528,6 +1528,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Перезвон — мягкий</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Перезвон — стеклянный</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Колокол — хрустальный</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Перезвон — маримба</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Перезвон — трезвучие</value>
   </data>

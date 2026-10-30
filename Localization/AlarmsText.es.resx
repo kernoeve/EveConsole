@@ -1468,6 +1468,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Carillón — suave</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Carillón — cristal</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Campana — cristal</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Carillón — marimba</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Carillón — tríada</value>
   </data>

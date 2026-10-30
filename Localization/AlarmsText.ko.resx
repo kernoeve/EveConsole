@@ -1438,6 +1438,15 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>차임 — 부드러움</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>차임 — 유리</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>벨 — 크리스털</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>차임 — 마림바</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>차임 — 3화음</value>
   </data>
