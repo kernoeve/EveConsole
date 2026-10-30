@@ -277,6 +277,21 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>Spalte „Zuletzt abgeschlossen“</value>
   </data>
+  <data name="SlackTableOption" xml:space="preserve">
+    <value>Slack-Tabelle</value>
+  </data>
+  <data name="TipSlackTable" xml:space="preserve">
+    <value>Sendet diesen Abschnitt als Datentabelle (Block Kit) an Slack, als eigene Nachricht nach dem Rest, mit der Texttabelle als Ersatz. Das Ergebnis des Laufs sagt, ob Slack sie angenommen hat. Discord erhält wie immer die Texttabelle.</value>
+  </data>
+  <data name="RunSlackTablesPosted" xml:space="preserve">
+    <value>Slack-Tabellen gesendet: {0}.</value>
+  </data>
+  <data name="RunSlackTablesRefused" xml:space="preserve">
+    <value>Von Slack abgelehnte Tabellen: {0} ({1}).</value>
+  </data>
+  <data name="PreviewSlackTable" xml:space="preserve">
+    <value>[Als Tabelle an Slack gesendet – Zeilen: {0}. Der Ersatztext:]</value>
+  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>Enthaltene Projekte</value>
   </data>

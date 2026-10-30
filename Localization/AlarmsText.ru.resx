@@ -283,6 +283,21 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>Столбец «Последнее завершение»</value>
   </data>
+  <data name="SlackTableOption" xml:space="preserve">
+    <value>Таблица Slack</value>
+  </data>
+  <data name="TipSlackTable" xml:space="preserve">
+    <value>Публикует этот раздел в Slack как таблицу данных (Block Kit), отдельным сообщением после остального, с текстовой таблицей в качестве замены. Результат запуска покажет, принял ли её Slack. Discord, как обычно, получает текстовую таблицу.</value>
+  </data>
+  <data name="RunSlackTablesPosted" xml:space="preserve">
+    <value>Таблиц Slack отправлено: {0}.</value>
+  </data>
+  <data name="RunSlackTablesRefused" xml:space="preserve">
+    <value>Таблиц, отклонённых Slack: {0} ({1}).</value>
+  </data>
+  <data name="PreviewSlackTable" xml:space="preserve">
+    <value>[Отправляется в Slack таблицей — строк: {0}. Текст замены:]</value>
+  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>Какие проекты включить</value>
   </data>

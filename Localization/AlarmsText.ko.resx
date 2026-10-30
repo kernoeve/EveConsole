@@ -274,6 +274,21 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>마지막 완료 열</value>
   </data>
+  <data name="SlackTableOption" xml:space="preserve">
+    <value>Slack 표</value>
+  </data>
+  <data name="TipSlackTable" xml:space="preserve">
+    <value>이 섹션을 Slack에 데이터 표(Block Kit)로, 나머지 뒤에 별도 메시지로 게시합니다. 텍스트 표가 대체로 쓰입니다. Slack이 받아들였는지는 실행 결과에 나옵니다. Discord에는 평소처럼 텍스트 표가 갑니다.</value>
+  </data>
+  <data name="RunSlackTablesPosted" xml:space="preserve">
+    <value>Slack 표 게시: {0}.</value>
+  </data>
+  <data name="RunSlackTablesRefused" xml:space="preserve">
+    <value>Slack이 거부한 표: {0} ({1}).</value>
+  </data>
+  <data name="PreviewSlackTable" xml:space="preserve">
+    <value>[Slack에 표로 전송 — 행: {0}. 대체 텍스트:]</value>
+  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>포함할 프로젝트</value>
   </data>

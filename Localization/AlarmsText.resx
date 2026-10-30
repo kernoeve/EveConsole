@@ -368,6 +368,26 @@
     <value>Last Completed column</value>
     <comment>Button or option in SchedulerView.</comment>
   </data>
+  <data name="SlackTableOption" xml:space="preserve">
+    <value>Slack table</value>
+    <comment>Scheduler, standing projects section: tick box — post the section to Slack as a data table.</comment>
+  </data>
+  <data name="TipSlackTable" xml:space="preserve">
+    <value>Posts this section to Slack as a data table (Block Kit), a message of its own after the rest, with the text table as its fallback. The run's result says whether Slack accepted it. Discord gets the text table as always.</value>
+    <comment>Scheduler: tooltip of the Slack table tick box.</comment>
+  </data>
+  <data name="RunSlackTablesPosted" xml:space="preserve">
+    <value>Slack tables posted: {0}.</value>
+    <comment>Scheduler run result, added after the posted text; {0} how many Slack tables Slack accepted.</comment>
+  </data>
+  <data name="RunSlackTablesRefused" xml:space="preserve">
+    <value>Slack tables refused: {0} ({1}).</value>
+    <comment>Scheduler run result; {0} how many Slack tables Slack refused, {1} Slack's own error words (e.g. invalid_blocks).</comment>
+  </data>
+  <data name="PreviewSlackTable" xml:space="preserve">
+    <value>[Sent to Slack as a table — rows: {0}. The text it falls back to:]</value>
+    <comment>Scheduler preview: above the text fallback of a section sent as a Slack table; {0} how many rows.</comment>
+  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>PROJECTS TO INCLUDE</value>
     <comment>Label in SchedulerView.</comment>

@@ -75,8 +75,8 @@
         <TextBlock Grid.Column="4" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
-        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
-                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
+        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
+                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
 
@@ -489,6 +489,9 @@
                                 <StackPanel Orientation="Horizontal" Spacing="14">
                                   <CheckBox IsChecked="{Binding ShowIskLeft}" Content="{x:Static loc:AlarmsText.IskLeftColumn}" />
                                   <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="{x:Static loc:AlarmsText.LastCompletedColumn}" />
+                                  <!-- Slack's data table block, a message of its own. Discord ignores it. -->
+                                  <CheckBox IsChecked="{Binding SlackTable}" Content="{x:Static loc:AlarmsText.SlackTableOption}"
+                                            ToolTip.Tip="{x:Static loc:AlarmsText.TipSlackTable}" />
                                 </StackPanel>
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"

@@ -277,6 +277,21 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>Colonne Dernière réalisation</value>
   </data>
+  <data name="SlackTableOption" xml:space="preserve">
+    <value>Tableau Slack</value>
+  </data>
+  <data name="TipSlackTable" xml:space="preserve">
+    <value>Publie cette section sur Slack sous forme de tableau de données (Block Kit), dans un message à part après le reste, avec le tableau texte comme repli. Le résultat de l'exécution indique si Slack l'a accepté. Discord reçoit le tableau texte comme d'habitude.</value>
+  </data>
+  <data name="RunSlackTablesPosted" xml:space="preserve">
+    <value>Tableaux Slack publiés : {0}.</value>
+  </data>
+  <data name="RunSlackTablesRefused" xml:space="preserve">
+    <value>Tableaux refusés par Slack : {0} ({1}).</value>
+  </data>
+  <data name="PreviewSlackTable" xml:space="preserve">
+    <value>[Envoyé à Slack sous forme de tableau — lignes : {0}. Son texte de repli :]</value>
+  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>Projets à inclure</value>
   </data>

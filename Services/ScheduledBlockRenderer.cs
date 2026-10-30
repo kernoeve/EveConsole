@@ -127,6 +127,13 @@ public sealed class MessageBlock
     /// <summary>Standing project blocks: print when a matching project last completed.</summary>
     public bool ShowLastCompleted { get; set; } = true;
 
+    /// <summary>
+    /// Standing project blocks, posting to Slack: send the section as a Slack data table (Block
+    /// Kit's <c>data_table</c>), a message of its own, with the usual text table as the fallback
+    /// Slack shows in notifications. Discord is not affected.
+    /// </summary>
+    public bool SlackTable { get; set; }
+
     /// <summary>Standing project blocks: print a header row above the table.</summary>
     ///
     /// <para>On by default. A section saved before this existed stored its own false and keeps it;
@@ -387,7 +394,16 @@ public sealed class ScheduledTaskConfig
 /// dynamic sections at all: "post only when there is data" cannot be satisfied by a message that
 /// never asks for any.
 /// </param>
-public sealed record RenderedMessage(string Text, bool AnyDynamicContent);
+/// <param name="SlackTables">Sections posted as Slack data tables, each a message of its own after
+/// the text; none unless a section asked for one and the message is for Slack.</param>
+public sealed record RenderedMessage(string Text, bool AnyDynamicContent, IReadOnlyList<SlackTablePost>? SlackTables = null)
+{
+    public IReadOnlyList<SlackTablePost> Tables => SlackTables ?? [];
+}
+
+/// <summary>A section as a Slack message of Block Kit blocks: <paramref name="Fallback"/> is the text
+/// Slack shows where blocks are not drawn (notifications), <paramref name="Rows"/> how many rows.</summary>
+public sealed record SlackTablePost(string Fallback, object Blocks, int Rows);
 
 /// <summary>
 /// Turns message blocks into the text a scheduled post sends.
@@ -596,11 +612,24 @@ public class ScheduledBlockRenderer(
         string formatName = "Slack")
     {
         var parts      = new List<string>();
+        var tables     = new List<SlackTablePost>();
         var anyDynamic = false;
 
         foreach (var b in blocks)
         {
             ct.ThrowIfCancellationRequested();
+
+            // A standing projects section asked to be a Slack table is a message of its own, not
+            // part of this text. Discord has no such block and takes the text table as always.
+            if (b.Type == MessageBlock.TypeProjects && b.SlackTable && formatName == "Slack")
+            {
+                if (await StandingProjectsTableAsync(b, ct) is { } table)
+                {
+                    tables.Add(table);
+                    if (b.IsDynamic) anyDynamic = true;
+                }
+                continue;
+            }
 
             var text = b.Type switch
             {
@@ -623,7 +652,7 @@ public class ScheduledBlockRenderer(
             if (b.IsDynamic) anyDynamic = true;
         }
 
-        return new RenderedMessage(string.Join("\n\n", parts), anyDynamic);
+        return new RenderedMessage(string.Join("\n\n", parts), anyDynamic, tables);
     }
 
     /// <summary>The calendar month a "months back" block names.</summary>
@@ -827,7 +856,35 @@ public class ScheduledBlockRenderer(
     /// </summary>
     private async Task<string> StandingProjectsAsync(MessageBlock b, string formatName, CancellationToken ct)
     {
-        if (b.CorpId <= 0) return "";
+        var wanted = await StandingProjectRowsAsync(b, ct);
+        if (wanted.Count == 0) return "";
+
+        // ⚠️ Taken as written, blank included. The default lives in the editor now, filled into
+        // the box when the section is built; substituting it here as well would make a title
+        // impossible to remove.
+        var heading = b.SectionTitle.Trim();
+
+        return StandingProjectReport.Export(
+            wanted, heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+    }
+
+    /// <summary>The same section as a Slack data table, with the text table as its fallback.</summary>
+    private async Task<SlackTablePost?> StandingProjectsTableAsync(MessageBlock b, CancellationToken ct)
+    {
+        var wanted = await StandingProjectRowsAsync(b, ct);
+        if (wanted.Count == 0) return null;
+
+        var heading  = b.SectionTitle.Trim();
+        var fallback = StandingProjectReport.Export(
+            wanted, heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, "Slack");
+        var blocks   = StandingProjectReport.SlackBlocks(wanted, heading, b.ProjectType, b.ShowIskLeft, b.ShowLastCompleted);
+        return new SlackTablePost(fallback, blocks, wanted.Count);
+    }
+
+    /// <summary>The expanded rows a standing projects section reports on, after its filter.</summary>
+    private async Task<List<StandingProjectGridRow>> StandingProjectRowsAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.CorpId <= 0) return [];
 
         // ⚠️ The type comes from the DEFINITIONS, not from reading it back off an expanded row.
         // A row could only be classified by whether it names an item, and a delivery project saved
@@ -843,22 +900,13 @@ public class ScheduledBlockRenderer(
             .Select(d => d.Id)
             .ToHashSet();
 
-        if (keep.Count == 0) return "";
+        if (keep.Count == 0) return [];
 
         var rows = await corp.BuildMaintainGridRowsAsync(b.CorpId, ct);
 
-        var wanted = rows
+        return [.. rows
             .Where(r => keep.Contains(r.DbId))
-            .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))
-            .ToList();
-
-        // ⚠️ Taken as written, blank included. The default lives in the editor now, filled into
-        // the box when the section is built; substituting it here as well would make a title
-        // impossible to remove.
-        var heading = b.SectionTitle.Trim();
-
-        return StandingProjectReport.Export(
-            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+            .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))];
     }
 
     /// <summary>

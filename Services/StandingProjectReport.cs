@@ -84,52 +84,8 @@ public static class StandingProjectReport
     {
         if (rows.Count == 0) return "";
 
-        var byPlace = projectType == DestroyNpc;
-
-        // Region then system, so the list reads as a tour of the map rather than in whatever order
-        // the scopes happened to expand. Rows with no system sort last rather than first, since an
-        // empty string would otherwise head the list.
-        var ordered = byPlace
-            ? [.. rows.OrderBy(r => r.RegionName.Length == 0)
-                      .ThenBy(r => r.RegionName, StringComparer.OrdinalIgnoreCase)
-                      .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
-            : rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase).ToList();
-
-        // ⚠️ Header, cell and alignment defined together, so a column cannot be switched off or
-        // moved in one place and left behind in another. The optional ones are simply not added.
-        //
-        // Right is for the columns that hold a quantity: digits line up on their last character,
-        // so magnitudes are comparable down the column instead of every number starting in the
-        // same place and ending wherever it happens to.
-        var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)>();
-
-        if (byPlace)
-        {
-            cols.Add((CorpText.ColRegion, r => r.RegionName, false));
-            // A named system that never expanded still has a name on the row; fall back to it
-            // rather than printing a blank where the place should be.
-            cols.Add((CorpText.ColSystem, r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
-            // WARN One decimal. ADM moves in tenths and never carries a second: 268,305
-            // stored readings hold nothing but clean tenths from 1.0 to 6.0, and the game
-            // and dotlan both show it that way. F2 was printing a digit that is always zero.
-            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F1") : "", false));
-        }
-        else
-        {
-            // No "Deliver Item:" prefix — the whole table is one type and the title says which.
-            cols.Add((CorpText.ReportColProject, Describe, false));
-        }
-
-        cols.Add((CorpText.ReportColStatus,    Status, false));
-
-        // Remaining is the count still to do; ISK Left is what that count is worth at the
-        // project's reward per contribution. One answers "how much work", the other "how much is
-        // in it", and neither implies the other.
-        cols.Add((CorpText.ReportColRemaining, r => r.RemainingText, true));
-        if (showIskLeft) cols.Add((CorpText.ReportColIskLeft, r => r.RemainingPayoutText, true));
-
-        cols.Add(("%", r => r.RemainingPercentText, true));
-        if (showLastCompleted) cols.Add((CorpText.ReportColLastCompleted, LastDone, false));
+        var ordered = Ordered(rows, projectType);
+        var cols    = Columns(projectType, showIskLeft, showLastCompleted);
 
         var headers = cols.Select(c => c.Header).ToArray();
         var aligns  = cols.Select(c => c.Right).ToArray();
@@ -173,6 +129,107 @@ public static class StandingProjectReport
 
         sb.AppendLine("```");
         return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// The rows in report order: region then system, so the list reads as a tour of the map rather
+    /// than in whatever order the scopes happened to expand. Rows with no system sort last rather
+    /// than first, since an empty string would otherwise head the list.
+    /// </summary>
+    private static List<StandingProjectGridRow> Ordered(IReadOnlyList<StandingProjectGridRow> rows, string projectType) =>
+        projectType == DestroyNpc
+            ? [.. rows.OrderBy(r => r.RegionName.Length == 0)
+                      .ThenBy(r => r.RegionName, StringComparer.OrdinalIgnoreCase)
+                      .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
+            : [.. rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase)];
+
+    /// <summary>
+    /// The report's columns: header, cell and alignment defined together, so a column cannot be
+    /// switched off or moved in one place and left behind in another — the text table and the
+    /// Slack table both read this one list. The optional ones are simply not added.
+    ///
+    /// <para>Right is for the columns that hold a quantity: digits line up on their last character,
+    /// so magnitudes are comparable down the column instead of every number starting in the same
+    /// place and ending wherever it happens to.</para>
+    /// </summary>
+    private static List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)> Columns(
+        string projectType, bool showIskLeft, bool showLastCompleted)
+    {
+        var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)>();
+
+        if (projectType == DestroyNpc)
+        {
+            cols.Add((CorpText.ColRegion, r => r.RegionName, false));
+            // A named system that never expanded still has a name on the row; fall back to it
+            // rather than printing a blank where the place should be.
+            cols.Add((CorpText.ColSystem, r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
+            // WARN One decimal. ADM moves in tenths and never carries a second: 268,305
+            // stored readings hold nothing but clean tenths from 1.0 to 6.0, and the game
+            // and dotlan both show it that way. F2 was printing a digit that is always zero.
+            cols.Add(("ADM",    r => r.Adm is { } a ? a.ToString("F1") : "", false));
+        }
+        else
+        {
+            // No "Deliver Item:" prefix — the whole table is one type and the title says which.
+            cols.Add((CorpText.ReportColProject, Describe, false));
+        }
+
+        cols.Add((CorpText.ReportColStatus,    Status, false));
+
+        // Remaining is the count still to do; ISK Left is what that count is worth at the
+        // project's reward per contribution. One answers "how much work", the other "how much is
+        // in it", and neither implies the other.
+        cols.Add((CorpText.ReportColRemaining, r => r.RemainingText, true));
+        if (showIskLeft) cols.Add((CorpText.ReportColIskLeft, r => r.RemainingPayoutText, true));
+
+        cols.Add(("%", r => r.RemainingPercentText, true));
+        if (showLastCompleted) cols.Add((CorpText.ReportColLastCompleted, LastDone, false));
+        return cols;
+    }
+
+    /// <summary>Slack's most rows in a data table, under its header, and on one page.</summary>
+    private const int SlackTableMaxRows = 200, SlackTableMaxPage = 100;
+
+    /// <summary>
+    /// The rows as Slack Block Kit: the heading in bold, then a <c>data_table</c> block of the same
+    /// columns the text table has, header row always (Slack takes the first row as one).
+    ///
+    /// <para>⚠️ Every cell is <c>raw_text</c> with at least one character — Slack refuses an empty
+    /// one — so a blank becomes "—". The figures are sent as the report prints them (1.2B, 45%),
+    /// not as numbers. More than 200 rows are cut to 200, Slack's limit.</para>
+    /// </summary>
+    public static List<object> SlackBlocks(
+        IReadOnlyList<StandingProjectGridRow> rows, string heading, string projectType,
+        bool showIskLeft = true, bool showLastCompleted = true)
+    {
+        var cols    = Columns(projectType, showIskLeft, showLastCompleted);
+        var ordered = Ordered(rows, projectType).Take(SlackTableMaxRows).ToList();
+
+        static object Cell(string s) => new Dictionary<string, object>
+        {
+            ["type"] = "raw_text",
+            ["text"] = string.IsNullOrWhiteSpace(s) ? "—" : s,
+        };
+
+        var table = new List<object> { cols.Select(c => Cell(c.Header)).ToList() };
+        table.AddRange(ordered.Select(r => cols.Select(c => Cell(c.Cell(r))).ToList()));
+
+        var title  = heading.Trim();
+        var blocks = new List<object>();
+        if (title.Length > 0)
+            blocks.Add(new Dictionary<string, object>
+            {
+                ["type"] = "section",
+                ["text"] = new Dictionary<string, object> { ["type"] = "mrkdwn", ["text"] = $"*{title}*" },
+            });
+        blocks.Add(new Dictionary<string, object>
+        {
+            ["type"]      = "data_table",
+            ["caption"]   = title.Length > 0 ? title : CorpText.ReportColProject,
+            ["page_size"] = Math.Clamp(ordered.Count, 1, SlackTableMaxPage),
+            ["rows"]      = table,
+        });
+        return blocks;
     }
 
     /// <summary>
