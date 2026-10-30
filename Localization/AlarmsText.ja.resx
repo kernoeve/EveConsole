@@ -274,21 +274,6 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>「前回の完了」の列</value>
   </data>
-  <data name="SlackTableOption" xml:space="preserve">
-    <value>Slack テーブル</value>
-  </data>
-  <data name="TipSlackTable" xml:space="preserve">
-    <value>このセクションを Slack にデータテーブル（Block Kit）として、他の内容の後に別メッセージで投稿します。テキストの表は代替として使われます。Slack が受け付けたかは実行結果に表示されます。Discord には従来どおりテキストの表が送られます。</value>
-  </data>
-  <data name="RunSlackTablesPosted" xml:space="preserve">
-    <value>Slack テーブル投稿: {0}。</value>
-  </data>
-  <data name="RunSlackTablesRefused" xml:space="preserve">
-    <value>Slack が拒否したテーブル: {0}（{1}）。</value>
-  </data>
-  <data name="PreviewSlackTable" xml:space="preserve">
-    <value>[Slack にテーブルとして送信 — 行数: {0}。代替テキスト:]</value>
-  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>含めるプロジェクト</value>
   </data>

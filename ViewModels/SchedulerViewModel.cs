@@ -285,7 +285,6 @@ public sealed class MessageBlockVm : ReactiveObject
         _showHeaders       = model.ShowHeaders;
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
-        _slackTable        = model.SlackTable;
 
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
@@ -498,10 +497,6 @@ public sealed class MessageBlockVm : ReactiveObject
         get => _showLastCompleted;
         set => this.RaiseAndSetIfChanged(ref _showLastCompleted, value);
     }
-
-    private bool _slackTable;
-    /// <summary>Post this section to Slack as a data table, a message of its own.</summary>
-    public bool SlackTable { get => _slackTable; set => this.RaiseAndSetIfChanged(ref _slackTable, value); }
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -916,7 +911,6 @@ public sealed class MessageBlockVm : ReactiveObject
         ShowHeaders        = ShowHeaders,
         ShowIskLeft        = ShowIskLeft,
         ShowLastCompleted  = ShowLastCompleted,
-        SlackTable         = SlackTable,
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
@@ -1918,12 +1912,8 @@ public sealed class SchedulerViewModel : ReactiveObject
                         ? string.Format(AlarmsText.PreviewChartSkipped, title)
                         : string.Format(AlarmsText.PreviewChartUploaded, title)))));
 
-            // A section posted as a Slack table: said so, with the text table it falls back to.
-            var tables = string.Join("\n\n", render.Tables.Select(t =>
-                string.Format(AlarmsText.PreviewSlackTable, t.Rows) + "\n" + t.Fallback));
-
             var shown = string.Join("\n\n",
-                new[] { render.Text, tables, noted }.Where(t => t.Length > 0));
+                new[] { render.Text, noted }.Where(t => t.Length > 0));
 
             PreviewText = shown.Length > 0 ? shown : AlarmsText.PreviewEmpty;
 

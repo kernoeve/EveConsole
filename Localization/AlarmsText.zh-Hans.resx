@@ -274,21 +274,6 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>“上次完成”列</value>
   </data>
-  <data name="SlackTableOption" xml:space="preserve">
-    <value>Slack 表格</value>
-  </data>
-  <data name="TipSlackTable" xml:space="preserve">
-    <value>将此部分以数据表（Block Kit）发布到 Slack，作为其余内容之后的单独消息，文本表格作为后备。运行结果会说明 Slack 是否接受。Discord 照常收到文本表格。</value>
-  </data>
-  <data name="RunSlackTablesPosted" xml:space="preserve">
-    <value>已发布 Slack 表格：{0}。</value>
-  </data>
-  <data name="RunSlackTablesRefused" xml:space="preserve">
-    <value>Slack 拒绝的表格：{0}（{1}）。</value>
-  </data>
-  <data name="PreviewSlackTable" xml:space="preserve">
-    <value>[以表格发送到 Slack——行数：{0}。其后备文本：]</value>
-  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>要包含的项目</value>
   </data>

@@ -277,21 +277,6 @@
   <data name="LastCompletedColumn" xml:space="preserve">
     <value>Columna de última finalización</value>
   </data>
-  <data name="SlackTableOption" xml:space="preserve">
-    <value>Tabla de Slack</value>
-  </data>
-  <data name="TipSlackTable" xml:space="preserve">
-    <value>Publica esta sección en Slack como tabla de datos (Block Kit), en un mensaje aparte tras el resto, con la tabla de texto como alternativa. El resultado de la ejecución indica si Slack la aceptó. Discord recibe la tabla de texto como siempre.</value>
-  </data>
-  <data name="RunSlackTablesPosted" xml:space="preserve">
-    <value>Tablas de Slack publicadas: {0}.</value>
-  </data>
-  <data name="RunSlackTablesRefused" xml:space="preserve">
-    <value>Tablas rechazadas por Slack: {0} ({1}).</value>
-  </data>
-  <data name="PreviewSlackTable" xml:space="preserve">
-    <value>[Enviada a Slack como tabla; filas: {0}. Su texto alternativo:]</value>
-  </data>
   <data name="ProjectsToIncludeLabel" xml:space="preserve">
     <value>Proyectos que incluir</value>
   </data>

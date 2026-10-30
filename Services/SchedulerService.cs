@@ -170,8 +170,7 @@ public class SchedulerService(
             drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
         }
 
-        var tables = render.Tables;
-        if (body.Length == 0 && drawn.Count == 0 && tables.Count == 0)
+        if (body.Length == 0 && drawn.Count == 0)
             return (true, WithSkipped(AlarmsText.RunRenderedEmpty, skipped));
 
         // Asked for, and only then: a task whose static text is the point should still go out on a
@@ -202,29 +201,6 @@ public class SchedulerService(
                 : sent.Total > 1
                     ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
                     : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
-        }
-
-        // A section sent as a Slack data table: a message of its own after the text, its text table
-        // as the fallback. Slack's answer is reported as it came, so a webhook that refuses the
-        // block says so (invalid_blocks) instead of the table quietly not arriving.
-        if (tables.Count > 0)
-        {
-            var refused = new List<string>();
-            foreach (var t in tables)
-            {
-                var res = viaWebhook
-                    ? await PostWebhookAsync(cfg.DestinationId, t.Fallback, ct, t.Blocks)
-                    : await slack.PostMessageAsync(cfg.DestinationId, t.Fallback, blocks: t.Blocks, ct: ct);
-                if (!res.Ok) refused.Add(res.Error ?? "?");
-            }
-
-            // Nothing at all reached the channel: let the next pass try the whole thing again.
-            if (body.Length == 0 && refused.Count == tables.Count && drawn.Count == 0)
-                return (false, string.Format(AlarmsText.RunSlackRefused, string.Join("; ", refused)));
-
-            what += " " + (refused.Count == 0
-                ? string.Format(AlarmsText.RunSlackTablesPosted, tables.Count)
-                : string.Format(AlarmsText.RunSlackTablesRefused, refused.Count, string.Join("; ", refused)));
         }
 
         // After the text, so the message reads in the order it was composed: the words, then the
@@ -367,8 +343,7 @@ public class SchedulerService(
         return (true, AlarmsText.RunAlertRaised);
     }
 
-    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct,
-                                                         object? blocks = null)
+    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)
     {
         if (!int.TryParse(hookId, out var id)) return new SlackPostResult(false, null, null, AlarmsText.RunNoWebhook);
 
@@ -377,6 +352,6 @@ public class SchedulerService(
 
         return hook is null
             ? new SlackPostResult(false, null, null, AlarmsText.RunWebhookDeleted)
-            : await slack.PostWebhookAsync(hook.Url, body, blocks, ct);
+            : await slack.PostWebhookAsync(hook.Url, body, null, ct);
     }
 }
