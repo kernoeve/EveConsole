@@ -61,6 +61,22 @@ internal static class ContractFmt
     public static bool IsExpired(string status, DateTimeOffset? expired) =>
         status == "outstanding" && expired is { } e && e < DateTimeOffset.UtcNow;
 
+    /// <summary>
+    /// Still to be dealt with: outstanding and not yet expired, or accepted and in progress.
+    ///
+    /// <para>⚠️ In progress counts until its completion deadline — accepted plus the days it allows —
+    /// and not after. Like an outstanding one, a contract that ages off ESI keeps the last status we
+    /// saw, so a courier delivered or failed out of sight would otherwise stay "active" for good.
+    /// One with no acceptance date stored counts, since nothing says it is over.</para>
+    /// </summary>
+    public static bool IsActive(ContractRecord c, DateTimeOffset now) => c.Status switch
+    {
+        "outstanding" => c.DateExpired is null || c.DateExpired > now,
+        "in_progress" => c.DateAccepted is not { } accepted || c.DaysToComplete <= 0
+                         || accepted.AddDays(c.DaysToComplete) > now,
+        _             => false,
+    };
+
     public static string EffectiveStatusLabel(string status, DateTimeOffset? expired) =>
         IsExpired(status, expired) ? MarketText.ContractExpired : StatusLabel(status);
 
@@ -468,7 +484,7 @@ public class ContractRowVm
     {
         Record        = c;
         ContractId    = c.ContractId;
-        IsActive      = c.Status == "outstanding" && (c.DateExpired is null || c.DateExpired > DateTimeOffset.UtcNow);
+        IsActive      = ContractFmt.IsActive(c, DateTimeOffset.UtcNow);
         TypeLabel     = ContractFmt.TypeLabel(c.Type);
         Status        = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
         StatusColor   = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired);
