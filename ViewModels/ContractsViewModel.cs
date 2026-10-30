@@ -314,6 +314,39 @@ public class ContractDetailVm : ReactiveObject
     public void OpenAssignee() => Open(_assigneeId);
     public void OpenAcceptor() => Open(_acceptorId);
 
+    // ── Pictures ──────────────────────────────────────────────────────────────
+    //
+    // Each party's portrait or logo, and each location's station or structure, beside its name.
+    private Bitmap? _issuerIcon, _assigneeIcon, _acceptorIcon, _startIcon, _endIcon;
+    public Bitmap? IssuerIcon   { get => _issuerIcon;   private set => this.RaiseAndSetIfChanged(ref _issuerIcon, value); }
+    public Bitmap? AssigneeIcon { get => _assigneeIcon; private set => this.RaiseAndSetIfChanged(ref _assigneeIcon, value); }
+    public Bitmap? AcceptorIcon { get => _acceptorIcon; private set => this.RaiseAndSetIfChanged(ref _acceptorIcon, value); }
+    public Bitmap? StartIcon    { get => _startIcon;    private set => this.RaiseAndSetIfChanged(ref _startIcon, value); }
+    public Bitmap? EndIcon      { get => _endIcon;      private set => this.RaiseAndSetIfChanged(ref _endIcon, value); }
+
+    /// <summary>A party's picture: a character's portrait, a corporation's or alliance's logo.
+    /// What it is comes from the resolver when it knows, the id's range when it does not.</summary>
+    private static async Task LoadPartyIconAsync(long id, ContractNameResolver? resolver, Action<Bitmap> apply)
+    {
+        if (id <= 0) return;
+        var kind = EntityLinks.KindOf(id, resolver?.CategoryOf(id));
+        var url = kind switch
+        {
+            EntityKind.PlayerCorp or EntityKind.NpcCorp => $"https://images.evetech.net/corporations/{id}/logo?size=64",
+            EntityKind.Alliance                         => $"https://images.evetech.net/alliances/{id}/logo?size=64",
+            _                                           => $"https://images.evetech.net/characters/{id}/portrait?size=64",
+        };
+        if (await EveImageCache.GetAsync(url) is { } bmp) Avalonia.Threading.Dispatcher.UIThread.Post(() => apply(bmp));
+    }
+
+    /// <summary>A location's picture: its station or structure type's icon.</summary>
+    private static async Task LoadLocationIconAsync(long? id, ContractNameResolver? resolver, Action<Bitmap> apply)
+    {
+        if (id is not > 0 || resolver is null) return;
+        var typeId = await resolver.LocationTypeAsync(id.Value);
+        if (typeId > 0) await ItemIcons.LoadAsync(typeId, apply);
+    }
+
     private static void Open(long id)
     {
         if (id <= 0) return;
@@ -328,7 +361,8 @@ public class ContractDetailVm : ReactiveObject
         IReadOnlyDictionary<long, string> locations,
         ContractItemValues? values = null,
         Func<int, Task<string>>? pull = null,
-        CourierCargoVm? cargo = null)
+        CourierCargoVm? cargo = null,
+        ContractNameResolver? resolver = null)
     {
         values    ??= ContractItemValues.None;
         _pull       = pull;
@@ -392,6 +426,12 @@ public class ContractDetailVm : ReactiveObject
         if (requested.Count > 0)     Requested.Add(new ContractItemRowVm(requested));
 
         _ = Task.WhenAll(Items.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
+
+        _ = LoadPartyIconAsync(_issuerId,   resolver, b => IssuerIcon   = b);
+        _ = LoadPartyIconAsync(_assigneeId, resolver, b => AssigneeIcon = b);
+        _ = LoadPartyIconAsync(_acceptorId, resolver, b => AcceptorIcon = b);
+        _ = LoadLocationIconAsync(c.StartLocationId, resolver, b => StartIcon = b);
+        if (IsCourier) _ = LoadLocationIconAsync(c.EndLocationId, resolver, b => EndIcon = b);
     }
 
     private static string Party(IReadOnlyDictionary<long, string> names, long id, int corpId)
@@ -841,6 +881,24 @@ public class ContractNameResolver
 
         return result;
     }
+
+    /// <summary>
+    /// What a station or structure is, for its picture: an NPC station's type from the SDE, a
+    /// structure's as ESI named it (an Astrahus, a Keepstar). 0 when neither knows it.
+    /// </summary>
+    public async Task<int> LocationTypeAsync(long id)
+    {
+        if (id <= 0) return 0;
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        if (id < 100_000_000L)
+        {
+            var station = (int)id;
+            return await db.SdeStations.AsNoTracking().Where(s => s.StationId == station)
+                       .Select(s => s.StationTypeId).FirstOrDefaultAsync() ?? 0;
+        }
+        return await db.EsiStructureNames.AsNoTracking().Where(s => s.StructureId == id)
+                   .Select(s => s.TypeId).FirstOrDefaultAsync();
+    }
 }
 
 // ── Parent view-model (hosts the two tabs) ──────────────────────────────────────
@@ -1260,7 +1318,7 @@ public class OwnedContractsViewModel : ReactiveObject
         // hand — not one we were handed to carry.
         var cargo = c.Type == "courier" && (c.IssuerId == c.OwnerId || c.IssuerCorporationId == c.OwnerId)
             ? new CourierCargoVm(_dbFactory, c) : null;
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync, cargo);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync, cargo, _names);
     }
 }
 
@@ -1732,7 +1790,7 @@ public class PublicContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync, resolver: _names);
     }
 }
 

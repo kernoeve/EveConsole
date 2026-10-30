@@ -16,11 +16,19 @@ namespace EveConsole.ViewModels;
 /// </summary>
 public static class ItemIcons
 {
-    public static Task<Bitmap?> GetAsync(int typeId, bool blueprint = false) =>
-        typeId <= 0
-            ? Task.FromResult<Bitmap?>(null)
-            : EveImageCache.GetAsync(
-                $"https://images.evetech.net/types/{typeId}/{(blueprint ? "bp" : "icon")}?size=32");
+    /// <remarks>⚠️ When the server refuses the one asked for, the other is tried. Not every caller
+    /// can tell a blueprint: a contract's line for one is not always marked as one (an original
+    /// listed as a plain item), and asking its /icon got a 400 and a blank picture. The refusal is
+    /// cached, so the wrong guess costs one request a session.</remarks>
+    public static async Task<Bitmap?> GetAsync(int typeId, bool blueprint = false)
+    {
+        if (typeId <= 0) return null;
+        return await EveImageCache.GetAsync(Url(typeId, blueprint))
+            ?? await EveImageCache.GetAsync(Url(typeId, !blueprint));
+    }
+
+    private static string Url(int typeId, bool blueprint) =>
+        $"https://images.evetech.net/types/{typeId}/{(blueprint ? "bp" : "icon")}?size=32";
 
     /// <summary>
     /// Fetches an icon and hands it back on the UI thread.
