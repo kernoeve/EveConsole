@@ -292,6 +292,18 @@
   <data name="ColVolumeM" xml:space="preserve">
     <value>体积（m³）</value>
   </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>体积 - 目标</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>体积 - 可用</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>体积 - 差值</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} 项不足</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>库存水平</value>
   </data>

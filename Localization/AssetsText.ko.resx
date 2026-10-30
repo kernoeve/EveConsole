@@ -292,6 +292,18 @@
   <data name="ColVolumeM" xml:space="preserve">
     <value>부피 (m³)</value>
   </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>부피 - 목표</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>부피 - 가용</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>부피 - 차이</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>부족 {0}개</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>재고 수준</value>
   </data>
