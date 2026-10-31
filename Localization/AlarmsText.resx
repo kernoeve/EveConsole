@@ -2036,6 +2036,10 @@
     <value>Warning — two-tone</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Warning — two-tone soft</value>
+    <comment>Alarm sound picker: a soft two-tone chime alternating up and down, gentle but noticeable.</comment>
+  </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Warning — klaxon</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

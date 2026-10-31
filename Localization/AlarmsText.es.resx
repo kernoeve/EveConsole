@@ -1528,6 +1528,9 @@
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Aviso — dos tonos</value>
   </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Aviso — dos tonos suave</value>
+  </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Aviso — claxon</value>
   </data>

@@ -1528,6 +1528,9 @@
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Warnung – Zweiklang</value>
   </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Warnung – Zweiklang sanft</value>
+  </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Warnung – Hupe</value>
   </data>

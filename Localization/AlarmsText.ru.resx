@@ -1588,6 +1588,9 @@
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Предупреждение — двухтональное</value>
   </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Предупреждение — мягкое двухтональное</value>
+  </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Предупреждение — клаксон</value>
   </data>

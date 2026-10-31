@@ -58,7 +58,7 @@ public sealed class ManageAlarmsTool : IAgentTool
            needed: when it fires you get a message with the details and simply report it.
          - {"kind":"sound","sound":"<key>","volume":100} — plays a sound. Keys include
            chime-soft, chime-glass, bell-crystal, chime-marimba, chime-triad, chime-vibraphone, ping-glass, ping-bright, bell-brass, bell-hand, bell-desk, bell-deep, bell-heavy, gong-low, gong-scifi, alert-double,
-           alert-blips, alert-beeps, alarm-urgent, alarm-battle, two-tone-alert, klaxon-industrial, buzzer-harsh, siren-sweep, horn-low.
+           alert-blips, alert-beeps, alarm-urgent, alarm-battle, two-tone-alert, two-tone-soft, klaxon-industrial, buzzer-harsh, siren-sweep, horn-low.
          - {"kind":"alert","title":"…","body":"…"} — a dismissible alert on the Overview.
          - {"kind":"dialog","title":"…","message":"…"} — a top-most pop-up window.
            In title/body/message you may use {alarm} {summary} {count} {time} {date}.

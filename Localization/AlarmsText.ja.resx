@@ -1498,6 +1498,9 @@
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>警告 — 2トーン</value>
   </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>警告 — 2トーン（ソフト）</value>
+  </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>警告 — クラクション</value>
   </data>
