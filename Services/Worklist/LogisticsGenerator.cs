@@ -1096,6 +1096,9 @@ public class LogisticsGenerator(
                                 scope, wrapped, corps, inScope, Need, ct);
         await AddStationLevelDemandAsync(db, Need, ct);
 
+        if ((await InventionService.LabsAsync(db, parkId, ct)).Copying is { } copyLab)
+            KeepCopyLabOriginals(allPrints, owned, copyLab.Site, Need);
+
         return (want, stock, drivers, ctx);
     }
 
@@ -1356,7 +1359,8 @@ public class LogisticsGenerator(
             //
             // In practice this is quiet: a print normally already sits at the structure that
             // builds from it, so the want is met by stock and no move comes of it.
-            if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd))
+            if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd)
+                && !OriginalBusyAt(allPrints, owned, bpProd.TypeId, site))
             {
                 var prints = PrintsWanted(allPrints, owned, printsInAssets, bpProd,
                                  IndustryJobSplit.RunsFor(d.Units, Math.Max(1, bpProd.Quantity)));
@@ -1426,7 +1430,8 @@ public class LogisticsGenerator(
             // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
             var source = n.Recipe.SourceBlueprintTypeId;
-            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded);
+            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded)
+                       - BusyCopiesAt(allPrints, owned, source, lab.Value.Site);
 
             if (copies > 0)
             {
@@ -1443,6 +1448,9 @@ public class LogisticsGenerator(
             var mine = allPrints.Where(p => p.TypeId == source && owned.Owns(p)).ToList();
             if (copyLab is { } cl
                 && mine.Any(p => p.IsOriginal)
+                // ⚠️ None there at all, busy or free: a busy one is copying already, and a free one
+                // is held there by KeepCopyLabOriginals — wanting one more on top sent a second.
+                && !mine.Any(p => p.IsOriginal && p.LocationId == cl.Site)
                 && mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs) < n.Plan.CopyRunsNeeded)
             {
                 var (oOrder, oRule, oParent) = n.Demand.SplitOf(1);
@@ -1451,6 +1459,55 @@ public class LogisticsGenerator(
                      driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
                      driverKind: NeedDriverKind.BlueprintFor);
             }
+        }
+    }
+
+    /// <summary>
+    /// Whether an original of this blueprint is at the site already, busy in a job there.
+    ///
+    /// <para>⚠️ The site HAS its original, then; nothing is to be brought. Stock comes from assets,
+    /// and a print installed in a job is not in them — so the site read as empty and the planner
+    /// fetched another: a free original pulled out of the copy lab to a factory whose own was
+    /// building, and one sent to the copy lab because the one there was making copies. A busy
+    /// print comes back to the same hangar when its job ends.</para>
+    /// </summary>
+    private static bool OriginalBusyAt(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, int typeId, long site) =>
+        allPrints.Any(p => p.TypeId == typeId && p.IsOriginal && p.LockedInJob
+                        && p.LocationId == site && owned.Owns(p));
+
+    /// <summary>
+    /// Copies of this blueprint at the site already, busy in a job there.
+    ///
+    /// <para>⚠️ Subtracted from the copies the lab wants, for the reason <see cref="OriginalBusyAt"/>
+    /// gives: a copy in an invention job is not in assets, so the lab read as short, and with no
+    /// free copy anywhere the only free prints of the type were originals at a factory — which the
+    /// plan then hauled to the lab as if they were copies.</para>
+    /// </summary>
+    private static long BusyCopiesAt(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, int typeId, long site) =>
+        allPrints.Count(p => p.TypeId == typeId && !p.IsOriginal && p.LockedInJob
+                          && p.LocationId == site && owned.Owns(p));
+
+    /// <summary>
+    /// Keeps the copy lab's originals where they are.
+    ///
+    /// <para>An original at the copy lab is there to be copied from, and taking it to a factory
+    /// stops the copying. So each free one there is wanted where it stands, and is not spare for
+    /// another site — unless it is the only original of its type owned: then a factory that has
+    /// none takes it, as before, rather than nothing being built at all. With several originals all
+    /// at the lab, one of them may still go.</para>
+    ///
+    /// <para>Free ones only: a busy one is not in stock, and wanting it would send another.</para>
+    /// </summary>
+    private static void KeepCopyLabOriginals(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, long copyLab, NeedFn need)
+    {
+        foreach (var type in allPrints.Where(p => p.IsOriginal && owned.Owns(p)).GroupBy(p => p.TypeId))
+        {
+            var freeHere = type.Count(p => p.LocationId == copyLab && !p.LockedInJob);
+            var keep     = Math.Min(freeHere, type.Count() - 1);
+            if (keep > 0) need(copyLab, type.Key, keep, HaulReason.Restock);
         }
     }
 
