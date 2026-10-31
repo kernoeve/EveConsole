@@ -292,6 +292,24 @@
   <data name="ColVolumeM" xml:space="preserve">
     <value>体積（m³）</value>
   </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>体積 - 目標</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>体積 - 在庫</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>体積 - 差分</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>不足 {0}件</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>アイテムを追加…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>操作</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>在庫レベル</value>
   </data>

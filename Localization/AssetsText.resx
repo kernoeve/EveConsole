@@ -388,6 +388,34 @@
     <value>VOLUME (m³)</value>
     <comment>Column header in InvLevelView.</comment>
   </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>VOLUME - TARGET</value>
+    <comment>Inventory Levels column header: the cubic metres the target total takes up (unit volume x target total).</comment>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>VOLUME - AVAIL</value>
+    <comment>Inventory Levels column header: the cubic metres of what is available (unit volume x available).</comment>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>VOLUME - DIFF</value>
+    <comment>Inventory Levels column header: available volume minus target volume, in cubic metres; negative = how much more has to be brought in.</comment>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>{0} short</value>
+    <comment>Inventory Levels, the % cell of a group or collection header: how many of its items are below their target. {0} is the count.</comment>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} short</value>
+    <comment>Inventory Levels, the % cell of a group or collection header: how many of its items are below their target. {0} is the count.</comment>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Add item…</value>
+    <comment>Inventory Levels, the actions menu of a group header: opens the dialog to add one item to this group.</comment>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Actions</value>
+    <comment>Inventory Levels: tooltip of the small ⋯ button on a group or collection header, which opens its menu (add item, edit, rename, export, delete…).</comment>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Inventory Levels</value>
     <comment>Window title in InvLevelWindow.</comment>

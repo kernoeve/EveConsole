@@ -1429,6 +1429,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>スターベース</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>傭兵の隠れ家</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>傭兵作戦</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>施設</value>
   </data>

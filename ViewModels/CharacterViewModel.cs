@@ -20,6 +20,34 @@ public record SkillQueueItemVm(
     int             FinishedLevel,
     DateTimeOffset? FinishDate);
 
+/// <summary>
+/// A corporation on Settings → Corporations: whether it is personal — the same setting as the tick
+/// box on ESI Tokens, either place changing both — and whether the structure alerts cover it.
+/// Each is saved as it is ticked.
+/// </summary>
+public sealed class CorpSettingsRowVm(Corporation corp, Action<Corporation, bool> setPersonal, Action<Corporation, bool> setAlerts)
+    : ReactiveObject
+{
+    public Corporation Corp => corp;
+    public string Name   => corp.Name;
+    public string Ticker => corp.Ticker;
+
+    public bool IsPersonal
+    {
+        get => corp.IsPersonal;
+        set { if (value == corp.IsPersonal) return; setPersonal(corp, value); this.RaisePropertyChanged(); }
+    }
+
+    public bool StructureAlerts
+    {
+        get => corp.StructureAlerts;
+        set { if (value == corp.StructureAlerts) return; setAlerts(corp, value); this.RaisePropertyChanged(); }
+    }
+
+    /// <summary>The personal flag changed elsewhere (ESI Tokens).</summary>
+    internal void PersonalChanged() => this.RaisePropertyChanged(nameof(IsPersonal));
+}
+
 public class CharacterViewModel : ReactiveObject
 {
     private readonly EsiAuthService _auth;
@@ -36,6 +64,8 @@ public class CharacterViewModel : ReactiveObject
     public ObservableCollection<SkillQueueItemVm> SkillQueue      { get; } = [];
     public ObservableCollection<CharacterListItem> CharacterListItems { get; } = [];
     public ObservableCollection<CorpListItem>      CorpListItems     { get; } = [];
+    /// <summary>Settings → Corporations: every corporation with a token, kept in step with Corporations.</summary>
+    public ObservableCollection<CorpSettingsRowVm> CorpSettingsRows  { get; } = [];
 
     // -----------------------------------------------------------------------
     // Bindable properties
@@ -167,21 +197,53 @@ public class CharacterViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selectedCorpIsPersonal, value);
             var corp = _selectedCorp;
-            if (corp is null) return;
-            corp.IsPersonal = value;
-            _ = SaveCorpIsPersonalAsync(corp);
-            RefreshCorpListItem(corp);
+            if (corp is null || corp.IsPersonal == value) return;
+            SetCorpPersonal(corp, value);
         }
     }
 
-    private async Task SaveCorpIsPersonalAsync(Corporation corp)
+    /// <summary>Marks a corporation personal or not — from ESI Tokens or from Corporations, each
+    /// showing the other's change.</summary>
+    private void SetCorpPersonal(Corporation corp, bool value)
     {
+        corp.IsPersonal = value;
+        _ = SaveCorpPropertyAsync(corp, nameof(Corporation.IsPersonal));
+        RefreshCorpListItem(corp);
+        CorpSettingsRows.FirstOrDefault(r => r.Corp == corp)?.PersonalChanged();
+        if (_selectedCorp == corp && _selectedCorpIsPersonal != value)
+        {
+            _selectedCorpIsPersonal = value;
+            this.RaisePropertyChanged(nameof(SelectedCorpIsPersonal));
+        }
+    }
+
+    private void SetCorpStructureAlerts(Corporation corp, bool value)
+    {
+        corp.StructureAlerts = value;
+        _ = SaveCorpPropertyAsync(corp, nameof(Corporation.StructureAlerts));
+    }
+
+    // One save at a time: the context is shared, and two tick boxes clicked in quick succession
+    // would otherwise run two saves on it at once.
+    private readonly SemaphoreSlim _corpSave = new(1, 1);
+
+    private async Task SaveCorpPropertyAsync(Corporation corp, string property)
+    {
+        await _corpSave.WaitAsync();
         try
         {
-            _db.Entry(corp).Property(c => c.IsPersonal).IsModified = true;
+            _db.Entry(corp).Property(property).IsModified = true;
             await _db.SaveChangesAsync();
         }
-        catch { }
+        catch (Exception ex) { _errors?.Log("CharacterViewModel", "SaveCorpPropertyAsync", ex); }
+        finally { _corpSave.Release(); }
+    }
+
+    private void RebuildCorpSettingsRows()
+    {
+        CorpSettingsRows.Clear();
+        foreach (var c in Corporations.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase))
+            CorpSettingsRows.Add(new CorpSettingsRowVm(c, SetCorpPersonal, SetCorpStructureAlerts));
     }
 
     // -----------------------------------------------------------------------
@@ -207,6 +269,8 @@ public class CharacterViewModel : ReactiveObject
         _esi    = esi;
         _db     = db;
         _errors = errors;
+
+        Corporations.CollectionChanged += (_, _) => RebuildCorpSettingsRows();
 
         _charScopeGroups = BuildScopeGroups(EsiAuthService.CharacterScopes, stripCorporation: false);
         _corpScopeGroups = BuildScopeGroups(EsiAuthService.CorporationScopes, stripCorporation: true);

@@ -1924,6 +1924,18 @@
     <value>Starbases</value>
     <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's starbases (POSes).</comment>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>Skyhooks</value>
+    <comment>Background processes: the corporation skyhooks endpoint.</comment>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>Mercenary dens</value>
+    <comment>Background processes: the character mercenary dens endpoint.</comment>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>Mercenary operations</value>
+    <comment>Background processes: the character mercenary tactical operations endpoint.</comment>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>Facilities</value>
     <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's industry facilities.</comment>

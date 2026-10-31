@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -64,6 +65,27 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
 
         if (e.Row.DataContext is IFamilyRow && double.IsNaN(grid.RowHeight) && _pinning.Add(grid))
             grid.LayoutUpdated += (_, _) => PinRowHeight(grid);
+
+        // Rows load before anything in them can take focus, so the watch is in place first.
+        if (grid.ItemsSource is DataGridCollectionView { SourceCollection: IAnnouncesChanges list } && _watched.Add((grid, list)))
+            list.Changing += (_, _) => DropRowFocus(grid);
+    }
+
+    /// <summary>Grids watching their list for a change about to happen, with the list watched.</summary>
+    private readonly HashSet<(DataGrid, IAnnouncesChanges)> _watched = [];
+
+    /// <summary>
+    /// Takes keyboard focus out of <paramref name="grid"/> just before its rows change.
+    ///
+    /// <para>⚠️ Without this a clicked row turns into a blank line. The DataGrid keeps the row holding
+    /// focus out of its recycling, hidden when scrolled away, and adds and removes rows around it by
+    /// hand; a refresh or a loop opened while it is kept leaves a hidden row standing in a slot on
+    /// screen — see IAnnouncesChanges. Focus leaving the grid is what makes it let that row go.
+    /// Only when focus is in the grid: a refresh never takes focus from a field elsewhere.</para>
+    /// </summary>
+    private static void DropRowFocus(DataGrid grid)
+    {
+        if (grid.IsKeyboardFocusWithin) TopLevel.GetTopLevel(grid)?.FocusManager?.ClearFocus();
     }
 
     /// <summary>Grids whose row height is waiting to be pinned.</summary>

@@ -139,6 +139,12 @@
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Selecciona una alarma o crea una.</value>
   </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarma seleccionada. Exportar guarda solo esta; selecciona una sola para editarla.</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarmas seleccionadas. Exportar guarda solo estas; selecciona una sola para editarla.</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Guardar</value>
   </data>
@@ -740,7 +746,7 @@
     <value>Importar alarmas</value>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>Guarda todas las alarmas y sus acciones en un archivo JSON.</value>
+    <value>Guarda las alarmas seleccionadas y sus acciones en un archivo JSON; todas las alarmas si no hay ninguna seleccionada. Ctrl o Mayús selecciona varias.</value>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
     <value>Añade las alarmas de una exportación JSON como alarmas nuevas, con sus acciones. No se reemplaza nada; una alarma que ya existe se omite.</value>
@@ -1462,29 +1468,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Carillón — suave</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Carillón — cristal</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Campana — cristal</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Carillón — marimba</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Carillón — tríada</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Carillón — vibráfono</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — cristal</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — brillante</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Campana — latón</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Campana — de mano</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Campana — de mostrador</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Campana — grave</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Campana — pesada</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — grave</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — ciencia ficción</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alerta — doble</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Alerta — blips</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Alerta — pitidos</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarma — urgente</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarma — zafarrancho de combate</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Aviso — dos tonos</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Aviso — dos tonos suave</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Aviso — claxon</value>
@@ -1494,6 +1539,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Aviso — sirena</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Aviso — sirena rápida</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Aviso — bocina</value>

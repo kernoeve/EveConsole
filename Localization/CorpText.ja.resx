@@ -1792,4 +1792,673 @@
   <data name="DiscordPostedPartly" xml:space="preserve">
     <value>{2}に{1}件中{0}件のメッセージを投稿しました。Discordが次のメッセージを拒否しました：{3}</value>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>名前、タイプ、星系、リージョンで検索</value>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>Upwellストラクチャ</value>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>スターベース</value>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>ストラクチャ {0} · スターベース {1} · 燃料不足 {2} · 燃料切れ {3}</value>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>読み込み中…</value>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>{0} に読み込み</value>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>ストラクチャを読み込めませんでした: {0}</value>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>このコーポレーションには宇宙空間のストラクチャやスターベースがないか、まだ読み込まれていません。読み込むにはディレクター権限を持つコーポレーションのキャラクターが必要です。</value>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>検索とチェックに一致するものはありません。</value>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>サービス</value>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>燃料残り</value>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>燃料切れ</value>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>ブロック/日</value>
+  </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / 日</value>
+  </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>回収価値</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>回収量 (m³)</value>
+  </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>スカイフック {0} 基</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>スカイフック</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>生産中</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>未取得</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>労働力</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>窃盗可能時間</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>現在開放中、{0} まで（{1}）</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1}（{2}）</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>取得時刻</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>試薬</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>保護済み</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>未保護</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>時点</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>自キャラクターの隠れ家</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>アナーキーは自キャラクターの隠れ家でのみ見えます。このスカイフック上の他人の隠れ家は、労働力の低下としてしか現れません。</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · アナーキー {1}（{2}）· 発展 {3}（{4}）· インフォモーフ {5}</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>稼働中</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>隠れ家 {0} 件</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>アナーキー {1} 以上: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>作戦 {0} 件</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>インフォモーフ</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0}（1時間 +{1}）</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>発展</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>アナーキー</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>スカイフック所有者</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>惑星</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>スカイフック所有者</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>インフォモーフ</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>毎時</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>発展</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>アナーキー</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>作戦</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>初回確認</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>傭兵の隠れ家を持つキャラクターはいません。隠れ家は、トークンがストラクチャーの読み取りを許可しているキャラクターごとに毎時読み取られます。</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>隠れ家</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>戦術作戦</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>作戦はありません。</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>隠れ家は各キャラクターのトークンで毎時、作戦は10分ごとに読み取ります。発展とアナーキーはレベル（0–4）と100中の値を表示します。1時間あたりのインフォモーフは直近2回の読み取りから算出します。</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>利用可能</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>開始済み</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>削除済み</value>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>在庫</value>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>1日あたり</value>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>持続</value>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>燃料切れ</value>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>低出力</value>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>燃料なし: 低出力、サービスはオフライン</value>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>サービスなし</value>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>消費なし</value>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>衛星</value>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>最寄り</value>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>燃料切れ</value>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0}（あと {1}）</value>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>燃料ブロック</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>燃料コスト</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>1日 {0} ISK</value>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>1日 {0}（1時間 {1}）</value>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>状態タイマー</value>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>強化時刻</value>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>EVE時間 {0}:00</value>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>強化時刻の変更</value>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>{1} から EVE時間 {0}:00 に</value>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>アンカー解除</value>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>オンライン開始</value>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>強化終了</value>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>ストロンチウム</value>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>強化 {0} 時間分</value>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>アクセスプロファイル</value>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>予想消費</value>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>予想; {1} の実測で1日 {0}</value>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>{0} の実測</value>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>消費はまだ未計測</value>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0}; 燃料期限からは1日 {1}</value>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>このスターベースの燃料データはありません。燃料はスターベース詳細から読み込み、ディレクターが必要です。</value>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>燃料ベイは空か、コーポレーションの資産がまだ読み込まれていません。</value>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>燃料ブロックは稼働中の各サービスモジュールの消費量からストラクチャの燃料ボーナスを引いた量で消費されます。残り時間はゲーム自身の燃料期限です。その他の燃料は前回補充以降に実測した速さで消費されます。数量はコーポレーションの資産から1時間ごとに読み込みます。</value>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>燃料ブロックはスターベースのサイズと勢力に応じた量で消費されます。ストロンチウムは強化中のみ消費されます。チャーターと実際の消費は前回補充以降に実測します。数量はスターベース詳細から1時間ごとに読み込みます。</value>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>サービス</value>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>衛星採掘</value>
+  </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>素材</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>価値 (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} / {1} m³（{2}% 使用）</value>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>スターベース設定</value>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>オフライン</value>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>撤去中</value>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>ハイスロット</value>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>ミッドスロット</value>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>ロースロット</value>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>リグ</value>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>サービススロット</value>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>量子コア</value>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>ファイター発射管</value>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>ファイターベイ</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>弾薬ベイ</value>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>手入力</value>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>「手入力」のモジュールは、資産データが届かないためストラクチャブラウザで入力されたものです。</value>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>装備なし。</value>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>装備は不明: コーポレーションの資産が読み込まれていません。ディレクターが必要です。</value>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>この星系にアンカーされたモジュールはありません。</value>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>モジュールは表示されません: この星系にコーポレーションのスターベースが複数あるか、資産が読み込まれていないため、モジュールをスターベースに対応付けられません。</value>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>採掘開始</value>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>チャンク到着</value>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>自然崩壊</value>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>コーポレーションメンバーが使用可</value>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>アライアンスメンバーが使用可</value>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>アライアンスのスタンディングを使用</value>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>スタンディングがこれ未満で攻撃</value>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>セキュリティステータスがこれ未満で攻撃</value>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>戦争相手を攻撃</value>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>セキュリティステータス低下中の相手を攻撃</value>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>アンカー</value>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>アンカー解除</value>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>オンライン化</value>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>オフライン化</value>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>燃料ベイの閲覧</value>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>燃料ベイからの取り出し</value>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>設定の読み込み</value>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>設定は未読み込み: ディレクターが必要です。</value>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>アライアンスメンバー</value>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>コーポレーションメンバー</value>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>Starbase Equipment Config ロール</value>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>Starbase Fuel Technician ロール</value>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>シールド攻撃可能</value>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>アーマー攻撃可能</value>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>船体攻撃可能</value>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>アーマー強化中</value>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>船体強化中</value>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>アンカー中</value>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>アンカー中（攻撃可能）</value>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>展開中</value>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>装備中（無敵）</value>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>オンライン化中</value>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>オフライン</value>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>アンカー解除済み</value>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>強化中</value>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>アンカー解除中</value>
+  </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>装備チェック</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0} 件が装備と不一致</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>燃料 1日 {0} ISK</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>装備チェック</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>{0}（{1}）と照合しました。</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>{2} 時点の {0}（{1}）と照合しました。その装備はもう保存されていません。</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>装備と一致</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>未チェック: コーポレーションの資産が読み込まれていません。ディレクターが必要です。</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>未読込</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>一致</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0} 個不足</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0} 個違う</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>弾薬不足</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>ファイター不足</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>不足</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>未装着</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>代わりに装着</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>弾薬不足</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>ファイター不足</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} / {2}（{3}%）</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{1} × {0}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>スターベース</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1}（保存されていません。コピーでチェック）</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>（名前なし）</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>装備なし（チェックしない）</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>{0} の装備を保存しました</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>装備を保存できませんでした: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>ストラクチャの種類ごとに載せるべき装備を選びます。ストラクチャはその種類の装備のモジュールがすべてあるか（同じ種類のどのスロットでも可。余分なモジュールやリグは問題なし）、弾薬とファイターが「設定 → 警告」で決めた割合以上あるかをチェックします。装備は EVE Console のフィッティングツールのものと、キャラクターがゲーム内に保存したものから選べます。</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>ストラクチャの種類</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>載せる装備</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0} 件係留 · {1} 件不一致</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0} 件係留 · すべて一致</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0} 件係留</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0} 件係留 · 資産未読込</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>このコーポレーションには Upwell ストラクチャがありません。</value>
+  </data>
 </root>

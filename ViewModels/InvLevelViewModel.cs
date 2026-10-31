@@ -37,28 +37,125 @@ public record CollectionOption(int? CollectionId, string Name)
     public override string ToString() => Name;
 }
 
-// ── Collection row ────────────────────────────────────────────────────────────
+// ── Cover bar ─────────────────────────────────────────────────────────────────
 
-public class InvCollectionRow : ReactiveObject
+/// <summary>
+/// The bar in the % cell: how much of the target is on hand, coloured by how badly it is short.
+///
+/// <para>⚠️ One place for the colours, because an item, its group and its collection all draw the
+/// same bar and must agree on where amber becomes red.</para>
+/// </summary>
+public static class InvCover
 {
-    /// <summary>
-    /// The worst shortfall among the rows this one is hiding, as a tint.
-    ///
-    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
-    /// header as well would double the signal; collapsed, the header is the only thing on screen
-    /// and a group that is fine looked identical to one hiding a red row.</para>
-    /// </summary>
-    public IBrush RowBackground =>
-        IsExpanded || WorstSeverity == 0 ? Palette.SurfaceBase
-      : WorstSeverity >= 2                ? Palette.BadSurface
-                                          : Palette.WarnSurface;
+    public static IBrush Brush(int severity) =>
+        severity >= 2 ? Palette.BadSurface
+      : severity >= 1 ? Palette.WarnSurface
+                      : Palette.GoodSurface;
 
+    public static string ShortText(int shortItems) => shortItems == 0 ? ""
+        : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.InvShortOther), shortItems);
+}
+
+/// <summary>
+/// What a group or collection header shows in the % cell, rolled up from the items under it.
+///
+/// <para>⚠️ Shown expanded AND collapsed. A folded group is often the only thing on screen, and
+/// one that is fine looked identical to one hiding a red row; the header bar is what says so.</para>
+/// </summary>
+public abstract class InvHeaderRow : ReactiveObject
+{
     private int _worstSeverity;
     public int WorstSeverity
     {
         get => _worstSeverity;
-        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+        private set => this.RaiseAndSetIfChanged(ref _worstSeverity, value);
     }
+
+    private double _coverPct = 100;
+    /// <summary>The items' cover, averaged — each item counts once, so a hundred plates do not
+    /// drown out the one hull that is missing.</summary>
+    public double CoverPct
+    {
+        get => _coverPct;
+        private set => this.RaiseAndSetIfChanged(ref _coverPct, value);
+    }
+
+    private int _itemCount;
+    public bool HasCover => _itemCount > 0;
+
+    private int _shortCount;
+    public string ShortText  => InvCover.ShortText(_shortCount);
+    public IBrush CoverBrush => InvCover.Brush(WorstSeverity);
+    public IBrush ShortBrush => WorstSeverity >= 2 ? Palette.Bad : Palette.Warn;
+
+    // ── Totals ────────────────────────────────────────────────────────────────
+    //
+    // The items' figures summed into the header's own cells, under the same names the item rows
+    // use, so one cell template draws both. Only the columns where a sum means something: the
+    // target, the prices and the unit volume are per unit, and stay blank on a header.
+    //
+    // ⚠️ Diff is the SHORTFALL — what is below target, summed — not Avail minus Tgt Total. A net
+    // sum lets one item's surplus cancel another's shortage: a spare Rhea blueprint hid two missing
+    // Karuras. The header answers "what do I still need to get, and haul".
+
+    private long   _target, _avail, _short, _assets, _jobs, _buys, _contracts, _sells, _contractsSelling;
+    private double _volTarget, _volAvail, _volShort;
+
+    private string Qty(long v, bool sign = false) => HasCover ? InvItemRow.FormatQty(v, sign) : "";
+    private string Vol(double v, bool sign = false) => HasCover && _volTarget > 0 ? InvItemRow.FormatVolume(v, sign) : "";
+
+    public string TargetTotalText      => Qty(_target);
+    public string AvailableText        => Qty(_avail);
+    public string DiffText             => Qty(_short, sign: true);
+    public IBrush DiffColor            => _short < 0 ? ShortBrush : Palette.Good;
+    public string AssetsText           => Qty(_assets);
+    public string IndustryJobsText     => Qty(_jobs);
+    public string BuyOrdersText        => Qty(_buys);
+    public string ContractsText        => Qty(_contracts);
+    public string SellOrdersText       => Qty(_sells);
+    public string ContractsSellingText => Qty(_contractsSelling);
+    public string VolumeTargetText     => Vol(_volTarget);
+    public string VolumeAvailableText  => Vol(_volAvail);
+    public string VolumeDiffText       => Vol(_volShort, sign: true);
+
+    private static readonly string[] Recomputed =
+    [
+        nameof(HasCover), nameof(ShortText), nameof(CoverBrush), nameof(ShortBrush),
+        nameof(TargetTotalText), nameof(AvailableText), nameof(DiffText), nameof(DiffColor),
+        nameof(AssetsText), nameof(IndustryJobsText), nameof(BuyOrdersText), nameof(ContractsText),
+        nameof(SellOrdersText), nameof(ContractsSellingText),
+        nameof(VolumeTargetText), nameof(VolumeAvailableText), nameof(VolumeDiffText),
+    ];
+
+    public void SetCover(IReadOnlyCollection<InvItemRow> items)
+    {
+        _itemCount    = items.Count;
+        _shortCount   = items.Count(i => i.Diff < 0);
+        WorstSeverity = items.Count == 0 ? 0 : items.Max(i => i.Severity);
+        CoverPct      = items.Count == 0 ? 100 : items.Average(i => i.CoverPct);
+
+        _target           = items.Sum(i => i.TargetTotal);
+        _avail            = items.Sum(i => i.Available);
+        _short            = items.Sum(i => Math.Min(0, i.Diff));
+        _assets           = items.Sum(i => i.AssetsQty);
+        _jobs             = items.Sum(i => i.IndustryJobsQty);
+        _buys             = items.Sum(i => i.BuyOrdersQty);
+        _contracts        = items.Sum(i => i.ContractsQty);
+        _sells            = items.Sum(i => i.SellOrdersQty);
+        _contractsSelling = items.Sum(i => i.ContractsSellingQty);
+        _volTarget        = items.Sum(i => i.VolumeTarget);
+        _volAvail         = items.Sum(i => i.VolumeAvailable);
+        _volShort         = items.Sum(i => Math.Min(0, i.VolumeDiff));
+
+        foreach (var name in Recomputed) this.RaisePropertyChanged(name);
+    }
+}
+
+// ── Collection row ────────────────────────────────────────────────────────────
+
+public class InvCollectionRow : InvHeaderRow
+{
+    public IBrush RowBackground => Palette.SurfaceBase;
 
     public bool IsCollection => true;
     public bool IsGroup      => false;
@@ -82,7 +179,6 @@ public class InvCollectionRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
-            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
@@ -112,29 +208,9 @@ public class InvCollectionRow : ReactiveObject
 
 // ── Group row ─────────────────────────────────────────────────────────────────
 
-public class InvGroupRow : ReactiveObject
+public class InvGroupRow : InvHeaderRow
 {
-    /// <summary>
-    /// The worst shortfall among the rows this one is hiding, as a tint.
-    ///
-    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
-    /// header as well would double the signal; collapsed, the header is the only thing on screen
-    /// and a group that is fine looked identical to one hiding a red row.</para>
-    /// </summary>
-    public IBrush RowBackground =>
-        IsExpanded || WorstSeverity == 0 ? Palette.SurfacePanelAlt
-      : WorstSeverity >= 2                ? Palette.BadSurface
-                                          : Palette.WarnSurface;
-
-    /// <summary>The worst Severity among AllItems, pushed in by the view model after every
-    /// availability refresh — the items know their own state, but only the tree knows which of
-    /// them belong to whom.</summary>
-    private int _worstSeverity;
-    public int WorstSeverity
-    {
-        get => _worstSeverity;
-        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
-    }
+    public IBrush RowBackground => Palette.SurfacePanelAlt;
 
     public bool IsCollection => false;
     public bool IsGroup      => true;
@@ -170,14 +246,13 @@ public class InvGroupRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
-            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
 
     // Displayed beneath the group name to indicate scope
     public string ScopeDisplay => Scope == "Everywhere"
-        ? AssetsText.Everywhere
+        ? Localization.AssetsText.Everywhere
         : $"{LocationDisplay} · {ScopeLabel}";
 
     /// <summary>
@@ -193,10 +268,10 @@ public class InvGroupRow : ReactiveObject
     /// "System", "Region", "Everywhere" — and is what everything compares; only this is looked up.</summary>
     public string ScopeLabel => Scope switch
     {
-        "Station"    => AssetsText.Station,
-        "System"     => AssetsText.System,
-        "Region"     => AssetsText.Region,
-        "Everywhere" => AssetsText.Everywhere,
+        "Station"    => Localization.AssetsText.Station,
+        "System"     => Localization.AssetsText.System,
+        "Region"     => Localization.AssetsText.Region,
+        "Everywhere" => Localization.AssetsText.Everywhere,
         _            => Scope,
     };
 
@@ -255,14 +330,14 @@ public class InvGroupRow : ReactiveObject
         get
         {
             var parts = new List<string>();
-            if (IncludeAssets)          parts.Add(AssetsText.Assets);
-            if (IncludeIndustryJobs)    parts.Add(AssetsText.IncludeIjShort);
-            if (IncludeMarketBuyOrders) parts.Add(AssetsText.IncludeOrdersShort);
-            if (IncludeContractsBuying) parts.Add(AssetsText.IncludeContractsShort);
-            if (IncludeMarketSellOrders) parts.Add(AssetsText.IncludeSellOrdersShort);
-            if (IncludeContractsSelling) parts.Add(AssetsText.IncludeContractsSellingShort);
-            if (PackagedOnly)           parts.Add(AssetsText.IncludePackagedOnly);
-            return parts.Count > 0 ? string.Join(", ", parts) : AssetsText.IncludeNone;
+            if (IncludeAssets)          parts.Add(Localization.AssetsText.Assets);
+            if (IncludeIndustryJobs)    parts.Add(Localization.AssetsText.IncludeIjShort);
+            if (IncludeMarketBuyOrders) parts.Add(Localization.AssetsText.IncludeOrdersShort);
+            if (IncludeContractsBuying) parts.Add(Localization.AssetsText.IncludeContractsShort);
+            if (IncludeMarketSellOrders) parts.Add(Localization.AssetsText.IncludeSellOrdersShort);
+            if (IncludeContractsSelling) parts.Add(Localization.AssetsText.IncludeContractsSellingShort);
+            if (PackagedOnly)           parts.Add(Localization.AssetsText.IncludePackagedOnly);
+            return parts.Count > 0 ? string.Join(", ", parts) : Localization.AssetsText.IncludeNone;
         }
     }
 
@@ -334,14 +409,10 @@ public class InvItemRow : ReactiveObject
     private static readonly SolidColorBrush Red    = new(Color.Parse("#d05a5a"));
     private static readonly SolidColorBrush Gray   = new(Color.Parse("#666677"));
 
-    // Whole-row background tint when the item is under target: orange from 0% down to -50%,
-    // red once the shortfall is worse than -50%. Transparent lets the base row colour show.
     private static readonly SolidColorBrush RowClear  = new(Colors.Transparent);
-    private static IBrush RowOrange => Palette.WarnSurface;
-    private static IBrush RowRed    => Palette.BadSurface;
 
-    /// <summary>Alternating shade for a row carrying no warning. A small step from the grid's own
-    /// #0d0d12, matching the shared banding elsewhere in the app.</summary>
+    /// <summary>Alternating shade. A small step from the grid's own #0d0d12, matching the shared
+    /// banding elsewhere in the app.</summary>
     private static IBrush RowBand => Palette.SurfacePanelAlt;
 
     private readonly InvLevelService _svc;
@@ -371,9 +442,20 @@ public class InvItemRow : ReactiveObject
     public double? MarketPrice => _marketPrice;
     public double? BuildPrice  => _buildPrice;
 
-    public string VolumeText      => _volume > 0      ? _volume.ToString("N2")       : "";
-    public string MarketPriceText => _marketPrice > 0  ? _marketPrice.Value.ToString("N2") : "";
-    public string BuildPriceText  => _buildPrice > 0   ? _buildPrice.Value.ToString("N2")  : "";
+    public string VolumeText      => _volume > 0      ? FormatVolume(_volume)          : "";
+    public string MarketPriceText => _marketPrice > 0  ? Price(_marketPrice.Value)      : "";
+    public string BuildPriceText  => _buildPrice > 0   ? Price(_buildPrice.Value)       : "";
+
+    /// <summary>ISK as the other tools abbreviate it (11.2M, 1.27B, 840k) — but two decimals under
+    /// a thousand, where a mineral at 4.52 rounded to 5 would be a tenth out.</summary>
+    private static string Price(double v) => v switch
+    {
+        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+        >= 1_000_000         => $"{v / 1_000_000:N1}M",
+        >= 1_000             => $"{v / 1_000:N0}k",
+        _                    => v.ToString("N2"),
+    };
 
     // Per-source availability (updated on each refresh)
     private long _availAssets;
@@ -405,8 +487,13 @@ public class InvItemRow : ReactiveObject
         {
             _groupMultiplier = Math.Max(1, value);
             RaiseDiffDependents();
+            TargetChanged?.Invoke();
         }
     }
+
+    /// <summary>Told when the target moves, so the headers above can redraw their bars. ⚠️ Not on
+    /// an availability refresh: that path rolls the headers up once, after every item has changed.</summary>
+    public Action? TargetChanged { get; set; }
 
     private int _targetQty = 1;
     public int TargetQty
@@ -416,6 +503,7 @@ public class InvItemRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _targetQty, value);
             RaiseDiffDependents();
+            TargetChanged?.Invoke();
             _ = _svc.UpdateItemTargetAsync(ItemId, value);
         }
     }
@@ -437,6 +525,16 @@ public class InvItemRow : ReactiveObject
     public string DiffText        => FormatQty(Diff, sign: true);
     public string DiffPctText     => TargetTotal > 0 ? $"{DiffPct:+0.0;-0.0}%" : "—";
 
+    // The same three in m³ — what the target, the stock and the gap take up in a hold. Blank when
+    // the type has no volume, rather than a row of zeros that reads as "nothing needed".
+    public double VolumeTarget    => _volume * TargetTotal;
+    public double VolumeAvailable => _volume * Available;
+    public double VolumeDiff      => _volume * Diff;
+
+    public string VolumeTargetText    => _volume > 0 ? FormatVolume(VolumeTarget)             : "";
+    public string VolumeAvailableText => _volume > 0 ? FormatVolume(VolumeAvailable)          : "";
+    public string VolumeDiffText      => _volume > 0 ? FormatVolume(VolumeDiff, sign: true)   : "";
+
     // Green when at/above target; orange for a 0% to -50% shortfall; red when worse than -50%.
     public IBrush DiffColor => Diff >= 0 ? Green : DiffPct >= -50 ? Orange : Red;
 
@@ -454,19 +552,22 @@ public class InvItemRow : ReactiveObject
     }
 
     /// <summary>
-    /// Whole-row tint mirroring the shortfall severity, falling back to alternating shading.
+    /// The alternating shade only. A shortfall is said by the bar in the % cell, not the row.
     ///
-    /// <para>⚠️ Both live here because both want the same pixel and only this object knows which
-    /// should win. The shared alternating-row style paints the row template, which sits on top of
-    /// this — so it was silently erasing the amber and red on every other row, and the grid opts
-    /// out of it with Classes="tinted". Meaning beats position: a row that is short of target
-    /// shows that, and only a healthy row is banded.</para>
+    /// <para>⚠️ Bound rather than left to the shared alternating-row style: that style paints the
+    /// row template on top of this, and the grid opts out of it with Classes="tinted".</para>
     /// </summary>
-    public IBrush RowBackground =>
-        Severity >= 2 ? RowRed
-      : Severity >= 1 ? RowOrange
-      : IsAltRow      ? RowBand
-                      : RowClear;
+    public IBrush RowBackground => IsAltRow ? RowBand : RowClear;
+
+    /// <summary>How much of the target is on hand, 0–100, for the bar in the % cell. Capped: a
+    /// surplus is a full bar, not a longer one.</summary>
+    public double CoverPct => TargetTotal > 0 ? Math.Min(100, (double)Available / TargetTotal * 100) : 100;
+
+    /// <summary>The bar's colour, from the same bands as the Diff text.</summary>
+    public IBrush CoverBrush => InvCover.Brush(Severity);
+
+    /// <summary>Always: every item has a target. On the headers it is whether there are items.</summary>
+    public bool HasCover => true;
 
     /// <summary>
     /// How badly this row is short: 0 fine, 1 under target, 2 under by more than half.
@@ -562,16 +663,39 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(DiffText));
         this.RaisePropertyChanged(nameof(DiffPctText));
         this.RaisePropertyChanged(nameof(DiffColor));
-        this.RaisePropertyChanged(nameof(RowBackground));
+        this.RaisePropertyChanged(nameof(VolumeTarget));
+        this.RaisePropertyChanged(nameof(VolumeAvailable));
+        this.RaisePropertyChanged(nameof(VolumeDiff));
+        this.RaisePropertyChanged(nameof(VolumeTargetText));
+        this.RaisePropertyChanged(nameof(VolumeAvailableText));
+        this.RaisePropertyChanged(nameof(VolumeDiffText));
+        this.RaisePropertyChanged(nameof(CoverPct));
+        this.RaisePropertyChanged(nameof(CoverBrush));
     }
 
-    private static string FormatQty(long v, bool sign = false)
+    internal static string FormatQty(long v, bool sign = false)
     {
         long abs = Math.Abs(v);
         string prefix = sign ? (v >= 0 ? "+" : "") : "";
+        if (abs >= 1_000_000_000_000) return $"{prefix}{v / 1_000_000_000_000.0:N2}T";
+        if (abs >= 1_000_000_000)     return $"{prefix}{v / 1_000_000_000.0:N2}B";
         if (abs >= 1_000_000) return $"{prefix}{v / 1_000_000.0:N2}M";
         if (abs >= 1_000)     return $"{prefix}{v / 1_000.0:N1}K";
         return $"{prefix}{v:N0}";
+    }
+
+    /// <summary>m³ in the quantities' style: 1.2K, 3.45M, and two decimals only below 100, where
+    /// a blueprint's 0.01 a unit would otherwise round to nothing.</summary>
+    internal static string FormatVolume(double v, bool sign = false)
+    {
+        var abs    = Math.Abs(v);
+        var prefix = sign && v >= 0 ? "+" : "";
+        if (abs >= 1_000_000_000_000) return $"{prefix}{v / 1_000_000_000_000:N2}T";
+        if (abs >= 1_000_000_000)     return $"{prefix}{v / 1_000_000_000:N2}B";
+        if (abs >= 1_000_000) return $"{prefix}{v / 1_000_000:N2}M";
+        if (abs >= 1_000)     return $"{prefix}{v / 1_000:N1}K";
+        if (abs >= 100)       return $"{prefix}{v:N0}";
+        return $"{prefix}{v:N2}";
     }
 }
 
@@ -781,8 +905,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             {
                 var m = meta.GetValueOrDefault(item.TypeId,
                     new InvTypeMeta(item.TypeId.ToString(), 0, null, null));
-                var itemRow = new InvItemRow(item, m, _svc, () => DeleteItemAsync(item.Id), g.Multiplier);
-                _ = itemRow.LoadIconAsync();
+                var itemRow = NewItemRow(item, m, g.Multiplier);
                 row.AllItems.Add(itemRow);
             }
             SortItemsAlpha(row);
@@ -1012,9 +1135,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             else
                 meta = new InvTypeMeta(nameOverridesMeta.GetValueOrDefault(typeId, string.Format(AssetsText.FallbackTypeName, typeId)), 0, null, null);
 
-            var itemRow = new InvItemRow(item, meta, _svc,
-                () => DeleteItemAsync(item.Id), groupRow.Multiplier);
-            _ = itemRow.LoadIconAsync();
+            var itemRow = NewItemRow(item, meta, groupRow.Multiplier);
             groupRow.AllItems.Add(itemRow);
             added++;
         }
@@ -1161,15 +1282,24 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         var meta = (await _svc.GetTypeMetaAsync([result.TypeId]))
             .GetValueOrDefault(result.TypeId, new InvTypeMeta(result.TypeName, 0, null, null));
-        var row = new InvItemRow(item, meta, _svc,
-            () => DeleteItemAsync(item.Id), groupRow.Multiplier);
-        _ = row.LoadIconAsync();
+        var row = NewItemRow(item, meta, groupRow.Multiplier);
         groupRow.AllItems.Add(row);
         SortItemsAlpha(groupRow);
 
         if (groupRow.IsExpanded) RebuildGridRows();
 
         await RefreshGroupAsync(groupRow);
+    }
+
+    /// <summary>An item row wired to the tree: its delete, its picture, and its headers' bars.</summary>
+    private InvItemRow NewItemRow(InvLevelItem item, InvTypeMeta meta, int groupMultiplier)
+    {
+        var row = new InvItemRow(item, meta, _svc, () => DeleteItemAsync(item.Id), groupMultiplier)
+        {
+            TargetChanged = RefreshRowTints,
+        };
+        _ = row.LoadIconAsync();
+        return row;
     }
 
     private async Task DeleteItemAsync(int itemId)
@@ -1183,6 +1313,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             GridRows.Remove(r);
             break;
         }
+        RefreshRowTints();
     }
 
     private async Task DeleteSelectedItemAsync()
@@ -1243,6 +1374,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             "Diff"           => r => (IComparable?)r.Diff,
             "DiffPct"        => r => (IComparable?)r.DiffPct,
             "Volume"         => r => (IComparable?)r.Volume,
+            "VolumeTarget"   => r => (IComparable?)r.VolumeTarget,
+            "VolumeAvailable" => r => (IComparable?)r.VolumeAvailable,
+            "VolumeDiff"     => r => (IComparable?)r.VolumeDiff,
             "MarketPrice"    => r => (IComparable?)r.MarketPrice,
             "BuildPrice"     => r => (IComparable?)r.BuildPrice,
             "AssetsQty"      => r => (IComparable?)r.AssetsQty,
@@ -1293,7 +1427,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>
-    /// Rolls each group's worst shortfall up to it, and each collection's worst group up to that.
+    /// Rolls the items' cover up to each group's header bar, and to each collection's.
     ///
     /// <para>⚠️ Pushed rather than computed by the rows. An item knows how short it is and a group
     /// knows which items are its own, but only here is it known which groups belong to which
@@ -1302,18 +1436,15 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     private void RefreshRowTints()
     {
         foreach (var g in _allGroups)
-            g.WorstSeverity = g.AllItems.Count == 0 ? 0 : g.AllItems.Max(i => i.Severity);
+            g.SetCover(g.AllItems);
 
-        int WorstOf(int? collectionId)
-        {
-            var groups = _allGroups.Where(g => g.CollectionId == collectionId).ToList();
-            return groups.Count == 0 ? 0 : groups.Max(g => g.WorstSeverity);
-        }
+        List<InvItemRow> ItemsOf(int? collectionId) =>
+            _allGroups.Where(g => g.CollectionId == collectionId).SelectMany(g => g.AllItems).ToList();
 
         foreach (var col in _allCollections)
-            col.WorstSeverity = WorstOf(col.CollectionId);
+            col.SetCover(ItemsOf(col.CollectionId));
 
-        if (_defaultCollRow is not null) _defaultCollRow.WorstSeverity = WorstOf(null);
+        _defaultCollRow?.SetCover(ItemsOf(null));
     }
 
     private void RebuildGridRows()

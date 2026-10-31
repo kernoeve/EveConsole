@@ -231,8 +231,10 @@ public class App : Application
 
         // A line each time ESI's error budget makes the governor hold background work back further,
         // saying how much is left and which routes spent it — and one when it lets go.
+        // ⚠️ A note, not an error: the governor stepping in is the app protecting itself as designed.
+        // As errors, a fresh install's first hour filled the log with red that nobody could act on.
         EsiBudget.Shared.LevelChanged += (from, to, why) =>
-            errorLogger.Log("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
+            errorLogger.Note("EsiBudget", to > from ? $"governor {from} → {to}" : $"governor eased {from} → {to}", why);
 
         // Dates any damage that appears while running, rather than leaving the next launch to
         // find it with no idea when it started. Fifteen minutes is frequent enough to place it
@@ -2549,6 +2551,128 @@ public class App : Application
                     )
                     """);
 
+                // Corp Structures: each structure's services, each tower's settings, and the fuel
+                // in every bay with the reading its current run started from — see CorpFuelBay.
+                // Mirrored for PostgreSQL in PostgresSchema.Tables.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpStructureServices" (
+                        "CorporationId" INTEGER NOT NULL,
+                        "StructureId"   INTEGER NOT NULL,
+                        "Name"          TEXT    NOT NULL,
+                        "State"         TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("CorporationId", "StructureId", "Name")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpStarbaseDetails" (
+                        "CorporationId"            INTEGER NOT NULL,
+                        "StarbaseId"               INTEGER NOT NULL,
+                        "AllowAllianceMembers"     INTEGER NOT NULL DEFAULT 0,
+                        "AllowCorporationMembers"  INTEGER NOT NULL DEFAULT 0,
+                        "Anchor"                   TEXT    NOT NULL DEFAULT '',
+                        "Unanchor"                 TEXT    NOT NULL DEFAULT '',
+                        "Online"                   TEXT    NOT NULL DEFAULT '',
+                        "Offline"                  TEXT    NOT NULL DEFAULT '',
+                        "FuelBayTake"              TEXT    NOT NULL DEFAULT '',
+                        "FuelBayView"              TEXT    NOT NULL DEFAULT '',
+                        "AttackIfAtWar"            INTEGER NOT NULL DEFAULT 0,
+                        "AttackIfSecurityDropping" INTEGER NOT NULL DEFAULT 0,
+                        "AttackSecurityThreshold"  REAL,
+                        "AttackStandingThreshold"  REAL,
+                        "UseAllianceStandings"     INTEGER NOT NULL DEFAULT 0,
+                        "PulledAt"                 TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "StarbaseId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpFuelBays" (
+                        "CorporationId"    INTEGER NOT NULL,
+                        "LocationId"       INTEGER NOT NULL,
+                        "TypeId"           INTEGER NOT NULL,
+                        "Quantity"         INTEGER NOT NULL DEFAULT 0,
+                        "SeenAt"           TEXT    NOT NULL,
+                        "BaselineQuantity" INTEGER NOT NULL DEFAULT 0,
+                        "BaselineAt"       TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
+                    )
+                    """);
+                // The fit each structure type should carry, per corporation (Corp Structures →
+                // Config). Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "CorpStructureFits" (
+                        "CorporationId"   INTEGER NOT NULL,
+                        "StructureTypeId" INTEGER NOT NULL,
+                        "FitSource"       TEXT    NOT NULL DEFAULT '',
+                        "FitId"           INTEGER NOT NULL DEFAULT 0,
+                        "FitOwnerId"      INTEGER NOT NULL DEFAULT 0,
+                        "FitName"         TEXT    NOT NULL DEFAULT '',
+                        "Items"           TEXT    NOT NULL DEFAULT '',
+                        "ItemsAt"         TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "StructureTypeId")
+                    )
+                    """);
+                // Skyhooks (Corp Structures) and mercenary dens (Mercenary Dens). Mirrored in
+                // PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpSkyhooks" (
+                        "CorporationId"      INTEGER NOT NULL,
+                        "SkyhookId"          INTEGER NOT NULL,
+                        "PlanetId"           INTEGER NOT NULL DEFAULT 0,
+                        "State"              TEXT    NOT NULL DEFAULT '',
+                        "IsActive"           INTEGER NOT NULL DEFAULT 0,
+                        "EffectiveWorkforce" INTEGER,
+                        "ReinforcedUntil"    TEXT,
+                        "TheftStart"         TEXT,
+                        "TheftEnd"           TEXT,
+                        "PulledAt"           TEXT,
+                        PRIMARY KEY ("CorporationId", "SkyhookId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiCorpSkyhookReagents" (
+                        "CorporationId"  INTEGER NOT NULL,
+                        "SkyhookId"      INTEGER NOT NULL,
+                        "TypeId"         INTEGER NOT NULL,
+                        "SecuredStock"   INTEGER NOT NULL DEFAULT 0,
+                        "UnsecuredStock" INTEGER NOT NULL DEFAULT 0,
+                        "LastCycle"      TEXT    NOT NULL,
+                        PRIMARY KEY ("CorporationId", "SkyhookId", "TypeId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
+                        "CharacterId"          INTEGER NOT NULL,
+                        "DenId"                INTEGER NOT NULL,
+                        "TypeId"               INTEGER NOT NULL DEFAULT 0,
+                        "PlanetId"             INTEGER NOT NULL DEFAULT 0,
+                        "SkyhookId"            INTEGER NOT NULL DEFAULT 0,
+                        "SkyhookCorporationId" INTEGER NOT NULL DEFAULT 0,
+                        "State"                TEXT    NOT NULL DEFAULT '',
+                        "Infomorphs"           INTEGER NOT NULL DEFAULT 0,
+                        "DevelopmentAmount"    INTEGER NOT NULL DEFAULT 0,
+                        "DevelopmentLevel"     INTEGER NOT NULL DEFAULT -1,
+                        "AnarchyAmount"        INTEGER NOT NULL DEFAULT 0,
+                        "AnarchyLevel"         INTEGER NOT NULL DEFAULT -1,
+                        "ReinforcedUntil"      TEXT,
+                        "PulledAt"             TEXT,
+                        "PrevInfomorphs"       INTEGER,
+                        "PrevPulledAt"         TEXT,
+                        PRIMARY KEY ("CharacterId", "DenId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiMercenaryOperations" (
+                        "CharacterId"   INTEGER NOT NULL,
+                        "OperationId"   TEXT    NOT NULL,
+                        "DenId"         INTEGER NOT NULL DEFAULT 0,
+                        "DungeonTypeId" INTEGER NOT NULL DEFAULT 0,
+                        "State"         TEXT    NOT NULL DEFAULT '',
+                        "Expires"       TEXT    NOT NULL,
+                        "SeenAt"        TEXT    NOT NULL,
+                        PRIMARY KEY ("CharacterId", "OperationId")
+                    )
+                    """);
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpFacilities" (
                         "CorporationId" INTEGER NOT NULL,
@@ -2654,6 +2778,8 @@ public class App : Application
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Whether the structure alerts cover a corporation; on for all. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "StructureAlerts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Fits saved in the fitting tool, as EFT text. Mirrored in PostgresSchema.
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "SavedFits" (
@@ -3246,7 +3372,20 @@ public class App : Application
                         "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
                         "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
                         "PiStaleData"                INTEGER NOT NULL DEFAULT 1,
-                        "UnreadMail"                 INTEGER NOT NULL DEFAULT 1
+                        "UnreadMail"                 INTEGER NOT NULL DEFAULT 1,
+                        "StructureFuel"              INTEGER NOT NULL DEFAULT 1,
+                        "StructureFuelDays"          INTEGER NOT NULL DEFAULT 3,
+                        "StructureAttacked"          INTEGER NOT NULL DEFAULT 1,
+                        "StructureFitMissing"        INTEGER NOT NULL DEFAULT 1,
+                        "StructureFitWrong"          INTEGER NOT NULL DEFAULT 1,
+                        "StructureAmmoLow"           INTEGER NOT NULL DEFAULT 1,
+                        "StructureAmmoPct"           INTEGER NOT NULL DEFAULT 50,
+                        "StructureFightersLow"       INTEGER NOT NULL DEFAULT 1,
+                        "StructureFightersPct"       INTEGER NOT NULL DEFAULT 50,
+                        "DenAnarchy"                 INTEGER NOT NULL DEFAULT 1,
+                        "DenAnarchyLevel"            INTEGER NOT NULL DEFAULT 3,
+                        "DenAttacked"                INTEGER NOT NULL DEFAULT 1,
+                        "DenNewMto"                  INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -3263,6 +3402,21 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Unread EVE mail. Mirrored for PostgreSQL in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnreadMail" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Structure alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFuel" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFuelDays" INTEGER NOT NULL DEFAULT 3"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAttacked" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFitMissing" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFitWrong" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAmmoLow" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureAmmoPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersLow" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StructureFightersPct" INTEGER NOT NULL DEFAULT 50"""); } catch { }
+                // Mercenary den alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAnarchy" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAnarchyLevel" INTEGER NOT NULL DEFAULT 3"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenAttacked" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "DenNewMto" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -3273,8 +3427,13 @@ public class App : Application
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
                          "OutstandingContracts", "ExpiringContracts",
-                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
+                         "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
+                         "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct",
+                         "DenAnarchy", "DenAnarchyLevel", "DenAttacked", "DenNewMto")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                            1, 3, 1, 1, 1, 1, 50, 1, 50,
+                            1, 3, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""

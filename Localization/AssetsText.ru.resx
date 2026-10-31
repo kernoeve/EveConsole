@@ -292,6 +292,33 @@
   <data name="ColVolumeM" xml:space="preserve">
     <value>Объём (m³)</value>
   </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Объём - цель</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Объём - доступно</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Объём - разница</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortFew" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortMany" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Добавить предмет…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Действия</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Уровни запасов</value>
   </data>

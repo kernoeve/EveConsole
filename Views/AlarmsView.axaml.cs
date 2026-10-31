@@ -30,6 +30,13 @@ public partial class AlarmsView : UserControl
         if (DataContext is AlarmsViewModel vm) vm.ToggleMute();
     }
 
+    /// <summary>Passes the whole selection on: the ListBox's SelectedItems cannot be bound as a list.</summary>
+    private void OnAlarmSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ListBox list && DataContext is AlarmsViewModel vm)
+            vm.SetSelection(list.SelectedItems?.OfType<AlarmRowVm>() ?? []);
+    }
+
     // ── Export / import: the file pickers need a TopLevel, which only the view has ──
 
     private async void OnExportClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

@@ -69,17 +69,31 @@ public sealed class AlarmSoundService
     private static readonly (string Key, string Name)[] Bundled =
     [
         ("chime-soft",        AlarmsText.SoundChimeSoft),
+        ("chime-glass",       AlarmsText.SoundChimeGlass),
+        ("bell-crystal",      AlarmsText.SoundBellCrystal),
+        ("chime-marimba",     AlarmsText.SoundChimeMarimba),
         ("chime-triad",       AlarmsText.SoundChimeTriad),
+        ("chime-vibraphone",  AlarmsText.SoundChimeVibraphone),
         ("ping-glass",        AlarmsText.SoundPingGlass),
+        ("ping-bright",       AlarmsText.SoundPingBright),
         ("bell-brass",        AlarmsText.SoundBellBrass),
+        ("bell-hand",         AlarmsText.SoundBellHand),
+        ("bell-desk",         AlarmsText.SoundBellDesk),
         ("bell-deep",         AlarmsText.SoundBellDeep),
+        ("bell-heavy",        AlarmsText.SoundBellHeavy),
         ("gong-low",          AlarmsText.SoundGongLow),
+        ("gong-scifi",        AlarmsText.SoundGongScifi),
         ("alert-double",      AlarmsText.SoundAlertDouble),
+        ("alert-blips",       AlarmsText.SoundAlertBlips),
+        ("alert-beeps",       AlarmsText.SoundAlertBeeps),
         ("alarm-urgent",      AlarmsText.SoundAlarmUrgent),
+        ("alarm-battle",      AlarmsText.SoundAlarmBattle),
         ("two-tone-alert",    AlarmsText.SoundWarningTwoTone),
+        ("two-tone-soft",     AlarmsText.SoundWarningTwoToneSoft),
         ("klaxon-industrial", AlarmsText.SoundWarningKlaxon),
         ("buzzer-harsh",      AlarmsText.SoundWarningBuzzer),
         ("siren-sweep",       AlarmsText.SoundWarningSiren),
+        ("siren-whoop",       AlarmsText.SoundWarningSirenWhoop),
         ("horn-low",          AlarmsText.SoundWarningHorn),
     ];
 
@@ -149,6 +163,9 @@ public sealed class AlarmSoundService
     /// Resolves a stored key to a playable file. A key containing a directory separator is
     /// treated as a path the user chose; anything else is a bundled chime.
     /// </summary>
+    /// <summary>The bundled sounds whose unpacked copy has been checked against this build this run.</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> Checked = new();
+
     private static string? ResolvePath(string key)
     {
         if (string.IsNullOrWhiteSpace(key)) { LastError = AlarmsText.SoundNoneSelected; return null; }
@@ -161,22 +178,36 @@ public sealed class AlarmSoundService
         }
 
         var cached = Path.Combine(CacheDir, key + ".wav");
-        if (File.Exists(cached)) return cached;
+        if (Checked.ContainsKey(key) && File.Exists(cached)) return cached;
 
         try
         {
             var uri = new Uri($"avares://EveConsole/Assets/Sounds/{key}.wav");
             if (!AssetLoader.Exists(uri)) { LastError = string.Format(AlarmsText.SoundBundledMissing, key + ".wav"); return null; }
 
-            Directory.CreateDirectory(CacheDir);
             using var src = AssetLoader.Open(uri);
+            var bundled = new MemoryStream();
+            src.CopyTo(bundled);
+            var bytes = bundled.ToArray();
+
+            // ⚠️ Compared, once a run, with what this build carries. A sound replaced in a later
+            // build has the same key, and the copy unpacked by an earlier one would otherwise go on
+            // playing the old sound for good.
+            if (File.Exists(cached) && File.ReadAllBytes(cached).AsSpan().SequenceEqual(bytes))
+            {
+                Checked[key] = true;
+                return cached;
+            }
+
+            Directory.CreateDirectory(CacheDir);
 
             // Write via a temp name and move into place, so a second process reading the cache
             // never sees a half-written file.
             var tmp = cached + ".tmp";
-            using (var dst = File.Create(tmp)) src.CopyTo(dst);
+            File.WriteAllBytes(tmp, bytes);
             File.Move(tmp, cached, overwrite: true);
 
+            Checked[key] = true;
             return cached;
         }
         catch (Exception ex)

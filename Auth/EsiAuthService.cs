@@ -223,6 +223,13 @@ public class EsiAuthService
         var contextTask = listener.GetContextAsync();
         var cancelTask  = Task.Delay(Timeout.Infinite, ct);
 
+        // ⚠️ Observed from the start. A login that is cancelled or abandoned leaves this wait
+        // pending; disposing the listener then faults it, and nothing awaits it any more — so the
+        // finalizer reported an unobserved ObjectDisposedException into the error log, minutes
+        // later. Seen on macOS, whose managed HttpListener faults it that way. The Slack login
+        // already guards against the same thing.
+        _ = contextTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+
         var completed = await Task.WhenAny(contextTask, cancelTask);
         if (completed == cancelTask)
             throw new OperationCanceledException("Login timed out or was cancelled.");

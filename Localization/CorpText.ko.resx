@@ -1792,4 +1792,673 @@
   <data name="DiscordPostedPartly" xml:space="preserve">
     <value>{2}에 메시지 {1}개 중 {0}개를 게시했습니다. Discord가 다음 메시지를 거부했습니다: {3}</value>
   </data>
+  <data name="CsSearchHint" xml:space="preserve">
+    <value>이름, 유형, 항성계 또는 지역 검색</value>
+  </data>
+  <data name="CsShowUpwell" xml:space="preserve">
+    <value>업웰 구조물</value>
+  </data>
+  <data name="CsShowTowers" xml:space="preserve">
+    <value>스타베이스</value>
+  </data>
+  <data name="CsSummary" xml:space="preserve">
+    <value>구조물 {0} · 스타베이스 {1} · 연료 부족 {2} · 연료 소진 {3}</value>
+  </data>
+  <data name="CsLoading" xml:space="preserve">
+    <value>불러오는 중…</value>
+  </data>
+  <data name="CsLoadedAt" xml:space="preserve">
+    <value>{0}에 읽음</value>
+  </data>
+  <data name="CsLoadFailed" xml:space="preserve">
+    <value>구조물을 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="CsNoneAnchored" xml:space="preserve">
+    <value>이 코퍼레이션에는 우주에 있는 구조물이나 스타베이스가 없거나 아직 읽지 않았습니다. 읽으려면 디렉터 권한이 있는 코퍼레이션 캐릭터가 필요합니다.</value>
+  </data>
+  <data name="CsNoneMatch" xml:space="preserve">
+    <value>검색어와 선택한 항목에 맞는 것이 없습니다.</value>
+  </data>
+  <data name="CsColName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="CsColType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="CsColSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="CsColRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="CsColState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="CsColServices" xml:space="preserve">
+    <value>서비스</value>
+  </data>
+  <data name="CsColFuelLeft" xml:space="preserve">
+    <value>남은 연료</value>
+  </data>
+  <data name="CsColRunsOut" xml:space="preserve">
+    <value>소진 시각</value>
+  </data>
+  <data name="CsColBlocksPerDay" xml:space="preserve">
+    <value>블록/일</value>
+  </data>
+  <data name="CsColIskPerDay" xml:space="preserve">
+    <value>ISK / 일</value>
+  </data>
+  <data name="CsColPickupValue" xml:space="preserve">
+    <value>회수 가치</value>
+  </data>
+  <data name="CsColPickupVolume" xml:space="preserve">
+    <value>회수 부피 (m³)</value>
+  </data>
+  <data name="CsShowSkyhooks" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSummarySkyhooksOther" xml:space="preserve">
+    <value>스카이훅 {0}개</value>
+  </data>
+  <data name="CsSkyhook" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSectionSkyhook" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="CsSkyActive" xml:space="preserve">
+    <value>생산 중</value>
+  </data>
+  <data name="CsSkyNotRead" xml:space="preserve">
+    <value>아직 읽지 않음</value>
+  </data>
+  <data name="CsSkyWorkforce" xml:space="preserve">
+    <value>노동력</value>
+  </data>
+  <data name="CsSkyTheft" xml:space="preserve">
+    <value>탈취 가능 시간</value>
+  </data>
+  <data name="CsSkyTheftOpen" xml:space="preserve">
+    <value>지금 열림, {0}까지 ({1})</value>
+  </data>
+  <data name="CsSkyTheftWindow" xml:space="preserve">
+    <value>{0} → {1} ({2})</value>
+  </data>
+  <data name="CsSkyRead" xml:space="preserve">
+    <value>읽은 시각</value>
+  </data>
+  <data name="CsSkyColReagent" xml:space="preserve">
+    <value>시약</value>
+  </data>
+  <data name="CsSkyColSecured" xml:space="preserve">
+    <value>보호됨</value>
+  </data>
+  <data name="CsSkyColUnsecured" xml:space="preserve">
+    <value>비보호</value>
+  </data>
+  <data name="CsSkyColAsOf" xml:space="preserve">
+    <value>기준</value>
+  </data>
+  <data name="CsSkyDens" xml:space="preserve">
+    <value>내 캐릭터의 은신처</value>
+  </data>
+  <data name="CsSkyDenNote" xml:space="preserve">
+    <value>무질서도는 내 캐릭터 소유의 은신처만 보입니다. 이 스카이훅에 있는 다른 사람의 은신처는 노동력 감소로만 나타납니다.</value>
+  </data>
+  <data name="CsDenLine" xml:space="preserve">
+    <value>{0} · 무질서도 {1} ({2}) · 발전도 {3} ({4}) · 인포모프 {5}</value>
+  </data>
+  <data name="CsDenRunning" xml:space="preserve">
+    <value>가동 중</value>
+  </data>
+  <data name="CsDenPaused" xml:space="preserve">
+    <value>일시 정지</value>
+  </data>
+  <data name="CsDenDisabled" xml:space="preserve">
+    <value>비활성</value>
+  </data>
+  <data name="DenLevelValue" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DenSummaryOther" xml:space="preserve">
+    <value>은신처 {0}개</value>
+  </data>
+  <data name="DenSummaryHigh" xml:space="preserve">
+    <value>무질서도 {1} 이상: {0}</value>
+  </data>
+  <data name="DenSummaryOpsOther" xml:space="preserve">
+    <value>작전 {0}개 진행 가능</value>
+  </data>
+  <data name="DenInfomorphs" xml:space="preserve">
+    <value>인포모프</value>
+  </data>
+  <data name="DenInfomorphsRate" xml:space="preserve">
+    <value>{0} (시간당 +{1})</value>
+  </data>
+  <data name="DenDevelopment" xml:space="preserve">
+    <value>발전도</value>
+  </data>
+  <data name="DenAnarchy" xml:space="preserve">
+    <value>무질서도</value>
+  </data>
+  <data name="DenSkyhookOwner" xml:space="preserve">
+    <value>스카이훅 소유자</value>
+  </data>
+  <data name="DenColOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="DenColPlanet" xml:space="preserve">
+    <value>행성</value>
+  </data>
+  <data name="DenColSkyhookOwner" xml:space="preserve">
+    <value>스카이훅 소유자</value>
+  </data>
+  <data name="DenColInfomorphs" xml:space="preserve">
+    <value>인포모프</value>
+  </data>
+  <data name="DenColPerHour" xml:space="preserve">
+    <value>시간당</value>
+  </data>
+  <data name="DenColDevelopment" xml:space="preserve">
+    <value>발전도</value>
+  </data>
+  <data name="DenColAnarchy" xml:space="preserve">
+    <value>무질서도</value>
+  </data>
+  <data name="DenColOperations" xml:space="preserve">
+    <value>작전</value>
+  </data>
+  <data name="DenColExpires" xml:space="preserve">
+    <value>만료</value>
+  </data>
+  <data name="DenColSeen" xml:space="preserve">
+    <value>처음 확인</value>
+  </data>
+  <data name="DenNone" xml:space="preserve">
+    <value>용병 은신처를 가진 캐릭터가 없습니다. 은신처는 토큰이 구조물 읽기를 허용하는 캐릭터마다 매시간 읽습니다.</value>
+  </data>
+  <data name="DenSectionDen" xml:space="preserve">
+    <value>은신처</value>
+  </data>
+  <data name="DenSectionOperations" xml:space="preserve">
+    <value>전술 작전</value>
+  </data>
+  <data name="DenNoOperations" xml:space="preserve">
+    <value>진행 가능한 작전이 없습니다.</value>
+  </data>
+  <data name="DenNote" xml:space="preserve">
+    <value>은신처는 각 캐릭터의 토큰으로 매시간, 작전은 10분마다 읽습니다. 발전도와 무질서도는 레벨(0–4)과 100 기준 수치를 표시합니다. 시간당 인포모프는 최근 두 번의 읽기에서 계산합니다.</value>
+  </data>
+  <data name="MtoAvailable" xml:space="preserve">
+    <value>가능</value>
+  </data>
+  <data name="MtoStarted" xml:space="preserve">
+    <value>시작됨</value>
+  </data>
+  <data name="MtoCompleted" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="MtoExpired" xml:space="preserve">
+    <value>만료됨</value>
+  </data>
+  <data name="MtoRemoved" xml:space="preserve">
+    <value>제거됨</value>
+  </data>
+  <data name="CsColFuel" xml:space="preserve">
+    <value>연료</value>
+  </data>
+  <data name="CsColOnHand" xml:space="preserve">
+    <value>보유량</value>
+  </data>
+  <data name="CsColPerDay" xml:space="preserve">
+    <value>하루</value>
+  </data>
+  <data name="CsColLasts" xml:space="preserve">
+    <value>지속</value>
+  </data>
+  <data name="CsOutOfFuel" xml:space="preserve">
+    <value>연료 소진</value>
+  </data>
+  <data name="CsLowPower" xml:space="preserve">
+    <value>저전력</value>
+  </data>
+  <data name="CsLowPowerLong" xml:space="preserve">
+    <value>연료 없음: 저전력, 서비스 오프라인</value>
+  </data>
+  <data name="CsNoServices" xml:space="preserve">
+    <value>서비스 없음</value>
+  </data>
+  <data name="CsNotBurning" xml:space="preserve">
+    <value>소비 안 함</value>
+  </data>
+  <data name="CsSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="CsRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="CsMoon" xml:space="preserve">
+    <value>위성</value>
+  </data>
+  <data name="CsNearest" xml:space="preserve">
+    <value>가장 가까운 곳</value>
+  </data>
+  <data name="CsState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="CsFuelRunsOut" xml:space="preserve">
+    <value>연료 소진</value>
+  </data>
+  <data name="CsWhenIn" xml:space="preserve">
+    <value>{0} ({1} 후)</value>
+  </data>
+  <data name="CsBlocksPerDay" xml:space="preserve">
+    <value>연료 블록</value>
+  </data>
+  <data name="CsFuelIskPerDay" xml:space="preserve">
+    <value>연료 비용</value>
+  </data>
+  <data name="CsFuelIskValue" xml:space="preserve">
+    <value>하루 {0} ISK</value>
+  </data>
+  <data name="CsPerDayPerHour" xml:space="preserve">
+    <value>하루 {0}개 (시간당 {1}개)</value>
+  </data>
+  <data name="CsStateTimer" xml:space="preserve">
+    <value>상태 타이머</value>
+  </data>
+  <data name="CsReinforceHour" xml:space="preserve">
+    <value>강화 시각</value>
+  </data>
+  <data name="CsHourUtc" xml:space="preserve">
+    <value>EVE 시간 {0}:00</value>
+  </data>
+  <data name="CsNextReinforce" xml:space="preserve">
+    <value>강화 시각 변경</value>
+  </data>
+  <data name="CsNextReinforceValue" xml:space="preserve">
+    <value>{1}부터 EVE 시간 {0}:00로</value>
+  </data>
+  <data name="CsUnanchors" xml:space="preserve">
+    <value>정박 해제</value>
+  </data>
+  <data name="CsOnlineSince" xml:space="preserve">
+    <value>온라인 시작</value>
+  </data>
+  <data name="CsReinforcedUntil" xml:space="preserve">
+    <value>강화 종료</value>
+  </data>
+  <data name="CsStrontium" xml:space="preserve">
+    <value>스트론튬</value>
+  </data>
+  <data name="CsStrontiumHours" xml:space="preserve">
+    <value>강화 {0}시간 분량</value>
+  </data>
+  <data name="CsProfile" xml:space="preserve">
+    <value>접근 프로필</value>
+  </data>
+  <data name="CsSourceExpected" xml:space="preserve">
+    <value>예상 소비</value>
+  </data>
+  <data name="CsSourceBoth" xml:space="preserve">
+    <value>예상; {1} 동안 측정 하루 {0}</value>
+  </data>
+  <data name="CsSourceMeasured" xml:space="preserve">
+    <value>{0} 동안 측정</value>
+  </data>
+  <data name="CsSourceMeasuring" xml:space="preserve">
+    <value>소비 아직 측정 안 됨</value>
+  </data>
+  <data name="CsSourceImplied" xml:space="preserve">
+    <value>{0}; 연료 만료 기준 하루 {1}</value>
+  </data>
+  <data name="CsNoFuelTower" xml:space="preserve">
+    <value>이 스타베이스의 연료 기록이 없습니다. 연료는 스타베이스 세부 정보에서 읽으며 디렉터가 필요합니다.</value>
+  </data>
+  <data name="CsNoFuelUpwell" xml:space="preserve">
+    <value>연료 격납고가 비었거나 코퍼레이션 자산을 아직 읽지 않았습니다.</value>
+  </data>
+  <data name="CsFuelNoteUpwell" xml:space="preserve">
+    <value>연료 블록은 가동 중인 각 서비스 모듈의 소비량에서 구조물의 연료 보너스를 뺀 만큼 소비됩니다. 남은 시간은 게임 자체의 연료 만료 시각입니다. 그 밖의 연료는 마지막 보충 이후 측정한 속도로 소비됩니다. 수량은 코퍼레이션 자산에서 매시간 읽습니다.</value>
+  </data>
+  <data name="CsFuelNoteTower" xml:space="preserve">
+    <value>연료 블록은 스타베이스의 크기와 세력에 따른 속도로 소비됩니다. 스트론튬은 강화 중에만 소비됩니다. 인가증과 실제 소비는 마지막 보충 이후 측정합니다. 수량은 스타베이스 세부 정보에서 매시간 읽습니다.</value>
+  </data>
+  <data name="CsSectionStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="CsSectionFuel" xml:space="preserve">
+    <value>연료</value>
+  </data>
+  <data name="CsSectionServices" xml:space="preserve">
+    <value>서비스</value>
+  </data>
+  <data name="CsSectionFit" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="CsSectionMoon" xml:space="preserve">
+    <value>위성 채굴</value>
+  </data>
+  <data name="CsBayColMaterial" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="CsBayColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="CsBayColVolume" xml:space="preserve">
+    <value>m³</value>
+  </data>
+  <data name="CsBayColValue" xml:space="preserve">
+    <value>가치 (ISK)</value>
+  </data>
+  <data name="CsBayTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="CsBayFill" xml:space="preserve">
+    <value>{0} / {1} m³ ({2}% 참)</value>
+  </data>
+  <data name="CsSectionTower" xml:space="preserve">
+    <value>스타베이스 설정</value>
+  </data>
+  <data name="CsSectionLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="CsServiceOnline" xml:space="preserve">
+    <value>온라인</value>
+  </data>
+  <data name="CsServiceOffline" xml:space="preserve">
+    <value>오프라인</value>
+  </data>
+  <data name="CsServiceCleanup" xml:space="preserve">
+    <value>정리 중</value>
+  </data>
+  <data name="CsBandHigh" xml:space="preserve">
+    <value>상단 슬롯</value>
+  </data>
+  <data name="CsBandMid" xml:space="preserve">
+    <value>중단 슬롯</value>
+  </data>
+  <data name="CsBandLow" xml:space="preserve">
+    <value>하단 슬롯</value>
+  </data>
+  <data name="CsBandRig" xml:space="preserve">
+    <value>리그</value>
+  </data>
+  <data name="CsBandService" xml:space="preserve">
+    <value>서비스 슬롯</value>
+  </data>
+  <data name="CsBandCore" xml:space="preserve">
+    <value>양자 코어</value>
+  </data>
+  <data name="CsBandFighterTubes" xml:space="preserve">
+    <value>파이터 발사관</value>
+  </data>
+  <data name="CsBandFighterBay" xml:space="preserve">
+    <value>파이터 격납고</value>
+  </data>
+  <data name="CsBandAmmoHold" xml:space="preserve">
+    <value>탄약 격납고</value>
+  </data>
+  <data name="CsByHand" xml:space="preserve">
+    <value>직접 입력</value>
+  </data>
+  <data name="CsFitByHandNote" xml:space="preserve">
+    <value>“직접 입력” 표시 모듈은 자산 정보가 닿지 않아 구조물 브라우저에서 입력한 것입니다.</value>
+  </data>
+  <data name="CsNothingFitted" xml:space="preserve">
+    <value>장착된 것이 없습니다.</value>
+  </data>
+  <data name="CsFitUnknown" xml:space="preserve">
+    <value>피팅을 알 수 없음: 코퍼레이션 자산을 읽지 않았습니다. 디렉터가 필요합니다.</value>
+  </data>
+  <data name="CsTowerNoModules" xml:space="preserve">
+    <value>이 항성계에 정박된 모듈이 없습니다.</value>
+  </data>
+  <data name="CsTowerModulesUnknown" xml:space="preserve">
+    <value>모듈 표시 안 함: 이 항성계에 코퍼레이션의 스타베이스가 둘 이상이거나 자산을 읽지 않아 모듈을 스타베이스에 연결할 수 없습니다.</value>
+  </data>
+  <data name="CsExtractionStarted" xml:space="preserve">
+    <value>추출 시작</value>
+  </data>
+  <data name="CsChunkArrives" xml:space="preserve">
+    <value>청크 도착</value>
+  </data>
+  <data name="CsNaturalDecay" xml:space="preserve">
+    <value>자연 파쇄</value>
+  </data>
+  <data name="CsTowerCorpAccess" xml:space="preserve">
+    <value>코퍼레이션 멤버 사용 가능</value>
+  </data>
+  <data name="CsTowerAllianceAccess" xml:space="preserve">
+    <value>얼라이언스 멤버 사용 가능</value>
+  </data>
+  <data name="CsTowerUseAllianceStandings" xml:space="preserve">
+    <value>얼라이언스 평판 사용</value>
+  </data>
+  <data name="CsTowerAttackStanding" xml:space="preserve">
+    <value>평판이 이 값 미만이면 공격</value>
+  </data>
+  <data name="CsTowerAttackSecurity" xml:space="preserve">
+    <value>보안 등급이 이 값 미만이면 공격</value>
+  </data>
+  <data name="CsTowerAttackAtWar" xml:space="preserve">
+    <value>전쟁 대상 공격</value>
+  </data>
+  <data name="CsTowerAttackDropping" xml:space="preserve">
+    <value>보안 등급이 떨어지는 대상 공격</value>
+  </data>
+  <data name="CsTowerRoleAnchor" xml:space="preserve">
+    <value>정박</value>
+  </data>
+  <data name="CsTowerRoleUnanchor" xml:space="preserve">
+    <value>정박 해제</value>
+  </data>
+  <data name="CsTowerRoleOnline" xml:space="preserve">
+    <value>온라인</value>
+  </data>
+  <data name="CsTowerRoleOffline" xml:space="preserve">
+    <value>오프라인</value>
+  </data>
+  <data name="CsTowerRoleFuelView" xml:space="preserve">
+    <value>연료 격납고 보기</value>
+  </data>
+  <data name="CsTowerRoleFuelTake" xml:space="preserve">
+    <value>연료 격납고에서 꺼내기</value>
+  </data>
+  <data name="CsTowerSettingsRead" xml:space="preserve">
+    <value>설정 읽은 시각</value>
+  </data>
+  <data name="CsTowerSettingsNone" xml:space="preserve">
+    <value>설정 읽지 않음: 디렉터가 필요합니다.</value>
+  </data>
+  <data name="CsRoleAllianceMember" xml:space="preserve">
+    <value>얼라이언스 멤버</value>
+  </data>
+  <data name="CsRoleCorporationMember" xml:space="preserve">
+    <value>코퍼레이션 멤버</value>
+  </data>
+  <data name="CsRoleStarbaseConfig" xml:space="preserve">
+    <value>Starbase Equipment Config 역할</value>
+  </data>
+  <data name="CsRoleFuelTechnician" xml:space="preserve">
+    <value>Starbase Fuel Technician 역할</value>
+  </data>
+  <data name="CsYes" xml:space="preserve">
+    <value>예</value>
+  </data>
+  <data name="CsNo" xml:space="preserve">
+    <value>아니요</value>
+  </data>
+  <data name="CsStateShieldVulnerable" xml:space="preserve">
+    <value>실드 취약</value>
+  </data>
+  <data name="CsStateArmorVulnerable" xml:space="preserve">
+    <value>장갑 취약</value>
+  </data>
+  <data name="CsStateHullVulnerable" xml:space="preserve">
+    <value>선체 취약</value>
+  </data>
+  <data name="CsStateArmorReinforce" xml:space="preserve">
+    <value>장갑 강화</value>
+  </data>
+  <data name="CsStateHullReinforce" xml:space="preserve">
+    <value>선체 강화</value>
+  </data>
+  <data name="CsStateAnchoring" xml:space="preserve">
+    <value>정박 중</value>
+  </data>
+  <data name="CsStateAnchorVulnerable" xml:space="preserve">
+    <value>정박 중 (취약)</value>
+  </data>
+  <data name="CsStateDeployVulnerable" xml:space="preserve">
+    <value>배치 중</value>
+  </data>
+  <data name="CsStateFitting" xml:space="preserve">
+    <value>피팅 중 (무적)</value>
+  </data>
+  <data name="CsStateOnlining" xml:space="preserve">
+    <value>온라인 전환 중</value>
+  </data>
+  <data name="CsStateOnline" xml:space="preserve">
+    <value>온라인</value>
+  </data>
+  <data name="CsStateOffline" xml:space="preserve">
+    <value>오프라인</value>
+  </data>
+  <data name="CsStateUnanchored" xml:space="preserve">
+    <value>정박 해제됨</value>
+  </data>
+  <data name="CsStateReinforced" xml:space="preserve">
+    <value>강화됨</value>
+  </data>
+  <data name="CsStateUnanchoring" xml:space="preserve">
+    <value>정박 해제 중</value>
+  </data>
+  <data name="CsTabStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="CsTabConfig" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="CsColFit" xml:space="preserve">
+    <value>피팅 확인</value>
+  </data>
+  <data name="CsSummaryFit" xml:space="preserve">
+    <value>{0}개 피팅 불일치</value>
+  </data>
+  <data name="CsSummaryIskPerDay" xml:space="preserve">
+    <value>연료 하루 {0} ISK</value>
+  </data>
+  <data name="CsSectionFitCheck" xml:space="preserve">
+    <value>피팅 확인</value>
+  </data>
+  <data name="CsCheckAgainst" xml:space="preserve">
+    <value>{0}({1})와 비교했습니다.</value>
+  </data>
+  <data name="CsCheckAgainstCopy" xml:space="preserve">
+    <value>{2} 당시의 {0}({1})와 비교했습니다. 해당 피팅은 더 이상 저장되어 있지 않습니다.</value>
+  </data>
+  <data name="CsCheckLabel" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="CsCheckMatches" xml:space="preserve">
+    <value>피팅과 일치</value>
+  </data>
+  <data name="CsCheckUnknownLong" xml:space="preserve">
+    <value>확인 안 됨: 코퍼레이션 자산을 읽지 않았습니다. 디렉터가 필요합니다.</value>
+  </data>
+  <data name="CsCheckUnknown" xml:space="preserve">
+    <value>읽지 않음</value>
+  </data>
+  <data name="CsCheckOk" xml:space="preserve">
+    <value>일치</value>
+  </data>
+  <data name="CsCheckMissing" xml:space="preserve">
+    <value>{0}개 없음</value>
+  </data>
+  <data name="CsCheckWrong" xml:space="preserve">
+    <value>{0}개 다름</value>
+  </data>
+  <data name="CsCheckAmmo" xml:space="preserve">
+    <value>탄약 부족</value>
+  </data>
+  <data name="CsCheckFighters" xml:space="preserve">
+    <value>파이터 부족</value>
+  </data>
+  <data name="CsCheckMissingLabel" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="CsCheckWrongLabel" xml:space="preserve">
+    <value>장착 안 됨</value>
+  </data>
+  <data name="CsCheckInsteadLabel" xml:space="preserve">
+    <value>대신 장착됨</value>
+  </data>
+  <data name="CsCheckAmmoLabel" xml:space="preserve">
+    <value>탄약 부족</value>
+  </data>
+  <data name="CsCheckFightersLabel" xml:space="preserve">
+    <value>파이터 부족</value>
+  </data>
+  <data name="CsCheckStock" xml:space="preserve">
+    <value>{0}: {1} / {2}({3}%)</value>
+  </data>
+  <data name="CsCountOf" xml:space="preserve">
+    <value>{1} × {0}</value>
+  </data>
+  <data name="CsHaveOfWant" xml:space="preserve">
+    <value>{0} {1} / {2}</value>
+  </data>
+  <data name="CsStarbase" xml:space="preserve">
+    <value>스타베이스</value>
+  </data>
+  <data name="CsFitChoice" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="CsFitChoiceCopy" xml:space="preserve">
+    <value>{0} — {1}(더 이상 저장되지 않음, 사본으로 확인)</value>
+  </data>
+  <data name="CsFitNoName" xml:space="preserve">
+    <value>(이름 없음)</value>
+  </data>
+  <data name="CsFitInApp" xml:space="preserve">
+    <value>EVE Console</value>
+  </data>
+  <data name="CsFitNone" xml:space="preserve">
+    <value>피팅 없음 - 확인 안 함</value>
+  </data>
+  <data name="CsFitSaved" xml:space="preserve">
+    <value>{0}의 피팅을 저장했습니다</value>
+  </data>
+  <data name="CsFitSaveFailed" xml:space="preserve">
+    <value>피팅을 저장할 수 없습니다: {0}</value>
+  </data>
+  <data name="CsConfigNote" xml:space="preserve">
+    <value>구조물 종류별로 장착해야 할 피팅을 고릅니다. 구조물에 해당 종류 피팅의 모든 모듈이 있는지(같은 종류의 어느 슬롯이든 가능, 추가 모듈과 리그는 문제없음), 탄약과 파이터가 설정 → 경고에서 정한 비율 이상인지 확인합니다. 피팅은 EVE Console 피팅 도구의 것과 캐릭터가 게임에 저장한 피팅에서 고릅니다.</value>
+  </data>
+  <data name="CsColStructureType" xml:space="preserve">
+    <value>구조물 종류</value>
+  </data>
+  <data name="CsColFitToCarry" xml:space="preserve">
+    <value>장착할 피팅</value>
+  </data>
+  <data name="CsColStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="CsConfigStatus" xml:space="preserve">
+    <value>{0}개 고정 · {1}개 불일치</value>
+  </data>
+  <data name="CsConfigStatusAllMatch" xml:space="preserve">
+    <value>{0}개 고정 · 모두 일치</value>
+  </data>
+  <data name="CsConfigStatusNoFit" xml:space="preserve">
+    <value>{0}개 고정</value>
+  </data>
+  <data name="CsConfigStatusUnknown" xml:space="preserve">
+    <value>{0}개 고정 · 자산 읽지 않음</value>
+  </data>
+  <data name="CsConfigNone" xml:space="preserve">
+    <value>이 코퍼레이션에는 Upwell 구조물이 없습니다.</value>
+  </data>
 </root>

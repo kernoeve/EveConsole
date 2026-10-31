@@ -684,6 +684,126 @@
     <value>You have {0} unread EVE mails.</value>
     <comment>Overview alert, clicked to open the EVE Mail tool. {0} is the number of unread mails across the user's characters.</comment>
   </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>{0} ({1}) runs out of fuel in {2}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} time left ("2d 4h").</comment>
+  </data>
+  <data name="AlertStructureFuelOut" xml:space="preserve">
+    <value>{0} ({1}) is out of fuel</value>
+    <comment>Overview alert: {0} structure, {1} system.</comment>
+  </data>
+  <data name="AlertStructureFuelManyOne" xml:space="preserve">
+    <value>{0} structure of {1} is low on fuel — first {2}, in {3}</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation, {2} the first to run out, {3} its time left. Singular form.</comment>
+  </data>
+  <data name="AlertStructureFuelManyOther" xml:space="preserve">
+    <value>{0} structures of {1} are low on fuel — first {2}, in {3}</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation, {2} the first to run out, {3} its time left.</comment>
+  </data>
+  <data name="AlertStructureFuelManyOutOne" xml:space="preserve">
+    <value>{0} structure of {1} is low on fuel — {2} is out</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation, {2} one already out of fuel. Singular form.</comment>
+  </data>
+  <data name="AlertStructureFuelManyOutOther" xml:space="preserve">
+    <value>{0} structures of {1} are low on fuel — {2} is out</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation, {2} one already out of fuel.</comment>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>{0} ({1}) is missing {2}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} the modules of its fit it lacks.</comment>
+  </data>
+  <data name="AlertStructureFitMissingManyOne" xml:space="preserve">
+    <value>{0} structure of {1} is missing modules of its fit</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation. Singular form.</comment>
+  </data>
+  <data name="AlertStructureFitMissingManyOther" xml:space="preserve">
+    <value>{0} structures of {1} are missing modules of their fit</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation.</comment>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>{0} ({1}) has {2} where its fit has {3}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} the modules fitted instead, {3} the fit's modules not fitted.</comment>
+  </data>
+  <data name="AlertStructureFitWrongManyOne" xml:space="preserve">
+    <value>{0} structure of {1} has other modules in place of its fit's</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation. Singular form.</comment>
+  </data>
+  <data name="AlertStructureFitWrongManyOther" xml:space="preserve">
+    <value>{0} structures of {1} have other modules in place of their fit's</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation.</comment>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>{0} ({1}) is low on ammo: {2}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} each charge low with held / fit count.</comment>
+  </data>
+  <data name="AlertStructureAmmoLowManyOne" xml:space="preserve">
+    <value>{0} structure of {1} is low on ammo</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation. Singular form.</comment>
+  </data>
+  <data name="AlertStructureAmmoLowManyOther" xml:space="preserve">
+    <value>{0} structures of {1} are low on ammo</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation.</comment>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>{0} ({1}) is low on fighters: {2}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} each fighter low with held / fit count.</comment>
+  </data>
+  <data name="AlertStructureFightersLowManyOne" xml:space="preserve">
+    <value>{0} structure of {1} is low on fighters</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation. Singular form.</comment>
+  </data>
+  <data name="AlertStructureFightersLowManyOther" xml:space="preserve">
+    <value>{0} structures of {1} are low on fighters</value>
+    <comment>Overview alert, counted: {0} structures, {1} corporation.</comment>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>{0} ({1}) under attack — shield {2}, armor {3}, hull {4} · {5}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} shield, {3} armor, {4} hull (percentages), {5} when ("12m ago").</comment>
+  </data>
+  <data name="AlertStructureAttackedBy" xml:space="preserve">
+    <value>{0} ({1}) under attack by {2} — shield {3}, armor {4}, hull {5} · {6}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} the attacker's corporation (and alliance), {3} shield, {4} armor, {5} hull, {6} when.</comment>
+  </data>
+  <data name="AlertStructureLostShields" xml:space="preserve">
+    <value>{0} ({1}) lost its shields — armor timer {2} · {3}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} when its armor timer ends, {3} when this happened.</comment>
+  </data>
+  <data name="AlertStructureLostArmor" xml:space="preserve">
+    <value>{0} ({1}) lost its armor — hull timer {2} · {3}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} when its hull timer ends, {3} when this happened.</comment>
+  </data>
+  <data name="AlertStructureDestroyed" xml:space="preserve">
+    <value>{0} ({1}) was destroyed · {2}</value>
+    <comment>Overview alert: {0} structure, {1} system, {2} when.</comment>
+  </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0}'s den at {1}</value>
+    <comment>Overview alert: names a den — {0} the owning character, {1} its planet.</comment>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}: anarchy level {1} ({2}/100)</value>
+    <comment>Overview alert: {0} the den (AlertDenName), {1} anarchy level 0–4, {2} amount 0–100.</comment>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} is reinforced until {1} ({2})</value>
+    <comment>Overview alert: {0} the den, {1} when its reinforcement ends, {2} how long from now.</comment>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} was reinforced · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} is under attack · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} offers a new tactical operation · {1}</value>
+    <comment>Overview alert from a notification: {0} the den, {1} when.</comment>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>A mercenary den of {0}</value>
+    <comment>Overview alert: a den the notification could not be put to; {0} the character who received it.</comment>
+  </data>
   <data name="AlertContractsToYouOne" xml:space="preserve">
     <value>{0} outstanding contract issued to you.</value>
     <comment>Overview alert, one contract waiting on the user. {0} is the number.</comment>

@@ -274,6 +274,8 @@ public class MainWindowViewModel : ReactiveObject
     public SalePostingViewModel           SalePostingVm          { get; }
     public StoresViewModel                StoresVm               { get; }
     public CorpActivityViewModel          CorpActivityVm         { get; }
+    public CorpStructuresViewModel        CorpStructuresVm       { get; }
+    public MercenaryDensViewModel         MercenaryDensVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public EveMailViewModel               EveMailVm              { get; }
     public PriceHistorySettingsViewModel  PriceHistorySettingsVm { get; }
@@ -902,6 +904,8 @@ public class MainWindowViewModel : ReactiveObject
             "player_entities"  => (ShellText.NavPlayerEntities, PlayerEntitiesVm, true),
             "npc_entities"     => (ShellText.NavNpcEntities,    NpcEntitiesVm,    true),
             "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
+            "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
+            "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
@@ -1177,6 +1181,8 @@ public class MainWindowViewModel : ReactiveObject
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
+        CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
+        MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -1297,6 +1303,9 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.Pi                     = piService;
         OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
         OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
+        // The structure alerts open Corp Structures on the corporation, and the structure they name.
+        OverviewVm.NavigateToCorpStructures = (corp, structure) => { OpenTool("corp_structures"); CorpStructuresVm.Show(corp, structure); };
+        OverviewVm.NavigateToMercenaryDens  = den => { OpenTool("mercenary_dens"); MercenaryDensVm.Show(den); };
         var universeMapService = new UniverseMapService(dbFactory);
         // Each system tab gets a page of its own, wired to the Item Browser like the rest.
         SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
@@ -1534,6 +1543,8 @@ public class MainWindowViewModel : ReactiveObject
             new("corp", ShellText.NavGroupCorp,
             [
                 new NavItem("corp_activity", ShellText.NavCorpActivity),
+                new NavItem("corp_structures", ShellText.NavCorpStructures),
+                new NavItem("mercenary_dens",  ShellText.NavMercenaryDens),
                 new NavItem("killmails",     ShellText.NavKillmails),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),
