@@ -1510,6 +1510,9 @@
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>警告 — サイレン</value>
   </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>警告 — 高速サイレン</value>
+  </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>警告 — ホーン</value>
   </data>

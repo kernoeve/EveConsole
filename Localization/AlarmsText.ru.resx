@@ -1600,6 +1600,9 @@
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Предупреждение — сирена</value>
   </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Предупреждение — быстрая сирена</value>
+  </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Предупреждение — гудок</value>
   </data>

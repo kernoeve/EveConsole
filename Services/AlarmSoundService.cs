@@ -93,6 +93,7 @@ public sealed class AlarmSoundService
         ("klaxon-industrial", AlarmsText.SoundWarningKlaxon),
         ("buzzer-harsh",      AlarmsText.SoundWarningBuzzer),
         ("siren-sweep",       AlarmsText.SoundWarningSiren),
+        ("siren-whoop",       AlarmsText.SoundWarningSirenWhoop),
         ("horn-low",          AlarmsText.SoundWarningHorn),
     ];
 

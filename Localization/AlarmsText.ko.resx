@@ -1510,6 +1510,9 @@
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>경고 — 사이렌</value>
   </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>경고 — 빠른 사이렌</value>
+  </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>경고 — 경적</value>
   </data>

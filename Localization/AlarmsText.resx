@@ -2052,6 +2052,10 @@
     <value>Warning — siren</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Warning — siren whoop</value>
+    <comment>Alarm sound picker: a fast synthetic siren whooping up and down, like a red alert.</comment>
+  </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Warning — horn</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
