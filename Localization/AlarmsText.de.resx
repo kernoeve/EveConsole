@@ -1492,6 +1492,12 @@
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Glocke – Messing</value>
   </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Glocke – Handglocke</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Glocke – Tischglocke</value>
+  </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Glocke – tief</value>
   </data>

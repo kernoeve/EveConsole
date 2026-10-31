@@ -1988,6 +1988,14 @@
     <value>Bell — brass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Bell — hand</value>
+    <comment>Alarm sound picker: a small brass hand bell rung twice, quick and warm.</comment>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Bell — desk</value>
+    <comment>Alarm sound picker: a polished desk (reception) bell, one bright ding with a ringing tail.</comment>
+  </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Bell — deep</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

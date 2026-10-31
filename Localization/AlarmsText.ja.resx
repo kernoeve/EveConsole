@@ -1462,6 +1462,12 @@
   <data name="SoundBellBrass" xml:space="preserve">
     <value>ベル — 真鍮</value>
   </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>ベル — ハンドベル</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>ベル — 卓上ベル</value>
+  </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>ベル — 低音</value>
   </data>

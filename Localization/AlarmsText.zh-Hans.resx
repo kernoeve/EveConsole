@@ -1462,6 +1462,12 @@
   <data name="SoundBellBrass" xml:space="preserve">
     <value>铃声——黄铜</value>
   </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>铃声——手摇铃</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>铃声——服务铃</value>
+  </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>铃声——浑厚</value>
   </data>

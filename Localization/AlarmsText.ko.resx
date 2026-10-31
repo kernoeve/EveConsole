@@ -1462,6 +1462,12 @@
   <data name="SoundBellBrass" xml:space="preserve">
     <value>벨 — 황동</value>
   </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>벨 — 핸드벨</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>벨 — 데스크 벨</value>
+  </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>벨 — 깊은 소리</value>
   </data>
