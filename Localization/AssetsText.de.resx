@@ -307,6 +307,12 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>{0} fehlen</value>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Artikel hinzufügen…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Sollbestände</value>
   </data>

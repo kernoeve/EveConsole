@@ -313,6 +313,12 @@
   <data name="InvShortMany" xml:space="preserve">
     <value>в дефиците: {0}</value>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Добавить предмет…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Действия</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Уровни запасов</value>
   </data>

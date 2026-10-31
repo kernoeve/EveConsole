@@ -304,6 +304,12 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>부족 {0}개</value>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>아이템 추가…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>작업</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>재고 수준</value>
   </data>

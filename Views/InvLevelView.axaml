@@ -146,16 +146,26 @@
           <Setter Property="Background" Value="{Binding RowBackground}" />
         </Style>
 
-        <!-- A header's buttons show only while the pointer is on its row (or it is selected).
-             Hidden by opacity, not IsVisible, so nothing beside them shifts as they appear; and
-             not hit-testable while hidden, so an invisible Delete cannot be clicked. -->
-        <Style Selector="StackPanel.rowactions">
-          <Setter Property="Opacity"            Value="0" />
-          <Setter Property="IsHitTestVisible"   Value="False" />
+        <!-- A header's actions menu: always there, small and quiet, brighter under the pointer. -->
+        <Style Selector="Button.rowmenu">
+          <Setter Property="Content"         Value="⋯" />
+          <Setter Property="Background"      Value="{DynamicResource SurfaceRaisedBrush}" />
+          <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="CornerRadius"    Value="3" />
+          <Setter Property="Padding"         Value="6 -2 6 1" />
+          <Setter Property="MinHeight"       Value="0" />
+          <Setter Property="Height"          Value="18" />
+          <Setter Property="FontSize"        Value="13" />
+          <Setter Property="FontWeight"      Value="Bold" />
+          <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}" />
+          <Setter Property="Cursor"          Value="Hand" />
+          <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="DataGridRow:pointerover StackPanel.rowactions, DataGridRow:selected StackPanel.rowactions">
-          <Setter Property="Opacity"            Value="1" />
-          <Setter Property="IsHitTestVisible"   Value="True" />
+        <Style Selector="Button.rowmenu:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background"  Value="{DynamicResource SurfaceHoverBrush}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+          <Setter Property="Foreground"  Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
 
         <!-- The bar in the % cell: a track the width of the cell, filled to how much of the
@@ -184,7 +194,9 @@
                                 IsReadOnly="True" ClipboardContentBinding="{Binding CollectionName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Canvas x:CompileBindings="False" ClipToBounds="False" Height="25">
+              <!-- ⚠️ Clipped to the column: header rows carry totals now, and a long group line
+                   (name, multiplier, scope, sources) drawn past the column covered them. -->
+              <Canvas x:CompileBindings="False" ClipToBounds="True" Height="25">
 
                 <!-- Collection row: toggle + name + action buttons -->
                 <StackPanel IsVisible="{Binding IsCollection}" Orientation="Horizontal" Spacing="6"
@@ -197,39 +209,23 @@
                   <TextBlock Text="{Binding CollectionName}"
                              FontSize="12" FontWeight="SemiBold"
                              Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
-                  <StackPanel Classes="rowactions" Orientation="Horizontal" Spacing="6">
-                  <Button Command="{Binding ExpandAllCommand}"
-                          Content="+"
-                          ToolTip.Tip="{x:Static loc:AssetsText.TipExpandAllGroups}"
-                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
-                          BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
-                          Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
-                  <Button Command="{Binding CollapseAllCommand}"
-                          Content="−"
-                          ToolTip.Tip="{x:Static loc:AssetsText.TipCollapseAllGroups}"
-                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
-                          BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
-                          Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" />
-                  <Button Command="{Binding RenameCommand}"
-                          Content="{x:Static loc:AssetsText.Rename}"
-                          IsVisible="{Binding !IsSynthetic}"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                  <Button Command="{Binding ExportCommand}"
-                          Content="{x:Static loc:AssetsText.Export}"
-                          IsVisible="{Binding !IsSynthetic}"
-                          ToolTip.Tip="{x:Static loc:AssetsText.TipSaveThisCollectionsGroups}"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand"
-                          Margin="6 0 0 0" />
-                  <Button Command="{Binding DeleteCommand}"
-                          Content="{x:Static loc:AssetsText.Delete}"
-                          IsVisible="{Binding !IsSynthetic}"
-                          Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
-                          BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
-                          Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
+                  <!-- One ⋯ for the actions, shown on mouse-over: a row of buttons ran past the column
+                       and over the totals. -->
+                  <StackPanel VerticalAlignment="Center">
+                    <Button Classes="rowmenu" ToolTip.Tip="{x:Static loc:AssetsText.InvTipActions}">
+                      <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                          <MenuItem Header="{x:Static loc:AssetsText.TipExpandAllGroups}"   Command="{Binding ExpandAllCommand}" />
+                          <MenuItem Header="{x:Static loc:AssetsText.TipCollapseAllGroups}" Command="{Binding CollapseAllCommand}" />
+                          <Separator IsVisible="{Binding !IsSynthetic}" />
+                          <MenuItem Header="{x:Static loc:AssetsText.Rename}" Command="{Binding RenameCommand}" IsVisible="{Binding !IsSynthetic}" />
+                          <MenuItem Header="{x:Static loc:AssetsText.Export}" Command="{Binding ExportCommand}" IsVisible="{Binding !IsSynthetic}"
+                                    ToolTip.Tip="{x:Static loc:AssetsText.TipSaveThisCollectionsGroups}" />
+                          <MenuItem Header="{x:Static loc:AssetsText.Delete}" Command="{Binding DeleteCommand}" IsVisible="{Binding !IsSynthetic}"
+                                    Foreground="{DynamicResource BadBrush}" />
+                        </MenuFlyout>
+                      </Button.Flyout>
+                    </Button>
                   </StackPanel>
                 </StackPanel>
 
@@ -244,6 +240,19 @@
                   <TextBlock Text="{Binding GroupName}"
                              FontSize="12" FontWeight="SemiBold"
                              Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                  <StackPanel VerticalAlignment="Center">
+                    <Button Classes="rowmenu" ToolTip.Tip="{x:Static loc:AssetsText.InvTipActions}">
+                      <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                          <MenuItem Header="{x:Static loc:AssetsText.InvMenuAddItem}" Command="{Binding AddItemCommand}" />
+                          <MenuItem Header="{x:Static loc:AssetsText.Edit}"           Command="{Binding EditCommand}" />
+                          <Separator />
+                          <MenuItem Header="{x:Static loc:AssetsText.Delete}"         Command="{Binding DeleteCommand}"
+                                    Foreground="{DynamicResource BadBrush}" />
+                        </MenuFlyout>
+                      </Button.Flyout>
+                    </Button>
+                  </StackPanel>
                   <TextBlock Text="×" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" Margin="6 0 0 0" />
                   <NumericUpDown x:CompileBindings="False"
@@ -274,24 +283,6 @@
                   <TextBlock Text="{Binding IncludeSummary}"
                              FontSize="10" Foreground="{DynamicResource InfoBrush}"
                              VerticalAlignment="Center" Margin="4 0 0 0" />
-                  <!-- After the scope, so that while hidden they leave no gap in the line. -->
-                  <StackPanel Classes="rowactions" Orientation="Horizontal" Spacing="6" Margin="10 0 0 0">
-                    <Button Command="{Binding AddItemCommand}"
-                            Content="{x:Static loc:AssetsText.Item}"
-                            Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                            BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
-                            Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                    <Button Command="{Binding EditCommand}"
-                            Content="{x:Static loc:AssetsText.Edit}"
-                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
-                            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                            Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                    <Button Command="{Binding DeleteCommand}"
-                            Content="{x:Static loc:AssetsText.Delete}"
-                            Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
-                            BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
-                            Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                  </StackPanel>
                 </StackPanel>
 
                 <!-- Item row. ⚠️ Canvas.Left/Top go on the Button, not the inner TextBlock: the
@@ -339,7 +330,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding TargetTotalText}"
                          Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -353,7 +343,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding AvailableText}"
                          Foreground="{DynamicResource TextPrimaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -367,7 +356,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding DiffText}"
                          Foreground="{Binding DiffColor}"
                          FontWeight="SemiBold"
@@ -410,7 +398,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding AssetsText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -424,7 +411,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding IndustryJobsText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -438,7 +424,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding BuyOrdersText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -452,7 +437,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding ContractsText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -466,7 +450,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding SellOrdersText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -480,7 +463,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding ContractsSellingText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -536,7 +518,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding VolumeTargetText}"
                          Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -549,7 +530,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding VolumeAvailableText}"
                          Foreground="{DynamicResource TextPrimaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -562,7 +542,6 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
                          Text="{Binding VolumeDiffText}"
                          Foreground="{Binding DiffColor}"
                          FontWeight="SemiBold"

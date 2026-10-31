@@ -307,6 +307,12 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>{0} por debajo</value>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Añadir objeto…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Niveles de inventario</value>
   </data>

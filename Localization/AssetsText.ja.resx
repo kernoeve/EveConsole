@@ -304,6 +304,12 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>不足 {0}件</value>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>アイテムを追加…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>操作</value>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>在庫レベル</value>
   </data>

@@ -88,16 +88,66 @@ public abstract class InvHeaderRow : ReactiveObject
     public IBrush CoverBrush => InvCover.Brush(WorstSeverity);
     public IBrush ShortBrush => WorstSeverity >= 2 ? Palette.Bad : Palette.Warn;
 
+    // ── Totals ────────────────────────────────────────────────────────────────
+    //
+    // The items' figures summed into the header's own cells, under the same names the item rows
+    // use, so one cell template draws both. Only the columns where a sum means something: the
+    // target, the prices and the unit volume are per unit, and stay blank on a header.
+    //
+    // ⚠️ Diff is the SHORTFALL — what is below target, summed — not Avail minus Tgt Total. A net
+    // sum lets one item's surplus cancel another's shortage: a spare Rhea blueprint hid two missing
+    // Karuras. The header answers "what do I still need to get, and haul".
+
+    private long   _target, _avail, _short, _assets, _jobs, _buys, _contracts, _sells, _contractsSelling;
+    private double _volTarget, _volAvail, _volShort;
+
+    private string Qty(long v, bool sign = false) => HasCover ? InvItemRow.FormatQty(v, sign) : "";
+    private string Vol(double v, bool sign = false) => HasCover && _volTarget > 0 ? InvItemRow.FormatVolume(v, sign) : "";
+
+    public string TargetTotalText      => Qty(_target);
+    public string AvailableText        => Qty(_avail);
+    public string DiffText             => Qty(_short, sign: true);
+    public IBrush DiffColor            => _short < 0 ? ShortBrush : Palette.Good;
+    public string AssetsText           => Qty(_assets);
+    public string IndustryJobsText     => Qty(_jobs);
+    public string BuyOrdersText        => Qty(_buys);
+    public string ContractsText        => Qty(_contracts);
+    public string SellOrdersText       => Qty(_sells);
+    public string ContractsSellingText => Qty(_contractsSelling);
+    public string VolumeTargetText     => Vol(_volTarget);
+    public string VolumeAvailableText  => Vol(_volAvail);
+    public string VolumeDiffText       => Vol(_volShort, sign: true);
+
+    private static readonly string[] Recomputed =
+    [
+        nameof(HasCover), nameof(ShortText), nameof(CoverBrush), nameof(ShortBrush),
+        nameof(TargetTotalText), nameof(AvailableText), nameof(DiffText), nameof(DiffColor),
+        nameof(AssetsText), nameof(IndustryJobsText), nameof(BuyOrdersText), nameof(ContractsText),
+        nameof(SellOrdersText), nameof(ContractsSellingText),
+        nameof(VolumeTargetText), nameof(VolumeAvailableText), nameof(VolumeDiffText),
+    ];
+
     public void SetCover(IReadOnlyCollection<InvItemRow> items)
     {
         _itemCount    = items.Count;
         _shortCount   = items.Count(i => i.Diff < 0);
         WorstSeverity = items.Count == 0 ? 0 : items.Max(i => i.Severity);
         CoverPct      = items.Count == 0 ? 100 : items.Average(i => i.CoverPct);
-        this.RaisePropertyChanged(nameof(HasCover));
-        this.RaisePropertyChanged(nameof(ShortText));
-        this.RaisePropertyChanged(nameof(CoverBrush));
-        this.RaisePropertyChanged(nameof(ShortBrush));
+
+        _target           = items.Sum(i => i.TargetTotal);
+        _avail            = items.Sum(i => i.Available);
+        _short            = items.Sum(i => Math.Min(0, i.Diff));
+        _assets           = items.Sum(i => i.AssetsQty);
+        _jobs             = items.Sum(i => i.IndustryJobsQty);
+        _buys             = items.Sum(i => i.BuyOrdersQty);
+        _contracts        = items.Sum(i => i.ContractsQty);
+        _sells            = items.Sum(i => i.SellOrdersQty);
+        _contractsSelling = items.Sum(i => i.ContractsSellingQty);
+        _volTarget        = items.Sum(i => i.VolumeTarget);
+        _volAvail         = items.Sum(i => i.VolumeAvailable);
+        _volShort         = items.Sum(i => Math.Min(0, i.VolumeDiff));
+
+        foreach (var name in Recomputed) this.RaisePropertyChanged(name);
     }
 }
 
@@ -202,7 +252,7 @@ public class InvGroupRow : InvHeaderRow
 
     // Displayed beneath the group name to indicate scope
     public string ScopeDisplay => Scope == "Everywhere"
-        ? AssetsText.Everywhere
+        ? Localization.AssetsText.Everywhere
         : $"{LocationDisplay} · {ScopeLabel}";
 
     /// <summary>
@@ -218,10 +268,10 @@ public class InvGroupRow : InvHeaderRow
     /// "System", "Region", "Everywhere" — and is what everything compares; only this is looked up.</summary>
     public string ScopeLabel => Scope switch
     {
-        "Station"    => AssetsText.Station,
-        "System"     => AssetsText.System,
-        "Region"     => AssetsText.Region,
-        "Everywhere" => AssetsText.Everywhere,
+        "Station"    => Localization.AssetsText.Station,
+        "System"     => Localization.AssetsText.System,
+        "Region"     => Localization.AssetsText.Region,
+        "Everywhere" => Localization.AssetsText.Everywhere,
         _            => Scope,
     };
 
@@ -280,14 +330,14 @@ public class InvGroupRow : InvHeaderRow
         get
         {
             var parts = new List<string>();
-            if (IncludeAssets)          parts.Add(AssetsText.Assets);
-            if (IncludeIndustryJobs)    parts.Add(AssetsText.IncludeIjShort);
-            if (IncludeMarketBuyOrders) parts.Add(AssetsText.IncludeOrdersShort);
-            if (IncludeContractsBuying) parts.Add(AssetsText.IncludeContractsShort);
-            if (IncludeMarketSellOrders) parts.Add(AssetsText.IncludeSellOrdersShort);
-            if (IncludeContractsSelling) parts.Add(AssetsText.IncludeContractsSellingShort);
-            if (PackagedOnly)           parts.Add(AssetsText.IncludePackagedOnly);
-            return parts.Count > 0 ? string.Join(", ", parts) : AssetsText.IncludeNone;
+            if (IncludeAssets)          parts.Add(Localization.AssetsText.Assets);
+            if (IncludeIndustryJobs)    parts.Add(Localization.AssetsText.IncludeIjShort);
+            if (IncludeMarketBuyOrders) parts.Add(Localization.AssetsText.IncludeOrdersShort);
+            if (IncludeContractsBuying) parts.Add(Localization.AssetsText.IncludeContractsShort);
+            if (IncludeMarketSellOrders) parts.Add(Localization.AssetsText.IncludeSellOrdersShort);
+            if (IncludeContractsSelling) parts.Add(Localization.AssetsText.IncludeContractsSellingShort);
+            if (PackagedOnly)           parts.Add(Localization.AssetsText.IncludePackagedOnly);
+            return parts.Count > 0 ? string.Join(", ", parts) : Localization.AssetsText.IncludeNone;
         }
     }
 
@@ -612,7 +662,7 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(CoverBrush));
     }
 
-    private static string FormatQty(long v, bool sign = false)
+    internal static string FormatQty(long v, bool sign = false)
     {
         long abs = Math.Abs(v);
         string prefix = sign ? (v >= 0 ? "+" : "") : "";
@@ -623,7 +673,7 @@ public class InvItemRow : ReactiveObject
 
     /// <summary>m³ in the quantities' style: 1.2K, 3.45M, and two decimals only below 100, where
     /// a blueprint's 0.01 a unit would otherwise round to nothing.</summary>
-    private static string FormatVolume(double v, bool sign = false)
+    internal static string FormatVolume(double v, bool sign = false)
     {
         var abs    = Math.Abs(v);
         var prefix = sign && v >= 0 ? "+" : "";

@@ -408,6 +408,14 @@
     <value>{0} short</value>
     <comment>Inventory Levels, the % cell of a group or collection header: how many of its items are below their target. {0} is the count.</comment>
   </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Add item…</value>
+    <comment>Inventory Levels, the actions menu of a group header: opens the dialog to add one item to this group.</comment>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Actions</value>
+    <comment>Inventory Levels: tooltip of the small ⋯ button on a group or collection header, which opens its menu (add item, edit, rename, export, delete…).</comment>
+  </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Inventory Levels</value>
     <comment>Window title in InvLevelWindow.</comment>
