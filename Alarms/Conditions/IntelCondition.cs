@@ -203,6 +203,8 @@ public sealed class IntelCondition : IAlarmCondition
     public (string Title, string Body) DefaultText(
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
+        matches = LatestPerPilot(matches);
+
         // Where matters more than how many, so the systems go in the title — that is what is
         // readable at a glance on a dialog that has just appeared over the game.
         var systems = matches
@@ -593,6 +595,7 @@ public sealed class IntelCondition : IAlarmCondition
 
     internal static string? ComposeAnnouncement(IReadOnlyList<AlarmMatch> matches)
     {
+        matches = LatestPerPilot(matches);
         if (matches.Count == 0) return null;
 
         var perSystem = matches
@@ -701,6 +704,58 @@ public sealed class IntelCondition : IAlarmCondition
             return _positions = map;
         }
         finally { PositionsGate.Release(); }
+    }
+
+    /// <summary>
+    /// Each named pilot only where they were seen last. A firing can hold reports from minutes
+    /// apart — most of all on undocking, when everything said while docked arrives at once — and
+    /// a pilot reported in two systems is in one of them: the newer. Older reports lose the
+    /// pilots seen since; one with nobody left (and no unnamed pilots besides) is dropped.
+    /// </summary>
+    internal static IReadOnlyList<AlarmMatch> LatestPerPilot(IReadOnlyList<AlarmMatch> matches)
+    {
+        if (matches.Count < 2) return matches;
+
+        var placed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var kept   = new List<AlarmMatch>(matches.Count);
+        foreach (var m in matches.OrderByDescending(At))
+        {
+            if (m.Detail is not { } d || !d.TryGetValue("pilots", out var p) || p is not IEnumerable<string> listed)
+            {
+                kept.Add(m);
+                continue;
+            }
+
+            var pilots = listed.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var left   = pilots.Where(n => !placed.Contains(n)).ToList();
+            foreach (var n in pilots) placed.Add(n);
+            if (left.Count == pilots.Count) { kept.Add(m); continue; }
+
+            var count = d.TryGetValue("count", out var c) && c is int n0 ? n0 : pilots.Count;
+            count = Math.Max(count, pilots.Count) - (pilots.Count - left.Count);
+            if (count < 1) continue;
+
+            // The summary ends " — names" and starts "N pilots", as EvaluateAsync wrote it.
+            var cut     = m.Summary.LastIndexOf(" — ", StringComparison.Ordinal);
+            var body    = (cut >= 0 ? m.Summary[..cut] : m.Summary);
+            var space   = body.IndexOf(" pilot", StringComparison.Ordinal);
+            var rest    = space >= 0 ? body[(space + " pilot".Length)..].TrimStart('s') : body;
+            var summary = (count == 1 ? "1 pilot" : $"{count} pilots") + rest
+                        + (left.Count > 0 ? " — " + string.Join(", ", left.Take(5)) + (left.Count > 5 ? $", +{left.Count - 5}" : "") : "");
+
+            kept.Add(m with
+            {
+                Summary = summary,
+                Detail  = new Dictionary<string, object?>(d) { ["pilots"] = left, ["count"] = count },
+            });
+        }
+
+        // Back in the order they came, for everything that reads them after.
+        var order = matches.Select((m, i) => (m.Key, i)).GroupBy(x => x.Key).ToDictionary(g => g.Key, g => g.First().i);
+        return [.. kept.OrderBy(m => order.GetValueOrDefault(m.Key))];
+
+        static DateTime At(AlarmMatch m)
+            => m.Detail is { } d && d.TryGetValue("at", out var a) && a is DateTime at ? at : DateTime.MinValue;
     }
 
     internal static string MatchKey(int systemId, DateTime at, IReadOnlyList<string> names, int count)
