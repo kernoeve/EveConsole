@@ -73,6 +73,7 @@ public sealed class AlarmSoundService
         ("bell-crystal",      AlarmsText.SoundBellCrystal),
         ("chime-marimba",     AlarmsText.SoundChimeMarimba),
         ("chime-triad",       AlarmsText.SoundChimeTriad),
+        ("chime-vibraphone",  AlarmsText.SoundChimeVibraphone),
         ("ping-glass",        AlarmsText.SoundPingGlass),
         ("bell-brass",        AlarmsText.SoundBellBrass),
         ("bell-deep",         AlarmsText.SoundBellDeep),

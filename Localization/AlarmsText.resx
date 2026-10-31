@@ -1972,6 +1972,10 @@
     <value>Chime — triad</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app (a three-note chime).</comment>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Chime — vibraphone</value>
+    <comment>Alarm sound picker: three warm vibraphone notes rising one after another, a cheerful success sound.</comment>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — glass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

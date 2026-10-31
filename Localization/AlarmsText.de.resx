@@ -1480,6 +1480,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Glockenton – Dreiklang</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Glockenton – Vibraphon</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping – Glas</value>
   </data>

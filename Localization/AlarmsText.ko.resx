@@ -1450,6 +1450,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>차임 — 3화음</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>차임 — 비브라폰</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>핑 — 유리</value>
   </data>

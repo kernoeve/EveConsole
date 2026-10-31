@@ -1450,6 +1450,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>チャイム — 3和音</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>チャイム — ビブラフォン</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>ピン — ガラス</value>
   </data>

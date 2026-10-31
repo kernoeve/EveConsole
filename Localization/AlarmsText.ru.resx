@@ -1540,6 +1540,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Перезвон — трезвучие</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Перезвон — вибрафон</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Звон — стеклянный</value>
   </data>

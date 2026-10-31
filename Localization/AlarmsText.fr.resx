@@ -1480,6 +1480,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Carillon — triade</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Carillon — vibraphone</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — verre</value>
   </data>

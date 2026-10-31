@@ -1450,6 +1450,9 @@
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>钟声——三和弦</value>
   </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>钟声——颤音琴</value>
+  </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>叮声——玻璃</value>
   </data>
