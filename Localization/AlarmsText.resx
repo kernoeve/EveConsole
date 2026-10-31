@@ -2016,6 +2016,14 @@
     <value>Alert — double</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Alert — blips</value>
+    <comment>Alarm sound picker: two short, crisp sci-fi interface blips.</comment>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Alert — beeps</value>
+    <comment>Alarm sound picker: two quick, clean electronic beeps, like a ship's console.</comment>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarm — urgent</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

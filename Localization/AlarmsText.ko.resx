@@ -1483,6 +1483,12 @@
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>경보음 — 2회</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>경보음 — 블립</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>경보음 — 삐 소리</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>알람 — 긴급</value>
   </data>

@@ -1573,6 +1573,12 @@
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Сигнал — двойной</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Сигнал — блипы</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Сигнал — гудки</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Тревога — срочная</value>
   </data>

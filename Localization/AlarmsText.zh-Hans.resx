@@ -1483,6 +1483,12 @@
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>提示音——双响</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>提示音——哔哔</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>提示音——蜂鸣</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>警报——紧急</value>
   </data>

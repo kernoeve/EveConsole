@@ -1513,6 +1513,12 @@
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Signal – doppelt</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Signal – Blips</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Signal – Pieptöne</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarm – dringend</value>
   </data>

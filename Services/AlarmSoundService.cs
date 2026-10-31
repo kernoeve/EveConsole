@@ -84,6 +84,8 @@ public sealed class AlarmSoundService
         ("gong-low",          AlarmsText.SoundGongLow),
         ("gong-scifi",        AlarmsText.SoundGongScifi),
         ("alert-double",      AlarmsText.SoundAlertDouble),
+        ("alert-blips",       AlarmsText.SoundAlertBlips),
+        ("alert-beeps",       AlarmsText.SoundAlertBeeps),
         ("alarm-urgent",      AlarmsText.SoundAlarmUrgent),
         ("two-tone-alert",    AlarmsText.SoundWarningTwoTone),
         ("klaxon-industrial", AlarmsText.SoundWarningKlaxon),
