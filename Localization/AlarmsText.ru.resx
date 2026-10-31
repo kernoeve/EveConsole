@@ -1582,6 +1582,9 @@
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Тревога — срочная</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Тревога — боевая</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Предупреждение — двухтональное</value>
   </data>

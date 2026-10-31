@@ -1522,6 +1522,9 @@
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarme — urgente</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarme — postes de combat</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Avertissement — deux tons</value>
   </data>

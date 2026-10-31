@@ -87,6 +87,7 @@ public sealed class AlarmSoundService
         ("alert-blips",       AlarmsText.SoundAlertBlips),
         ("alert-beeps",       AlarmsText.SoundAlertBeeps),
         ("alarm-urgent",      AlarmsText.SoundAlarmUrgent),
+        ("alarm-battle",      AlarmsText.SoundAlarmBattle),
         ("two-tone-alert",    AlarmsText.SoundWarningTwoTone),
         ("klaxon-industrial", AlarmsText.SoundWarningKlaxon),
         ("buzzer-harsh",      AlarmsText.SoundWarningBuzzer),

@@ -1492,6 +1492,9 @@
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>알람 — 긴급</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>알람 — 전투 배치</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>경고 — 2음</value>
   </data>
