@@ -442,9 +442,20 @@ public class InvItemRow : ReactiveObject
     public double? MarketPrice => _marketPrice;
     public double? BuildPrice  => _buildPrice;
 
-    public string VolumeText      => _volume > 0      ? _volume.ToString("N2")       : "";
-    public string MarketPriceText => _marketPrice > 0  ? _marketPrice.Value.ToString("N2") : "";
-    public string BuildPriceText  => _buildPrice > 0   ? _buildPrice.Value.ToString("N2")  : "";
+    public string VolumeText      => _volume > 0      ? FormatVolume(_volume)          : "";
+    public string MarketPriceText => _marketPrice > 0  ? Price(_marketPrice.Value)      : "";
+    public string BuildPriceText  => _buildPrice > 0   ? Price(_buildPrice.Value)       : "";
+
+    /// <summary>ISK as the other tools abbreviate it (11.2M, 1.27B, 840k) — but two decimals under
+    /// a thousand, where a mineral at 4.52 rounded to 5 would be a tenth out.</summary>
+    private static string Price(double v) => v switch
+    {
+        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+        >= 1_000_000         => $"{v / 1_000_000:N1}M",
+        >= 1_000             => $"{v / 1_000:N0}k",
+        _                    => v.ToString("N2"),
+    };
 
     // Per-source availability (updated on each refresh)
     private long _availAssets;
@@ -666,6 +677,8 @@ public class InvItemRow : ReactiveObject
     {
         long abs = Math.Abs(v);
         string prefix = sign ? (v >= 0 ? "+" : "") : "";
+        if (abs >= 1_000_000_000_000) return $"{prefix}{v / 1_000_000_000_000.0:N2}T";
+        if (abs >= 1_000_000_000)     return $"{prefix}{v / 1_000_000_000.0:N2}B";
         if (abs >= 1_000_000) return $"{prefix}{v / 1_000_000.0:N2}M";
         if (abs >= 1_000)     return $"{prefix}{v / 1_000.0:N1}K";
         return $"{prefix}{v:N0}";
@@ -677,6 +690,8 @@ public class InvItemRow : ReactiveObject
     {
         var abs    = Math.Abs(v);
         var prefix = sign && v >= 0 ? "+" : "";
+        if (abs >= 1_000_000_000_000) return $"{prefix}{v / 1_000_000_000_000:N2}T";
+        if (abs >= 1_000_000_000)     return $"{prefix}{v / 1_000_000_000:N2}B";
         if (abs >= 1_000_000) return $"{prefix}{v / 1_000_000:N2}M";
         if (abs >= 1_000)     return $"{prefix}{v / 1_000:N1}K";
         if (abs >= 100)       return $"{prefix}{v:N0}";

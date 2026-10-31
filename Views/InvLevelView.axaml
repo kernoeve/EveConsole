@@ -320,7 +320,10 @@
                              FontSize="11"
                              Background="Transparent" BorderThickness="0"
                              Foreground="{DynamicResource TextPrimaryBrush}"
-                             HorizontalAlignment="Stretch" />
+                             HorizontalAlignment="Stretch"
+                             TextAlignment="Right"
+                             VerticalAlignment="Center" VerticalContentAlignment="Center"
+                             MinHeight="0" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
