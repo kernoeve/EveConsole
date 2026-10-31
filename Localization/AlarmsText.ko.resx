@@ -1477,6 +1477,9 @@
   <data name="SoundGongLow" xml:space="preserve">
     <value>징 — 낮은 소리</value>
   </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>징 — SF</value>
+  </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>경보음 — 2회</value>
   </data>

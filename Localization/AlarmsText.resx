@@ -2008,6 +2008,10 @@
     <value>Gong — low</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — sci-fi</value>
+    <comment>Alarm sound picker: one deep gong hit with a subtle synthetic shimmer, like a starship bridge.</comment>
+  </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alert — double</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

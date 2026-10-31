@@ -1507,6 +1507,9 @@
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — grave</value>
   </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — science-fiction</value>
+  </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alerte — double</value>
   </data>

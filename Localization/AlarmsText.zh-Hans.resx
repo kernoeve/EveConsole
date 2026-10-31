@@ -1477,6 +1477,9 @@
   <data name="SoundGongLow" xml:space="preserve">
     <value>锣声——低沉</value>
   </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>锣声——科幻</value>
+  </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>提示音——双响</value>
   </data>

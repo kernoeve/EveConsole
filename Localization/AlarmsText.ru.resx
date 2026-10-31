@@ -1567,6 +1567,9 @@
   <data name="SoundGongLow" xml:space="preserve">
     <value>Гонг — низкий</value>
   </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Гонг — фантастический</value>
+  </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Сигнал — двойной</value>
   </data>
