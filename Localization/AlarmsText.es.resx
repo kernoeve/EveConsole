@@ -1486,6 +1486,9 @@
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — cristal</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — brillante</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Campana — latón</value>
   </data>

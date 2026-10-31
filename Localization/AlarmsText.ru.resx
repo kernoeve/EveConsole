@@ -1546,6 +1546,9 @@
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Звон — стеклянный</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Звон — яркий</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Колокол — латунный</value>
   </data>

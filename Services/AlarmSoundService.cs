@@ -75,6 +75,7 @@ public sealed class AlarmSoundService
         ("chime-triad",       AlarmsText.SoundChimeTriad),
         ("chime-vibraphone",  AlarmsText.SoundChimeVibraphone),
         ("ping-glass",        AlarmsText.SoundPingGlass),
+        ("ping-bright",       AlarmsText.SoundPingBright),
         ("bell-brass",        AlarmsText.SoundBellBrass),
         ("bell-deep",         AlarmsText.SoundBellDeep),
         ("gong-low",          AlarmsText.SoundGongLow),

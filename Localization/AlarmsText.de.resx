@@ -1486,6 +1486,9 @@
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping – Glas</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping – hell</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Glocke – Messing</value>
   </data>

@@ -1456,6 +1456,9 @@
   <data name="SoundPingGlass" xml:space="preserve">
     <value>핑 — 유리</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>핑 — 밝은</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>벨 — 황동</value>
   </data>

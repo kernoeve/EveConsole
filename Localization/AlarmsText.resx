@@ -1980,6 +1980,10 @@
     <value>Ping — glass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — bright</value>
+    <comment>Alarm sound picker: a single crisp, bright glass ping with a short decay.</comment>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Bell — brass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
