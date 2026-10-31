@@ -2000,6 +2000,10 @@
     <value>Bell — deep</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Bell — heavy</value>
+    <comment>Alarm sound picker: one strike of a heavy, deep metal bell, booming but not harsh.</comment>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — low</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>

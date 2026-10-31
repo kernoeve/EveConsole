@@ -80,6 +80,7 @@ public sealed class AlarmSoundService
         ("bell-hand",         AlarmsText.SoundBellHand),
         ("bell-desk",         AlarmsText.SoundBellDesk),
         ("bell-deep",         AlarmsText.SoundBellDeep),
+        ("bell-heavy",        AlarmsText.SoundBellHeavy),
         ("gong-low",          AlarmsText.SoundGongLow),
         ("alert-double",      AlarmsText.SoundAlertDouble),
         ("alarm-urgent",      AlarmsText.SoundAlarmUrgent),

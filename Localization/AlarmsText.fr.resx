@@ -1501,6 +1501,9 @@
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Cloche — grave</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Cloche — lourde</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — grave</value>
   </data>
