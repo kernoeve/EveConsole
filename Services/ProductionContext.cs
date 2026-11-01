@@ -87,6 +87,27 @@ public sealed class ProductionContext
     /// </summary>
     public HashSet<int> AlwaysBpcTypes { get; set; } = [];
 
+    // ── Science: what an invented copy costs ─────────────────────────────────
+    // See ScienceCost. Read by the plans that price a T2 copy at its invention and by the park
+    // comparison's science lines, so a science job costs the same wherever it is asked about.
+
+    /// <summary>Invention recipes keyed by the blueprint they invent.</summary>
+    public required Dictionary<int, Worklist.InventionRecipe> InventionRecipes { get; init; }
+
+    /// <summary>Sources an attempt uses up whole — the T3 relics — rather than one run of a copy.</summary>
+    public required HashSet<int>             RelicSources { get; init; }
+    public required List<Worklist.Decryptor> Decryptors   { get; init; }
+
+    /// <summary>The Worklist's decryptor choices, by name: what invention is planned with.</summary>
+    public required string ShipDecryptor  { get; init; }
+    public required string OtherDecryptor { get; init; }
+
+    /// <summary>Lab rig type → its job cost reduction, a fraction.</summary>
+    public required Dictionary<int, double>    LabRigCost { get; init; }
+
+    /// <summary>Structure type key, lower case → its job cost multiplier.</summary>
+    public required Dictionary<string, double> HullCost   { get; init; }
+
     /// <summary>Type id → its SDE group. Named rather than anonymous so it can cross a method.</summary>
     public readonly record struct TypeGroup(int TypeId, int GroupId);
 

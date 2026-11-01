@@ -1522,6 +1522,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>每流程 1 份 BPC，按 ME{0} 的合同价格</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>每流程 1 次 BPC 流程，按发明成本：成功率 {0:P0}，每次成功 {1} 流程，{2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>中间产物</value>
   </data>

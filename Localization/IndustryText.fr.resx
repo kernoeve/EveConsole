@@ -1534,6 +1534,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC par cycle au prix en contrat (ME{0})</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 cycle de BPC par cycle, au coût de son invention : {0:P0} de chance, {1} cycles par réussite, {2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermédiaire</value>
   </data>

@@ -2157,6 +2157,19 @@ public class ItemBrowserViewModel : ReactiveObject
             string buildCostText = buildCost is { TotalCost: > 0 }
                 ? FormatIsk((double)buildCost.TotalCost)
                 : "";
+            bool hasBuildCost = buildCost != null;
+
+            // A blueprint copy is costed per RUN, at what inventing one costs: that is what the
+            // build costs charge a T2 job for its copy. It has no row of its own in BuildCosts.
+            if (buildCost is null && blueprintDetail is not null && _dbFactory is not null)
+            {
+                var copy = await new ProductionCalculatorService(_dbFactory).CopyRunPricesAsync([typeId], ct);
+                if (copy.TryGetValue(typeId, out var run) && run.Build is > 0m)
+                {
+                    buildCostText = string.Format(AssetsText.IskPerRun, FormatIsk((double)run.Build.Value));
+                    hasBuildCost  = true;
+                }
+            }
 
             // Reprocessing value
             var reprVal = await _db.ReprocessingItemValues.AsNoTracking()
@@ -2183,7 +2196,7 @@ public class ItemBrowserViewModel : ReactiveObject
                 MarketValueLabel = marketValueLabel,
                 MarketValueText      = marketValueText,
                 BuildCostText        = buildCostText,
-                HasBuildCost         = buildCost != null,
+                HasBuildCost         = hasBuildCost,
                 ReprocessedValueText = reprValueText,
                 TypeStats        = typeStats,
                 DogmaAttrs       = dogmaAttrs,

@@ -1558,6 +1558,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC на прогон по цене в контрактах для ME{0}</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 прогон BPC на прогон по стоимости изобретения: шанс {0:P0}, {1} прогонов за успех, {2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Полуфабрикат</value>
   </data>

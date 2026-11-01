@@ -92,11 +92,53 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
                 AppDb.Param("@now",   now),
                 AppDb.Param("@cfg",   (object?)configId ?? DBNull.Value),
             ], ct);
+
+            await CopyRunsAsync(db, today, now, ct);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             errorLogger.Log("TypePriceHistoryService", "Recalculate", ex);
+        }
+    }
+
+    /// <summary>
+    /// A blueprint copy's day, per RUN: its build cost is what inventing a run costs, its contract
+    /// price what a run costs on contract. See <see cref="ProductionCalculatorService.CopyRunPricesAsync"/>.
+    ///
+    /// <para>⚠️ Written over the statement above. A copy has no build cost in BuildCosts — that
+    /// table is for things built, and its readers value assets and fill market gaps from it — and
+    /// ContractPrices holds a whole copy's price, so a T2 copy's chart showed no build line and a
+    /// contract line that was however many runs the copies on offer carried.</para>
+    /// </summary>
+    private async Task CopyRunsAsync(AppDbContext db, string today, DateTimeOffset now, CancellationToken ct)
+    {
+        var copies = await new ProductionCalculatorService(dbFactory).CopyRunPricesAsync(ct: ct);
+
+        const int Chunk = 300;   // three parameters a row, well inside either engine's limit
+        foreach (var chunk in copies.Chunk(Chunk))
+        {
+            var values = new List<string>();
+            var ps     = new List<object> { AppDb.Param("@today", today), AppDb.Param("@now", now) };
+            for (var i = 0; i < chunk.Length; i++)
+            {
+                var (typeId, (build, contract)) = (chunk[i].Key, chunk[i].Value);
+                values.Add($"(@t{i}, @today, NULL, @b{i}, @c{i}, NULL, @now)");
+                ps.Add(AppDb.Param($"@t{i}", typeId));
+                ps.Add(AppDb.Param($"@b{i}", build    is > 0m ? (double)build.Value    : DBNull.Value));
+                ps.Add(AppDb.Param($"@c{i}", contract is > 0m ? (double)contract.Value : DBNull.Value));
+            }
+
+            var sql = $"""
+                INSERT INTO "TypePriceSnapshots"
+                    ("TypeId", "Date", "MarketValue", "BuildCost", "ContractPrice", "ReprocessValue", "ComputedAt")
+                VALUES {string.Join(", ", values)}
+                ON CONFLICT ("TypeId", "Date") DO UPDATE SET
+                    "BuildCost"     = excluded."BuildCost",
+                    "ContractPrice" = excluded."ContractPrice",
+                    "ComputedAt"    = excluded."ComputedAt"
+                """;
+            await db.Database.ExecuteSqlRawAsync(sql, ps, ct);
         }
     }
 

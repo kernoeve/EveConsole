@@ -64,25 +64,13 @@ public sealed record ParkCost(
 /// part of its cost the index sets (<see cref="PlanJob.IndexWeight"/>), so a past day is that part
 /// again at that day's index — materials, taxes and the plan stay as calculated today.</para>
 ///
-/// <para>Science jobs are costed here, by the game's rules, in the same shape: the job's
-/// estimated item value is 2% of the manufacturing value (ME 0 materials at adjusted prices) of
-/// what the blueprint makes — per copy run, per invention attempt (of the invented blueprint's
-/// product), or × the research level factor / 105. That value × system index × the hull's role
-/// cost bonus × (1 − the lab rigs' cost bonus), plus facility tax and the 4% SCC surcharge on the
-/// value itself. Skills are all V. Invention plans the attempts its chance needs for the runs
-/// asked for, as the Worklist does, and the copying of the source runs those attempts use.</para>
+/// <para>Science jobs are costed by <see cref="ScienceCost"/>, the game's rules in the same shape,
+/// with research's value × the research level factor / 105. Skills are all V. Invention plans the
+/// attempts its chance needs for the runs asked for, as the Worklist does, and the copying of the
+/// source runs those attempts use.</para>
 /// </summary>
 public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbContextFactory<AppDbContext> dbFactory)
 {
-    private const double SciencePerRun  = 0.02;
-    private const double SccSurcharge   = 0.04;
-    // ⚠️ ME and TE research pay half the SCC surcharge since the July 2025 "Exploration &
-    // Industry Balance Rework" (CCP calls it temporary). Copying and invention still pay 4%:
-    // your own copy jobs match at 4% to 0.1%, and research jobs only match at 2%.
-    private const double ResearchSccSurcharge = 0.02;
-    private const int    AttrRigCost    = 2595;   // a lab rig's cost bonus, percent, negative
-    private const int    AttrHullCost   = 2601;   // an engineering complex's job cost multiplier
-
     private readonly IndustryTimeService _time      = new(dbFactory);
     private readonly InventionService    _invention = new(dbFactory);
 
@@ -166,9 +154,7 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
     private sealed record ScienceFacts(
         Dictionary<int, (int Product, bool Inventable)> Blueprints,
         Dictionary<int, InventionRecipe> Recipes,        // by source (T1) blueprint
-        List<Decryptor> Decryptors,
-        Dictionary<int, double> RigCost,                 // rig type → cost reduction, a fraction
-        Dictionary<string, double> HullCost);            // structure type key → job cost multiplier
+        List<Decryptor> Decryptors);
 
     private async Task<ScienceFacts> ScienceFactsAsync(IReadOnlyList<ParkCompareJob> jobs, CancellationToken ct)
     {
@@ -189,30 +175,7 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
 
         var decryptors = sources.Count > 0 ? await _invention.DecryptorsAsync(ct) : [];
 
-        var rigIds = await db.IndyStructureRigs.AsNoTracking().Select(r => r.RigTypeId).Distinct().ToListAsync(ct);
-        var rigCost = (await db.SdeTypeDogmaAttributes.AsNoTracking()
-                .Where(a => rigIds.Contains(a.TypeId) && a.AttributeId == AttrRigCost)
-                .Select(a => new { a.TypeId, a.Value }).ToListAsync(ct))
-            .ToDictionary(a => a.TypeId, a => Math.Abs(a.Value) / 100.0);
-        var hullCost = await (from a in db.SdeTypeDogmaAttributes.AsNoTracking()
-                              join t in db.SdeTypes.AsNoTracking() on a.TypeId equals t.TypeId
-                              where a.AttributeId == AttrHullCost
-                              select new { t.Name, a.Value }).ToListAsync(ct);
-
-        return new ScienceFacts(blueprints, recipes, decryptors, rigCost,
-            hullCost.GroupBy(h => h.Name.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First().Value));
-    }
-
-    /// <summary>All-V skills, the science ones included, as the calculator's durations assume.</summary>
-    private static Dictionary<int, int> SkillsAtFive(InventionRecipe? recipe)
-    {
-        var skills = new Dictionary<int, int> { [3380] = 5, [3388] = 5, [45746] = 5, [3402] = 5, [3403] = 5, [3409] = 5 };
-        if (recipe is not null)
-        {
-            skills[recipe.EncryptionSkillId] = 5;
-            foreach (var id in recipe.ScienceSkillIds) skills[id] = 5;
-        }
-        return skills;
+        return new ScienceFacts(blueprints, recipes, decryptors);
     }
 
     private static ParkCost Science((int Id, string Name, int Slot) park, ParkCompareJob job,
@@ -228,8 +191,8 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
             {
                 var runs   = Math.Max(1, job.Quantity);
                 var copies = Math.Max(1, job.Copies);
-                var copy   = ScienceJob(ctx, time, facts, bp, "bp_copying", "copying", IndustryTimeService.CopyingActivity,
-                                        Eiv(ctx, bp) * SciencePerRun * runs * copies, SkillsAtFive(null), runs * copies, 0);
+                var copy   = ScienceJob(ctx, time, bp, "bp_copying", "copying", IndustryTimeService.CopyingActivity,
+                                        ScienceCost.Eiv(ctx, bp) * ScienceCost.SciencePerRun * runs * copies, ScienceCost.SkillsAtFive(null), runs * copies, 0);
                 if (copy is null) return No();
                 return new ParkCost(park.Id, park.Name, park.Slot, job, true, runs * copies, 0, copy.Value.Cost, copy.Value.Cost,
                                     [copy.Value.Term], copy.Value.Seconds,
@@ -239,14 +202,14 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
             {
                 if (!facts.Recipes.TryGetValue(bp, out var recipe)) return No();
                 var decryptor = facts.Decryptors.FirstOrDefault(d => d.TypeId == job.DecryptorTypeId) ?? Decryptor.None;
-                var skills = SkillsAtFive(recipe);
+                var skills = ScienceCost.SkillsAtFive(recipe);
                 var plan   = InventionService.Plan(recipe, decryptor, Math.Max(1, job.Quantity), skills);
 
                 // The source copies the attempts use up, then the attempts themselves.
-                var copy = ScienceJob(ctx, time, facts, bp, "bp_copying", "copying", IndustryTimeService.CopyingActivity,
-                                      Eiv(ctx, bp) * SciencePerRun * plan.CopyRunsNeeded, skills, plan.CopyRunsNeeded, 0);
-                var invent = ScienceJob(ctx, time, facts, bp, "bp_invention", "invention", IndustryTimeService.InventionActivity,
-                                        Eiv(ctx, recipe.InventedBlueprintTypeId) * SciencePerRun * plan.Attempts, skills, plan.Attempts, 0);
+                var copy = ScienceJob(ctx, time, bp, "bp_copying", "copying", IndustryTimeService.CopyingActivity,
+                                      ScienceCost.Eiv(ctx, bp) * ScienceCost.SciencePerRun * plan.CopyRunsNeeded, skills, plan.CopyRunsNeeded, 0);
+                var invent = ScienceJob(ctx, time, bp, "bp_invention", "invention", IndustryTimeService.InventionActivity,
+                                        ScienceCost.Eiv(ctx, recipe.InventedBlueprintTypeId) * ScienceCost.SciencePerRun * plan.Attempts, skills, plan.Attempts, 0);
                 if (copy is null || invent is null) return No();
 
                 var materials = plan.Materials.Sum(m => m.Quantity * PriceOf(ctx, m.TypeId));
@@ -263,11 +226,11 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
             {
                 var me    = job.Op == CompareOp.MeResearch;
                 var level = Math.Clamp(job.TargetLevel, 1, 10);
-                var job2  = ScienceJob(ctx, time, facts, bp, me ? IndyRigMatching.ResearchMe : IndyRigMatching.ResearchTe,
+                var job2  = ScienceJob(ctx, time, bp, me ? IndyRigMatching.ResearchMe : IndyRigMatching.ResearchTe,
                                        me ? "researching_material_efficiency" : "researching_time_efficiency",
                                        me ? IndustryTimeService.MeResearchActivity : IndustryTimeService.TeResearchActivity,
-                                       Eiv(ctx, bp) * SciencePerRun * IndustryTimeService.ResearchLevelFactor[level] / 105.0,
-                                       SkillsAtFive(null), 1, level);
+                                       ScienceCost.Eiv(ctx, bp) * ScienceCost.SciencePerRun * IndustryTimeService.ResearchLevelFactor[level] / 105.0,
+                                       ScienceCost.SkillsAtFive(null), 1, level);
                 if (job2 is null) return No();
                 return new ParkCost(park.Id, park.Name, park.Slot, job, true, 1, 0, job2.Value.Cost, job2.Value.Cost,
                                     [job2.Value.Term], job2.Value.Seconds,
@@ -287,60 +250,21 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
     /// <param name="timeActivity">The activity as the blueprint's times name it.</param>
     /// <param name="units">Copy runs or invention attempts, which the time is per; research: 1.</param>
     private static (decimal Cost, IndexTerm Term, double Seconds)? ScienceJob(
-        ProductionContext ctx, IndustryTimeService.TimeContext time, ScienceFacts facts,
+        ProductionContext ctx, IndustryTimeService.TimeContext time,
         int blueprintTypeId, string categoryKey, string indexActivity, string timeActivity,
         double jobEiv, IReadOnlyDictionary<int, int> skills, long units, int researchLevel)
     {
-        var structure = StructureFor(ctx, categoryKey);
-        double? seconds = timeActivity is IndustryTimeService.MeResearchActivity or IndustryTimeService.TeResearchActivity
+        var structure = ScienceCost.StructureFor(ctx, categoryKey);
+        var research  = timeActivity is IndustryTimeService.MeResearchActivity or IndustryTimeService.TeResearchActivity;
+        double? seconds = research
             ? IndustryTimeService.PerResearchSeconds(time, blueprintTypeId, timeActivity, researchLevel, structure, categoryKey, skills)
             : IndustryTimeService.PerScienceUnitSeconds(time, blueprintTypeId, timeActivity, structure, categoryKey, skills) * units;
         if (seconds is null) return null;
 
-        var systemId = structure is not null && ctx.SystemIds.TryGetValue(structure.SystemName, out var sys) ? sys : 0;
-        var index    = systemId > 0 && ctx.CiLookup.TryGetValue(systemId, out var byAct) && byAct.TryGetValue(indexActivity, out var ci) ? ci : 0;
-        var role     = structure is not null && facts.HullCost.TryGetValue(structure.StructureTypeKey.ToLowerInvariant(), out var r) ? r : 1.0;
-        var rigs     = RigCost(ctx, facts, structure, categoryKey);
-        var weight   = jobEiv * role * Math.Max(0, 1 - rigs);
-        var gross    = Math.Round((decimal)(weight * index), 0);
-        var scc      = timeActivity is IndustryTimeService.MeResearchActivity or IndustryTimeService.TeResearchActivity
-                       ? ResearchSccSurcharge : SccSurcharge;
-        var taxes    = Math.Round((decimal)(jobEiv * ((structure is not null ? (double)structure.FacilityTax / 100.0 : 0) + scc)), 0);
-        return (gross + taxes, new IndexTerm(systemId, indexActivity, weight, gross), seconds.Value);
+        var fee = ScienceCost.Fee(ctx, structure, categoryKey, indexActivity, jobEiv,
+                                  research ? ScienceCost.ResearchSccSurcharge : ScienceCost.SccSurcharge);
+        return (fee.Cost, new IndexTerm(fee.SystemId, indexActivity, fee.Weight, fee.Gross), seconds.Value);
     }
-
-    /// <summary>The structure a park gives a kind of job: its assignment, else the park's default.</summary>
-    private static IndyStructure? StructureFor(ProductionContext ctx, string categoryKey) =>
-        ctx.StructByCategory.TryGetValue(IndyRigMatching.StructureCategory(categoryKey), out var s) && s is not null ? s : ctx.DefaultStructure;
-
-    /// <summary>The lab rigs' cost reduction for this kind of job, scaled by security as every rig is.</summary>
-    private static double RigCost(ProductionContext ctx, ScienceFacts facts, IndyStructure? structure, string categoryKey)
-    {
-        if (structure is null) return 0;
-        double total = 0;
-        foreach (var rig in ctx.Rigs.Where(r => r.StructureId == structure.Id && r.RigTypeId != 0))
-        {
-            if (!IndyRigMatching.RigApplies(ctx.RigCategoryKeys.GetValueOrDefault(rig.RigTypeId, ""), categoryKey)) continue;
-            if (!facts.RigCost.TryGetValue(rig.RigTypeId, out var pct) || pct <= 0) continue;
-            var mult = structure.SecurityClass switch
-            {
-                "lowsec"                => ctx.RigLowsecMultAttr.TryGetValue(rig.RigTypeId, out var l) ? l : 1.9,
-                "nullsec" or "wormhole" => ctx.RigNullsecMultAttr.TryGetValue(rig.RigTypeId, out var n) ? n : 2.1,
-                _                       => 1.0,
-            };
-            total += pct * mult;
-        }
-        return total;
-    }
-
-    /// <summary>
-    /// The manufacturing value of what a blueprint makes, the base every job cost starts from:
-    /// its ME 0 materials at the adjusted prices.
-    /// </summary>
-    private static double Eiv(ProductionContext ctx, int blueprintTypeId) =>
-        ctx.MaterialsByBp.TryGetValue(blueprintTypeId, out var mats)
-            ? mats.Sum(m => m.Quantity * ctx.AdjPrices.GetValueOrDefault(m.MaterialTypeId, 0.0))
-            : 0;
 
     /// <summary>A material's price, as the calculator prices one: the market, else its build cost marked up.</summary>
     private static decimal PriceOf(ProductionContext ctx, int typeId) =>

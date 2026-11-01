@@ -16,6 +16,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     private const int    AttrRxnME          = 2714;
     private const int    AttrRigLowsecMult  = 2356;
     private const int    AttrRigNullsecMult = 2357;
+    private const int    AttrRigJobCost     = 2595;   // a lab rig's cost bonus, percent, negative
+    private const int    AttrHullJobCost    = 2601;   // an engineering complex's job cost multiplier
 
     private static readonly HashSet<string> UpwellKeys    = ["raitaru","azbel","sotiyo","athanor","tatara","astrahus","fortizar","keepstar","draccous","horiuchi","moreau","prometheus","lancer"];
     private static readonly HashSet<string> EngComplexKeys = ["raitaru","azbel","sotiyo"];
@@ -82,11 +84,27 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         marketBlueprints.ExceptWith(bpProducts
             .Where(p => p.Activity == MfgActivity && bpcOnlyProductIds.Contains(p.ProductTypeId))
             .Select(p => p.TypeId));
-        var inventedFromMarket = (await db.SdeBlueprintProducts.AsNoTracking()
+        var inventionRows = await db.SdeBlueprintProducts.AsNoTracking()
                 .Where(p => p.Activity == "invention")
-                .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct))
+                .Select(p => new { p.TypeId, p.ProductTypeId }).ToListAsync(ct);
+        var inventedFromMarket = inventionRows
             .Where(r => marketBlueprints.Contains(r.TypeId))
             .Select(r => r.ProductTypeId).ToHashSet();
+
+        // ── Science: what an invented copy costs (see ScienceCost) ──────────
+        var inventionService = new Worklist.InventionService(dbFactory);
+        var inventionRecipes = await inventionService.LoadAsync(
+            inventionRows.Select(r => r.ProductTypeId).Distinct().ToList(), ct);
+        // A source that manufactures nothing is a relic, used up by the attempt rather than copied.
+        var manufacturingBps = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => p.Activity == MfgActivity).Select(p => p.TypeId).Distinct().ToListAsync(ct))
+            .ToHashSet();
+        var relicSources = inventionRows.Select(r => r.TypeId)
+            .Where(id => !manufacturingBps.Contains(id)).ToHashSet();
+        var decryptors = await inventionService.DecryptorsAsync(ct);
+        var decryptorPrefs = await db.AppPreferences.AsNoTracking()
+            .Where(p => p.Key == Worklist.WorklistSettings.ShipDecryptorKey || p.Key == Worklist.WorklistSettings.OtherDecryptorKey)
+            .ToDictionaryAsync(p => p.Key, p => p.Value, ct);
         // ── Type names and group/category info ─────────────────────────────
         var typeRows = await db.SdeTypes.AsNoTracking()
             .Select(t => new { t.TypeId, t.Name, t.Volume })
@@ -168,6 +186,19 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var rigCategoryKeys = rigTypeIds.ToDictionary(
             id => id,
             id => rigTypeNames.TryGetValue(id, out var n) ? RigCategoryFromName(n) : "");
+
+        // Science job cost bonuses: the lab rigs', and each hull's role multiplier.
+        var labRigCost = rigTypeIds.Count > 0
+            ? (await db.SdeTypeDogmaAttributes.AsNoTracking()
+                    .Where(a => rigTypeIds.Contains(a.TypeId) && a.AttributeId == AttrRigJobCost)
+                    .Select(a => new { a.TypeId, a.Value }).ToListAsync(ct))
+                .ToDictionary(a => a.TypeId, a => Math.Abs(a.Value) / 100.0)
+            : [];
+        var hullCost = (await (from a in db.SdeTypeDogmaAttributes.AsNoTracking()
+                               join t in db.SdeTypes.AsNoTracking() on a.TypeId equals t.TypeId
+                               where a.AttributeId == AttrHullJobCost
+                               select new { t.Name, a.Value }).ToListAsync(ct))
+            .GroupBy(h => h.Name.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First().Value);
 
         // ── Per-structure cost indices ─────────────────────────────────────
         var systemNames = structures.Select(s => s.SystemName).Distinct().ToList();
@@ -278,6 +309,14 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             Overrides          = overrides,
             AdjPrices          = adjPrices,
             BuildCostLookup    = buildCostLookup,
+            InventionRecipes   = inventionRecipes,
+            RelicSources       = relicSources,
+            Decryptors         = decryptors,
+            ShipDecryptor      = decryptorPrefs.GetValueOrDefault(Worklist.WorklistSettings.ShipDecryptorKey)
+                                 ?? Worklist.WorklistSettings.DefaultShipDecryptor,
+            OtherDecryptor     = decryptorPrefs.GetValueOrDefault(Worklist.WorklistSettings.OtherDecryptorKey) ?? "",
+            LabRigCost         = labRigCost,
+            HullCost           = hullCost,
         };
     }
 
@@ -287,8 +326,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         int parkId,
         bool includeBpcCost = false,
         CancellationToken ct = default,
-        bool bpcFollowsToggle = false)
-        => Calculate(requests, await LoadContextAsync(parkId, ct), includeBpcCost, bpcFollowsToggle: bpcFollowsToggle);
+        bool bpcFollowsToggle = false,
+        bool inventionCost = false)
+        => Calculate(requests, await LoadContextAsync(parkId, ct), includeBpcCost,
+                     bpcFollowsToggle: bpcFollowsToggle, inventionCost: inventionCost);
 
     /// <summary>
     /// Plans a queue against an already-loaded context. Pure computation — no database access —
@@ -307,12 +348,22 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     /// Calculator wants — it is answering what a build would cost in general, not what this
     /// player's specific prints demand.</para>
     /// </param>
+    /// <param name="inventionCost">
+    /// An invented blueprint's copy costs what inventing it costs (see <see cref="ScienceCost.Invention"/>),
+    /// as a BPC-only item's copy costs its contract price.
+    ///
+    /// <para>⚠️ Asked for, not assumed: the build costs and the Production Calculator's screen
+    /// want what a T2 item costs, copy included. The Worklist plans the copy separately — the
+    /// invention generator raises it — and a copy line in its job materials would read as a print
+    /// to go and buy.</para>
+    /// </param>
     public ProductionPlan Calculate(
         List<ProductionQueueEntry> requests,
         ProductionContext ctx,
         bool includeBpcCost = false,
         IReadOnlyDictionary<int, int>? meOverrides = null,
-        bool bpcFollowsToggle = false)
+        bool bpcFollowsToggle = false,
+        bool inventionCost = false)
     {
         // Bound back to the names the body below already uses, so the planning logic is the same
         // code it was when it and the loading lived in one method.
@@ -421,6 +472,18 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             if (buildCostLookup.TryGetValue(typeId, out var bc) && bc > 0)
                 return bc * (decimal)markupFactor;
             return 0m;
+        }
+
+        // What a run of an invented copy costs, once per blueprint per plan. Null when the copy is
+        // not priced by invention: not invented, or pinned by a contract price override, which is
+        // the user saying what the copy costs — BpcPerRunAt then reads the override.
+        var inventedCopies = new Dictionary<int, InventedCopyCost?>();
+        InventedCopyCost? InventedCopy(int bpTypeId)
+        {
+            if (overrides.TryGetValue(bpTypeId, out var o) && o.ContractValue.HasValue) return null;
+            if (!inventedCopies.TryGetValue(bpTypeId, out var c))
+                inventedCopies[bpTypeId] = c = ScienceCost.Invention(ctx, bpTypeId, PriceOf);
+            return c;
         }
 
         // ── Helper: ItemCategoryKey ─────────────────────────────────────────
@@ -789,6 +852,15 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // is counted once and matches the build-cost calc.
                 bool bpcOnly = !isReaction && !BlueprintIsBpoSourced(bpProd.TypeId);
 
+                // ⚠️ An invented copy is not free. "BPO-sourced" reads a T2 blueprint as having an
+                // original on the market — its T1 one does — and on that reading the copy a T2 job
+                // consumes was costed at nothing. It costs its invention, and pays it as a BPC-only
+                // item pays its contract: always in the build costs, the checkbox's on the screen.
+                bool invented     = inventionCost && !isReaction && !bpcOnly
+                                 && ctx.InventionRecipes.ContainsKey(bpProd.TypeId);
+                var  inventedCopy = invented ? InventedCopy(bpProd.TypeId) : null;
+                bool copyCosts    = bpcOnly || invented;
+
                 // ⚠️ AlwaysBpcTypes is a caller's instruction, not a property of the blueprint:
                 // a BPO exists, but the caller knows nobody uses it. Only the background
                 // build-cost pass sets it; on this screen the checkbox is the user's to tick.
@@ -799,9 +871,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // to see the build without the copies. Everywhere else — the stored build cost,
                 // the worklist — a BPC-only item always pays for its copy, as it must in fact.
                 bool wantsBpc = bpcFollowsToggle
-                    ? alwaysBpc || (!isReaction && includeBpcCost && (bpcOnly || isFinal))
-                    : bpcOnly || alwaysBpc || (!isReaction && isFinal && includeBpcCost);
-                if (bpcOnly && !wantsBpc)
+                    ? alwaysBpc || (!isReaction && includeBpcCost && (copyCosts || isFinal))
+                    : copyCosts || alwaysBpc || (!isReaction && isFinal && includeBpcCost);
+                if (copyCosts && !wantsBpc)
                 {
                     var leftOut = typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId));
                     Note(skippedBpcs, new PlanItemNote(IndustryText.BpcCostLeftOut, bpProd.TypeId, leftOut));
@@ -811,17 +883,18 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
-                    var bpcPerRunPrice = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    var bpcPerRunPrice = inventedCopy?.PerRun ?? BpcPerRunAt(bpProd.TypeId, meLevel);
                     unitCosts[bpProd.TypeId] = bpcPerRunPrice;
 
                     // ⚠️ Zero is the right fallback — the rest of the plan is worth having,
                     // so an unpriced blueprint must not abort it — but zero for a titan BPC is
                     // most of the build missing, and the total would otherwise read as authorita-
                     // tive. Say which figure is soft rather than leaving the user to notice.
+                    // An invented copy's price is worked out, not seen on a contract: no note.
                     var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId));
-                    if (bpcPerRunPrice <= 0m)
+                    if (inventedCopy is null && bpcPerRunPrice <= 0m)
                         Note(bpcPriceNotes, new PlanItemNote(IndustryText.BpcPriceNeverSeen, bpProd.TypeId, bpcName));
-                    else if (ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
+                    else if (inventedCopy is null && ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
                         Note(bpcPriceNotes, lastSeen is { } ls
                             ? new PlanItemNote(IndustryText.BpcPriceStale, bpProd.TypeId, bpcName, bpcPerRunPrice, ls.UtcDateTime)
                             : new PlanItemNote(IndustryText.BpcPriceStaleUndated, bpProd.TypeId, bpcName, bpcPerRunPrice));
@@ -834,7 +907,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
                         IsBought       = true,
-                        FormulaDisplay = string.Format(IndustryText.FormulaBpc, meLevel),
+                        FormulaDisplay = inventedCopy is { } ic
+                            ? string.Format(IndustryText.FormulaInventedBpc, ic.Chance, ic.RunsPerSuccess,
+                                            ic.Decryptor.IsNone ? IndustryText.CompareNoDecryptor
+                                                                : SdeNames.Type(ic.Decryptor.TypeId, ic.Decryptor.Name))
+                            : string.Format(IndustryText.FormulaBpc, meLevel),
                     });
                     ExpandItem(bpProd.TypeId, runs, false);   // also a raw-material line (per-run priced)
                 }
@@ -1108,6 +1185,65 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                                     ctx.T2TypeIds.Contains(productTypeId), ctx.TitanKeepstarIds.Contains(productTypeId));
     }
 
+    /// <summary>
+    /// What one run of a blueprint copy costs, for every blueprint that is only ever had as a copy:
+    /// invented ones and the BPC-only tiers. <c>Build</c> is what inventing a run costs in the
+    /// default park's labs (null for a copy that is not invented); <c>Contract</c> is a run's
+    /// contract price at the ME the build costs charge for it — that ME exactly, else the
+    /// cheapest on record, as <see cref="Calculate"/> reads it.
+    ///
+    /// <para>⚠️ Per run, both, because that is what a copy is worth to the job that consumes it.
+    /// The contract price per unit is a whole copy's price: a ten-run copy read as ten times what
+    /// one run of it costs. A price override on the blueprint stands for both, as it does in the
+    /// build costs.</para>
+    ///
+    /// <para>Empty when there is no default park: the build costs need one too.</para>
+    /// </summary>
+    public async Task<Dictionary<int, (decimal? Build, decimal? Contract)>> CopyRunPricesAsync(
+        IReadOnlyCollection<int>? blueprintTypeIds = null, CancellationToken ct = default)
+    {
+        int parkId;
+        await using (var db = await dbFactory.CreateDbContextAsync(ct))
+        {
+            var park = await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.IsDefault, ct);
+            if (park is null) return [];
+            parkId = park.Id;
+        }
+        var ctx = await LoadContextAsync(parkId, ct);
+
+        decimal PriceOf(int typeId) =>
+            ctx.Overrides.TryGetValue(typeId, out var o) && o.MarketValue is { } mv ? mv
+            : ctx.UnitCosts.TryGetValue(typeId, out var p) && p > 0 ? p
+            : ctx.BuildCostLookup.TryGetValue(typeId, out var bc) && bc > 0 ? bc * (decimal)ctx.MarkupFactor
+            : 0m;
+
+        var copies = ctx.BpProducts
+            .Where(p => p.Activity == MfgActivity
+                     && (ctx.InventionRecipes.ContainsKey(p.TypeId) || !ctx.MarketBlueprints.Contains(p.TypeId)))
+            .Where(p => blueprintTypeIds is null || blueprintTypeIds.Contains(p.TypeId))
+            .GroupBy(p => p.TypeId).Select(g => g.First());
+
+        var result = new Dictionary<int, (decimal? Build, decimal? Contract)>();
+        foreach (var bp in copies)
+        {
+            decimal? pinned = ctx.Overrides.TryGetValue(bp.TypeId, out var o) ? o.ContractValue : null;
+
+            decimal? contract = pinned;
+            if (contract is null && ctx.BpcPerRun.TryGetValue(bp.TypeId, out var opts) && opts.Count > 0)
+            {
+                var me = DefaultMe(ctx, bp.ProductTypeId);
+                contract = opts.Where(x => x.Me == me).Select(x => (decimal?)x.PerRun).FirstOrDefault()
+                        ?? opts.Min(x => x.PerRun);
+            }
+
+            decimal? build = pinned
+                ?? ScienceCost.Invention(ctx, bp.TypeId, PriceOf)?.PerRun;
+
+            if (build is not null || contract is not null) result[bp.TypeId] = (build, contract);
+        }
+        return result;
+    }
+
     // Default ME to pre-select when an item is added to the production queue, per the shared rule
     // (ME10 / T2 ME3 / BPC-only ME0 / titan, Keepstar & Fortizar ME9 / reactions ME0). Users can
     // override it. ⚠️ Four queries — for one item from the calculator screen. Anything with a
@@ -1153,7 +1289,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                             || productTypeId == IndustryMe.FortizarTypeId;
         // ⚠️ The plan's own test, not bpcOnly above: that one counts the faction and loot tiers
         // in for the ME default, while the plan charges a copy only where no original is sourced.
-        bool needsBpc = !isReaction && !(bpHasMarket || inventedFromMarket);
+        // An invented copy costs its invention (see Calculate's inventionCost), so a T2 item needs
+        // a copy as much as a faction one does.
+        bool invented = !isReaction && !bpcOnly && await db.SdeBlueprintProducts.AsNoTracking()
+            .AnyAsync(p => p.Activity == "invention" && p.ProductTypeId == bp.TypeId, ct);
+        bool needsBpc = !isReaction && (!(bpHasMarket || inventedFromMarket) || invented);
         return (IndustryMe.DefaultMe(isReaction, bpcOnly, isT2, isTitanKeepstar), needsBpc);
     }
 

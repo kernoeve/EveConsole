@@ -2044,6 +2044,10 @@
     <value>1 BPC per run @ ME{0} contract price</value>
     <comment>Production Calculator, Jobs tab, formula column of a blueprint copy line: one copy is bought per run, at its contract price. {0} is the blueprint's material efficiency level (ME).</comment>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 BPC run per run, at its invention cost: {0:P0} chance, {1} runs a success, {2}</value>
+    <comment>Production Calculator, Jobs tab, formula column of an invented blueprint copy line: one run of the copy per run of the job, priced at what inventing it costs. {0} is the invention chance (a percentage), {1} the runs a successful invention gives, {2} the decryptor's name or 'No decryptor'.</comment>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermediate</value>
     <comment>Production Calculator, Leftovers tab, Source column: left over from an intermediate, a part the plan builds for a later job.</comment>

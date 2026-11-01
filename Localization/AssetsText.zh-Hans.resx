@@ -334,6 +334,9 @@
   <data name="BuildCostLabel" xml:space="preserve">
     <value>制造成本：</value>
   </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>每流程 {0}</value>
+  </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>精炼价值：</value>
   </data>

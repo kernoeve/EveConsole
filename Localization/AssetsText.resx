@@ -448,6 +448,10 @@
     <value>Build Cost:</value>
     <comment>Label in ItemBrowserView.</comment>
   </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} per run</value>
+    <comment>Item Browser header, the build cost of a blueprint copy: what one run of it costs to invent. {0} is an ISK amount, already formatted.</comment>
+  </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Reproc Value:</value>
     <comment>Label in ItemBrowserView.</comment>

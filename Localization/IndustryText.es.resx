@@ -1534,6 +1534,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC por iteración a precio de contrato de ME{0}</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 iteración de BPC por iteración, a su coste de invención: {0:P0} de probabilidad, {1} iteraciones por éxito, {2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermedio</value>
   </data>

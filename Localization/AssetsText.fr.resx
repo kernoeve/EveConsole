@@ -337,6 +337,9 @@
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Coût de construction :</value>
   </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} par cycle</value>
+  </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Valeur de retraitement :</value>
   </data>

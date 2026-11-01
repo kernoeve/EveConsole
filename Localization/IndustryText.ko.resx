@@ -1522,6 +1522,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1회당 BPC 1개 @ ME{0} 계약 가격</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1회당 BPC 1회분 @ 발명 비용: 확률 {0:P0}, 성공당 {1}회, {2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>중간재</value>
   </data>

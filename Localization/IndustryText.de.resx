@@ -1534,6 +1534,9 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC pro Durchlauf zum Vertragspreis bei ME{0}</value>
   </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 BPC-Durchlauf pro Durchlauf zu den Erfindungskosten: {0:P0} Chance, {1} Durchläufe pro Erfolg, {2}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Zwischenprodukt</value>
   </data>

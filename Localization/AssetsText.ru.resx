@@ -343,6 +343,9 @@
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Стоимость производства:</value>
   </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} за прогон</value>
+  </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Стоимость при переработке:</value>
   </data>

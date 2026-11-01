@@ -334,6 +334,9 @@
   <data name="BuildCostLabel" xml:space="preserve">
     <value>제조 비용:</value>
   </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>1회당 {0}</value>
+  </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>정제 가치:</value>
   </data>

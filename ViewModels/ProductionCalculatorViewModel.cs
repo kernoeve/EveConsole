@@ -801,7 +801,8 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 MeLevel  = q.MeLevel,
             }).ToList();
 
-            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost, bpcFollowsToggle: true);
+            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost, bpcFollowsToggle: true,
+                                                     inventionCost: true);
             // Before assigning, so the job rows arrive with their Missing values and durations
             // already filled — PlanJob and PlanJobMaterial have no change notification.
             await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
