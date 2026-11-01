@@ -736,6 +736,9 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>Контракт {0} не сохранён в приложении — возможно, это общедоступный контракт или его ещё не получили опросом.</value>
   </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Показан только контракт {0}. Измените любой фильтр, чтобы увидеть остальные.</value>
+  </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} и ещё {1}</value>
   </data>

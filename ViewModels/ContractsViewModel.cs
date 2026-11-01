@@ -927,6 +927,14 @@ public class ContractsViewModel : ReactiveObject
         Owned.SelectById(contractId);
     }
 
+    /// <summary>Shows a public contract on its own: the public tab, listing only it. Used by the
+    /// Item Browser's Contracts tab.</summary>
+    public void SelectPublicById(int contractId)
+    {
+        TabIndex = 1;
+        Public.SelectById(contractId);
+    }
+
     public ContractsViewModel(
         IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger, ContractsService? contracts = null)
     {
@@ -1560,8 +1568,34 @@ public class PublicContractsViewModel : ReactiveObject
 
     private void ResetToFirstPageAndReload()
     {
+        _onlyContract = null;   // any filter the user touches means the whole list again
         if (!_initialized) return;
         _currentPage = 1; this.RaisePropertyChanged(nameof(CurrentPage)); RaisePaging();
+        _ = ReloadPageAsync();
+    }
+
+    // ── One contract, from elsewhere ────────────────────────────────────────────
+    //
+    // A link from another tool lists the one contract, every filter open so none can hide it.
+    // Touching any filter goes back to the list (ResetToFirstPageAndReload).
+
+    private int? _onlyContract;
+    private bool _reloadWhenDone;
+
+    public void SelectById(int contractId)
+    {
+        if (contractId <= 0) return;
+        _onlyContract = contractId;
+        _typeFilter = "";                       this.RaisePropertyChanged(nameof(TypeFilter));
+        _selectedCategory = AllCategories;      this.RaisePropertyChanged(nameof(SelectedCategory));
+        _selectedStatus = "All";                this.RaisePropertyChanged(nameof(SelectedStatus));
+        _selectedContractType = "";             this.RaisePropertyChanged(nameof(SelectedContractType));
+        _selectedRegion = Regions.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedRegion));
+        _currentPage = 1; this.RaisePropertyChanged(nameof(CurrentPage)); RaisePaging();
+
+        // Before the first load the tool's own start will list it; during one, the next load does.
+        if (!_initialized) return;
+        if (IsLoading) { _reloadWhenDone = true; return; }
         _ = ReloadPageAsync();
     }
 
@@ -1630,6 +1664,12 @@ public class PublicContractsViewModel : ReactiveObject
     {
         var parts = new List<string> { "c.\"OwnerType\" = 'public'" };
         var ps    = new List<object>();
+
+        if (_onlyContract is { } only)
+        {
+            parts.Add($"c.\"ContractId\" = {{{ps.Count}}}");
+            ps.Add(only);
+        }
 
         if (_selectedRegion?.RegionId is int rid)
         {
@@ -1765,14 +1805,18 @@ public class PublicContractsViewModel : ReactiveObject
 
             Rows = rows;
             SelectedRow = rows.FirstOrDefault();
-            StatusText = "";
+            StatusText = _onlyContract is { } only ? string.Format(MarketText.ShowingOneContract, only) : "";
         }
         catch (Exception ex)
         {
             _errorLogger.Log("PublicContractsViewModel", "ReloadPageAsync", ex);
             StatusText = AppErrorLogger.Line("Error loading public contracts", ex);
         }
-        finally { IsLoading = false; }
+        finally
+        {
+            IsLoading = false;
+            if (_reloadWhenDone) { _reloadWhenDone = false; _ = ReloadPageAsync(); }
+        }
     }
 
     // Walks the market-group tree to the top-level ancestor's name (for a row's category tags).

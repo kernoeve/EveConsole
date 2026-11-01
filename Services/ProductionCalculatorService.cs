@@ -2,6 +2,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Localization;
+using EveConsole.Services.Worklist;
 
 namespace EveConsole.Services;
 
@@ -665,6 +666,18 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // inside ExpandItem for why the distinction matters.
         var expanding = new HashSet<int>();
 
+        // Copy runs wanted of each invented blueprint, made by invention jobs once the tree is
+        // expanded (see the invention pass below). Keyed by the invented blueprint.
+        var inventionDemand = new Dictionary<int, long>();
+
+        // A job's copy runs: invented ones go to the invention pass, bought ones to the raw
+        // materials, where they are priced per run.
+        void ConsumeCopy(int bpTypeId, long runs)
+        {
+            if (inventionDemand.TryGetValue(bpTypeId, out var wanted)) inventionDemand[bpTypeId] = wanted + runs;
+            else ExpandItem(bpTypeId, runs, false);
+        }
+
         // ⚠️ qty is long. A Palatine Keepstar's Tritanium alone runs past two billion, and an
         // int parameter here silently truncated the whole subtree below it.
         void ExpandItem(int typeId, long qty, bool isFinal)
@@ -789,7 +802,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     if (bpcMat is not null)
                     {
                         bpcMat.TotalQty += extraRuns;
-                        ExpandItem(bpProd.TypeId, extraRuns, false);
+                        ConsumeCopy(bpProd.TypeId, extraRuns);
                     }
                 }
             }
@@ -801,6 +814,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     OutputTypeId   = typeId,
                     OutputTypeName = typeNames.GetValueOrDefault(typeId, string.Format(CommonText.TypeNumbered, typeId)),
                     IsReaction     = isReaction,
+                    Kind           = isReaction ? PlanJobKind.Reaction : PlanJobKind.Manufacturing,
                     MeLevel        = meLevel,
                     BlueprintTypeId = bpProd.TypeId,
                     Structure      = structure,
@@ -898,6 +912,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         Note(bpcPriceNotes, lastSeen is { } ls
                             ? new PlanItemNote(IndustryText.BpcPriceStale, bpProd.TypeId, bpcName, bpcPerRunPrice, ls.UtcDateTime)
                             : new PlanItemNote(IndustryText.BpcPriceStaleUndated, bpProd.TypeId, bpcName, bpcPerRunPrice));
+                    // An invented copy is made by an invention job beneath this one, which buys the
+                    // datacores and the decryptor; any other copy is bought on contract.
+                    if (inventedCopy is not null) inventionDemand.TryAdd(bpProd.TypeId, 0);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
@@ -906,14 +923,14 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                         BaseQtyPerRun  = 1,
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
-                        IsBought       = true,
+                        IsBought       = inventedCopy is null,
                         FormulaDisplay = inventedCopy is { } ic
                             ? string.Format(IndustryText.FormulaInventedBpc, ic.Chance, ic.RunsPerSuccess,
                                             ic.Decryptor.IsNone ? IndustryText.CompareNoDecryptor
                                                                 : SdeNames.Type(ic.Decryptor.TypeId, ic.Decryptor.Name))
                             : string.Format(IndustryText.FormulaBpc, meLevel),
                     });
-                    ExpandItem(bpProd.TypeId, runs, false);   // also a raw-material line (per-run priced)
+                    ConsumeCopy(bpProd.TypeId, runs);
                 }
                 jobPool[typeId] = job;
             }
@@ -923,6 +940,91 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         foreach (var req in requests)
             ExpandItem(req.TypeId, req.Quantity, true);
+
+        // ── Invention ──────────────────────────────────────────────────────
+        // The copies T2 jobs consume, made where they are made: an invention job of whole
+        // attempts under each T2 job, its datacores and decryptor bought, and a copy job under it
+        // drawing the T1 runs off the original. The attempts are the Worklist's — enough for the
+        // successes on average — and the spare runs they make on average are the job's leftover,
+        // valued at a run's invention cost. So a T2 job still carries a run's cost per run, as the
+        // build cost does, while the materials are what would actually be bought.
+        //
+        // After the expansion, not inside it, so a copy wanted by several jobs is one job.
+        var copyDemand = new Dictionary<int, long>();   // T1 copy runs, by source blueprint
+        PlanJob ScienceJob(PlanJobKind kind, int outputTypeId, int blueprintTypeId, string categoryKey, long needed, long runs)
+        {
+            var lab = ScienceCost.StructureFor(ctx, categoryKey);
+            return new PlanJob
+            {
+                OutputTypeId    = outputTypeId,
+                OutputTypeName  = typeNames.GetValueOrDefault(outputTypeId, string.Format(CommonText.TypeNumbered, outputTypeId)),
+                Kind            = kind,
+                BlueprintTypeId = blueprintTypeId,
+                Structure       = lab,
+                CategoryKey     = categoryKey,
+                QuantityNeeded  = needed,
+                QuantityPerRun  = 1,
+                Runs            = runs,
+                StructureName   = lab?.DisplayName ?? "",
+                SystemName      = lab?.SystemName  ?? "",
+                StationId       = lab?.RealStructureId,
+                StationName     = lab?.RealStructureName ?? "",
+                SolarSystemId   = lab is not null && systemIds.TryGetValue(lab.SystemName, out var labSys) ? labSys : 0,
+            };
+        }
+
+        foreach (var (bpTypeId, copyRuns) in inventionDemand)
+        {
+            var recipe = ctx.InventionRecipes[bpTypeId];
+            var cost   = InventedCopy(bpTypeId)!;
+            var plan   = InventionService.Plan(recipe, cost.Decryptor, copyRuns, ScienceCost.SkillsAtFive(recipe));
+            var job    = ScienceJob(PlanJobKind.Invention, bpTypeId, recipe.SourceBlueprintTypeId,
+                                    InventionService.InventionCategory, copyRuns, plan.Attempts);
+            job.QuantityPerRun = plan.RunsPerBpc;
+            job.Invention = new PlanInvention(plan.Chance, plan.RunsPerBpc, plan.InventedMe, plan.InventedTe,
+                cost.Decryptor.TypeId, cost.Decryptor.Name, plan.Attempts * plan.Chance * plan.RunsPerBpc,
+                cost.PerAttempt, cost.PerRun);
+
+            var perAttempt = recipe.Datacores.ToDictionary(d => d.TypeId, d => d.Quantity);
+            foreach (var (matId, qty) in plan.Materials)
+            {
+                var per = perAttempt.GetValueOrDefault(matId, 1);
+                job.Materials.Add(new PlanJobMaterial
+                {
+                    MaterialTypeId = matId,
+                    TypeName       = typeNames.GetValueOrDefault(matId, string.Format(CommonText.TypeNumbered, matId)),
+                    BaseQtyPerRun  = (int)per,
+                    EffQtyPerRun   = per,
+                    TotalQty       = qty,
+                    IsBought       = true,
+                    FormulaDisplay = string.Format(IndustryText.FormulaPerAttempt, per, plan.Attempts, qty),
+                });
+                rawPool[matId] = rawPool.GetValueOrDefault(matId, 0) + qty;
+            }
+
+            // Each attempt takes one run of a T1 copy, or for T3 the relic itself.
+            var src     = recipe.SourceBlueprintTypeId;
+            var srcName = typeNames.GetValueOrDefault(src, recipe.SourceBlueprintName);
+            var isRelic = ctx.RelicSources.Contains(src);
+            job.Materials.Add(new PlanJobMaterial
+            {
+                MaterialTypeId = src,
+                TypeName       = isRelic ? srcName : string.Format(IndustryText.BpcTypeName, srcName),
+                BlueprintName  = isRelic ? null : srcName,
+                BaseQtyPerRun  = 1,
+                EffQtyPerRun   = 1,
+                TotalQty       = plan.Attempts,
+                IsBought       = isRelic,
+                FormulaDisplay = string.Format(IndustryText.FormulaPerAttempt, 1, plan.Attempts, plan.Attempts),
+            });
+            if (isRelic) rawPool[src] = rawPool.GetValueOrDefault(src, 0) + plan.Attempts;
+            else         copyDemand[src] = copyDemand.GetValueOrDefault(src) + plan.Attempts;
+
+            jobPool[bpTypeId] = job;
+        }
+
+        foreach (var (src, copyRuns) in copyDemand)
+            jobPool[src] = ScienceJob(PlanJobKind.Copying, src, src, InventionService.CopyingCategory, copyRuns, copyRuns);
 
         // Reported, not thrown. An item the rig rules don't cover is a gap in the rules,
         // not a reason to refuse the other several hundred jobs in the plan — and throwing
@@ -948,6 +1050,26 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // ── Calculate costs per job ────────────────────────────────────────
         foreach (var job in jobPool.Values)
         {
+            // A science job pays the science fee: 2% of the manufacturing value of what is invented
+            // per attempt, or of what the copied blueprint makes per copy run. The same fees, at
+            // the same labs, as ScienceCost.Invention charges a copy run.
+            if (job.IsScience)
+            {
+                var invention = job.IsInvention;
+                var fee = ScienceCost.Fee(ctx, job.Structure, job.CategoryKey,
+                    invention ? IndustryTimeService.InventionActivity : IndustryTimeService.CopyingActivity,
+                    ScienceCost.Eiv(ctx, invention ? job.OutputTypeId : job.BlueprintTypeId) * ScienceCost.SciencePerRun * job.Runs,
+                    ScienceCost.SccSurcharge);
+                foreach (var mat in job.Materials) mat.UnitPrice = PriceOf(mat.MaterialTypeId);
+                job.MaterialCost      = job.Materials.Where(m => m.IsBought).Sum(m => m.TotalQty * m.UnitPrice);
+                job.JobCost           = fee.Cost;
+                job.IndexWeight       = fee.Weight;
+                job.JobGross          = fee.Gross;
+                job.CostIndexActivity = invention ? IndustryTimeService.InventionActivity : IndustryTimeService.CopyingActivity;
+                job.CostIndexSystemId = fee.SystemId;
+                continue;
+            }
+
             string jobCatKey = ItemCategoryKey(job.OutputTypeId, job.IsReaction);
             var    structure  = StructureFor(jobCatKey, job.OutputTypeId);
             bool   isUpwell  = structure is not null && UpwellKeys.Contains(structure.StructureTypeKey);
@@ -994,8 +1116,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // ── Build intermediates list ────────────────────────────────────────
         // Valued at build cost, the market price only for an item with none: more accurate for
         // what a component is worth to the builder than what it fetches.
+        // A copy job is not one: it makes runs on a licence, used up as they are made, and the
+        // original's price would read as their value.
         var intermediates = jobPool.Values
-            .Where(j => !j.IsFinalProduct)
+            .Where(j => !j.IsFinalProduct && !j.IsCopying)
             .Select(j =>
             {
                 decimal buildVal = buildCostLookup.TryGetValue(j.OutputTypeId, out var bc) ? bc
@@ -1008,7 +1132,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     QuantityProduced = j.QuantityProduced,
                     Leftover         = j.Leftover,
                     BuildUnitValue   = buildVal,
-                    LeftoverValue    = j.Leftover * buildVal,
+                    // An invention job's spare runs at their mean, not rounded down: see PlanJob.QuantityProduced.
+                    LeftoverValue    = j.IsInvention ? (decimal)j.LeftoverMean * buildVal : j.Leftover * buildVal,
                 };
             })
             .OrderBy(i => i.TypeName)
@@ -1019,7 +1144,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // (IsBought=true) and job costs. Summing job.MaterialCost directly would double-count
         // intermediates that have market prices but are also produced.
         var leftoverValueByType = intermediates
-            .Where(i => i.Leftover > 0)
+            .Where(i => i.LeftoverValue > 0)
             .ToDictionary(i => i.TypeId, i => i.LeftoverValue);
 
         // ⚠️ Shared, not whole. A component two products both use is one job, and each product
@@ -1095,7 +1220,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // ── Build leftovers list ────────────────────────────────────────────
         // Use build cost for valuation — market prices for produced items can be unreliable.
         var leftovers = new List<PlanLeftoverItem>();
-        foreach (var interm in intermediates.Where(i => i.Leftover > 0))
+        // A spare fraction of a copy run is worth something too, though it rounds down to none.
+        foreach (var interm in intermediates.Where(i => i.Leftover > 0 || i.LeftoverValue > 0))
             leftovers.Add(new PlanLeftoverItem
             {
                 TypeId     = interm.TypeId,
@@ -1314,8 +1440,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         foreach (var job in plan.AllJobs)
         {
             var te  = job.IsReaction ? 0 : Math.Clamp(job.MeLevel * 2, 0, 20);
-            var per = EveConsole.Services.Worklist.IndustryTimeService.PerRunSeconds(
-                time, job.BlueprintTypeId, job.IsReaction, te, job.Structure, job.CategoryKey, SkillsAtFive);
+            // A science job runs off the T1 blueprint, per attempt or per copy run.
+            var per = job.IsScience
+                ? IndustryTimeService.PerScienceUnitSeconds(time, job.BlueprintTypeId,
+                      job.IsInvention ? IndustryTimeService.InventionActivity : IndustryTimeService.CopyingActivity,
+                      job.Structure, job.CategoryKey, ScienceCost.SkillsAtFive(null))
+                : IndustryTimeService.PerRunSeconds(
+                      time, job.BlueprintTypeId, job.IsReaction, te, job.Structure, job.CategoryKey, SkillsAtFive);
             job.DurationSeconds = per is { } s ? s * job.Runs : null;
         }
 

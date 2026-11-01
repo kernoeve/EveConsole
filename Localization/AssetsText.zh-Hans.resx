@@ -475,6 +475,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>市场订单</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>任一方含有此物品的有效物品交换共 {0:N0} 个。仅当此物品是其一方的唯一物品、另一方只有 ISK 时才显示单价；拷贝按流程计价。</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>没有含此物品的有效物品交换。公开合同来自合同工具对所有星域的抓取。</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>求购</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>蓝图</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>拷贝 ME{0} TE{1}，{2} 流程</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>原图 ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>单价 / 每流程</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>合同其余内容</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>提供 {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>求购 {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>无其他内容</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>合同：{0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>来源：</value>
   </data>

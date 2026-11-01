@@ -1537,6 +1537,36 @@
   <data name="FormulaInventedBpc" xml:space="preserve">
     <value>1 BPC-Durchlauf pro Durchlauf zu den Erfindungskosten: {0:P0} Chance, {1} Durchläufe pro Erfolg, {2}</value>
   </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} pro Versuch × {1:N0} Versuche = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK pro Versuch (Datenkerne, Decryptor, T1-Kopierdurchlauf, Gebühren) ÷ ({1:P1} Chance × {2} Durchläufe) = {3:N0} ISK pro Kopiedurchlauf</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Überschuss: {0:N1} Durchläufe</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>Ein T1-Kopierdurchlauf pro Erfindungsversuch, vom Original kopiert.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>Die Blaupausenkopie, die ein erfolgreicher Versuch ergibt, einschließlich Decryptor.</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Ertrag: {0:N1} Durchläufe im Mittel</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Pro Erfolg: ME{0} TE{1}, {2} Durchläufe</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Erfindung: {0:P0} Chance, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Versuche: {0:N0}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Zwischenprodukt</value>
   </data>

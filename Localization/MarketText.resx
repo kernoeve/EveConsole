@@ -964,6 +964,10 @@
     <value>Contract {0} is not stored on this side — it may be a public listing, or not yet polled.</value>
     <comment>Status line. {0} is a contract number.</comment>
   </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Showing contract {0} only. Change any filter to see the rest.</value>
+    <comment>Public contracts: one contract opened from elsewhere; {0} contract id</comment>
+  </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} +{1} more</value>
     <comment>Contracts → Contents column when a contract offers several items. {0} is the first item's name, {1} the number of the other items.</comment>

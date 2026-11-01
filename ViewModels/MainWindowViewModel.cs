@@ -1350,6 +1350,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
+        EntityNavigator.Instance.OpenPublicContract = id => { OpenTool("contracts"); ContractsVm.SelectPublicById(id); };
         EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
         // A region or constellation is territory you zoom to on a map: the map tab used last,
         // framed on it, or a new map tab if none is open.

@@ -314,6 +314,84 @@ public class OrderRowVm
     };
 }
 
+/// <summary>
+/// One active item exchange with the browsed item on it: offered by the issuer, or asked for in
+/// return. A contract with the item on both sides is two rows.
+/// </summary>
+public class ItemContractRowVm
+{
+    public int     ContractId   { get; init; }
+    public string  Title        { get; init; } = "";
+
+    /// <summary>A public listing, opened on the Contracts tool's public tab; otherwise one of the
+    /// player's own characters' or corporations', opened on the first tab.</summary>
+    public bool    IsPublic     { get; init; }
+    public bool    Offered      { get; init; }
+    public string  SideText     => Offered ? AssetsText.ContractSideOffered : AssetsText.ContractSideWanted;
+
+    public long    Quantity     { get; init; }
+    public string  QuantityText => Quantity.ToString("N0");
+
+    /// <summary>A blueprint's ME, TE and runs as the contract lists them; empty for anything else.</summary>
+    public string  Blueprint    { get; init; } = "";
+
+    public decimal Price        { get; init; }
+    public decimal Reward       { get; init; }
+    public string  PriceText    => Price  > 0 ? Price.ToString("N0")  : "—";
+    public string  RewardText   => Reward > 0 ? Reward.ToString("N0") : "—";
+
+    /// <summary>
+    /// The contract's ISK over the units (a copy's runs) of this item, where that means something:
+    /// the item is all there is on its side, and nothing comes the other way but ISK. Null otherwise —
+    /// a bundle's price is not this item's.
+    /// </summary>
+    public decimal? PerUnit     { get; init; }
+    public decimal  PerUnitSort => PerUnit ?? decimal.MaxValue;
+    public string   PerUnitText => PerUnit is { } p ? p.ToString("N2") : "";
+
+    /// <summary>Everything else on the contract, either side.</summary>
+    public string  Rest         { get; init; } = "";
+
+    public string  ContractLabel => Title.Length > 0 ? Title : $"#{ContractId}";
+    public void    OpenContract()
+    {
+        if (IsPublic) EveConsole.Services.EntityNavigator.Instance.PublicContract(ContractId);
+        else          EveConsole.Services.EntityNavigator.Instance.Contract(ContractId);
+    }
+
+    public string  LocationName { get; init; } = "";
+    public long    LocationId   { get; init; }
+    public bool    IsStation    { get; init; }
+    public bool    HasLocationLink => LocationId > 0 && LocationName.Length > 0;
+    public void    OpenLocation()
+    {
+        if (IsStation) EveConsole.Services.EntityNavigator.Instance
+                           .Entity(EveConsole.Services.EntityKind.Station, LocationId);
+        else           EveConsole.Services.EntityNavigator.Instance.Structure(LocationId);
+    }
+
+    public double? Security     { get; init; }
+    public string  SecurityText  => Security is { } s ? EveConsole.Services.SecurityColors.Text(s) : "";
+    public string  SecurityColor => Security is { } s ? EveConsole.Services.SecurityColors.Hex(s) : "#8a8a99";
+    public string  SecurityTip   => Security is { } s ? EveConsole.Services.SecurityColors.Tip(s) : "";
+
+    public string  Region       { get; init; } = "";
+
+    /// <summary>Sorts a contract with no expiry last.</summary>
+    public DateTimeOffset Expires { get; init; }
+    public string ExpiresText
+    {
+        get
+        {
+            if (Expires == DateTimeOffset.MaxValue) return "—";
+            var r = Expires - DateTimeOffset.UtcNow;
+            if (r.TotalSeconds <= 0) return AssetsText.OrderExpired;
+            if (r.TotalDays    >= 1) return string.Format(AssetsText.ExpiresDaysHours, (int)r.TotalDays, r.Hours);
+            return string.Format(AssetsText.ExpiresHoursMinutes, r.Hours, r.Minutes);
+        }
+    }
+}
+
 public class ItemDisplayVm : ReactiveObject
 {
     public int    TypeId           { get; init; }
@@ -516,7 +594,8 @@ public class ItemBrowserViewModel : ReactiveObject
     // ⚠️ The indices are the tabs' order in ItemBrowserView.axaml's ItemDetailTabs, hidden ones
     // included. Assets (5) and LP Store (6) were added before Market Orders without this moving
     // on, and the agent's "market_orders" opened Assets.
-    private const int PriceHistoryTab = 8;
+    // Contracts (8) went in after Market Orders, and moved the two history tabs on by one.
+    private const int PriceHistoryTab = 9;
     public string ShowDetailTab(string tabKey)
     {
         var key = tabKey.Trim().ToLowerInvariant().Replace(" ", "_");
@@ -530,8 +609,9 @@ public class ItemBrowserViewModel : ReactiveObject
             "assets"                         => 5,
             "lp_store" or "lp"               => 6,
             "market_orders" or "market" or "orders" => 7,
+            "contracts"                      => 8,
             "price_history" or "history" or "price" => PriceHistoryTab,
-            "derived_history" or "derived" => 9,
+            "derived_history" or "derived" => 10,
             _ => null,
         };
         if (idx is null) return $"Unknown Item Browser tab '{tabKey}'.";
@@ -716,6 +796,186 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (Exception ex)
         {
             await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrLpStore, ex.Message));
+        }
+    }
+
+    // ── Contracts tab ─────────────────────────────────────────────────────────
+    //
+    // Every active item exchange the app holds with this item on either side: the public listings
+    // the contract sweep reads from every region, and the player's own characters' and
+    // corporations'. A contract is one listing however many of them hold a copy of it.
+
+    private IReadOnlyList<ItemContractRowVm> _contracts = [];
+    public IReadOnlyList<ItemContractRowVm> Contracts
+    {
+        get => _contracts;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _contracts, value);
+            this.RaisePropertyChanged(nameof(HasContracts));
+            this.RaisePropertyChanged(nameof(ContractsCaption));
+        }
+    }
+    public bool   HasContracts     => _contracts.Count > 0;
+    public string ContractsCaption => string.Format(AssetsText.ContractsCaption, _contracts.Select(c => c.ContractId).Distinct().Count());
+
+    private bool _isLoadingContracts;
+    public bool IsLoadingContracts
+    {
+        get => _isLoadingContracts;
+        private set => this.RaiseAndSetIfChanged(ref _isLoadingContracts, value);
+    }
+
+    private async Task LoadContractsAsync(int typeId, CancellationToken ct)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() => { Contracts = []; IsLoadingContracts = true; });
+        try
+        {
+            // Own context: this runs alongside LoadOrdersAsync, which uses _db.
+            await using var owned = _dbFactory is null ? null : await _dbFactory.CreateDbContextAsync(ct);
+            var db = owned ?? _db;
+
+            // ⚠️ Expiry is checked here rather than in the query: the contract table never
+            // deletes a row, and a DateTimeOffset comparison is not one SQLite can be asked for.
+            var now = DateTimeOffset.UtcNow;
+            var records = (await db.EsiContracts.AsNoTracking()
+                    .Where(c => c.Type == "item_exchange" && c.Status == "outstanding"
+                             && db.EsiContractItems.Any(i => i.ContractId == c.ContractId && i.TypeId == typeId))
+                    .ToListAsync(ct))
+                .Where(c => ContractFmt.IsActive(c, now))
+                .GroupBy(c => c.ContractId)
+                // The public row where there is one: it carries the region, and opens on the tab
+                // that lists it.
+                .Select(g => g.FirstOrDefault(c => c.OwnerType == "public") ?? g.First())
+                .ToList();
+
+            var ids   = records.Select(c => c.ContractId).ToList();
+            var items = ids.Count == 0 ? [] : await db.EsiContractItems.AsNoTracking()
+                .Where(i => ids.Contains(i.ContractId)).ToListAsync(ct);
+            var byContract = items.GroupBy(i => i.ContractId).ToDictionary(g => g.Key, g => g.ToList());
+
+            var typeIds   = items.Select(i => i.TypeId).Distinct().ToList();
+            var typeNames = typeIds.Count == 0 ? [] : await db.SdeTypes.AsNoTracking()
+                .Where(t => typeIds.Contains(t.TypeId)).ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+            string Name(int id) => SdeNames.Type(id, typeNames.GetValueOrDefault(id, string.Format(AssetsText.FallbackTypeName, id)));
+
+            // Where each contract is: an NPC station from the SDE, a structure from the name cache,
+            // and the security and region of the system either sits in.
+            var locIds     = records.Select(c => c.StartLocationId ?? 0).Where(id => id > 0).Distinct().ToList();
+            var stationIds = locIds.Where(id => id < 100_000_000L).Select(id => (int)id).ToList();
+            var stations   = stationIds.Count == 0 ? [] : await db.SdeStations.AsNoTracking()
+                .Where(s => stationIds.Contains(s.StationId))
+                .Select(s => new { s.StationId, s.Name, s.SolarSystemId })
+                .ToDictionaryAsync(s => (long)s.StationId, ct);
+            var structIds  = locIds.Where(id => id >= 100_000_000L).ToList();
+            var structures = structIds.Count == 0 ? [] : await db.EsiStructureNames.AsNoTracking()
+                .Where(s => structIds.Contains(s.StructureId))
+                .Select(s => new { s.StructureId, s.Name, s.SolarSystemId })
+                .ToDictionaryAsync(s => s.StructureId, ct);
+            var systemIds = stations.Values.Select(s => s.SolarSystemId)
+                .Concat(structures.Values.Select(s => s.SolarSystemId)).Where(id => id > 0).Distinct().ToList();
+            var systems   = systemIds.Count == 0 ? [] : await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => systemIds.Contains(s.SolarSystemId))
+                .Select(s => new { s.SolarSystemId, s.Security, s.RegionId })
+                .ToDictionaryAsync(s => s.SolarSystemId, ct);
+            var regionIds = records.Select(c => c.RegionId).Concat(systems.Values.Select(s => s.RegionId))
+                .Where(id => id > 0).Distinct().ToList();
+            var regions   = regionIds.Count == 0 ? [] : await db.SdeRegions.AsNoTracking()
+                .Where(r => regionIds.Contains(r.RegionId)).ToDictionaryAsync(r => r.RegionId, r => r.Name, ct);
+
+            // A blueprint as the contract has it. Public listings say what the print is; the
+            // player's own contracts only say a copy is a copy (raw quantity -2).
+            static string PrintOf(ContractItem i) =>
+                i.IsBlueprintCopy is true
+                    ? string.Format(AssetsText.ContractCopyDetail, i.MaterialEfficiency ?? 0, i.TimeEfficiency ?? 0, i.Runs ?? 0)
+                : i.IsBlueprintCopy is false
+                    ? string.Format(AssetsText.ContractOriginalDetail, i.MaterialEfficiency ?? 0, i.TimeEfficiency ?? 0)
+                : i.RawQuantity == -2 ? AssetsText.ContractCopy : "";
+
+            // A copy is priced by the run, which is how copies are compared.
+            static long Units(ContractItem i) => i.IsBlueprintCopy is true && i.Runs is > 0 ? i.Runs.Value * i.Quantity : i.Quantity;
+
+            string Summary(IEnumerable<ContractItem> lines)
+            {
+                var named = lines.GroupBy(i => i.TypeId)
+                    .Select(g => $"{Name(g.Key)} ×{g.Sum(i => i.Quantity):N0}")
+                    .ToList();
+                if (named.Count <= 2) return string.Join(", ", named);
+                return string.Format(MarketText.ContractContentsAndMore, string.Join(", ", named.Take(2)), named.Count - 2);
+            }
+
+            var rows = new List<ItemContractRowVm>();
+            foreach (var c in records)
+            {
+                var all = byContract.GetValueOrDefault(c.ContractId) ?? [];
+
+                long loc = c.StartLocationId ?? 0;
+                string locName = "";
+                int sysId = 0;
+                bool isStation = false;
+                if (stations.TryGetValue(loc, out var st)) { locName = SdeNames.Station(loc, st.Name); sysId = st.SolarSystemId; isStation = true; }
+                else if (structures.TryGetValue(loc, out var sn)) { locName = sn.Name; sysId = sn.SolarSystemId; }
+                else if (loc > 0) locName = loc < 100_000_000L ? string.Format(AssetsText.FallbackStationName, loc) : AssetsText.LocPlayerStructure;
+                var sys      = systems.GetValueOrDefault(sysId);
+                var regionId = c.RegionId > 0 ? c.RegionId : sys?.RegionId ?? 0;
+
+                foreach (var offered in new[] { true, false })
+                {
+                    var mine = all.Where(i => i.TypeId == typeId && i.IsIncluded == offered).ToList();
+                    if (mine.Count == 0) continue;
+
+                    var sameSide  = all.Where(i => i.IsIncluded == offered).ToList();
+                    var otherSide = all.Where(i => i.IsIncluded != offered).ToList();
+                    var isk       = offered ? c.Price : c.Reward;
+                    var units     = mine.Sum(Units);
+                    bool alone    = sameSide.All(i => i.TypeId == typeId) && otherSide.Count == 0;
+
+                    var restOffers = all.Where(i => i.IsIncluded && !(offered && i.TypeId == typeId)).ToList();
+                    var restWants  = all.Where(i => !i.IsIncluded && !(!offered && i.TypeId == typeId)).ToList();
+                    var rest = new List<string>();
+                    if (restOffers.Count > 0) rest.Add(string.Format(AssetsText.ContractRestOffers, Summary(restOffers)));
+                    if (restWants.Count  > 0) rest.Add(string.Format(AssetsText.ContractRestWants,  Summary(restWants)));
+
+                    rows.Add(new ItemContractRowVm
+                    {
+                        ContractId   = c.ContractId,
+                        Title        = c.Title?.Trim() ?? "",
+                        IsPublic     = c.OwnerType == "public",
+                        Offered      = offered,
+                        Quantity     = mine.Sum(i => i.Quantity),
+                        Blueprint    = string.Join("; ", mine.Select(PrintOf).Where(s => s.Length > 0).Distinct()),
+                        Price        = c.Price,
+                        Reward       = c.Reward,
+                        PerUnit      = alone && isk > 0 && units > 0 ? isk / units : null,
+                        Rest         = rest.Count > 0 ? string.Join(" · ", rest) : AssetsText.ContractRestNothing,
+                        LocationName = locName,
+                        LocationId   = loc,
+                        IsStation    = isStation,
+                        Security     = sys?.Security,
+                        Region       = regions.TryGetValue(regionId, out var rn) ? SdeNames.Region(regionId, rn) : "",
+                        Expires      = c.DateExpired ?? DateTimeOffset.MaxValue,
+                    });
+                }
+            }
+
+            // Offers first, the cheapest by the unit at the top; bundles after, by price.
+            var ordered = rows.OrderByDescending(r => r.Offered)
+                              .ThenBy(r => r.PerUnitSort)
+                              .ThenBy(r => r.Offered ? r.Price : -r.Reward)
+                              .ToList();
+            if (ct.IsCancellationRequested) return;
+            await Dispatcher.UIThread.InvokeAsync(() => { if (!ct.IsCancellationRequested) Contracts = ordered; });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrContracts, ex.Message));
+        }
+        finally
+        {
+            // Not for a load the next item has replaced, which has its own spinner running.
+            if (!ct.IsCancellationRequested)
+                await Dispatcher.UIThread.InvokeAsync(() => IsLoadingContracts = false);
         }
     }
 
@@ -2230,6 +2490,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     _ = LoadPriceHistoryAsync();
                 _ = LoadDerivedHistoryAsync();
                 _ = LoadLpOffersAsync(typeId, ct);
+                _ = LoadContractsAsync(typeId, ct);
                 _ = LoadAssetsAsync(typeId);
             });
 

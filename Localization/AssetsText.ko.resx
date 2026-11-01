@@ -475,6 +475,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>거래소 주문</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>이 아이템이 어느 한쪽에 있는 활성 아이템 교환 {0:N0}건. 단가는 이 아이템이 그쪽의 유일한 품목이고 반대쪽이 ISK뿐일 때만 표시하며, 사본은 1회분당 가격입니다.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>이 아이템이 포함된 활성 아이템 교환이 없습니다. 공개 계약은 계약 도구가 모든 지역에서 가져온 것입니다.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>쪽</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>제공</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>요청</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>블루프린트</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>사본 ME{0} TE{1}, {2}회</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>원본 ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>사본</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>단가 / 1회분</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>계약의 나머지</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>제공: {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>요청: {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>그 외 없음</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>계약: {0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>출처:</value>
   </data>

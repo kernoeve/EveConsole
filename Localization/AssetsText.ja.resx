@@ -475,6 +475,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>マーケット注文</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>このアイテムをどちらかの側に含む有効なアイテム交換 {0:N0} 件。単価は、そのアイテムが片側の唯一の品で、反対側がISKのみの場合に限り表示します。コピーは1回分あたりの価格です。</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>このアイテムを含む有効なアイテム交換はありません。公開契約は契約ツールによる全リージョンの取得から得られます。</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>側</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>要求</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>設計図</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>コピー ME{0} TE{1}、{2} 回分</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>原本 ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>単価 / 1回分</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>契約のその他</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>提供：{0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>要求：{0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>その他なし</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>契約：{0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>ソース：</value>
   </data>

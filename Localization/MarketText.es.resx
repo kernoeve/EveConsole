@@ -724,6 +724,9 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>El contrato {0} no está almacenado aquí: puede que sea un anuncio público o que aún no se haya sondeado.</value>
   </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Solo se muestra el contrato {0}. Cambia cualquier filtro para ver el resto.</value>
+  </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} +{1} más</value>
   </data>

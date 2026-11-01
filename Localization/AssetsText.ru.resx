@@ -484,6 +484,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Рыночные ордера</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} активных обменов предметами с этим предметом на любой из сторон. Цена за единицу показана, только когда предмет один на своей стороне, а с другой — только ISK; копия оценивается за прогон.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Ни один активный обмен предметами не содержит этот предмет. Публичные контракты берутся из обхода всех регионов инструментом «Контракты».</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Сторона</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Предлагается</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Требуется</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Чертёж</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Копия ME{0} TE{1}, {2} прогонов</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Оригинал ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Копия</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>За единицу / прогон</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Остальное в контракте</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Предлагает {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Требует {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Больше ничего</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Контракты: {0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Источник:</value>
   </data>

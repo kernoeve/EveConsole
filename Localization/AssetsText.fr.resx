@@ -478,6 +478,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Ordres du marché</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Contrats</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} échanges d'objets actifs avec cet objet d'un côté ou de l'autre. Le prix unitaire n'apparaît que si l'objet est seul de son côté et que l'autre côté n'est que des ISK ; une copie est évaluée par cycle.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Aucun échange d'objets actif ne propose cet objet. Les contrats publics viennent du balayage de toutes les régions par l'outil Contrats.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Côté</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Proposé</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Demandé</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Copie ME{0} TE{1}, {2} cycles</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Copie</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Par unité / cycle</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Reste du contrat</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Propose {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Demande {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Rien d'autre</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Contrats : {0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Source :</value>
   </data>

@@ -1561,6 +1561,36 @@
   <data name="FormulaInventedBpc" xml:space="preserve">
     <value>1 прогон BPC на прогон по стоимости изобретения: шанс {0:P0}, {1} прогонов за успех, {2}</value>
   </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} за попытку × {1:N0} попыток = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK за попытку (датакоры, декриптор, прогон копии T1, сборы) ÷ (шанс {1:P1} × {2} прогонов) = {3:N0} ISK за прогон копии</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Остаток: {0:N1} прогонов</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>Один прогон копии T1 на каждую попытку изобретения, скопированный с оригинала.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>Копия чертежа, которую даёт одна успешная попытка, с учётом декриптора.</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Выход: в среднем {0:N1} прогонов</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>За успех: ME{0} TE{1}, {2} прогонов</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Изобретение: шанс {0:P0}, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Попытки: {0:N0}</value>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Полуфабрикат</value>
   </data>

@@ -60,6 +60,13 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
     private void OnOpenOrderLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ((sender as Control)?.DataContext as OrderRowVm)?.OpenLocation();
 
+    // The Contracts tab's two links: the contract, in the Contracts tool, and where it is.
+    private void OnOpenItemContract(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemContractRowVm)?.OpenContract();
+
+    private void OnOpenItemContractLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemContractRowVm)?.OpenLocation();
+
     // The Assets tab's three links: where the stack is, who holds it, and the system.
     private void OnOpenAssetLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ((sender as Control)?.DataContext as ItemAssetRowVm)?.OpenLocation();

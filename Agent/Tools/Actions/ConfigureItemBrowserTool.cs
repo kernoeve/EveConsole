@@ -31,7 +31,7 @@ public sealed class ConfigureItemBrowserTool : IAgentTool
                 @enum = new[]
                 {
                     "description", "attributes", "requirements", "required_for",
-                    "industry", "market_orders", "price_history",
+                    "industry", "market_orders", "contracts", "price_history",
                 },
             },
             market_source = new

@@ -724,6 +724,9 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>Vertrag {0} ist hier nicht gespeichert – vielleicht ist es ein öffentliches Angebot, oder er wurde noch nicht abgefragt.</value>
   </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Nur Vertrag {0} wird angezeigt. Ändere einen Filter, um die übrigen zu sehen.</value>
+  </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} +{1} weitere</value>
   </data>

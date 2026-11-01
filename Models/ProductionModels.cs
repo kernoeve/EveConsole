@@ -46,8 +46,49 @@ public class PlanJob
     public long    QuantityNeeded  { get; set; }
     public int     QuantityPerRun  { get; set; }   // portion size from the SDE; single digits
     public long    Runs            { get; set; }
-    public long    QuantityProduced => Runs * QuantityPerRun;
+
+    /// <summary>
+    /// Manufacturing or a reaction, or the science that makes a T2 copy: the invention job that
+    /// turns out the copy a T2 job consumes, and the copy job that feeds it its T1 runs.
+    /// </summary>
+    public PlanJobKind Kind        { get; set; }
+    public bool    IsInvention     => Kind == PlanJobKind.Invention;
+    public bool    IsCopying       => Kind == PlanJobKind.Copying;
+    public bool    IsScience       => IsInvention || IsCopying;
+    public bool    ShowsMeLevel    => !IsScience;
+
+    /// <summary>The odds and the copy a success makes; set on an invention job only.</summary>
+    public PlanInvention? Invention { get; set; }
+
+    /// <summary>
+    /// What the job turns out. ⚠️ An invention job's is copy RUNS, and only on average: the
+    /// attempts are whole, the successes are not. Rounded down here, so the count never promises
+    /// a run that may not come; the leftover is valued at the exact mean (<see cref="LeftoverMean"/>),
+    /// which is what keeps a plan's net cost on the build cost.
+    /// </summary>
+    public long    QuantityProduced => Invention is { } inv ? (long)Math.Floor(inv.ExpectedRuns) : Runs * QuantityPerRun;
     public long    Leftover         => QuantityProduced - QuantityNeeded;
+
+    /// <summary>The leftover before rounding: an invention job's spare copy runs on average.</summary>
+    public double  LeftoverMean     => Invention is { } inv ? Math.Max(0, inv.ExpectedRuns - QuantityNeeded) : Leftover;
+
+    /// <summary>The Jobs tab's kind tag: invention's odds and decryptor, or copying.</summary>
+    public string  KindDisplay => Invention is { } i
+        ? string.Format(IndustryText.JobKindInvention, i.Chance, i.DecryptorTypeId > 0
+              ? SdeNames.Type(i.DecryptorTypeId, i.DecryptorName) : IndustryText.CompareNoDecryptor)
+        : IsCopying ? IndustryText.JobKindCopying : "";
+
+    /// <summary>What a successful attempt makes: the invented copy's ME, TE and runs.</summary>
+    public string  InventedCopyDisplay => Invention is { } i
+        ? string.Format(IndustryText.InventedCopyOutput, i.Me, i.Te, i.RunsPerCopy) : "";
+
+    public string  RunsDisplay     => string.Format(IsInvention ? IndustryText.FmtAttempts : IndustryText.FmtRuns, Runs);
+    public string  ProducedDisplay => Invention is { } inv
+        ? string.Format(IndustryText.FmtOutMeanRuns, inv.ExpectedRuns)
+        : string.Format(IndustryText.FmtOut, QuantityProduced);
+    public string  LeftoverDisplay => IsInvention
+        ? string.Format(IndustryText.FmtLeftoverMean, LeftoverMean)
+        : string.Format(IndustryText.FmtLeftover, Leftover);
 
     /// <summary>Packed volume of everything this job consumes, m ³.</summary>
     public double  InputVolume      { get; set; }
@@ -110,9 +151,24 @@ public class PlanJob
     public double RigBonusPct    { get; set; }   // e.g. 4.18 for T1 ME rig in highsec
     public double RoleBonusPct   { get; set; }   // e.g. 1.0 for engineering complex
     public double CombinedFactor { get; set; }   // final multiplier = (1-me%)×(1-rig%)×(1-role%)
-    public string ModifierDisplay =>
-        string.Format(IndustryText.JobModifiers, MeReductionPct, RigBonusPct, RoleBonusPct, CombinedFactor);
+    public string ModifierDisplay => Invention is { } i
+        ? string.Format(IndustryText.InventionModifiers, i.PerAttempt, i.Chance, i.RunsPerCopy, i.PerRun)
+        : IsCopying
+        ? IndustryText.CopyingModifiers
+        : string.Format(IndustryText.JobModifiers, MeReductionPct, RigBonusPct, RoleBonusPct, CombinedFactor);
 }
+
+public enum PlanJobKind { Manufacturing, Reaction, Invention, Copying }
+
+/// <summary>An invention job's odds and output, at all-V skills.</summary>
+/// <param name="RunsPerCopy">Runs on the copy a success makes, the decryptor's included.</param>
+/// <param name="Me">The invented copy's ME, and <paramref name="Te"/> its TE: 2 and 4 before the decryptor.</param>
+/// <param name="ExpectedRuns">Copy runs the job's attempts make on average.</param>
+/// <param name="PerAttempt">Datacores, decryptor, the T1 run and both fees.</param>
+/// <param name="PerRun">A copy run's share, which is what the T2 job is charged for each run.</param>
+public sealed record PlanInvention(
+    double Chance, int RunsPerCopy, int Me, int Te, int DecryptorTypeId, string DecryptorName,
+    double ExpectedRuns, decimal PerAttempt, decimal PerRun);
 
 public class PlanJobMaterial
 {

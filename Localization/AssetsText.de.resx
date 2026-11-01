@@ -478,6 +478,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Marktaufträge</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} aktive Tauschverträge mit diesem Gegenstand auf einer der beiden Seiten. Pro Einheit steht nur da, wo der Gegenstand allein auf seiner Seite steht und auf der anderen nur ISK; eine Kopie wird pro Durchlauf bepreist.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Kein aktiver Tauschvertrag führt diesen Gegenstand. Öffentliche Verträge stammen aus dem Abruf aller Regionen im Verträge-Werkzeug.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Seite</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Angeboten</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Gesucht</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Blaupause</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Kopie ME{0} TE{1}, {2} Durchläufe</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Kopie</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Pro Einheit / Durchlauf</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Rest des Vertrags</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Bietet {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Sucht {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Sonst nichts</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Verträge: {0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Quelle:</value>
   </data>

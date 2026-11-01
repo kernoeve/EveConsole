@@ -2048,6 +2048,46 @@
     <value>1 BPC run per run, at its invention cost: {0:P0} chance, {1} runs a success, {2}</value>
     <comment>Production Calculator, Jobs tab, formula column of an invented blueprint copy line: one run of the copy per run of the job, priced at what inventing it costs. {0} is the invention chance (a percentage), {1} the runs a successful invention gives, {2} the decryptor's name or 'No decryptor'.</comment>
   </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>Copy job tag</comment>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} per attempt × {1:N0} attempts = {2:N0}</value>
+    <comment>Invention material line: {0} per attempt, {1} attempts, {2} total</comment>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK an attempt (datacores, decryptor, T1 copy run, fees) ÷ ({1:P1} chance × {2} runs) = {3:N0} ISK a copy run</value>
+    <comment>Invention job breakdown: {0} attempt cost, {1} chance, {2} runs a success, {3} per copy run</comment>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Leftover: {0:N1} runs</value>
+    <comment>Invention job: spare copy runs on average</comment>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>One T1 copy run for each invention attempt, copied off the original.</value>
+    <comment>Copy job breakdown line</comment>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>The blueprint copy one successful attempt makes, decryptor included.</value>
+    <comment>Tooltip on the invented copy line</comment>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Out: {0:N1} runs on average</value>
+    <comment>Invention job: copy runs made on average</comment>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Each success: ME{0} TE{1}, {2} runs</value>
+    <comment>ME, TE and runs of the copy one invention success makes</comment>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Invention: {0:P0} chance, {1}</value>
+    <comment>Invention job tag: {0} chance, {1} decryptor name</comment>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Attempts: {0:N0}</value>
+    <comment>Invention job: attempts</comment>
+  </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermediate</value>
     <comment>Production Calculator, Leftovers tab, Source column: left over from an intermediate, a part the plan builds for a later job.</comment>

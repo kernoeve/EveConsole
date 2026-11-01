@@ -478,6 +478,54 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Pedidos del mercado</value>
   </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} intercambios de objetos activos con este objeto en cualquiera de los lados. El precio por unidad solo aparece cuando el objeto es lo único en su lado y del otro solo hay ISK; una copia se valora por iteración.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Ningún intercambio de objetos activo incluye este objeto. Los contratos públicos proceden del barrido de todas las regiones de la herramienta Contratos.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Lado</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Ofrecido</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Solicitado</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Plano</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Copia ME{0} TE{1}, {2} iteraciones</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Por unidad / iteración</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Resto del contrato</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Ofrece {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Pide {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Nada más</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Contratos: {0}</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Fuente:</value>
   </data>

@@ -77,15 +77,22 @@
                         Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                         HorizontalContentAlignment="Left"
                         ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
-                <TextBlock Text="{Binding Job.MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Job.MeLevel, StringFormat={x:Static loc:IndustryText.FmtMeLevel}}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                           IsVisible="{Binding Job.ShowsMeLevel}"/>
+                <!-- A science job says what it is instead: invention's odds and decryptor, and
+                     the copy a success makes. -->
+                <TextBlock Text="{Binding Job.KindDisplay}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                           IsVisible="{Binding Job.IsScience}"/>
+                <TextBlock Text="{Binding Job.InventedCopyDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                           IsVisible="{Binding Job.IsInvention}" ToolTip.Tip="{x:Static loc:IndustryText.TipInventedCopy}"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="{Binding Job.Runs,            StringFormat={x:Static loc:IndustryText.FmtRuns}}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Text="{Binding Job.RunsDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                 <TextBlock Text="{Binding Job.DurationText, StringFormat={x:Static loc:IndustryText.FmtJobTime}}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding Job.HasDuration}"
                            ToolTip.Tip="{x:Static loc:IndustryText.TipJobDuration}"/>
-                <TextBlock Text="{Binding Job.QuantityProduced, StringFormat={x:Static loc:IndustryText.FmtOut}}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                <TextBlock Text="{Binding Job.Leftover,         StringFormat={x:Static loc:IndustryText.FmtLeftover}}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                <TextBlock Text="{Binding Job.ProducedDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Text="{Binding Job.LeftoverDisplay}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
                 <TextBlock Text="{Binding Job.InputVolume,  StringFormat={x:Static loc:IndustryText.FmtInM}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                            ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob}"/>
                 <TextBlock Text="{Binding Job.OutputVolume, StringFormat={x:Static loc:IndustryText.FmtOutM}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
