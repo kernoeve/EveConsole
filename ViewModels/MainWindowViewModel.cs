@@ -1183,7 +1183,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
-        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
+        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         CorpActivityVm.RequestOpenKillmail = killMailId =>

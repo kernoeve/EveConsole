@@ -816,6 +816,18 @@
     <value>Corp…</value>
     <comment>Hint in an empty box in KillmailBrowserView.</comment>
   </data>
+  <data name="KillTabPersonal" xml:space="preserve">
+    <value>Personal</value>
+    <comment>Killmail tool tab: kills our own characters were on</comment>
+  </data>
+  <data name="KillTabAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Killmail tool tab: every kill, searched by character and corp</comment>
+  </data>
+  <data name="TipKillCharacter" xml:space="preserve">
+    <value>Kills and losses with this character as the victim or anywhere on the attacker list. All Characters: any of yours.</value>
+    <comment>Killmail tool, Personal tab: tooltip on the character list</comment>
+  </data>
   <data name="FromLabel" xml:space="preserve">
     <value>From:</value>
     <comment>Label in KillmailBrowserView.</comment>

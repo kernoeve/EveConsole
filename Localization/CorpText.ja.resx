@@ -613,6 +613,15 @@
   <data name="HintCorp" xml:space="preserve">
     <value>コーポレーション…</value>
   </data>
+  <data name="KillTabPersonal" xml:space="preserve">
+    <value>個人</value>
+  </data>
+  <data name="KillTabAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="TipKillCharacter" xml:space="preserve">
+    <value>このキャラクターが被害者、または攻撃者リストのどこかにいるキルとロス。全キャラクター：あなたのいずれかのキャラクター。</value>
+  </data>
   <data name="FromLabel" xml:space="preserve">
     <value>開始：</value>
   </data>

@@ -619,6 +619,15 @@
   <data name="HintCorp" xml:space="preserve">
     <value>Corporation…</value>
   </data>
+  <data name="KillTabPersonal" xml:space="preserve">
+    <value>Personnel</value>
+  </data>
+  <data name="KillTabAll" xml:space="preserve">
+    <value>Tous</value>
+  </data>
+  <data name="TipKillCharacter" xml:space="preserve">
+    <value>Victimes et pertes où ce personnage est la victime ou figure parmi les attaquants. Tous les personnages : n'importe lequel des vôtres.</value>
+  </data>
   <data name="FromLabel" xml:space="preserve">
     <value>Du :</value>
   </data>

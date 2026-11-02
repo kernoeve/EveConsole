@@ -631,6 +631,15 @@
   <data name="HintCorp" xml:space="preserve">
     <value>Корпорация…</value>
   </data>
+  <data name="KillTabPersonal" xml:space="preserve">
+    <value>Личные</value>
+  </data>
+  <data name="KillTabAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="TipKillCharacter" xml:space="preserve">
+    <value>Убийства и потери, где этот персонаж — жертва или есть в списке атакующих. Все персонажи: любой из ваших.</value>
+  </data>
   <data name="FromLabel" xml:space="preserve">
     <value>С:</value>
   </data>

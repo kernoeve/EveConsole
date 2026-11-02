@@ -613,6 +613,15 @@
   <data name="HintCorp" xml:space="preserve">
     <value>军团…</value>
   </data>
+  <data name="KillTabPersonal" xml:space="preserve">
+    <value>个人</value>
+  </data>
+  <data name="KillTabAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="TipKillCharacter" xml:space="preserve">
+    <value>此角色为受害者或出现在攻击者列表中的击杀与损失。所有角色：你的任一角色。</value>
+  </data>
   <data name="FromLabel" xml:space="preserve">
     <value>从：</value>
   </data>
