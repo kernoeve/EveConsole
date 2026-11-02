@@ -377,13 +377,24 @@ public class ItemContractRowVm
 
     public string  Region       { get; init; } = "";
 
+    /// <summary>Still open: outstanding and not past its expiry.</summary>
+    public bool    IsActive     { get; init; }
+
+    /// <summary>Outstanding, or how it ended and when: finished, deleted, or closed — a public
+    /// listing that dropped off without saying why.</summary>
+    public string  StatusText   { get; init; } = "";
+    public IBrush  StatusColor  { get; init; } = Palette.TextDim;
+
+    /// <summary>When it ended, for sorting the past ones; the start of time for an open one.</summary>
+    public DateTimeOffset Ended { get; init; }
+
     /// <summary>Sorts a contract with no expiry last.</summary>
     public DateTimeOffset Expires { get; init; }
     public string ExpiresText
     {
         get
         {
-            if (Expires == DateTimeOffset.MaxValue) return "—";
+            if (!IsActive || Expires == DateTimeOffset.MaxValue) return "—";
             var r = Expires - DateTimeOffset.UtcNow;
             if (r.TotalSeconds <= 0) return AssetsText.OrderExpired;
             if (r.TotalDays    >= 1) return string.Format(AssetsText.ExpiresDaysHours, (int)r.TotalDays, r.Hours);
@@ -801,9 +812,17 @@ public class ItemBrowserViewModel : ReactiveObject
 
     // ── Contracts tab ─────────────────────────────────────────────────────────
     //
-    // Every active item exchange the app holds with this item on either side: the public listings
-    // the contract sweep reads from every region, and the player's own characters' and
-    // corporations'. A contract is one listing however many of them hold a copy of it.
+    // Every item exchange the app holds with this item on either side: the public listings the
+    // contract sweep reads from every region, and the player's own characters' and corporations'.
+    // A contract is one listing however many of them hold a copy of it. The open ones and the
+    // newest past ones are loaded once per item; the filters only pick among them.
+
+    /// <summary>Past contracts loaded per item, newest first. A busy item has thousands — PLEX
+    /// over six thousand — and an old sale says less about the price than a recent one.</summary>
+    private const int ContractHistoryCap = 1000;
+
+    private List<ItemContractRowVm> _contractsLoaded = [];
+    private bool _contractHistoryCapped;
 
     private IReadOnlyList<ItemContractRowVm> _contracts = [];
     public IReadOnlyList<ItemContractRowVm> Contracts
@@ -817,7 +836,85 @@ public class ItemBrowserViewModel : ReactiveObject
         }
     }
     public bool   HasContracts     => _contracts.Count > 0;
-    public string ContractsCaption => string.Format(AssetsText.ContractsCaption, _contracts.Select(c => c.ContractId).Distinct().Count());
+    public string ContractsCaption
+    {
+        get
+        {
+            var text = string.Format(AssetsText.ContractsCaption, _contracts.Select(c => c.ContractId).Distinct().Count());
+            return _contractHistoryCapped && _contractStatus.Value != "Active"
+                ? text + " " + string.Format(AssetsText.ContractsHistoryCapped, ContractHistoryCap)
+                : text;
+        }
+    }
+
+    private static readonly IReadOnlyList<Choice<string>> s_contractStatuses =
+    [
+        new("Active",     MarketText.FilterActive),
+        new("Historical", MarketText.FilterHistorical),
+        new("All",        MarketText.FilterAllContracts),
+    ];
+    public IReadOnlyList<Choice<string>> ContractStatusOptions => s_contractStatuses;
+
+    private Choice<string> _contractStatus = s_contractStatuses[0];
+    public Choice<string> SelectedContractStatus
+    {
+        get => _contractStatus;
+        set
+        {
+            if (value is null || value == _contractStatus) return;
+            this.RaiseAndSetIfChanged(ref _contractStatus, value);
+            ApplyContractFilter();
+        }
+    }
+
+    /// <summary>Public listings, the player's own (as the Contracts tool's first tab holds them), or both.</summary>
+    private static readonly IReadOnlyList<Choice<string>> s_contractOwners =
+    [
+        new("All",    MarketText.FilterAllContracts),
+        new("Public", MarketText.TabPublic),
+        new("Owned",  MarketText.TabCorporationPersonal),
+    ];
+    public IReadOnlyList<Choice<string>> ContractOwnerOptions => s_contractOwners;
+
+    private Choice<string> _contractOwner = s_contractOwners[0];
+    public Choice<string> SelectedContractOwner
+    {
+        get => _contractOwner;
+        set
+        {
+            if (value is null || value == _contractOwner) return;
+            this.RaiseAndSetIfChanged(ref _contractOwner, value);
+            ApplyContractFilter();
+        }
+    }
+
+    private void ApplyContractFilter()
+    {
+        var listed = _contractsLoaded.Where(r => r.IsPublic).Select(r => r.ContractId).ToHashSet();
+        IEnumerable<ItemContractRowVm> rows = _contractsLoaded;
+        rows = _contractStatus.Value switch
+        {
+            "Active"     => rows.Where(r => r.IsActive),
+            "Historical" => rows.Where(r => !r.IsActive),
+            _            => rows,
+        };
+        rows = _contractOwner.Value switch
+        {
+            "Public" => rows.Where(r => r.IsPublic),
+            "Owned"  => rows.Where(r => !r.IsPublic),
+            // One of ours that is also listed publicly shows once, as the public listing: it carries
+            // the region, and opens on the tab that lists it.
+            _        => rows.Where(r => r.IsPublic || !listed.Contains(r.ContractId)),
+        };
+
+        // Open offers first, the cheapest by the unit at the top; bundles after, by price. Past ones
+        // the same way after them, so a price can be read against what sold.
+        Contracts = rows.OrderByDescending(r => r.IsActive)
+                        .ThenByDescending(r => r.Offered)
+                        .ThenBy(r => r.PerUnitSort)
+                        .ThenBy(r => r.Offered ? r.Price : -r.Reward)
+                        .ToList();
+    }
 
     private bool _isLoadingContracts;
     public bool IsLoadingContracts
@@ -828,7 +925,10 @@ public class ItemBrowserViewModel : ReactiveObject
 
     private async Task LoadContractsAsync(int typeId, CancellationToken ct)
     {
-        await Dispatcher.UIThread.InvokeAsync(() => { Contracts = []; IsLoadingContracts = true; });
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _contractsLoaded = []; _contractHistoryCapped = false; Contracts = []; IsLoadingContracts = true;
+        });
         try
         {
             // Own context: this runs alongside LoadOrdersAsync, which uses _db.
@@ -837,16 +937,23 @@ public class ItemBrowserViewModel : ReactiveObject
 
             // ⚠️ Expiry is checked here rather than in the query: the contract table never
             // deletes a row, and a DateTimeOffset comparison is not one SQLite can be asked for.
+            // So every outstanding row comes back, the ones past their expiry counting as past, and
+            // the ones that ended otherwise only the newest — a contract id grows with time.
             var now = DateTimeOffset.UtcNow;
-            var records = (await db.EsiContracts.AsNoTracking()
-                    .Where(c => c.Type == "item_exchange" && c.Status == "outstanding"
-                             && db.EsiContractItems.Any(i => i.ContractId == c.ContractId && i.TypeId == typeId))
-                    .ToListAsync(ct))
-                .Where(c => ContractFmt.IsActive(c, now))
-                .GroupBy(c => c.ContractId)
-                // The public row where there is one: it carries the region, and opens on the tab
-                // that lists it.
-                .Select(g => g.FirstOrDefault(c => c.OwnerType == "public") ?? g.First())
+            var withItem = db.EsiContracts.AsNoTracking()
+                .Where(c => c.Type == "item_exchange"
+                         && db.EsiContractItems.Any(i => i.ContractId == c.ContractId && i.TypeId == typeId));
+            var open  = await withItem.Where(c => c.Status == "outstanding").ToListAsync(ct);
+            var ended = await withItem.Where(c => c.Status != "outstanding")
+                .OrderByDescending(c => c.ContractId).Take(ContractHistoryCap + 1).ToListAsync(ct);
+            var capped = ended.Count > ContractHistoryCap;
+            if (capped) ended.RemoveAt(ended.Count - 1);
+
+            var records = open.Concat(ended)
+                // One listing per contract and side of the owner filter: the public row, and one of
+                // the player's own copies — a character's and its corporation's are the same contract.
+                .GroupBy(c => (c.ContractId, Public: c.OwnerType == "public"))
+                .Select(g => g.First())
                 .ToList();
 
             var ids   = records.Select(c => c.ContractId).ToList();
@@ -919,6 +1026,11 @@ public class ItemBrowserViewModel : ReactiveObject
                 var sys      = systems.GetValueOrDefault(sysId);
                 var regionId = c.RegionId > 0 ? c.RegionId : sys?.RegionId ?? 0;
 
+                var active      = ContractFmt.IsActive(c, now);
+                var statusLabel = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
+                // Completed where it says, else its expiry if that has passed.
+                var endedAt     = c.DateCompleted ?? (c.DateExpired is { } exp && exp <= now ? exp : null);
+
                 foreach (var offered in new[] { true, false })
                 {
                     var mine = all.Where(i => i.TypeId == typeId && i.IsIncluded == offered).ToList();
@@ -954,17 +1066,23 @@ public class ItemBrowserViewModel : ReactiveObject
                         Security     = sys?.Security,
                         Region       = regions.TryGetValue(regionId, out var rn) ? SdeNames.Region(regionId, rn) : "",
                         Expires      = c.DateExpired ?? DateTimeOffset.MaxValue,
+                        IsActive     = active,
+                        StatusText   = active || endedAt is null ? statusLabel
+                                     : $"{statusLabel} · {endedAt.Value.UtcDateTime:yyyy-MM-dd}",
+                        StatusColor  = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired),
+                        Ended        = active ? DateTimeOffset.MinValue : endedAt ?? DateTimeOffset.MinValue,
                     });
                 }
             }
 
-            // Offers first, the cheapest by the unit at the top; bundles after, by price.
-            var ordered = rows.OrderByDescending(r => r.Offered)
-                              .ThenBy(r => r.PerUnitSort)
-                              .ThenBy(r => r.Offered ? r.Price : -r.Reward)
-                              .ToList();
             if (ct.IsCancellationRequested) return;
-            await Dispatcher.UIThread.InvokeAsync(() => { if (!ct.IsCancellationRequested) Contracts = ordered; });
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                _contractsLoaded       = rows;
+                _contractHistoryCapped = capped;
+                ApplyContractFilter();
+            });
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)

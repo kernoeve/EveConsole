@@ -479,10 +479,13 @@
     <value>계약</value>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>이 아이템이 어느 한쪽에 있는 활성 아이템 교환 {0:N0}건. 단가는 이 아이템이 그쪽의 유일한 품목이고 반대쪽이 ISK뿐일 때만 표시하며, 사본은 1회분당 가격입니다.</value>
+    <value>이 아이템이 어느 한쪽에 있는 아이템 교환 {0:N0}건. 단가는 이 아이템이 그쪽의 유일한 품목이고 반대쪽이 ISK뿐일 때만 표시하며, 사본은 1회분당 가격입니다.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>지난 계약: 최근 {0:N0}건만.</value>
   </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>이 아이템이 포함된 활성 아이템 교환이 없습니다. 공개 계약은 계약 도구가 모든 지역에서 가져온 것입니다.</value>
+    <value>이 필터에 맞고 이 아이템이 포함된 아이템 교환이 없습니다. 공개 계약은 계약 도구가 모든 지역에서 가져온 것입니다.</value>
   </data>
   <data name="ColSide" xml:space="preserve">
     <value>쪽</value>

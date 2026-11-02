@@ -479,10 +479,13 @@
     <value>契約</value>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>このアイテムをどちらかの側に含む有効なアイテム交換 {0:N0} 件。単価は、そのアイテムが片側の唯一の品で、反対側がISKのみの場合に限り表示します。コピーは1回分あたりの価格です。</value>
+    <value>このアイテムをどちらかの側に含むアイテム交換 {0:N0} 件。単価は、そのアイテムが片側の唯一の品で、反対側がISKのみの場合に限り表示します。コピーは1回分あたりの価格です。</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>過去の契約：最新の {0:N0} 件のみ。</value>
   </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>このアイテムを含む有効なアイテム交換はありません。公開契約は契約ツールによる全リージョンの取得から得られます。</value>
+    <value>このフィルターに合い、このアイテムを含むアイテム交換はありません。公開契約は契約ツールによる全リージョンの取得から得られます。</value>
   </data>
   <data name="ColSide" xml:space="preserve">
     <value>側</value>

@@ -482,10 +482,13 @@
     <value>Verträge</value>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>{0:N0} aktive Tauschverträge mit diesem Gegenstand auf einer der beiden Seiten. Pro Einheit steht nur da, wo der Gegenstand allein auf seiner Seite steht und auf der anderen nur ISK; eine Kopie wird pro Durchlauf bepreist.</value>
+    <value>{0:N0} Tauschverträge mit diesem Gegenstand auf einer der beiden Seiten. Pro Einheit steht nur da, wo der Gegenstand allein auf seiner Seite steht und auf der anderen nur ISK; eine Kopie wird pro Durchlauf bepreist.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Vergangene Verträge: nur die neuesten {0:N0}.</value>
   </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>Kein aktiver Tauschvertrag führt diesen Gegenstand. Öffentliche Verträge stammen aus dem Abruf aller Regionen im Verträge-Werkzeug.</value>
+    <value>Kein Tauschvertrag, der zu diesen Filtern passt, führt diesen Gegenstand. Öffentliche Verträge stammen aus dem Abruf aller Regionen im Verträge-Werkzeug.</value>
   </data>
   <data name="ColSide" xml:space="preserve">
     <value>Seite</value>

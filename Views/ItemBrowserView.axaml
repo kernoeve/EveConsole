@@ -1152,15 +1152,22 @@
               </Grid>
             </TabItem>
 
-            <!-- Contracts tab: active item exchanges with this item on either side. -->
+            <!-- Contracts tab: item exchanges with this item on either side — open, past or both;
+                 public listings, the player's own, or both. -->
             <TabItem Header="{x:Static loc:AssetsText.TabContracts}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="{Binding ContractsCaption}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,6,Auto,Auto,10,*">
+                  <ComboBox Grid.Column="0" ItemsSource="{Binding ContractStatusOptions}"
+                            SelectedItem="{Binding SelectedContractStatus}"
+                            MinWidth="110" FontSize="11" VerticalAlignment="Center" />
+                  <ComboBox Grid.Column="2" ItemsSource="{Binding ContractOwnerOptions}"
+                            SelectedItem="{Binding SelectedContractOwner}"
+                            MinWidth="170" FontSize="11" VerticalAlignment="Center" />
+                  <ProgressBar Grid.Column="3" IsIndeterminate="True" Width="60" Height="3" Margin="10 0 0 0"
+                               VerticalAlignment="Center" IsVisible="{Binding IsLoadingContracts}" />
+                  <TextBlock Grid.Column="5" Text="{Binding ContractsCaption}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ProgressBar IsIndeterminate="True" Width="60" Height="3" VerticalAlignment="Center"
-                               IsVisible="{Binding IsLoadingContracts}" />
-                </StackPanel>
+                </Grid>
 
                 <TextBlock Grid.Row="2" IsVisible="{Binding !HasContracts}"
                            Text="{x:Static loc:AssetsText.ContractsNone}"
@@ -1226,6 +1233,14 @@
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}"  Binding="{ReflectionBinding Region}"      Width="110" />
                     <DataGridTextColumn Header="{x:Static loc:AssetsText.ColExpires}" Binding="{ReflectionBinding ExpiresText}" SortMemberPath="Expires" Width="90" />
+                    <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStatus}" SortMemberPath="Ended" Width="150" ClipboardContentBinding="{ReflectionBinding StatusText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{ReflectionBinding StatusText}" Foreground="{ReflectionBinding StatusColor}"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>

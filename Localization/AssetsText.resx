@@ -641,11 +641,15 @@
     <comment>Item Browser tab: active contracts with the item</comment>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>{0:N0} active item exchanges with this item on either side. Per unit is shown only where the item is all there is on its side and only ISK comes the other way; a copy is priced per run.</value>
+    <value>{0:N0} item exchanges with this item on either side. Per unit is shown only where the item is all there is on its side and only ISK comes the other way; a copy is priced per run.</value>
     <comment>Contracts tab caption; {0} contract count</comment>
   </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Past contracts: the newest {0:N0} only.</value>
+    <comment>Contracts tab caption, after the count, when past contracts were cut to the newest; {0} the cap</comment>
+  </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>No active item exchange lists this item. Public contracts come from the Contracts tool's sweep of every region.</value>
+    <value>No item exchange matching these filters lists this item. Public contracts come from the Contracts tool's sweep of every region.</value>
     <comment>Contracts tab: nothing listed</comment>
   </data>
   <data name="ColSide" xml:space="preserve">

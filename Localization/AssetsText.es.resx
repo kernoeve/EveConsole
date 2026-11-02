@@ -482,10 +482,13 @@
     <value>Contratos</value>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>{0:N0} intercambios de objetos activos con este objeto en cualquiera de los lados. El precio por unidad solo aparece cuando el objeto es lo único en su lado y del otro solo hay ISK; una copia se valora por iteración.</value>
+    <value>{0:N0} intercambios de objetos con este objeto en cualquiera de los lados. El precio por unidad solo aparece cuando el objeto es lo único en su lado y del otro solo hay ISK; una copia se valora por iteración.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Contratos pasados: solo los {0:N0} más recientes.</value>
   </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>Ningún intercambio de objetos activo incluye este objeto. Los contratos públicos proceden del barrido de todas las regiones de la herramienta Contratos.</value>
+    <value>Ningún intercambio de objetos que coincida con estos filtros incluye este objeto. Los contratos públicos proceden del barrido de todas las regiones de la herramienta Contratos.</value>
   </data>
   <data name="ColSide" xml:space="preserve">
     <value>Lado</value>

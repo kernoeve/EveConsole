@@ -479,10 +479,13 @@
     <value>合同</value>
   </data>
   <data name="ContractsCaption" xml:space="preserve">
-    <value>任一方含有此物品的有效物品交换共 {0:N0} 个。仅当此物品是其一方的唯一物品、另一方只有 ISK 时才显示单价；拷贝按流程计价。</value>
+    <value>任一方含有此物品的物品交换共 {0:N0} 个。仅当此物品是其一方的唯一物品、另一方只有 ISK 时才显示单价；拷贝按流程计价。</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>过去的合同：仅最新的 {0:N0} 个。</value>
   </data>
   <data name="ContractsNone" xml:space="preserve">
-    <value>没有含此物品的有效物品交换。公开合同来自合同工具对所有星域的抓取。</value>
+    <value>没有符合这些筛选条件且含此物品的物品交换。公开合同来自合同工具对所有星域的抓取。</value>
   </data>
   <data name="ColSide" xml:space="preserve">
     <value>方向</value>
