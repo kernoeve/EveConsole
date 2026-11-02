@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>Taxe industrie</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>Aucun contrat sur cette période. Les contrats publics viennent du balayage de toutes les régions par l'outil Contrats ; les autres sont ceux de vos propres personnages et corporations.</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>{0:N0} contrats sur cette période.</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>Aucune transaction sur cette période. Seules les transactions de vos portefeuilles apparaissent : toutes s'il s'agit d'un de vos personnages ou corporations, sinon seulement celles faites avec vous.</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>{0:N0} transactions sur cette période. Seules les transactions de vos portefeuilles apparaissent : toutes s'il s'agit d'un de vos personnages ou corporations, sinon seulement celles faites avec vous.</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>{0:N0} ISK de taxe de ratting et {1:N0} ISK de taxe d'industrie versés à vos corporations, sur {2:N0} mois. Les mêmes écritures du journal que celles de l'activité de corpo.</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0} : {1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>Choisissez une ligne pour voir ce que l'application connaît de son activité dans cette corporation.</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>Aucun journal</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>Victimes</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>Pertes</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>Contrats</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>Transactions de marché</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>Victimes et pertes enregistrées par l'application ; taxes issues des journaux de vos corporations ; contrats et transactions tels que les trouvent les onglets Contrats et Marché.</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>Paiements proj.</value>
   </data>
@@ -577,6 +619,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>Rôle</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>Autre partie</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>Taxe de ratting</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>Taxe d'industrie</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>Propriétaire</value>
   </data>
@@ -627,6 +678,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>Victimes et pertes où ce personnage est la victime ou figure parmi les attaquants. Tous les personnages : n'importe lequel des vôtres.</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>Contrats</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>Marché</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>Taxes de corpo</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>Émis</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>Accepté</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>Proposé à eux</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>Émis par un membre</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>Acheté</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>Vendu</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>Du :</value>

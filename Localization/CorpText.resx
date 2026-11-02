@@ -80,6 +80,62 @@
     <value>INDUSTRY TAX</value>
     <comment>Column header in CorpActivityView.</comment>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>No contracts in this range. Public contracts come from the Contracts tool's sweep of every region; the rest are your own characters' and corporations'.</value>
+    <comment>Player Entities Contracts tab: nothing in the date range</comment>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>{0:N0} contracts in this range.</value>
+    <comment>Player Entities Contracts tab caption; {0} contract count</comment>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>No trades in this range. Only trades in your wallets show: all of them if this is one of your characters or corporations, otherwise only the ones made with you.</value>
+    <comment>Player Entities Market tab: nothing in the date range</comment>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>{0:N0} trades in this range. Only trades in your wallets show: all of them if this is one of your characters or corporations, otherwise only the ones made with you.</value>
+    <comment>Player Entities Market tab caption; {0} trade count</comment>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>{0:N0} ISK ratting tax and {1:N0} ISK industry tax paid into your corporations, over {2:N0} months. The same journal entries Corp Activity reports.</value>
+    <comment>Player Entities Corp Taxes caption; {0} ratting ISK, {1} industry ISK, {2} month count</comment>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}: {1} – {2}</value>
+    <comment>Player Entities history summary heading; {0} corporation, {1} from, {2} until</comment>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>Pick a row to see what the app holds of their activity while in that corporation.</value>
+    <comment>Player Entities history summary: nothing picked yet</comment>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>No journal held</value>
+    <comment>Player Entities history summary: no wallet journal held for that corporation</comment>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} · {1:N0} ISK</value>
+    <comment>Player Entities history summary; {0} count, {1} ISK</comment>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Player Entities history summary label</comment>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>Losses</value>
+    <comment>Player Entities history summary label</comment>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Player Entities history summary label</comment>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>Market trades</value>
+    <comment>Player Entities history summary label</comment>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>Kills and losses the app has stored; taxes from your corporations' journals; contracts and trades as the Contracts and Market tabs find them.</value>
+    <comment>Player Entities history summary footnote</comment>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>PROJ PAYOUTS</value>
     <comment>Column header in CorpActivityView.</comment>
@@ -760,6 +816,18 @@
     <value>Role</value>
     <comment>Column header in EntityTabView.</comment>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>Other party</value>
+    <comment>Player Entities Contracts and Market tabs column: who was on the other side</comment>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>Ratting tax</value>
+    <comment>Player Entities: ratting tax paid into the corporation</comment>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>Industry tax</value>
+    <comment>Player Entities: industry tax paid into the corporation</comment>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>Owner</value>
     <comment>Column header in EntityTabView.</comment>
@@ -827,6 +895,42 @@
   <data name="TipKillCharacter" xml:space="preserve">
     <value>Kills and losses with this character as the victim or anywhere on the attacker list. All Characters: any of yours.</value>
     <comment>Killmail tool, Personal tab: tooltip on the character list</comment>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Player Entities tab: contracts the pilot or corporation is on</comment>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Player Entities tab: market trades our wallets hold for the pilot or corporation</comment>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>Corp Taxes</value>
+    <comment>Player Entities tab: ratting and industry tax the pilot paid into our corporations</comment>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Player Entities Contracts tab, Role column: the entity issued it</comment>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>Accepted</value>
+    <comment>Player Entities Contracts tab, Role column: the entity accepted it</comment>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>Offered to them</value>
+    <comment>Player Entities Contracts tab, Role column: offered to the entity directly</comment>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>Issued by a member</value>
+    <comment>Player Entities Contracts tab, Role column: a member of the corporation issued it for themselves</comment>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>Bought</value>
+    <comment>Player Entities Market tab, Side column: the entity bought</comment>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>Sold</value>
+    <comment>Player Entities Market tab, Side column: the entity sold</comment>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>From:</value>

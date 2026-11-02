@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>インダストリータックス</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>この期間に契約はありません。公開契約は契約ツールによる全リージョンの取得から、それ以外はあなたのキャラクターとコーポレーションのものです。</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>この期間の契約 {0:N0} 件。</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>この期間に取引はありません。表示されるのはあなたのウォレットにある取引だけです。あなたのキャラクターかコーポレーションならすべて、そうでなければあなたとの取引のみです。</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>この期間の取引 {0:N0} 件。表示されるのはあなたのウォレットにある取引だけです。あなたのキャラクターかコーポレーションならすべて、そうでなければあなたとの取引のみです。</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>あなたのコーポレーションに支払われたラッティング税 {0:N0} ISK、産業税 {1:N0} ISK（{2:N0} か月分）。コーポ活動と同じ明細です。</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}：{1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>行を選ぶと、そのコーポレーション在籍中の活動についてアプリが持つ情報を表示します。</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>明細なし</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} 件 · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>ロス</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>マーケット取引</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>キルとロスはアプリに保存されたもの、税はあなたのコーポレーションの明細から、契約と取引は契約タブとマーケットタブと同じ基準です。</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>プロジェクト支払い</value>
   </data>
@@ -571,6 +613,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>役割</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>相手</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>産業税</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>所有者</value>
   </data>
@@ -621,6 +672,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>このキャラクターが被害者、または攻撃者リストのどこかにいるキルとロス。全キャラクター：あなたのいずれかのキャラクター。</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>コーポ税</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>発行</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>受諾</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>相手宛て</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>メンバーが発行</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>売却</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>開始：</value>

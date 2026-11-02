@@ -1279,7 +1279,8 @@ public class MainWindowViewModel : ReactiveObject
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ItemValuationVm        = new ItemValuationViewModel(dbFactory);
-        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
+                                     new PlayerActivityService(dbFactory, corpActivityService));
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);

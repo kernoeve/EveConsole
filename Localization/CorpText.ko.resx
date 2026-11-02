@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>산업세</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>이 기간에 계약이 없습니다. 공개 계약은 계약 도구가 모든 지역에서 가져온 것이고, 나머지는 내 캐릭터와 코퍼레이션의 계약입니다.</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>이 기간의 계약 {0:N0}건.</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>이 기간에 거래가 없습니다. 내 지갑에 있는 거래만 표시됩니다. 내 캐릭터나 코퍼레이션이면 전부, 아니면 나와의 거래만 표시됩니다.</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>이 기간의 거래 {0:N0}건. 내 지갑에 있는 거래만 표시됩니다. 내 캐릭터나 코퍼레이션이면 전부, 아니면 나와의 거래만 표시됩니다.</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>내 코퍼레이션에 낸 래팅 세금 {0:N0} ISK, 산업 세금 {1:N0} ISK ({2:N0}개월). 코퍼레이션 활동과 같은 지갑 기록입니다.</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}: {1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>행을 고르면 그 코퍼레이션에 있던 동안의 활동 중 앱이 가진 정보를 보여 줍니다.</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>지갑 기록 없음</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0}건 · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>손실</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>마켓 거래</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>킬과 손실은 앱에 저장된 것, 세금은 내 코퍼레이션 지갑 기록, 계약과 거래는 계약·마켓 탭과 같은 기준입니다.</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>프로젝트 지급</value>
   </data>
@@ -571,6 +613,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>역할</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>상대방</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>래팅 세금</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>산업 세금</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>소유자</value>
   </data>
@@ -621,6 +672,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>이 캐릭터가 피해자이거나 공격자 목록 어디에든 있는 킬과 손실. 모든 캐릭터: 내 캐릭터 중 누구든.</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>마켓</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>코퍼레이션 세금</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>발행</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>수락</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>상대에게 제안</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>멤버가 발행</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>판매</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>시작일:</value>

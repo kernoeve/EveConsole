@@ -29,10 +29,16 @@ public class EntityTabViewModel : ReactiveObject
     /// <summary>Intel sightings are recorded per character.</summary>
     public bool HasIntel => Kind is EntityKind.Pilot;
 
-    public EntityTabViewModel(EntityBrowserService service, KillmailBrowserService killmails, EntityKind kind)
+    /// <summary>The Contracts, Market and Corp Taxes tabs, and the history summary. Null in the NPC
+    /// viewer, which has none of them.</summary>
+    private readonly PlayerActivityService? _activity;
+
+    public EntityTabViewModel(EntityBrowserService service, KillmailBrowserService killmails, EntityKind kind,
+                              PlayerActivityService? activity = null)
     {
         _service   = service;
         _killmails = killmails;
+        _activity  = activity;
         Kind       = kind;
         OpenFactCommand    = ReactiveCommand.Create<EntityFact>(OpenFact);
         OpenMemberCommand  = ReactiveCommand.Create<EntityMemberRow>(r => Open(MemberLinkKind, r.Id));
@@ -364,6 +370,168 @@ public class EntityTabViewModel : ReactiveObject
     private string _intelStatus = "";
     public string IntelStatus { get => _intelStatus; private set => this.RaiseAndSetIfChanged(ref _intelStatus, value); }
 
+    // ── Contracts, Market, Corp Taxes, and the history summary ────────────────
+    //
+    // What the app's own data says the pilot or corporation did: public contracts from the region
+    // sweep and ours, trades our wallets hold, taxes our corporations' journals hold.
+
+    /// <summary>Contracts and Market: a pilot or a player corporation, in the Player Entities viewer.</summary>
+    public bool HasActivity => _activity is not null && Kind is EntityKind.Pilot or EntityKind.PlayerCorp;
+
+    public ObservableCollection<EntityContractRowVm> EntityContracts { get; } = [];
+    public ObservableCollection<EntityTradeRowVm>    Trades          { get; } = [];
+    public ObservableCollection<EntityTaxMonthRowVm> Taxes           { get; } = [];
+
+    private string _contractsStatus = "";
+    public string ContractsStatus { get => _contractsStatus; private set => this.RaiseAndSetIfChanged(ref _contractsStatus, value); }
+
+    private string _tradesStatus = "";
+    public string TradesStatus { get => _tradesStatus; private set => this.RaiseAndSetIfChanged(ref _tradesStatus, value); }
+
+    private string _taxesStatus = "";
+    public string TaxesStatus { get => _taxesStatus; private set => this.RaiseAndSetIfChanged(ref _taxesStatus, value); }
+
+    /// <summary>Corp Taxes shows only for a pilot one of our corporations' journals has taxes from.</summary>
+    private bool _hasTaxes;
+    public bool HasTaxes { get => _hasTaxes; private set => this.RaiseAndSetIfChanged(ref _hasTaxes, value); }
+
+    // The Contracts and Market tabs' dates: the past twelve months unless changed, kept across
+    // entities so a wider range set for one stays for the next.
+    private DateTime? _activityFrom = DateTime.Today.AddMonths(-12);
+    private DateTime? _activityThru;
+    public DateTime? ActivityFrom
+    {
+        get => _activityFrom;
+        set { if (value == _activityFrom) return; this.RaiseAndSetIfChanged(ref _activityFrom, value); ReloadActivity(); }
+    }
+    public DateTime? ActivityThru
+    {
+        get => _activityThru;
+        set { if (value == _activityThru) return; this.RaiseAndSetIfChanged(ref _activityThru, value); ReloadActivity(); }
+    }
+
+    private void ReloadActivity()
+    {
+        if (HasActivity && HasSelection && _loadedId > 0) _ = LoadActivityAsync(_loadedId, _cts.Token);
+    }
+
+    /// <summary>Local midnight to local midnight, the Thru day included.</summary>
+    private (DateTimeOffset? From, DateTimeOffset? Thru) ActivityRange() =>
+        (_activityFrom is { } f ? new DateTimeOffset(f.Date) : null,
+         _activityThru is { } t ? new DateTimeOffset(t.Date.AddDays(1)) : null);
+
+    private async Task LoadActivityAsync(long id, CancellationToken ct)
+    {
+        if (_activity is null) return;
+        var (from, thru) = ActivityRange();
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            ContractsStatus = CorpText.Loading;
+            TradesStatus    = CorpText.Loading;
+        });
+        await Task.WhenAll(
+            LoadInto(EntityContracts, async () => (await _activity.ContractsAsync(Kind, id, from, thru, ct))
+                         .Select(d => new EntityContractRowVm(d)).ToList(),
+                     v => ContractsStatus = v, CorpText.EntityContractsNone, CorpText.EntityContractsCount, ct),
+            LoadInto(Trades, async () => (await _activity.TradesAsync(Kind, id, from, thru, ct))
+                         .Select(d => new EntityTradeRowVm(d)).ToList(),
+                     v => TradesStatus = v, CorpText.EntityTradesNone, CorpText.EntityTradesCount, ct));
+    }
+
+    /// <summary><see cref="LoadListAsync"/> with the entity's token checked before anything is shown,
+    /// so a slow load for the last pick cannot land on the next.</summary>
+    private static async Task LoadInto<T>(ObservableCollection<T> target, Func<Task<List<T>>> load,
+                                          Action<string> setStatus, string none, string count, CancellationToken ct)
+    {
+        try
+        {
+            var rows = await Task.Run(load, ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                target.Clear();
+                foreach (var r in rows) target.Add(r);
+                setStatus(rows.Count == 0 ? none : string.Format(count, rows.Count));
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => setStatus(string.Format(CommonText.ErrorWithMessage, ex.Message)));
+        }
+    }
+
+    private async Task LoadTaxesAsync(long id, CancellationToken ct)
+    {
+        if (_activity is null) return;
+        try
+        {
+            var months = await Task.Run(() => _activity.TaxesAsync(id, ct), ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                Taxes.Clear();
+                foreach (var m in months) Taxes.Add(new EntityTaxMonthRowVm(m));
+                HasTaxes    = months.Count > 0;
+                TaxesStatus = months.Count == 0 ? "" : string.Format(CorpText.EntityTaxesSummary,
+                    months.Sum(m => m.Ratting), months.Sum(m => m.Industry),
+                    months.Select(m => (m.Year, m.Month)).Distinct().Count());
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                HasTaxes    = true;
+                TaxesStatus = string.Format(CommonText.ErrorWithMessage, ex.Message);
+            });
+        }
+    }
+
+    /// <summary>The pilot's corporation history row picked; its summary loads below the grid.</summary>
+    private EntityHistoryRow? _selectedHistory;
+    public EntityHistoryRow? SelectedHistory
+    {
+        get => _selectedHistory;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedHistory, value);
+            if (value is not null && Kind is EntityKind.Pilot && _activity is not null && _loadedId > 0)
+                _ = LoadStintAsync(_loadedId, value, _cts.Token);
+        }
+    }
+
+    public bool HasStintSummaries => _activity is not null && Kind is EntityKind.Pilot;
+
+    private EntityStintSummaryVm? _stint;
+    public EntityStintSummaryVm? Stint { get => _stint; private set => this.RaiseAndSetIfChanged(ref _stint, value); }
+
+    private string _stintStatus = "";
+    public string StintStatus { get => _stintStatus; private set => this.RaiseAndSetIfChanged(ref _stintStatus, value); }
+
+    private async Task LoadStintAsync(long id, EntityHistoryRow row, CancellationToken ct)
+    {
+        if (_activity is null) return;
+        Stint       = null;
+        StintStatus = CorpText.Loading;
+        try
+        {
+            var s = await Task.Run(() => _activity.StintSummaryAsync(id, row.LinkId, row.Start, row.End, ct), ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested || !ReferenceEquals(_selectedHistory, row)) return;
+                Stint       = new EntityStintSummaryVm(row, s);
+                StintStatus = "";
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => StintStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        }
+    }
+
     // Each selection cancels the last, so switching quickly cannot leave a slower load
     // writing its results over a newer one.
     private CancellationTokenSource _cts = new();
@@ -426,6 +594,11 @@ public class EntityTabViewModel : ReactiveObject
 
                 ZkbStats       = null;
                 ZkbStatsStatus = HasKills ? CorpText.ZkbStatsLoading : "";
+
+                EntityContracts.Clear(); Trades.Clear(); Taxes.Clear();
+                HasTaxes = false;
+                _selectedHistory = null; this.RaisePropertyChanged(nameof(SelectedHistory));
+                Stint = null; StintStatus = HasStintSummaries ? CorpText.StintPickRow : "";
             });
 
             // Everything below is optional detail — the About pane is already usable, so
@@ -437,6 +610,8 @@ public class EntityTabViewModel : ReactiveObject
             if (HasIntel)   _ = LoadIntelAsync(id, ct);
             if (HasMembers) _ = LoadMembersAsync(id, ct);
             if (HasHistory)  _ = LoadHistoryAsync(id, ct);
+            if (HasActivity) _ = LoadActivityAsync(id, ct);
+            if (HasActivity && Kind is EntityKind.Pilot) _ = LoadTaxesAsync(id, ct);
             if (HasStations) _ = LoadStationsAsync(id, ct);
             if (Kind is EntityKind.NpcCorp or EntityKind.PlayerCorp) _ = LoadOrdersAsync(id, ct);
             if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),

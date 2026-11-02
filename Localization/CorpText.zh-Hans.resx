@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>工业税</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>此期间没有合同。公开合同来自合同工具对所有星域的抓取，其余为你自己的角色和军团的合同。</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>此期间共 {0:N0} 个合同。</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>此期间没有交易。只显示你钱包中的交易：若是你自己的角色或军团则全部显示，否则只显示与你之间的交易。</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>此期间共 {0:N0} 笔交易。只显示你钱包中的交易：若是你自己的角色或军团则全部显示，否则只显示与你之间的交易。</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>向你的军团缴纳刷怪税 {0:N0} ISK、工业税 {1:N0} ISK，共 {2:N0} 个月。与军团活动报告的日志条目相同。</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}：{1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>选择一行，查看应用记录的其在该军团期间的活动。</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>无日志</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} 个 · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>市场交易</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>击杀和损失为应用已存储的记录；税款来自你军团的日志；合同和交易与合同、市场标签页的口径相同。</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>项目奖励</value>
   </data>
@@ -571,6 +613,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>身份</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>对方</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>所有者</value>
   </data>
@@ -621,6 +672,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>此角色为受害者或出现在攻击者列表中的击杀与损失。所有角色：你的任一角色。</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>军团税</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>发起</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>接受</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>指定给对方</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>成员发起</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>买入</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>卖出</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>从：</value>

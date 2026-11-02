@@ -49,8 +49,10 @@ public record EntityKillRow(long KillMailId, string When, string System, string 
 public record EntityMemberRow(long Id, string Name, string Subtitle = "",
                               int Level = 0, string Division = "", string Station = "",
                               long StationId = 0);
+/// <summary>One stretch of a corporation or alliance history. <c>Start</c>/<c>End</c> are the instants
+/// behind From/Until (End null for the present), for the summary of what a pilot did there.</summary>
 public record EntityHistoryRow(string Alliance, string From, string Until, string Duration, bool Closed,
-                               long LinkId = 0);
+                               long LinkId = 0, DateTimeOffset Start = default, DateTimeOffset? End = null);
 public record EntityStationRow(string Name, string System, string Region, double Security, int Agents,
                                long StationId = 0)
 {
@@ -682,7 +684,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString(CommonText.DateFull),
                 string.Format(CorpText.HistoryDays, ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days),
                 r.IsDeleted == true,
-                r.CorporationId)).ToList();
+                r.CorporationId,
+                r.StartDate,
+                i == 0 ? null : ordered[i - 1].StartDate)).ToList();
         }
         catch (OperationCanceledException) { throw; }
         catch { return []; }

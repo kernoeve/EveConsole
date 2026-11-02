@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>Пром. налог</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>В этом периоде контрактов нет. Публичные контракты берутся из обхода всех регионов инструментом «Контракты», остальные — ваших персонажей и корпораций.</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>Контрактов в этом периоде: {0:N0}.</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>В этом периоде сделок нет. Показаны только сделки из ваших кошельков: все, если это ваш персонаж или корпорация, иначе только сделки с вами.</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>Сделок в этом периоде: {0:N0}. Показаны только сделки из ваших кошельков: все, если это ваш персонаж или корпорация, иначе только сделки с вами.</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>Налог с ратинга {0:N0} ISK и налог с производства {1:N0} ISK, уплаченные вашим корпорациям за {2:N0} мес. Те же записи журнала, что в «Активности корпорации».</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}: {1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>Выберите строку, чтобы увидеть, что приложение знает об их активности в этой корпорации.</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>Журнала нет</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>Убийства</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>Сделки на рынке</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>Убийства и потери — сохранённые в приложении; налоги — из журналов ваших корпораций; контракты и сделки — как на вкладках «Контракты» и «Рынок».</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>Выпл. проектов</value>
   </data>
@@ -589,6 +631,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>Роль</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>Другая сторона</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>Налог с ратинга</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>Налог с производства</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>Владелец</value>
   </data>
@@ -639,6 +690,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>Убийства и потери, где этот персонаж — жертва или есть в списке атакующих. Все персонажи: любой из ваших.</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>Налоги корпорации</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>Выставлен</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>Принят</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>Предложен им</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>Выставлен участником</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>Купил</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>Продал</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>С:</value>

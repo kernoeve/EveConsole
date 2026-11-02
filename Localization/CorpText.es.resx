@@ -61,6 +61,48 @@
   <data name="ColIndustryTax" xml:space="preserve">
     <value>Imp. industrial</value>
   </data>
+  <data name="EntityContractsNone" xml:space="preserve">
+    <value>No hay contratos en este rango. Los contratos públicos proceden del barrido de todas las regiones de la herramienta Contratos; el resto son de tus propios personajes y corporaciones.</value>
+  </data>
+  <data name="EntityContractsCount" xml:space="preserve">
+    <value>{0:N0} contratos en este rango.</value>
+  </data>
+  <data name="EntityTradesNone" xml:space="preserve">
+    <value>No hay operaciones en este rango. Solo aparecen las operaciones de tus carteras: todas si es uno de tus personajes o corporaciones; si no, solo las hechas contigo.</value>
+  </data>
+  <data name="EntityTradesCount" xml:space="preserve">
+    <value>{0:N0} operaciones en este rango. Solo aparecen las operaciones de tus carteras: todas si es uno de tus personajes o corporaciones; si no, solo las hechas contigo.</value>
+  </data>
+  <data name="EntityTaxesSummary" xml:space="preserve">
+    <value>{0:N0} ISK de impuesto de ratting y {1:N0} ISK de impuesto de industria pagados a tus corporaciones, en {2:N0} meses. Las mismas entradas del diario que muestra Actividad de corp.</value>
+  </data>
+  <data name="StintHeading" xml:space="preserve">
+    <value>{0}: {1} – {2}</value>
+  </data>
+  <data name="StintPickRow" xml:space="preserve">
+    <value>Elige una fila para ver qué guarda la app de su actividad mientras estuvo en esa corporación.</value>
+  </data>
+  <data name="StintNoJournal" xml:space="preserve">
+    <value>Sin diario</value>
+  </data>
+  <data name="StintCountIsk" xml:space="preserve">
+    <value>{0:N0} · {1:N0} ISK</value>
+  </data>
+  <data name="StintKills" xml:space="preserve">
+    <value>Muertes</value>
+  </data>
+  <data name="StintLosses" xml:space="preserve">
+    <value>Pérdidas</value>
+  </data>
+  <data name="StintContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="StintTrades" xml:space="preserve">
+    <value>Operaciones de mercado</value>
+  </data>
+  <data name="StintNote" xml:space="preserve">
+    <value>Muertes y pérdidas que la app ha guardado; impuestos de los diarios de tus corporaciones; contratos y operaciones como los encuentran las pestañas Contratos y Mercado.</value>
+  </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>Pagos proyectos</value>
   </data>
@@ -577,6 +619,15 @@
   <data name="ColRole" xml:space="preserve">
     <value>Función</value>
   </data>
+  <data name="ColOtherParty" xml:space="preserve">
+    <value>Otra parte</value>
+  </data>
+  <data name="EntityRattingTax" xml:space="preserve">
+    <value>Impuesto de ratting</value>
+  </data>
+  <data name="EntityIndustryTax" xml:space="preserve">
+    <value>Impuesto de industria</value>
+  </data>
   <data name="ColOwner" xml:space="preserve">
     <value>Propietario</value>
   </data>
@@ -627,6 +678,33 @@
   </data>
   <data name="TipKillCharacter" xml:space="preserve">
     <value>Muertes y pérdidas con este personaje como víctima o en cualquier lugar de la lista de atacantes. Todos los personajes: cualquiera de los tuyos.</value>
+  </data>
+  <data name="TabEntityContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="TabEntityMarket" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="TabCorpTaxes" xml:space="preserve">
+    <value>Impuestos de corp</value>
+  </data>
+  <data name="EntityContractIssued" xml:space="preserve">
+    <value>Emitido</value>
+  </data>
+  <data name="EntityContractAccepted" xml:space="preserve">
+    <value>Aceptado</value>
+  </data>
+  <data name="EntityContractAssigned" xml:space="preserve">
+    <value>Ofrecido a ellos</value>
+  </data>
+  <data name="EntityContractByMember" xml:space="preserve">
+    <value>Emitido por un miembro</value>
+  </data>
+  <data name="EntityTradeBought" xml:space="preserve">
+    <value>Compró</value>
+  </data>
+  <data name="EntityTradeSold" xml:space="preserve">
+    <value>Vendió</value>
   </data>
   <data name="FromLabel" xml:space="preserve">
     <value>Desde:</value>
