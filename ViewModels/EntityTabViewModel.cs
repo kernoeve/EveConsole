@@ -391,7 +391,7 @@ public class EntityTabViewModel : ReactiveObject
     private string _taxesStatus = "";
     public string TaxesStatus { get => _taxesStatus; private set => this.RaiseAndSetIfChanged(ref _taxesStatus, value); }
 
-    /// <summary>Corp Taxes shows only for a pilot one of our corporations' journals has taxes from.</summary>
+    /// <summary>Corp Taxes shows only for a pilot or corporation one of our corporations' journals has taxes from.</summary>
     private bool _hasTaxes;
     public bool HasTaxes { get => _hasTaxes; private set => this.RaiseAndSetIfChanged(ref _hasTaxes, value); }
 
@@ -611,7 +611,7 @@ public class EntityTabViewModel : ReactiveObject
             if (HasMembers) _ = LoadMembersAsync(id, ct);
             if (HasHistory)  _ = LoadHistoryAsync(id, ct);
             if (HasActivity) _ = LoadActivityAsync(id, ct);
-            if (HasActivity && Kind is EntityKind.Pilot) _ = LoadTaxesAsync(id, ct);
+            if (HasActivity) _ = LoadTaxesAsync(id, ct);
             if (HasStations) _ = LoadStationsAsync(id, ct);
             if (Kind is EntityKind.NpcCorp or EntityKind.PlayerCorp) _ = LoadOrdersAsync(id, ct);
             if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),

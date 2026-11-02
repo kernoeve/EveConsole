@@ -507,7 +507,7 @@
         </Grid>
       </TabItem>
 
-      <!-- Taxes the pilot paid into our corporations, as Corp Activity reports them -->
+      <!-- Taxes the pilot or corporation paid into ours, as Corp Activity reports them -->
       <TabItem Header="{x:Static loc:CorpText.TabCorpTaxes}" IsVisible="{Binding HasTaxes}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding TaxesStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"

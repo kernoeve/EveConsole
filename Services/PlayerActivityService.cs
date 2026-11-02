@@ -182,17 +182,22 @@ public class PlayerActivityService(IDbContextFactory<AppDbContext> dbFactory, Co
     // ── Corporation taxes ────────────────────────────────────────────────────
 
     /// <summary>
-    /// The ratting and industry tax a pilot paid into any corporation whose journal we hold, by
-    /// month — the same entries, attributed the same way, as Corp Activity's tax payer lists: the
-    /// ratter is the second party of a bounty payout, the builder the first party of a job tax.
+    /// The ratting and industry tax a pilot or corporation paid into any corporation whose journal
+    /// we hold, by month — the same entries, attributed the same way, as Corp Activity's tax payer
+    /// lists: the ratter is the second party of a bounty payout, the builder the first party of a
+    /// job tax. A corporation is the builder of its own corporation jobs, which is how it lands on
+    /// those lists beside the pilots.
+    ///
+    /// <para>Never from the payer's own journal: there a job tax is the corporation paying out,
+    /// not one of ours being paid.</para>
     /// </summary>
-    public async Task<List<EntityTaxMonth>> TaxesAsync(long pilotId, CancellationToken ct = default)
+    public async Task<List<EntityTaxMonth>> TaxesAsync(long payerId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var rows = await db.EsiWalletJournal.AsNoTracking()
-            .Where(j => j.OwnerType == "corporation"
-                     && ((j.SecondPartyId == pilotId && RattingRefTypes.Contains(j.RefType))
-                      || (j.FirstPartyId  == pilotId && IndustryRefTypes.Contains(j.RefType))))
+            .Where(j => j.OwnerType == "corporation" && j.OwnerId != payerId
+                     && ((j.SecondPartyId == payerId && RattingRefTypes.Contains(j.RefType))
+                      || (j.FirstPartyId  == payerId && IndustryRefTypes.Contains(j.RefType))))
             .Select(j => new { j.OwnerId, j.Date, j.RefType, j.Amount })
             .ToListAsync(ct);
         // ⚠️ Positive amounts here, not in the query: SQLite cannot compare a decimal column.
