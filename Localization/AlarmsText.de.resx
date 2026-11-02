@@ -910,6 +910,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Der Ton wiederholt sich, bis Sie ihn bestätigen.</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>Weckruf — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>Der Ruf geht weiter, bis du antwortest, hier oder im Agenten-Chat.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Alarmton auswählen</value>
   </data>

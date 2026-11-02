@@ -922,6 +922,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Звук повторяется, пока вы его не подтвердите.</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>Побудка — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>Вызов продолжается, пока вы не ответите — здесь или в чате агента.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Выбор звука тревоги</value>
   </data>

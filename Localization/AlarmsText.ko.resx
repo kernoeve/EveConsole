@@ -904,6 +904,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>확인할 때까지 소리가 반복됩니다.</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>기상 호출 — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>여기나 에이전트 채팅에서 응답할 때까지 호출이 계속됩니다.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>알람 사운드 선택</value>
   </data>

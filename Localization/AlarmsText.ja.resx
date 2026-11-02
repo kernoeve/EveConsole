@@ -904,6 +904,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>サウンドは確認するまで繰り返されます。</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>ウェイクアップコール — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>ここかエージェントのチャットで応答するまで、呼び出しは続きます。</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>アラームのサウンドを選択</value>
   </data>

@@ -910,6 +910,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Le son se répète jusqu'à ce que vous l'acquittiez.</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>Appel de réveil — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>L'appel continue jusqu'à ce que vous répondiez, ici ou dans le chat de l'agent.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Choisir un son d'alarme</value>
   </data>

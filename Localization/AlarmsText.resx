@@ -1212,6 +1212,14 @@
     <value>The sound repeats until you acknowledge it.</value>
     <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>Wake-up call — {0}</value>
+    <comment>Title bar of the window a wake-up call shows from its first stage, before any sound; {0} is the alarm's name.</comment>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>The call goes on until you answer it, here or in the agent chat.</value>
+    <comment>Line in that window under the situation, before any sound has started.</comment>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Choose an alarm sound</value>
     <comment>Title of the file picker behind Add Sound… in the alarm editor.</comment>

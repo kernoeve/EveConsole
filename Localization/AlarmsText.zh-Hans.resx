@@ -904,6 +904,12 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>声音会一直重复，直到你确认为止。</value>
   </data>
+  <data name="WakeWindowTitle" xml:space="preserve">
+    <value>唤醒呼叫 — {0}</value>
+  </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>在你于此处或代理聊天中回应之前，呼叫会一直持续。</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>选择警报声音</value>
   </data>
