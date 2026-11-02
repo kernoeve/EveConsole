@@ -33,6 +33,7 @@
 
     <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
       <Button x:Name="AcknowledgeButton"
+              Content="{x:Static loc:AlarmsText.ButtonAcknowledge}"
               Click="OnAcknowledge"
               HorizontalAlignment="Stretch"
               HorizontalContentAlignment="Center"

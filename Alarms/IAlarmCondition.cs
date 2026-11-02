@@ -138,6 +138,13 @@ public interface IAlarmCondition
     bool ActivityAcknowledges => false;
 
     /// <summary>
+    /// The heading of the window a situation of this check brings to be acknowledged. Null, the
+    /// default, uses the alarm's name — which is the capsuleer's own label and may not be fit to
+    /// show the person it is waking.
+    /// </summary>
+    string? AckWindowTitle => null;
+
+    /// <summary>
     /// For an <see cref="ActivityAcknowledges"/> check: each of its situations going on now, and
     /// until when the capsuleer's activity at <see cref="AlarmEvaluationContext.Now"/> quiets it.
     /// </summary>

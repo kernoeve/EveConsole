@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>关闭</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>确认并停止声音</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>
   </data>
@@ -904,9 +901,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>声音会一直重复，直到你确认为止。</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>唤醒呼叫 — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>在你于此处或代理聊天中回应之前，呼叫会一直持续。</value>
   </data>
@@ -1280,19 +1274,19 @@
     <value>弹药不足</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>醒醒，{0}</value>
+    <value>出站时间过长</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“确认”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“确认”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}，{1} 的 {2} 在 {4}前抵达 {3}，现在还没有进站。一切还好吗？</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>醒醒，{0}。{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。马上进站。</value>
+    <value>{0}，{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。请确认一切正常。</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}！{1} 的 {2} 抵达后已经在 {3} 停了 {4}。立刻进站！</value>
@@ -1301,10 +1295,10 @@
     <value>{0}，{1} 的 {2} 在 {3} 出站已经 {4} 了。一切还好吗？</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>醒醒，{0}。{1} 的 {2} 在 {4}前从 {3} 出站，到现在还没有进站。快进站，或者回答我。</value>
+    <value>{0}，{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。请确认一切正常。</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。快醒醒，马上进站。</value>
+    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。马上进站。</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>太空舱</value>
@@ -1540,8 +1534,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>播放失败：{0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>我醒了</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>确认</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>（尚未设置 AI 助手，因此已改为记录一条提醒。）</value>

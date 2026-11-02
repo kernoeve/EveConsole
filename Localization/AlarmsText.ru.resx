@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Закрыть</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Подтвердить — выключить звук</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Убрать</value>
   </data>
@@ -922,9 +919,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Звук повторяется, пока вы его не подтвердите.</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>Побудка — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>Вызов продолжается, пока вы не ответите — здесь или в чате агента.</value>
   </data>
@@ -1343,19 +1337,19 @@
     <value>мало боеприпасов</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Проснитесь, {0}</value>
+    <value>Слишком долго вне дока</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Корабль персонажа {0} ({1}) прибыл в систему {2} {3} назад и так и не вошёл в док. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+    <value>Корабль персонажа {0} ({1}) прибыл в систему {2} {3} назад и так и не вошёл в док. Нажмите «Подтвердить», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Корабль персонажа {0} ({1}) уже {3} находится вне дока в системе {2}. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+    <value>Корабль персонажа {0} ({1}) уже {3} находится вне дока в системе {2}. Нажмите «Подтвердить», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, корабль персонажа {1} ({2}) прибыл в систему {3} {4} назад и ещё не вошёл в док. У вас всё в порядке?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) всё ещё в космосе в системе {3} — спустя {4} после прибытия. Немедленно войдите в док.</value>
+    <value>{0}, корабль персонажа {1} ({2}) всё ещё в космосе в системе {3} — спустя {4} после прибытия. Пожалуйста, подтвердите, что всё в порядке.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! Корабль персонажа {1} ({2}) уже {4} стоит в системе {3} после прибытия. Немедленно войдите в док!</value>
@@ -1364,10 +1358,10 @@
     <value>{0}, корабль персонажа {1} ({2}) уже {4} находится вне дока в системе {3}. У вас всё в порядке?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) вышел из дока в системе {3} {4} назад и до сих пор не вернулся в док. Войдите в док или ответьте мне.</value>
+    <value>{0}, корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Пожалуйста, подтвердите, что всё в порядке.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! Корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Проснитесь и немедленно войдите в док.</value>
+    <value>{0}! Корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Немедленно войдите в док.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>капсула</value>
@@ -1630,8 +1624,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Ошибка воспроизведения: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Я не сплю</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Подтвердить</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(Помощник не настроен, поэтому это записано как оповещение.)</value>

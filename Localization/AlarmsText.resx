@@ -8,10 +8,6 @@
     <value>Dismiss</value>
     <comment>Button or option in AlarmDialogWindow.</comment>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Acknowledge — stop the sound</value>
-    <comment>Button or option in AlarmSoundWindow.</comment>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
     <comment>Button or option in AlarmsView.</comment>
@@ -1212,10 +1208,6 @@
     <value>The sound repeats until you acknowledge it.</value>
     <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>Wake-up call — {0}</value>
-    <comment>Title bar of the window a wake-up call shows from its first stage, before any sound; {0} is the alarm's name.</comment>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>The call goes on until you answer it, here or in the agent chat.</value>
     <comment>Line in that window under the situation, before any sound has started.</comment>
@@ -1733,24 +1725,24 @@
     <comment>Spoken, in UndockSaidProblems: the ship left short of ammunition.</comment>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Wake up, {0}</value>
-    <comment>Title of an Undocked too long (wake-up call) alarm's alert or dialog. {0} is the person's name as the agent knows it, or AdriftCapsuleer.</comment>
+    <value>Undocked Too Long</value>
+    <comment>Title of an Undocked too long alarm's alert, dialog and window. Never says "wake up".</comment>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, {1}'s {2} landed in {3} {4} ago and is not docked yet. Is everything all right?</value>
     <comment>Spoken at stage 1 of a wake-up call, after a jump arrival. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} is still in space in {3}, {4} after landing. Dock up now.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after a jump arrival. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still in space in {3}, {4} after landing. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after a jump arrival: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! {1}'s {2} has been sitting in {3} for {4} since landing. Dock up now!</value>
@@ -1761,11 +1753,11 @@
     <comment>Spoken at stage 1 of a wake-up call, after an undock. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} undocked in {3} {4} ago and still is not docked. Dock up, or answer me.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still undocked in {3} after {4}. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after an undock: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Wake up and dock now.</value>
+    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Dock now.</value>
     <comment>Spoken at stage 3, the last, of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftPod" xml:space="preserve">
@@ -2092,9 +2084,9 @@
     <value>Playback failed: {0}</value>
     <comment>Alarms tool, when a sound could not play. {0} is the error.</comment>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>I'm awake</value>
-    <comment>The button on a wake-up call's dialog (Undocked too long): pressing it quiets the alarm for a while. Also named in AdriftBodyLanded and AdriftBodyUndocked.</comment>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Acknowledge</value>
+    <comment>The button of a staged alarm's dialog and window: acknowledges it.</comment>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(The agent is not configured, so this was recorded as an alert.)</value>

@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>閉じる</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>確認 — サウンドを停止</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>削除</value>
   </data>
@@ -904,9 +901,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>サウンドは確認するまで繰り返されます。</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>ウェイクアップコール — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>ここかエージェントのチャットで応答するまで、呼び出しは続きます。</value>
   </data>
@@ -1280,19 +1274,19 @@
     <value>弾薬不足</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>{0}、起きてください</value>
+    <value>出港時間超過</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}の{1}は{3}前に{2}に到着し、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+    <value>{0}の{1}は{3}前に{2}に到着し、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「確認」を押してください。</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}の{1}は{2}で出港してから{3}経ちますが、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+    <value>{0}の{1}は{2}で出港してから{3}経ちますが、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「確認」を押してください。</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}、{1}の{2}は{4}前に{3}に到着し、まだ入港していません。大丈夫ですか？</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>起きてください、{0}。{1}の{2}は到着から{4}経っても、まだ{3}の宇宙空間にいます。今すぐ入港してください。</value>
+    <value>{0}、{1}の{2}は到着から{4}経っても、まだ{3}の宇宙空間にいます。問題がないか確認してください。</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}！{1}の{2}は到着から{4}の間、{3}にとどまっています。今すぐ入港してください！</value>
@@ -1301,10 +1295,10 @@
     <value>{0}、{1}の{2}は{3}で出港してから{4}経っています。大丈夫ですか？</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>起きてください、{0}。{1}の{2}は{4}前に{3}で出港し、まだ入港していません。入港するか、返事をしてください。</value>
+    <value>{0}、{1}の{2}は{4}経っても、まだ{3}で出港したままです。問題がないか確認してください。</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}！{1}の{2}は{4}経っても、まだ{3}で出港したままです。起きて、今すぐ入港してください。</value>
+    <value>{0}！{1}の{2}は{4}経っても、まだ{3}で出港したままです。今すぐ入港してください。</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>ポッド</value>
@@ -1540,8 +1534,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>再生に失敗しました：{0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>起きています</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>確認</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>（AIアシスタントが設定されていないため、アラートとして記録されました。）</value>

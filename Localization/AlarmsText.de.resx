@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Verwerfen</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Bestätigen – Ton stoppen</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Entfernen</value>
   </data>
@@ -910,9 +907,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Der Ton wiederholt sich, bis Sie ihn bestätigen.</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>Weckruf — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>Der Ruf geht weiter, bis du antwortest, hier oder im Agenten-Chat.</value>
   </data>
@@ -1301,19 +1295,19 @@
     <value>wenig Munition</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Wachen Sie auf, {0}</value>
+    <value>Zu lange abgedockt</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Die {1} von {0} ist vor {3} in {2} angekommen und hat nicht angedockt. Klicken Sie auf „Ich bin wach“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
+    <value>Die {1} von {0} ist vor {3} in {2} angekommen und hat nicht angedockt. Klicken Sie auf „Bestätigen“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Die {1} von {0} ist seit {3} in {2} abgedockt und hat nicht wieder angedockt. Klicken Sie auf „Ich bin wach“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
+    <value>Die {1} von {0} ist seit {3} in {2} abgedockt und hat nicht wieder angedockt. Klicken Sie auf „Bestätigen“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, die {2} von {1} ist vor {4} in {3} angekommen und hat noch nicht angedockt. Ist alles in Ordnung?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Wachen Sie auf, {0}. Die {2} von {1} ist {4} nach der Ankunft immer noch im All, in {3}. Docken Sie jetzt an.</value>
+    <value>{0}, die {2} von {1} ist {4} nach der Ankunft immer noch im All, in {3}. Bitte bestätigen Sie, dass alles in Ordnung ist.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! Die {2} von {1} steht seit der Ankunft schon {4} in {3}. Docken Sie jetzt an!</value>
@@ -1322,10 +1316,10 @@
     <value>{0}, die {2} von {1} ist seit {4} in {3} abgedockt. Ist alles in Ordnung?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Wachen Sie auf, {0}. Die {2} von {1} ist vor {4} in {3} abgedockt und hat immer noch nicht angedockt. Docken Sie an, oder antworten Sie mir.</value>
+    <value>{0}, die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Bitte bestätigen Sie, dass alles in Ordnung ist.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! Die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Wachen Sie auf und docken Sie jetzt an.</value>
+    <value>{0}! Die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Docken Sie jetzt an.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>Kapsel</value>
@@ -1570,8 +1564,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Wiedergabe fehlgeschlagen: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Ich bin wach</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Bestätigen</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(Der KI-Assistent ist nicht eingerichtet, daher wurde dies als Warnung erfasst.)</value>

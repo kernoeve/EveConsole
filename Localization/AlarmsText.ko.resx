@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>해제</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>확인 — 소리 끄기</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>제거</value>
   </data>
@@ -904,9 +901,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>확인할 때까지 소리가 반복됩니다.</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>기상 호출 — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>여기나 에이전트 채팅에서 응답할 때까지 호출이 계속됩니다.</value>
   </data>
@@ -1280,19 +1274,19 @@
     <value>탄약 부족</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>일어나십시오, {0}님</value>
+    <value>도킹 해제 시간 초과</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}의 {1}이(가) {3} 전에 {2}에 도착한 뒤 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '깨어 있습니다'를 누르십시오.</value>
+    <value>{0}의 {1}이(가) {3} 전에 {2}에 도착한 뒤 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '확인'을 누르십시오.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}의 {1}이(가) {2}에서 도킹 해제한 지 {3}째이며 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '깨어 있습니다'를 누르십시오.</value>
+    <value>{0}의 {1}이(가) {2}에서 도킹 해제한 지 {3}째이며 아직 도킹하지 않았습니다. 함선이 밖에 있는 동안 {4}분간 조용히 하려면 '확인'을 누르십시오.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}님, {1}의 {2}이(가) {4} 전에 {3}에 도착했는데 아직 도킹하지 않았습니다. 괜찮으십니까?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>일어나십시오, {0}님. {1}의 {2}이(가) 도착 후 {4}째 {3}의 우주 공간에 머물러 있습니다. 지금 도킹하십시오.</value>
+    <value>{0}님, {1}의 {2}이(가) 도착 후 {4}째 {3}의 우주 공간에 머물러 있습니다. 모든 것이 괜찮은지 확인해 주십시오.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}님! {1}의 {2}이(가) 도착 후 {4}째 {3}에 머물러 있습니다. 당장 도킹하십시오!</value>
@@ -1301,10 +1295,10 @@
     <value>{0}님, {1}의 {2}이(가) {3}에서 도킹 해제한 지 {4}째입니다. 괜찮으십니까?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>일어나십시오, {0}님. {1}의 {2}이(가) {4} 전에 {3}에서 도킹 해제했는데 아직 도킹하지 않았습니다. 도킹하시거나 대답해 주십시오.</value>
+    <value>{0}님, {1}의 {2}이(가) {4}째 {3}에서 도킹 해제 상태입니다. 모든 것이 괜찮은지 확인해 주십시오.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}님! {1}의 {2}이(가) {4}째 {3}에서 도킹 해제 상태입니다. 일어나서 당장 도킹하십시오.</value>
+    <value>{0}님! {1}의 {2}이(가) {4}째 {3}에서 도킹 해제 상태입니다. 당장 도킹하십시오.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>캡슐</value>
@@ -1540,8 +1534,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>재생 실패: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>깨어 있습니다</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>확인</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(AI 도우미가 설정되어 있지 않아 경보로 기록했습니다.)</value>

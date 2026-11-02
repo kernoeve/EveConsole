@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Descartar</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Confirmar — detener el sonido</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Quitar</value>
   </data>
@@ -910,9 +907,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>El sonido se repite hasta que lo confirmes.</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>Llamada de despertar — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>La llamada continúa hasta que respondas, aquí o en el chat del agente.</value>
   </data>
@@ -1301,19 +1295,19 @@
     <value>con poca munición</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Despierta, {0}</value>
+    <value>Demasiado tiempo desacoplada</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>La {1} de {0} llegó a {2} hace {3} y no ha acoplado. Pulsa «Estoy aquí» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
+    <value>La {1} de {0} llegó a {2} hace {3} y no ha acoplado. Pulsa «Confirmar» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>La {1} de {0} lleva {3} desacoplada en {2} y no ha vuelto a acoplar. Pulsa «Estoy aquí» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
+    <value>La {1} de {0} lleva {3} desacoplada en {2} y no ha vuelto a acoplar. Pulsa «Confirmar» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, la {2} de {1} llegó a {3} hace {4} y todavía no ha acoplado. ¿Va todo bien?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Despierta, {0}. La {2} de {1} sigue en el espacio en {3}, {4} después de llegar. Acopla la nave ya.</value>
+    <value>{0}, la {2} de {1} sigue en el espacio en {3}, {4} después de llegar. Confirma que todo está bien, por favor.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>¡{0}! La {2} de {1} lleva {4} parada en {3} desde que llegó. ¡Acopla la nave ya!</value>
@@ -1322,10 +1316,10 @@
     <value>{0}, la {2} de {1} lleva {4} desacoplada en {3}. ¿Va todo bien?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Despierta, {0}. La {2} de {1} desacopló en {3} hace {4} y sigue sin acoplar. Acopla la nave o respóndeme.</value>
+    <value>{0}, la {2} de {1} sigue desacoplada en {3} después de {4}. Confirma que todo está bien, por favor.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>¡{0}! La {2} de {1} sigue desacoplada en {3} después de {4}. Despierta y acopla la nave ya.</value>
+    <value>¡{0}! La {2} de {1} sigue desacoplada en {3} después de {4}. Acopla la nave ya.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>cápsula</value>
@@ -1570,8 +1564,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Error de reproducción: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Estoy aquí</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Confirmar</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(El asistente no está configurado, así que esto se ha registrado como una alerta.)</value>

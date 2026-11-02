@@ -31,14 +31,13 @@ public partial class AlarmSoundWindow : Window
         Update(summary, sounding);
     }
 
-    /// <summary>The stage's own summary, and whether the sound is repeating yet: the title, the
-    /// line and the button follow.</summary>
+    /// <summary>The stage's own summary, and whether the sound is repeating yet, which the title
+    /// bar and the line follow. The button says Acknowledge at every stage.</summary>
     public void Update(string summary, bool sounding)
     {
-        Title = string.Format(sounding ? AlarmsText.SoundWindowTitle : AlarmsText.WakeWindowTitle, _alarmName);
+        Title = sounding ? string.Format(AlarmsText.SoundWindowTitle, _alarmName) : _alarmName;
         var line = sounding ? AlarmsText.SoundRepeatsUntilAck : AlarmsText.WakeAnswerHere;
         MessageText.Text = string.IsNullOrWhiteSpace(summary) ? line : summary + "\n\n" + line;
-        AcknowledgeButton.Content = sounding ? AlarmsText.AcknowledgeStopTheSound : AlarmsText.ButtonImAwake;
         IconText.Text = sounding ? "\U0001F50A" : "\u23F0";
     }
 

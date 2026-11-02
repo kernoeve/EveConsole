@@ -158,7 +158,7 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Dialog:
                         signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
                         signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-                        signal.DialogButton = stage is not null ? AlarmsText.ButtonImAwake : null;
+                        signal.DialogButton = stage is not null ? AlarmsText.ButtonAcknowledge : null;
                         somethingElse       = true;
                         break;
 
@@ -260,17 +260,20 @@ public sealed class AlarmActionRunner
 
         var ack = s.Ack;
 
+        // The window's heading: what the check says the situation is, or the alarm's name.
+        var heading = s.ConditionType is { } kind && _registry.Find(kind)?.AckWindowTitle is { } title ? title : s.Name;
+
         // A wake-up call shows its window from the first stage, whatever the stage does, and keeps
         // it through the rest: answering it must not depend on talking to the agent. A stage that
         // sets a sound repeating brings the window below, with the sound.
         if (ack is not null && !(s.SoundKey is not null && s.SoundLoop)
             && s.ConditionType is { } watched && _registry.Find(watched) is { ActivityAcknowledges: true })
-            StartLoop(ack, watched, null, 0, s.Name, s.Summary);
+            StartLoop(ack, watched, null, 0, heading, s.Summary);
 
         if (s.SoundKey is not null)
         {
             if (s.SoundLoop && ack is not null && s.ConditionType is not null)
-                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, s.Name, s.Summary);
+                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, heading, s.Summary);
             else
             {
                 try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }

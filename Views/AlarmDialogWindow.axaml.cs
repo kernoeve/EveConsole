@@ -12,7 +12,7 @@ public partial class AlarmDialogWindow : Window
 {
     private readonly Func<Task>? _onAcknowledge;
 
-    /// <param name="button">The button's label when pressing it means something — "I'm awake".</param>
+    /// <param name="button">The button's label when pressing it means something — "Acknowledge".</param>
     /// <param name="onAcknowledge">Run when it is pressed: the acknowledgement of a staged alarm.</param>
     public AlarmDialogWindow(string title, string message, string? button = null, Func<Task>? onAcknowledge = null)
     {

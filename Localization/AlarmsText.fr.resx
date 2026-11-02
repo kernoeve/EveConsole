@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Ignorer</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Acquitter — arrêter le son</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Retirer</value>
   </data>
@@ -910,9 +907,6 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Le son se répète jusqu'à ce que vous l'acquittiez.</value>
   </data>
-  <data name="WakeWindowTitle" xml:space="preserve">
-    <value>Appel de réveil — {0}</value>
-  </data>
   <data name="WakeAnswerHere" xml:space="preserve">
     <value>L'appel continue jusqu'à ce que vous répondiez, ici ou dans le chat de l'agent.</value>
   </data>
@@ -1301,19 +1295,19 @@
     <value>peu de munitions</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Réveillez-vous, {0}</value>
+    <value>Trop longtemps hors station</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Le vaisseau de {0} ({1}) est arrivé à {2} il y a {3} et ne s'est pas amarré. Appuyez sur « Je suis là » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
+    <value>Le vaisseau de {0} ({1}) est arrivé à {2} il y a {3} et ne s'est pas amarré. Appuyez sur « Confirmer » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Le vaisseau de {0} ({1}) est dans l'espace à {2} depuis {3} et ne s'est pas amarré. Appuyez sur « Je suis là » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
+    <value>Le vaisseau de {0} ({1}) est dans l'espace à {2} depuis {3} et ne s'est pas amarré. Appuyez sur « Confirmer » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, le vaisseau de {1} ({2}) est arrivé à {3} il y a {4} et n'est pas encore amarré. Tout va bien ?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Réveillez-vous, {0}. Le vaisseau de {1} ({2}) est toujours dans l'espace à {3}, {4} après son arrivée. Amarrez-vous maintenant.</value>
+    <value>{0}, le vaisseau de {1} ({2}) est toujours dans l'espace à {3}, {4} après son arrivée. Confirmez que tout va bien, s'il vous plaît.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0} ! Le vaisseau de {1} ({2}) est immobile à {3} depuis son arrivée, il y a {4}. Amarrez-vous maintenant !</value>
@@ -1322,10 +1316,10 @@
     <value>{0}, le vaisseau de {1} ({2}) est dans l'espace à {3} depuis {4}. Tout va bien ?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Réveillez-vous, {0}. Le vaisseau de {1} ({2}) a appareillé à {3} il y a {4} et n'est toujours pas amarré. Amarrez-vous, ou répondez-moi.</value>
+    <value>{0}, le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Confirmez que tout va bien, s'il vous plaît.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0} ! Le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Réveillez-vous et amarrez-vous maintenant.</value>
+    <value>{0} ! Le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Amarrez-vous maintenant.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>capsule</value>
@@ -1570,8 +1564,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Échec de la lecture : {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Je suis là</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Confirmer</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(L'assistant n'est pas configuré : ceci a donc été enregistré comme alerte.)</value>
