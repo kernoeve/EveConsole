@@ -70,7 +70,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private const int AttrJumpFuelType = 866;   // a hull with this dogma attribute has a jump drive
 
     public string TypeKey     => "undocked_too_long";
-    public string DisplayName => "Undocked too long (wake-up call)";
+    public string DisplayName => "Undocked too long";
 
     public string Description =>
         "Wakes you up. Fires in up to three stages when one of your characters in a named hull or " +

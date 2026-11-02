@@ -1253,7 +1253,7 @@
     <comment>Alarm editor, under the Check pick list when Ship undocks is picked.</comment>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Undocked too long (wake-up call)</value>
+    <value>Undocked too long</value>
     <comment>Alarm editor, Check pick list: the check that wakes you when a ship sits in space too long after an undock or a jump.</comment>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
