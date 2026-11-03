@@ -2380,6 +2380,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>ジョブ{0:N0}件はフォーミュラではなくリアクションスロットを待っているため、フォーミュラを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、すべてのフォーミュラが使用中でした。</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>コピーラボ：{0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>コピージョブ{0:N0}件はBPOではなく研究スロットを待っているため、BPOを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、ここのすべてのBPOが使用中でした。</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0}（コピー用）</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>用途</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>このオリジナルの用途です。コピーラボにあるものはコピー、それ以外は製造に使い、互いに代わりにはならないため、それぞれ別の行で測定します。その種類で唯一のオリジナルは両方を行います。</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>製造＋コピー</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>現在ジョブ{0:N0}件がこれを必要としていますが、過去{1}日間のほぼすべての時間、どのBPOも空いていました。恒常的な需要ではなく一時的なものです — オリジナルよりBPCのほうが適しているかもしれません。</value>
   </data>

@@ -182,7 +182,9 @@ public class BottleneckSummaryService
             // throughput one purchase buys.
             [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
                 string.Format(WorklistText.SummaryBuyPrint,
-                              SdeNames.Type(p.ProductTypeId, p.ProductName),
+                              p.Role == PrintRole.Copy
+                                  ? string.Format(WorklistText.PrintNameCopying, SdeNames.Type(p.ProductTypeId, p.ProductName))
+                                  : SdeNames.Type(p.ProductTypeId, p.ProductName),
                               p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
     }
 

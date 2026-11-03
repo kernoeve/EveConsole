@@ -2401,6 +2401,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>{0:N0} travail(aux) attendent un créneau de réaction, pas une formule : une formule de plus n'en démarrerait aucun. Toutes les formules ont été occupées {1:N0} % des {2} derniers jours.</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>Au laboratoire de copie : {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>{0:N0} travail(aux) de copie attendent un créneau de science, pas un BPO : un BPO de plus n'en démarrerait aucun. Tous les BPO ici ont été occupés {1:N0} % des {2} derniers jours.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (pour la copie)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Usage</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>À quoi servent ces originaux. Ceux du laboratoire de copie copient et les autres fabriquent, sans se remplacer, donc chaque groupe est mesuré sur sa propre ligne. L'unique original d'un type fait les deux.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Fabrication</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Copie</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Fabrication + copie</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} travail(aux) le demandent maintenant, mais tous les BPO ont été libres presque tout au long des {1} derniers jours. Un besoin ponctuel plutôt que permanent — un BPC peut être plus utile qu'un original.</value>
   </data>

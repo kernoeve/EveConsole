@@ -2401,6 +2401,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>Aufträge, die auf einen Reaktionsslot warten und nicht auf eine Formel: {0:N0}. Eine weitere Formel würde also keinen davon starten. Alle Formeln waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>Im Kopierlabor: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>Kopieraufträge, die auf einen Forschungsslot warten und nicht auf ein BPO: {0:N0}. Ein weiteres BPO würde also keinen davon starten. Alle BPOs hier waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (zum Kopieren)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Zweck</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>Wofür diese Originale da sind. Die im Kopierlabor kopieren, die anderen bauen, und keine vertritt die andere, daher hat jede Gruppe ihre eigene Zeile. Das einzige Original eines Typs macht beides.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Bauen + Kopieren</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>Aufträge, die es jetzt wollen: {0:N0}, aber alle BPOs waren fast die ganzen letzten {1} Tage frei. Ein Einzelfall statt eines dauerhaften Bedarfs – ein BPC dient womöglich besser als ein Original.</value>
   </data>

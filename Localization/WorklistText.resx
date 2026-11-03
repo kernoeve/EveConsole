@@ -3192,6 +3192,38 @@
     <value>{0:N0} job(s) are waiting on a reaction slot, not on a formula, so another formula would start none of them. Every formula was busy {1:N0}% of the last {2} days.</value>
     <comment>Advice on the Formula tab. {0} = jobs waiting on a slot, {1} = percent all busy, {2} = days in the window.</comment>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>At the copy lab: {0}</value>
+    <comment>Advice on a BPO tab row for the originals at the copy lab. {0} = the advice sentence.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>{0:N0} copy job(s) are waiting on a science slot, not on a BPO, so another BPO would start none of them. Every BPO here was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on a BPO tab row for the originals at the copy lab. {0} = copy jobs waiting on a slot, {1} = percent all busy, {2} = days.</comment>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (for copying)</value>
+    <comment>A product named with its originals at the copy lab, where a summary lists it to buy another. {0} = item name.</comment>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Use</value>
+    <comment>Column header on the BPO tab: what these originals are for.</comment>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>What these originals are for. Those at the copy lab copy and the others build, and neither stands in for the other, so each is measured on its own line. The only original of a type does both.</value>
+    <comment>Tooltip on the Use column of the BPO tab.</comment>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>BPO tab, Use column: originals that build.</comment>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>BPO tab, Use column: originals at the copy lab.</comment>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Build + copy</value>
+    <comment>BPO tab, Use column: the only original of its type, which does both.</comment>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} job(s) want it now, but every BPO was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that want the blueprint, {1} the days measured. BPC is EVE's blueprint copy.</comment>

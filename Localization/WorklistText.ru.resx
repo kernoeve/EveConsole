@@ -2443,6 +2443,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>Проектов, ждущих слота реакций, а не формулы: {0:N0}, так что ещё одна формула не запустит ни одного. Все формулы были заняты {1:N0}% последних дней ({2}).</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>В лаборатории копирования: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>Проектов копирования, ждущих научного слота, а не BPO: {0:N0}, так что ещё один BPO не запустит ни одного. Все BPO здесь были заняты {1:N0}% последних дней ({2}).</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (для копирования)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>Для чего эти оригиналы. Те, что в лаборатории копирования, копируют, остальные строят, и друг друга они не заменяют, поэтому каждая группа считается отдельной строкой. Единственный оригинал этого типа делает и то, и другое.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Постройка</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Постройка + копирование</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>Сейчас он нужен проектам ({0:N0}), но все BPO были свободны почти всё время за последние {1} д. Это разовая, а не постоянная потребность — BPC может подойти лучше, чем оригинал.</value>
   </data>

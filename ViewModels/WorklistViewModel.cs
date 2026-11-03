@@ -1519,7 +1519,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public bool CanExpand => !IsChild && (HasTasks || Advice.Length > 0);
 
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
-    public string ExpandKey => p.ProductTypeId.ToString();
+    public string ExpandKey => $"{p.ProductTypeId}/{p.Role}";
 
     private readonly ItemBandwidth p;
 
@@ -1577,6 +1577,14 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public bool HasTasks => !IsChild && p.Tasks.Count > 0;
 
     public string Product   => SdeNames.Type(p.ProductTypeId, p.ProductName);
+
+    /// <summary>What these originals are for: see <see cref="PrintRole"/>.</summary>
+    public string Use => p.Role switch
+    {
+        PrintRole.Copy => WorklistText.PrintUseCopy,
+        PrintRole.Both => WorklistText.PrintUseBoth,
+        _              => WorklistText.PrintUseBuild,
+    };
     public string Cycle     => p.CycleDays >= 1 ? string.Format(WorklistText.DaysN1, p.CycleDays)
                                                 : string.Format(WorklistText.HoursN1, p.CycleDays * 24);
     public string Prints    => p.Prints.ToString("N0");

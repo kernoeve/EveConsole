@@ -2380,6 +2380,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>작업 {0:N0}개는 반응식이 아니라 반응 슬롯을 기다리고 있어 반응식을 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 모든 반응식이 사용 중이었습니다.</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>복사 연구소: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>복사 작업 {0:N0}개는 BPO가 아니라 연구 슬롯을 기다리고 있어 BPO를 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 이곳의 모든 BPO가 사용 중이었습니다.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (복사용)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>용도</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>이 원본의 용도입니다. 복사 연구소에 있는 원본은 복사하고 나머지는 제작하며 서로 대체하지 않으므로 각각 별도의 줄에서 측정합니다. 해당 종류의 유일한 원본은 둘 다 합니다.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>제작</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>제작 + 복사</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>지금 작업 {0:N0}개가 이것을 원하지만, 최근 {1}일 대부분 동안 모든 BPO가 비어 있었습니다. 지속적인 필요가 아니라 일회성이므로 원본보다 BPC가 나을 수 있습니다.</value>
   </data>

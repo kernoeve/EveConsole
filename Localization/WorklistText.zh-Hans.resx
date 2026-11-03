@@ -2380,6 +2380,30 @@
   <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
     <value>{0:N0} 个任务在等待反应栏位，而不是配方，因此再买一张配方也无法启动其中任何一个。过去 {2} 天中有 {1:N0}% 的时间所有配方都被占用。</value>
   </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>复制实验室：{0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>{0:N0} 个复制任务在等待科研栏位，而不是蓝图原件，因此再买一张原件也无法启动其中任何一个。过去 {2} 天中有 {1:N0}% 的时间这里的所有原件都被占用。</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0}（用于复制）</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>用途</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>这些原件的用途。复制实验室的原件用于复制，其余用于制造，二者不能互相替代，因此各自单独一行统计。某类型唯一的原件两者兼顾。</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>制造 + 复制</value>
+  </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>目前有 {0:N0} 个任务需要它，但最近 {1} 天里，每张蓝图原件几乎一直空闲。这是一次性需求，而不是长期需求——蓝图拷贝可能比原件更合适。</value>
   </data>

@@ -38,6 +38,11 @@ public class InventionGenerator(
     ProductionCalculatorService     production,
     WorklistSettings                settings) : IWorklistGenerator
 {
+    private const string CopyJobKey = "invention_copy:";
+
+    /// <summary>A job copying a blueprint: its TypeId is the blueprint, where a build's is the product.</summary>
+    public static bool IsCopyJob(WorklistItem item) => item.Key.StartsWith(CopyJobKey, StringComparison.Ordinal);
+
     public string Id          => "invention";
     public string DisplayName => WorklistText.SourceInvention;
 
@@ -476,7 +481,7 @@ public class InventionGenerator(
         if (original is null)
             return [new WorklistItem
             {
-                Key       = $"invention_copy:{recipe.ProductTypeId}",
+                Key       = $"{CopyJobKey}{recipe.ProductTypeId}",
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
@@ -514,7 +519,7 @@ public class InventionGenerator(
 
         return [new WorklistItem
         {
-            Key           = $"invention_copy:{recipe.ProductTypeId}",
+            Key           = $"{CopyJobKey}{recipe.ProductTypeId}",
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
