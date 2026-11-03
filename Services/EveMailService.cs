@@ -17,7 +17,8 @@ public sealed record EveMailRow(
     string         Labels,
     bool           BodyFetched,
     string         RecipientSummary,
-    IReadOnlyList<EveMailRecipient> Recipients
+    IReadOnlyList<EveMailRecipient> Recipients,
+    IReadOnlyList<long> UnreadCharacterIds
 );
 
 /// <summary>One addressee on a mail, kept as its own row so the header can link each name
@@ -153,6 +154,12 @@ public class EveMailService(
                     BodyFetched = false,
                 });
 
+                // Once per mail, not per copy: a corp mail reaches every character in the corp
+                // under one mail id, and each one's poll added the recipients again — the To line
+                // read the corporation's name twenty times.
+                if (db.EsiMailRecipients.Local.Any(x => x.MailId == h.MailId)
+                    || await db.EsiMailRecipients.AnyAsync(x => x.MailId == h.MailId, ct))
+                    continue;
                 foreach (var rec in h.Recipients ?? [])
                     db.EsiMailRecipients.Add(new EveMailRecipientEntry
                     {
@@ -399,22 +406,39 @@ public class EveMailService(
         else if (labelFilter.HasValue)
             q = WithLabel(q, labelFilter.Value);
 
-        // Sort by MailId DESC in SQL (int — EF can translate) to get the 500 newest,
-        // then reorder by Timestamp in memory (DateTimeOffset ordering unsupported in EF SQLite).
-        var headers = (await q.OrderByDescending(h => h.MailId).Take(500).ToListAsync(ct))
-            .OrderByDescending(h => h.Timestamp)
+        // ⚠️ One row per MAIL, not per copy. A corp or alliance mail reaches every one of the
+        // user's characters in it under the same mail id, and listing each copy put twenty rows
+        // of one message in All Mail, each to be opened to be marked read. The 500 newest mail
+        // ids by MailId DESC in SQL (int — EF can translate), then every copy of those; the
+        // order by Timestamp is in memory (DateTimeOffset ordering unsupported in EF SQLite).
+        var mailIds = await q.Select(h => h.MailId).Distinct()
+            .OrderByDescending(id => id).Take(500).ToListAsync(ct);
+        var copies = await q.Where(h => mailIds.Contains(h.MailId)).ToListAsync(ct);
+
+        // The row speaks for the mail through one copy — an unread one if there is one, so the
+        // body is fetched as a character still to read it — and is read only when every copy is.
+        var headers = copies
+            .GroupBy(h => h.MailId)
+            .Select(g =>
+            {
+                var unread = g.Where(c => !c.IsRead).Select(c => c.CharacterId).Order().ToList();
+                var copy   = g.OrderBy(c => c.IsRead).ThenBy(c => c.CharacterId).First();
+                return (Copy: copy, Unread: unread);
+            })
+            .OrderByDescending(x => x.Copy.Timestamp)
             .ToList();
 
-        // Load recipients for these mails
-        var mailIds = headers.Select(h => h.MailId).ToList();
+        // Load recipients for these mails. ⚠️ Distinct: each copy's poll used to add them again,
+        // and the rows already written are still there.
         var recs = await db.EsiMailRecipients
             .Where(r => mailIds.Contains(r.MailId))
             .ToListAsync(ct);
         var recsByMail = recs.GroupBy(r => r.MailId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .ToDictionary(g => g.Key, g => g.DistinctBy(r => (r.RecipientId, r.RecipientType)).ToList());
 
-        return headers.Select(h =>
+        return headers.Select(x =>
         {
+            var h        = x.Copy;
             var mailRecs = recsByMail.GetValueOrDefault(h.MailId, []);
             var recSummary = mailRecs.Count > 0
                 ? string.Join(", ", mailRecs.Select(r =>
@@ -426,7 +450,8 @@ public class EveMailService(
                     r.RecipientType))
                 .ToList();
             return new EveMailRow(h.MailId, h.CharacterId, h.FromId, h.FromName,
-                h.Subject, h.Timestamp, h.IsRead, h.Labels, h.BodyFetched, recSummary, recipients);
+                h.Subject, h.Timestamp, x.Unread.Count == 0, h.Labels, h.BodyFetched, recSummary, recipients,
+                x.Unread);
         }).ToList();
     }
 
@@ -487,6 +512,26 @@ public class EveMailService(
         await db.SaveChangesAsync(ct);
 
         return rawBody;
+    }
+
+    /// <summary>
+    /// One mail read for every character it reached: a corp or alliance mail is one message in
+    /// many mailboxes, and opening it once is reading it. A call per character — each mailbox is
+    /// marked in its own — a few at a time.
+    /// </summary>
+    public async Task MarkReadAsync(IReadOnlyList<long> charIds, int mailId, CancellationToken ct = default)
+    {
+        using var gate = new SemaphoreSlim(5, 5);
+        await Task.WhenAll(charIds.Distinct().Select(async charId =>
+        {
+            await gate.WaitAsync(ct);
+            try { await MarkReadAsync(charId, mailId, ct); }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                errorLogger.Log("EveMailService", $"MarkRead {mailId} for {charId}", ex);
+            }
+            finally { gate.Release(); }
+        }));
     }
 
     public async Task<bool> MarkReadAsync(long charId, int mailId, CancellationToken ct = default)

@@ -1727,15 +1727,18 @@ public class OverviewViewModel : ReactiveObject
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "ContractAlerts", ex); }
         }
 
-        // Unread EVE mail, each character's copy on its own — one mail to two of the user's
-        // characters waits to be read twice, as the game counts it. Only characters still here:
-        // a removed character's headers may linger until the next cleanup.
+        // Unread EVE mail, each MAIL once: a corp or alliance mail reaches every one of the
+        // user's characters in it under one mail id, and counting each copy put twenty in the
+        // alert for one message. The Eve Mail tool lists it once and marks it read everywhere
+        // when opened. Only characters still here: a removed character's headers may linger
+        // until the next cleanup.
         if (_alertSettings.UnreadMail)
         {
             try
             {
                 var unread = await Off(() => _db.EsiMailHeaders.AsNoTracking()
                     .Where(m => !m.IsRead && _db.Characters.Any(c => c.Id == m.CharacterId))
+                    .Select(m => m.MailId).Distinct()
                     .CountAsync());
                 if (unread > 0)
                     newAlerts.Add(new AlertRowVm

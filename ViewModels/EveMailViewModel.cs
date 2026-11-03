@@ -29,6 +29,10 @@ public class EveMailRowVm : ReactiveObject
     public DateTimeOffset TimeRaw      { get; }
     public string         CharName     { get; }
 
+    /// <summary>The characters whose copy of this mail is still unread — every one of them is
+    /// marked when it is opened. A corp or alliance mail is one row with a copy per character.</summary>
+    public IReadOnlyList<long> UnreadCharIds { get; private set; }
+
     /// <summary>Each addressee separately, so every name in the To line is its own link. A
     /// mailing list has no entity page, so it renders plain.</summary>
     public IReadOnlyList<EveMailPartyVm> Recipients { get; }
@@ -74,6 +78,7 @@ public class EveMailRowVm : ReactiveObject
         TimeText      = r.Timestamp.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TimeRaw       = r.Timestamp;
         CharName      = charName;
+        UnreadCharIds = r.UnreadCharacterIds;
         _isRead       = r.IsRead;
         _isUnread     = !r.IsRead;
         _fromColor    = r.IsRead ? Palette.TextMuted : Palette.TextBright;
@@ -96,14 +101,17 @@ public class EveMailRowVm : ReactiveObject
 
     public void MarkAsRead()
     {
+        UnreadCharIds = [];
         IsRead       = true;
         IsUnread     = false;
         FromColor    = Palette.TextMuted;
         SubjectColor = Palette.TextFaint;
     }
 
-    /// <summary>The row's identity in the list: one mail, in one character's mailbox.</summary>
-    public (int, long) Key => (MailId, CharId);
+    /// <summary>The row's identity in the list: one mail, whichever mailboxes it is in. ⚠️ Not the
+    /// character too: the copy a row speaks through moves to a read one once the unread ones are
+    /// read, and a key that moved with it replaced the row and lost the selection.</summary>
+    public int Key => MailId;
 
     /// <summary>
     /// Takes whatever the poll has changed since this row was built — read in the game, say —
@@ -112,6 +120,7 @@ public class EveMailRowVm : ReactiveObject
     public void Update(EveMailRow r)
     {
         if (r.IsRead && !IsRead) MarkAsRead();
+        else if (!r.IsRead) UnreadCharIds = r.UnreadCharacterIds;
     }
 
     public Task LoadPortraitAsync()
@@ -409,13 +418,13 @@ public class EveMailViewModel : ReactiveObject
     private List<EveMailRowVm> Reconcile(List<EveMailRow> rows)
     {
         var added   = new List<EveMailRowVm>();
-        var existing = new Dictionary<(int, long), EveMailRowVm>();
+        var existing = new Dictionary<int, EveMailRowVm>();
         foreach (var vm in Mails) existing[vm.Key] = vm;
 
         for (var i = 0; i < rows.Count; i++)
         {
             var r   = rows[i];
-            var key = (r.MailId, r.CharacterId);
+            var key = r.MailId;
 
             if (existing.TryGetValue(key, out var vm))
             {
@@ -523,9 +532,11 @@ public class EveMailViewModel : ReactiveObject
             if (ct.IsCancellationRequested) return;   // superseded; the newer load owns the pane
             BodyMarkup = body;
 
+            // Read for every character it reached, not only the copy opened: twenty copies of one
+            // corp mail used to wait to be opened twenty times.
             if (!mail.IsRead)
             {
-                await _svc.MarkReadAsync(mail.CharId, mail.MailId);
+                await _svc.MarkReadAsync(mail.UnreadCharIds.Count > 0 ? mail.UnreadCharIds : [mail.CharId], mail.MailId);
                 mail.MarkAsRead();
             }
         }
