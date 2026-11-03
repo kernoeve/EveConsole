@@ -1516,26 +1516,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>Manquera encore après ceci</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>en file derrière un autre travail</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Une production à laquelle cette livraison est destinée. C'est pour elle que le planificateur a créé le trajet, et elle n'a pas encore été détaillée en tâche distincte.</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Ce transport apporte tout ce qui manque au travail : il démarre donc à l'arrivée de la cargaison.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>Le travail demande un élément de ce manifeste, mais un travail antérieur a déjà réservé ce stock — ce chargement ne lui parviendra pas.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Manque encore : {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Manque encore : {0}, et {1:N0} de plus.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>Il est aussi derrière un autre travail pour un élément de ce manifeste.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} au total. {1}</value>

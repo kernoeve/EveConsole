@@ -1,10 +1,11 @@
 using Avalonia;
 using EveConsole.Services;
+using EveConsole.Services.Worklist;
 
 namespace EveConsole.ViewModels;
 
 /// <summary>A piece of a tooltip line: plain text, or an item drawn with its picture.</summary>
-public sealed record DetailRun(string Text, int TypeId = 0)
+public sealed record DetailRun(string Text, int TypeId = 0, PrintKind Print = PrintKind.None)
 {
     public bool IsItem => TypeId > 0;
 }
@@ -20,8 +21,8 @@ public sealed record DetailLine(IReadOnlyList<DetailRun> Runs, int Level = 0, bo
 ///
 /// <para>Each sentence on a line of its own. A sentence that opens with a heading — "For
 /// Hypnagogic Neurolink Enhancer (1,819 run(s)): need 70,840; 50,284 on hand…" — is the heading
-/// with its parts under it, indented, one to a line where the sentence lists them with ";". Every
-/// item it names is drawn with its picture before the name.</para>
+/// with its parts under it, indented, one to a line where the sentence lists them with ";". Each
+/// item drawn with its picture is one its writer marked as an item: see <see cref="ItemRef"/>.</para>
 ///
 /// <para>⚠️ Built from the sentence the generator wrote, not from new wording: the text in every
 /// language stays exactly what it was, only broken and indented. A sentence with no heading or
@@ -30,14 +31,8 @@ public sealed record DetailLine(IReadOnlyList<DetailRun> Runs, int Level = 0, bo
 public static class DetailText
 {
     /// <param name="paragraphs">Separate paragraphs (the reason, a note, the snooze), a gap between.</param>
-    /// <param name="known">Items the task itself knows, as the screen names them — found in any
-    /// language, where the name index needs spaces between words.</param>
-    public static IReadOnlyList<DetailLine> Build(IEnumerable<string> paragraphs, IEnumerable<(int TypeId, string Shown)> known)
+    public static IReadOnlyList<DetailLine> Build(IEnumerable<string> paragraphs)
     {
-        var names = known.Where(k => k.TypeId > 0 && k.Shown.Length > 2)
-                         .DistinctBy(k => k.Shown)
-                         .OrderByDescending(k => k.Shown.Length)
-                         .ToList();
         var lines = new List<DetailLine>();
         var first = true;
 
@@ -45,14 +40,23 @@ public static class DetailText
         {
             var gap = !first;
             first = false;
-            foreach (var sentence in FamilyRows.Sentences(paragraph))
+
+            // ⚠️ Each item stood in for by a token while the text is split: a name's own full stop
+            // or colon is no end of a sentence and no heading.
+            var items = new List<DetailRun>();
+            var text  = string.Concat(ItemRef.Parse(paragraph).Select(p =>
             {
-                foreach (var (text, level) in Split(sentence))
+                if (p.TypeId <= 0) return p.Text;
+                items.Add(new DetailRun(p.Text, p.TypeId, p.Print));
+                return $"{items.Count - 1}";
+            }));
+
+            foreach (var sentence in FamilyRows.Sentences(text))
+                foreach (var (part, level) in Split(sentence))
                 {
-                    lines.Add(new DetailLine(Runs(text, names), level, gap));
+                    lines.Add(new DetailLine(Runs(part, items), level, gap));
                     gap = false;
                 }
-            }
         }
         return lines;
     }
@@ -90,32 +94,20 @@ public static class DetailText
                 : [p])
             .Select(p => p.Trim()).Where(p => p.Length > 0);
 
-    /// <summary>The line as text and items, each item where its name stands.</summary>
-    private static List<DetailRun> Runs(string text, List<(int TypeId, string Shown)> known)
+    /// <summary>The line as text and items, the tokens put back.</summary>
+    private static List<DetailRun> Runs(string text, List<DetailRun> items)
     {
-        // The task's own items, found in any language, and whatever else the index finds — the
-        // longest name winning where two overlap: "Compressed Lime Mykoserocin" is one item, not
-        // "Compressed" and the row's own "Lime Mykoserocin".
-        var found = new List<(int Start, int Length, int TypeId)>(TypeNameIndex.Find(text));
-        foreach (var (typeId, shown) in known)
-            for (var at = text.IndexOf(shown, StringComparison.Ordinal); at >= 0;
-                 at = text.IndexOf(shown, at + shown.Length, StringComparison.Ordinal))
-                found.Add((at, shown.Length, typeId));
-
-        var hits = new List<(int Start, int Length, int TypeId)>();
-        foreach (var h in found.OrderByDescending(h => h.Length).ThenBy(h => h.Start))
-            if (!hits.Any(x => h.Start < x.Start + x.Length && x.Start < h.Start + h.Length))
-                hits.Add(h);
-
         var runs = new List<DetailRun>();
-        var pos = 0;
-        foreach (var (start, length, typeId) in hits.OrderBy(h => h.Start))
+        var pos  = 0;
+        while (pos < text.Length)
         {
-            if (start > pos) runs.Add(new DetailRun(text[pos..start]));
-            runs.Add(new DetailRun(text.Substring(start, length), typeId));
-            pos = start + length;
+            var open  = text.IndexOf('', pos);
+            var close = open < 0 ? -1 : text.IndexOf('', open);
+            if (close < 0) { runs.Add(new DetailRun(text[pos..])); break; }
+            if (open > pos) runs.Add(new DetailRun(text[pos..open]));
+            runs.Add(items[int.Parse(text[(open + 1)..close])]);
+            pos = close + 1;
         }
-        if (pos < text.Length) runs.Add(new DetailRun(text[pos..]));
         return runs;
     }
 }

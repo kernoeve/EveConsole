@@ -1510,26 +1510,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>これの後も不足するもの</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>別のジョブの後ろで待機中</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>この配送の対象となる製造です。プランナーがこの便を作成した理由であり、まだ独立したタスクに分けられていません。</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>この運搬でジョブに不足しているものがすべて届くため、積荷が到着すればジョブが開始されます。</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>このジョブはこのマニフェストにあるものを必要としていますが、先のジョブがすでにその在庫を確保しています — この積荷はこのジョブには届きません。</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>まだ{0}が不足しています。</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>まだ{0}、ほか{1:N0}件が不足しています。</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>このマニフェストにあるものについて、別のジョブの後ろでも待っています。</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>合計{0:N0}個。{1}</value>

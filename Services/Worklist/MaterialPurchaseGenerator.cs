@@ -360,7 +360,7 @@ public class MaterialPurchaseGenerator(
         // Named as the screen shows them: this is only ever the opening of a row's detail.
         var users = need.Consumers
             .GroupBy(c => c.TypeId)
-            .Select(g => (Name: SdeNames.Type(g.Key, g.First().Name),
+            .Select(g => (Name: ItemRef.Of(g.Key, g.First().Name),
                           Runs: g.Sum(c => c.Runs), Units: g.Sum(c => c.Units)))
             .OrderByDescending(u => u.Units)
             .ToList();
@@ -480,7 +480,7 @@ public class MaterialPurchaseGenerator(
             jobNeed[bp.TypeId] = jobNeed.GetValueOrDefault(bp.TypeId)
                                + IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
             // Only ever read out in the row's detail, so named as the screen shows it.
-            forWhat.TryAdd(bp.TypeId, SdeNames.Type(entry.TypeId, entry.TypeName));
+            forWhat.TryAdd(bp.TypeId, ItemRef.Of(entry.TypeId, entry.TypeName));
         }
 
         // What the material tree asks for, in runs, at every level — the queue above only sees
@@ -662,7 +662,7 @@ public class MaterialPurchaseGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
-                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
+                var shown = ItemRef.Of(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
                     ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)

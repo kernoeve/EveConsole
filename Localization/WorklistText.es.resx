@@ -1516,26 +1516,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>Aún faltará después de esto</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>en cola detrás de otro trabajo</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Una fabricación a la que va destinada esta entrega. Es para lo que el planificador generó el viaje, y aún no se ha separado en una tarea propia.</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Este transporte lleva todo lo que le falta al trabajo, así que empieza cuando llega la carga.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>El trabajo quiere algo de este manifiesto, pero un trabajo anterior ya ha reservado esas existencias: esta carga no le llegará.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Aún le falta: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Aún le falta: {0} y {1:N0} más.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>También está detrás de otro trabajo por algo de este manifiesto.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} en total. {1}</value>

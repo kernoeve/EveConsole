@@ -1516,26 +1516,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>Danach fehlt noch</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>wartet hinter einem anderen Auftrag</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Ein Bau, für den diese Lieferung bestimmt ist. Für ihn hat der Planer den Flug angelegt; er ist noch nicht als eigene Aufgabe ausgewiesen.</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Dieser Transport bringt alles, was dem Auftrag fehlt, daher startet er, sobald die Fracht ankommt.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>Der Auftrag braucht etwas von dieser Ladeliste, aber ein früherer Auftrag hat diesen Bestand bereits beansprucht – diese Ladung erreicht ihn nicht.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Es fehlt noch: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Es fehlt noch: {0} und {1:N0} weitere.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>Er wartet außerdem hinter einem anderen Auftrag auf etwas von dieser Ladeliste.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>Insgesamt {0:N0}. {1}</value>

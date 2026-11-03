@@ -72,10 +72,6 @@ public sealed record WorklistShortage(
 /// kept disproving.</param>
 /// <param name="StillShortOf">What it would go on waiting for once this haul lands, not counting
 /// anything the haul is carrying. Empty when the only thing in its way is the queue.</param>
-/// <param name="QueuedBehind">⚠️ It wants something ON this manifest and still will not start:
-/// an earlier job has already claimed that stock, and this crate came out of the same pile. A
-/// different fact from being short of something else, and the row has to say which or the reader
-/// goes looking for a missing item that is right there on the list.</param>
 /// <param name="WithOtherLoops">Not started by this loop alone, but by it and the other pilots'
 /// loops in the same system together: what it lacks here, one of them drops.</param>
 /// <param name="ByLoop">Judged against an in-system loop's whole run — everything every stop puts
@@ -85,7 +81,7 @@ public sealed record WorklistShortage(
 /// not cover them — how many, and their m³.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
-    bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
+    bool Unblocked, IReadOnlyList<string> StillShortOf,
     long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false,
     IReadOnlyList<WorklistLine>? Missing = null, PrintKind Print = PrintKind.None)
 {
@@ -111,12 +107,15 @@ public sealed record WorklistWaitingJob(
                                         ? WorklistText.WaitNothingElseMissing
                                         : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
                                                          MissingLines.Count))
-        : QueuedBehind && StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
         // Counted off the same list the tooltip on it shows, this cargo's items included where
         // the drop does not cover them: "also short of" left those out of the count.
-        : Math.Max(MissingLines.Count, StillShortOf.Count) is var n and > 0
-            ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther), n)
-            : WorklistText.WaitQueuedBehind;
+        //
+        // ⚠️ Never "queued behind another job". A job's shortages are already what is left once
+        // the jobs planned before it have taken their share, so what it lacks can always be named
+        // — and the label went on any job with nothing recorded, an Avatar waiting on a dozen
+        // parts included, with nothing queued about it.
+        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
+                         Math.Max(MissingLines.Count, StillShortOf.Count));
 
     /// <summary>
     /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the
@@ -129,18 +128,20 @@ public sealed record WorklistWaitingJob(
     public string StatusTip =>
         IsPlanned ? WorklistText.WaitTipPlanned
         : Unblocked ? (ByLoop ? WorklistText.WaitTipStartsAfterLoop : WorklistText.WaitTipStarts)
-        : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
         : (StillShortOf.Count > 6
               ? string.Format(WorklistText.WaitTipStillShortMore,
                               string.Join(CommonText.ListSeparator, StillShortOf.Take(6)), StillShortOf.Count - 6)
               : string.Format(WorklistText.WaitTipStillShort, string.Join(CommonText.ListSeparator, StillShortOf)))
-          + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
+          ;
 
     public Avalonia.Media.IBrush StatusColor =>
         Unblocked      ? EveConsole.Services.Palette.Good
         : WithOtherLoops ? EveConsole.Services.Palette.Accent
         :                  EveConsole.Services.Palette.TextFaint;
 }
+
+/// <summary>Output of a finished job: what, how much, and the facility it lands in.</summary>
+public sealed record WorklistDelivered(long Site, int TypeId, long Units);
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
@@ -222,12 +223,21 @@ public sealed record WorklistItem
     public required string Title  { get; init; }
 
     /// <summary>The specifics — quantity, price, how far off it is.</summary>
-    public string Detail { get; init; } = "";
+    public string Detail { get => ItemRef.Plain(_detail); init => _detail = value; }
+    private readonly string _detail = "";
+
+    /// <summary><see cref="Detail"/> with the items its writer marked (see <see cref="ItemRef"/>),
+    /// for the tooltip, and for a pass adding to it, which must not lose them.</summary>
+    public string MarkedDetail => _detail;
 
     public WorklistReadiness Readiness { get; init; } = WorklistReadiness.Ready;
 
     /// <summary>What is in the way. Only meaningful when not <see cref="WorklistReadiness.Ready"/>.</summary>
-    public string BlockedBy { get; init; } = "";
+    public string BlockedBy { get => ItemRef.Plain(_blockedBy); init => _blockedBy = value; }
+    private readonly string _blockedBy = "";
+
+    /// <summary><see cref="BlockedBy"/> with its items marked: see <see cref="MarkedDetail"/>.</summary>
+    public string MarkedBlockedBy => _blockedBy;
 
     /// <summary>
     /// Blocked specifically because no blueprint is free — not for want of material, a character,
@@ -370,6 +380,10 @@ public sealed record WorklistItem
     /// Empty for tasks about a single item, and the row then has nothing to expand.</para>
     /// </summary>
     public IReadOnlyList<WorklistLine> Lines { get; init; } = [];
+
+    /// <summary>What a delivery of finished jobs hands over, and where: what it makes available to a
+    /// job waiting there, which a task on no station cannot say through its own location.</summary>
+    public IReadOnlyList<WorklistDelivered> Delivers { get; init; } = [];
 
     /// <summary>
     /// Total m³ of what this task moves or buys. Filled by the service rather than by generators,

@@ -172,8 +172,8 @@ public class InventionGenerator(
 
             // A level of the blueprint itself is short in copy runs; one of the item, in T2 runs.
             var head = recipe.BlueprintTarget
-                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, SdeNames.Type(d.TypeId, name))
-                : string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
+                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, ItemRef.Of(d.TypeId, name, PrintKind.Copy))
+                : string.Format(WorklistText.InventionHead, ItemRef.Of(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
                                      timeCtx, copiers, slotsLeft, siteStock, d.Priority, name, head));
@@ -207,7 +207,9 @@ public class InventionGenerator(
         // A level of the T2 print itself is invented as copies: "(Copy)" and the copy's picture.
         var print       = recipe.BlueprintTarget ? PrintKind.Copy : PrintKind.None;
         var shown       = PrintLabel.Name(recipe.ProductTypeId, name, print);
-        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+        // Drawn as the copy it is, without the suffix: these sentences say "copy" or "BPC" themselves.
+        var sourceShown = ItemRef.Mark(recipe.SourceBlueprintTypeId,
+                                       SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName), PrintKind.Copy);
 
         // The source copies standing at the lab. Nothing else can carry an attempt: the copy is
         // installed in the job and locked for its duration, so concurrent invention jobs need a
@@ -423,7 +425,7 @@ public class InventionGenerator(
         // A datacore, and how many of it the lab holds against what the job wants.
         string HaveOfWant(int typeId, long have, long want) =>
             string.Format(WorklistText.NameHaveOfWant,
-                          SdeNames.Type(typeId, names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId))),
+                          ItemRef.Of(typeId, names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId))),
                           have, want);
     }
 
@@ -468,7 +470,6 @@ public class InventionGenerator(
             .FirstOrDefault();
 
         // For the titles. The rows' TypeName keeps the English.
-        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
         // The job makes copies, and the row is drawn as one: "(Copy)" with the copy's picture.
         var copiesShown = PrintLabel.Name(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName, PrintKind.Copy);
 
@@ -554,7 +555,7 @@ public class InventionGenerator(
     // Named as the screen shows it. ⚠️ Only here: the settings pick a decryptor by its English
     // Name (InventionService.DecryptorFor).
     private static string DecryptorText(Decryptor d) =>
-        d.IsNone ? WorklistText.NoDecryptor : $"{SdeNames.Type(d.TypeId, d.Name)} ×{d.ChanceMultiplier:0.0#}";
+        d.IsNone ? WorklistText.NoDecryptor : $"{ItemRef.Of(d.TypeId, d.Name)} ×{d.ChanceMultiplier:0.0#}";
 
     private Decryptor DecryptorFor(int productTypeId, ProductionContext ctx, List<Decryptor> all) =>
         InventionService.DecryptorFor(

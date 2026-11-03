@@ -274,7 +274,7 @@ public class InventoryLevelGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
-                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
+                var shown = ItemRef.Of(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
                     ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)

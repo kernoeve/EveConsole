@@ -1510,26 +1510,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>이후에도 부족한 것</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>다른 작업 뒤에 대기</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>이 배송의 대상인 제조입니다. 계획기가 이 운반을 만든 이유이며, 아직 별도의 작업 항목으로 나뉘지 않았습니다.</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>이 운반이 작업에 부족한 모든 것을 싣고 있으므로, 화물이 도착하면 작업이 시작됩니다.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>작업이 이 적재 목록의 무언가를 원하지만, 앞선 작업이 이미 그 재고를 가져갔습니다 — 이번 적재분은 이 작업에 닿지 않습니다.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>여전히 부족: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>여전히 부족: {0} 외 {1:N0}개.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>이 적재 목록의 무언가를 두고 다른 작업 뒤에서도 대기하고 있습니다.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>총 {0:N0}개. {1}</value>

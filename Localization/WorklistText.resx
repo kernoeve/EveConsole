@@ -2020,20 +2020,12 @@
     <value>Still missing after this</value>
     <comment>Heading of the tooltip on "needs N more items" in a Worklist row's "waiting on this" panel; the list under it names each item, how many and their m³.</comment>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>queued behind another job</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: an earlier job has already claimed the stock this delivery carries. Lower case.</comment>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>A build this delivery is for. It is what the planner raised the trip for, and has not been broken out into a task of its own yet.</value>
     <comment>Tooltip beside a planned build in a Worklist row's "waiting on this" panel.</comment>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>This haul carries everything the job is short of, so it starts when the cargo lands.</value>
-    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
-  </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>The job wants something on this manifest, but an earlier job has already claimed that stock — this load will not reach it.</value>
     <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
   </data>
   <data name="WaitTipStillShort" xml:space="preserve">
@@ -2043,10 +2035,6 @@
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Still short of {0}, and {1:N0} more.</value>
     <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel. {0} is a comma-separated list of the first items, {1} how many more there are.</comment>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>It is also behind another job for something on this manifest.</value>
-    <comment>Added to the tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} in total. {1}</value>

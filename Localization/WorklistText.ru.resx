@@ -1528,26 +1528,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>После этого всё ещё не хватит</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>в очереди за другим проектом</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Производство, для которого предназначена эта доставка. Ради него планировщик и создал рейс, но в отдельную задачу оно ещё не выделено.</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Эта перевозка везёт всё, чего не хватает проекту, поэтому он начнётся, как только груз прибудет.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>Проекту нужно кое-что из этого груза, но этот запас уже занят более ранним проектом — до этого проекта груз не дойдёт.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Всё ещё не хватает: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Всё ещё не хватает: {0} и ещё {1:N0}.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>Кроме того, за чем-то из этого груза он стоит в очереди за другим проектом.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>Всего {0:N0}. {1}</value>

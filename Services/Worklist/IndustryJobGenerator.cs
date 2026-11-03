@@ -858,8 +858,10 @@ public class IndustryJobGenerator(
 
                         // Named as the screen shows them: these only go into the sentence below.
                         // The shortages recorded with the row keep the English.
-                        var haul = short_.Where(m => !m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
-                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
+                        string Item(int typeId, string english) =>
+                            ItemRef.Of(typeId, english, ctx.BpTypeIds.Contains(typeId) ? PrintKind.Copy : PrintKind.None);
+                        var haul = short_.Where(m => !m.MustBuy).Select(m => Item(m.TypeId, m.Name)).ToList();
+                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => Item(m.TypeId, m.Name)).ToList();
 
                         // With the scope's name where there is one: "not owned" means nothing
                         // owned in that region, which is not the same claim as nothing anywhere.

@@ -107,9 +107,6 @@ public class WorklistService(
     /// Adding a bonus per job unblocked would push a haul through the order band, where one
     /// step means one customer order — so the count breaks ties instead, below priority.</para>
     /// </summary>
-    /// <summary>Starts the item-name index the reason tooltips draw pictures from: see TypeNameIndex.</summary>
-    public Task WarmTypeNamesAsync() => TypeNameIndex.EnsureLoadedAsync(dbFactory);
-
     /// <summary>
     /// What a stopped job would still lack, item by item: its shortages, less what
     /// <paramref name="covered"/> says this task supplies of each. m³ is stamped on with the rest
@@ -261,7 +258,6 @@ public class WorklistService(
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
                                                          .DistinctBy(s => s.TypeName)
                                                          .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
-                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)),
                             WithOtherLoops: shared,
                             ByLoop: haul.Stops.Count > 0,
                             // What it would still lack once this cargo is down, item by item —
@@ -307,7 +303,7 @@ public class WorklistService(
 
                     // "Jobs are waiting on this" only where it is true. The generator says what
                     // the cargo is for; this is the place that knows a job is actually stopped.
-                    Detail = (freed.Count > 0 ? WorklistText.HaulWhyUnblocking : haul.Detail)
+                    Detail = (freed.Count > 0 ? WorklistText.HaulWhyUnblocking : haul.MarkedDetail)
                            + (freed.Count > 0
                                 ? " " + (haul.Stops.Count > 0
                                     // A loop restarts them when it is done, not when any one load lands.
@@ -343,7 +339,7 @@ public class WorklistService(
     /// </summary>
     private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
     {
-        var names = string.Join(CommonText.ListSeparator, jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
+        var names = string.Join(CommonText.ListSeparator, jobs.Take(3).Select(j => ItemRef.Of(j.TypeId, j.TypeName, j.Print)));
         return jobs.Count > 3
             ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
             : string.Format(upToThree, jobs.Count, names);
@@ -376,20 +372,33 @@ public class WorklistService(
                 var job = section.Items[n];
 
                 if (job.Kind is not (WorklistKind.Job or WorklistKind.Refine or WorklistKind.Decompress)
-                 || job.TypeId <= 0
                  || job.WaitingJobs.Count > 0) continue;
 
-                var waiting = stoppedByType.GetValueOrDefault(job.TypeId, [])
+                // What it makes: the task's item, or everything a delivery of finished jobs hands over.
+                var makes = job.Delivers.Count > 0
+                    ? job.Delivers.Select(d => d.TypeId).Distinct().ToList()
+                    : job.TypeId > 0 ? [job.TypeId] : [];
+                if (makes.Count == 0) continue;
+
+                // Delivered, the output is there to use where the job ran, which is why it counts:
+                // a job still to run has nothing on a dock yet, and takes nothing off.
+                long Landing(int typeId, long site) =>
+                    job.Delivers.Where(d => d.TypeId == typeId && d.Site == site).Sum(d => d.Units);
+
+                var waiting = makes.SelectMany(t => stoppedByType.GetValueOrDefault(t, []))
                     // Not itself. A job is not waiting on its own output.
                     .Where(j => j.Key != job.Key)
                     .DistinctBy(j => j.Key)
-                    .Select(j => new WorklistWaitingJob(
-                        j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
-                        Unblocked:    false,
-                        StillShortOf: [],
-                        WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short),
-                        // ⚠️ Nothing taken off for this job's output: it is not on a dock yet.
-                        Missing:      MissingLines(j.Shortages, _ => 0)))
+                    .Select(j =>
+                    {
+                        var outstanding = j.Shortages.Where(s => Landing(s.TypeId, j.LocationId) < s.Short).ToList();
+                        return new WorklistWaitingJob(
+                            j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
+                            Unblocked:    job.Delivers.Count > 0 && outstanding.Count == 0,
+                            StillShortOf: [],
+                            WantsUnits:   j.Shortages.Where(s => makes.Contains(s.TypeId)).Sum(s => s.Short),
+                            Missing:      MissingLines(outstanding, g => Landing(g.Key, j.LocationId)));
+                    })
                     .OrderByDescending(w => w.WantsUnits)
                     .ToList();
 
@@ -511,7 +520,7 @@ public class WorklistService(
                         : buy.Priority,
 
                     Detail = Sentences.Join(
-                             Sentences.Join(buy.Detail,
+                             Sentences.Join(buy.MarkedDetail,
                                  freed.Count > 0
                                      ? Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
                                      : ""),
@@ -617,7 +626,7 @@ public class WorklistService(
 
             // Each contributor's reason is kept verbatim. The point of merging is one errand, not
             // one explanation — "why am I buying this many" is the question the row has to answer.
-            var reasons = string.Join("  •  ", parts.Select(p => p.Item.Detail).Where(d => d.Length > 0));
+            var reasons = string.Join("  •  ", parts.Select(p => p.Item.MarkedDetail).Where(d => d.Length > 0));
 
             // Blocked wins: the combined order cannot be placed if any part of it cannot be.
             var blocked = parts.FirstOrDefault(p => p.Item.Readiness == WorklistReadiness.Blocked).Item;
@@ -666,7 +675,7 @@ public class WorklistService(
                         : string.Format(WorklistText.MergedDetailSum, total, Terms(), demand, reasons),
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
-                BlockedBy = blocked?.BlockedBy ?? "",
+                BlockedBy = blocked?.MarkedBlockedBy ?? "",
                 DataAsOf  = parts.Min(p => p.Item.DataAsOf),
             };
 

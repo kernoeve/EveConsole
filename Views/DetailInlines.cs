@@ -32,7 +32,7 @@ public static class DetailInlines
             if (!r.IsItem) { inlines.Add(new Run(r.Text)); continue; }
             inlines.Add(new InlineUIContainer(new TypeIcon
             {
-                TypeId = r.TypeId, Width = 16, Height = 16,
+                TypeId = r.TypeId, BlueprintPicture = EveConsole.Services.PrintLabel.Picture(r.Print), Width = 16, Height = 16,
                 Margin = new Thickness(0, 0, 3, -3), VerticalAlignment = VerticalAlignment.Center,
             }) { BaselineAlignment = BaselineAlignment.Center });
             inlines.Add(new Run(r.Text) { FontWeight = FontWeight.SemiBold });

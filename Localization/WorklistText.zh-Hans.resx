@@ -1510,26 +1510,17 @@
   <data name="WaitTipMissingHead" xml:space="preserve">
     <value>此后仍缺少</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>排在另一个任务之后</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>这趟运送所服务的一项制造。规划器正是为它安排了这一趟，但它尚未拆分为独立的工作项。</value>
   </data>
   <data name="WaitTipStarts" xml:space="preserve">
     <value>这趟运送载有该任务所缺的全部物品，因此货物一到它就会开始。</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>该任务需要此货物清单上的物品，但更早的任务已占用了这部分库存——这批货轮不到它。</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>仍缺少 {0}。</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>仍缺少 {0}，另有 {1:N0} 种。</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>对于此货物清单上的某些物品，它还排在另一个任务之后。</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>共 {0:N0}。{1}</value>
