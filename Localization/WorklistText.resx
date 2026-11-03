@@ -2017,7 +2017,7 @@
     <comment>Beside a planned build in a Worklist row's "waiting on this" panel: once this cargo is down, its station holds everything it needs. Lower case.</comment>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>Still missing at the station once this lands</value>
+    <value>Still missing after this</value>
     <comment>Heading of the tooltip on "needs N more items" in a Worklist row's "waiting on this" panel; the list under it names each item, how many and their m³.</comment>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">

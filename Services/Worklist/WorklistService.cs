@@ -110,6 +110,19 @@ public class WorklistService(
     /// <summary>Starts the item-name index the reason tooltips draw pictures from: see TypeNameIndex.</summary>
     public Task WarmTypeNamesAsync() => TypeNameIndex.EnsureLoadedAsync(dbFactory);
 
+    /// <summary>
+    /// What a stopped job would still lack, item by item: its shortages, less what
+    /// <paramref name="covered"/> says this task supplies of each. m³ is stamped on with the rest
+    /// of the volumes, in ApplyVolumeAsync.
+    /// </summary>
+    private static List<WorklistLine> MissingLines(
+        IEnumerable<WorklistShortage> outstanding, Func<IGrouping<int, WorklistShortage>, long> covered) =>
+        [.. outstanding
+            .GroupBy(s => s.TypeId)
+            .Select(g => new WorklistLine(g.Key, g.First().TypeName,
+                                          Math.Max(1, g.Sum(s => s.Short) - covered(g)))
+                         { Print = g.First().Print })];
+
     private static void PromoteUnblockingHauls(List<WorklistSection> sections)
     {
         var all = sections.SelectMany(s => s.Items).ToList();
@@ -255,12 +268,8 @@ public class WorklistService(
                             // this cargo's own items too where the drop does not cover them (or
                             // where the stock it came from is claimed). m³ is stamped on with the
                             // rest of the volumes, in ApplyVolumeAsync.
-                            Missing: [.. outstanding
-                                .GroupBy(s => s.TypeId)
-                                .Select(g => new WorklistLine(g.Key, g.First().TypeName,
-                                    Math.Max(1, g.Sum(s => s.Short)
-                                                - (g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key))))
-                                    { Print = g.First().Print })]);
+                            Missing: MissingLines(outstanding,
+                                g => g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenByDescending(w => w.WithOtherLoops)
@@ -378,7 +387,9 @@ public class WorklistService(
                         j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
                         Unblocked:    false,
                         StillShortOf: [],
-                        WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short)))
+                        WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short),
+                        // ⚠️ Nothing taken off for this job's output: it is not on a dock yet.
+                        Missing:      MissingLines(j.Shortages, _ => 0)))
                     .OrderByDescending(w => w.WantsUnits)
                     .ToList();
 
@@ -465,14 +476,14 @@ public class WorklistService(
                         // is only read out in the row's tooltip.
                         var outstanding = j.Shortages
                             .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
-                            .DistinctBy(s => s.TypeName)
-                            .Select(s => SdeNames.Type(s.TypeId, s.TypeName))
                             .ToList();
 
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
                             Unblocked: outstanding.Count == 0,
-                            StillShortOf: outstanding);
+                            StillShortOf: [.. outstanding.DistinctBy(s => s.TypeName)
+                                                         .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
+                            Missing: MissingLines(outstanding, g => bought.GetValueOrDefault(g.Key)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)

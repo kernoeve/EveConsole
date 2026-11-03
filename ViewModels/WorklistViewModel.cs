@@ -564,8 +564,15 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         _waiting ??= [.. _item.WaitingJobs
             // Same item, same verdict, one line. Several jobs can be behind one print, and the
             // reader wants to know what is waiting and how much of it, not to count rows.
-            .GroupBy(w => (w.TypeId, w.StatusText))
-            .Select(g => new WorklistWaitingJobVm(g.First(), g.Count()))];
+            // ⚠️ And the same things missing: a merged line's tooltip adds its jobs' lists up, and
+            // jobs lacking different things under one "needs 1 more item" would list two.
+            .GroupBy(w => (w.TypeId, w.StatusText,
+                           Lacks: string.Join(',', w.MissingLines.Select(l => l.TypeId).Order())))
+            .Select(g => new WorklistWaitingJobVm(g.First(), g.Count(),
+                [.. g.SelectMany(w => w.MissingLines)
+                     .GroupBy(l => l.TypeId)
+                     .Select(l => l.First() with { Quantity = l.Sum(x => x.Quantity), Volume = l.Sum(x => x.Volume) })
+                     .OrderByDescending(l => l.Volume).ThenBy(l => l.TypeName)]))];
     public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
 
     /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
@@ -1191,10 +1198,11 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     private readonly WorklistWaitingJob _w;
     private readonly int _count;
 
-    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1)
+    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1, IReadOnlyList<WorklistLine>? missing = null)
     {
         _w     = w;
         _count = count;
+        Missing = missing ?? w.MissingLines;
         _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b, w.Print);
     }
 
@@ -1208,7 +1216,8 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
-    public IReadOnlyList<WorklistLine> Missing => _w.MissingLines;
+    /// <summary>What the line's jobs still lack between them, for its tooltip.</summary>
+    public IReadOnlyList<WorklistLine> Missing { get; }
     public PrintKind Print => _w.Print;
     public bool   HasItemLink => _w.HasItemLink;
     public void   OpenItem()  => _w.OpenItem();

@@ -1508,7 +1508,7 @@
     <value>더 부족한 것 없음</value>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>도착한 뒤에도 정거장에 부족한 것</value>
+    <value>이후에도 부족한 것</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>다른 작업 뒤에 대기</value>

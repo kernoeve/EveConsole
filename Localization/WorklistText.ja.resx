@@ -1508,7 +1508,7 @@
     <value>他に不足なし</value>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>到着後もステーションで不足するもの</value>
+    <value>これの後も不足するもの</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>別のジョブの後ろで待機中</value>

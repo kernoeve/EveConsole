@@ -1514,7 +1514,7 @@
     <value>rien d'autre ne manque</value>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>Manquera encore à la station une fois ceci livré</value>
+    <value>Manquera encore après ceci</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>en file derrière un autre travail</value>

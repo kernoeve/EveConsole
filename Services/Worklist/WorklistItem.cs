@@ -111,11 +111,12 @@ public sealed record WorklistWaitingJob(
                                         ? WorklistText.WaitNothingElseMissing
                                         : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
                                                          MissingLines.Count))
-        : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
+        : QueuedBehind && StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
         // Counted off the same list the tooltip on it shows, this cargo's items included where
         // the drop does not cover them: "also short of" left those out of the count.
-        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
-                         Math.Max(MissingLines.Count, StillShortOf.Count));
+        : Math.Max(MissingLines.Count, StillShortOf.Count) is var n and > 0
+            ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther), n)
+            : WorklistText.WaitQueuedBehind;
 
     /// <summary>
     /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the

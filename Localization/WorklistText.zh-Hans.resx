@@ -1508,7 +1508,7 @@
     <value>别无所缺</value>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>送达后该站仍缺少的物品</value>
+    <value>此后仍缺少</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>排在另一个任务之后</value>

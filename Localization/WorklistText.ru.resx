@@ -1526,7 +1526,7 @@
     <value>больше ничего не нужно</value>
   </data>
   <data name="WaitTipMissingHead" xml:space="preserve">
-    <value>Чего ещё не хватит на станции после этой доставки</value>
+    <value>После этого всё ещё не хватит</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>в очереди за другим проектом</value>
