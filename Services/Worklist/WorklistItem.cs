@@ -38,6 +38,9 @@ public enum WorklistReadiness
 /// </summary>
 public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
 
+/// <summary>What stops a task now, which is what the summary at the top of the list divides by.</summary>
+public enum WorklistStop { None, NoSlot, NotDue, Materials, PrintsInUse, NoPrintHere, Other }
+
 /// <summary>
 /// One item on a task that moves or acquires several things at once.
 ///
@@ -149,6 +152,9 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
     /// delivery's output.</summary>
     public string Place { get; init; } = "";
 
+    /// <summary>Which contract of a courier trip this goes in, from one. Zero on anything else.</summary>
+    public int Contract { get; init; }
+
     /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
     public PrintKind Print { get; init; }
 
@@ -253,6 +259,22 @@ public sealed record WorklistItem
     /// counts nothing is worse than one that is absent.</para>
     /// </summary>
     public bool BlockedByPrint { get; init; }
+
+    /// <summary>
+    /// Of those, no usable print at the site at all, rather than every one there in use: one is
+    /// answered by moving or buying a print, the other only by waiting or owning more.
+    /// </summary>
+    public bool PrintMissing { get; init; }
+
+    /// <summary>What stops this now. A wait with no slot pool is a wait for a time, not a slot.</summary>
+    public WorklistStop Stop => Readiness switch
+    {
+        WorklistReadiness.Ready   => WorklistStop.None,
+        WorklistReadiness.Waiting => Pool is null ? WorklistStop.NotDue : WorklistStop.NoSlot,
+        _ => BlockedByPrint       ? PrintMissing ? WorklistStop.NoPrintHere : WorklistStop.PrintsInUse
+           : Shortages.Count > 0  ? WorklistStop.Materials
+           :                        WorklistStop.Other,
+    };
 
     /// <summary>
     /// What this job is short of, itemised.

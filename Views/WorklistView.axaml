@@ -41,6 +41,23 @@
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
          already had, with the cursor and a hover underline as the only cues — the same rule the
          Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.topstat">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderBrush"         Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="1" />
+      <Setter Property="CornerRadius"        Value="3" />
+      <Setter Property="Padding"             Value="6 1" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.topstat:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background"  Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.topstat.active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
     <Style Selector="Button.link">
       <Setter Property="Background"          Value="Transparent" />
       <Setter Property="BorderThickness"     Value="0" />
@@ -85,44 +102,94 @@
 
     <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
 
-      <!-- The strip: one headline figure, then chips.
+      <!-- The summary: how full the slots are, then what can be done, what cannot and why.
            ⚠️ Every figure here is counted off the run, not off the rows below, so the filters and
            the two checkboxes leave it alone. That is the point: it says how much is blocked
-           without making you show the blocked ones.
-           ⚠️ Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
-           header a few pixels below, so carrying them here printed the same figures twice. And
-           ready appears once, as the headline; the state chips are blocked and waiting only. -->
+           without making you show the blocked ones. Each one narrows the list to what it counts. -->
       <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-              CornerRadius="3" Padding="16 12">
-        <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+              CornerRadius="3" Padding="10 6">
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,440">
 
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="{Binding ReadyCountText}" FontSize="30" FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextBrightBrush}"/>
-            <TextBlock Text="{x:Static loc:WorklistText.ReadyNow}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0 2 0 0"/>
-          </StackPanel>
-
-          <Rectangle Width="1" Fill="{DynamicResource BorderDefaultBrush}" VerticalAlignment="Stretch" Margin="0 2"/>
-
-          <ItemsControl ItemsSource="{Binding KindSummary}" VerticalAlignment="Center">
+          <ItemsControl Grid.Row="0" Grid.Column="0" ItemsSource="{Binding TopSlots}" Margin="0 0 0 4">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="20"/>
+                <WrapPanel Orientation="Horizontal"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:SummaryStatVm">
-                <StackPanel>
-                  <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextPrimaryBrush}"/>
-                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                             Margin="0 1 0 0"/>
-                </StackPanel>
+              <DataTemplate x:DataType="vm:TopSlotVm">
+                <Button Classes="topstat" Classes.active="{Binding Stat.IsActive}" Command="{Binding Stat.Pick}"
+                        ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}" Margin="0 0 10 0">
+                  <TextBlock Text="{Binding Stat.Label}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding Color}"/>
+                </Button>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-        </StackPanel>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SinceText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SinceText}"/>
+
+          <ItemsControl Grid.Row="1" Grid.Column="0" ItemsSource="{Binding TopGroups}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TopGroupVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="0 0 10 0" Margin="0 0 10 2">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Title}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="7 0 0 0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                      <Button Classes="topstat" Classes.active="{Binding Headline.IsActive}" Command="{Binding Headline.Pick}"
+                              ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Headline.Value}" FontSize="24" FontWeight="SemiBold" Foreground="{Binding HeadlineColor}"/>
+                      </Button>
+                      <ItemsControl ItemsSource="{Binding Parts}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="2"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:TopStatVm">
+                            <Button Classes="topstat" Classes.active="{Binding IsActive}" Command="{Binding Pick}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}">
+                              <StackPanel>
+                                <TextBlock Text="{Binding Value}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                              </StackPanel>
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <StackPanel Grid.Row="1" Grid.Column="1">
+            <TextBlock Text="{x:Static loc:WorklistText.TopBestNext}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="7 0 0 1"/>
+            <ItemsControl ItemsSource="{Binding NextMoves}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NextMoveVm">
+                  <Button Classes="topstat" Command="{Binding Go}" HorizontalAlignment="Stretch"
+                          ToolTip.Tip="{x:Static loc:WorklistText.TipTopMove}" Padding="6 0">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <Image Grid.Column="0" Source="{Binding Row.Icon}" Width="14" Height="14" Margin="0 0 5 0" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Line}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="2" Text="{Binding Frees}" FontSize="10" Margin="6 0 0 0"
+                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Grid>
       </Border>
 
       <!-- Sat with the filters rather than up beside Refresh, because that is what they are: two

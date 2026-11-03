@@ -214,11 +214,28 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         // listed where it is handled, at its stops. The heading carries the trip's Hauled tick.
         if (HasLines)
         {
-            rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop()));
-            foreach (var l in _item.Lines)
-                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, PrintLabel.Name(l.TypeId, l.TypeName, l.Print),
-                                           typeId: l.TypeId, print: l.Print, qty: l.Quantity.ToString("N0"), other: l.Place,
-                                           volume: l.VolumeText, value: l.ValueText));
+            void Lines(IEnumerable<WorklistLine> lines)
+            {
+                foreach (var l in lines)
+                    rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, PrintLabel.Name(l.TypeId, l.TypeName, l.Print),
+                                               typeId: l.TypeId, print: l.Print, qty: l.Quantity.ToString("N0"), other: l.Place,
+                                               volume: l.VolumeText, value: l.ValueText));
+            }
+
+            // A courier trip's contracts, each with its own tick: they are made one at a time.
+            var contracts = _item.Lines.Max(l => l.Contract);
+            if (contracts == 0)
+            {
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop(_item.Lines)));
+                Lines(_item.Lines);
+            }
+            else foreach (var contract in _item.Lines.GroupBy(l => l.Contract).OrderBy(g => g.Key))
+            {
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading,
+                                           string.Format(WorklistText.HaulContractHeading, contract.Key, contracts),
+                                           totals: M3(contract.Sum(l => l.Volume)), stop: TripStop([.. contract])));
+                Lines(contract);
+            }
         }
 
         // What is waiting on this, and whether this load releases it.
@@ -241,11 +258,11 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// <para>A hauling service's trip is ticked off as Contracted instead: handed to a courier,
     /// its cargo recorded with the courier contract — see <see cref="WorklistService.MarkContractedAsync"/>.</para>
     /// </summary>
-    private WorklistHaulStop? TripStop() =>
-        _item.Kind == WorklistKind.Haul && !IsLoop && _item.Lines.Count > 0
+    private WorklistHaulStop? TripStop(IReadOnlyList<WorklistLine> lines) =>
+        _item.Kind == WorklistKind.Haul && !IsLoop && lines.Count > 0
         && _item.LocationId > 0 && _item.DestinationId > 0
             ? new WorklistHaulStop(_item.DestinationId, _item.DestinationName, false,
-                  [.. _item.Lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
+                  [.. lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
                                                                    _item.LocationId, _item.LocationName) { Print = l.Print })],
                   [])
             : null;
@@ -397,12 +414,14 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     public IndustryPool? Pool   => _item.Pool;
 
     /// <summary>The kind of doing, as its own scannable column.</summary>
-    public string KindText => _item.Kind switch
+    public string KindText => KindLabel(_item);
+
+    public static string KindLabel(WorklistItem item) => item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,
         // A heading of its own per kind of trip: the loop flown between structures, a run a few
         // gates over and an import from the far side of the map are three different errands.
-        WorklistKind.Haul        => _item.Lane switch
+        WorklistKind.Haul        => item.Lane switch
         {
             HaulLane.InSystem     => WorklistText.KindHaulInSystem,
             HaulLane.Nearby       => WorklistText.KindHaulNearby,
@@ -611,7 +630,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     {
         WorklistReadiness.Ready   => WorklistText.StateReady,
         WorklistReadiness.Blocked => WorklistText.StateBlocked,
-        _                         => WorklistText.StateWaiting,
+        // Named for what it waits on, which is what the summary above the list counts.
+        _                         => _item.Stop == WorklistStop.NoSlot ? WorklistText.TopNoSlot : WorklistText.StateWaiting,
     };
 
     // Which shape the row draws in. A DataGrid has one column set for every row, so per-type
@@ -2005,6 +2025,7 @@ public class WorklistViewModel : ReactiveObject
             {
                 SlotPressure.Clear();
                 foreach (var s in slots) SlotPressure.Add(new SlotPressureRowVm(s));
+                UpdateTopSlots(slots);
 
                 // Built first, carried, then swapped in. Every row here is a new object, so what
                 // the reader had open is only recoverable from the OLD rows -- which is why the
@@ -2367,7 +2388,7 @@ public class WorklistViewModel : ReactiveObject
     public bool ShowSnoozed
     {
         get => _showSnoozed;
-        set { this.RaiseAndSetIfChanged(ref _showSnoozed, value); _ = RefreshAsync(); }
+        set { this.RaiseAndSetIfChanged(ref _showSnoozed, value); _ = RefreshCoreAsync(sameRun: true); }
     }
 
     /// <summary>
@@ -2382,7 +2403,12 @@ public class WorklistViewModel : ReactiveObject
     public bool ShowNotReady
     {
         get => _showNotReady;
-        set { this.RaiseAndSetIfChanged(ref _showNotReady, value); _ = RefreshAsync(); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showNotReady, value);
+            _topShowedNotReady = false;
+            _ = RefreshCoreAsync(sameRun: true);
+        }
     }
 
     // Counts live on the toggles themselves rather than only in the status line's "hidden" tail.
@@ -2501,7 +2527,7 @@ public class WorklistViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ClearFiltersCommand { get; private set; } = null!;
 
     public bool HasFilters =>
-        _stateFilter != AnyValue || _taskFilter != AnyValue || _characterFilter != AnyValue
+        _topKey is not null || _stateFilter != AnyValue || _taskFilter != AnyValue || _characterFilter != AnyValue
         || _sourceFilter != AnyValue || _destFilter != AnyValue
         || _descriptionFilter.Length > 0 || _noteFilter.Length > 0;
 
@@ -2690,27 +2716,42 @@ public class WorklistViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasFilters));
     }
 
-    // ── Summary strip ─────────────────────────────────────────────────────────
+    // ── Summary ───────────────────────────────────────────────────────────────
     //
     // ⚠️ Counted off the run, not off the rows on screen — hence WorklistItem rather than
-    // WorklistRowVm. The whole point of the strip is to say how many items are blocked without
-    // having to show the blocked ones, and a count that emptied the moment a filter narrowed the
-    // view answered a question nobody was asking. Snoozed items are the one exclusion, matching
-    // _readyTotal: those the user has deliberately parked.
+    // WorklistRowVm. The whole point is to say how many items are blocked without having to show
+    // the blocked ones, and a count that emptied the moment a filter narrowed the view answered a
+    // question nobody was asking. Snoozed items are the one exclusion, matching _readyTotal: those
+    // the user has deliberately parked.
 
-    /// <summary>
-    /// The strip's chips: how the work divides, and nothing the grid already says.
-    ///
-    /// <para>Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
-    /// header a few pixels below, so the panels that used to carry them were the same figures
-    /// printed twice. What is left is the mix (how much of this is buying versus hauling versus
-    /// building) and the state split, neither of which a single group header can show.</para>
-    ///
-    /// <para>⚠️ Ready is deliberately absent from <see cref="StateSummary"/>: it is the headline
-    /// figure sitting immediately to its left. One number, one place on screen.</para>
-    /// </summary>
-    public ObservableCollection<SummaryStatVm> KindSummary  { get; } = [];
-    public ObservableCollection<SummaryStatVm> StateSummary { get; } = [];
+    /// <summary>Do now, blocked and no free slot, each with how it divides.</summary>
+    public ObservableCollection<TopGroupVm> TopGroups { get; } = [];
+
+    /// <summary>How full each kind of slot is, a full one first.</summary>
+    public ObservableCollection<TopSlotVm> TopSlots { get; } = [];
+
+    /// <summary>The first few tasks of the plan, whatever kind they are: the list below is grouped
+    /// by kind, so nothing else shows them side by side.</summary>
+    public ObservableCollection<NextMoveVm> NextMoves { get; } = [];
+
+    /// <summary>Asks the view to bring a row into sight.</summary>
+    public event Action<WorklistRowVm>? ShowRow;
+
+    private string _sinceText = "";
+    public string SinceText { get => _sinceText; private set => this.RaiseAndSetIfChanged(ref _sinceText, value); }
+
+    private WorklistRun? _lastRun;
+
+    // Which figure the list is narrowed to, by key so it survives the figures being rebuilt.
+    private readonly Dictionary<string, Func<WorklistItem, bool>> _topTests = [];
+    private string? _topKey;
+    private Func<WorklistItem, bool>? _topTest;
+
+    // The figure turned on "show blocked" to have anything to show, so clearing it turns it off.
+    private bool _topShowedNotReady;
+
+    private HashSet<string>? _readyBefore;
+
     /// <summary>
     /// When the last run finished. Absolute rather than "4 minutes ago": a relative label is only
     /// honest while something keeps it ticking, and every row already carries its own data age.
@@ -2732,35 +2773,191 @@ public class WorklistViewModel : ReactiveObject
 
     private void UpdateSummary(List<WorklistItem> items)
     {
-        // Buy and Haul as themselves; Job split into its three pools, because "116 jobs" does not
-        // tell you whether the evening is manufacturing or reactions. Empty ones are simply absent
-        // rather than shown as zero.
-        //
-        // ⚠️ Ready items only, so the chips sum to the headline beside them. They used to count
-        // every unsnoozed item including blocked and waiting, which made "166 ready now" sit next
-        // to chips totalling 496 — two different questions answered in one row, with nothing
-        // saying so. How much is blocked is on the checkbox below, where it is acted on.
-        var ready = items.Where(i => i.Readiness == WorklistReadiness.Ready).ToList();
+        // ⚠️ Every Ready task lands in exactly one figure, so they sum to the headline beside them.
+        // The strip before this one left out finished jobs and every kind that was not a buy, a haul
+        // or a pool, and read 234 against a headline of 259.
+        static bool Is(WorklistItem i, WorklistStop stop) => i.Stop == stop;
 
-        Fill(KindSummary, new[]
-            {
-                new SummaryStatVm(WorklistText.ChipBuy,           ready.Count(i => i.Kind == WorklistKind.Buy).ToString("N0")),
-                new SummaryStatVm(WorklistText.ChipHaul,          ready.Count(i => i.Kind == WorklistKind.Haul).ToString("N0")),
-                new SummaryStatVm(WorklistText.ChipManufacturing, ready.Count(i => i.Pool == IndustryPool.Manufacturing).ToString("N0")),
-                new SummaryStatVm(WorklistText.ChipReactions,     ready.Count(i => i.Pool == IndustryPool.Reaction).ToString("N0")),
-                new SummaryStatVm(WorklistText.ChipScience,       ready.Count(i => i.Pool == IndustryPool.Science).ToString("N0")),
-            }
-            .Where(s => s.Value != "0"));
-
-        static void Fill(ObservableCollection<SummaryStatVm> into, IEnumerable<SummaryStatVm> from)
+        TopStatVm Stat(string key, string label, Func<WorklistItem, bool> test)
         {
-            into.Clear();
-            foreach (var s in from) into.Add(s);
+            _topTests[key] = test;
+            return new TopStatVm(key, label, items.Count(test), PickTop);
+        }
+
+        IReadOnlyList<TopStatVm> Parts(params (string Key, string Label, Func<WorklistItem, bool> Test)[] parts) =>
+            [.. parts.Select(p => Stat(p.Key, p.Label, p.Test)).Where(s => s.Value != "0")];
+
+        static bool Ready(WorklistItem i) => i.Readiness == WorklistReadiness.Ready;
+
+        var otherKinds = items
+            .Where(i => Ready(i) && i.Kind is not (WorklistKind.Buy or WorklistKind.Haul or WorklistKind.Job))
+            .Select(i => i.Kind).Distinct().OrderBy(k => k)
+            .Select(k => (Key: $"do:{k}",
+                          Label: WorklistRowVm.KindLabel(items.First(i => i.Kind == k)),
+                          Test: (Func<WorklistItem, bool>)(i => Ready(i) && i.Kind == k)));
+
+        var groups = new List<TopGroupVm>
+        {
+            new(WorklistText.TopDoNow, Stat("do", WorklistText.TopDoNow, Ready), Palette.TextBright, Parts(
+            [
+                ("do:deliver", WorklistText.ChipDeliver,       i => Ready(i) && i.Kind == WorklistKind.Job && i.Pool is null),
+                ("do:buy",     WorklistText.ChipBuy,           i => Ready(i) && i.Kind == WorklistKind.Buy),
+                ("do:haul",    WorklistText.ChipHaul,          i => Ready(i) && i.Kind == WorklistKind.Haul),
+                ("do:mfg",     WorklistText.ChipManufacturing, i => Ready(i) && i.Kind == WorklistKind.Job && i.Pool == IndustryPool.Manufacturing),
+                ("do:rea",     WorklistText.ChipReactions,     i => Ready(i) && i.Kind == WorklistKind.Job && i.Pool == IndustryPool.Reaction),
+                ("do:sci",     WorklistText.ChipScience,       i => Ready(i) && i.Kind == WorklistKind.Job && i.Pool == IndustryPool.Science),
+                .. otherKinds,
+            ])),
+            new(WorklistText.TopBlocked,
+                Stat("blocked", WorklistText.TopBlocked, i => i.Readiness == WorklistReadiness.Blocked), Palette.Bad, Parts(
+                ("blocked:mat",   WorklistText.TopMaterials,   i => Is(i, WorklistStop.Materials)),
+                ("blocked:inuse", WorklistText.TopPrintsInUse, i => Is(i, WorklistStop.PrintsInUse)),
+                ("blocked:none",  WorklistText.TopNoPrintHere, i => Is(i, WorklistStop.NoPrintHere)),
+                ("blocked:other", WorklistText.TopOther,       i => Is(i, WorklistStop.Other)))),
+            new(WorklistText.TopNoSlot,
+                Stat("noslot", WorklistText.TopNoSlot, i => Is(i, WorklistStop.NoSlot)), Palette.Accent, Parts(
+                ("noslot:rea", WorklistText.ChipReactions,     i => Is(i, WorklistStop.NoSlot) && i.Pool == IndustryPool.Reaction),
+                ("noslot:mfg", WorklistText.ChipManufacturing, i => Is(i, WorklistStop.NoSlot) && i.Pool == IndustryPool.Manufacturing),
+                ("noslot:sci", WorklistText.ChipScience,       i => Is(i, WorklistStop.NoSlot) && i.Pool == IndustryPool.Science))),
+        };
+
+        // Only when there is any: a timer running out asks nothing of anybody.
+        if (items.Any(i => Is(i, WorklistStop.NotDue)))
+            groups.Add(new(WorklistText.TopNotDue,
+                           Stat("notdue", WorklistText.TopNotDue, i => Is(i, WorklistStop.NotDue)), Palette.TextMuted, []));
+
+        TopGroups.Clear();
+        foreach (var g in groups) TopGroups.Add(g);
+
+        _topTest = _topKey is null ? null : _topTests.GetValueOrDefault(_topKey);
+        MarkTop();
+    }
+
+    private void UpdateTopSlots(IReadOnlyList<SlotPressure> slots)
+    {
+        TopSlots.Clear();
+        foreach (var s in slots.Where(s => s.Capacity > 0).OrderBy(s => s.Free > 0).ThenBy(s => s.Free))
+        {
+            var pool = s.Pool;
+            var full = s.Free == 0;
+            var key  = $"slot:{pool}";
+            var name = new SlotPressureRowVm(s).Pool;
+
+            // A full pool is about what cannot start, and one with room about what can.
+            _topTests[key] = i => i.Pool == pool && (full ? i.Stop == WorklistStop.NoSlot : i.Readiness == WorklistReadiness.Ready);
+            TopSlots.Add(new TopSlotVm(
+                new TopStatVm(key,
+                              full ? string.Format(WorklistText.TopSlotsFull, name, s.InUse, s.Capacity)
+                                   : string.Format(WorklistText.TopSlotsFree, name, s.InUse, s.Capacity, s.Free),
+                              s.InUse, PickTop),
+                full ? Palette.Bad : Palette.TextMuted));
+        }
+        _topTest = _topKey is null ? null : _topTests.GetValueOrDefault(_topKey);
+        MarkTop();
+    }
+
+    /// <summary>What changed since the run before, among what can be done. Blocked rows come and go
+    /// as the plan shifts, and their count says more than which ones moved.</summary>
+    private void NoteChanges(List<WorklistItem> items)
+    {
+        var ready = items.Where(i => i.Readiness == WorklistReadiness.Ready).Select(i => i.Key).ToHashSet();
+        if (_readyBefore is { } before)
+        {
+            var added = ready.Count(k => !before.Contains(k));
+            var gone  = before.Count(k => !ready.Contains(k));
+            SinceText = added + gone == 0 ? "" : string.Format(WorklistText.TopSince, added, gone);
+        }
+        _readyBefore = ready;
+    }
+
+    private void UpdateNextMoves(List<WorklistRowVm> pool)
+    {
+        NextMoves.Clear();
+        // Finished jobs first, since delivering frees slots, then what restarts the most stopped
+        // work, then the plan's own order. By plan order alone this was three bids on one market.
+        foreach (var r in pool.Where(r => r.IsReady && !r.IsSnoozed)
+                              .OrderByDescending(r => r.Item.Source == "completed_jobs")
+                              .ThenByDescending(r => r.Unblocks)
+                              .ThenBy(r => r.Sequence)
+                              .Take(MaxNextMoves))
+        {
+            // A haul's title says how much and not where, which is most of what makes it a task.
+            var where = r.IsHaul ? $"{r.LocationName} → {r.DestinationName}" : r.LocationName;
+            NextMoves.Add(new NextMoveVm(
+                r,
+                where.Length > 0 ? $"{r.Title}  ·  {where}" : r.Title,
+                r.Unblocks > 0 ? string.Format(WorklistText.TopFrees, r.Unblocks) : "",
+                k => _ = GoToRowAsync(k)));
         }
     }
 
+    private const int MaxNextMoves = 4;
+
+    private void PickTop(string key)
+    {
+        if (_topKey == key) { _ = ClearTopAsync(); return; }
+        _ = ApplyTopAsync(key);
+    }
+
+    private async Task ApplyTopAsync(string key)
+    {
+        _topKey  = key;
+        _topTest = _topTests.GetValueOrDefault(key);
+        MarkTop();
+
+        // ⚠️ Blocked rows are not in the pool unless asked for, so a figure counting them would
+        // otherwise narrow the list to nothing.
+        if (!_showNotReady && _topTest is { } test
+            && _runItems.Any(i => test(i) && i.Readiness != WorklistReadiness.Ready))
+        {
+            _showNotReady      = true;
+            _topShowedNotReady = true;
+            this.RaisePropertyChanged(nameof(ShowNotReady));
+            await RefreshCoreAsync(sameRun: true);
+        }
+        else ApplyFilters();
+    }
+
+    private async Task ClearTopAsync()
+    {
+        _topKey = null;
+        _topTest = null;
+        MarkTop();
+
+        if (_topShowedNotReady)
+        {
+            _showNotReady      = false;
+            _topShowedNotReady = false;
+            this.RaisePropertyChanged(nameof(ShowNotReady));
+            await RefreshCoreAsync(sameRun: true);
+        }
+        else ApplyFilters();
+    }
+
+    private void MarkTop()
+    {
+        foreach (var g in TopGroups)
+        {
+            g.Headline.IsActive = g.Headline.Key == _topKey;
+            foreach (var p in g.Parts) p.IsActive = p.Key == _topKey;
+        }
+        foreach (var s in TopSlots) s.Stat.IsActive = s.Stat.Key == _topKey;
+    }
+
+    /// <summary>Brings a task into sight, taking off whatever filter was hiding it.</summary>
+    private async Task GoToRowAsync(string key)
+    {
+        if (!Rows.Any(r => !r.IsChild && r.Key == key))
+        {
+            ClearFilters();
+            if (_topShowedNotReady || _topKey is not null) await ClearTopAsync();
+        }
+        if (Rows.FirstOrDefault(r => !r.IsChild && r.Key == key) is { } row) ShowRow?.Invoke(row);
+    }
+
     private bool Matches(WorklistRowVm r) =>
-        Is(_stateFilter,     r.ReadinessText)
+        (_topTest is null || _topTest(r.Item))
+        && Is(_stateFilter,     r.ReadinessText)
         && Is(_taskFilter,      r.KindText)
         && Is(_characterFilter, r.CharacterName)
         && Is(_sourceFilter,    r.LocationName)
@@ -2789,6 +2986,7 @@ public class WorklistViewModel : ReactiveObject
     {
         _stateFilter = _taskFilter = _characterFilter = _sourceFilter = _destFilter = AnyValue;
         _descriptionFilter = _noteFilter = "";
+        _ = ClearTopAsync();
 
         foreach (var p in new[] { nameof(StateFilter), nameof(TaskFilter), nameof(CharacterFilter),
                                   nameof(SourceFilter), nameof(DestFilter),
@@ -2842,7 +3040,12 @@ public class WorklistViewModel : ReactiveObject
     public string Errors { get => _errors; private set => this.RaiseAndSetIfChanged(ref _errors, value); }
     public bool HasErrors => Errors.Length > 0;
 
-    public async Task RefreshAsync()
+    public Task RefreshAsync() => RefreshCoreAsync(sameRun: false);
+
+    /// <param name="sameRun">⚠️ Show the last run differently rather than plan a new one. The two
+    /// checkboxes and the summary's figures only change what is on screen, and a rebuild for those
+    /// cost seconds and replanned the list under someone working through it.</param>
+    private async Task RefreshCoreAsync(bool sameRun)
     {
         IsLoading = true;
         try
@@ -2857,7 +3060,7 @@ public class WorklistViewModel : ReactiveObject
             // Only the collection updates need the UI thread, and they are the cheap part.
             var (run, unsnoozed, pool, failed) = await Task.Run(async () =>
             {
-                var built = await _service.BuildAsync();
+                var built = sameRun && _lastRun is { } last ? last : await _service.BuildAsync();
 
                 var alive = built.AllItems.Where(i => ShowSnoozed || !i.IsSnoozed).ToList();
 
@@ -2912,6 +3115,7 @@ public class WorklistViewModel : ReactiveObject
 
                 _pool     = pool;
                 _runItems = run.AllItems.ToList();
+                _lastRun  = run;
 
                 // The Overview sections bind here rather than to Rows: they have no filter row of
                 // their own, and inheriting whatever the tool happened to be filtered to would make
@@ -2942,6 +3146,8 @@ public class WorklistViewModel : ReactiveObject
                 // Counted here, off the data, so neither checkbox nor filter can change it.
                 _readyTotal = unsnoozed.Count(i => i.Readiness == WorklistReadiness.Ready);
                 UpdateSummary(unsnoozed);
+                if (!sameRun) NoteChanges(unsnoozed);
+                UpdateNextMoves(pool);
 
                 // Hidden counts are always reported, even when nothing is actionable. "Nothing to
                 // do" beside nine blocked items would be a lie of omission — there is plenty to
@@ -2966,7 +3172,7 @@ public class WorklistViewModel : ReactiveObject
             // ⚠️ Built with the run, not on a button. Everything it reads is already in memory
             // and the whole pass costs no measurable time, so making the reader press Refresh to
             // see an empty tab fill in was a step that existed only because nothing called it.
-            await RefreshBottlenecksAsync();
+            if (!sameRun) await RefreshBottlenecksAsync();
         }
         catch (Exception ex)
         {

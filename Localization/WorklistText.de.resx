@@ -1948,8 +1948,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} Gegenstandstyp(en)</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} Gegenstandstyp(en), Auftrag {1} von {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} Gegenstand/Gegenstände in {1} Verträgen</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>VERTRAG {0} VON {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Jetzt erledigen</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Blockiert</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Kein freier Slot</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Noch nicht fällig</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Beste nächste Schritte</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>Material fehlt</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>alle Blaupausen belegt</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>keine Blaupause hier</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>Sonstige</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>ausliefern</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0}-Slots {1:N0}/{2:N0} voll</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0}-Slots {1:N0}/{2:N0}, {3:N0} frei</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Seit der letzten Aktualisierung: {0:N0} neu bereit, {1:N0} nicht mehr bereit</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>gibt {0:N0} frei</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Klicken, um nur diese anzuzeigen. Erneut klicken zum Zurücksetzen.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Klicken, um zu dieser Aufgabe in der Liste zu springen.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Aufträge warten darauf.</value>

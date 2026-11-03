@@ -1930,8 +1930,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>アイテム{0}種類</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} 種類のアイテム、契約 {1}/{2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0}品目（{1}件の契約）</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>契約 {0}/{1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>今すぐ実行</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>空きスロットなし</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>まだ時期ではない</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>次にやるべきこと</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>資材不足</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>ブループリントがすべて使用中</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>ここにブループリントなし</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>納品</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0}スロット {1:N0}/{2:N0} 満杯</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0}スロット {1:N0}/{2:N0}、空き{3:N0}</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>前回の更新以降：新たに実行可能 {0:N0}件、実行可能でなくなった {1:N0}件</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>{0:N0}件を解放</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>クリックするとこれらだけを表示します。もう一度クリックすると解除します。</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>クリックするとリスト内のこのタスクに移動します。</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>ジョブがこれを待っています。</value>

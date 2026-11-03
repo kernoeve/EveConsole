@@ -25,6 +25,24 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Bubble);
     }
 
+    private WorklistViewModel? _shownFor;
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        if (_shownFor is not null) _shownFor.ShowRow -= OnShowRow;
+        _shownFor = DataContext as WorklistViewModel;
+        if (_shownFor is not null) _shownFor.ShowRow += OnShowRow;
+    }
+
+    private void OnShowRow(WorklistRowVm row)
+    {
+        if (this.FindControl<DataGrid>("TaskGrid") is not { } grid) return;
+        grid.SelectedItem = row;
+        grid.ScrollIntoView(row, null);
+    }
+
     /// <summary>
     /// Fixes a grid's row height at what its rows already measure, once.
     ///

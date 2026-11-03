@@ -1930,8 +1930,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>아이템 {0}종</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>아이템 {0}종, 계약 {1}/{2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>품목 {0}개 (계약 {1}건)</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>계약 {0}/{1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>지금 할 일</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>빈 슬롯 없음</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>아직 때가 아님</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>다음 할 일</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>재료 부족</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>블루프린트 모두 사용 중</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>이곳에 블루프린트 없음</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>납품</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0} 슬롯 {1:N0}/{2:N0} 가득 참</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0} 슬롯 {1:N0}/{2:N0}, {3:N0}개 비어 있음</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>마지막 새로 고침 이후: 새로 준비됨 {0:N0}개, 더 이상 준비되지 않음 {1:N0}개</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>{0:N0}개 해제</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>클릭하면 이것만 표시합니다. 다시 클릭하면 해제합니다.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>클릭하면 목록에서 이 작업으로 이동합니다.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>작업들이 이것을 기다리고 있습니다.</value>

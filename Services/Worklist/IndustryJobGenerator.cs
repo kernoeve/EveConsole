@@ -1282,6 +1282,7 @@ public class IndustryJobGenerator(
                             Readiness      = waiting ? WorklistReadiness.Waiting : WorklistReadiness.Blocked,
                             BlockedBy      = why,
                             BlockedByPrint = onPrint,
+                            PrintMissing   = noneHere,
                             Shortages      = [.. npShort.Select(m => new WorklistShortage(
                                                     m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
                                                     { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],

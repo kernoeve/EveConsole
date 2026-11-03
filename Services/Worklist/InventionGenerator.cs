@@ -413,6 +413,7 @@ public class InventionGenerator(
                 Readiness = WorklistReadiness.Blocked,
                 BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name),
                 BlockedByPrint = true,
+                PrintMissing   = true,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
@@ -490,6 +491,7 @@ public class InventionGenerator(
                 Readiness = WorklistReadiness.Blocked,
                 BlockedBy      = WorklistText.BlockedNoBpoToCopy,
                 BlockedByPrint = true,
+                PrintMissing   = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
                 TypeImage = "bpc",   // what the job makes: copies

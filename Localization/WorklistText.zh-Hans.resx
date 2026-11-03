@@ -1930,8 +1930,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} 种物品</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} 种物品，第 {1}/{2} 份合同</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} 种物品，分 {1} 份合同</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>合同 {0}/{1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>立即执行</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>受阻</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>没有空闲栏位</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>尚未到时</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>最佳下一步</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>缺少材料</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>蓝图全部在用</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>此处没有蓝图</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>交付</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0}栏位 {1:N0}/{2:N0} 已满</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0}栏位 {1:N0}/{2:N0}，空闲 {3:N0}</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>自上次刷新以来：新就绪 {0:N0} 个，不再就绪 {1:N0} 个</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>解除 {0:N0} 个</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>点击仅显示这些。再次点击可清除。</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>点击跳转到列表中的此任务。</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>有任务在等待这批货。</value>

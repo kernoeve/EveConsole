@@ -2588,9 +2588,77 @@
     <value>{0} item(s)</value>
     <comment>Worklist haul title: how many kinds of item the trip carries. {0} is the number; the route is shown beside it.</comment>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} item(s), contract {1} of {2}</value>
-    <comment>Title of a hauling-service trip split across contracts. {0} = item types on it, {1} = which contract, {2} = how many contracts.</comment>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} item(s) in {1} contracts</value>
+    <comment>A courier trip too big for one contract, as one task. {0} = kinds of item, {1} = contracts.</comment>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>CONTRACT {0} OF {1}</value>
+    <comment>Heading above one contract's lines in a courier trip. {0} = this contract, {1} = how many.</comment>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Do now</value>
+    <comment>Worklist summary: group of tasks that can be done now.</comment>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>Worklist summary: group of tasks that cannot start.</comment>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>No free slot</value>
+    <comment>Worklist summary and state: a job with no slot to run in.</comment>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Not due yet</value>
+    <comment>Worklist summary: tasks waiting for a time, not for anything the player can provide.</comment>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Best next moves</value>
+    <comment>Worklist summary: heading above the first few tasks to do.</comment>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>short of materials</value>
+    <comment>Worklist summary: blocked for want of materials.</comment>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>blueprints all in use</value>
+    <comment>Worklist summary: blocked because every blueprint at the site is in use.</comment>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>no blueprint here</value>
+    <comment>Worklist summary: blocked because the site has no usable blueprint.</comment>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>other</value>
+    <comment>Worklist summary: blocked for any other reason.</comment>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>deliver</value>
+    <comment>Worklist summary: finished jobs to deliver.</comment>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0} slots {1:N0}/{2:N0} full</value>
+    <comment>Worklist summary. {0} = kind of slot, {1} = in use, {2} = capacity.</comment>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0} slots {1:N0}/{2:N0}, {3:N0} free</value>
+    <comment>Worklist summary. {0} = kind of slot, {1} = in use, {2} = capacity, {3} = free.</comment>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Since last refresh: {0:N0} newly ready, {1:N0} no longer ready</value>
+    <comment>Worklist summary. {0} = tasks ready now that were not, {1} = tasks that were ready and are not now.</comment>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>frees {0:N0}</value>
+    <comment>Worklist summary, beside a next move. {0} = stopped jobs it restarts.</comment>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Click to show only these. Click again to clear.</value>
+    <comment>Tooltip on a number in the Worklist summary.</comment>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Click to go to this task in the list.</value>
+    <comment>Tooltip on a next move in the Worklist summary.</comment>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Jobs are waiting on this.</value>

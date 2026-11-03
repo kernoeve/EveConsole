@@ -2032,19 +2032,19 @@ public class LogisticsGenerator(
     {
         var items = new List<WorklistItem>();
 
-        // A service's trip too big for one contract is one task per contract.
-        foreach (var (run, part, parts) in moves
+        foreach (var run in moves
                      .Where(m => m.From != m.To && m.Qty > 0)
                      .GroupBy(m => (m.From, m.To))
-                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To)
-                     .SelectMany(g =>
-                     {
-                         List<List<Move>> split = trips.GetValueOrDefault(g.Key) is { Method: HaulMethod.Service, ContractM3: > 0 } t
-                             ? Contracts([.. g], volumes, t.ContractM3)
-                             : [[.. g]];
-                         return split.Select((p, i) => (Run: p.GroupBy(m => (m.From, m.To)).Single(), Part: i, Parts: split.Count));
-                     }))
+                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To))
         {
+            // ⚠️ A service's trip too big for one contract is still one task, with its lines marked
+            // by contract. A task per contract counted one errand several times over, and each said
+            // it freed the same sixty jobs, since what a load frees is decided by the whole trip.
+            List<List<Move>> split = trips.GetValueOrDefault(run.Key) is { Method: HaulMethod.Service, ContractM3: > 0 } t
+                ? Contracts([.. run], volumes, t.ContractM3)
+                : [[.. run]];
+            var parts = split.Count;
+
             var cargo  = run.GroupBy(m => m.TypeId)
                             .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty), Print: printAt(g.First().FinalTo, g.Key, g.First().From)))
                             .OrderByDescending(x => x.Qty)
@@ -2099,12 +2099,11 @@ public class LogisticsGenerator(
             items.Add(new WorklistItem
             {
                 // Keyed on the pair, not the cargo: it is one trip, and a key that changed as
-                // items were added or removed would reset its age every refresh. A contract after
-                // a service's first is keyed by its place in line.
-                Key          = part == 0 ? $"haul:{run.Key.From}:{run.Key.To}" : $"haul:{run.Key.From}:{run.Key.To}:{part + 1}",
+                // items were added or removed would reset its age every refresh.
+                Key          = $"haul:{run.Key.From}:{run.Key.To}",
                 Source       = Id,
                 Kind         = WorklistKind.Haul,
-                Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContract, cargo.Count, part + 1, parts)
+                Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContracts, cargo.Count, parts)
                              // One item: its name, as the loop's are.
                              : cargo.Count == 1 ? PrintLabel.Name(cargo[0].TypeId, names.GetValueOrDefault(cargo[0].TypeId, string.Format(WorklistText.TypeWithId, cargo[0].TypeId)), cargo[0].Print)
                              : string.Format(WorklistText.HaulTitleItems, cargo.Count),
@@ -2127,12 +2126,19 @@ public class LogisticsGenerator(
                 HaulShipName    = trip?.ShipName ?? "",
                 HaulCapacity    = trip?.Capacity ?? 0,
                 HaulPilots      = trip?.Pilots ?? 0,
-                Lines        = cargo
-                    .Select(c => new WorklistLine(
-                        c.TypeId,
-                        names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
-                        c.Qty) { Print = c.Print })
-                    .ToList(),
+                Lines        = parts > 1
+                    ? [.. split.SelectMany((contract, n) => contract
+                          .GroupBy(m => m.TypeId)
+                          .OrderByDescending(g => g.Sum(m => m.Qty))
+                          .Select(g => new WorklistLine(
+                              g.Key,
+                              names.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                              g.Sum(m => m.Qty))
+                              { Print = printAt(g.First().FinalTo, g.Key, g.First().From), Contract = n + 1 }))]
+                    : [.. cargo.Select(c => new WorklistLine(
+                          c.TypeId,
+                          names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
+                          c.Qty) { Print = c.Print })],
                 Print        = cargo[0].Print,
                 WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,

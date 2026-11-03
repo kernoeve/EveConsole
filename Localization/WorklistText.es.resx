@@ -1948,8 +1948,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} objeto(s)</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} artículo(s), contrato {1} de {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} objeto(s) en {1} contratos</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>CONTRATO {0} DE {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Hacer ahora</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Bloqueadas</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Sin ranura libre</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Aún no toca</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Mejores próximos pasos</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>faltan materiales</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>todos los planos en uso</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>sin plano aquí</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>otros</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>entregar</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>Ranuras de {0} {1:N0}/{2:N0} llenas</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>Ranuras de {0} {1:N0}/{2:N0}, {3:N0} libres</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Desde la última actualización: {0:N0} nuevas listas, {1:N0} ya no listas</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>libera {0:N0}</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Haz clic para mostrar solo estas. Vuelve a hacer clic para quitar el filtro.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Haz clic para ir a esta tarea en la lista.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Hay trabajos esperando esto.</value>

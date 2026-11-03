@@ -1984,8 +1984,59 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>Предметов: {0}</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>Предметов: {0}, контракт {1} из {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>Предметов: {0}, контрактов: {1}</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>КОНТРАКТ {0} ИЗ {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Сделать сейчас</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Нет свободного слота</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Ещё не время</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Лучшие следующие шаги</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>не хватает материалов</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>все чертежи заняты</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>здесь нет чертежа</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>другое</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>выдать</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>Слоты ({0}) {1:N0}/{2:N0}: заполнены</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>Слоты ({0}) {1:N0}/{2:N0}, свободно {3:N0}</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>С последнего обновления: новых готовых {0:N0}, больше не готовых {1:N0}</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>освобождает {0:N0}</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Нажмите, чтобы показать только их. Нажмите ещё раз, чтобы сбросить.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Нажмите, чтобы перейти к этой задаче в списке.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Этого ждут проекты.</value>
