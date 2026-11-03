@@ -586,9 +586,23 @@
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <TextBlock Text="&#x24D8;" FontSize="16"
                          IsVisible="{Binding HasDetailTip}"
-                         Foreground="{Binding ReadinessBarColor}"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                         ToolTip.Tip="{Binding DetailTip}"/>
+                         Foreground="{Binding InfoColor}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- A line a sentence, a heading's parts indented under it, each item it names
+                     with its picture: see DetailText. -->
+                <ToolTip.Tip>
+                  <ToolTip MaxWidth="620">
+                    <ItemsControl ItemsSource="{Binding DetailLines}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DetailLine">
+                          <TextBlock views:DetailInlines.Runs="{Binding Runs}" Margin="{Binding Margin}"
+                                     TextWrapping="Wrap" FontSize="12" LineHeight="20"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ToolTip>
+                </ToolTip.Tip>
+              </TextBlock>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

@@ -721,6 +721,30 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     public bool HasDetailTip => !IsChild && DetailTip.Length > 0;
 
     /// <summary>
+    /// The same, laid out to be read: a line a sentence, a heading's parts indented under it, and
+    /// each item it names drawn with its picture. See <see cref="DetailText"/>.
+    /// </summary>
+    public IReadOnlyList<DetailLine> DetailLines => _detailLines ??= DetailText.Build(
+        [_item.Detail, HasNote ? Note : "", IsSnoozed ? SnoozeText : ""],
+        KnownItems());
+    private IReadOnlyList<DetailLine>? _detailLines;
+
+    /// <summary>Every item the task itself names, as the screen names them.</summary>
+    private IEnumerable<(int, string)> KnownItems()
+    {
+        if (_item.TypeId > 0) yield return (_item.TypeId, SdeNames.Type(_item.TypeId, _item.TypeName));
+        foreach (var l in _item.Lines)       yield return (l.TypeId, SdeNames.Type(l.TypeId, l.TypeName));
+        foreach (var s in _item.Shortages)   yield return (s.TypeId, SdeNames.Type(s.TypeId, s.TypeName));
+        foreach (var w in _item.WaitingJobs) yield return (w.TypeId, SdeNames.Type(w.TypeId, w.TypeName));
+        foreach (var st in _item.Stops)
+            foreach (var l in st.DropOff.Concat(st.PickUp)) yield return (l.TypeId, SdeNames.Type(l.TypeId, l.TypeName));
+    }
+
+    /// <summary>⚠️ Light, as the row's other text is: the readiness colour it wore was near
+    /// invisible on a dark theme. Red where a note is attached, the case worth noticing.</summary>
+    public IBrush InfoColor => HasNote ? Palette.Bad : Palette.TextMuted;
+
+    /// <summary>
     /// Where this row's task sits in the group order — the declaration order of
     /// <see cref="WorklistKind"/>, which is the one place to change it.
     ///
@@ -2199,6 +2223,8 @@ public class WorklistViewModel : ReactiveObject
                              HaulPressureService   haulPressure)
     {
         _service        = service;
+        // Item names for the reason tooltips' pictures, built in the background.
+        _ = service.WarmTypeNamesAsync();
         _bottlenecks    = bottlenecks;
         _itemContention = itemContention;
         _haulPressure   = haulPressure;

@@ -107,6 +107,9 @@ public class WorklistService(
     /// Adding a bonus per job unblocked would push a haul through the order band, where one
     /// step means one customer order — so the count breaks ties instead, below priority.</para>
     /// </summary>
+    /// <summary>Starts the item-name index the reason tooltips draw pictures from: see TypeNameIndex.</summary>
+    public Task WarmTypeNamesAsync() => TypeNameIndex.EnsureLoadedAsync(dbFactory);
+
     private static void PromoteUnblockingHauls(List<WorklistSection> sections)
     {
         var all = sections.SelectMany(s => s.Items).ToList();
