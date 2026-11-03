@@ -1987,6 +1987,15 @@
   <data name="HaulTitleItemsContracts" xml:space="preserve">
     <value>Предметов: {0}, контрактов: {1}</value>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>Перегнать {0} × {1:N0}</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>Капитал нельзя перевезти: пилот должен перегнать его сам, прыгая между системами.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} не может пристыковаться к {1}: его нужно построить там и не отстыковывать</value>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>КОНТРАКТ {0} ИЗ {1}</value>
   </data>

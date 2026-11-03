@@ -1933,6 +1933,15 @@
   <data name="HaulTitleItemsContracts" xml:space="preserve">
     <value>품목 {0}개 (계약 {1}건)</value>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} 직접 비행</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>캐피탈은 운반할 수 없습니다. 조종사가 직접 비행해야 하며 다른 성계라면 점프해야 합니다.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0}은(는) {1}에 도킹할 수 없습니다. 그곳에서 건조하고 언도킹하지 마십시오</value>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>계약 {0}/{1}</value>
   </data>

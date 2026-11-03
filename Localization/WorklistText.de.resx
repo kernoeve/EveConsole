@@ -1951,6 +1951,15 @@
   <data name="HaulTitleItemsContracts" xml:space="preserve">
     <value>{0} Gegenstand/Gegenstände in {1} Verträgen</value>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} fliegen</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>Ein Capital lässt sich nicht transportieren: Ein Pilot muss es fliegen und zwischen Systemen springen.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} kann nicht in {1} andocken: Es muss dort gebaut werden und darf nicht abdocken</value>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>VERTRAG {0} VON {1}</value>
   </data>

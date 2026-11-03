@@ -1933,6 +1933,15 @@
   <data name="HaulTitleItemsContracts" xml:space="preserve">
     <value>{0}品目（{1}件の契約）</value>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} を操縦して移動</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>キャピタルは輸送できません。パイロットが操縦し、星系が離れていればジャンプする必要があります。</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0}は{1}にドックできません。そこで建造し、アンドックしないでください</value>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>契約 {0}/{1}</value>
   </data>

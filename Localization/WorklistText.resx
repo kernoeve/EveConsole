@@ -2592,6 +2592,18 @@
     <value>{0} item(s) in {1} contracts</value>
     <comment>A courier trip too big for one contract, as one task. {0} = kinds of item, {1} = contracts.</comment>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>Fly {0} × {1:N0}</value>
+    <comment>Worklist haul title: a capital hull a pilot has to fly. {0} = hull, {1} = how many.</comment>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>A capital cannot be carried: a pilot has to fly it, jumping if the systems are apart.</value>
+    <comment>Sentence on a capital hull's haul task.</comment>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} cannot dock at {1}: it has to be built there and not undocked</value>
+    <comment>A job's blocked reason: a capital hull it needs cannot dock at its site. {0} = hull(s), {1} = site.</comment>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>CONTRACT {0} OF {1}</value>
     <comment>Heading above one contract's lines in a courier trip. {0} = this contract, {1} = how many.</comment>

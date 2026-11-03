@@ -172,6 +172,7 @@ public class IndustryJobGenerator(
         // purchase. Shared with the hauling and purchasing generators, so all three net against
         // the same view of what exists.
         var inScope = await ScopeStock.LoadAsync(db, scope, wrapped, corps, ct);
+        var docking = await CapitalDocking.LoadAsync(db, ct);
 
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);
@@ -756,7 +757,16 @@ public class IndustryJobGenerator(
                     string Item(int typeId, string english) =>
                         ItemRef.Of(typeId, english, ctx.BpTypeIds.Contains(typeId) ? PrintKind.Copy : PrintKind.None);
                     var haul = short_.Where(m => !m.MustBuy).Select(m => Item(m.TypeId, m.Name)).ToList();
-                    var buy  = short_.Where(m =>  m.MustBuy).Select(m => Item(m.TypeId, m.Name)).ToList();
+                    var buy  = short_.Where(m =>  m.MustBuy && !m.CannotDock).Select(m => Item(m.TypeId, m.Name)).ToList();
+                    var hull = short_.Where(m =>  m.CannotDock).Select(m => Item(m.TypeId, m.Name)).ToList();
+
+                    if (hull.Count > 0)
+                    {
+                        var built = string.Format(WorklistText.BlockedHullCannotDock, Names(hull), siteName);
+                        return haul.Count + buy.Count == 0
+                            ? built
+                            : built + "; " + MaterialsWhy([.. short_.Where(m => !m.CannotDock)]);
+                    }
 
                     // With the scope's name where there is one: "not owned" means nothing
                     // owned in that region, which is not the same claim as nothing anywhere.
@@ -804,7 +814,7 @@ public class IndustryJobGenerator(
                     // after the jobs already planned in this pass.
                     var needed  = await MaterialsFor(job.Runs);
                     var missing = MissingAtSite(
-                        stock, inScope, ctx, owner, needed, siteId.Value, committed, heldForSite);
+                        stock, inScope, ctx, owner, needed, siteId.Value, committed, heldForSite, docking);
 
                     // ── How much of this job can actually start ───────────────────────
                     //
@@ -889,7 +899,7 @@ public class IndustryJobGenerator(
                         var restRuns = job.Runs - runnable;
                         var restMats = await MaterialsFor(restRuns);
                         var short_   = MissingAtSite(
-                            stock, inScope, ctx, owner, restMats, siteId.Value, claimed, heldForSite);
+                            stock, inScope, ctx, owner, restMats, siteId.Value, claimed, heldForSite, docking);
 
                         var why = MaterialsWhy(short_);
 
@@ -1063,7 +1073,7 @@ public class IndustryJobGenerator(
                             var mid  = lo + (hi - lo) / 2;
                             var mats = await MaterialsFor(mid);
                             if (MissingAtSite(stock, inScope, ctx, owner, mats,
-                                              siteId.Value, committed, heldForSite).Count == 0)
+                                              siteId.Value, committed, heldForSite, docking).Count == 0)
                                 lo = mid;
                             else
                                 hi = mid;
@@ -1207,7 +1217,7 @@ public class IndustryJobGenerator(
                             ctx, d.TypeId, runs * (long)Math.Max(1, product.Quantity), refMe, ct);
 
                         var npShort = MissingAtSite(
-                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite);
+                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite, docking);
 
                         // ⚠️ Its materials held, when only a busy print stops it and that print frees
                         // soon. Unheld, they went to whatever ranked below and could start: the
@@ -1480,7 +1490,7 @@ public class IndustryJobGenerator(
     private static List<MissingMaterial> MissingAtSite(
         SiteStock stock, ScopeStock inScope, ProductionContext ctx, IndustryCandidate who,
         Dictionary<int, long> needed, long siteId, Dictionary<(long, int), long> committed,
-        IReadOnlyDictionary<int, List<(long Site, long Held)>> heldForSite)
+        IReadOnlyDictionary<int, List<(long Site, long Held)>> heldForSite, CapitalDocking docking)
     {
         if (needed.Count == 0) return [];
 
@@ -1514,6 +1524,10 @@ public class IndustryJobGenerator(
                      - committed.GetValueOrDefault((siteId, typeId));
             if (here >= wanted) continue;
 
+            // ⚠️ A hull that cannot dock here is not fetched from anywhere, however many are owned.
+            // Told "elsewhere", the reader looks for a trip that cannot be flown.
+            var cannotDock = !docking.CanDock(typeId, siteId);
+
             missing.Add(new MissingMaterial(
                 ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
                 typeId,
@@ -1525,16 +1539,18 @@ public class IndustryJobGenerator(
                 // Owned in scope and free is a hauling problem. Not owned in scope, or owned only
                 // where other work still needs it, is one of making or buying more — only the
                 // first can be answered by a hauler.
-                MustBuy: inScope.Reachable(typeId, who)
-                       - spoken.GetValueOrDefault(typeId)
-                       - HeldElsewhere(typeId) < wanted));
+                MustBuy: cannotDock
+                       || inScope.Reachable(typeId, who)
+                          - spoken.GetValueOrDefault(typeId)
+                          - HeldElsewhere(typeId) < wanted,
+                CannotDock: cannotDock));
         }
 
         return missing;
     }
 
     private sealed record MissingMaterial(
-        string Name, int TypeId, long Short, long Wanted, bool MustBuy);
+        string Name, int TypeId, long Short, long Wanted, bool MustBuy, bool CannotDock = false);
 
 
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>

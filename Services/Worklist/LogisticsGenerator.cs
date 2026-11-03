@@ -370,6 +370,20 @@ public class LogisticsGenerator(
         bool ShortBefore(long station, int typeId) =>
             (want.GetValueOrDefault((station, typeId))?.Qty ?? 0) > stock.GetValueOrDefault((station, typeId));
 
+        // ⚠️ Capital hulls apart from all of it: nobody loads one, so no ship, contract, staging
+        // station or loop can take one. Each is its own task for a pilot to fly, and only to
+        // somewhere it can dock, which surplus going home had no reason to know.
+        var docking = await CapitalDocking.LoadAsync(db, ct);
+        var hullMoves = moves.Where(m => docking.IsHull(m.TypeId) && m.From != m.To && m.Qty > 0
+                                         && docking.CanDock(m.TypeId, m.To)).ToList();
+        moves.RemoveAll(m => docking.IsHull(m.TypeId));
+        var hullTrips = (await TripsAsync(db, hullMoves.Select(m => (m.From, m.To)), systems, ct))
+            .ToDictionary(kv => kv.Key, kv => kv.Value with
+            {
+                Method = HaulMethod.Fly, PilotId = 0, PilotName = "", Pilots = 0,
+                ShipTypeId = 0, ShipName = "", Capacity = 0, ContractM3 = 0,
+            });
+
         // Which kind of trip each pair of stations is, and how its lane is set to make it.
         IEnumerable<(long, long)> Pairs() => moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To));
         var trips = await TripsAsync(db, Pairs(), systems, ct);
@@ -392,7 +406,18 @@ public class LogisticsGenerator(
         // A service's trip is sized by the contract, and that by its volume.
         var between = moves.Where(m => !InSystem(m)).ToList();
         var (_, tripVolumes) = await PriceAndVolumeAsync(db, between.Select(m => m.TypeId).Distinct().ToList(), ct);
-        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter, ShortBefore, PrintAt), .. loops];
+        var flown = hullMoves
+            .GroupBy(m => m.TypeId)
+            .SelectMany(g => Tasks([.. g], names, places, drivers, driverNames, hullTrips, [], MissingAfter, ShortBefore, PrintAt)
+                .Select(t => t with
+                {
+                    Key    = $"{t.Key}:hull{g.Key}",
+                    Title  = string.Format(WorklistText.HaulTitleFlyHull,
+                                           SdeNames.Type(g.Key, t.TypeName), t.Lines.Sum(l => l.Quantity)),
+                    Detail = Sentences.Join(t.MarkedDetail, WorklistText.HaulHullFlyDetail),
+                }));
+
+        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter, ShortBefore, PrintAt), .. loops, .. flown];
     }
 
     /// <summary>
@@ -1127,6 +1152,7 @@ public class LogisticsGenerator(
 
         var want    = new Dictionary<(long Station, int TypeId), Want>();
         var drivers = new Dictionary<(long Station, int TypeId), List<NeedDriver>>();
+        var docking = await CapitalDocking.LoadAsync(db, ct);
 
         void Need(long station, int typeId, long qty, HaulReason why, int priority = 0, long level = 0,
                   long orderJobs = 0, long jobs = 0, long ruleJobs = 0,
@@ -1147,6 +1173,12 @@ public class LogisticsGenerator(
                                                         Units = Math.Max(list[at].Units, driverUnits) };
                 else list.Add(new NeedDriver(driverTypeId, "", kind, driverUnits, qty));
             }
+
+            // ⚠️ After the driver and before the want: the build still lacks the hull, which is
+            // what a trip bringing its other parts has to say, but no trip can bring it. A want
+            // here would also have taken the hull away from a place that could use it.
+            if (!docking.CanDock(typeId, station)) return;
+
             var had = want.GetValueOrDefault(key);
             want[key] = new Want(
                 had is null ? qty : had.Qty + qty,

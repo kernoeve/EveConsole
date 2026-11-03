@@ -1933,6 +1933,15 @@
   <data name="HaulTitleItemsContracts" xml:space="preserve">
     <value>{0} 种物品，分 {1} 份合同</value>
   </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>驾驶 {0} × {1:N0}</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>旗舰无法被运载：必须由飞行员驾驶，跨星系时需要跳跃。</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} 无法停靠 {1}：必须在那里建造且不要离站</value>
+  </data>
   <data name="HaulContractHeading" xml:space="preserve">
     <value>合同 {0}/{1}</value>
   </data>
