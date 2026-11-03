@@ -1015,7 +1015,7 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow, IFamilyR
         s           = shortage;
         FamilyOrder = order;
         Tasks = [.. (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t))];
-        _ = ItemIcons.LoadAsync(s.TypeId, b => Icon = b);
+        _ = ItemIcons.LoadAsync(s.TypeId, b => Icon = b, s.Print);
     }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
@@ -1043,7 +1043,7 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow, IFamilyR
 
     public string Glyph => !CanExpand ? "" : _isExpanded ? "▾" : "▸";
 
-    public string Item      => SdeNames.Type(s.TypeId, s.Name);
+    public string Item      => PrintLabel.Name(s.TypeId, s.Name, s.Print);
     public string Used      => string.Format(WorklistText.PerDayN1, s.UsedPerDay);
     public string Made      => s.Buildable ? string.Format(WorklistText.PerDayN1, s.MadePerDay) : "—";
     public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";

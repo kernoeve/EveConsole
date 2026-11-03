@@ -64,6 +64,9 @@ public sealed record ItemShortage(
     long   OnOrder = 0,
     IReadOnlyList<ShortageTask>? Tasks = null)
 {
+    /// <summary>A print short here is a copy bought by the run: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     /// <summary>
     /// How much harder this is being drawn on now than across the whole window.
     ///
@@ -363,6 +366,7 @@ public class ItemContentionService(
             .GroupBy(x => x.Short.TypeId)
             .ToDictionary(g => g.Key, g => (
                 Name:  g.First().Short.TypeName,
+                Print: g.First().Short.Print,
                 Jobs:  g.Count(),
                 // ⚠️ Summed across the jobs that fell short. What the work in front of this
                 // material wants beyond what it can get — the number that says whether a level
@@ -498,7 +502,7 @@ public class ItemContentionService(
                 // reads top to bottom as the question does.
                 [.. chain,
                     .. runningJobs.GetValueOrDefault(kv.Key) ?? [],
-                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]);
+                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]) { Print = kv.Value.Print };
             })
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing

@@ -286,11 +286,11 @@ public class HaulPressureService(
 
                 // The title is what the line shows; TypeName stays English.
                 return new ShortageTask(
-                    "Needs", 0, sh.TypeName, SdeNames.Type(sh.TypeId, sh.TypeName),
+                    "Needs", 0, sh.TypeName, PrintLabel.Name(sh.TypeId, sh.TypeName, sh.Print),
                     // Not a state key: the grid shows this count of stops as it stands.
                     Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.StopsOther), from.Count),
                     why,
-                    sh.TypeId);
+                    sh.TypeId) { Print = sh.Print };
             }));
 
             detail.AddRange(moving.Select(h => new ShortageTask(
