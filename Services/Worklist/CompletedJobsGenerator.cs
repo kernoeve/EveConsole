@@ -71,8 +71,9 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
 
         var places = await PlaceNamesAsync(db, ct);
 
-        // What comes out, by item and by the station and pilot it is waiting on: the task is on
-        // neither, so each line says. A copy job's copies and an invention's prints are copies,
+        // What comes out, by item and by the pilot and station it is waiting on: the task is on
+        // neither, so each line says. In pilot order, as that is the question: the jobs are all
+        // delivered from one window, so what matters is who has to log in. A copy job's copies and an invention's prints are copies,
         // research hands the original back (see PrintLabel).
         var lines = outputs
             .GroupBy(o => (o.FacilityId, o.InstallerId, o.TypeId, o.ActivityId))
@@ -81,8 +82,8 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
                 names.GetValueOrDefault(x.Key.TypeId, string.Format(WorklistText.TypeWithId, x.Key.TypeId)),
                 x.Sum(o => o.Units))
                 {
-                    Place = places.GetValueOrDefault(x.Key.FacilityId, string.Format(WorklistText.LocationWithId, x.Key.FacilityId))
-                          + " · " + pilots[x.Key.InstallerId],
+                    Place = pilots[x.Key.InstallerId] + " · "
+                          + places.GetValueOrDefault(x.Key.FacilityId, string.Format(WorklistText.LocationWithId, x.Key.FacilityId)),
                     Print = x.Key.ActivityId switch
                     {
                         5 or 8 => PrintKind.Copy,
