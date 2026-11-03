@@ -460,7 +460,7 @@ public class InvItemRow : ReactiveObject
 
     /// <summary>The item as the grid shows it, and what the grid sorts it by. ⚠️ Display only:
     /// <see cref="TypeName"/> is the English, and what is handed on.</summary>
-    public string DisplayName => SdeNames.Type(TypeId, TypeName);
+    public string DisplayName => PrintLabel.Name(TypeId, TypeName, _print);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -649,12 +649,16 @@ public class InvItemRow : ReactiveObject
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
         _isBlueprint     = meta.IsBlueprint;
+        _print           = meta.Print;
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);
     }
 
     // ── Icon ──────────────────────────────────────────────────────────────────
 
     private readonly bool _isBlueprint;
+
+    /// <summary>A blueprint's level counts copy runs, so its row is a copy's: see InvTypeMeta.Print.</summary>
+    private readonly PrintKind _print;
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon
@@ -674,7 +678,7 @@ public class InvItemRow : ReactiveObject
     {
         if (TypeId <= 0 || _icon is not null) return;
 
-        var variant = _isBlueprint ? "bp" : "icon";
+        var variant = _print != PrintKind.None ? PrintLabel.Picture(_print) : _isBlueprint ? "bp" : "icon";
         var bmp = await EveImageCache.GetAsync(
             $"https://images.evetech.net/types/{TypeId}/{variant}?size=32");
 

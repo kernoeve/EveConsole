@@ -1,4 +1,5 @@
 using EveConsole.Localization;
+using EveConsole.Services;
 
 namespace EveConsole.Models;
 
@@ -23,7 +24,8 @@ public class PlanJob
 
     /// <summary>The product as the Jobs tab shows it, in the interface language. OutputTypeName
     /// stays English: the Worklist reads it.</summary>
-    public string  OutputDisplayName => SdeNames.Type(OutputTypeId, OutputTypeName);
+    public string  OutputDisplayName => PrintLabel.Name(OutputTypeId, OutputTypeName,
+                                            IsScience ? PrintKind.Copy : PrintKind.None);
 
     public bool    IsReaction      { get; set; }
     public int     MeLevel         { get; set; }
@@ -182,7 +184,7 @@ public class PlanJobMaterial
     /// <summary>The line as the Jobs tab shows it, in the interface language, a copy's label and
     /// all. TypeName stays English: the shopping lists copy it for the game's multibuy.</summary>
     public string  DisplayName => BlueprintName is { } bp
-        ? string.Format(IndustryText.BpcTypeName, SdeNames.Type(MaterialTypeId, bp))
+        ? PrintLabel.Name(MaterialTypeId, bp, PrintKind.Copy)
         : SdeNames.Type(MaterialTypeId, TypeName);
 
     public int     BaseQtyPerRun  { get; set; }   // straight from the SDE recipe
@@ -235,7 +237,10 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
 
     /// <summary>The name the grid shows, in the interface language. TypeName stays English for
     /// the shopping lists and the export.</summary>
-    public string  DisplayName => SdeNames.Type(TypeId, TypeName);
+    public string  DisplayName => PrintLabel.Name(TypeId, TypeName, Print);
+
+    /// <summary>A blueprint here is a copy — bought by the run, or invented: see PrintLabel.</summary>
+    public PrintKind Print { get; set; }
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -291,7 +296,10 @@ public class PlanIntermediate
 {
     public int     TypeId           { get; set; }
     public string  TypeName         { get; set; } = "";
-    public string  DisplayName      => SdeNames.Type(TypeId, TypeName);
+    public string  DisplayName      => PrintLabel.Name(TypeId, TypeName, Print);
+
+    /// <summary>An invention job's output is a copy of the T2 print: see PrintLabel.</summary>
+    public PrintKind Print { get; set; }
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -333,7 +341,10 @@ public class PlanLeftoverItem
 {
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
-    public string  DisplayName => SdeNames.Type(TypeId, TypeName);
+    public string  DisplayName => PrintLabel.Name(TypeId, TypeName, Print);
+
+    /// <summary>A blueprint here is a copy — bought by the run, or invented: see PrintLabel.</summary>
+    public PrintKind Print { get; set; }
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);

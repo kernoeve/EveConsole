@@ -1101,10 +1101,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         }
 
         // ── Build raw materials list ────────────────────────────────────────
+        // A blueprint bought here is a copy, by the run: see PrintLabel.
+        var printIds = ctx.BpTypeIds.ToHashSet();
         var rawMaterials = rawPool
             .Select(kvp => new PlanRawMaterial
             {
                 TypeId    = kvp.Key,
+                Print     = printIds.Contains(kvp.Key) ? PrintKind.Copy : PrintKind.None,
                 TypeName  = typeNames.GetValueOrDefault(kvp.Key, string.Format(CommonText.TypeNumbered, kvp.Key)),
                 Quantity  = kvp.Value,
                 UnitPrice = PriceOf(kvp.Key),
@@ -1127,6 +1130,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 return new PlanIntermediate
                 {
                     TypeId           = j.OutputTypeId,
+                    Print            = j.IsInvention ? PrintKind.Copy : PrintKind.None,
                     TypeName         = j.OutputTypeName,
                     QuantityNeeded   = j.QuantityNeeded,
                     QuantityProduced = j.QuantityProduced,
@@ -1225,6 +1229,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             leftovers.Add(new PlanLeftoverItem
             {
                 TypeId     = interm.TypeId,
+                Print      = interm.Print,
                 TypeName   = interm.TypeName,
                 Quantity   = interm.Leftover,
                 UnitPrice  = interm.BuildUnitValue,

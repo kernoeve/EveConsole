@@ -3106,7 +3106,9 @@ public class ItemBrowserViewModel : ReactiveObject
         foreach (var key in activityOrder)
         {
             var prods = allProducts.Where(p => p.Activity == key)
-                .Select(p => new BpProductVm(SdeNames.Type(p.ProductTypeId, p.Name), p.ProductTypeId, p.Quantity, p.Probability))
+                // Invention makes a copy of the T2 print: "(Copy)", as everywhere a print is named.
+                .Select(p => new BpProductVm(PrintLabel.Name(p.ProductTypeId, p.Name, key == "invention" ? PrintKind.Copy : PrintKind.None),
+                                             p.ProductTypeId, p.Quantity, p.Probability))
                 .OrderBy(p => p.ProductName, StringComparer.CurrentCulture)
                 .ToList();
             var mats = allMaterials.Where(m => m.Activity == key)

@@ -41,8 +41,12 @@ public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, lo
 /// <param name="IsBlueprint">⚠️ Which image the icon comes from. EVE's image server serves a
 /// blueprint under /bp and everything else under /icon, and asking for the wrong one gets a
 /// blank rather than a fallback.</param>
+/// <param name="Print">⚠️ Copy for a blueprint: a level of one counts copy runs, originals count
+/// nothing, so a row for one is about copies — the light-blue picture and "(Copy)". None for a
+/// reaction formula (always an original) and for anything else. See PrintLabel.</param>
 public record InvTypeMeta(
-    string Name, double Volume, double? MarketPrice, double? BuildPrice, bool IsBlueprint = false);
+    string Name, double Volume, double? MarketPrice, double? BuildPrice, bool IsBlueprint = false,
+    PrintKind Print = PrintKind.None);
 
 public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 {
@@ -895,7 +899,17 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(t => new { t.TypeId, t.Name, Volume = t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume })
             .ToListAsync(ct);
 
-        var blueprints = await BlueprintTypeIdsAsync(db, ids, ct);
+        // Which are prints, and which of those formulas. ⚠️ Not any blueprint-product row: a relic
+        // has invention rows only, is no blueprint, and its picture is an ordinary icon.
+        var activities = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => ids.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.Activity })
+                .Distinct()
+                .ToListAsync(ct))
+            .GroupBy(p => p.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.Activity).ToHashSet());
+        bool IsPrint(int id)   => activities.TryGetValue(id, out var a) && (a.Contains("manufacturing") || a.Contains("reaction"));
+        bool IsFormula(int id) => activities.TryGetValue(id, out var a) && a.Contains("reaction");
 
         var buildCosts = await db.BuildCosts
             .Where(b => ids.Contains(b.TypeId))
@@ -944,7 +958,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 t.Volume,
                 MarketValue(t.TypeId),
                 buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null,
-                blueprints.Contains(t.TypeId)));
+                IsPrint(t.TypeId),
+                IsPrint(t.TypeId) && !IsFormula(t.TypeId) ? PrintKind.Copy : PrintKind.None));
     }
 
     public async Task<Dictionary<int, string>> GetTypeNamesAsync(
