@@ -283,14 +283,17 @@
   <data name="ColContracts" xml:space="preserve">
     <value>구매 계약</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>시세</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>시세 (목표)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>제조 가격</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>시세 (가용)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>부피 (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>시세 (차이)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>제조 가격 (차이)</value>
   </data>
   <data name="ColVolTarget" xml:space="preserve">
     <value>부피 - 목표</value>

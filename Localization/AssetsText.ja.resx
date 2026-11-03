@@ -283,14 +283,17 @@
   <data name="ColContracts" xml:space="preserve">
     <value>購入契約</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>マーケット価格</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>マーケット価格（目標）</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>製造価格</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>マーケット価格（在庫）</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>体積（m³）</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>マーケット価格（差分）</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>製造価格（差分）</value>
   </data>
   <data name="ColVolTarget" xml:space="preserve">
     <value>体積 - 目標</value>

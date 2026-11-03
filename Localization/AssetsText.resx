@@ -376,17 +376,21 @@
     <value>CONTRACTS BUYING</value>
     <comment>Column header in InvLevelView.</comment>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>MKT PRICE</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>MKT PRICE (TARGET)</value>
+    <comment>Inventory Levels column header: market price x target total, in ISK.</comment>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>BUILD PRICE</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>MKT PRICE (AVAIL)</value>
+    <comment>Inventory Levels column header: market price x available, in ISK.</comment>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>VOLUME (m³)</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>MKT PRICE (DIFF)</value>
+    <comment>Inventory Levels column header: market price x Diff, in ISK; negative = what the shortfall costs to buy.</comment>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>BUILD PRICE (DIFF)</value>
+    <comment>Inventory Levels column header: build price x Diff, in ISK; negative = what the shortfall costs to build.</comment>
   </data>
   <data name="ColVolTarget" xml:space="preserve">
     <value>VOLUME - TARGET</value>

@@ -283,14 +283,17 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Contratos compra</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Precio merc.</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Precio merc. (obj.)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Precio fabr.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Precio merc. (disp.)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Volumen (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Precio merc. (dif.)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Precio fabr. (dif.)</value>
   </data>
   <data name="ColVolTarget" xml:space="preserve">
     <value>Volumen - obj.</value>

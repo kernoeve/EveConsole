@@ -92,7 +92,7 @@ public abstract class InvHeaderRow : ReactiveObject
     //
     // The items' figures summed into the header's own cells, under the same names the item rows
     // use, so one cell template draws both. Only the columns where a sum means something: the
-    // target, the prices and the unit volume are per unit, and stay blank on a header.
+    // target is per unit, and stays blank on a header.
     //
     // ⚠️ Diff is the SHORTFALL — what is below target, summed — not Avail minus Tgt Total. A net
     // sum lets one item's surplus cancel another's shortage: a spare Rhea blueprint hid two missing
@@ -100,23 +100,31 @@ public abstract class InvHeaderRow : ReactiveObject
 
     private long   _target, _avail, _short, _assets, _jobs, _buys, _contracts, _sells, _contractsSelling;
     private double _volTarget, _volAvail, _volShort;
+    private double _mktTarget, _mktAvail, _mktShort, _buildShort;
+    private bool   _anyMarket, _anyBuild;
 
     private string Qty(long v, bool sign = false) => HasCover ? InvItemRow.FormatQty(v, sign) : "";
+    private string Src(long v) => HasCover ? InvItemRow.SourceQty(v) : "";
     private string Vol(double v, bool sign = false) => HasCover && _volTarget > 0 ? InvItemRow.FormatVolume(v, sign) : "";
+    private static string Isk(bool any, double v, bool sign = false) => any ? InvItemRow.Price(v, sign) : "";
 
     public string TargetTotalText      => Qty(_target);
     public string AvailableText        => Qty(_avail);
     public string DiffText             => Qty(_short, sign: true);
     public IBrush DiffColor            => _short < 0 ? ShortBrush : Palette.Good;
     public string AssetsText           => Qty(_assets);
-    public string IndustryJobsText     => Qty(_jobs);
-    public string BuyOrdersText        => Qty(_buys);
-    public string ContractsText        => Qty(_contracts);
-    public string SellOrdersText       => Qty(_sells);
-    public string ContractsSellingText => Qty(_contractsSelling);
+    public string IndustryJobsText     => Src(_jobs);
+    public string BuyOrdersText        => Src(_buys);
+    public string ContractsText        => Src(_contracts);
+    public string SellOrdersText       => Src(_sells);
+    public string ContractsSellingText => Src(_contractsSelling);
     public string VolumeTargetText     => Vol(_volTarget);
     public string VolumeAvailableText  => Vol(_volAvail);
     public string VolumeDiffText       => Vol(_volShort, sign: true);
+    public string MarketTargetText     => Isk(_anyMarket, _mktTarget);
+    public string MarketAvailableText  => Isk(_anyMarket, _mktAvail);
+    public string MarketDiffText       => Isk(_anyMarket, _mktShort, sign: true);
+    public string BuildDiffText        => Isk(_anyBuild, _buildShort, sign: true);
 
     private static readonly string[] Recomputed =
     [
@@ -125,6 +133,7 @@ public abstract class InvHeaderRow : ReactiveObject
         nameof(AssetsText), nameof(IndustryJobsText), nameof(BuyOrdersText), nameof(ContractsText),
         nameof(SellOrdersText), nameof(ContractsSellingText),
         nameof(VolumeTargetText), nameof(VolumeAvailableText), nameof(VolumeDiffText),
+        nameof(MarketTargetText), nameof(MarketAvailableText), nameof(MarketDiffText), nameof(BuildDiffText),
     ];
 
     public void SetCover(IReadOnlyCollection<InvItemRow> items)
@@ -146,6 +155,12 @@ public abstract class InvHeaderRow : ReactiveObject
         _volTarget        = items.Sum(i => i.VolumeTarget);
         _volAvail         = items.Sum(i => i.VolumeAvailable);
         _volShort         = items.Sum(i => Math.Min(0, i.VolumeDiff));
+        _anyMarket        = items.Any(i => i.MarketTarget is not null);
+        _anyBuild         = items.Any(i => i.BuildDiff is not null);
+        _mktTarget        = items.Sum(i => i.MarketTarget ?? 0);
+        _mktAvail         = items.Sum(i => i.MarketAvailable ?? 0);
+        _mktShort         = items.Sum(i => Math.Min(0, i.MarketDiff ?? 0));
+        _buildShort       = items.Sum(i => Math.Min(0, i.BuildDiff ?? 0));
 
         foreach (var name in Recomputed) this.RaisePropertyChanged(name);
     }
@@ -442,20 +457,25 @@ public class InvItemRow : ReactiveObject
     public double? MarketPrice => _marketPrice;
     public double? BuildPrice  => _buildPrice;
 
-    public string VolumeText      => _volume > 0      ? FormatVolume(_volume)          : "";
-    public string MarketPriceText => _marketPrice > 0  ? Price(_marketPrice.Value)      : "";
-    public string BuildPriceText  => _buildPrice > 0   ? Price(_buildPrice.Value)       : "";
-
     /// <summary>ISK as the other tools abbreviate it (11.2M, 1.27B, 840k) — but two decimals under
     /// a thousand, where a mineral at 4.52 rounded to 5 would be a tenth out.</summary>
-    private static string Price(double v) => v switch
+    internal static string Price(double v, bool sign = false)
     {
-        >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
-        >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
-        >= 1_000_000         => $"{v / 1_000_000:N1}M",
-        >= 1_000             => $"{v / 1_000:N0}k",
-        _                    => v.ToString("N2"),
-    };
+        var abs    = Math.Abs(v);
+        var prefix = sign && v >= 0 ? "+" : "";
+        return prefix + (abs switch
+        {
+            >= 1_000_000_000_000 => $"{v / 1_000_000_000_000:N2}T",
+            >= 1_000_000_000     => $"{v / 1_000_000_000:N2}B",
+            >= 1_000_000         => $"{v / 1_000_000:N1}M",
+            >= 1_000             => $"{v / 1_000:N0}k",
+            _                    => v.ToString("N2"),
+        });
+    }
+
+    /// <summary>A source column's count, blank for none: a row of zeros buried the few numbers
+    /// that mattered.</summary>
+    internal static string SourceQty(long v) => v == 0 ? "" : FormatQty(v);
 
     // Per-source availability (updated on each refresh)
     private long _availAssets;
@@ -473,11 +493,11 @@ public class InvItemRow : ReactiveObject
     public long ContractsSellingQty => _availContractsSelling;
 
     public string AssetsText       => FormatQty(_availAssets);
-    public string IndustryJobsText => FormatQty(_availIJ);
-    public string BuyOrdersText    => FormatQty(_availOrders);
-    public string ContractsText    => FormatQty(_availContracts);
-    public string SellOrdersText   => FormatQty(_availSellOrders);
-    public string ContractsSellingText => FormatQty(_availContractsSelling);
+    public string IndustryJobsText => SourceQty(_availIJ);
+    public string BuyOrdersText    => SourceQty(_availOrders);
+    public string ContractsText    => SourceQty(_availContracts);
+    public string SellOrdersText   => SourceQty(_availSellOrders);
+    public string ContractsSellingText => SourceQty(_availContractsSelling);
 
     private int _groupMultiplier = 1;
     public int GroupMultiplier
@@ -534,6 +554,18 @@ public class InvItemRow : ReactiveObject
     public string VolumeTargetText    => _volume > 0 ? FormatVolume(VolumeTarget)             : "";
     public string VolumeAvailableText => _volume > 0 ? FormatVolume(VolumeAvailable)          : "";
     public string VolumeDiffText      => _volume > 0 ? FormatVolume(VolumeDiff, sign: true)   : "";
+
+    // And in ISK: the market price times the target, the stock and the gap, and the build price
+    // times the gap — what is left to get, bought or built. Null, and blank, without a price.
+    public double? MarketTarget    => _marketPrice > 0 ? _marketPrice * TargetTotal : null;
+    public double? MarketAvailable => _marketPrice > 0 ? _marketPrice * Available   : null;
+    public double? MarketDiff      => _marketPrice > 0 ? _marketPrice * Diff        : null;
+    public double? BuildDiff       => _buildPrice  > 0 ? _buildPrice  * Diff        : null;
+
+    public string MarketTargetText    => MarketTarget    is { } v ? Price(v)             : "";
+    public string MarketAvailableText => MarketAvailable is { } v ? Price(v)             : "";
+    public string MarketDiffText      => MarketDiff      is { } v ? Price(v, sign: true) : "";
+    public string BuildDiffText       => BuildDiff       is { } v ? Price(v, sign: true) : "";
 
     // Green when at/above target; orange for a 0% to -50% shortfall; red when worse than -50%.
     public IBrush DiffColor => Diff >= 0 ? Green : DiffPct >= -50 ? Orange : Red;
@@ -669,6 +701,14 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(VolumeTargetText));
         this.RaisePropertyChanged(nameof(VolumeAvailableText));
         this.RaisePropertyChanged(nameof(VolumeDiffText));
+        this.RaisePropertyChanged(nameof(MarketTarget));
+        this.RaisePropertyChanged(nameof(MarketAvailable));
+        this.RaisePropertyChanged(nameof(MarketDiff));
+        this.RaisePropertyChanged(nameof(BuildDiff));
+        this.RaisePropertyChanged(nameof(MarketTargetText));
+        this.RaisePropertyChanged(nameof(MarketAvailableText));
+        this.RaisePropertyChanged(nameof(MarketDiffText));
+        this.RaisePropertyChanged(nameof(BuildDiffText));
         this.RaisePropertyChanged(nameof(CoverPct));
         this.RaisePropertyChanged(nameof(CoverBrush));
     }
@@ -1373,12 +1413,13 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             "Available"      => r => (IComparable?)r.Available,
             "Diff"           => r => (IComparable?)r.Diff,
             "DiffPct"        => r => (IComparable?)r.DiffPct,
-            "Volume"         => r => (IComparable?)r.Volume,
             "VolumeTarget"   => r => (IComparable?)r.VolumeTarget,
             "VolumeAvailable" => r => (IComparable?)r.VolumeAvailable,
             "VolumeDiff"     => r => (IComparable?)r.VolumeDiff,
-            "MarketPrice"    => r => (IComparable?)r.MarketPrice,
-            "BuildPrice"     => r => (IComparable?)r.BuildPrice,
+            "MarketTarget"   => r => (IComparable?)r.MarketTarget,
+            "MarketAvailable" => r => (IComparable?)r.MarketAvailable,
+            "MarketDiff"     => r => (IComparable?)r.MarketDiff,
+            "BuildDiff"      => r => (IComparable?)r.BuildDiff,
             "AssetsQty"      => r => (IComparable?)r.AssetsQty,
             "IndustryJobs"   => r => (IComparable?)r.IndustryJobsQty,
             "BuyOrders"      => r => (IComparable?)r.BuyOrdersQty,

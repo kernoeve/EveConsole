@@ -190,7 +190,7 @@
       <DataGrid.Columns>
 
         <!-- GROUP / ITEM / COLLECTION -->
-        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColGroupItem}" Width="*" MinWidth="360" Tag="TypeName"
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColGroupItem}" Width="*" MinWidth="560" Tag="TypeName"
                                 IsReadOnly="True" ClipboardContentBinding="{Binding CollectionName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -474,13 +474,24 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- MARKET PRICE -->
-        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColMktPrice}" Width="119" MinWidth="119" Tag="MarketPrice" IsReadOnly="True" ClipboardContentBinding="{Binding MarketPriceText}">
+        <!-- MKT PRICE (TARGET / AVAIL / DIFF): the market price times each, in ISK -->
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColMktTarget}" Width="170" MinWidth="170" Tag="MarketTarget" IsReadOnly="True" ClipboardContentBinding="{Binding MarketTargetText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
-                         Text="{Binding MarketPriceText}"
+                         Text="{Binding MarketTargetText}"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColMktAvail}" Width="170" MinWidth="170" Tag="MarketAvailable" IsReadOnly="True" ClipboardContentBinding="{Binding MarketAvailableText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         Text="{Binding MarketAvailableText}"
                          Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
@@ -488,28 +499,27 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- BUILD PRICE -->
-        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColBuildPrice}" Width="119" MinWidth="119" Tag="BuildPrice" IsReadOnly="True" ClipboardContentBinding="{Binding BuildPriceText}">
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColMktDiff}" Width="170" MinWidth="170" Tag="MarketDiff" IsReadOnly="True" ClipboardContentBinding="{Binding MarketDiffText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
-                         Text="{Binding BuildPriceText}"
-                         Foreground="{DynamicResource GoodBrush}"
+                         Text="{Binding MarketDiffText}"
+                         Foreground="{Binding DiffColor}"
+                         FontWeight="SemiBold"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- VOLUME -->
-        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColVolumeM}" Width="113" MinWidth="113" Tag="Volume" IsReadOnly="True" ClipboardContentBinding="{Binding VolumeText}">
+        <!-- BUILD PRICE (DIFF): the build price times Diff — what the gap costs to build -->
+        <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColBuildDiff}" Width="170" MinWidth="170" Tag="BuildDiff" IsReadOnly="True" ClipboardContentBinding="{Binding BuildDiffText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
-                         IsVisible="{Binding IsItem}"
-                         Text="{Binding VolumeText}"
-                         Foreground="{DynamicResource TextMutedBrush}"
+                         Text="{Binding BuildDiffText}"
+                         Foreground="{Binding DiffColor}"
+                         FontWeight="SemiBold"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>

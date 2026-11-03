@@ -283,14 +283,17 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Контракты (покупка)</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Рын. цена</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Рын. цена (цель)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Стоим. произв.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Рын. цена (доступно)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Объём (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Рын. цена (разница)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Стоим. произв. (разница)</value>
   </data>
   <data name="ColVolTarget" xml:space="preserve">
     <value>Объём - цель</value>
