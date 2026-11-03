@@ -1117,6 +1117,22 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow, IFamilyR
     public bool HasLink => !IsChild && s.TypeId > 0;
     public bool ShowsPlainItem => !IsChild && !HasLink;
     public void Open()  => s.OpenItem();
+
+    // ── What the columns sort by: the numbers, not the text (see PrintPressureRowVm) ──
+    public double  UsedSort        => s.UsedPerDay;
+    public double  MadeSort        => s.Buildable ? s.MadePerDay : -1;
+    public double  BalanceSort     => s.Buildable ? s.Balance : -1;
+    public double  LevelSort       => Math.Max(0, (double)s.Level);
+    public double  OnHandSort      => s.OnHand;
+    public double  NeedSort        => s.Need > s.OnHand ? s.Need : 0;
+    /// <summary>A "—" (no level, or nothing drawn) sorts after every real number of days.</summary>
+    public double  CoverSort       => s.Level <= 0 || double.IsInfinity(s.DaysOfCover) ? double.MaxValue : s.DaysOfCover;
+    public double  SurgeSort       => s.Surge >= 1.2 ? s.Surge : 0;
+    public int     BlockingSort    => s.StalledTasks;
+    public int     MakeRunningSort => s.MakingRunning;
+    public int     MakeReadySort   => s.MakingReady;
+    public int     MakeWaitingSort => s.MakingWaiting;
+    public int     MakeBlockedSort => s.MakingBlocked;
 }
 
 /// <summary>
@@ -1351,6 +1367,13 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyR
                           : h.Volume >= 1_000     ? $"{h.Volume / 1_000:N0}k m3"
                           :                         $"{h.Volume:N0} m3";
 
+    // ── What the columns sort by: the numbers, not the text (see PrintPressureRowVm) ──
+    public double VolumeSort   => h.Volume;
+    public int    BlockingSort => h.StalledTasks;
+    public int    HaulsSort    => h.HaulTasks;
+    public int    ItemsSort    => h.ItemTypes;
+    public int    SourcesSort  => h.Sources;
+
     /// <summary>Red where nothing is moving: the material exists and no trip has been raised.</summary>
     public IBrush VerdictColor => h.Verdict switch
     {
@@ -1583,6 +1606,26 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public bool HasLink => !IsChild && p.ProductTypeId > 0;
     public bool ShowsPlainItem => !IsChild && !HasLink;
     public void Open()  => p.OpenItem();
+
+    // ── What the columns sort by ──────────────────────────────────────────────
+    //
+    // ⚠️ The numbers, not the text. Sorted on what they show, "top 10%" came before "top 2%" and
+    // "9" after "88". A blank sorts as nothing: as zero, or as last for the rank.
+    public double CycleSort     => p.CycleDays;
+    public int    PrintsSort    => p.Prints;
+    public int    BusySort      => p.Busy;
+    public double CapacitySort  => p.CapacityPerDay;
+    public double MadeSort      => p.MadePerDay;
+    public double UsedSort      => p.UtilPercent;
+    public double CoverSort     => p.ContentionPercent;
+    /// <summary>"Top N%" — the smaller the busier, so a print never all-busy sorts past every one that was.</summary>
+    public double RankSort      => p.ContentionPercent <= 0 ? 101 : Math.Max(1, 100 - p.ContentionRank);
+    public double RecentSort    => p.RecentContentionPercent;
+    public int    TrendSort     => p.Trend switch { "Rising" => 2, "Steady" => 1, "Easing" => 0, _ => -1 };
+    public double WithOneMoreSort => p.CeilingWithOneMore;
+    public int    WantedSort    => p.WantedNow;
+    public int    BlockedSort   => p.BlockedNow;
+    public int    BlockingSort  => p.StalledTasks;
 }
 
 public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRow

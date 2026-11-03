@@ -643,15 +643,21 @@ public class BottleneckService(
 
         // ⚠️ Ranked on contention, never on use. Use ranks a formula somebody already bought eight
         // copies of above one they own a single copy of, which is precisely backwards: the eight
-        // are the fix, and the one is the problem. Blocked work first among equals, since that is
-        // the difference between a door that was shut and a door somebody was trying to open.
+        // are the fix, and the one is the problem. The quarter first, the last month to break a
+        // tie, and blocked work after that, among equals.
+        //
+        // ⚠️ Not blocked work first. It was, and the tab opened on a page of formulas never once
+        // all busy — 4% used, 0% all busy — each with jobs that could not start for some other
+        // reason (their verdict says so), above the hulls whose every original was busy a quarter
+        // of the time. A tab about which prints are the constraint leads with the prints that are.
         return result
             .Where(r => r.ContentionPercent >= (r.Prints <= 1 ? SinglePrintFloorPercent
                                                               : ListFloorPercent)
                      || r.BlockedNow > 0)
-            .OrderByDescending(r => r.BlockedNow > 0)
+            .OrderByDescending(r => r.ContentionPercent)
+            .ThenByDescending(r => r.RecentContentionPercent)
+            .ThenByDescending(r => r.BlockedNow)
             .ThenByDescending(r => r.StalledTasks)
-            .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.WantedNow)
             .ToList();
     }
