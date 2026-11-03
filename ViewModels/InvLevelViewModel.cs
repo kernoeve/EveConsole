@@ -85,6 +85,14 @@ public abstract class InvHeaderRow : ReactiveObject
 
     private int _shortCount;
     public string ShortText  => InvCover.ShortText(_shortCount);
+
+    /// <summary>The % cell's tooltip: the items under target, worst first. Capped — a header 52
+    /// short would otherwise draw a tooltip taller than the screen — and the rest counted.</summary>
+    private const int ShortListMax = 20;
+    public IReadOnlyList<InvItemRow> ShortItems { get; private set; } = [];
+    public bool   HasShortItems => ShortItems.Count > 0;
+    public bool   HasShortMore  => _shortCount > ShortListMax;
+    public string ShortMoreText => HasShortMore ? string.Format(Localization.AssetsText.InvTipShortMore, _shortCount - ShortListMax) : "";
     public IBrush CoverBrush => InvCover.Brush(WorstSeverity);
     public IBrush ShortBrush => WorstSeverity >= 2 ? Palette.Bad : Palette.Warn;
 
@@ -129,6 +137,7 @@ public abstract class InvHeaderRow : ReactiveObject
     private static readonly string[] Recomputed =
     [
         nameof(HasCover), nameof(ShortText), nameof(CoverBrush), nameof(ShortBrush),
+        nameof(ShortItems), nameof(HasShortItems), nameof(HasShortMore), nameof(ShortMoreText),
         nameof(TargetTotalText), nameof(AvailableText), nameof(DiffText), nameof(DiffColor),
         nameof(AssetsText), nameof(IndustryJobsText), nameof(BuyOrdersText), nameof(ContractsText),
         nameof(SellOrdersText), nameof(ContractsSellingText),
@@ -140,6 +149,7 @@ public abstract class InvHeaderRow : ReactiveObject
     {
         _itemCount    = items.Count;
         _shortCount   = items.Count(i => i.Diff < 0);
+        ShortItems    = [.. items.Where(i => i.Diff < 0).OrderBy(i => i.CoverPct).ThenBy(i => i.DisplayName).Take(ShortListMax)];
         WorstSeverity = items.Count == 0 ? 0 : items.Max(i => i.Severity);
         CoverPct      = items.Count == 0 ? 100 : items.Average(i => i.CoverPct);
 
@@ -607,6 +617,9 @@ public class InvItemRow : ReactiveObject
 
     /// <summary>Always: every item has a target. On the headers it is whether there are items.</summary>
     public bool HasCover => true;
+
+    /// <summary>Never: the short-items tooltip is a header's.</summary>
+    public bool HasShortItems => false;
 
     /// <summary>
     /// How badly this row is short: 0 fine, 1 under target, 2 under by more than half.

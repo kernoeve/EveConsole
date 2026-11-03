@@ -398,6 +398,43 @@
                            FontWeight="SemiBold"
                            HorizontalAlignment="Right" VerticalAlignment="Center"
                            Padding="7 0" />
+                <!-- On a header with items short: which, on hover, worst first — each with its
+                     picture, its name and its own bar. ⚠️ The bar's look is set here, not by the
+                     grid's ProgressBar.cover style: a tooltip is outside the grid. -->
+                <Border Background="Transparent" IsVisible="{Binding HasShortItems}">
+                  <!-- A ToolTip of its own: the theme's caps a tip at 320 wide, which cut the bars off. -->
+                  <ToolTip.Tip>
+                    <ToolTip MaxWidth="560">
+                    <StackPanel Spacing="2" MinWidth="360" MaxWidth="540">
+                      <TextBlock Text="{Binding ShortText}" Foreground="{Binding ShortBrush}"
+                                 FontWeight="SemiBold" FontSize="11" Margin="0 0 0 4" />
+                      <ItemsControl ItemsSource="{Binding ShortItems}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Grid ColumnDefinitions="20,*,100" Height="20">
+                              <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="11"
+                                         Margin="4 0 12 0" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis" />
+                              <Grid Grid.Column="2">
+                                <ProgressBar Minimum="0" Maximum="100" MinWidth="0" MinHeight="0" Height="15"
+                                             CornerRadius="2" Background="Transparent"
+                                             BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                             VerticalAlignment="Center"
+                                             Value="{Binding CoverPct}" Foreground="{Binding CoverBrush}" />
+                                <TextBlock Text="{Binding DiffPctText}" Foreground="{Binding DiffColor}" FontSize="10"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center" Padding="5 0" />
+                              </Grid>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <TextBlock Text="{Binding ShortMoreText}" IsVisible="{Binding HasShortMore}"
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0 4 0 0" />
+                    </StackPanel>
+                    </ToolTip>
+                  </ToolTip.Tip>
+                </Border>
               </Grid>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

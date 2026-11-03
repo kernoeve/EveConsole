@@ -310,6 +310,9 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>в дефиците: {0}</value>
   </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
   <data name="InvShortFew" xml:space="preserve">
     <value>в дефиците: {0}</value>
   </data>

@@ -310,6 +310,9 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>{0} fehlen</value>
   </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…und {0} weitere</value>
+  </data>
   <data name="InvMenuAddItem" xml:space="preserve">
     <value>Artikel hinzufügen…</value>
   </data>

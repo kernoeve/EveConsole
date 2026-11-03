@@ -307,6 +307,9 @@
   <data name="InvShortOther" xml:space="preserve">
     <value>不足 {0}件</value>
   </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…ほか{0}件</value>
+  </data>
   <data name="InvMenuAddItem" xml:space="preserve">
     <value>アイテムを追加…</value>
   </data>
