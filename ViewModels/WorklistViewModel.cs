@@ -1592,7 +1592,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public string Cover     => $"{p.ContentionPercent:N0}%";
 
     /// <summary>Where it sits among this operation's own prints, which is what decides the flag.</summary>
-    public string Rank      => p.ContentionPercent <= 0 ? ""
+    public string Rank      => p.PeakContentionPercent <= 0 ? ""
                              : string.Format(WorklistText.RankTopPercent, Math.Max(1, 100 - p.ContentionRank));
 
     /// <summary>Kept beside it as context, deliberately not as the ranking.</summary>
@@ -1611,6 +1611,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public string Verdict => p.Verdict switch
     {
         "Blocking"  => WorklistText.BlueprintVerdictBlocking,
+        "NoSlot"    => WorklistText.BlueprintVerdictNoSlot,
         "Steady"    => WorklistText.BlueprintVerdictSteady,
         "Contended" => WorklistText.BlueprintVerdictContended,
         "Blocked"   => WorklistText.BlueprintVerdictBlocked,
@@ -1658,6 +1659,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
         "Blocking" => Palette.Bad,
         "Steady"   => Palette.Bad,
         "Blocked"  => Palette.Accent,
+        "NoSlot"   => Palette.Info,
         "Surge"    => Palette.Info,
         "Minor"    => Palette.TextDim,
         _          => Palette.TextMuted,
@@ -1679,7 +1681,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow, IFamily
     public double UsedSort      => p.UtilPercent;
     public double CoverSort     => p.ContentionPercent;
     /// <summary>"Top N%" — the smaller the busier, so a print never all-busy sorts past every one that was.</summary>
-    public double RankSort      => p.ContentionPercent <= 0 ? 101 : Math.Max(1, 100 - p.ContentionRank);
+    public double RankSort      => p.PeakContentionPercent <= 0 ? 101 : Math.Max(1, 100 - p.ContentionRank);
     public double RecentSort    => p.RecentContentionPercent;
     public int    TrendSort     => p.Trend switch { "Rising" => 2, "Steady" => 1, "Easing" => 0, _ => -1 };
     public double WithOneMoreSort => p.CeilingWithOneMore;
@@ -1958,9 +1960,16 @@ public class WorklistViewModel : ReactiveObject
     private static (int Free, int Pinched)? Crossed(
         IReadOnlyList<SlotPressure> slots, IReadOnlyList<ItemBandwidth> prints)
     {
-        var free    = slots.Sum(s => s.Free);
-        var pinched = prints.Count(p => p.IsTight);
-        return free <= 0 || pinched == 0 ? null : (free, pinched);
+        // ⚠️ Pool by pool. Added up, 253 free slots in science and manufacturing "proved" prints were
+        // the constraint on reactions, which had none free. A print counts only where its own pool
+        // has slots to spare and jobs are stopped on it now, not just because it was busy once.
+        int Free(bool reaction) =>
+            slots.Where(s => s.Pool == (reaction ? IndustryPool.Reaction : IndustryPool.Manufacturing)).Sum(s => s.Free);
+
+        var pinched = prints.Where(p => p.IsTight && p.BlockedNow > 0 && Free(p.IsReaction) > 0).ToList();
+        return pinched.Count == 0
+            ? null
+            : (pinched.Select(p => p.IsReaction).Distinct().Sum(Free), pinched.Count);
     }
 
     private async Task RefreshBottlenecksAsync()

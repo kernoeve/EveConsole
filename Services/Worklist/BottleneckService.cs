@@ -112,6 +112,11 @@ public sealed record ItemBandwidth(
     /// <summary>How many of those there are, which is what the Blocking column shows.</summary>
     public int StalledTasks { get; init; }
 
+    /// <summary>
+    /// Jobs of this with a print to run on and no slot to run in. Another print starts none of them.
+    /// </summary>
+    public int NoSlotNow { get; init; }
+
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
 
@@ -169,6 +174,18 @@ public sealed record ItemBandwidth(
     public int RecentDays { get; init; }
 
     /// <summary>
+    /// The worse of the quarter and the last month: what the rank, the flags and the order go by.
+    ///
+    /// <para>⚠️ Not the quarter alone. Phoenix's originals sat half idle through a slow August, so
+    /// the quarter said 7% and buried it low on the list, while all three were occupied with
+    /// three more jobs queued. A shortage is measured at its worst, and the columns still show both.</para>
+    /// </summary>
+    public double PeakContentionPercent => Math.Max(ContentionPercent, RecentContentionPercent);
+
+    /// <summary>The days that peak was measured over, for the sentence quoting it.</summary>
+    public int PeakDays => RecentContentionPercent > ContentionPercent && RecentDays > 0 ? RecentDays : WindowDays;
+
+    /// <summary>
     /// Whether the squeeze is getting worse, which a quarter-long average cannot say.
     ///
     /// <para><b>⚠️ A ninety-day figure hides a busy month inside a quiet quarter.</b> Prints that
@@ -192,10 +209,10 @@ public sealed record ItemBandwidth(
     /// its neighbours. Without it, an operation with no contention anywhere would still report its
     /// top tenth as bottlenecks — ranking something is not the same as it being a problem.</para>
     /// </summary>
-    public bool IsTight => ContentionPercent > 0 && ContentionRank >= 90;
+    public bool IsTight => PeakContentionPercent > 0 && ContentionRank >= 90;
 
     /// <summary>Never all occupied, or unremarkable against the rest — another copy buys nothing.</summary>
-    public bool IsIdle => ContentionPercent <= 0 || ContentionRank < 50;
+    public bool IsIdle => PeakContentionPercent <= 0 || ContentionRank < 50;
 
     /// <summary>
     /// Whether this is a standing shortage or a spike, which is the whole question.
@@ -217,6 +234,7 @@ public sealed record ItemBandwidth(
     /// <summary>What the row amounts to, in a word. Called Verdict on every tab that has one.</summary>
     public string Verdict =>
         IsTight && BlockedNow > 0 ? "Blocking"
+      : BlockedNow == 0 && NoSlotNow > 0 ? "NoSlot"
       : IsTight && WantedNow > 0  ? "Steady"
       : IsTight                   ? "Contended"
       : BlockedNow > 0            ? "Blocked"
@@ -241,19 +259,23 @@ public sealed record ItemBandwidth(
     {
         "Blocking" => string.Format(
             IsReaction ? WorklistText.PrintAdviceBlockingFormula : WorklistText.PrintAdviceBlockingBpo,
-            ContentionPercent, WindowDays, BlockedNow, CapacityPerDay, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, BlockedNow, CapacityPerDay, CeilingWithOneMore),
+
+        "NoSlot" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceNoSlotFormula : WorklistText.PrintAdviceNoSlotBpo,
+            NoSlotNow, PeakContentionPercent, PeakDays),
 
         "Steady" => string.Format(
             IsReaction ? WorklistText.PrintAdviceSteadyFormula : WorklistText.PrintAdviceSteadyBpo,
-            ContentionPercent, WindowDays, WantedNow, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, WantedNow, CeilingWithOneMore),
 
         "Contended" => string.Format(
             IsReaction ? WorklistText.PrintAdviceContendedFormula : WorklistText.PrintAdviceContendedBpo,
-            ContentionPercent, WindowDays),
+            PeakContentionPercent, PeakDays),
 
         "Blocked" => string.Format(
             IsReaction ? WorklistText.PrintAdviceBlockedFormula : WorklistText.PrintAdviceBlockedBpo,
-            BlockedNow, ContentionPercent),
+            BlockedNow, PeakContentionPercent),
 
         "Surge" => string.Format(
             IsReaction ? WorklistText.PrintAdviceSurgeFormula : WorklistText.PrintAdviceSurgeBpo,
@@ -261,11 +283,11 @@ public sealed record ItemBandwidth(
 
         "Minor" => string.Format(
             IsReaction ? WorklistText.PrintAdviceMinorFormula : WorklistText.PrintAdviceMinorBpo,
-            ContentionPercent, WindowDays, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, CeilingWithOneMore),
 
         _ => string.Format(
             IsReaction ? WorklistText.PrintAdviceBuildingFormula : WorklistText.PrintAdviceBuildingBpo,
-            WantedNow, ContentionPercent, CeilingWithOneMore),
+            WantedNow, PeakContentionPercent, CeilingWithOneMore),
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
@@ -487,6 +509,7 @@ public class BottleneckService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key,
                           g => (All: g.Count(),
+                                NoSlot: g.Count(i => i.Readiness == WorklistReadiness.Waiting),
                                 // ⚠️ Only where the print is the ONLY thing missing. The
                                 // print-blocked rows are runs no free blueprint could carry, and
                                 // those runs were never material-checked — so a Thanatos short of
@@ -503,6 +526,11 @@ public class BottleneckService(
         var prints = (await blueprints.LoadAllAsync(ct))
             .Where(owned.Owns).Where(p => p.IsOriginal).ToList();
         if (prints.Count == 0) return [];
+
+        // ⚠️ What occupies an original is a job on that original. A job on a copy of the same type
+        // leaves every original free, but counted against them it put Phoenix top of this list at
+        // 28% all-busy when its originals were all busy 6% of the time. So matched by item, not type.
+        var originals = prints.Select(p => p.ItemId).ToHashSet();
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -521,9 +549,9 @@ public class BottleneckService(
         // and dropped the row from the list altogether.
         var occupied = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.BlueprintId != 0)
-                .Select(j => new { j.BlueprintTypeId, j.StartDate, j.EndDate })
+                .Select(j => new { j.BlueprintId, j.BlueprintTypeId, j.StartDate, j.EndDate })
                 .ToListAsync(ct))
-            .Where(j => j.EndDate > since && j.StartDate < now)
+            .Where(j => j.EndDate > since && j.StartDate < now && originals.Contains(j.BlueprintId))
             .GroupBy(j => j.BlueprintTypeId)
             .ToDictionary(g => g.Key, g => g.Select(j => (j.StartDate, j.EndDate)).ToList());
 
@@ -545,14 +573,11 @@ public class BottleneckService(
                 g => (ProductTypeId: g.First().ProductTypeId,
                       CycleDays:     g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
                       Runs:          g.Sum(j => (long)j.Runs),
-                      // ⚠️ Clipped to the window at both ends. A job running longer than the
-                      // window used to be counted whole against it, which put one print at 120%
-                      // of a time it could not have spent.
-                      BusyDays:      g.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
                       // ⚠️ The intervals are kept, not reduced to a number here. Contention can
                       // only be worked out once the copies OWNED are known, and that lives with
                       // the blueprint stock rather than with the job history.
-                      Jobs:          g.Select(j => (j.StartDate, j.EndDate)).ToList(),
+                      Jobs:          g.Where(j => originals.Contains(j.BlueprintId))
+                                      .Select(j => (j.StartDate, j.EndDate)).ToList(),
                       // Reactions are run from a formula, not a blueprint, and the wording
                       // follows the thing the reader is holding.
                       IsReaction:    g.Any(j => j.ActivityId == 9 || j.ActivityId == 11)));
@@ -595,7 +620,10 @@ public class BottleneckService(
                 mine.Count,
                 mine.Count(p => p.LockedInJob),
                 made.Runs * units / (double)WindowDays,
-                made.BusyDays,
+                // ⚠️ Clipped to the window at both ends: a job running longer than the window was once
+                // counted whole, which put one print at 120%. And every activity, as contention is:
+                // an original copying is no more free to build than one building.
+                occupied.GetValueOrDefault(bpTypeId, made.Jobs).Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
                 units,
                 WindowDays,
                 wantedNow.GetValueOrDefault(made.ProductTypeId).All,
@@ -603,6 +631,7 @@ public class BottleneckService(
                 made.IsReaction)
             {
                 BlueprintTypeId = bpTypeId,
+                NoSlotNow       = wantedNow.GetValueOrDefault(made.ProductTypeId).NoSlot,
                 // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
                 // seen made "all busy" mean "the one I happened to use was busy": five formulas
                 // owned, jobs only ever run on one, and a print busy 31% of the time reported 31%
@@ -634,9 +663,9 @@ public class BottleneckService(
         // after filtering and the scale is drawn from the survivors — which is the list deciding
         // its own cut-off from the rows it already chose, and would call the least bad of a
         // healthy set a bottleneck.
-        var spread = result.Select(r => r.ContentionPercent).OrderBy(v => v).ToList();
+        var spread = result.Select(r => r.PeakContentionPercent).OrderBy(v => v).ToList();
         result = result
-            .Select(r => r with { ContentionRank = Percentile(spread, r.ContentionPercent) })
+            .Select(r => r with { ContentionRank = Percentile(spread, r.PeakContentionPercent) })
             .ToList();
 
         _lastScale = Describe(spread);
@@ -650,12 +679,15 @@ public class BottleneckService(
         // all busy — 4% used, 0% all busy — each with jobs that could not start for some other
         // reason (their verdict says so), above the hulls whose every original was busy a quarter
         // of the time. A tab about which prints are the constraint leads with the prints that are.
+        //
+        // ⚠️ The floor on either window. On the quarter alone, a print busy every day of last month
+        // could still miss it, on the very list that compares the two to catch that.
         return result
-            .Where(r => r.ContentionPercent >= (r.Prints <= 1 ? SinglePrintFloorPercent
-                                                              : ListFloorPercent)
+            .Where(r => r.PeakContentionPercent
+                            >= (r.Prints <= 1 ? SinglePrintFloorPercent : ListFloorPercent)
                      || r.BlockedNow > 0)
-            .OrderByDescending(r => r.ContentionPercent)
-            .ThenByDescending(r => r.RecentContentionPercent)
+            .OrderByDescending(r => r.PeakContentionPercent)
+            .ThenByDescending(r => r.ContentionPercent)
             .ThenByDescending(r => r.BlockedNow)
             .ThenByDescending(r => r.StalledTasks)
             .ThenByDescending(r => r.WantedNow)

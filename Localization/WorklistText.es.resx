@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Pico</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Sin ranura libre</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>En cola</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>No hay cuellos de botella: ningún grupo de ranuras tiene trabajo esperando una ranura y ningún plano ha tenido todos sus ejemplares ocupados con la frecuencia suficiente como para hacer esperar a nada. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. ⚠ {3:N0} ranura(s) libres mientras {4} plano(s) tienen todos sus ejemplares ocupados: la limitación aquí son los planos, no las ranuras. {5}</value>
+    <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. ⚠ {3:N0} ranura(s) libres en los mismos grupos donde {4} plano(s) tienen todos sus originales ocupados y trabajos detenidos: la limitación allí son los planos, no las ranuras. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. {3}</value>
@@ -1727,7 +1730,13 @@
     <value>Plano ocupado en un trabajo en curso ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>No hay ningún plano libre en {0} ({1})</value>
+    <value>No hay ningún plano utilizable en {0} (el mejor que tienes: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Todos los planos de aquí están en uso: {0:N0} en marcha, {1:N0} a punto de empezar</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Su plano está reservado para un trabajo anterior al que le faltan materiales</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Déficit: {1:N0}.</value>
@@ -1754,7 +1763,7 @@
     <value>El resto de este trabajo, esperando materiales.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>{0:N0} iteración(es) más no tienen ningún plano libre: se listan por separado.</value>
+    <value>{0:N0} iteración(es) más se listan por separado.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Limitado por el máximo de 30 días de EVE para un solo trabajo.</value>
@@ -2381,10 +2390,16 @@
     <value>Todas las fórmulas estuvieron ocupadas el {0:N0} % de los últimos {1} días, pero hoy no hay nada en cola para ella. Conviene vigilarlo más que comprar por ello.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} trabajo(s) no pueden empezar, aunque los BPO disponibles rara vez han estado todos ocupados a la vez ({1:N0} %). Comprueba qué falta realmente antes de comprar otro BPO: esto parece algo distinto del plano.</value>
+    <value>{0:N0} trabajo(s) no pueden empezar porque ahora mismo no hay ningún BPO libre en su ubicación, aunque los BPO rara vez han estado todos ocupados a la vez ({1:N0} %). Parece más un pico breve o BPO en el lugar equivocado que una escasez: compruébalo antes de comprar otro.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} trabajo(s) no pueden empezar, aunque las fórmulas disponibles rara vez han estado todas ocupadas a la vez ({1:N0} %). Comprueba qué falta realmente antes de comprar otra fórmula: esto parece algo distinto de la fórmula.</value>
+    <value>{0:N0} trabajo(s) no pueden empezar porque ahora mismo no hay ninguna fórmula libre en su ubicación, aunque las fórmulas rara vez han estado todas ocupadas a la vez ({1:N0} %). Parece más un pico breve o fórmulas en el lugar equivocado que una escasez: compruébalo antes de comprar otra.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} trabajo(s) esperan una ranura de fabricación, no un BPO, así que otro BPO no pondría en marcha ninguno. Todos los BPO estuvieron ocupados el {1:N0} % de los últimos {2} días.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} trabajo(s) esperan una ranura de reacción, no una fórmula, así que otra fórmula no pondría en marcha ninguno. Todas las fórmulas estuvieron ocupadas el {1:N0} % de los últimos {2} días.</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} trabajo(s) lo quieren ahora, pero todos los BPO estuvieron libres casi todo el tiempo de los últimos {1} días. Es algo puntual, no una necesidad permanente: puede que una BPC sirva mejor que un original.</value>

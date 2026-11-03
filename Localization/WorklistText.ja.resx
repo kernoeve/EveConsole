@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>急増</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>空きスロットなし</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>ジョブ待ち</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>ボトルネックはありません：スロット待ちの作業があるプールはなく、すべてのオリジナルが使用中になって何かを待たせるほどのブループリントもありません。{0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。⚠ ブループリント{4}件のオリジナルがすべて使用中なのに、スロットは{3:N0}個空いています — ここでの制約はスロットではなくオリジナルです。{5}</value>
+    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。⚠ ブループリント{4}件のオリジナルがすべて使用中でジョブが止まっている同じプールで、スロットが{3:N0}個空いています — そこでの制約はスロットではなくオリジナルです。{5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。{3}</value>
@@ -1712,7 +1715,13 @@
     <value>ブループリントは実行中のジョブで使用中です（{0}）</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0}に空いているブループリントがありません（{1}）</value>
+    <value>{0}に使用できるブループリントがありません（所有する最良のもの：{1}）</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>ここのブループリントはすべて使用中です：稼働中{0:N0}件、開始予定{1:N0}件</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>ブループリントは、資材が不足している先のジョブのために確保されています</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0}{1:N0}個不足。</value>
@@ -1739,7 +1748,7 @@
     <value>このジョブの残りの分で、資源を待っています。</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>さらに{0:N0}回分は空いているブループリントがありません — 別に表示しています。</value>
+    <value>さらに{0:N0}回分は別に表示しています。</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>EVEの1ジョブあたり30日の上限で制限されています。</value>
@@ -2360,10 +2369,16 @@
     <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中でしたが、現在これを待っているジョブはありません。購入するより様子を見る段階です。</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>ジョブ{0:N0}件が開始できませんが、手元のBPOがすべて同時に使用中になることはめったにありません（{1:N0}%）。BPOを追加で購入する前に、本当に不足しているものを確認してください — ブループリント以外の原因のようです。</value>
+    <value>現地に空いているBPOが今ないためジョブ{0:N0}件が開始できませんが、BPOがすべて同時に使用中になることはめったにありません（{1:N0}%）。不足というより一時的な急増か、BPOの置き場所の問題のようです。追加で購入する前に確認してください。</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>ジョブ{0:N0}件が開始できませんが、手元のフォーミュラがすべて同時に使用中になることはめったにありません（{1:N0}%）。フォーミュラを追加で購入する前に、本当に不足しているものを確認してください — フォーミュラ以外の原因のようです。</value>
+    <value>現地に空いているフォーミュラが今ないためジョブ{0:N0}件が開始できませんが、フォーミュラがすべて同時に使用中になることはめったにありません（{1:N0}%）。不足というより一時的な急増か、フォーミュラの置き場所の問題のようです。追加で購入する前に確認してください。</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>ジョブ{0:N0}件はBPOではなく製造スロットを待っているため、BPOを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、すべてのBPOが使用中でした。</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>ジョブ{0:N0}件はフォーミュラではなくリアクションスロットを待っているため、フォーミュラを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、すべてのフォーミュラが使用中でした。</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>現在ジョブ{0:N0}件がこれを必要としていますが、過去{1}日間のほぼすべての時間、どのBPOも空いていました。恒常的な需要ではなく一時的なものです — オリジナルよりBPCのほうが適しているかもしれません。</value>

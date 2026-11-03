@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>激增</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>没有空闲栏位</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>需求累积</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>没有任何瓶颈：没有哪个栏位池有工作在等待栏位，也没有哪张蓝图的所有原件经常同时被占用、以致有工作需要等待。{0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} 个栏位池有工作在等待栏位；{1} 张蓝图值得关注；{2} 种材料的消耗快于产出。⚠ {3:N0} 个栏位闲置，而 {4} 张蓝图的所有原件均被占用——这里的制约在于原件，而不是栏位。{5}</value>
+    <value>{0} 个栏位池有工作在等待栏位；{1} 张蓝图值得关注；{2} 种材料的消耗快于产出。⚠ 有 {4} 张蓝图的原件全部被占用、任务停滞，而同一栏位池中有 {3:N0} 个栏位闲置——那里的制约在于原件，而不是栏位。{5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} 个栏位池有工作在等待栏位；{1} 张蓝图值得关注；{2} 种材料的消耗快于产出。{3}</value>
@@ -1712,7 +1715,13 @@
     <value>蓝图正被运行中的任务占用（{0}）</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0} 没有空闲的蓝图（{1}）</value>
+    <value>{0} 没有可用的蓝图（拥有的最佳蓝图：{1}）</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>此处的蓝图全部在用：{0:N0} 张运行中，{1:N0} 张即将开始</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>其蓝图已留给一个缺少材料的前序任务</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} 短缺 {1:N0}。</value>
@@ -1739,7 +1748,7 @@
     <value>此任务的剩余部分，正在等待材料。</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>另有 {0:N0} 流程没有空闲的蓝图——已单独列出。</value>
+    <value>另有 {0:N0} 流程已单独列出。</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>受 EVE 单个任务 30 天上限的限制。</value>
@@ -2360,10 +2369,16 @@
     <value>最近 {1} 天中，所有配方同时被占用的时间占 {0:N0}%，但目前没有针对它排队的任务。值得关注，但还不值得为此购买。</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} 个任务无法开始，但现有的蓝图原件很少同时全部被占用（{1:N0}%）。在再买一张蓝图原件之前，先查清真正缺的是什么——问题看起来不在蓝图上。</value>
+    <value>{0:N0} 个任务因所在地点目前没有空闲的蓝图原件而无法开始，但这些原件很少同时全部被占用（{1:N0}%）。这看起来更像短暂激增或原件放错了地方，而不是数量不足，再买一张之前请先查清。</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} 个任务无法开始，但现有的配方很少同时全部被占用（{1:N0}%）。在再买一张配方之前，先查清真正缺的是什么——问题看起来不在配方上。</value>
+    <value>{0:N0} 个任务因所在地点目前没有空闲的配方而无法开始，但这些配方很少同时全部被占用（{1:N0}%）。这看起来更像短暂激增或配方放错了地方，而不是数量不足，再买一张之前请先查清。</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} 个任务在等待制造栏位，而不是蓝图原件，因此再买一张原件也无法启动其中任何一个。过去 {2} 天中有 {1:N0}% 的时间所有原件都被占用。</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} 个任务在等待反应栏位，而不是配方，因此再买一张配方也无法启动其中任何一个。过去 {2} 天中有 {1:N0}% 的时间所有配方都被占用。</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>目前有 {0:N0} 个任务需要它，但最近 {1} 天里，每张蓝图原件几乎一直空闲。这是一次性需求，而不是长期需求——蓝图拷贝可能比原件更合适。</value>

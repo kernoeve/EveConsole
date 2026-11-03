@@ -162,9 +162,11 @@ public class BottleneckSummaryService
     {
         var blocking = prints
             .Where(p => p.IsReaction == reactions
-                     && p.ContentionPercent > 0
+                     && p.PeakContentionPercent > 0
+                     // Not with jobs waiting on a slot: buying a print starts none of them.
+                     && p.NoSlotNow == 0
                      && (p.BlockedNow > 0 || p.StalledTasks > 0))
-            .OrderByDescending(p => p.ContentionPercent)
+            .OrderByDescending(p => p.PeakContentionPercent)
             .ThenByDescending(p => p.StalledTasks)
             .ToList();
         if (blocking.Count == 0) yield break;

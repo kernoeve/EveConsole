@@ -1368,6 +1368,10 @@
     <value>Surge</value>
     <comment>Verdict on the BPO / Formula tab: a sudden queue for prints that are usually free.</comment>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>No free slot</value>
+    <comment>Verdict on the BPO / Formula tab: jobs of this item wait on a slot, not on a print.</comment>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>Building</value>
     <comment>Verdict on the BPO / Formula tab: jobs are queued for it.</comment>
@@ -1401,7 +1405,7 @@
     <comment>Bottlenecks status line. {0} is a note on how the flags were measured, or empty.</comment>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. ⚠ {3:N0} slot(s) sitting free while {4} blueprint(s) have every copy busy — the constraint here is prints, not slots. {5}</value>
+    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. ⚠ {3:N0} slot(s) sitting free in the same pools where {4} blueprint(s) have every original in use and jobs stopped — the constraint there is prints, not slots. {5}</value>
     <comment>Bottlenecks status line. {0} is the slot pools with work waiting, {1} the blueprints worth a look, {2} the materials used faster than made, {3} the free slots, {4} the blueprints with every copy busy, {5} a note on how the flags were measured, or empty.</comment>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
@@ -2293,8 +2297,16 @@
     <comment>Why a Worklist job is blocked: the blueprint is in another job. {0} describes it, as "BPO ME10/TE20".</comment>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>No blueprint free at {0} ({1})</value>
+    <value>No usable blueprint at {0} (best owned: {1})</value>
     <comment>Why a Worklist job is blocked. {0} is the structure, {1} the best blueprint owned, as "BPO ME10/TE20".</comment>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Every blueprint here is in use: {0:N0} running, {1:N0} about to start</value>
+    <comment>A job's blocked reason: every blueprint at the site is truly occupied. {0} = running now, {1} = going to jobs that can start now.</comment>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Its blueprint is held for an earlier job that is short of materials</value>
+    <comment>A job's blocked reason: the print is free, but an earlier job that lacks materials has been given it.</comment>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Short {1:N0}.</value>
@@ -2329,7 +2341,7 @@
     <comment>Added to the detail of the Worklist task holding the part of a job the materials on hand do not cover.</comment>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>{0:N0} further run(s) have no free print — listed separately.</value>
+    <value>{0:N0} further run(s) are listed separately.</value>
     <comment>Added to a Worklist job's detail. {0} is the runs no free blueprint can carry; they are listed as other tasks.</comment>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
@@ -3165,12 +3177,20 @@
     <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured.</comment>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} job(s) cannot start, though the BPOs on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another BPO — this looks like something other than the blueprint.</value>
+    <value>{0:N0} job(s) cannot start because no BPO is free at their site right now, though the BPOs have rarely all been busy at once ({1:N0}%). That looks more like a short surge or BPOs in the wrong place than a shortage, so check those before buying another.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every blueprint original was in a job at once.</comment>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} job(s) cannot start, though the formulas on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another formula — this looks like something other than the formula.</value>
+    <value>{0:N0} job(s) cannot start because no formula is free at their site right now, though the formulas have rarely all been busy at once ({1:N0}%). That looks more like a short surge or formulas in the wrong place than a shortage, so check those before buying another.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every reaction formula was in a job at once.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} job(s) are waiting on a manufacturing slot, not on a BPO, so another BPO would start none of them. Every BPO was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on the BPO tab. {0} = jobs waiting on a slot, {1} = percent all busy, {2} = days in the window.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} job(s) are waiting on a reaction slot, not on a formula, so another formula would start none of them. Every formula was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on the Formula tab. {0} = jobs waiting on a slot, {1} = percent all busy, {2} = days in the window.</comment>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} job(s) want it now, but every BPO was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>

@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Ansturm</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Kein freier Slot</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>In Arbeit</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>Keine Engpässe: Kein Pool hat Arbeit, die auf einen Slot wartet, und bei keiner Blaupause waren alle Exemplare oft genug belegt, um etwas warten zu lassen. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. ⚠ {3:N0} Slot(s) frei, während bei {4} Blaupause(n) alle Exemplare belegt sind – die Beschränkung sind hier die Blaupausen, nicht die Slots. {5}</value>
+    <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. ⚠ {3:N0} Slot(s) frei in denselben Pools, in denen bei {4} Blaupause(n) alle Originale belegt sind und Aufträge stillstehen – die Beschränkung sind dort die Blaupausen, nicht die Slots. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. {3}</value>
@@ -1727,7 +1730,13 @@
     <value>Blaupause in einem laufenden Auftrag belegt ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>Keine Blaupause frei in {0} ({1})</value>
+    <value>Keine nutzbare Blaupause in {0} (beste vorhandene: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Jede Blaupause hier ist belegt: {0:N0} laufen, {1:N0} starten gleich</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Die Blaupause ist für einen früheren Auftrag reserviert, dem Material fehlt</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Fehlmenge: {1:N0}.</value>
@@ -1754,7 +1763,7 @@
     <value>Der Rest dieses Auftrags, wartet auf Materialien.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>Für weitere Durchläufe ({0:N0}) ist keine Blaupause frei – separat aufgeführt.</value>
+    <value>Weitere Durchläufe ({0:N0}) sind separat aufgeführt.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Begrenzt durch das 30-Tage-Limit von EVE für einen einzelnen Auftrag.</value>
@@ -2381,10 +2390,16 @@
     <value>Alle Formeln waren in {0:N0} % der letzten {1} Tage belegt, aber heute steht nichts dafür an. Beobachten statt kaufen.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>Aufträge, die nicht starten können: {0:N0}, obwohl die vorhandenen BPOs selten alle gleichzeitig belegt waren ({1:N0} %). Prüfen Sie, was wirklich fehlt, bevor Sie ein weiteres BPO kaufen – das sieht nach etwas anderem als der Blaupause aus.</value>
+    <value>Aufträge, die nicht starten können, weil an ihrem Standort gerade kein BPO frei ist: {0:N0}, obwohl die BPOs selten alle gleichzeitig belegt waren ({1:N0} %). Das sieht eher nach einem kurzen Ansturm oder falsch gelagerten BPOs aus als nach einem Mangel; prüfen Sie das, bevor Sie ein weiteres kaufen.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>Aufträge, die nicht starten können: {0:N0}, obwohl die vorhandenen Formeln selten alle gleichzeitig belegt waren ({1:N0} %). Prüfen Sie, was wirklich fehlt, bevor Sie eine weitere Formel kaufen – das sieht nach etwas anderem als der Formel aus.</value>
+    <value>Aufträge, die nicht starten können, weil an ihrem Standort gerade keine Formel frei ist: {0:N0}, obwohl die Formeln selten alle gleichzeitig belegt waren ({1:N0} %). Das sieht eher nach einem kurzen Ansturm oder falsch gelagerten Formeln aus als nach einem Mangel; prüfen Sie das, bevor Sie eine weitere kaufen.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>Aufträge, die auf einen Fertigungsslot warten und nicht auf ein BPO: {0:N0}. Ein weiteres BPO würde also keinen davon starten. Alle BPOs waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>Aufträge, die auf einen Reaktionsslot warten und nicht auf eine Formel: {0:N0}. Eine weitere Formel würde also keinen davon starten. Alle Formeln waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>Aufträge, die es jetzt wollen: {0:N0}, aber alle BPOs waren fast die ganzen letzten {1} Tage frei. Ein Einzelfall statt eines dauerhaften Bedarfs – ein BPC dient womöglich besser als ein Original.</value>

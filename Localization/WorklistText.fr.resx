@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Pic</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Aucun créneau libre</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>Accumulation</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>Aucun goulot d'étranglement : aucun groupe de créneaux n'a de travail en attente d'un créneau, et aucun plan n'a eu tous ses exemplaires occupés assez souvent pour faire attendre quoi que ce soit. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} groupe(s) de créneaux avec du travail en attente d'un créneau ; {1} plan(s) à examiner ; {2} matériau(x) consommé(s) plus vite qu'ils ne sont produits. ⚠ {3:N0} créneau(x) libre(s) pendant que {4} plan(s) ont tous leurs exemplaires occupés — la contrainte ici, ce sont les plans, pas les créneaux. {5}</value>
+    <value>{0} groupe(s) de créneaux avec du travail en attente d'un créneau ; {1} plan(s) à examiner ; {2} matériau(x) consommé(s) plus vite qu'ils ne sont produits. ⚠ {3:N0} créneau(x) libre(s) dans les mêmes groupes où {4} plan(s) ont tous leurs originaux occupés et des travaux à l'arrêt — la contrainte, là, ce sont les plans, pas les créneaux. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} groupe(s) de créneaux avec du travail en attente d'un créneau ; {1} plan(s) à examiner ; {2} matériau(x) consommé(s) plus vite qu'ils ne sont produits. {3}</value>
@@ -1727,7 +1730,13 @@
     <value>Plan occupé dans un travail en cours ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>Aucun plan libre à {0} ({1})</value>
+    <value>Aucun plan utilisable à {0} (meilleur possédé : {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Tous les plans ici sont utilisés : {0:N0} en cours, {1:N0} sur le point de démarrer</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Son plan est réservé à un travail antérieur à court de matériaux</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Il manque {1:N0}.</value>
@@ -1754,7 +1763,7 @@
     <value>Le reste de ce travail, en attente de matériaux.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>{0:N0} cycle(s) supplémentaire(s) sans plan libre — listé(s) séparément.</value>
+    <value>{0:N0} cycle(s) supplémentaire(s) listé(s) séparément.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Limité par la durée maximale de 30 jours d'un travail dans EVE.</value>
@@ -2381,10 +2390,16 @@
     <value>Toutes les formules ont été occupées {0:N0} % des {1} derniers jours, mais rien n'est en file pour cette formule aujourd'hui. À surveiller plutôt qu'à acheter.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} travail(aux) ne peuvent pas démarrer, alors que les BPO disponibles ont rarement été tous occupés en même temps ({1:N0} %). Vérifiez ce qui manque réellement avant d'acheter un autre BPO — le problème semble venir d'autre chose que du plan.</value>
+    <value>{0:N0} travail(aux) ne peuvent pas démarrer car aucun BPO n'est libre sur leur site pour l'instant, alors que les BPO ont rarement été tous occupés en même temps ({1:N0} %). Cela ressemble davantage à un pic passager ou à des BPO au mauvais endroit qu'à une pénurie : vérifiez-le avant d'en acheter un autre.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} travail(aux) ne peuvent pas démarrer, alors que les formules disponibles ont rarement été toutes occupées en même temps ({1:N0} %). Vérifiez ce qui manque réellement avant d'acheter une autre formule — le problème semble venir d'autre chose que de la formule.</value>
+    <value>{0:N0} travail(aux) ne peuvent pas démarrer car aucune formule n'est libre sur leur site pour l'instant, alors que les formules ont rarement été toutes occupées en même temps ({1:N0} %). Cela ressemble davantage à un pic passager ou à des formules au mauvais endroit qu'à une pénurie : vérifiez-le avant d'en acheter une autre.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} travail(aux) attendent un créneau de fabrication, pas un BPO : un BPO de plus n'en démarrerait aucun. Tous les BPO ont été occupés {1:N0} % des {2} derniers jours.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} travail(aux) attendent un créneau de réaction, pas une formule : une formule de plus n'en démarrerait aucun. Toutes les formules ont été occupées {1:N0} % des {2} derniers jours.</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} travail(aux) le demandent maintenant, mais tous les BPO ont été libres presque tout au long des {1} derniers jours. Un besoin ponctuel plutôt que permanent — un BPC peut être plus utile qu'un original.</value>

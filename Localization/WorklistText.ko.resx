@@ -1027,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>급증</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>빈 슬롯 없음</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>작업 대기</value>
   </data>
@@ -1052,7 +1055,7 @@
     <value>병목이 없습니다: 슬롯을 기다리는 작업이 있는 슬롯 풀이 없고, 모든 원본이 자주 사용 중이어서 무언가를 기다리게 한 블루프린트도 없습니다. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. ⚠ 블루프린트 {4}개의 원본이 모두 사용 중인데 슬롯 {3:N0}개가 비어 있습니다 — 여기서 제약은 슬롯이 아니라 원본입니다. {5}</value>
+    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. ⚠ 블루프린트 {4}개의 원본이 모두 사용 중이라 작업이 멈춘 바로 그 풀에서 슬롯 {3:N0}개가 비어 있습니다 — 그곳의 제약은 슬롯이 아니라 원본입니다. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. {3}</value>
@@ -1712,7 +1715,13 @@
     <value>블루프린트가 진행 중인 작업에서 사용 중 ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0}에 사용 가능한 블루프린트 없음 ({1})</value>
+    <value>{0}에 사용할 수 있는 블루프린트 없음 (보유 중 최고: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>이곳의 블루프린트가 모두 사용 중입니다: 진행 중 {0:N0}개, 곧 시작 {1:N0}개</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>블루프린트가 재료가 부족한 앞선 작업을 위해 잡혀 있습니다</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} {1:N0}개 부족.</value>
@@ -1739,7 +1748,7 @@
     <value>이 작업의 나머지 부분으로, 재료를 기다리고 있습니다.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>추가 {0:N0}회는 사용 가능한 원본이 없어 따로 표시됩니다.</value>
+    <value>추가 {0:N0}회는 따로 표시됩니다.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>EVE의 작업당 30일 제한에 걸렸습니다.</value>
@@ -2360,10 +2369,16 @@
     <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었지만, 오늘은 대기 중인 작업이 없습니다. 구매하기보다는 지켜볼 만합니다.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 BPO가 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). BPO를 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 블루프린트가 아닌 다른 문제로 보입니다.</value>
+    <value>현재 해당 장소에 사용 가능한 BPO가 없어 작업 {0:N0}개를 시작할 수 없지만, BPO가 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 부족보다는 일시적인 급증이나 BPO 위치 문제로 보이니 더 사기 전에 확인하십시오.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 반응식이 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 반응식을 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 반응식이 아닌 다른 문제로 보입니다.</value>
+    <value>현재 해당 장소에 사용 가능한 반응식이 없어 작업 {0:N0}개를 시작할 수 없지만, 반응식이 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 부족보다는 일시적인 급증이나 반응식 위치 문제로 보이니 더 사기 전에 확인하십시오.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>작업 {0:N0}개는 BPO가 아니라 제조 슬롯을 기다리고 있어 BPO를 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 모든 BPO가 사용 중이었습니다.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>작업 {0:N0}개는 반응식이 아니라 반응 슬롯을 기다리고 있어 반응식을 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 모든 반응식이 사용 중이었습니다.</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>지금 작업 {0:N0}개가 이것을 원하지만, 최근 {1}일 대부분 동안 모든 BPO가 비어 있었습니다. 지속적인 필요가 아니라 일회성이므로 원본보다 BPC가 나을 수 있습니다.</value>
