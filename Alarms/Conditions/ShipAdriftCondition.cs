@@ -73,7 +73,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     public string DisplayName => "Undocked too long";
 
     public string Description =>
-        "Wakes you up. Fires in up to three stages when one of your characters in a named hull or " +
+        "Fires in up to three stages when one of your characters in a named hull or " +
         "ship class undocks and is still sitting in that same system after a number of seconds — a " +
         "freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump " +
         "arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in " +
