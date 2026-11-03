@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>{0} 個のアイテムを生産キューに追加しました</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 個のアイテムは製造できないため追加しませんでした</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>過去 30 日の販売</value>
   </data>

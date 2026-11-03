@@ -1377,6 +1377,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
         => (await QueueDefaultsAsync(productTypeId, ct)).Me;
 
+    /// <summary>Of these items, the ones a blueprint manufactures or a formula reacts, by their
+    /// English names: what the queue can take from a tool that lists anything at all — minerals,
+    /// blueprints themselves.</summary>
+    public async Task<Dictionary<int, string>> BuildableNamesAsync(IReadOnlyCollection<int> typeIds, CancellationToken ct = default)
+    {
+        var ids = typeIds.Distinct().ToList();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var built = db.SdeBlueprintProducts
+            .Where(p => p.Activity == MfgActivity || p.Activity == RxnActivity)
+            .Select(p => p.ProductTypeId);
+        return await db.SdeTypes.AsNoTracking()
+            .Where(t => ids.Contains(t.TypeId) && built.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+    }
+
     /// <summary>
     /// What an item starts with when it is queued: its default ME, and whether building it needs a
     /// blueprint copy because no original can be had — by the same test the plan applies to the

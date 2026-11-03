@@ -474,6 +474,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.IndustryOpportunitiesVm.AddToStandingBuyOrders = AddToBuyOrders;
         vm.ItemBrowserVm.AddToStandingBuyOrders           = AddToBuyOrders;
 
+        // "Add to Production Calc Queue" from a tool that lists anything: what can be built goes in
+        // after what is queued, the calculator opened behind, the user left where they are and told
+        // so — and told when an item was left out because nothing builds it.
+        void AddToProduction(IReadOnlyList<int> typeIds) =>
+            Dispatcher.UIThread.Post(async () =>
+            {
+                try
+                {
+                    var (added, notBuilt) = await vm.ProductionCalcVm.QueueTypeIdsAsync(typeIds);
+                    if (added > 0) vm.OpenToolInBackground("prod_calc");
+                    var parts = new List<string>();
+                    if (added > 0)
+                        parts.Add(EveConsole.Localization.Plurals.Format(EveConsole.Localization.IndustryText.ResourceManager,
+                            nameof(EveConsole.Localization.IndustryText.OppsToastQueuedOther), added));
+                    if (notBuilt > 0)
+                        parts.Add(EveConsole.Localization.Plurals.Format(EveConsole.Localization.IndustryText.ResourceManager,
+                            nameof(EveConsole.Localization.IndustryText.ToastNotBuildableOther), notBuilt));
+                    ShowToast(string.Join("\n", parts));
+                }
+                catch (Exception ex)
+                {
+                    ShowToast(string.Format(EveConsole.Localization.CommonText.ErrorWithMessage, ex.Message));
+                }
+            });
+        vm.InvLevelVm.AddToProductionQueue    = AddToProduction;
+        vm.ItemBrowserVm.AddToProductionQueue = AddToProduction;
+
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {

@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>已将 {0} 件物品加入生产队列</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 件物品无法制造，未加入</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>过去 30 天的销售</value>
   </data>

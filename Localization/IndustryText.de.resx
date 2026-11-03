@@ -421,6 +421,12 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>{0} Gegenstände zur Produktionswarteschlange hinzugefügt</value>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} Gegenstand ausgelassen: Er lässt sich nicht bauen</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} Gegenstände ausgelassen: Sie lassen sich nicht bauen</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Verkäufe der letzten 30 Tage</value>
   </data>

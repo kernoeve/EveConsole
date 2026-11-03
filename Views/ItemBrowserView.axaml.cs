@@ -162,12 +162,19 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
     {
         if (Vm is not { } vm) return;
         var items = new List<Control>(extra) { QuickbarItem(vm, typeId) };
-        if (vm.AddToStandingBuyOrders is { } add)
-        {
-            items.Add(new Separator());
-            items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add([typeId])));
-        }
+        AddSendTo(vm, items, typeId);
         new ContextMenu { ItemsSource = items }.Open(at);
+    }
+
+    /// <summary>To a standing buy order, then to the Production Calculator's queue.</summary>
+    private static void AddSendTo(ItemBrowserViewModel vm, List<Control> items, int typeId)
+    {
+        if (vm.AddToStandingBuyOrders is null && vm.AddToProductionQueue is null) return;
+        items.Add(new Separator());
+        if (vm.AddToStandingBuyOrders is { } add)
+            items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add([typeId])));
+        if (vm.AddToProductionQueue is { } queue)
+            items.Add(Item(IndustryText.OppsMenuAddQueue, () => queue([typeId])));
     }
 
     private void OnTreeContextRequested(object? sender, ContextRequestedEventArgs e)
@@ -202,11 +209,7 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
         {
             items.Add(MoveTo(vm.QuickbarDestinations(), into => vm.MoveQuickbarItemAsync(typeId, into)));
             items.Add(Item(AssetsText.MenuRemoveFromQuickbar, () => _ = vm.RemoveFromQuickbarAsync(typeId)));
-            if (vm.AddToStandingBuyOrders is { } add)
-            {
-                items.Add(new Separator());
-                items.Add(Item(MarketText.MenuAddToStandingBuyOrders, () => add([typeId])));
-            }
+            AddSendTo(vm, items, typeId);
         }
         else if (node is { FolderId: { } folderId })
         {

@@ -1861,6 +1861,9 @@ public class ItemBrowserViewModel : ReactiveObject
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
     public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
+    /// <summary>Puts an item in the Production Calculator's queue, after what is there. Wired by the main window.</summary>
+    public Action<IReadOnlyList<int>>? AddToProductionQueue { get; set; }
+
     public async Task LoadQuickbarAsync()
     {
         if (_dbFactory is null) return;

@@ -427,6 +427,18 @@
   <data name="OppsToastQueuedMany" xml:space="preserve">
     <value>{0} предметов добавлено в очередь производства</value>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} предмет пропущен: его нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} предмета пропущено: их нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableFew" xml:space="preserve">
+    <value>{0} предмета пропущено: их нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableMany" xml:space="preserve">
+    <value>{0} предметов пропущено: их нельзя произвести</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Продажи за последние 30 дней</value>
   </data>

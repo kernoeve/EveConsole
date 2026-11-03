@@ -791,6 +791,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> AddFromBlueprintCommand      { get; }
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand     { get; }
     public ReactiveCommand<Unit, Unit> AddToStandingBuyOrdersCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddToProductionQueueCommand   { get; }
 
     // ── Dialog delegates ──────────────────────────────────────────────────────
     public Func<IReadOnlyList<CollectionOption>, Task<InvGroupDialogResult?>>?              ShowAddGroupDialog        { get; set; }
@@ -882,6 +883,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             this.WhenAnyValue(x => x.IsItemRowSelected));
         AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
             () => { if (_selectedRow is InvItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); },
+            this.WhenAnyValue(x => x.IsItemRowSelected));
+        AddToProductionQueueCommand = ReactiveCommand.Create(
+            () => { if (_selectedRow is InvItemRow item) AddToProductionQueue?.Invoke([item.TypeId]); },
             this.WhenAnyValue(x => x.IsItemRowSelected));
 
         // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
@@ -1364,6 +1368,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
     public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
+
+    /// <summary>Puts an item in the Production Calculator's queue, after what is there. Wired by the main window.</summary>
+    public Action<IReadOnlyList<int>>? AddToProductionQueue { get; set; }
 
     private void OpenSelectedInItemBrowser()
     {

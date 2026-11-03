@@ -560,6 +560,14 @@
     <value>{0} items added to the production queue</value>
     <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} item left out: nothing builds it</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} items left out: nothing builds them</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Sales Over the Past 30 Days</value>
     <comment>Industry Ops, Summary tab: label centred over the Units, Avg Price, Margin, Sales and Profit columns of each list.</comment>

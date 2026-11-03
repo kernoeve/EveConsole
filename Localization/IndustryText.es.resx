@@ -421,6 +421,12 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>{0} objetos añadidos a la cola de producción</value>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} objeto omitido: no se puede fabricar</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} objetos omitidos: no se pueden fabricar</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Ventas de los últimos 30 días</value>
   </data>

@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>아이템 {0}개를 생산 대기열에 추가했습니다</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>아이템 {0}개는 제조할 수 없어 추가하지 않았습니다</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>지난 30일 판매</value>
   </data>

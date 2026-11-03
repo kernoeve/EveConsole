@@ -107,6 +107,9 @@
           <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}"
                     Command="{Binding AddToStandingBuyOrdersCommand}"
                     IsEnabled="{Binding IsItemRowSelected}" />
+          <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}"
+                    Command="{Binding AddToProductionQueueCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
           <Separator />
           <MenuItem Header="{x:Static loc:AssetsText.MenuAddItemsFromFit}"
                     Command="{Binding AddFromFitCommand}" />
