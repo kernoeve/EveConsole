@@ -1678,6 +1678,18 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>산업 작업</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>완료된 작업</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>완료된 작업 {0:N0}개 수령</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>완료되어 수령 대기 중: {0}. 수령하면 슬롯이 비고 결과물이 격납고에 들어갑니다.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>외 {0:N0}개</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} {1:N0}개 제조.</value>
   </data>

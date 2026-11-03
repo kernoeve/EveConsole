@@ -1690,6 +1690,21 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>Industrieaufträge</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Abgeschlossene Aufträge</value>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>{0:N0} abgeschlossenen Industrieauftrag ausliefern</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>{0:N0} abgeschlossene Industrieaufträge ausliefern</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Fertig und bereit zur Auslieferung: {0}. Das Ausliefern gibt den Platz frei und legt das Ergebnis in den Hangar.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>und {0:N0} weitere</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} {1:N0} bauen.</value>
   </data>

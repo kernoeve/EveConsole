@@ -2244,6 +2244,26 @@
     <value>Industry Jobs</value>
     <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): manufacturing and reaction jobs to start.</comment>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Completed Jobs</value>
+    <comment>Worklist Config, Sources: finished industry jobs waiting to be delivered, raised as tasks at the top of the jobs.</comment>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>Deliver {0:N0} completed job</value>
+    <comment>Worklist task: deliver finished industry jobs at one facility. {0} is how many jobs.</comment>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>Deliver {0:N0} completed jobs</value>
+    <comment>Worklist task: deliver finished industry jobs at one facility. {0} is how many jobs.</comment>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Finished and waiting to be delivered: {0}. Delivering frees the slot and puts the output in the hangar.</value>
+    <comment>Worklist task detail for delivering finished jobs. {0} lists what comes out (item ×count).</comment>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>and {0:N0} more</value>
+    <comment>Appended to the list in DeliverJobsDetail. {0} is how many more items.</comment>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} Build {1:N0}.</value>
     <comment>Worklist job detail when the job cannot be planned at all. {0} is why it is wanted (one or more sentences), {1} the units to build. "Build" is a verb.</comment>

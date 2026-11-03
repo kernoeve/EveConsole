@@ -1678,6 +1678,18 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>生産ジョブ</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>完了したジョブ</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>完了したジョブ{0:N0}件を配送</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>完了して配送待ち：{0}。配送するとスロットが空き、成果物がハンガーに入ります。</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>ほか{0:N0}件</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0}{1:N0}個を製造します。</value>
   </data>

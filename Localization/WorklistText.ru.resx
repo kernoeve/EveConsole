@@ -1714,6 +1714,27 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>Промышленные проекты</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Завершённые проекты</value>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>Доставить {0:N0} завершённый проект</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>Доставить {0:N0} завершённого проекта</value>
+  </data>
+  <data name="DeliverJobsTitleFew" xml:space="preserve">
+    <value>Доставить {0:N0} завершённых проекта</value>
+  </data>
+  <data name="DeliverJobsTitleMany" xml:space="preserve">
+    <value>Доставить {0:N0} завершённых проектов</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Завершены и ждут доставки: {0}. Доставка освобождает слот и кладёт результат в ангар.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>и ещё {0:N0}</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} Произвести {1:N0}.</value>
   </data>

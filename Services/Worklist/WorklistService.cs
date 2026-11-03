@@ -199,6 +199,7 @@ public class WorklistService(
                 // may well be this cargo (a print, say, which is no shortage of the job's).
                 var ready = all
                     .Where(x => x.Kind == WorklistKind.Job && x.Readiness != WorklistReadiness.Blocked
+                             && x.Source != "completed_jobs"   // a delivery is not the build
                              && drops.ContainsKey(x.LocationId))
                     .Select(x => x.TypeId)
                     .ToHashSet();

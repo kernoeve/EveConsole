@@ -1678,6 +1678,18 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>工业任务</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>已完成任务</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>交付 {0:N0} 个已完成任务</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>已完成，等待交付：{0}。交付后会腾出栏位，产出放入机库。</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>另有 {0:N0} 个</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} 需制造 {1:N0}。</value>
   </data>
