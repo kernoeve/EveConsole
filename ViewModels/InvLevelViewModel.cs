@@ -356,6 +356,11 @@ public class InvGroupRow : InvHeaderRow
         }
     }
 
+    /// <summary>The scope and the sources in full, for the row's tooltip: on the line they are cut
+    /// off at the column's edge when long.</summary>
+    public string ConfigTip       => $"{ScopeDisplay}\n{IncludeSummary}";
+    public string LocationLinkTip => $"{ConfigTip}\n{Localization.AssetsText.TipOpenThisLocation}";
+
     public ReactiveCommand<Unit, Unit> ToggleCommand    { get; }
     public ReactiveCommand<Unit, Unit> EditCommand      { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand    { get; }
@@ -412,6 +417,8 @@ public class InvGroupRow : InvHeaderRow
         this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(HasLocationLink));
         this.RaisePropertyChanged(nameof(IncludeSummary));
+        this.RaisePropertyChanged(nameof(ConfigTip));
+        this.RaisePropertyChanged(nameof(LocationLinkTip));
     }
 }
 

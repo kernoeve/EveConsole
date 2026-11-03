@@ -235,8 +235,10 @@
                 </StackPanel>
 
                 <!-- Group row: toggle + name + multiplier + action buttons + scope/locality -->
+                <!-- The tooltip: the blue scope and sources in full, which a narrow column cuts off. -->
                 <StackPanel IsVisible="{Binding IsGroup}" Orientation="Horizontal" Spacing="6"
-                            Canvas.Left="20" Canvas.Top="2">
+                            Canvas.Left="20" Canvas.Top="2"
+                            ToolTip.Tip="{Binding ConfigTip}">
                   <Button Command="{Binding ToggleCommand}"
                           Content="{Binding ExpanderIcon}"
                           Background="Transparent" BorderThickness="0"
@@ -276,7 +278,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="0" Margin="8 0 0 0">
                     <Button Classes="link" Click="OnOpenGroupLocation"
                             IsVisible="{Binding HasLocationLink}"
-                            ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisLocation}">
+                            ToolTip.Tip="{Binding LocationLinkTip}">
                       <TextBlock Text="{Binding LocationDisplay}" Classes="linktext"
                                  FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                     </Button>
