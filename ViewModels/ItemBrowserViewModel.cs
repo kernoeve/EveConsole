@@ -1002,10 +1002,17 @@ public class ItemBrowserViewModel : ReactiveObject
             // A copy is priced by the run, which is how copies are compared.
             static long Units(ContractItem i) => i.IsBlueprintCopy is true && i.Runs is > 0 ? i.Runs.Value * i.Quantity : i.Quantity;
 
+            // A print among the rest of a contract as copy or original, as everywhere one is named
+            // (PrintLabel): public listings say which, the player's own mark a copy (raw quantity -2).
+            static PrintKind KindOf(ContractItem i) =>
+                i.IsBlueprintCopy is true || i.RawQuantity == -2 ? PrintKind.Copy
+              : i.IsBlueprintCopy is false                       ? PrintKind.Original
+              :                                                    PrintKind.None;
+
             string Summary(IEnumerable<ContractItem> lines)
             {
-                var named = lines.GroupBy(i => i.TypeId)
-                    .Select(g => $"{Name(g.Key)} ×{g.Sum(i => i.Quantity):N0}")
+                var named = lines.GroupBy(i => (i.TypeId, Kind: KindOf(i)))
+                    .Select(g => $"{PrintLabel.Suffix(Name(g.Key.TypeId), g.Key.Kind)} ×{g.Sum(i => i.Quantity):N0}")
                     .ToList();
                 if (named.Count <= 2) return string.Join(", ", named);
                 return string.Format(MarketText.ContractContentsAndMore, string.Join(", ", named.Take(2)), named.Count - 2);

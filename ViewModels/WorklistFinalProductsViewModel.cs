@@ -97,7 +97,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
     private sealed record RawJob(
         int JobId, int TypeId, string Item, string Source, string Status,
         int Runs, long Units, DateTime Started, DateTime Completed,
-        double BuildCost, double MarketValue);
+        double BuildCost, double MarketValue, PrintKind Print = PrintKind.None);
 
     private List<RawJob> _all = [];
 
@@ -307,7 +307,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                      && j.Status != "cancelled")
             .Select(j => new
             {
-                j.JobId, j.ProductTypeId, j.Runs, j.Status,
+                j.JobId, j.ProductTypeId, j.Runs, j.Status, j.ActivityId,
                 j.StartDate, j.EndDate, j.CompletedDate,
             })
             .ToListAsync(ct);
@@ -390,7 +390,15 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                 j.Runs, units,
                 j.StartDate.UtcDateTime.Date, completed,
                 (unitBuild  ?? 0) * units,
-                (unitMarket ?? 0) * units));
+                (unitMarket ?? 0) * units,
+                // A final product that is itself a blueprint: copying and invention make copies,
+                // research works on the original. See PrintLabel.
+                j.ActivityId switch
+                {
+                    5 or 8 => PrintKind.Copy,
+                    3 or 4 => PrintKind.Original,
+                    _      => PrintKind.None,
+                }));
         }
 
         return list;
@@ -412,7 +420,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                 JobId     = r.JobId,
                 TypeId    = r.TypeId,
                 // Only ever shown; the raw row keeps the English.
-                Item      = SdeNames.Type(r.TypeId, r.Item),
+                Item      = PrintLabel.Name(r.TypeId, r.Item, r.Print),
                 Source    = r.Source,
                 Status    = r.Status,
                 Runs      = r.Runs,
