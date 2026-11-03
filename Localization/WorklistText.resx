@@ -2024,14 +2024,6 @@
     <value>queued behind another job</value>
     <comment>Beside a job in a Worklist row's "waiting on this" panel: an earlier job has already claimed the stock this delivery carries. Lower case.</comment>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>also short of {0:N0} item</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many (one). Lower case.</comment>
-  </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>also short of {0:N0} items</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many. Lower case.</comment>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>A build this delivery is for. It is what the planner raised the trip for, and has not been broken out into a task of its own yet.</value>
     <comment>Tooltip beside a planned build in a Worklist row's "waiting on this" panel.</comment>

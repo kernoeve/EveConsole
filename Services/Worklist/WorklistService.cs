@@ -230,7 +230,16 @@ public class WorklistService(
                                                          .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
                             QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)),
                             WithOtherLoops: shared,
-                            ByLoop: haul.Stops.Count > 0);
+                            ByLoop: haul.Stops.Count > 0,
+                            // What it would still lack once this cargo is down, item by item —
+                            // this cargo's own items too where the drop does not cover them (or
+                            // where the stock it came from is claimed). m³ is stamped on with the
+                            // rest of the volumes, in ApplyVolumeAsync.
+                            Missing: [.. outstanding
+                                .GroupBy(s => s.TypeId)
+                                .Select(g => new WorklistLine(g.Key, g.First().TypeName,
+                                    Math.Max(1, g.Sum(s => s.Short)
+                                                - (g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key)))))]);
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenByDescending(w => w.WithOtherLoops)
@@ -653,6 +662,8 @@ public class WorklistService(
             .SelectMany(i => i.Lines.Count > 0
                 ? i.Lines.Select(l => l.TypeId)
                 : i.Quantity > 0 && i.TypeId > 0 ? [i.TypeId] : Array.Empty<int>())
+            // And what the jobs waiting on a haul would still lack, for its tooltip's m³.
+            .Concat(items.SelectMany(i => i.WaitingJobs).SelectMany(w => w.MissingLines).Select(l => l.TypeId))
             .Distinct().ToList();
         if (typeIds.Count == 0) return;
 
@@ -697,6 +708,17 @@ public class WorklistService(
 
                 if (m3 > 0 || isk > 0)
                     section.Items[i] = item with { Volume = m3, Value = isk, Lines = lines };
+
+                if (item.WaitingJobs.Any(w => w.MissingLines.Any(l => l.Volume == 0)))
+                    section.Items[i] = section.Items[i] with
+                    {
+                        WaitingJobs = [.. item.WaitingJobs.Select(w => w.MissingLines.Count == 0 ? w : w with
+                        {
+                            Missing = [.. w.MissingLines.Select(l => l.Volume > 0 ? l
+                                          : l with { Volume = volumes.GetValueOrDefault(l.TypeId) * l.Quantity })
+                                       .OrderByDescending(l => l.Volume).ThenBy(l => l.TypeName)],
+                        })],
+                    };
             }
         }
     }

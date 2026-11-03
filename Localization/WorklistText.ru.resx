@@ -1531,18 +1531,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>в очереди за другим проектом</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>также не хватает {0:N0} предмета</value>
-  </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>также не хватает {0:N0} предмета</value>
-  </data>
-  <data name="WaitAlsoShortFew" xml:space="preserve">
-    <value>также не хватает {0:N0} предметов</value>
-  </data>
-  <data name="WaitAlsoShortMany" xml:space="preserve">
-    <value>также не хватает {0:N0} предметов</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Производство, для которого предназначена эта доставка. Ради него планировщик и создал рейс, но в отдельную задачу оно ещё не выделено.</value>
   </data>

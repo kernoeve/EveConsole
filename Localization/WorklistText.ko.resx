@@ -1513,9 +1513,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>다른 작업 뒤에 대기</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>다른 아이템 {0:N0}개도 부족</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>이 배송의 대상인 제조입니다. 계획기가 이 운반을 만든 이유이며, 아직 별도의 작업 항목으로 나뉘지 않았습니다.</value>
   </data>

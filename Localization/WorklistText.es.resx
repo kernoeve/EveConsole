@@ -1519,12 +1519,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>en cola detrás de otro trabajo</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>también le falta {0:N0} objeto</value>
-  </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>también le faltan {0:N0} objetos</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Una fabricación a la que va destinada esta entrega. Es para lo que el planificador generó el viaje, y aún no se ha separado en una tarea propia.</value>
   </data>

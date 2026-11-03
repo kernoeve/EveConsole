@@ -1513,9 +1513,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>排在另一个任务之后</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>还缺 {0:N0} 种物品</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>这趟运送所服务的一项制造。规划器正是为它安排了这一趟，但它尚未拆分为独立的工作项。</value>
   </data>

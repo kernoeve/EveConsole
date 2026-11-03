@@ -321,17 +321,22 @@ public class LogisticsGenerator(
         var needNames = await NamesAsync(db, needTypes, ct);
         var (_, needVolumes) = await PriceAndVolumeAsync(db, needTypes, ct);
 
-        // ⚠️ Against the station's stock as a whole, with this drop added — not a share of it. A
-        // station's stock is not set aside build by build; which build gets it is the job
-        // planner's call. So this is the build's own view: what would still be missing if it went
-        // first. Other trips bound for the same station are not counted: they are what the reader
-        // still has to fly.
+        // ⚠️ Against everything the station wants, not this build alone. Measured as if the build
+        // had the station's stock to itself, it read "nothing else missing" under the very trip
+        // that exists because every build there together wants more than will be on hand: each
+        // one alone fits, all of them do not, and which goes first is the job planner's call. So
+        // a thing is still missing for a build while the station as a whole will still be short
+        // of it once this cargo is down — as much of it as the build wants, at most what the
+        // station is short. Other trips bound for the same station are not counted: they are
+        // what the reader still has to fly.
         List<WorklistLine> MissingAfter(int driver, IEnumerable<long> stations,
                                         IReadOnlyDictionary<(long Station, int TypeId), long> dropped) =>
             [.. stations.Distinct()
                 .SelectMany(st => buildNeeds.GetValueOrDefault((st, driver))?.Select(n => (st, n.Key, n.Value)) ?? [])
-                .Select(x => (x.Key, Short: x.Value - stock.GetValueOrDefault((x.st, x.Key))
-                                                    - dropped.GetValueOrDefault((x.st, x.Key))))
+                .Select(x => (x.Key, Short: Math.Min(x.Value,
+                                                     (want.GetValueOrDefault((x.st, x.Key))?.Qty ?? x.Value)
+                                                     - stock.GetValueOrDefault((x.st, x.Key))
+                                                     - dropped.GetValueOrDefault((x.st, x.Key)))))
                 .Where(x => x.Short > 0)
                 .GroupBy(x => x.Key)
                 .Select(g => new WorklistLine(g.Key,

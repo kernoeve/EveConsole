@@ -1513,9 +1513,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>別のジョブの後ろで待機中</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>他に{0:N0}種類のアイテムも不足</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>この配送の対象となる製造です。プランナーがこの便を作成した理由であり、まだ独立したタスクに分けられていません。</value>
   </data>

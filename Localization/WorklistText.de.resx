@@ -1519,12 +1519,6 @@
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>wartet hinter einem anderen Auftrag</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>ihm fehlt auch {0:N0} Gegenstand</value>
-  </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>ihm fehlen auch {0:N0} Gegenstände</value>
-  </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Ein Bau, für den diese Lieferung bestimmt ist. Für ihn hat der Planer den Flug angelegt; er ist noch nicht als eigene Aufgabe ausgewiesen.</value>
   </data>
