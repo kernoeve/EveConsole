@@ -770,9 +770,31 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         {
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
             this.RaisePropertyChanged(nameof(IsItemRowSelected));
+            this.RaisePropertyChanged(nameof(AreItemRowsSelected));
         }
     }
     public bool IsItemRowSelected => _selectedRow is InvItemRow;
+
+    private IReadOnlyList<InvItemRow> _selectedItemRows = [];
+    /// <summary>Every highlighted item, across groups — set by the view, as the grid has no
+    /// binding for its SelectedItems. What a send-to (buy orders, production queue) acts on.</summary>
+    public IReadOnlyList<InvItemRow> SelectedItemRows
+    {
+        get => _selectedItemRows;
+        set
+        {
+            _selectedItemRows = value;
+            this.RaisePropertyChanged(nameof(AreItemRowsSelected));
+        }
+    }
+    public bool AreItemRowsSelected => _selectedItemRows.Count > 0 || _selectedRow is InvItemRow;
+
+    /// <summary>The highlighted items' types, once each; the current row when the view has not
+    /// said.</summary>
+    private List<int> SelectedTypeIds() =>
+        _selectedItemRows.Count > 0 ? [.. _selectedItemRows.Select(r => r.TypeId).Distinct()]
+        : _selectedRow is InvItemRow item ? [item.TypeId]
+        : [];
 
     private string _statusText = CommonText.Loading;
     public string StatusText
@@ -882,11 +904,11 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         OpenInItemBrowserCommand     = ReactiveCommand.Create(OpenSelectedInItemBrowser,
             this.WhenAnyValue(x => x.IsItemRowSelected));
         AddToStandingBuyOrdersCommand = ReactiveCommand.Create(
-            () => { if (_selectedRow is InvItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); },
-            this.WhenAnyValue(x => x.IsItemRowSelected));
+            () => { if (SelectedTypeIds() is { Count: > 0 } ids) AddToStandingBuyOrders?.Invoke(ids); },
+            this.WhenAnyValue(x => x.AreItemRowsSelected));
         AddToProductionQueueCommand = ReactiveCommand.Create(
-            () => { if (_selectedRow is InvItemRow item) AddToProductionQueue?.Invoke([item.TypeId]); },
-            this.WhenAnyValue(x => x.IsItemRowSelected));
+            () => { if (SelectedTypeIds() is { Count: > 0 } ids) AddToProductionQueue?.Invoke(ids); },
+            this.WhenAnyValue(x => x.AreItemRowsSelected));
 
         // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
         // built at launch; labelled because the error log otherwise cannot tell one periodic

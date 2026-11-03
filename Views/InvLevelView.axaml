@@ -97,7 +97,9 @@
               FontSize="11"
               RowHeight="25"
               BorderThickness="0"
-              KeyDown="OnGridKeyDown">
+              KeyDown="OnGridKeyDown"
+              SelectionChanged="OnGridSelectionChanged"
+              ContextRequested="OnGridContextRequested">
 
       <DataGrid.ContextMenu>
         <ContextMenu>
@@ -106,10 +108,10 @@
                     IsEnabled="{Binding IsItemRowSelected}" />
           <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}"
                     Command="{Binding AddToStandingBuyOrdersCommand}"
-                    IsEnabled="{Binding IsItemRowSelected}" />
+                    IsEnabled="{Binding AreItemRowsSelected}" />
           <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}"
                     Command="{Binding AddToProductionQueueCommand}"
-                    IsEnabled="{Binding IsItemRowSelected}" />
+                    IsEnabled="{Binding AreItemRowsSelected}" />
           <Separator />
           <MenuItem Header="{x:Static loc:AssetsText.MenuAddItemsFromFit}"
                     Command="{Binding AddFromFitCommand}" />
