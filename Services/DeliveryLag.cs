@@ -201,6 +201,45 @@ public static class DeliveryLag
         return result;
     }
 
+    /// <summary>
+    /// The runs that jobs delivered since the owner's last blueprint poll took off the copies they
+    /// ran on, by the copy's item id.
+    ///
+    /// <para>⚠️ The other side of <see cref="PrintsAsync"/>. A copy in a running job keeps its runs
+    /// in the blueprint snapshot — every one measured did, 1 run on the print for a 1-run job — and
+    /// gives them up only when the job is delivered. Until the next poll the snapshot still holds
+    /// the spent copy, no longer in a live job and so free: two Phoenix copies consumed by
+    /// invention at three in the morning were handed out again as two Ready invention jobs.
+    /// Measured against the clock of the job's own owner, as the deliveries are.</para>
+    /// </summary>
+    public static async Task<Dictionary<long, int>> SpentCopyRunsAsync(AppDbContext db, CancellationToken ct)
+    {
+        if (Worklist.BuildCache.IsActive)
+            return await Worklist.BuildCache.GetOrAddAsync("DeliveryLag.SpentCopyRuns", () => SpentCopyRunsUncachedAsync(db, ct));
+        return await SpentCopyRunsUncachedAsync(db, ct);
+    }
+
+    private static async Task<Dictionary<long, int>> SpentCopyRunsUncachedAsync(AppDbContext db, CancellationToken ct)
+    {
+        var snapshot = await SnapshotAsync(db, "char.blueprints", "corp.blueprints", ct);
+        if (snapshot.Count == 0) return [];
+
+        // Manufacturing and invention spend a copy's runs; copying and research run on originals.
+        var rows = await db.EsiIndustryJobs.AsNoTracking()
+            .Where(j => j.Status == "delivered" && j.CompletedDate != null
+                     && (j.ActivityId == 1 || j.ActivityId == 8))
+            .Select(j => new { j.JobId, j.OwnerType, j.OwnerId, j.BlueprintId, j.Runs, j.CompletedDate })
+            .ToListAsync(ct);
+
+        // Deduped first, the corporation's row kept, as in ItemsAsync. ⚠️ Compared in memory.
+        return rows
+            .GroupBy(j => j.JobId)
+            .Select(g => g.FirstOrDefault(j => j.OwnerType == "corporation") ?? g.First())
+            .Where(j => snapshot.TryGetValue(j.OwnerId, out var taken) && j.CompletedDate > taken)
+            .GroupBy(j => j.BlueprintId)
+            .ToDictionary(g => g.Key, g => g.Sum(j => j.Runs));
+    }
+
     /// <summary>When each owner's copy of the given resource was last read — the clock a delivery is measured against.</summary>
     private static async Task<Dictionary<long, DateTimeOffset>> SnapshotAsync(
         AppDbContext db, string characterEndpoint, string corporationEndpoint, CancellationToken ct) =>
