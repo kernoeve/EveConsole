@@ -36,7 +36,11 @@ public sealed record ShortageTask(
     string Title,
     string State,
     string Why,
-    int    TypeId = 0);
+    int    TypeId = 0)
+{
+    /// <summary>The task's item when it is a blueprint: a copy or an original, for its picture.</summary>
+    public PrintKind Print { get; init; }
+}
 
 public sealed record ItemShortage(
     int    TypeId,
@@ -437,7 +441,7 @@ public class ItemContentionService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Making", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId)).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId) { Print = i.Print }).ToList());
 
         var makes = items
             .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)

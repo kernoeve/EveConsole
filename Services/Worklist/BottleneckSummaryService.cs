@@ -16,7 +16,7 @@ namespace EveConsole.Services.Worklist;
 ///
 /// <para>TypeId 0 for a point about no particular item, which is what the slot findings are.</para>
 /// </summary>
-public sealed record ObservationPoint(int TypeId, string Text)
+public sealed record ObservationPoint(int TypeId, string Text, PrintKind Print = PrintKind.None)
 {
     public static implicit operator ObservationPoint(string text) => new(0, text);
 }
@@ -221,7 +221,7 @@ public class BottleneckSummaryService
             [.. buys.Take(MaxNamed).Select(x => new ObservationPoint(x.Item.TypeId,
                 x.Stalled.Count > 0
                     ? string.Format(WorklistText.SummaryBuyUnblocks, x.Item.Title, x.Stalled.Count)
-                    : x.Item.Title))]);
+                    : x.Item.Title, x.Item.Print))]);
     }
 
     // ── Buffers ───────────────────────────────────────────────────────────────

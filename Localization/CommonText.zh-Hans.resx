@@ -358,4 +358,10 @@
   <data name="ItemNameFilterShowing" xml:space="preserve">
     <value>显示 {0:N0} / {1:N0}</value>
   </data>
+  <data name="PrintCopyName" xml:space="preserve">
+    <value>{0}（拷贝）</value>
+  </data>
+  <data name="PrintOriginalName" xml:space="preserve">
+    <value>{0}（原件）</value>
+  </data>
 </root>

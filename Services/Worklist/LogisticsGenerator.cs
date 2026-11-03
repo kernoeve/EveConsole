@@ -52,8 +52,11 @@ public sealed record NeedDriver(
     /// no product behind it. The product as the screen names it; DriverName stays English.</summary>
     public string Label => DriverTypeId <= 0
         ? Kind
-        : Units > 1 ? $"{SdeNames.Type(DriverTypeId, DriverName)} ×{Units:N0}"
-                    : SdeNames.Type(DriverTypeId, DriverName);
+        : Units > 1 ? $"{PrintLabel.Name(DriverTypeId, DriverName, Print)} ×{Units:N0}"
+                    : PrintLabel.Name(DriverTypeId, DriverName, Print);
+
+    /// <summary>When what is being made is itself a blueprint (a T2 print invented): a copy.</summary>
+    public PrintKind Print { get; init; }
 }
 
 /// <summary>
@@ -93,7 +96,10 @@ public sealed record StationNeed(
     IReadOnlyList<NeedDriver>? Drivers = null,
 
     /// <param name="InBuild">Units already coming out of a running job that delivers HERE.</param>
-    long   InBuild = 0)
+    long   InBuild = 0,
+
+    /// <param name="Print">A blueprint's kind: see <see cref="PrintLabel"/>.</param>
+    PrintKind Print = PrintKind.None)
 {
     /// <summary>What is asking for this, largest first. Empty when nothing itemised it.</summary>
     public IReadOnlyList<NeedDriver> Why => Drivers ?? [];
@@ -321,6 +327,16 @@ public class LogisticsGenerator(
         var needNames = await NamesAsync(db, needTypes, ct);
         var (_, needVolumes) = await PriceAndVolumeAsync(db, needTypes, ct);
 
+        // Whether a blueprint the plan moves is a copy or an original, for its picture and name.
+        //
+        // ⚠️ The plan moves a TYPE: stock is counted by type at a station, originals and copies
+        // alike. What is wanted at the far end says which: copies for invention, and a print a
+        // build consumes (a copy bought by the run) are copies; a print a build runs on is an
+        // original where one is owned. Anything else — stock going home — is what stands free at
+        // the source. Reaction formulas are not labelled: they are always originals.
+        var printFacts = await PrintFactsAsync(ctx, ct);
+        PrintKind PrintAt(long to, int typeId, long from) => printFacts.At(drivers, to, typeId, from);
+
         // ⚠️ Against everything the station wants, not this build alone. Measured as if the build
         // had the station's stock to itself, it read "nothing else missing" under the very trip
         // that exists because every build there together wants more than will be on hand: each
@@ -333,7 +349,7 @@ public class LogisticsGenerator(
                                         IReadOnlyDictionary<(long Station, int TypeId), long> dropped) =>
             [.. stations.Distinct()
                 .SelectMany(st => buildNeeds.GetValueOrDefault((st, driver))?.Select(n => (st, n.Key, n.Value)) ?? [])
-                .Select(x => (x.Key, Short: Math.Min(x.Value,
+                .Select(x => (x.st, x.Key, Short: Math.Min(x.Value,
                                                      (want.GetValueOrDefault((x.st, x.Key))?.Qty ?? x.Value)
                                                      - stock.GetValueOrDefault((x.st, x.Key))
                                                      - dropped.GetValueOrDefault((x.st, x.Key)))))
@@ -342,7 +358,8 @@ public class LogisticsGenerator(
                 .Select(g => new WorklistLine(g.Key,
                                  needNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
                                  g.Sum(x => x.Short))
-                             { Volume = g.Sum(x => x.Short) * needVolumes.GetValueOrDefault(g.Key) })
+                             { Volume = g.Sum(x => x.Short) * needVolumes.GetValueOrDefault(g.Key),
+                               Print  = PrintAt(g.First().st, g.Key, 0) })
                 .OrderByDescending(l => l.Volume)
                 .ThenBy(l => l.TypeName)];
 
@@ -370,12 +387,12 @@ public class LogisticsGenerator(
         // one task per pair of stations.
         bool InSystem(Move m) => trips.TryGetValue((m.From, m.To), out var t) && t.Lane == HaulLane.InSystem;
         var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
-        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, MissingAfter, ShortBefore, ct);
+        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, MissingAfter, ShortBefore, PrintAt, ct);
 
         // A service's trip is sized by the contract, and that by its volume.
         var between = moves.Where(m => !InSystem(m)).ToList();
         var (_, tripVolumes) = await PriceAndVolumeAsync(db, between.Select(m => m.TypeId).Distinct().ToList(), ct);
-        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter, ShortBefore), .. loops];
+        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter, ShortBefore, PrintAt), .. loops];
     }
 
     /// <summary>
@@ -480,7 +497,7 @@ public class LogisticsGenerator(
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, Dictionary<int, string> driverNames,
         IReadOnlyDictionary<long, double> unplannedM3,
         Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter,
-        Func<long, int, bool> shortBefore, CancellationToken ct)
+        Func<long, int, bool> shortBefore, Func<long, int, long, PrintKind> printAt, CancellationToken ct)
     {
         var items = new List<WorklistItem>();
         if (moves.Count == 0) return items;
@@ -641,14 +658,16 @@ public class LogisticsGenerator(
                         st.StationId, Place(st.StationId), st.TurnBefore,
                         st.DropOff.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
                                                                     c.Quantity * c.UnitM3, c.From, Place(c.From))
-                                               { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList(),
+                                               { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId),
+                                                 Print = printAt(c.To, c.TypeId, c.From) }).ToList(),
                         st.PickUp.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
                                                                    c.Quantity * c.UnitM3, c.To, Place(c.To))
-                                              { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList()))
+                                              { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId),
+                                                Print = printAt(c.To, c.TypeId, c.From) }).ToList()))
                     .ToList();
 
                 var manifest = moved.GroupBy(m => m.TypeId)
-                    .Select(g => (TypeId: g.Key, Qty: g.Sum(m => m.Qty)))
+                    .Select(g => (TypeId: g.Key, Qty: g.Sum(m => m.Qty), Print: printAt(g.First().To, g.Key, g.First().From)))
                     .OrderByDescending(x => x.Qty)
                     .ToList();
 
@@ -670,7 +689,8 @@ public class LogisticsGenerator(
                         TypeId: x.g.Key,
                         TypeName: driverNames.GetValueOrDefault(x.g.Key, string.Format(WorklistText.TypeWithId, x.g.Key)),
                         Unblocked: x.Missing.Count == 0, StillShortOf: [], WantsUnits: x.g.Sum(y => y.Driver.Qty),
-                        ByLoop: true, Missing: x.Missing))
+                        ByLoop: true, Missing: x.Missing,
+                        Print: printAt(0, x.g.Key, 0) == PrintKind.None ? PrintKind.None : PrintKind.Copy))
                     .OrderBy(w => w.MissingLines.Count)
                     .ThenByDescending(w => w.WantsUnits)
                     .ToList();
@@ -687,7 +707,7 @@ public class LogisticsGenerator(
                     Source       = Id,
                     Kind         = WorklistKind.Haul,
                     // ⚠️ One item: its name. "1 item(s)" hid 945 million Tritanium for 132 stopped jobs.
-                    Title        = manifest.Count == 1 ? SdeNames.Type(manifest[0].TypeId, Name(manifest[0].TypeId))
+                    Title        = manifest.Count == 1 ? PrintLabel.Name(manifest[0].TypeId, Name(manifest[0].TypeId), manifest[0].Print)
                                                        : string.Format(WorklistText.HaulTitleItems, manifest.Count),
                     Detail       = Because(reason)
                                  + (later > 0 ? " " + string.Format(WorklistText.HaulLoopMore, stops.Count, later) : "")
@@ -695,7 +715,8 @@ public class LogisticsGenerator(
                     Readiness    = WorklistReadiness.Ready,
                     LocationId   = first,
                     LocationName = Place(first),
-                    Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty)).ToList(),
+                    Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty) { Print = c.Print }).ToList(),
+                    Print        = manifest[0].Print,
                     Stops        = stops,
                     LoopTurns    = plan.Turns,
                     LoopSystemId = sys.Key,
@@ -1174,8 +1195,9 @@ public class LogisticsGenerator(
 
         try
         {
-            var (want, stock, drivers, _) = await GatherAsync(db, parkId, ct);
-            if (want.Count == 0) return [];
+            var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
+            if (want.Count == 0 || ctx is null) return [];
+            var printFacts = await PrintFactsAsync(ctx, ct);
 
             var places = await PlaceNamesAsync(db, ct);
 
@@ -1268,9 +1290,12 @@ public class LogisticsGenerator(
                                                           string.Format(WorklistText.TypeWithId, d.DriverTypeId))
                                 : "",
                         })
+                        .Select(d => d with { Print = printFacts.OfBuild(d.DriverTypeId) })
                         .OrderByDescending(d => d.Qty)
                         .ToList(),
-                    ShareOfBuild(kv.Key, kv.Value)))
+                    ShareOfBuild(kv.Key, kv.Value),
+                    // A print kept where it stands (an original at the copy lab) is judged there.
+                    printFacts.At(drivers, kv.Key.Station, kv.Key.TypeId, kv.Key.Station)))
                 .OrderBy(n => n.StationName).ThenBy(n => n.TypeName)
                 .ToList();
         }
@@ -1954,6 +1979,46 @@ public class LogisticsGenerator(
         return homes;
     }
 
+    /// <summary>
+    /// What the plan needs to tell a blueprint copy from an original: see <see cref="At"/>.
+    /// </summary>
+    private sealed record PrintFacts(HashSet<int> PrintIds, HashSet<int> OwnsOriginal, HashSet<(long Site, int TypeId)> OriginalAt)
+    {
+        /// <summary>
+        /// Whether the blueprint wanted at <paramref name="to"/> is a copy or an original.
+        ///
+        /// <para>⚠️ The plan moves a TYPE: stock is counted by type at a station, originals and
+        /// copies alike. What is wanted at the far end says which: copies for invention, and a print
+        /// a build consumes (a copy bought by the run) are copies; a print a build runs on is an
+        /// original where one is owned. Anything else — stock going home, an original kept at the
+        /// copy lab — is an original where one stands free at <paramref name="from"/>, else a
+        /// copy. Not a blueprint, or a reaction formula (always an original): None.</para>
+        /// </summary>
+        public PrintKind At(Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, long to, int typeId, long from)
+        {
+            if (!PrintIds.Contains(typeId)) return PrintKind.None;
+            var kinds = drivers.GetValueOrDefault((to, typeId))?.Select(d => d.DriverKind).ToHashSet() ?? [];
+            if (kinds.Contains(NeedDriverKind.CopiesForInvention) || kinds.Contains(NeedDriverKind.Build)) return PrintKind.Copy;
+            if (kinds.Contains(NeedDriverKind.BlueprintFor))
+                return OwnsOriginal.Contains(typeId) ? PrintKind.Original : PrintKind.Copy;
+            return OriginalAt.Contains((from, typeId)) ? PrintKind.Original : PrintKind.Copy;
+        }
+
+        /// <summary>A build that is itself a blueprint — a T2 print invented — makes copies.</summary>
+        public PrintKind OfBuild(int driverTypeId) => PrintIds.Contains(driverTypeId) ? PrintKind.Copy : PrintKind.None;
+    }
+
+    private async Task<PrintFacts> PrintFactsAsync(ProductionContext ctx, CancellationToken ct)
+    {
+        var formulas = ctx.BpProducts.Where(p => p.Activity == "reaction").Select(p => p.TypeId).ToHashSet();
+        var owners   = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
+        var prints   = await blueprints.LoadAllAsync(ct);
+        return new PrintFacts(
+            ctx.BpTypeIds.Where(id => !formulas.Contains(id)).ToHashSet(),
+            prints.Where(p => p.IsOriginal && owners.Owns(p)).Select(p => p.TypeId).ToHashSet(),
+            prints.Where(p => p.IsOriginal && !p.LockedInJob && owners.Owns(p)).Select(p => (p.LocationId, p.TypeId)).ToHashSet());
+    }
+
     // ── Output ────────────────────────────────────────────────────────────────
 
     private List<WorklistItem> Tasks(
@@ -1963,7 +2028,7 @@ public class LogisticsGenerator(
         Dictionary<(long From, long To), Trip> trips,
         Dictionary<int, double> volumes,
         Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter,
-        Func<long, int, bool> shortBefore)
+        Func<long, int, bool> shortBefore, Func<long, int, long, PrintKind> printAt)
     {
         var items = new List<WorklistItem>();
 
@@ -1981,7 +2046,7 @@ public class LogisticsGenerator(
                      }))
         {
             var cargo  = run.GroupBy(m => m.TypeId)
-                            .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty)))
+                            .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty), Print: printAt(g.First().FinalTo, g.Key, g.First().From)))
                             .OrderByDescending(x => x.Qty)
                             .ToList();
             var reason = run.Min(m => m.Reason);   // the best cargo sets the worth of the run
@@ -2024,7 +2089,9 @@ public class LogisticsGenerator(
                     Unblocked:    x.Missing.Count == 0,
                     StillShortOf: [],
                     WantsUnits:   x.g.Sum(y => y.Driver.Qty),
-                    Missing:      x.Missing))
+                    Missing:      x.Missing,
+                    // A build that is itself a blueprint — a T2 print invented — makes copies.
+                    Print:        printAt(0, x.g.Key, 0) == PrintKind.None ? PrintKind.None : PrintKind.Copy))
                 .OrderBy(w => w.MissingLines.Count)
                 .ThenByDescending(w => w.WantsUnits)
                 .ToList();
@@ -2039,7 +2106,7 @@ public class LogisticsGenerator(
                 Kind         = WorklistKind.Haul,
                 Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContract, cargo.Count, part + 1, parts)
                              // One item: its name, as the loop's are.
-                             : cargo.Count == 1 ? SdeNames.Type(cargo[0].TypeId, names.GetValueOrDefault(cargo[0].TypeId, string.Format(WorklistText.TypeWithId, cargo[0].TypeId)))
+                             : cargo.Count == 1 ? PrintLabel.Name(cargo[0].TypeId, names.GetValueOrDefault(cargo[0].TypeId, string.Format(WorklistText.TypeWithId, cargo[0].TypeId)), cargo[0].Print)
                              : string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
@@ -2064,8 +2131,9 @@ public class LogisticsGenerator(
                     .Select(c => new WorklistLine(
                         c.TypeId,
                         names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
-                        c.Qty))
+                        c.Qty) { Print = c.Print })
                     .ToList(),
+                Print        = cargo[0].Print,
                 WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),

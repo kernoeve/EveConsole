@@ -57,7 +57,11 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 /// <param name="Wanted">How many the job needed in total, which is what makes a shortfall
 /// legible: three short of four is a different situation from three short of thirty thousand.</param>
 public sealed record WorklistShortage(
-    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy);
+    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy)
+{
+    /// <summary>A print short here is a copy bought by the run: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+}
 
 /// <summary>
 /// One stopped job that is waiting on something a haul is carrying.
@@ -83,7 +87,7 @@ public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
     bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
     long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false,
-    IReadOnlyList<WorklistLine>? Missing = null)
+    IReadOnlyList<WorklistLine>? Missing = null, PrintKind Print = PrintKind.None)
 {
     public IReadOnlyList<WorklistLine> MissingLines => Missing ?? [];
 
@@ -139,6 +143,9 @@ public sealed record WorklistWaitingJob(
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
+    /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     public double Volume { get; init; }
     public double Value  { get; init; }
 
@@ -169,6 +176,9 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 public sealed record WorklistStopLine(int TypeId, string TypeName, long Quantity, double Volume,
                                       long OtherId, string OtherName)
 {
+    /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     /// <summary>What it is worth, at the prices the rest of the list uses; 0 when unpriced.</summary>
     public double Value { get; init; }
 
@@ -490,6 +500,13 @@ public sealed record WorklistItem
     /// one. Set where the generator knows; a blueprint it did not is caught by the row falling back.
     /// </summary>
     public string? TypeImage { get; init; }
+
+    /// <summary>
+    /// What the row's item is when it is a blueprint: a copy or an original, which decides its
+    /// picture and its name's suffix (see <see cref="PrintLabel"/>). None for anything else, and
+    /// for a reaction formula, always an original.
+    /// </summary>
+    public PrintKind Print { get; init; }
 }
 
 /// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>

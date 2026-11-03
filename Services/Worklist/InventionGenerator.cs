@@ -204,7 +204,9 @@ public class InventionGenerator(
     {
         // What the titles and the reasons say — screen text. The rows' TypeName and their manifest
         // lines keep the English.
-        var shown       = SdeNames.Type(recipe.ProductTypeId, name);
+        // A level of the T2 print itself is invented as copies: "(Copy)" and the copy's picture.
+        var print       = recipe.BlueprintTarget ? PrintKind.Copy : PrintKind.None;
+        var shown       = PrintLabel.Name(recipe.ProductTypeId, name, print);
         var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
 
         // The source copies standing at the lab. Nothing else can carry an attempt: the copy is
@@ -375,6 +377,7 @@ public class InventionGenerator(
                     LocationId    = lab.Site,
                     LocationName  = lab.Name,
                     TypeId        = recipe.ProductTypeId,
+                    Print         = print,
                     TypeName      = name,
                     Priority      = priority,
                     Lines         = lineMats
@@ -406,6 +409,7 @@ public class InventionGenerator(
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
+                Print     = print,
                 TypeName  = name,
                 Priority  = priority,
             });
@@ -465,6 +469,8 @@ public class InventionGenerator(
 
         // For the titles. The rows' TypeName keeps the English.
         var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+        // The job makes copies, and the row is drawn as one: "(Copy)" with the copy's picture.
+        var copiesShown = PrintLabel.Name(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName, PrintKind.Copy);
 
         if (original is null)
             return [new WorklistItem
@@ -473,7 +479,7 @@ public class InventionGenerator(
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = string.Format(WorklistText.CopyTitleNoOriginal, sourceShown),
+                Title     = string.Format(WorklistText.CopyTitleNoOriginal, copiesShown),
                 Detail    = string.Format(WorklistText.CopyNeedsRunsDetail, head, plan.CopyRunsNeeded, ownedCopyRuns),
                 Readiness = WorklistReadiness.Blocked,
                 BlockedBy      = WorklistText.BlockedNoBpoToCopy,
@@ -481,6 +487,7 @@ public class InventionGenerator(
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
                 TypeImage = "bpc",   // what the job makes: copies
+                Print     = PrintKind.Copy,
                 Priority  = priority,
             }];
 
@@ -510,7 +517,7 @@ public class InventionGenerator(
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
-            Title         = string.Format(WorklistText.CopyTitle, sourceShown, copies, perCopy),
+            Title         = string.Format(WorklistText.CopyTitle, copiesShown, copies, perCopy),
             Quantity      = copies,
             Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
                           // "at the lab" only when it is: one elsewhere is what the blocked reason is about.
@@ -532,6 +539,7 @@ public class InventionGenerator(
             TypeId        = recipe.SourceBlueprintTypeId,
             TypeName      = recipe.SourceBlueprintName,
             TypeImage     = "bpc",   // what the job makes: copies
+            Print         = PrintKind.Copy,
             Priority      = priority,
         }];
     }

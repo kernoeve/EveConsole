@@ -46,6 +46,9 @@ public sealed record HaulBlock(
     IReadOnlyList<ShortageTask> Tasks,
     IReadOnlyList<HaulWant> Wants)
 {
+    /// <summary>The stopped job's item when it is a blueprint: a copy or an original, for its picture.</summary>
+    public PrintKind Print { get; init; }
+
     /// <summary>
     /// What the row amounts to.
     ///
@@ -311,7 +314,7 @@ public class HaulPressureService(
                 [.. short_.Select(sh => new HaulWant(
                     sh.TypeId, sh.TypeName, sh.Short,
                     sh.Short * volumes.GetValueOrDefault(sh.TypeId),
-                    reach.Coming(here, sh.TypeId)))]));
+                    reach.Coming(here, sh.TypeId)))]) { Print = item.Print });
         }
 
         // What is holding up the most work first, then the trips nobody has raised: a job with a

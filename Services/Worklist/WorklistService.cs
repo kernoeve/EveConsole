@@ -240,7 +240,7 @@ public class WorklistService(
                                      && outstanding.All(s => !s.MustBuy && joint.GetValueOrDefault(s.TypeId) >= s.Short);
 
                         return new WorklistWaitingJob(
-                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
                             Unblocked:   outstanding.Count == 0,
                             // Deduped on the English, then named as the screen shows them: this
                             // list is only ever read out in the row's tooltip.
@@ -258,7 +258,8 @@ public class WorklistService(
                                 .GroupBy(s => s.TypeId)
                                 .Select(g => new WorklistLine(g.Key, g.First().TypeName,
                                     Math.Max(1, g.Sum(s => s.Short)
-                                                - (g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key)))))]);
+                                                - (g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key))))
+                                    { Print = g.First().Print })]);
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenByDescending(w => w.WithOtherLoops)
@@ -373,7 +374,7 @@ public class WorklistService(
                     .Where(j => j.Key != job.Key)
                     .DistinctBy(j => j.Key)
                     .Select(j => new WorklistWaitingJob(
-                        j.Key, j.Title, j.TypeId, j.TypeName,
+                        j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
                         Unblocked:    false,
                         StillShortOf: [],
                         WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short)))
@@ -468,7 +469,7 @@ public class WorklistService(
                             .ToList();
 
                         return new WorklistWaitingJob(
-                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
                             Unblocked: outstanding.Count == 0,
                             StillShortOf: outstanding);
                     })

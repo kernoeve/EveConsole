@@ -56,14 +56,17 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     private readonly IBrush? _childOtherColor;
     private readonly bool   _childTurn;
     private readonly IReadOnlyList<WaitMissingLineVm> _childMissing = [];
+    private readonly PrintKind _childPrint;
     private readonly WorklistHaulStop? _stop;
 
     private WorklistRowVm(WorklistRowVm parent, int order, ChildKind kind, string label, bool turn = false,
                           int typeId = 0, string action = "", string qty = "", string other = "",
                           string volume = "", string value = "", string totals = "", IBrush? otherColor = null,
-                          WorklistHaulStop? stop = null, IReadOnlyList<WorklistLine>? missing = null)
+                          WorklistHaulStop? stop = null, IReadOnlyList<WorklistLine>? missing = null,
+                          PrintKind print = PrintKind.None)
     {
         _stop = stop;
+        _childPrint = print;
         if (missing is { Count: > 0 }) _childMissing = [.. missing.Select(m => new WaitMissingLineVm(m))];
         _childOtherColor = otherColor;
         _item        = parent._item;
@@ -196,7 +199,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 
             void Line(WorklistStopLine l, bool pickUp) =>
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line,
-                    SdeNames.Type(l.TypeId, l.TypeName), typeId: l.TypeId,
+                    PrintLabel.Name(l.TypeId, l.TypeName, l.Print), typeId: l.TypeId, print: l.Print,
                     action: pickUp ? WorklistText.HaulStopPickUp : WorklistText.HaulStopDropOff,
                     qty:    l.Quantity.ToString("N0"),
                     other:  string.Format(pickUp ? WorklistText.HaulStopFor : WorklistText.HaulStopFrom, Short(l.OtherName)),
@@ -213,8 +216,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         {
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop()));
             foreach (var l in _item.Lines)
-                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, SdeNames.Type(l.TypeId, l.TypeName),
-                                           typeId: l.TypeId, qty: l.Quantity.ToString("N0"),
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, PrintLabel.Name(l.TypeId, l.TypeName, l.Print),
+                                           typeId: l.TypeId, print: l.Print, qty: l.Quantity.ToString("N0"),
                                            volume: l.VolumeText, value: l.ValueText));
         }
 
@@ -223,7 +226,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         {
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.WaitingOnThisLabel));
             foreach (var w in WaitingJobs)
-                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId,
+                rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId, print: w.Print,
                                            other: w.StatusText, otherColor: w.StatusColor, missing: w.Missing));
         }
 
@@ -243,7 +246,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         && _item.LocationId > 0 && _item.DestinationId > 0
             ? new WorklistHaulStop(_item.DestinationId, _item.DestinationName, false,
                   [.. _item.Lines.Select(l => new WorklistStopLine(l.TypeId, l.TypeName, l.Quantity, 0,
-                                                                   _item.LocationId, _item.LocationName))],
+                                                                   _item.LocationId, _item.LocationName) { Print = l.Print })],
                   [])
             : null;
 
@@ -337,7 +340,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// /bp for an original and /bpc for a copy. The image server refuses a blueprint's /icon. A
     /// print to buy shows the copy, since runs are what is short and runs are bought as copies.
     /// </summary>
-    private string IconVariant => _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bpc" : "icon");
+    private string IconVariant => _item.Print != PrintKind.None ? PrintLabel.Picture(_item.Print)
+                                : _item.TypeImage ?? (_item.TitleTag == "BPO/BPC" ? "bpc" : "icon");
 
     /// <summary>
     /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
@@ -351,7 +355,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         if (IsChild)
         {
             if (_childTypeId <= 0) return;
-            var line = await TypePictureAsync(_childTypeId, "icon");
+            var line = await TypePictureAsync(_childTypeId, _childPrint == PrintKind.None ? "icon" : PrintLabel.Picture(_childPrint));
             if (line is not null) Dispatcher.UIThread.Post(() => Icon = line);
             return;
         }
@@ -886,7 +890,7 @@ public sealed class ShortageTaskRowVm : ReactiveObject
     public ShortageTaskRowVm(ShortageTask task)
     {
         t = task;
-        _ = ItemIcons.LoadAsync(t.TypeId, b => Icon = b);
+        _ = ItemIcons.LoadAsync(t.TypeId, b => Icon = b, t.Print);
     }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
@@ -1191,7 +1195,7 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     {
         _w     = w;
         _count = count;
-        _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b);
+        _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b, w.Print);
     }
 
     /// <summary>
@@ -1205,11 +1209,12 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
     public IReadOnlyList<WorklistLine> Missing => _w.MissingLines;
+    public PrintKind Print => _w.Print;
     public bool   HasItemLink => _w.HasItemLink;
     public void   OpenItem()  => _w.OpenItem();
 
     /// <summary>The product as the screen names it. The record keeps the English.</summary>
-    private string Shown => SdeNames.Type(_w.TypeId, _w.TypeName);
+    private string Shown => PrintLabel.Name(_w.TypeId, _w.TypeName, _w.Print);
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon
@@ -1225,10 +1230,10 @@ public sealed class WaitMissingLineVm : ReactiveObject
 {
     public WaitMissingLineVm(WorklistLine line)
     {
-        Name   = SdeNames.Type(line.TypeId, line.TypeName);
+        Name   = PrintLabel.Name(line.TypeId, line.TypeName, line.Print);
         Qty    = line.Quantity.ToString("N0");
         Volume = line.VolumeText;
-        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b);
+        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b, line.Print);
     }
 
     public string Name   { get; }
@@ -1250,7 +1255,7 @@ public sealed class ObservationPointVm : ReactiveObject
     public ObservationPointVm(ObservationPoint p)
     {
         _p = p;
-        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b);
+        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b, p.Print);
     }
 
     public string Text => _p.Text;
@@ -1376,7 +1381,7 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyR
         h           = block;
         FamilyOrder = order;
         Tasks = [.. h.Tasks.Select(t => new ShortageTaskRowVm(t))];
-        _ = ItemIcons.LoadAsync(h.TypeId, b => Icon = b);
+        _ = ItemIcons.LoadAsync(h.TypeId, b => Icon = b, h.Print);
     }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
@@ -1759,7 +1764,7 @@ public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRo
     /// groups by, so the headings read in the reader's own order. Nothing matches on it: the
     /// need itself keeps the English, and the links go by id.
     /// </summary>
-    public string Item    => SdeNames.Type(n.TypeId, n.TypeName);
+    public string Item    => PrintLabel.Name(n.TypeId, n.TypeName, n.Print);
 
     // Both names on a need point somewhere; the ids were already on the record. An "asked for by"
     // row draws neither — its own text sits in the same cells.

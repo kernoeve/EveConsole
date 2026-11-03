@@ -885,8 +885,10 @@ public class IndustryJobGenerator(
                              // ⚠️ The same list the sentence above was built from, kept whole.
                              // What is short and whether it is owned at all is the input to every
                              // material bottleneck question, and it was being thrown away here.
+                             // A print short here is a copy bought by the run (see PrintLabel).
                              short_.Select(m => new WorklistShortage(
-                                        m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))
+                                        m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
+                                        { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })
                                    .ToList());
                     }
 
@@ -1231,7 +1233,8 @@ public class IndustryJobGenerator(
                             BlockedBy      = printWhy,
                             BlockedByPrint = true,
                             Shortages      = [.. npShort.Select(m => new WorklistShortage(
-                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))],
+                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
+                                                    { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],
                             LocationId    = siteId.Value,
                             LocationName  = siteName,
                             TypeId        = d.TypeId,

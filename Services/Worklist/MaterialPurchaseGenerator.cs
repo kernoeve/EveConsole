@@ -548,6 +548,11 @@ public class MaterialPurchaseGenerator(
                                          : string.Format(WorklistText.PrintRunsForQueued, jobs));
             if (shelf > 0) parts.Add(string.Format(WorklistText.PrintRunsToStock, shelf));
 
+            // Runs are bought as copies: the copy's picture and "(Copy)". A reaction formula is
+            // always an original, and is neither labelled nor drawn as a copy.
+            var isFormula = ctx.BpProducts.Any(p => p.TypeId == bpTypeId && p.Activity == "reaction");
+            var print     = isFormula ? PrintKind.None : PrintKind.Copy;
+
             var haveText = CommonText.ClauseSeparator + (anyOriginal ? WorklistText.PrintOriginalOwned
                                  : held > 0    ? string.Format(WorklistText.PrintCopiesOwned, held)
                                                : WorklistText.PrintNoneOwned);
@@ -557,10 +562,10 @@ public class MaterialPurchaseGenerator(
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = string.Format(WorklistText.PrintTitle, SdeNames.Type(bpTypeId, bpName), stillNeeded),
+                Title         = string.Format(WorklistText.PrintTitle, PrintLabel.Name(bpTypeId, bpName, print), stillNeeded),
                 TitleTag      = "BPO/BPC",
-                // Runs are what is short, and runs are bought as copies: the copy's picture.
-                TypeImage     = "bpc",
+                TypeImage     = isFormula ? "bp" : "bpc",
+                Print         = print,
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
                 Detail        = $"{string.Join(" + ", parts)}{haveText} — "
