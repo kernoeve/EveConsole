@@ -42,8 +42,8 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
             .ToList();
         if (jobs.Count == 0) return [];
 
-        var pilots = await db.Characters.AsNoTracking().Select(c => c.Id).ToListAsync(ct);
-        jobs = jobs.Where(j => pilots.Contains(j.InstallerId)).ToList();
+        var pilots = await db.Characters.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Name, ct);
+        jobs = jobs.Where(j => pilots.ContainsKey(j.InstallerId)).ToList();
         if (jobs.Count == 0) return [];
 
         var productIds = jobs.Select(j => j.ProductTypeId ?? j.BlueprintTypeId).Distinct().ToList();
@@ -64,20 +64,25 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
             .Select(j =>
             {
                 var typeId = j.ProductTypeId ?? j.BlueprintTypeId;
-                return (j.FacilityId, TypeId: typeId, j.ActivityId,
+                return (j.FacilityId, j.InstallerId, TypeId: typeId, j.ActivityId,
                         Units: (long)j.Runs * perRun.GetValueOrDefault((j.BlueprintTypeId, typeId), 1));
             })
             .ToList();
 
-        // What comes out, by item: a copy job's copies and an invention's prints are copies,
+        var places = await PlaceNamesAsync(db, ct);
+
+        // What comes out, by item and by the station and pilot it is waiting on: the task is on
+        // neither, so each line says. A copy job's copies and an invention's prints are copies,
         // research hands the original back (see PrintLabel).
         var lines = outputs
-            .GroupBy(o => (o.TypeId, o.ActivityId))
+            .GroupBy(o => (o.FacilityId, o.InstallerId, o.TypeId, o.ActivityId))
             .Select(x => new WorklistLine(
                 x.Key.TypeId,
                 names.GetValueOrDefault(x.Key.TypeId, string.Format(WorklistText.TypeWithId, x.Key.TypeId)),
                 x.Sum(o => o.Units))
                 {
+                    Place = places.GetValueOrDefault(x.Key.FacilityId, string.Format(WorklistText.LocationWithId, x.Key.FacilityId))
+                          + " · " + pilots[x.Key.InstallerId],
                     Print = x.Key.ActivityId switch
                     {
                         5 or 8 => PrintKind.Copy,
@@ -85,12 +90,19 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
                         _      => PrintKind.None,
                     },
                 })
-            .OrderByDescending(l => l.Quantity)
+            .OrderBy(l => l.Place, StringComparer.CurrentCulture)
+            .ThenByDescending(l => l.Quantity)
             .ToList();
 
-        var shown = lines.Take(4).Select(l => $"{ItemRef.Of(l.TypeId, l.TypeName, l.Print)} ×{l.Quantity:N0}");
+        // For the sentence, an item once, wherever it is waiting; largest first.
+        var totals = lines
+            .GroupBy(l => (l.TypeId, l.Print))
+            .Select(g => g.First() with { Quantity = g.Sum(l => l.Quantity) })
+            .OrderByDescending(l => l.Quantity)
+            .ToList();
+        var shown = totals.Take(4).Select(l => $"{ItemRef.Of(l.TypeId, l.TypeName, l.Print)} ×{l.Quantity:N0}");
         // One item: the row is about it, for its picture and link. Several: about none of them.
-        var only  = lines.Count == 1 ? lines[0] : null;
+        var only  = totals.Count == 1 ? totals[0] : null;
 
         return
         [
@@ -102,7 +114,7 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
                 Title     = Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.DeliverJobsTitleOther), jobs.Count),
                 Detail    = string.Format(WorklistText.DeliverJobsDetail,
                                 string.Join(CommonText.ListSeparator, shown)
-                                + (lines.Count > 4 ? " " + string.Format(WorklistText.DeliverJobsMore, lines.Count - 4) : "")),
+                                + (totals.Count > 4 ? " " + string.Format(WorklistText.DeliverJobsMore, totals.Count - 4) : "")),
                 Readiness = WorklistReadiness.Ready,
                 TypeId    = only?.TypeId ?? 0,
                 TypeName  = only?.TypeName ?? "",
@@ -112,5 +124,18 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
                 Priority  = WorklistPriority.DeliverJobs,
             },
         ];
+    }
+
+    /// <summary>Places as the screen names them.</summary>
+    private static async Task<Dictionary<long, string>> PlaceNamesAsync(AppDbContext db, CancellationToken ct)
+    {
+        var map = (await db.SdeStations.AsNoTracking()
+                .Select(s => new { Id = (long)s.StationId, s.Name }).ToListAsync(ct))
+            .ToDictionary(s => s.Id, s => SdeNames.Station(s.Id, s.Name));
+        foreach (var s in await db.EsiStructureNames.AsNoTracking()
+                     .Where(s => s.Name != "")
+                     .Select(s => new { s.StructureId, s.Name }).ToListAsync(ct))
+            map[s.StructureId] = s.Name;
+        return map;
     }
 }

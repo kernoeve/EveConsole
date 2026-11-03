@@ -145,6 +145,10 @@ public sealed record WorklistDelivered(long Site, int TypeId, long Units);
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
+    /// <summary>Where this line is and who has it, when its task is on no one station or pilot: a
+    /// delivery's output.</summary>
+    public string Place { get; init; } = "";
+
     /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
     public PrintKind Print { get; init; }
 

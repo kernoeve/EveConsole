@@ -217,7 +217,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.ManifestLabel, stop: TripStop()));
             foreach (var l in _item.Lines)
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, PrintLabel.Name(l.TypeId, l.TypeName, l.Print),
-                                           typeId: l.TypeId, print: l.Print, qty: l.Quantity.ToString("N0"),
+                                           typeId: l.TypeId, print: l.Print, qty: l.Quantity.ToString("N0"), other: l.Place,
                                            volume: l.VolumeText, value: l.ValueText));
         }
 
