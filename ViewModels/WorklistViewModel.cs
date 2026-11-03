@@ -1256,11 +1256,13 @@ public sealed class ObservationVm(Observation o)
 
 public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyRow
 {
-    // ── Its suggestion and its tasks, as rows of their own ────────────────────
+    // ── Its tasks, as rows of their own ───────────────────────────────────────
     //
-    // See IFamilyRow for why rows and why one height. The suggestion shows on one line in the
-    // row; opening it gives the whole of it, a sentence to a row, and then the tasks behind the
+    // See IFamilyRow for why rows and why one height. Opening the row gives the tasks behind the
     // counts. A child row carries its parent's figures, so it sorts with it.
+    //
+    // ⚠️ Not the suggestion again, a sentence to a row. It is on the row itself, whole on hover,
+    // and repeating it under the row read as four more lines of the same thing before the tasks.
 
     private readonly HaulPressureRowVm? _parent;
 
@@ -1299,13 +1301,12 @@ public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow, IFamilyR
         if (IsChild) return [];
         var rows  = new List<HaulPressureRowVm>();
         var order = 0;
-        foreach (var sentence in FamilyRows.Sentences(Advice)) rows.Add(new HaulPressureRowVm(this, null, sentence, ++order));
         foreach (var task in Tasks) rows.Add(new HaulPressureRowVm(this, task, "", ++order));
         return rows;
     }
 
-    /// <summary>Something to open: tasks, or a suggestion longer than its one line.</summary>
-    public bool CanExpand => !IsChild && (HasTasks || Advice.Length > 0);
+    /// <summary>Something to open: the tasks behind the counts.</summary>
+    public bool CanExpand => !IsChild && HasTasks;
 
     /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
     public string ExpandKey => h.TaskKey;
