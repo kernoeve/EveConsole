@@ -189,6 +189,22 @@ public class WorklistService(
                     .DistinctBy(j => j.Key)
                     .ToList();
 
+                // ⚠️ A planned build that is a task on the list already, and not blocked, is not
+                // waiting on anything: its job can start. The four fuel block jobs at the yard
+                // were Ready and still listed under a Heavy Water run, as planned builds the
+                // cargo was "for". A blocked task keeps its planned line — what it is blocked on
+                // may well be this cargo (a print, say, which is no shortage of the job's).
+                var ready = all
+                    .Where(x => x.Kind == WorklistKind.Job && x.Readiness != WorklistReadiness.Blocked
+                             && drops.ContainsKey(x.LocationId))
+                    .Select(x => x.TypeId)
+                    .ToHashSet();
+                if (haul.WaitingJobs.Any(w => w.IsPlanned && ready.Contains(w.TypeId)))
+                    section.Items[n] = haul = haul with
+                    {
+                        WaitingJobs = [.. haul.WaitingJobs.Where(w => !(w.IsPlanned && ready.Contains(w.TypeId)))],
+                    };
+
                 // ⚠️ No longer a reason to leave the row alone. The generator has already put the
                 // planner's own drivers on it, and those are what the tooltip means by "Jobs are
                 // waiting on this" — so a haul with no matching stopped ROW still has something
