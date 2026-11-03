@@ -2004,9 +2004,21 @@
     <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}, and {2:N0} more.</value>
     <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} what the first three make, {2} how many more.</comment>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>wants {0:N0}</value>
-    <comment>Beside a planned build in a Worklist row's "waiting on this" panel. {0} is how many units of the cargo it wants. Lower case.</comment>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>needs {0:N0} more item</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: how many different items its station would still lack once this trip's cargo is down. {0} is how many. Lower case.</comment>
+  </data>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>needs {0:N0} more items</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: how many different items its station would still lack once this trip's cargo is down. {0} is how many. Lower case.</comment>
+  </data>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>nothing else missing</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: once this cargo is down, its station holds everything it needs. Lower case.</comment>
+  </data>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Still missing at the station once this lands</value>
+    <comment>Heading of the tooltip on "needs N more items" in a Worklist row's "waiting on this" panel; the list under it names each item, how many and their m³.</comment>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>queued behind another job</value>

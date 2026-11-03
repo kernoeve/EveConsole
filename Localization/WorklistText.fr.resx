@@ -1504,8 +1504,17 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>Relance {0:N0} travail(aux) à l'arrêt une fois la boucle terminée : {1}, et {2:N0} de plus.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>en demande {0:N0}</value>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>manque encore {0:N0} objet</value>
+  </data>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>manque encore {0:N0} objets</value>
+  </data>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>rien d'autre ne manque</value>
+  </data>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Manquera encore à la station une fois ceci livré</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>en file derrière un autre travail</value>

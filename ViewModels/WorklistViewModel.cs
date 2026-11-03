@@ -55,14 +55,16 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     private readonly string _childTotals = "";
     private readonly IBrush? _childOtherColor;
     private readonly bool   _childTurn;
+    private readonly IReadOnlyList<WaitMissingLineVm> _childMissing = [];
     private readonly WorklistHaulStop? _stop;
 
     private WorklistRowVm(WorklistRowVm parent, int order, ChildKind kind, string label, bool turn = false,
                           int typeId = 0, string action = "", string qty = "", string other = "",
                           string volume = "", string value = "", string totals = "", IBrush? otherColor = null,
-                          WorklistHaulStop? stop = null)
+                          WorklistHaulStop? stop = null, IReadOnlyList<WorklistLine>? missing = null)
     {
         _stop = stop;
+        if (missing is { Count: > 0 }) _childMissing = [.. missing.Select(m => new WaitMissingLineVm(m))];
         _childOtherColor = otherColor;
         _item        = parent._item;
         Sequence     = parent.Sequence;
@@ -101,6 +103,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// <summary>The colour of <see cref="ChildOther"/>: a waiting job's verdict in its own colour —
     /// green where this trip starts it — and the muted text of a note everywhere else.</summary>
     public IBrush ChildOtherColor => _childOtherColor ?? Palette.TextDim;
+
+    /// <summary>On a build waiting on a trip: what its station would still lack once the cargo is
+    /// down, for the tooltip on its "needs N more items".</summary>
+    public IReadOnlyList<WaitMissingLineVm> ChildMissing => _childMissing;
+    public bool HasChildMissing  => _childMissing.Count > 0;
+    public bool ShowsPlainOther  => !HasChildMissing;
     public bool   ChildTurn   => _childTurn;
 
     /// <summary>The item a detail row names, opened in the Item Browser.</summary>
@@ -216,7 +224,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.WaitingOnThisLabel));
             foreach (var w in WaitingJobs)
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId,
-                                           other: w.StatusText, otherColor: w.StatusColor));
+                                           other: w.StatusText, otherColor: w.StatusColor, missing: w.Missing));
         }
 
         return rows;
@@ -1172,11 +1180,36 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
+    public IReadOnlyList<WorklistLine> Missing => _w.MissingLines;
     public bool   HasItemLink => _w.HasItemLink;
     public void   OpenItem()  => _w.OpenItem();
 
     /// <summary>The product as the screen names it. The record keeps the English.</summary>
     private string Shown => SdeNames.Type(_w.TypeId, _w.TypeName);
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+}
+
+/// <summary>One thing a build would still lack once a trip's cargo is down: its picture, its name,
+/// how many and their m³.</summary>
+public sealed class WaitMissingLineVm : ReactiveObject
+{
+    public WaitMissingLineVm(WorklistLine line)
+    {
+        Name   = SdeNames.Type(line.TypeId, line.TypeName);
+        Qty    = line.Quantity.ToString("N0");
+        Volume = line.VolumeText;
+        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b);
+    }
+
+    public string Name   { get; }
+    public string Qty    { get; }
+    public string Volume { get; }
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon

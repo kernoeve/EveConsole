@@ -310,6 +310,37 @@ public class LogisticsGenerator(
             drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId).Where(t => t > 0)
                    .Distinct().ToList(), ct);
 
+        // Everything each build wants at its station, by item — its materials and its print — so
+        // a trip can say what a build it is for would still lack once the cargo is down.
+        var buildNeeds = drivers
+            .SelectMany(kv => kv.Value.Where(d => d.DriverTypeId > 0)
+                                      .Select(d => (kv.Key.Station, kv.Key.TypeId, d.DriverTypeId, d.Qty)))
+            .GroupBy(x => (x.Station, x.DriverTypeId))
+            .ToDictionary(g => g.Key, g => g.GroupBy(x => x.TypeId).ToDictionary(t => t.Key, t => t.Sum(x => x.Qty)));
+        var needTypes = buildNeeds.Values.SelectMany(n => n.Keys).Distinct().ToList();
+        var needNames = await NamesAsync(db, needTypes, ct);
+        var (_, needVolumes) = await PriceAndVolumeAsync(db, needTypes, ct);
+
+        // ⚠️ Against the station's stock as a whole, with this drop added — not a share of it. A
+        // station's stock is not set aside build by build; which build gets it is the job
+        // planner's call. So this is the build's own view: what would still be missing if it went
+        // first. Other trips bound for the same station are not counted: they are what the reader
+        // still has to fly.
+        List<WorklistLine> MissingAfter(int driver, IEnumerable<long> stations,
+                                        IReadOnlyDictionary<(long Station, int TypeId), long> dropped) =>
+            [.. stations.Distinct()
+                .SelectMany(st => buildNeeds.GetValueOrDefault((st, driver))?.Select(n => (st, n.Key, n.Value)) ?? [])
+                .Select(x => (x.Key, Short: x.Value - stock.GetValueOrDefault((x.st, x.Key))
+                                                    - dropped.GetValueOrDefault((x.st, x.Key))))
+                .Where(x => x.Short > 0)
+                .GroupBy(x => x.Key)
+                .Select(g => new WorklistLine(g.Key,
+                                 needNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                                 g.Sum(x => x.Short))
+                             { Volume = g.Sum(x => x.Short) * needVolumes.GetValueOrDefault(g.Key) })
+                .OrderByDescending(l => l.Volume)
+                .ThenBy(l => l.TypeName)];
+
         // Which kind of trip each pair of stations is, and how its lane is set to make it.
         IEnumerable<(long, long)> Pairs() => moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To));
         var trips = await TripsAsync(db, Pairs(), systems, ct);
@@ -327,12 +358,12 @@ public class LogisticsGenerator(
         // one task per pair of stations.
         bool InSystem(Move m) => trips.TryGetValue((m.From, m.To), out var t) && t.Lane == HaulLane.InSystem;
         var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
-        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, ct);
+        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, MissingAfter, ct);
 
         // A service's trip is sized by the contract, and that by its volume.
         var between = moves.Where(m => !InSystem(m)).ToList();
         var (_, tripVolumes) = await PriceAndVolumeAsync(db, between.Select(m => m.TypeId).Distinct().ToList(), ct);
-        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes), .. loops];
+        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter), .. loops];
     }
 
     /// <summary>
@@ -435,7 +466,8 @@ public class LogisticsGenerator(
         AppDbContext db, List<Move> moves, Dictionary<(long From, long To), Trip> trips,
         Dictionary<long, int> systems, Dictionary<int, string> names, Dictionary<long, string> places,
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, Dictionary<int, string> driverNames,
-        IReadOnlyDictionary<long, double> unplannedM3, CancellationToken ct)
+        IReadOnlyDictionary<long, double> unplannedM3,
+        Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter, CancellationToken ct)
     {
         var items = new List<WorklistItem>();
         if (moves.Count == 0) return items;
@@ -608,16 +640,21 @@ public class LogisticsGenerator(
                     .ToList();
 
                 // Asked for wherever the loop drops something, as a trip's are at its one destination.
+                // Each with what it would still lack once the whole loop is down, fewest first.
+                var loopDrop = moved.GroupBy(m => (m.To, m.TypeId))
+                    .ToDictionary(g => (Station: g.Key.To, g.Key.TypeId), g => g.Sum(m => m.Qty));
                 var wanters = moved
-                    .SelectMany(m => drivers.GetValueOrDefault((m.To, m.TypeId), []))
-                    .Where(d => d.DriverTypeId > 0)
-                    .GroupBy(d => d.DriverTypeId)
+                    .SelectMany(m => drivers.GetValueOrDefault((m.To, m.TypeId), []).Select(d => (Station: m.To, Driver: d)))
+                    .Where(x => x.Driver.DriverTypeId > 0)
+                    .GroupBy(x => x.Driver.DriverTypeId)
                     .Select(g => new WorklistWaitingJob(
                         Key: "", Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
                         TypeId: g.Key,
                         TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
-                        Unblocked: false, StillShortOf: [], WantsUnits: g.Sum(d => d.Qty)))
-                    .OrderByDescending(w => w.WantsUnits)
+                        Unblocked: false, StillShortOf: [], WantsUnits: g.Sum(x => x.Driver.Qty),
+                        Missing: missingAfter(g.Key, g.Select(x => x.Station), loopDrop)))
+                    .OrderBy(w => w.MissingLines.Count)
+                    .ThenByDescending(w => w.WantsUnits)
                     .ToList();
 
                 var reason = moved.Min(m => m.Reason);
@@ -1906,7 +1943,8 @@ public class LogisticsGenerator(
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
         Dictionary<int, string> driverNames,
         Dictionary<(long From, long To), Trip> trips,
-        Dictionary<int, double> volumes)
+        Dictionary<int, double> volumes,
+        Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter)
     {
         var items = new List<WorklistItem>();
 
@@ -1944,10 +1982,15 @@ public class LogisticsGenerator(
             //
             // A trip stopping short at a staging or drop-off station is still for the jobs at the
             // stations past it: each line's own end.
+            //
+            // Each with what it would still lack at its station once this cargo is down, fewest
+            // first: the ones this trip all but starts lead.
+            var tripDrop = run.GroupBy(m => (m.FinalTo, m.TypeId))
+                .ToDictionary(g => (Station: g.Key.FinalTo, g.Key.TypeId), g => g.Sum(m => m.Qty));
             var wanters = run.Select(m => (m.FinalTo, m.TypeId)).Distinct()
-                .SelectMany(k => drivers.GetValueOrDefault(k, []))
-                .Where(d => d.DriverTypeId > 0)
-                .GroupBy(d => d.DriverTypeId)
+                .SelectMany(k => drivers.GetValueOrDefault(k, []).Select(d => (Station: k.FinalTo, Driver: d)))
+                .Where(x => x.Driver.DriverTypeId > 0)
+                .GroupBy(x => x.Driver.DriverTypeId)
                 .Select(g => new WorklistWaitingJob(
                     Key:   "",
                     Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
@@ -1955,8 +1998,10 @@ public class LogisticsGenerator(
                     TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
                     Unblocked:    false,
                     StillShortOf: [],
-                    WantsUnits:   g.Sum(d => d.Qty)))
-                .OrderByDescending(w => w.WantsUnits)
+                    WantsUnits:   g.Sum(x => x.Driver.Qty),
+                    Missing:      missingAfter(g.Key, g.Select(x => x.Station), tripDrop)))
+                .OrderBy(w => w.MissingLines.Count)
+                .ThenByDescending(w => w.WantsUnits)
                 .ToList();
 
             items.Add(new WorklistItem

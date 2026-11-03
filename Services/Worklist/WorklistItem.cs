@@ -76,11 +76,17 @@ public sealed record WorklistShortage(
 /// loops in the same system together: what it lacks here, one of them drops.</param>
 /// <param name="ByLoop">Judged against an in-system loop's whole run — everything every stop puts
 /// down — so it starts when the loop is done rather than when one load lands.</param>
+/// <param name="Missing">On a planned build: what its station would still lack of each thing the
+/// build needs there once this cargo is down, this cargo's own items included where the drop does
+/// not cover them — how many, and their m³.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
     bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
-    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false)
+    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false,
+    IReadOnlyList<WorklistLine>? Missing = null)
 {
+    public IReadOnlyList<WorklistLine> MissingLines => Missing ?? [];
+
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
@@ -94,7 +100,13 @@ public sealed record WorklistWaitingJob(
     public string StatusText =>
         Unblocked                 ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
         : WithOtherLoops          ? WorklistText.WaitStartsWithOtherLoop
-        : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
+        // ⚠️ How many different things it still lacks, not how many units it wants. "Wants 14,938"
+        // added up everything on the trip it asked for, minerals and parts alike, and said nothing
+        // about whether the drop is the last thing it is waiting on.
+        : IsPlanned               ? (MissingLines.Count == 0
+                                        ? WorklistText.WaitNothingElseMissing
+                                        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
+                                                         MissingLines.Count))
         : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
         : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
                          StillShortOf.Count);

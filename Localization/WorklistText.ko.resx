@@ -1501,8 +1501,14 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>순환이 끝나면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1} 외 {2:N0}개.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>{0:N0}개 필요</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>아이템 {0:N0}종 더 필요</value>
+  </data>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>더 부족한 것 없음</value>
+  </data>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>도착한 뒤에도 정거장에 부족한 것</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>다른 작업 뒤에 대기</value>

@@ -1504,8 +1504,17 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>Reanuda {0:N0} trabajo(s) detenido(s) cuando termine el circuito: {1} y {2:N0} más.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>quiere {0:N0}</value>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>le falta {0:N0} objeto más</value>
+  </data>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>le faltan {0:N0} objetos más</value>
+  </data>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>no le falta nada más</value>
+  </data>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Lo que aún faltará en la estación cuando llegue esto</value>
   </data>
   <data name="WaitQueuedBehind" xml:space="preserve">
     <value>en cola detrás de otro trabajo</value>
