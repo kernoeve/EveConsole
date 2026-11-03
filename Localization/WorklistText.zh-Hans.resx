@@ -368,16 +368,16 @@
     <value>现有原件不间断运行时，每天合计可产出的数量。</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>最近 90 天实际的日均产量。它永远不会超过上限，因此不能用来衡量需求。</value>
+    <value>实际的日均产量，统计天数与全部占用的数字相同。它不可能超过上限，因此不能用来衡量需求。</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>每张原件处于任务中的时间占比。仅供参考：它无法识别瓶颈，按它排序会把高使用率排在真正的制约之前。</value>
+    <value>每张原件处于任务中的时间占比，统计天数与全部占用的数字相同。仅供参考：它无法识别瓶颈，按它排序会把高使用率排在真正的制约之前。</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>全忙</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>最近 90 天中“所有”原件同时被占用的时间占比，研究、拷贝和制造都计算在内。正是这个数字说明了想再开一个任务时是否必须等待。</value>
+    <value>“所有”原件同时被占用的时间占比，研究、拷贝和制造都计算在内。按最近 90 天统计；如果这些原件的首个任务更晚，则从该任务算起，且不少于 30 天。正是这个数字说明了想再开一个任务时是否必须等待。</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>排名</value>
@@ -2408,7 +2408,7 @@
     <value>{0} × {1} 个栏位，对比目前运行中的 {2:N0} 个。训练需要时间——这是它能换来的上限。</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>统计了 {0:N0} 张蓝图在 {1} 天内的情况：{2:N0} 张从未出现所有原件同时被占用，中位数为 {3:N0}%，最繁忙的十分之一从 {4:N0}% 起——标记正是以此为界。</value>
+    <value>统计了 {0:N0} 张蓝图在最多 {1} 天内的情况：{2:N0} 张从未出现所有原件同时被占用，中位数为 {3:N0}%，最繁忙的十分之一从 {4:N0}% 起——标记正是以此为界。</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>最近 {1} 天中，所有蓝图原件同时被占用的时间占 {0:N0}%，目前有 {2:N0} 个任务无法开始。再买一张蓝图原件，上限将从每天 {3:N2} 提高到每天 {4:N2}。</value>

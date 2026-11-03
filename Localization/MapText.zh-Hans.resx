@@ -635,7 +635,7 @@
     <value>此处有星城，超级航母和泰坦可以停靠</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>旗舰——铁壁或 NPC 空间站</value>
+    <value>旗舰——铁壁、索提约或 NPC 空间站</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>旗舰可以停靠，超级旗舰不能</value>

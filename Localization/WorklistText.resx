@@ -489,11 +489,11 @@
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand.</value>
+    <value>Units a day actually produced, over the same days as the all-busy figure. It can never exceed the ceiling, which is why it cannot be used to measure demand.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints.</value>
+    <value>Share of each original's time spent inside a job, over the same days as the all-busy figure. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="AllBusy" xml:space="preserve">
@@ -501,7 +501,7 @@
     <comment>Text in WorklistView.</comment>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting.</value>
+    <value>Share of the time when EVERY original was occupied at once, counting research and copying as well as building. Over the last 90 days, or since these originals' first job if that is later, and never under 30 days. This is the figure that says whether wanting another job meant waiting.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="Rank" xml:space="preserve">
@@ -3229,7 +3229,7 @@
     <comment>Beside the remedy of adding an account. {0} is the characters on one account, {1} the most slots one character can have, {2} the slots running now.</comment>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Measured across {0:N0} blueprint(s) over {1} days: {2:N0} never had every original busy at once, the middle sits at {3:N0}%, and the busiest tenth start at {4:N0}% — which is the line the flags use.</value>
+    <value>Measured across {0:N0} blueprint(s) over up to {1} days: {2:N0} never had every original busy at once, the middle sits at {3:N0}%, and the busiest tenth start at {4:N0}% — which is the line the flags use.</value>
     <comment>End of the Bottlenecks status line: how the blueprint flags were measured. {0} is the blueprints measured, {1} the days, {2} how many never had every original busy at once, {3} the middle value, {4} where the busiest tenth begins, both as a share of the time.</comment>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">

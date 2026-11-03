@@ -853,7 +853,7 @@
     <comment>Tooltip on a map mark over a system box.</comment>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>Capitals — Fortizar or NPC station</value>
+    <value>Capitals — Fortizar, Sotiyo or NPC station</value>
     <comment>Map legend, and the title of a mark's tooltip: capital ships can dock here. Fortizar is a structure name.</comment>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">

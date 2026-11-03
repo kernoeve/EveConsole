@@ -635,7 +635,7 @@
     <value>키프스타가 있습니다. 슈퍼캐리어와 타이탄이 도킹할 수 있습니다</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>캐피탈 — 포티자 또는 NPC 정거장</value>
+    <value>캐피탈 — 포티자, 소티요 또는 NPC 정거장</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>캐피탈은 도킹할 수 있지만, 슈퍼캐리어와 타이탄은 도킹할 수 없습니다</value>

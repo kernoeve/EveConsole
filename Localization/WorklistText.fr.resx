@@ -368,16 +368,16 @@
     <value>Unités par jour que les originaux disponibles pourraient produire ensemble, en tournant sans interruption.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Unités par jour réellement produites sur les 90 derniers jours. Cette valeur ne peut jamais dépasser le plafond : c'est pourquoi elle ne peut pas servir à mesurer la demande.</value>
+    <value>Unités réellement produites par jour, sur les mêmes jours que le chiffre « tous occupés ». Elle ne peut jamais dépasser le plafond, c'est pourquoi elle ne permet pas de mesurer la demande.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Part du temps de chaque original passée dans un travail. Pour contexte uniquement : elle n'identifie pas les goulots d'étranglement, et un classement sur cette valeur place l'utilisation intensive au-dessus des contraintes réelles.</value>
+    <value>Part du temps de chaque original passée dans un travail, sur les mêmes jours que le chiffre « tous occupés ». Pour contexte uniquement : elle n'identifie pas les goulots d'étranglement, et un classement sur cette valeur place l'utilisation intensive au-dessus des contraintes réelles.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Saturation</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Part des 90 derniers jours pendant laquelle TOUS les originaux étaient occupés en même temps, en comptant la recherche et la copie autant que la production. C'est ce chiffre qui dit si vouloir un travail de plus signifiait attendre.</value>
+    <value>Part du temps pendant laquelle TOUS les originaux étaient occupés en même temps, en comptant la recherche et la copie autant que la production. Mesurée sur les 90 derniers jours, ou depuis le premier travail de ces originaux si c'est plus récent, et jamais sur moins de 30 jours. C'est ce chiffre qui dit si vouloir un travail de plus signifiait attendre.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Rang</value>
@@ -2429,7 +2429,7 @@
     <value>{0} × {1} créneaux, contre {2:N0} en service aujourd'hui. La formation n'est pas instantanée — c'est le plafond que cela permet d'atteindre.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Mesuré sur {0:N0} plan(s) pendant {1} jours : {2:N0} n'ont jamais eu tous leurs originaux occupés en même temps, la médiane se situe à {3:N0} %, et le dixième le plus chargé commence à {4:N0} % — c'est le seuil utilisé pour les signalements.</value>
+    <value>Mesuré sur {0:N0} plan(s) pendant {1} jours au plus : {2:N0} n'ont jamais eu tous leurs originaux occupés en même temps, la médiane se situe à {3:N0} %, et le dixième le plus chargé commence à {4:N0} % — c'est le seuil utilisé pour les signalements.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Tous les BPO ont été occupés {0:N0} % des {1} derniers jours, et {2:N0} travail(aux) ne peuvent pas démarrer maintenant. Un BPO de plus porterait le plafond de {3:N2} à {4:N2}/jour.</value>

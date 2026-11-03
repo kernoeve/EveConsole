@@ -368,16 +368,16 @@
     <value>Unidades al día que podrían producir entre todos los originales disponibles, funcionando sin pausa.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Unidades al día producidas realmente en los últimos 90 días. Nunca puede superar el techo, por lo que no sirve para medir la demanda.</value>
+    <value>Unidades realmente producidas al día, en los mismos días que la cifra de todos ocupados. Nunca puede superar el techo, por lo que no sirve para medir la demanda.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Proporción del tiempo de cada original dentro de un trabajo. Solo es contexto: no identifica cuellos de botella, y clasificar por ello pone el uso intenso por encima de las restricciones reales.</value>
+    <value>Proporción del tiempo de cada original dentro de un trabajo, en los mismos días que la cifra de todos ocupados. Solo es contexto: no identifica cuellos de botella, y clasificar por ello pone el uso intenso por encima de las restricciones reales.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Todos ocupados</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Proporción de los últimos 90 días en que TODOS los originales estaban ocupados a la vez, contando la investigación y la copia además de la fabricación. Esta es la cifra que dice si querer otro trabajo implicaba esperar.</value>
+    <value>Proporción del tiempo en que TODOS los originales estaban ocupados a la vez, contando la investigación y la copia además de la fabricación. Se mide en los últimos 90 días o desde el primer trabajo de estos originales si es posterior, y nunca en menos de 30 días. Esta es la cifra que dice si querer otro trabajo implicaba esperar.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Posición</value>
@@ -2429,7 +2429,7 @@
     <value>{0} × {1} ranuras frente a las {2:N0} que funcionan ahora. El desarrollo de habilidades no es instantáneo: este es el techo que se consigue.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Medido en {0:N0} plano(s) durante {1} días: en {2:N0} de ellos nunca estuvieron todos los originales ocupados a la vez, la mediana está en el {3:N0} % y la décima parte más ocupada empieza en el {4:N0} %, que es el límite que usan las marcas.</value>
+    <value>Medido en {0:N0} plano(s) durante un máximo de {1} días: en {2:N0} de ellos nunca estuvieron todos los originales ocupados a la vez, la mediana está en el {3:N0} % y la décima parte más ocupada empieza en el {4:N0} %, que es el límite que usan las marcas.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Todos los BPO estuvieron ocupados el {0:N0} % de los últimos {1} días, y {2:N0} trabajo(s) no pueden empezar ahora mismo. Otro BPO sube el techo de {3:N2} a {4:N2}/día.</value>

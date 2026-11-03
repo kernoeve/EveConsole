@@ -368,16 +368,16 @@
     <value>보유한 원본들이 쉬지 않고 돌아갈 때 하루에 만들 수 있는 수량입니다.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>최근 90일 동안 실제로 하루에 생산한 수량입니다. 상한을 넘을 수 없으므로 수요를 측정하는 데 쓸 수 없습니다.</value>
+    <value>실제로 생산된 하루 수량으로, 전체 사용 중 수치와 같은 기간으로 측정합니다. 상한을 넘을 수 없으므로 수요를 측정하는 데 쓸 수 없습니다.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>각 원본이 작업에 들어가 있던 시간의 비율입니다. 참고용일 뿐입니다: 병목을 식별하지 못하며, 이 값으로 순위를 매기면 실제 제약보다 많이 쓴 것이 위에 옵니다.</value>
+    <value>각 원본이 작업에 들어가 있던 시간의 비율로, 전체 사용 중 수치와 같은 기간으로 측정합니다. 참고용일 뿐입니다: 병목을 식별하지 못하며, 이 값으로 순위를 매기면 실제 제약보다 많이 쓴 것이 위에 옵니다.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>전부 사용 중</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>최근 90일 중 '모든' 원본이 동시에 사용 중이던 시간의 비율로, 제조뿐 아니라 연구와 복제도 셉니다. 작업을 하나 더 하려면 기다려야 했는지를 알려 주는 수치입니다.</value>
+    <value>'모든' 원본이 동시에 사용 중이던 시간의 비율로, 제조뿐 아니라 연구와 복제도 셉니다. 최근 90일 또는 그보다 늦다면 이 원본의 첫 작업 이후로 측정하며, 30일 미만으로는 측정하지 않습니다. 작업을 하나 더 하려면 기다려야 했는지를 알려 주는 수치입니다.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>순위</value>
@@ -2408,7 +2408,7 @@
     <value>현재 가동 중인 {2:N0}개 대비 {0} × {1}개 슬롯. 훈련은 즉시 되지 않습니다 — 이것은 이 방법으로 얻을 수 있는 상한입니다.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>{1}일 동안 블루프린트 {0:N0}개를 측정했습니다: {2:N0}개는 모든 원본이 동시에 사용 중인 적이 없었고, 중앙값은 {3:N0}%, 가장 바쁜 상위 10%는 {4:N0}%부터 시작합니다 — 이것이 표시에 쓰는 기준선입니다.</value>
+    <value>최대 {1}일 동안 블루프린트 {0:N0}개를 측정했습니다: {2:N0}개는 모든 원본이 동시에 사용 중인 적이 없었고, 중앙값은 {3:N0}%, 가장 바쁜 상위 10%는 {4:N0}%부터 시작합니다 — 이것이 표시에 쓰는 기준선입니다.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었고, 지금 시작할 수 없는 작업이 {2:N0}개 있습니다. BPO를 하나 더 두면 상한이 하루 {3:N2}개에서 {4:N2}개로 오릅니다.</value>

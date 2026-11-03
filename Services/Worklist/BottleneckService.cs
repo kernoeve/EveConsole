@@ -685,19 +685,26 @@ public class BottleneckService(
 
                 var jobs = mine.SelectMany(p => occupied.GetValueOrDefault(p.ItemId, [])).ToList();
 
+                // ⚠️ Measured since these prints went to work, not across the whole window. The days
+                // before their first job say nothing about them: Fenrir's building BPO ran 45 of the
+                // 55 days since its first job, and read 50% against all 90 with a queue behind it.
+                // Thirty days at the least, or one job begun this morning would read 100%.
+                var begun = jobs.Count == 0 ? now : jobs.Min(j => j.StartDate);
+                var days  = Math.Max(RecentWindowDays, (now - (begun > since ? begun : since)).TotalDays);
+
                 result.Add(new ItemBandwidth(
                     productId,
                     names.GetValueOrDefault(productId, string.Format(WorklistText.TypeWithId, productId)),
                     cycle,
                     mine.Count,
                     mine.Count(p => p.LockedInJob),
-                    (isCopy ? copied.Runs : made.Runs * units) / (double)WindowDays,
+                    (isCopy ? copied.Runs : made.Runs * units) / days,
                     // ⚠️ Clipped to the window at both ends: a job running longer than the window was
                     // once counted whole, which put one print at 120%. And every activity, as
                     // contention is: an original copying is no more free to build than one building.
                     jobs.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
                     units,
-                    WindowDays,
+                    (int)Math.Round(days),
                     want.All + wantCopy.All,
                     want.Blocked + wantCopy.Blocked,
                     !isCopy && made.IsReaction)
@@ -714,7 +721,7 @@ public class BottleneckService(
                     // ⚠️ From the occupancy set, which counts research and copying too. Contention is
                     // about the print being unavailable, and a print locked in a copy job is exactly
                     // as unavailable as one locked in a build.
-                    ContentionPercent = 100.0 * AllBusyDays(jobs, mine.Count, since, now) / WindowDays,
+                    ContentionPercent = 100.0 * AllBusyDays(jobs, mine.Count, since, now) / days,
 
                     RecentContentionPercent = 100.0 * AllBusyDays(jobs, mine.Count, recentSince, now) / RecentWindowDays,
                     RecentDays = RecentWindowDays,
@@ -826,8 +833,8 @@ public class BottleneckService(
     /// time. Owned is also the number a buying decision turns on: how often would the copies I
     /// have now have left me waiting.</para>
     ///
-    /// <para>⚠️ A print bought part-way through the window therefore makes the months before it
-    /// look less contended than they were. That is the right way round for the question being
+    /// <para>⚠️ A second print bought part-way through the window therefore makes the months before
+    /// it look less contended than they were. That is the right way round for the question being
     /// asked — what is worth buying NOW — and the wrong way round for a history lesson.</para>
     /// </summary>
     private static double AllBusyDays(

@@ -368,16 +368,16 @@
     <value>Einheiten pro Tag, die die vorhandenen Originale zusammen ohne Pause herstellen könnten.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Tatsächlich hergestellte Einheiten pro Tag in den letzten 90 Tagen. Kann nie über der Obergrenze liegen und taugt deshalb nicht, um den Bedarf zu messen.</value>
+    <value>Tatsächlich pro Tag produzierte Einheiten, über dieselben Tage wie die Zahl für „alle belegt“. Sie kann die Obergrenze nie überschreiten und taugt deshalb nicht, um den Bedarf zu messen.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Anteil der Zeit, die jedes Original in einem Auftrag verbringt. Nur zur Einordnung: Es zeigt keine Engpässe, und danach zu ordnen, stellt starke Nutzung über echte Beschränkungen.</value>
+    <value>Anteil der Zeit, die jedes Original in einem Auftrag verbringt, über dieselben Tage wie die Zahl für „alle belegt“. Nur zur Einordnung: Es zeigt keine Engpässe, und danach zu ordnen, stellt starke Nutzung über echte Beschränkungen.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Alle belegt</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Anteil der letzten 90 Tage, in dem JEDES Original gleichzeitig belegt war – Forschung und Kopieren ebenso gezählt wie Bauen. Diese Zahl sagt, ob ein weiterer Auftrag Warten bedeutet hätte.</value>
+    <value>Anteil der Zeit, in dem JEDES Original gleichzeitig belegt war – Forschung und Kopieren ebenso gezählt wie Bauen. Gemessen über die letzten 90 Tage oder seit dem ersten Auftrag dieser Originale, falls das später war, und nie unter 30 Tagen. Diese Zahl sagt, ob ein weiterer Auftrag Warten bedeutet hätte.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Rang</value>
@@ -2429,7 +2429,7 @@
     <value>{0} × {1} Slots gegenüber den {2:N0}, die jetzt laufen. Training geht nicht sofort – das ist die Obergrenze, die es einbringt.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Gemessen über {0:N0} Blaupause(n) in {1} Tagen: Bei {2:N0} waren nie alle Originale gleichzeitig belegt, der Median liegt bei {3:N0} %, und das am stärksten belegte Zehntel beginnt bei {4:N0} % – das ist die Grenze für die Markierungen.</value>
+    <value>Gemessen über {0:N0} Blaupause(n) in bis zu {1} Tagen: Bei {2:N0} waren nie alle Originale gleichzeitig belegt, der Median liegt bei {3:N0} %, und das am stärksten belegte Zehntel beginnt bei {4:N0} % – das ist die Grenze für die Markierungen.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Alle BPOs waren in {0:N0} % der letzten {1} Tage belegt. Aufträge, die gerade nicht starten können: {2:N0}. Ein weiteres BPO hebt die Obergrenze von {3:N2} auf {4:N2}/Tag.</value>
