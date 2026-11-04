@@ -28,9 +28,10 @@ public sealed record TopGroupVm(string Title, TopStatVm Headline, IBrush Headlin
 public sealed record TopSlotVm(TopStatVm Stat, IBrush Color);
 
 /// <summary>A task from the top of the plan: what it is, where, and what it restarts.</summary>
-public sealed class NextMoveVm(WorklistRowVm row, string line, string frees, Action<string> go)
+public sealed class NextMoveVm(WorklistRowVm row, string verb, string line, string frees, Action<string> go)
 {
     public WorklistRowVm Row => row;
+    public string Verb  => verb;
     public string Line  => line;
     public string Frees => frees;
 

@@ -1446,7 +1446,8 @@ public class LogisticsGenerator(
             catch (OperationCanceledException) { throw; }
             catch { continue; }
 
-            if (root?.StationId is not { } site) continue;
+            // A hull that cannot dock where it is wanted is built where it is wanted.
+            if (root is null || (d.BoundSite ?? root.StationId) is not { } site) continue;
 
             // Only this job's own inputs. Its sub-assemblies are separate jobs at their own
             // facilities, and they appear in the demand list in their own right.
@@ -2121,6 +2122,7 @@ public class LogisticsGenerator(
                     Unblocked:    x.Missing.Count == 0,
                     StillShortOf: [],
                     WantsUnits:   x.g.Sum(y => y.Driver.Qty),
+                    Units:        x.g.Max(y => y.Driver.Units),
                     Missing:      x.Missing,
                     // A build that is itself a blueprint — a T2 print invented — makes copies.
                     Print:        printAt(0, x.g.Key, 0) == PrintKind.None ? PrintKind.None : PrintKind.Copy))
@@ -2172,6 +2174,7 @@ public class LogisticsGenerator(
                           names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
                           c.Qty) { Print = c.Print })],
                 Print        = cargo[0].Print,
+                Landings     = [.. tripDrop.Select(kv => new WorklistDelivered(kv.Key.Station, kv.Key.TypeId, kv.Value))],
                 WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),

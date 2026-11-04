@@ -45,6 +45,12 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public int Blocks { get; init; }
 
     /// <summary>
+    /// Where this has to be built, for a capital hull wanted somewhere it cannot dock: see
+    /// <see cref="CapitalDocking"/>. Null lets the park decide.
+    /// </summary>
+    public long? BoundSite { get; init; }
+
+    /// <summary>
     /// Which items are waiting on this one, not merely how many.
     ///
     /// <para>⚠️ The count has to be RECOMPUTED as jobs are planned, and a number cannot be.
@@ -314,6 +320,12 @@ public class IndustryDemandService(
         public long Have;
 
         /// <summary>
+        /// Of <see cref="Consumed"/>, what builds want of a capital hull at a site it cannot dock
+        /// at. Only a hull already there can serve these, whatever else is owned.
+        /// </summary>
+        public readonly Dictionary<long, long> BoundTo = [];
+
+        /// <summary>
         /// Every item downstream that waits on this one, transitively.
         ///
         /// <para><b>⚠️ Priority is inherited but never accumulated, which is what this fixes.</b> A
@@ -423,6 +435,42 @@ public class IndustryDemandService(
         IReadOnlyDictionary<int, int>? meOverrides = null)
     {
         var gross = new Dictionary<int, Gross>();
+
+        // Hulls by where they stand, assets and jobs running there, for the demand tied to a site.
+        var docking = await CapitalDocking.LoadAsync(db, ct);
+        var hulls   = docking.Hulls.ToList();
+        var hullsAt = (await db.EsiAssets.AsNoTracking()
+                .Where(a => hulls.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity, a.RootLocationId })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Excludes(a.ItemId, a.OwnerId)
+                     && (a.OwnerType != "corporation" || corps is null || corps.Contains(a.OwnerId)))
+            .GroupBy(a => (Site: a.RootLocationId, a.TypeId))
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+        foreach (var j in (await db.EsiIndustryJobs.AsNoTracking()
+                     .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                              && j.ProductTypeId != null && hulls.Contains(j.ProductTypeId.Value))
+                     .Select(j => new { j.JobId, j.FacilityId, Type = j.ProductTypeId!.Value, j.Runs })
+                     .ToListAsync(ct))
+                 .DistinctBy(j => j.JobId))
+            hullsAt[(j.FacilityId, j.Type)] = hullsAt.GetValueOrDefault((j.FacilityId, j.Type)) + j.Runs;
+
+        // ⚠️ What still has to be built, with demand tied to a site met only from that site. A
+        // Simurgh in an Azbel can only use a Chimera built in that Azbel, so one in a Keepstar next
+        // door must not cancel it out, or no Chimera is ever queued and the Simurgh never starts.
+        // The hull that site does hold is not there for anyone else to count on either.
+        long NetOf(int typeId, Gross g, long have)
+        {
+            long bound = 0, boundShort = 0, heldForBound = 0;
+            foreach (var (site, qty) in g.BoundTo)
+            {
+                var there = Math.Min(qty, hullsAt.GetValueOrDefault((site, typeId)));
+                bound        += qty;
+                heldForBound += there;
+                boundShort   += qty - there;
+            }
+            return Math.Max(0, g.Level + g.Consumed - bound - Math.Max(0, have - heldForBound)) + boundShort;
+        }
 
         // child type -> the types that consume it, one edge per material line. The ancestry
         // closure below is computed from these once the whole walk has finished.
@@ -590,7 +638,7 @@ public class IndustryDemandService(
 
             var g    = At(typeId);
             var have = g.Have > 0 ? g.Have : inScope.Anywhere(typeId);
-            var net  = g.Level + g.Consumed - have;
+            var net  = NetOf(typeId, g, have);
             if (net <= 0) continue;
 
             // Already exploded for at least this much; only the increase needs pushing down.
@@ -634,6 +682,8 @@ public class IndustryDemandService(
                 var child = At(m.MaterialTypeId);
                 child.Consumed    += qty;
                 child.ParentUnits += qty;
+                if (root.StationId is { } builtAt && !docking.CanDock(m.MaterialTypeId, builtAt))
+                    child.BoundTo[builtAt] = child.BoundTo.GetValueOrDefault(builtAt) + qty;
                 child.Fires        = true;
                 child.Priority  = Math.Max(child.Priority, g.Priority);
                 child.Reasons.Add(string.Format(WorklistText.ReasonForParent, qty, name));
@@ -711,7 +761,7 @@ public class IndustryDemandService(
             // their stock comes from the configured scope instead.
             var have = g.Have > 0 ? g.Have : inScope.Anywhere(typeId);
 
-            var units = g.Level + g.Consumed - have;
+            var units = NetOf(typeId, g, have);
             if (units <= 0) continue;
 
             result[typeId] = new BuildDemand(
@@ -721,6 +771,11 @@ public class IndustryDemandService(
                 ShelfLevel: g.Level, ShelfHave: have)
             {
                 Blocks = g.Dependents.Count,
+                BoundSite = g.BoundTo
+                    .Where(b => b.Value > hullsAt.GetValueOrDefault((b.Key, typeId)))
+                    .OrderByDescending(b => b.Value - hullsAt.GetValueOrDefault((b.Key, typeId)))
+                    .Select(b => (long?)b.Key)
+                    .FirstOrDefault(),
             };
         }
 

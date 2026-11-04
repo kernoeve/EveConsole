@@ -1489,6 +1489,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>empieza al llegar</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>luego espera una ranura</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>luego espera un plano</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>empieza cuando también termine el otro circuito</value>
   </data>
@@ -2004,6 +2010,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>libera {0:N0}</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Comprar</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Transportar</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Fabricar</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Reacción</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Entregar</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>Haz clic para mostrar solo estas. Vuelve a hacer clic para quitar el filtro.</value>

@@ -86,7 +86,8 @@ public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
     bool Unblocked, IReadOnlyList<string> StillShortOf,
     long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false,
-    IReadOnlyList<WorklistLine>? Missing = null, PrintKind Print = PrintKind.None)
+    IReadOnlyList<WorklistLine>? Missing = null, PrintKind Print = PrintKind.None,
+    long Units = 0, bool ThenNoSlot = false, bool ThenNoPrint = false)
 {
     public IReadOnlyList<WorklistLine> MissingLines => Missing ?? [];
 
@@ -101,7 +102,9 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
+        ThenNoSlot                ? WorklistText.WaitThenNoSlot
+        : ThenNoPrint             ? WorklistText.WaitThenNoPrint
+        : Unblocked               ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
         : WithOtherLoops          ? WorklistText.WaitStartsWithOtherLoop
         // ⚠️ How many different things it still lacks, not how many units it wants. "Wants 14,938"
         // added up everything on the trip it asked for, minerals and parts alike, and said nothing
@@ -145,6 +148,13 @@ public sealed record WorklistWaitingJob(
 
 /// <summary>Output of a finished job: what, how much, and the facility it lands in.</summary>
 public sealed record WorklistDelivered(long Site, int TypeId, long Units);
+
+/// <summary>One material a stopped job wants: how much for the whole row, and how much is at its
+/// site after the jobs that can really start.</summary>
+public sealed record WorklistBillLine(int TypeId, string TypeName, long Wanted, long Here)
+{
+    public PrintKind Print { get; init; }
+}
 
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
@@ -285,6 +295,28 @@ public sealed record WorklistItem
     /// wanted the detail had to parse prose or go without.</para>
     /// </summary>
     public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
+
+    /// <summary>Runs on a job row.</summary>
+    public int Runs { get; init; }
+
+    /// <summary>
+    /// Everything a job stopped for materials wants, short or not, for working out how many of its
+    /// runs a load would start: see <see cref="ArrivalPlan"/>.
+    /// </summary>
+    public IReadOnlyList<WorklistBillLine> Bill { get; init; } = [];
+
+    /// <summary>A slot and a print were there for this job when it was planned: only its materials
+    /// stop it.</summary>
+    public bool HasSlot { get; init; }
+
+    /// <summary>With its materials here it would still want a print, there being a slot for it.</summary>
+    public bool ThenNeedsPrint { get; init; }
+
+    /// <summary>
+    /// Where a haul's cargo ends up, which is not always where the trip stops: cargo landed at a
+    /// staging station is still for the jobs past it. Empty means <see cref="Deliveries"/>.
+    /// </summary>
+    public IReadOnlyList<WorklistDelivered> Landings { get; init; } = [];
 
     /// <summary>
     /// The stopped jobs waiting on something this haul carries, and whether it finishes their wait.

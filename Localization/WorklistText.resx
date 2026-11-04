@@ -1984,6 +1984,14 @@
     <value>starts on arrival</value>
     <comment>Beside a job in a Worklist row's "waiting on this" panel: this delivery is all the job lacks. Lower case.</comment>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>then waits for a slot</value>
+    <comment>Under a haul: jobs this load would cover, which would then wait for a free slot.</comment>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>then waits for a blueprint</value>
+    <comment>Under a haul: jobs this load would cover, which would then wait for a blueprint to free up.</comment>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>starts once the other loop is done too</value>
     <comment>Waiting-on-this status: the job is started by this hauling loop together with another pilot's loop in the same system, not by this one alone.</comment>
@@ -2663,6 +2671,34 @@
   <data name="TopFrees" xml:space="preserve">
     <value>frees {0:N0}</value>
     <comment>Worklist summary, beside a next move. {0} = stopped jobs it restarts.</comment>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Worklist, Best next moves: what the task is, in one word.</comment>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Haul</value>
+    <comment>Worklist, Best next moves: what the task is, in one word.</comment>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A manufacturing job.</comment>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>React</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A reaction job.</comment>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A blueprint copy job.</comment>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Invent</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. An invention job.</comment>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Deliver</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. Delivering finished jobs.</comment>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>Click to show only these. Click again to clear.</value>

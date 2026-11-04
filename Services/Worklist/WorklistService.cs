@@ -126,23 +126,6 @@ public class WorklistService(
 
         PromoteUnblockingBuys(sections, all);
 
-        // Every job stopped for want of something, by where it runs and what it wants.
-        //
-        // ⚠️ MustBuy shortfalls are INCLUDED, and the flag is not what it sounds like. It means
-        // "not enough owned in scope that other jobs have not already claimed" — so with one
-        // Obelisk owned and three Anshar jobs wanting one each, the first job is a hauling
-        // problem and the other two are marked MustBuy. Filtering them out here dropped them
-        // from the panel entirely, which is why a haul carrying an Obelisk listed one job
-        // waiting on it and not the three that are.
-        //
-        // They are all waiting on this crate. Which of them the crate actually starts is a
-        // separate question, answered per job below and shown rather than filtered on.
-        var stopped = all
-            .Where(x => x.LocationId > 0)
-            .SelectMany(x => x.Shortages.Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
-            .GroupBy(x => x.Key)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
-
         // The same shortages indexed by TYPE alone, for the jobs pass: a job's output feeds
         // whoever needs it wherever they are, unlike a delivery, which is judged where it lands.
         var stoppedByType = all
@@ -151,8 +134,6 @@ public class WorklistService(
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
 
         PromoteBlockingJobs(sections, stoppedByType);
-
-        if (stopped.Count == 0) return;
 
         // A system's in-system loops taken together, where its pilots share them: what all of them
         // put down, by destination. A job one pilot's loop cannot start alone may be started by
@@ -186,21 +167,16 @@ public class WorklistService(
                 //
                 // By destination: a trip has one, and an in-system loop drops at several. A job is
                 // judged only against what lands where it runs.
-                var drops = haul.Deliveries()
+                //
+                // ⚠️ Where it ends up, not where the trip stops. Cargo landed at a staging station is
+                // still for the jobs past it, and judged where it stops, it was for nobody.
+                var drops = (haul.Landings.Count > 0
+                        ? haul.Landings.Select(l => (Destination: l.Site, l.TypeId, Quantity: l.Units))
+                        : haul.Deliveries())
                     .GroupBy(d => d.Destination)
                     .ToDictionary(g => g.Key,
                                   g => g.GroupBy(d => d.TypeId).ToDictionary(x => x.Key, x => x.Sum(d => d.Quantity)));
                 if (drops.Count == 0) continue;
-
-                IReadOnlyDictionary<int, long> CargoFor(WorklistItem job) =>
-                    drops.GetValueOrDefault(job.LocationId) ?? new Dictionary<int, long>();
-
-                // Every job at a destination waiting on anything dropped there. Relevant to the
-                // row, but not the same thing as restarted by it.
-                var touched = drops
-                    .SelectMany(d => d.Value.Keys.SelectMany(t => stopped.GetValueOrDefault((d.Key, t), [])))
-                    .DistinctBy(j => j.Key)
-                    .ToList();
 
                 // ⚠️ A planned build that is a task on the list already, and not blocked, is not
                 // waiting on anything: its job can start. The four fuel block jobs at the yard
@@ -219,53 +195,44 @@ public class WorklistService(
                         WaitingJobs = [.. haul.WaitingJobs.Where(w => !(w.IsPlanned && ready.Contains(w.TypeId)))],
                     };
 
-                // ⚠️ No longer a reason to leave the row alone. The generator has already put the
-                // planner's own drivers on it, and those are what the tooltip means by "Jobs are
-                // waiting on this" — so a haul with no matching stopped ROW still has something
-                // true to show, which is the case the panel used to be silent about.
-                if (touched.Count == 0) continue;
+                // ⚠️ How much of each stopped job this load starts, in runs: see ArrivalPlan. Nothing
+                // to say is no reason to leave the row alone either: the generator has already put
+                // the planner's own drivers on it, which is what the tooltip means by "Jobs are
+                // waiting on this".
+                var outcomes = ArrivalPlan.Run(all, drops);
+                if (outcomes.Count == 0) continue;
 
-                // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
-                // The count used to be "jobs waiting on any of these items", which is a different
-                // and much larger number: a job short of three things and sent one of them stays
-                // exactly as stopped as it was.
-                //
-                // ⚠️ A MustBuy shortage is ALWAYS outstanding, whatever the manifest says. The
-                // flag means the owned stock is already spoken for by another job, and this crate
-                // came out of that same owned stock — so a second job wanting the same hull is
-                // queued behind the first, not served by the same trip. That is a different fact
-                // from "waiting on something else too", and the row says which.
-                var waiting = touched
-                    .Select(j =>
+                // Not by this loop alone, but by the system's loops between them?
+                var withOthers = haul.LoopSystemId > 0 && together.TryGetValue(haul.LoopSystemId, out var systemDrops)
+                    ? ArrivalPlan.Run(all, systemDrops).ToDictionary(o => o.First.TypeId, o => o.Starts)
+                    : [];
+
+                // A line for what starts and a line for what does not, each with how many: the
+                // jobs split when the cargo lands, so the list says so before it does.
+                var waiting = outcomes
+                    .SelectMany(o =>
                     {
-                        var cargo = CargoFor(j);
-                        var outstanding = j.Shortages
-                            .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
-                            .ToList();
+                        var j = o.First;
+                        var cargo = drops.GetValueOrDefault(j.LocationId) ?? [];
+                        WorklistWaitingJob Line(bool starts, long units, bool thenNoSlot = false, bool thenNoPrint = false,
+                                                IReadOnlyList<WorklistLine>? missing = null, bool shared = false) =>
+                            new(j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
+                                Unblocked: starts, ThenNoSlot: thenNoSlot, ThenNoPrint: thenNoPrint, Units: units,
+                                WithOtherLoops: shared, ByLoop: haul.Stops.Count > 0,
+                                // Deduped on the English, then named as the screen shows them: this
+                                // list is only ever read out in the row's tooltip.
+                                StillShortOf: [.. (missing ?? []).Where(l => !cargo.ContainsKey(l.TypeId))
+                                                                 .Select(l => SdeNames.Type(l.TypeId, l.TypeName))],
+                                // m³ is stamped on with the rest of the volumes, in ApplyVolumeAsync.
+                                Missing: missing);
 
-                        // Not by this loop alone — but by the system's loops between them?
-                        var shared = haul.LoopSystemId > 0
-                                     && together.TryGetValue(haul.LoopSystemId, out var systemDrops)
-                                     && systemDrops.GetValueOrDefault(j.LocationId) is { } joint
-                                     && outstanding.Count > 0
-                                     && outstanding.All(s => !s.MustBuy && joint.GetValueOrDefault(s.TypeId) >= s.Short);
-
-                        return new WorklistWaitingJob(
-                            j.Key, j.Title, j.TypeId, j.TypeName, Print: j.Print,
-                            Unblocked:   outstanding.Count == 0,
-                            // Deduped on the English, then named as the screen shows them: this
-                            // list is only ever read out in the row's tooltip.
-                            StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
-                                                         .DistinctBy(s => s.TypeName)
-                                                         .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
-                            WithOtherLoops: shared,
-                            ByLoop: haul.Stops.Count > 0,
-                            // What it would still lack once this cargo is down, item by item —
-                            // this cargo's own items too where the drop does not cover them (or
-                            // where the stock it came from is claimed). m³ is stamped on with the
-                            // rest of the volumes, in ApplyVolumeAsync.
-                            Missing: MissingLines(outstanding,
-                                g => g.Any(s => s.MustBuy) ? 0 : cargo.GetValueOrDefault(g.Key)));
+                        var lines = new List<WorklistWaitingJob>();
+                        if (o.Starts > 0) lines.Add(Line(true, o.Starts));
+                        if (o.Waits  > 0) lines.Add(Line(false, o.Waits, thenNoSlot: true));
+                        if (o.WaitsForPrint > 0) lines.Add(Line(false, o.WaitsForPrint, thenNoPrint: true));
+                        if (o.Rest   > 0) lines.Add(Line(false, o.Rest, missing: o.Missing,
+                                                         shared: withOthers.GetValueOrDefault(j.TypeId) > o.Starts));
+                        return lines;
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenByDescending(w => w.WithOtherLoops)
@@ -286,7 +253,7 @@ public class WorklistService(
                 section.Items[n] = haul with
                 {
                     WaitingJobs = [.. waiting, .. also],
-                    Unblocks    = freed.Count,
+                    Unblocks    = outcomes.Sum(o => o.Jobs),
 
                     // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
                     // job this haul only partly serves would rank the trip by work it cannot
@@ -298,7 +265,7 @@ public class WorklistService(
                     // longer gives it to job material by default.
                     Priority = freed.Count > 0
                         ? Math.Max(Math.Max(haul.Priority, WorklistPriority.HaulUnblocking),
-                                   freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                                   outcomes.Where(o => o.Starts > 0).Max(o => o.Priority))
                         : haul.Priority,
 
                     // "Jobs are waiting on this" only where it is true. The generator says what

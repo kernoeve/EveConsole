@@ -1495,6 +1495,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>начнётся по прибытии</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>затем ждёт слот</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>затем ждёт чертёж</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>запустится, когда завершится и другой круг</value>
   </data>
@@ -2040,6 +2046,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>освобождает {0:N0}</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Купить</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Перевезти</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Построить</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Реакция</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Копия</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Изобрести</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Выдать</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>Нажмите, чтобы показать только их. Нажмите ещё раз, чтобы сбросить.</value>

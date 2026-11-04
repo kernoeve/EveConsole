@@ -177,11 +177,13 @@
                 <DataTemplate x:DataType="vm:NextMoveVm">
                   <Button Classes="topstat" Command="{Binding Go}" HorizontalAlignment="Stretch"
                           ToolTip.Tip="{x:Static loc:WorklistText.TipTopMove}" Padding="6 0">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                      <Image Grid.Column="0" Source="{Binding Row.Icon}" Width="14" Height="14" Margin="0 0 5 0" VerticalAlignment="Center"/>
-                      <TextBlock Grid.Column="1" Text="{Binding Line}" FontSize="11" TextTrimming="CharacterEllipsis"
+                    <Grid ColumnDefinitions="52,Auto,*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Verb}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                      <Image Grid.Column="1" Source="{Binding Row.Icon}" Width="14" Height="14" Margin="0 0 5 0" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="2" Text="{Binding Line}" FontSize="11" TextTrimming="CharacterEllipsis"
                                  Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                      <TextBlock Grid.Column="2" Text="{Binding Frees}" FontSize="10" Margin="6 0 0 0"
+                      <TextBlock Grid.Column="3" Text="{Binding Frees}" FontSize="10" Margin="6 0 0 0"
                                  Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                     </Grid>
                   </Button>

@@ -1486,6 +1486,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>送达即开始</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>之后等待栏位</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>之后等待蓝图</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>另一条环线也完成后开始</value>
   </data>
@@ -1986,6 +1992,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>解除 {0:N0} 个</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>购买</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>运输</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>交付</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>点击仅显示这些。再次点击可清除。</value>

@@ -56,6 +56,8 @@ public sealed class CapitalDocking(
             structures);
     }
 
+    public IEnumerable<int> Hulls => capitals.Concat(supers);
+
     /// <summary>A hull a pilot has to fly, rather than cargo.</summary>
     public bool IsHull(int typeId) => capitals.Contains(typeId) || supers.Contains(typeId);
 

@@ -244,7 +244,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             rows.Add(new WorklistRowVm(this, ++order, ChildKind.Heading, WorklistText.WaitingOnThisLabel));
             foreach (var w in WaitingJobs)
                 rows.Add(new WorklistRowVm(this, ++order, ChildKind.Line, w.TypeName, typeId: w.TypeId, print: w.Print,
-                                           other: w.StatusText, otherColor: w.StatusColor, missing: w.Missing));
+                                           qty: w.UnitsText, other: w.StatusText, otherColor: w.StatusColor, missing: w.Missing));
         }
 
         return rows;
@@ -591,7 +591,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
                 [.. g.SelectMany(w => w.MissingLines)
                      .GroupBy(l => l.TypeId)
                      .Select(l => l.First() with { Quantity = l.Sum(x => x.Quantity), Volume = l.Sum(x => x.Volume) })
-                     .OrderByDescending(l => l.Volume).ThenBy(l => l.TypeName)]))];
+                     .OrderByDescending(l => l.Volume).ThenBy(l => l.TypeName)],
+                g.Sum(w => w.Units)))];
     public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
 
     /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
@@ -1206,10 +1207,13 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     private readonly WorklistWaitingJob _w;
     private readonly int _count;
 
-    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1, IReadOnlyList<WorklistLine>? missing = null)
+    public string UnitsText { get; }
+
+    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1, IReadOnlyList<WorklistLine>? missing = null, long units = 0)
     {
         _w     = w;
         _count = count;
+        UnitsText = units > 0 ? units.ToString("N0") : "";
         Missing = missing ?? w.MissingLines;
         _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b, w.Print);
     }
@@ -2885,6 +2889,7 @@ public class WorklistViewModel : ReactiveObject
             var where = r.IsHaul ? $"{r.LocationName} → {r.DestinationName}" : r.LocationName;
             NextMoves.Add(new NextMoveVm(
                 r,
+                MoveVerb(r.Item),
                 where.Length > 0 ? $"{r.Title}  ·  {where}" : r.Title,
                 r.Unblocks > 0 ? string.Format(WorklistText.TopFrees, r.Unblocks) : "",
                 k => _ = GoToRowAsync(k)));
@@ -2892,6 +2897,22 @@ public class WorklistViewModel : ReactiveObject
     }
 
     private const int MaxNextMoves = 4;
+
+    /// <summary>What the player does for a task, in a word. Beside a row's title, which names the
+    /// thing and not always the errand: "Neodymium × 65,931" could be any of them.</summary>
+    private static string MoveVerb(WorklistItem i) => i.Kind switch
+    {
+        WorklistKind.Buy  => WorklistText.MoveBuy,
+        WorklistKind.Haul => WorklistText.MoveHaul,
+        WorklistKind.Job  => i.Pool switch
+        {
+            IndustryPool.Manufacturing => WorklistText.MoveBuild,
+            IndustryPool.Reaction      => WorklistText.MoveReact,
+            IndustryPool.Science       => InventionGenerator.IsCopyJob(i) ? WorklistText.MoveCopy : WorklistText.MoveInvent,
+            _                          => WorklistText.MoveDeliver,
+        },
+        _ => WorklistRowVm.KindLabel(i),
+    };
 
     private void PickTop(string key)
     {

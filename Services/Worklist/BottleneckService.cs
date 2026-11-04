@@ -222,7 +222,11 @@ public sealed record ItemBandwidth(
     /// its neighbours. Without it, an operation with no contention anywhere would still report its
     /// top tenth as bottlenecks — ranking something is not the same as it being a problem.</para>
     /// </summary>
-    public bool IsTight => PeakContentionPercent > 0 && ContentionRank >= 90;
+    public bool IsTight => PeakContentionPercent > 0 && (ContentionRank >= 90 || PeakContentionPercent >= FullyUsedPercent);
+
+    /// <summary>What counts as flat out. Hand-run prints never reach 100: the time between jobs is
+    /// free time, but this is as busy as they get.</summary>
+    private const double FullyUsedPercent = 90;
 
     /// <summary>Never all occupied, or unremarkable against the rest — another copy buys nothing.</summary>
     public bool IsIdle => PeakContentionPercent <= 0 || ContentionRank < 50;

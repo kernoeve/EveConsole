@@ -697,8 +697,11 @@ public class IndustryJobGenerator(
                 // is named as the screen names it. The park's own label for its structure, the
                 // fallback, is the user's words and stays as they are.
                 var probe    = await PlanRootJobAsync(ctx, d.TypeId, d.Units, ct: ct);
-                var siteId   = probe?.StationId;
-                var siteName = probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
+                var siteId   = d.BoundSite ?? probe?.StationId;
+                var siteName = d.BoundSite is { } boundTo && boundTo != probe?.StationId
+                                   ? structureBySite.GetValueOrDefault(boundTo)?.DisplayName
+                                     ?? string.Format(WorklistText.LocationWithId, boundTo)
+                             : probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
                              : probe?.StructureName ?? "";
 
                 if (siteId is null)
@@ -752,6 +755,15 @@ public class IndustryJobGenerator(
                                  structure, catKey, eligible[0].Skills),
                     settings.MaxJobDaysFor(pool),
                     prints);
+
+                // What a job stopped for materials wants, for what a haul would do for it.
+                List<WorklistBillLine> BillOf(Dictionary<int, long> mats, IndustryCandidate who,
+                                              Dictionary<(long, int), long> taken) =>
+                    [.. mats.Select(m => new WorklistBillLine(
+                            m.Key, ctx.TypeNames.GetValueOrDefault(m.Key, string.Format(WorklistText.TypeWithId, m.Key)),
+                            m.Value,
+                            Math.Max(0, stock.Reachable(siteId.Value, m.Key, who) - taken.GetValueOrDefault((siteId.Value, m.Key))))
+                        { Print = ctx.BpTypeIds.Contains(m.Key) ? PrintKind.Copy : PrintKind.None })];
 
                 // Why a job cannot start for its materials, named by what would fix it.
                 string MaterialsWhy(IReadOnlyList<MissingMaterial> short_)
@@ -916,13 +928,15 @@ public class IndustryJobGenerator(
                              short_.Select(m => new WorklistShortage(
                                         m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
                                         { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })
-                                   .ToList());
+                                   .ToList(),
+                             BillOf(restMats, owner, claimed));
                     }
 
                     // Builds one row for part or all of this planned job.
                     void Emit(int runs, WorklistReadiness readiness, string blockedBy,
                               string keySuffix, string extraDetail,
-                              IReadOnlyList<WorklistShortage>? shortages = null)
+                              IReadOnlyList<WorklistShortage>? shortages = null,
+                              IReadOnlyList<WorklistBillLine>? bill = null)
                     {
                         var produced = runs * perRun;
 
@@ -986,6 +1000,9 @@ public class IndustryJobGenerator(
                             Readiness     = readiness,
                             BlockedBy     = blockedBy,
                             Shortages     = shortages ?? [],
+                            Bill          = bill ?? [],
+                            Runs          = runs,
+                            HasSlot       = !busy,
                             // ⚠️ Only a job that can start names a character. An owner is still picked
                             // above — material reach is per character, so the check needs one — but
                             // reporting it on a job that cannot run reads as an instruction, and the
@@ -1228,16 +1245,20 @@ public class IndustryJobGenerator(
                         // ⚠️ A print is the answer only if there is a slot to run it in, after the jobs
                         // ahead of this one have theirs. With reaction slots at 181/181, a job whose
                         // formulas were all running read "blueprints all in use" and told the reader
-                        // to buy a formula that could not have started. Slots come first. Jobs short
-                        // of material take none here: no print would start those.
+                        // to buy a formula that could not have started. Slots come first.
+                        //
+                        // ⚠️ Materials before a print only when not one run could go. Ten Charons, one
+                        // BPO in use, materials for eight: all ten wait on the BPO. Which of them the
+                        // materials reach is a question for months from now, when that BPO gets there,
+                        // and by then the stock will have moved. Such a job says nothing about them.
                         var wantsPrint = noneHere || allInUse;
                         var slotFor = !wantsPrint ? null : eligible.FirstOrDefault(c =>
                             slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool)
                             - slotsSpoken.GetValueOrDefault((c.Config.CharacterId, pool)) > 0);
-                        var onPrint = slotFor is not null;
-                        if (slotFor is not null && !npOut)
-                            slotsSpoken[(slotFor.Config.CharacterId, pool)] =
-                                slotsSpoken.GetValueOrDefault((slotFor.Config.CharacterId, pool)) + 1;
+                        var onPrint = slotFor is not null && !npOut;
+                        if (onPrint)
+                            slotsSpoken[(slotFor!.Config.CharacterId, pool)] =
+                                slotsSpoken.GetValueOrDefault((slotFor!.Config.CharacterId, pool)) + 1;
 
                         // ⚠️ Its materials held, when only a busy print stops it and that print frees
                         // soon. Unheld, they went to whatever ranked below and could start: the
@@ -1305,7 +1326,11 @@ public class IndustryJobGenerator(
                             BlockedBy      = why,
                             BlockedByPrint = onPrint,
                             PrintMissing   = onPrint && noneHere,
-                            Shortages      = waiting ? [] : [.. npShort.Select(m => new WorklistShortage(
+                            Runs           = (int)runs,
+                            HasSlot        = false,
+                            ThenNeedsPrint = wantsPrint && slotFor is not null,
+                            Bill           = waiting || onPrint ? [] : BillOf(npMats, eligible[0], committed),
+                            Shortages      = waiting || onPrint ? [] : [.. npShort.Select(m => new WorklistShortage(
                                                     m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
                                                     { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],
                             LocationId    = siteId.Value,

@@ -1489,6 +1489,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>démarre à l'arrivée</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>attend ensuite un créneau</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>attend ensuite un plan</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>démarre une fois l'autre boucle terminée aussi</value>
   </data>
@@ -2004,6 +2010,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>libère {0:N0}</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Acheter</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Transporter</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Fabriquer</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Réaction</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Inventer</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Livrer</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>Cliquez pour n'afficher que celles-ci. Cliquez à nouveau pour effacer.</value>

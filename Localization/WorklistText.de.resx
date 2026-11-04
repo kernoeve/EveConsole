@@ -1489,6 +1489,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>startet bei Ankunft</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>wartet dann auf einen Slot</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>wartet dann auf eine Blaupause</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>startet, sobald auch die andere Runde fertig ist</value>
   </data>
@@ -2004,6 +2010,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>gibt {0:N0} frei</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Kaufen</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Transport</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Reaktion</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Erfinden</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Ausliefern</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>Klicken, um nur diese anzuzeigen. Erneut klicken zum Zurücksetzen.</value>

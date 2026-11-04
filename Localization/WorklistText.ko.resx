@@ -1486,6 +1486,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>도착 시 시작</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>이후 슬롯 대기</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>이후 블루프린트 대기</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>다른 순환도 끝나면 시작</value>
   </data>
@@ -1986,6 +1992,27 @@
   </data>
   <data name="TopFrees" xml:space="preserve">
     <value>{0:N0}개 해제</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>운송</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>제작</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>반응</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>납품</value>
   </data>
   <data name="TipTopStat" xml:space="preserve">
     <value>클릭하면 이것만 표시합니다. 다시 클릭하면 해제합니다.</value>
