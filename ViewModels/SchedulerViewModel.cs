@@ -253,11 +253,13 @@ public sealed class MessageBlockVm : ReactiveObject
         IReadOnlyList<MarketConfigChoice>?           markets   = null,
         Func<Task<MarketGroupPickerResult?>>?        pickGroup = null,
         ParkComparisonService?                       parkCompare = null,
-        IDbContextFactory<AppDbContext>?             dbFactory   = null)
+        IDbContextFactory<AppDbContext>?             dbFactory   = null,
+        Func<bool>?                                  picturesGoOnline = null)
     {
         _parkCompare = parkCompare;
         _dbFactory   = dbFactory;
         _destinationIsWebhook = destinationIsWebhook ?? (() => false);
+        _picturesGoOnline     = picturesGoOnline ?? (() => false);
         Markets       = markets ?? [];
         _pickGroup    = pickGroup;
         Corps         = corps;
@@ -338,8 +340,8 @@ public sealed class MessageBlockVm : ReactiveObject
             { Selected = (fresh && IsParkCompare ? ParkCompareOutputs.Default : [.. model.CompareOutputs]).Contains(k) }));
         IndexOutputsPicker = new MultiChoice(SystemIndexOutputs.All.Select(k => new CategoryChoice(k, SystemIndexOutputs.Label(k))
             { Selected = (fresh && IsSystemIndex ? SystemIndexOutputs.Default : [.. model.IndexOutputs]).Contains(k) }));
-        CompareOutputsPicker.SelectionChanged += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
-        IndexOutputsPicker.SelectionChanged   += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        CompareOutputsPicker.SelectionChanged += DestinationChanged;
+        IndexOutputsPicker.SelectionChanged   += DestinationChanged;
         _savedJobs = model.CompareJobs;
         if (parkCompare is not null && dbFactory is not null)
             CompareJobList = new CompareJobListVm(parkCompare, dbFactory, model.CompareJobs);
@@ -375,6 +377,7 @@ public sealed class MessageBlockVm : ReactiveObject
                          nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart), nameof(IsOpps),
                          nameof(IsParkCompare), nameof(IsSystemIndex),
                          nameof(Heading), nameof(ShowWebhookChartWarning), nameof(ShowWebhookPicturesWarning),
+                         nameof(ShowWebhookHostedNote),
                      })
                 this.RaisePropertyChanged(n);
 
@@ -556,7 +559,8 @@ public sealed class MessageBlockVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> SelectNoneCommand { get; }
 
     /// <summary>
-    /// True while this section draws a chart and the task is aimed at a webhook.
+    /// True while this section draws a chart and the task is aimed at a webhook that cannot show
+    /// one, because this database has not signed in to the online services.
     ///
     /// <para>⚠️ Read off the task's destination, which lives a level up. The section is where
     /// somebody is looking when they add a chart, so the section is where the warning has to be
@@ -565,20 +569,33 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool ShowWebhookChartWarning => IsChart && _destinationIsWebhook();
 
     private readonly Func<bool> _destinationIsWebhook;
+    private readonly Func<bool> _picturesGoOnline;
 
-    /// <summary>Called by the editor when the destination changes, since it is not this
-    /// section's own property to watch.</summary>
+    /// <summary>Called by the editor when the destination or the sign-in changes, since neither
+    /// is this section's own property to watch.</summary>
     public void DestinationChanged()
     {
         this.RaisePropertyChanged(nameof(ShowWebhookChartWarning));
         this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        this.RaisePropertyChanged(nameof(ShowWebhookHostedNote));
     }
 
+    private bool HasChosenPictures =>
+        (IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
+        || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(k => k != SystemIndexOutputs.Table));
+
     /// <summary>True while an Indy Park Compare or System Index section has pictures chosen and
-    /// the task is aimed at a webhook: its tables will go, its pictures will not.</summary>
-    public bool ShowWebhookPicturesWarning => _destinationIsWebhook()
-        && ((IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
-            || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(k => k != SystemIndexOutputs.Table)));
+    /// the task is aimed at a webhook that cannot show them: its tables will go, its pictures will
+    /// not.</summary>
+    public bool ShowWebhookPicturesWarning => _destinationIsWebhook() && HasChosenPictures;
+
+    /// <summary>
+    /// True while this section's pictures will reach a webhook through the online services.
+    ///
+    /// <para>⚠️ Said where the picture is chosen. These links are public, and a chart can show a
+    /// corporation's figures, so nobody should find out from reading a post's address.</para>
+    /// </summary>
+    public bool ShowWebhookHostedNote => _picturesGoOnline() && (IsChart || HasChosenPictures);
 
     private string _projectsNote = "";
     public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
@@ -954,6 +971,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
     private readonly ParkComparisonService           _parkCompare;
+    private readonly OnlineServices                  _online;
     private readonly SlackService                    _slack;
     private readonly DiscordService                  _discord;
     private readonly CorpActivityService             _corp;
@@ -979,8 +997,10 @@ public sealed class SchedulerViewModel : ReactiveObject
         SalePostingService              sales,
         AppErrorLogger                  errors,
         BatchAddService                 batch,
-        ParkComparisonService           parkCompare)
+        ParkComparisonService           parkCompare,
+        OnlineServices                  online)
     {
+        _online      = online;
         _parkCompare = parkCompare;
         Batch      = batch;
         _dbFactory = dbFactory;
@@ -1039,9 +1059,26 @@ public sealed class SchedulerViewModel : ReactiveObject
         // A task that fires while the tool is open should show its new last-run without the
         // user going looking for Refresh.
         scheduler.TasksChanged += OnTasksChanged;
+
+        online.AccountChanged += () => Dispatcher.UIThread.Post(() => _ = RefreshOnlineAsync());
     }
 
     private void OnTasksChanged() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+
+    /// <summary>Whether this database has signed in to the online services, which is whether a
+    /// Slack webhook can show a picture. What the sections' warnings and notes are read from.</summary>
+    private bool _onlineSignedIn;
+
+    private async Task RefreshOnlineAsync()
+    {
+        try { _onlineSignedIn = await _online.AccountAsync() is not null; }
+        catch (Exception ex)
+        {
+            _errors.Log(nameof(SchedulerViewModel), "online account", ex);
+            _onlineSignedIn = false;
+        }
+        foreach (var b in Blocks) b.DestinationChanged();
+    }
 
     /// <summary>The Calendar tab.</summary>
     public SchedulerCalendarViewModel Calendar { get; }
@@ -1393,6 +1430,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         await LoadCorpsAsync();
         await LoadPostingsAsync();
         await LoadMarketsAsync();
+        await RefreshOnlineAsync();
 
         // ⚠️ Only when there is nothing to show. This also runs on every background tick that
         // changed a task, and asking Slack for its channel list once a minute would be a network
@@ -1630,9 +1668,10 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
         new(model, Corps, Postings, LoadStandingProjectsAsync, fresh,
-            () => Destination?.IsWebhook == true, Markets,
+            () => Destination?.IsWebhook == true && !_onlineSignedIn, Markets,
             () => PickMarketGroup?.Invoke() ?? Task.FromResult<MarketGroupPickerResult?>(null),
-            _parkCompare, _dbFactory);
+            _parkCompare, _dbFactory,
+            () => Destination?.IsWebhook == true && _onlineSignedIn);
 
     private void AddSection()
     {
@@ -1931,7 +1970,7 @@ public sealed class SchedulerViewModel : ReactiveObject
                     ? string.Format(AlarmsText.PreviewChartSkipped, b.Heading)
                     : string.Format(AlarmsText.PreviewChartUploaded, b.Heading))
                 .Concat(Blocks.Where(b => b.IsParkCompare || b.IsSystemIndex).SelectMany(b =>
-                    ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true
+                    ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true && !_onlineSignedIn
                         ? string.Format(AlarmsText.PreviewChartSkipped, title)
                         : string.Format(AlarmsText.PreviewChartUploaded, title)))));
 

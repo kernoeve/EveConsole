@@ -3823,4 +3823,85 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PiAlertsNote" xml:space="preserve">
     <value>Nur Charaktere mit gesetztem PI-Häkchen im Tab „Charaktere“. Wie bald „bald“ ist, legen Sie im Tab „Industrie“ fest; die PI-Aufgaben der Arbeitsliste verwenden dieselben Zeiten.</value>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>Onlinedienste</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console Onlinedienste</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>Optional. EVE Console funktioniert auch ohne, aber Dienste auf eveconsole.com, etwa Diagramme in Slack-Webhook-Beiträgen, sind erst nach der Anmeldung verfügbar. Du meldest dich mit einem EVE-Charakter auf der Seite von EVE an, und es werden keine Berechtigungen angefordert. Die Anmeldung gilt für jedes EVE Console, das mit dieser Datenbank verbunden ist. Mit der Anmeldung stimmst du den Bedingungen zu.</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>Mit EVE anmelden</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>Bedingungen lesen</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>Nicht angemeldet.</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>Angemeldet als {0}.</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>{0:N1} MB von {1:N0} MB gespeichert. Heute {2} von {3} Uploads verwendet.</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>Warte auf deine Anmeldung im Browser…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>Anmeldung abgebrochen.</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>Die Anmeldung wurde nicht abgeschlossen.</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>Die EVE-Anmeldung antwortete mit einem Fehler ({0}).</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>Die Anmeldung ist fehlgeschlagen: {0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>Anmeldung erfolgreich</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} ist jetzt bei den Onlinediensten von EVE Console angemeldet.</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>Du kannst diesen Tab schließen und zu EVE Console zurückkehren.</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>Anmeldung fehlgeschlagen</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>Du kannst diesen Tab schließen und es in den Einstellungen erneut versuchen.</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>Nicht angemeldet. Melde dich unter Einstellungen, Onlinedienste erneut an.</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>Dieser Charakter darf die Onlinedienste nicht nutzen.</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>Das Speicherlimit ist erreicht. Bilder geben Platz frei, wenn sie ablaufen.</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>Das heutige Upload-Limit ist erreicht.</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>Das Bild ist zu groß zum Hochladen.</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>Die EVE-Anmeldung konnte gerade nicht geprüft werden. Versuche es gleich noch einmal.</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com ist nicht erreichbar.</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com antwortete mit einem Fehler ({0}).</value>
+  </data>
 </root>

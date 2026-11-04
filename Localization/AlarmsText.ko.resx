@@ -239,7 +239,7 @@
     <value>12개월간의 추세를 이미지로 그려 메시지 아래에 업로드합니다.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>이 섹션은 게시되지 않습니다. 예약 작업의 대상이 웹후크인데, 웹후크로는 이미지를 보낼 수 없습니다 — 위에서 워크스페이스 채널을 선택하지 않으면 예약 작업을 실행할 때 이 섹션을 건너뜁니다.</value>
+    <value>이 섹션은 게시되지 않습니다. Slack 웹훅은 온라인에 호스팅된 이미지만 표시할 수 있습니다. 설정의 온라인 서비스에서 로그인하거나 위에서 워크스페이스 채널을 선택하세요. 그렇지 않으면 작업 실행 시 이 섹션을 건너뜁니다.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>게시물</value>
@@ -464,7 +464,7 @@
     <value>각 차트는 자체 범례와 함께 게시됩니다. 항성계 지수 도구의 목록은 읽지 않습니다.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>이 대상은 이미지를 보낼 수 없는 Slack Webhook입니다. 이 섹션의 이미지는 빠지고 표만 게시됩니다. Slack 채널이나 Discord Webhook은 이미지를 보낼 수 있습니다.</value>
+    <value>Slack 웹훅은 온라인에 호스팅된 이미지만 표시할 수 있습니다. 설정의 온라인 서비스에서 로그인할 때까지 이 섹션의 그림은 제외되고 표만 게시됩니다. Slack 채널이나 Discord 웹훅은 어느 경우든 그림을 전달합니다.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>섹션 {0}({1})에는 작업이 하나 이상 필요합니다.</value>
@@ -782,7 +782,7 @@
     <value>렌더링 중…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — 건너뜀: 대상이 웹후크입니다]</value>
+    <value>[{0} — 건너뜀: Slack 웹훅은 설정의 온라인 서비스에서 로그인해야 합니다]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} — 이미지로 업로드됨]</value>
@@ -1598,7 +1598,7 @@
     <value>차트 {0}개 실패: {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>차트 섹션 {0}개를 건너뛰었습니다: 웹후크로는 이미지를 보낼 수 없습니다.</value>
+    <value>차트 섹션 {0}개를 건너뛰었습니다: Slack 웹훅으로 이미지를 표시하려면 설정의 온라인 서비스에서 로그인해야 합니다.</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>발생시킬 경보 없음: 경보에 텍스트가 없습니다.</value>
@@ -1797,5 +1797,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>앱이 열려 있는 동안 앞으로 실행될 항목을 EVE 시간으로 표시합니다. 꺼진 작업은 표시되지 않으며, 간격 작업의 다음 실행 이후 시간은 각 실행이 직전 실행부터 계산되므로 추정치입니다. 작업을 클릭하면 편집할 수 있습니다.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>이 Slack 웹훅은 주소로 이미지를 표시하므로 이미지는 eveconsole.com에 업로드되어 12개월 동안 보관됩니다. 링크가 있으면 누구나 볼 수 있습니다.</value>
   </data>
 </root>

@@ -317,6 +317,7 @@ public class MainWindowViewModel : ReactiveObject
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
+    public OnlineServicesSettingsViewModel OnlineServicesSettingsVm { get; }
     public DiscordSettingsViewModel       DiscordSettingsVm      { get; }
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
@@ -1118,6 +1119,7 @@ public class MainWindowViewModel : ReactiveObject
         ContractsService                contractsService,
         SlackService                    slackService,
         DiscordService                  discordService,
+        OnlineServices                  onlineServices,
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
@@ -1166,6 +1168,7 @@ public class MainWindowViewModel : ReactiveObject
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        OnlineServicesSettingsVm = new OnlineServicesSettingsViewModel(onlineServices);
         DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
@@ -1370,7 +1373,7 @@ public class MainWindowViewModel : ReactiveObject
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger, batchAddService,
-                                                        parkCompare);
+                                                        parkCompare, onlineServices);
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>

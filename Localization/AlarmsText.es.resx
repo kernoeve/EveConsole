@@ -242,7 +242,7 @@
     <value>Doce meses de tendencias, dibujados como imagen y subidos debajo del mensaje.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>Esta sección no se publicará. La tarea apunta a un webhook, y un webhook no puede llevar imágenes: elige arriba un canal del espacio de trabajo, o esta sección se omitirá cuando se ejecute la tarea.</value>
+    <value>Esta sección no se publicará. Un webhook de Slack solo puede mostrar imágenes alojadas en línea: inicia sesión en Ajustes, Servicios en línea, o elige arriba un canal del espacio de trabajo. Si no, esta sección se omite al ejecutar la tarea.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>Publicación</value>
@@ -467,7 +467,7 @@
     <value>Cada gráfico se publica con su propia leyenda. No se lee nada de la lista de la herramienta Índice de sistemas.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Este destino es un webhook de Slack, que no puede llevar imágenes: se omitirán las imágenes de esta sección y solo se publicarán sus tablas. Un canal de Slack o un webhook de Discord sí las lleva.</value>
+    <value>Un webhook de Slack solo puede mostrar imágenes alojadas en línea. Hasta que inicies sesión en Ajustes, Servicios en línea, las imágenes de esta sección se omitirán y solo se publicarán sus tablas. Un canal de Slack o un webhook de Discord las lleva en cualquier caso.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>La sección {0} ({1}) necesita al menos un trabajo.</value>
@@ -785,7 +785,7 @@
     <value>Generando…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — omitido: el destino es un webhook]</value>
+    <value>[{0} — omitido: un webhook de Slack necesita iniciar sesión en Ajustes, Servicios en línea]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} — se sube como imagen]</value>
@@ -1628,7 +1628,7 @@
     <value>{0} gráfico(s) con error: {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>{0} sección(es) de gráfico omitida(s): un webhook no puede llevar imágenes.</value>
+    <value>{0} sección(es) de gráficos omitida(s): para mostrar imágenes, un webhook de Slack necesita iniciar sesión en Ajustes, Servicios en línea.</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>Nada que generar: la alerta no tiene texto.</value>
@@ -1833,5 +1833,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>Muestra lo que se ejecutará a partir de ahora, en hora de EVE, mientras la aplicación esté abierta. Las tareas desactivadas no aparecen, y las horas posteriores a la próxima ejecución de una tarea por intervalo son estimaciones, porque cada ejecución cuenta desde la anterior. Haz clic en una tarea para editarla.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>Este webhook de Slack muestra las imágenes por su dirección, así que se suben a eveconsole.com y se guardan 12 meses. Cualquiera con el enlace puede verlas.</value>
   </data>
 </root>

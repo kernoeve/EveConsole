@@ -239,7 +239,7 @@
     <value>十二个月的趋势，绘制成图片并上传到消息下方。</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>此区块不会被发布。该任务的目标是 Webhook，而 Webhook 无法附带图片——请在上方选择一个工作区频道，否则任务运行时会跳过此区块。</value>
+    <value>此部分不会发布。Slack Webhook 只能显示在线托管的图片：请在“设置”的“在线服务”中登录，或在上方选择工作区频道。否则任务运行时将跳过此部分。</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>销售发布</value>
@@ -464,7 +464,7 @@
     <value>每张图都附带自己的图例发布。不读取星系指数工具的列表。</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>此目标是 Slack Webhook，无法发送图片：本部分的图片将被省略，只发布表格。Slack 频道或 Discord Webhook 可以发送图片。</value>
+    <value>Slack Webhook 只能显示在线托管的图片。在你于“设置”的“在线服务”中登录之前，此部分的图片将被省略，只发布其表格。Slack 频道或 Discord Webhook 在任何情况下都能发送图片。</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>第 {0} 部分（{1}）至少需要一项作业。</value>
@@ -782,7 +782,7 @@
     <value>正在渲染…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0}——已跳过：目标为 Webhook]</value>
+    <value>[{0} — 已跳过：Slack Webhook 需要在“设置”的“在线服务”中登录]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0}——以图片形式上传]</value>
@@ -1598,7 +1598,7 @@
     <value>{0} 张图表失败：{1}。</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>已跳过 {0} 个图表区块：Webhook 无法附带图片。</value>
+    <value>已跳过 {0} 个图表部分：要显示图片，Slack Webhook 需要在“设置”的“在线服务”中登录。</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>没有可发出的提醒：提醒没有内容。</value>
@@ -1797,5 +1797,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>显示从现在起应用打开期间将运行的内容，时间为 EVE 时间。已关闭的任务不显示。间隔任务下次运行之后的时间为估算值，因为每次运行都从上一次算起。点击任务即可编辑。</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>此 Slack Webhook 通过地址显示图片，因此图片会上传到 eveconsole.com 并保留 12 个月。任何拥有链接的人都可以查看。</value>
   </data>
 </root>

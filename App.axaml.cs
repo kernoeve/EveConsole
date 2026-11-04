@@ -4629,6 +4629,15 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for the online services on eveconsole.com. A timeout of its own: an
+        // image upload is a few megabytes at most, and a scheduled post should not hang on one.
+        services.AddHttpClient(OnlineServices.ClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://api.eveconsole.com/");
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        });
+
         // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
         // absolute URL, and no Authorization header — the link is the whole credential. A timeout
         // of its own, since a chart upload is a request somebody is sitting in front of.
@@ -4688,6 +4697,8 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<OnlineSignInService>();
+        services.AddSingleton<OnlineServices>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IndustryOpportunitiesService>();
         // Indy Parks Compare and the System Index tool, on screen and in scheduled posts.

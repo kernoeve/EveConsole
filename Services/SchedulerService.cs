@@ -25,6 +25,7 @@ public class SchedulerService(
     ScheduledBlockRenderer          renderer,
     SlackService                    slack,
     DiscordService                  discord,
+    OnlineServices                  online,
     AppErrorLogger                  errors)
 {
     private static readonly TimeSpan Tick = TimeSpan.FromMinutes(1);
@@ -149,6 +150,10 @@ public class SchedulerService(
 
         var viaWebhook = cfg.DestinationKind == SlackDestination.KindWebhook;
 
+        // A webhook cannot carry a file, only the address of an image. So its pictures go through
+        // the online services, which is only possible once this database has signed in.
+        var canHost = viaWebhook && await online.AccountAsync(ct) is not null;
+
         var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
         var body   = render.Text.Trim();
 
@@ -165,9 +170,9 @@ public class SchedulerService(
 
             // No point drawing what cannot be sent. The count is still reported, so a task
             // pointed at a webhook says what it could not do rather than looking complete.
-            if (viaWebhook) { skipped++; continue; }
+            if (viaWebhook && !canHost) { skipped++; continue; }
 
-            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
+            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct, forWebhook: viaWebhook));
         }
 
         if (body.Length == 0 && drawn.Count == 0)
@@ -209,11 +214,13 @@ public class SchedulerService(
 
         foreach (var (png, title) in drawn)
         {
-            var error = await slack.UploadFileAsync(
-                cfg.DestinationId, png,
-                filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
-                title:    title,
-                ct:       ct);
+            var error = viaWebhook
+                ? await PostHostedPictureAsync(cfg.DestinationId, png, title, ct)
+                : await slack.UploadFileAsync(
+                    cfg.DestinationId, png,
+                    filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
+                    title:    title,
+                    ct:       ct);
 
             if (error is not null) failed.Add($"{title}: {error}");
         }
@@ -343,7 +350,7 @@ public class SchedulerService(
         return (true, AlarmsText.RunAlertRaised);
     }
 
-    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)
+    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct, object? blocks = null)
     {
         if (!int.TryParse(hookId, out var id)) return new SlackPostResult(false, null, null, AlarmsText.RunNoWebhook);
 
@@ -352,6 +359,45 @@ public class SchedulerService(
 
         return hook is null
             ? new SlackPostResult(false, null, null, AlarmsText.RunWebhookDeleted)
-            : await slack.PostWebhookAsync(hook.Url, body, null, ct);
+            : await slack.PostWebhookAsync(hook.Url, body, blocks, ct);
+    }
+
+    /// <summary>
+    /// One picture through a webhook: uploaded to the online services, then posted by its address.
+    /// Returns null on success, or why it failed.
+    ///
+    /// <para>⚠️ Titled on purpose. Slack shows a size and a collapse arrow beside an image with or
+    /// without a title, and the title at least names the chart.</para>
+    ///
+    /// <para>⚠️ An upload Slack then refuses is deleted again, so a post that keeps failing does
+    /// not spend the day's uploads and the storage on images nobody can see. It still counts
+    /// against the day: deleting never gives uploads back.</para>
+    /// </summary>
+    private async Task<string?> PostHostedPictureAsync(string hookId, byte[] png, string title, CancellationToken ct)
+    {
+        // The same second between posts as the text's parts.
+        await Task.Delay(TimeSpan.FromSeconds(1), ct);
+
+        var uploaded = await online.UploadImageAsync(png, ct);
+
+        // Trimmed: the result's sentence that lists these ends with its own full stop.
+        if (!uploaded.Ok) return uploaded.Error?.TrimEnd('.', '。');
+
+        object[] blocks =
+        [
+            new
+            {
+                type      = "image",
+                image_url = uploaded.Url,
+                alt_text  = title,
+                title     = new { type = "plain_text", text = title },
+            },
+        ];
+
+        var posted = await PostWebhookAsync(hookId, title, ct, blocks);
+        if (posted.Ok) return null;
+
+        if (uploaded.Id is { } id) await online.DeleteImageAsync(id, ct);
+        return posted.Error;
     }
 }

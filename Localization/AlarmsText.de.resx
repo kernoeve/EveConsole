@@ -242,7 +242,7 @@
     <value>Zwölf Monate Verlauf, als Bild gezeichnet und unter der Nachricht hochgeladen.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>Dieser Abschnitt wird nicht gepostet. Die Aufgabe zielt auf einen Webhook, und ein Webhook kann kein Bild übertragen – wählen Sie oben einen Workspace-Kanal, sonst wird dieser Abschnitt beim Ausführen der Aufgabe übersprungen.</value>
+    <value>Dieser Abschnitt wird nicht gepostet. Ein Slack-Webhook kann nur online gehostete Bilder anzeigen: Melde dich unter Einstellungen, Onlinedienste an oder wähle oben einen Workspace-Kanal. Sonst wird dieser Abschnitt beim Ausführen der Aufgabe übersprungen.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>Verkaufsanzeige</value>
@@ -467,7 +467,7 @@
     <value>Jedes Diagramm wird mit eigener Legende gepostet. Die Liste des Systemindex-Werkzeugs wird nicht übernommen.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Dieses Ziel ist ein Slack-Webhook, der keine Bilder übertragen kann: Die Bilder dieses Abschnitts entfallen, nur die Tabellen werden gepostet. Ein Slack-Kanal oder ein Discord-Webhook überträgt sie.</value>
+    <value>Ein Slack-Webhook kann nur online gehostete Bilder anzeigen. Bis du dich unter Einstellungen, Onlinedienste anmeldest, werden die Bilder dieses Abschnitts weggelassen und nur seine Tabellen gepostet. Ein Slack-Kanal oder ein Discord-Webhook überträgt sie in jedem Fall.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht mindestens einen Job.</value>
@@ -785,7 +785,7 @@
     <value>Wird dargestellt…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} – übersprungen: Das Ziel ist ein Webhook]</value>
+    <value>[{0} — übersprungen: Ein Slack-Webhook braucht eine Anmeldung unter Einstellungen, Onlinedienste]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} – als Bild hochgeladen]</value>
@@ -1628,7 +1628,7 @@
     <value>{0} Diagramm(e) fehlgeschlagen: {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>{0} Diagrammabschnitt(e) übersprungen: Ein Webhook kann kein Bild übertragen.</value>
+    <value>{0} Diagrammabschnitt(e) übersprungen: Um Bilder anzuzeigen, braucht ein Slack-Webhook eine Anmeldung unter Einstellungen, Onlinedienste.</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>Nichts auszulösen: Die Warnung hat keinen Text.</value>
@@ -1833,5 +1833,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>Zeigt, was ab jetzt läuft, in EVE-Zeit, solange die App geöffnet ist. Ausgeschaltete Aufgaben werden nicht angezeigt. Zeiten nach dem nächsten Lauf einer Intervallaufgabe sind Schätzungen, da jeder Lauf vom letzten aus zählt. Klicke auf eine Aufgabe, um sie zu bearbeiten.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>Dieser Slack-Webhook zeigt Bilder über ihre Adresse an. Sie werden daher auf eveconsole.com hochgeladen und 12 Monate aufbewahrt. Jeder mit dem Link kann sie sehen.</value>
   </data>
 </root>

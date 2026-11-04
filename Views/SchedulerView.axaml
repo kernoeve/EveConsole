@@ -397,6 +397,8 @@
                                   <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                              Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
                                 </Border>
+                                <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                           Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                               </StackPanel>
 
                               <!-- System Index: the systems, in order (the order picks each line's colour), and
@@ -448,6 +450,8 @@
                                   <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                              Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
                                 </Border>
+                                <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                           Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                               </StackPanel>
 
                               <!-- Charts: whose figures, and a word about where they can go -->
@@ -460,6 +464,8 @@
                               <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                          Text="{x:Static loc:AlarmsText.ThisSectionWillNotNote}" />
                             </Border>
+                            <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                       Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                           </StackPanel>
 
                           <!-- Sale posting: which one -->
