@@ -8,10 +8,6 @@
     <value>Dismiss</value>
     <comment>Button or option in AlarmDialogWindow.</comment>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Acknowledge — stop the sound</value>
-    <comment>Button or option in AlarmSoundWindow.</comment>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
     <comment>Button or option in AlarmsView.</comment>
@@ -183,6 +179,14 @@
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Select an alarm, or create one.</value>
     <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarm selected. Export saves just this one; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more). Singular form.</comment>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarms selected. Export saves just these; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more).</comment>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
@@ -480,6 +484,202 @@
     <value>CORP MINING CHART</value>
     <comment>Scheduler: heading of a message section that posts a chart.</comment>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: heading over an Industry Ops section in the editor.</comment>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: the title a new Industry Ops section starts with, printed bold over its table in the post.</comment>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>MODE</value>
+    <comment>Scheduler, Industry Ops section: label over the build-and-sell mode choice.</comment>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>PRICE AT</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Price at' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>MIN 30D ISK VOL</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min 30d ISK Vol' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>MIN 30D UNIT VOL</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min 30d Unit Vol' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>MIN MARGIN %</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min Margin %' in this editor's style.</comment>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>MIN MARGIN % 30D</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Min Margin % 30d' in this editor's style.</comment>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>EXCLUDE GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Exclude Groups' in this editor's style.</comment>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>INCLUDE GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Include Groups' in this editor's style.</comment>
+  </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>META GROUPS</value>
+    <comment>Scheduler, Industry Ops section: field label, the Industry Ops tool's 'Meta Groups' in this editor's style.</comment>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one meta group ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Indy Park Compare</value>
+    <comment>Scheduler: a kind of message section, in the Add list: Indy Parks' Compare, set up in the section.</comment>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>System Index</value>
+    <comment>Scheduler: a kind of message section, in the Add list: the System Index tool's table and charts, set up in the section.</comment>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Indy Park Compare</value>
+    <comment>Scheduler: heading over an Indy Park Compare section in the editor, and the post's heading when the section has no title.</comment>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>System Index</value>
+    <comment>Scheduler: heading over a System Index section in the editor, and the post's heading when the section has no title.</comment>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Summary by job (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Summary by park (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>Cost chart (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>Time chart (image)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Summary by job (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Summary by park (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Every job in every park (table)</value>
+    <comment>Scheduler, Indy Park Compare section: a choice in the Post dropdown: the Compare tab's detail grid.</comment>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Summary by job</value>
+    <comment>Scheduler post: heading over the Indy Park Compare summary with a row per job, as a table or a picture.</comment>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Summary by park</value>
+    <comment>Scheduler post: heading over the Indy Park Compare summary with a row per park, as a table or a picture.</comment>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Every job in every park</value>
+    <comment>Scheduler post: heading over the Indy Park Compare detail table.</comment>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Today's indices (table)</value>
+    <comment>Scheduler, System Index section: a choice in the Post dropdown.</comment>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>{0} chart (image)</value>
+    <comment>Scheduler, System Index section: a choice in the Post dropdown. {0} the activity, e.g. Manufacturing.</comment>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>PARKS</value>
+    <comment>Scheduler, Indy Park Compare section: label over the parks dropdown.</comment>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>JOBS</value>
+    <comment>Scheduler, Indy Park Compare section: label over the job list.</comment>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>POST</value>
+    <comment>Scheduler, Indy Park Compare and System Index sections: label over the dropdown of what to post (tables, pictures).</comment>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>SYSTEMS</value>
+    <comment>Scheduler, System Index section: label over the systems list.</comment>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Worked out when the post is made, at that day's prices and indices, with skills at V. Nothing is read from the Compare tab.</value>
+    <comment>Scheduler, Indy Park Compare section: hint under the section.</comment>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Each chart is posted with its own legend. Nothing is read from the System Index tool's list.</value>
+    <comment>Scheduler, System Index section: hint under the section.</comment>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>This destination is a Slack webhook, which cannot carry an image: the pictures in this section will be left out and only its tables posted. A Slack channel or a Discord webhook carries them.</value>
+    <comment>Scheduler: warning in an Indy Park Compare or System Index section when the task posts to a webhook and pictures are chosen.</comment>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one job.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one park ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one system.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>Section {0} ({1}) needs something chosen to post.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>COLUMNS</value>
+    <comment>Scheduler, Industry Ops section: label over the tick boxes choosing the table's columns.</comment>
+  </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Add column</value>
+    <comment>Scheduler, Industry Ops section: button adding the column picked in the dropdown beside it.</comment>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>The header this column prints in the post. Leave it as it is, or blank, for the column's own.</value>
+    <comment>Scheduler, Industry Ops section: tooltip of a column's header box.</comment>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>The item is always the first column. A header left as it is follows the interface language; type over it to rename it.</value>
+    <comment>Scheduler, Industry Ops section: note under the column tick boxes.</comment>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>SORT BY</value>
+    <comment>Scheduler, Industry Ops section: label over the column the table is sorted by.</comment>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Highest first</value>
+    <comment>Scheduler, Industry Ops section: sort direction, descending.</comment>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Lowest first</value>
+    <comment>Scheduler, Industry Ops section: sort direction, ascending.</comment>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>ROWS</value>
+    <comment>Scheduler, Industry Ops section: label over the box limiting the table to its top N rows.</comment>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>All</value>
+    <comment>Scheduler, Industry Ops section: watermark of the Rows box when empty, meaning every row.</comment>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Worked out when the post goes out, from the build costs and market prices held then. Everything is set here: the Industry Ops tool's own choices are not used.</value>
+    <comment>Scheduler, Industry Ops section: note at the foot of the section.</comment>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>TEXT</value>
     <comment>Scheduler: heading of a message section of plain text. Also shown lower-cased in "Section {0} ({1}) is empty."</comment>
@@ -555,6 +755,10 @@
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>Corp Mining Chart</value>
     <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Scheduler: a kind of message section, in the Add list: the Industry Ops list.</comment>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>Every so often</value>
@@ -739,6 +943,70 @@
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>Section {0} ({1}) needs a posting.</value>
     <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>Section {0} ({1}) needs a market to price at.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading.</comment>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Section {0} ({1}): {2} takes a number of 0 or more, or nothing.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading, {2} the label of the box holding something that is not a number.</comment>
+  </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Export scheduled tasks</value>
+    <comment>Scheduler: title of the save-file dialog for the task export.</comment>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Import scheduled tasks</value>
+    <comment>Scheduler: title of the open-file dialog for a task import.</comment>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Saves every task to a JSON file.</value>
+    <comment>Scheduler: tooltip of the Export button.</comment>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Adds the tasks in a JSON export as new tasks, switched off until you look them over. Nothing here is replaced; a task already here is skipped.</value>
+    <comment>Scheduler: tooltip of the Import button.</comment>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Tasks exported: {0}.</value>
+    <comment>Scheduler status line after Export. {0} is the number of tasks.</comment>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Tasks imported: {0}, switched off until you look them over. Already here, skipped: {1}.</value>
+    <comment>Scheduler status line after Import. {0} tasks added, {1} skipped as identical to one already here.</comment>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>That file is not a scheduled tasks export.</value>
+    <comment>Scheduler status line when the chosen file is not a task export.</comment>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Export alarms</value>
+    <comment>Alarms: title of the save-file dialog for the alarm export.</comment>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Import alarms</value>
+    <comment>Alarms: title of the open-file dialog for an alarm import.</comment>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Saves the selected alarms and their actions to a JSON file — every alarm when none is selected. Ctrl or Shift selects more than one.</value>
+    <comment>Alarms: tooltip of the Export button.</comment>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Adds the alarms in a JSON export as new alarms, actions and all. Nothing here is replaced; an alarm already here is skipped.</value>
+    <comment>Alarms: tooltip of the Import button.</comment>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Alarms exported: {0}.</value>
+    <comment>Alarms status line after Export. {0} is the number of alarms.</comment>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Alarms imported: {0}. Already here, skipped: {1}. Checks this version does not have, skipped: {2}.</value>
+    <comment>Alarms status line after Import. {0} added, {1} skipped as identical to one here, {2} skipped because their check type is unknown to this version.</comment>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>That file is not an alarms export.</value>
+    <comment>Alarms status line when the chosen file is not an alarm export.</comment>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Section {0} ({1}) needs at least one list.</value>
@@ -940,6 +1208,10 @@
     <value>The sound repeats until you acknowledge it.</value>
     <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>The call goes on until you answer it, here or in the agent chat.</value>
+    <comment>Line in that window under the situation, before any sound has started.</comment>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Choose an alarm sound</value>
     <comment>Title of the file picker behind Add Sound… in the alarm editor.</comment>
@@ -981,11 +1253,11 @@
     <comment>Alarm editor, under the Check pick list when Ship undocks is picked.</comment>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Undocked too long (wake-up call)</value>
-    <comment>Alarm editor, Check pick list: the check that wakes you when a ship sits in space too long after an undock or a jump.</comment>
+    <value>Undocked too long</value>
+    <comment>Alarm editor, Check pick list: the check that fires when a ship sits in space too long after an undock or a jump.</comment>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Wakes you up. Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or replying anything at all to the agent, quiets it for a while; when that lapses and the ship is still there, the stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
+    <value>Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or typing or speaking in the agent chat at all, quiets it for a while; when that lapses and the ship is still there, the stages start over. Typing or speaking there before any stage is due restarts its clock instead. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
     <comment>Alarm editor, under the Check pick list when Undocked too long is picked. "TTS direct" is the action that speaks without the agent.</comment>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
@@ -1161,7 +1433,7 @@
     <comment>Alarm editor, Undocked too long check: label of how many minutes an acknowledgement keeps the alarm quiet.</comment>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>How long a reply or the dialog's button keeps this quiet while the ship stays undocked — long enough to wait on a titan bridge. Then the stages start over.</value>
+    <value>How long the dialog's button, or typing or speaking in the agent chat, keeps this quiet while the ship stays undocked — long enough to wait on a titan bridge. Then the stages start over.</value>
     <comment>Alarm editor, Undocked too long check, under Quiet after an acknowledgement.</comment>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
@@ -1453,24 +1725,24 @@
     <comment>Spoken, in UndockSaidProblems: the ship left short of ammunition.</comment>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Wake up, {0}</value>
-    <comment>Title of an Undocked too long (wake-up call) alarm's alert or dialog. {0} is the person's name as the agent knows it, or AdriftCapsuleer.</comment>
+    <value>Undocked Too Long</value>
+    <comment>Title of an Undocked too long alarm's alert, dialog and window. Never says "wake up".</comment>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, {1}'s {2} landed in {3} {4} ago and is not docked yet. Is everything all right?</value>
     <comment>Spoken at stage 1 of a wake-up call, after a jump arrival. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} is still in space in {3}, {4} after landing. Dock up now.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after a jump arrival. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still in space in {3}, {4} after landing. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after a jump arrival: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! {1}'s {2} has been sitting in {3} for {4} since landing. Dock up now!</value>
@@ -1481,11 +1753,11 @@
     <comment>Spoken at stage 1 of a wake-up call, after an undock. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} undocked in {3} {4} ago and still is not docked. Dock up, or answer me.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still undocked in {3} after {4}. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after an undock: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Wake up and dock now.</value>
+    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Dock now.</value>
     <comment>Spoken at stage 3, the last, of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftPod" xml:space="preserve">
@@ -1684,37 +1956,89 @@
     <value>Chime — soft</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Chime — glass</value>
+    <comment>Alarm sound picker: a quiet two-note glass chime.</comment>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Bell — crystal</value>
+    <comment>Alarm sound picker: a gentle crystal bell tap with a short shimmer.</comment>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Chime — marimba</value>
+    <comment>Alarm sound picker: a single warm marimba-like note.</comment>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Chime — triad</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app (a three-note chime).</comment>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Chime — vibraphone</value>
+    <comment>Alarm sound picker: three warm vibraphone notes rising one after another, a cheerful success sound.</comment>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — glass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — bright</value>
+    <comment>Alarm sound picker: a single crisp, bright glass ping with a short decay.</comment>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Bell — brass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Bell — hand</value>
+    <comment>Alarm sound picker: a small brass hand bell rung twice, quick and warm.</comment>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Bell — desk</value>
+    <comment>Alarm sound picker: a polished desk (reception) bell, one bright ding with a ringing tail.</comment>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Bell — deep</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Bell — heavy</value>
+    <comment>Alarm sound picker: one strike of a heavy, deep metal bell, booming but not harsh.</comment>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — low</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — sci-fi</value>
+    <comment>Alarm sound picker: one deep gong hit with a subtle synthetic shimmer, like a starship bridge.</comment>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alert — double</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Alert — blips</value>
+    <comment>Alarm sound picker: two short, crisp sci-fi interface blips.</comment>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Alert — beeps</value>
+    <comment>Alarm sound picker: two quick, clean electronic beeps, like a ship's console.</comment>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarm — urgent</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarm — battle stations</value>
+    <comment>Alarm sound picker: a tense, pulsing warning alarm with a deep undertone, as for a ship going to battle stations.</comment>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Warning — two-tone</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Warning — two-tone soft</value>
+    <comment>Alarm sound picker: a soft two-tone chime alternating up and down, gentle but noticeable.</comment>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Warning — klaxon</value>
@@ -1727,6 +2051,10 @@
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Warning — siren</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Warning — siren whoop</value>
+    <comment>Alarm sound picker: a fast synthetic siren whooping up and down, like a red alert.</comment>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Warning — horn</value>
@@ -1756,9 +2084,9 @@
     <value>Playback failed: {0}</value>
     <comment>Alarms tool, when a sound could not play. {0} is the error.</comment>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>I'm awake</value>
-    <comment>The button on a wake-up call's dialog (Undocked too long): pressing it quiets the alarm for a while. Also named in AdriftBodyLanded and AdriftBodyUndocked.</comment>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Acknowledge</value>
+    <comment>The button of a staged alarm's dialog and window: acknowledges it.</comment>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(The agent is not configured, so this was recorded as an alert.)</value>

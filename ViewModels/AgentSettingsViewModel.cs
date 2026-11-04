@@ -767,7 +767,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// <summary>The keys offered, by the virtual-key code the settings keep (0 for none), with the
     /// words shown for each. Chosen by the code, never by the name: "Disabled" is translated.</summary>
     public IReadOnlyList<Choice<int>> PushToTalkKeyNames { get; } =
-        GlobalHotkeyService.KeyOptions.Select(k => new Choice<int>(k.WinVk, k.Name)).ToList();
+        GlobalHotkeyService.KeyOptions.Where(k => GlobalHotkeyService.AvailableHere(k.WinVk))
+                                      .Select(k => new Choice<int>(k.WinVk, k.Name)).ToList();
 
     /// <summary>The Win32 virtual-key code, as saved; 0 = disabled.</summary>
     private int _pushToTalkKey;
@@ -1002,7 +1003,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _microphoneDevice         = s.MicrophoneDeviceName ?? "";
         // A key the list does not offer reads, and is saved, as none — as it always was.
-        _pushToTalkKey = GlobalHotkeyService.KeyOptions.Any(k => k.WinVk == s.PushToTalkKey) ? s.PushToTalkKey : 0;
+        _pushToTalkKey = GlobalHotkeyService.KeyOptions.Any(k => k.WinVk == s.PushToTalkKey)
+                         && GlobalHotkeyService.AvailableHere(s.PushToTalkKey) ? s.PushToTalkKey : 0;
 
         if (s.SpeechInputProvider != SpeechInputKind.None)
             RefreshMicrophoneDevices();

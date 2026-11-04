@@ -18,7 +18,42 @@ using Avalonia.Media;
 namespace EveConsole.ViewModels;
 
 /// <summary>One line of the online-characters hover in the header.</summary>
-public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+public sealed class OnlineCharacterVm(string name, string location, string ship, bool isDocked,
+                                      long characterId, int shipTypeId) : ReactiveObject
+{
+    public string Name     => name;
+    public string Location => location;
+    public string Ship     => ship;
+    public bool   IsDocked => isDocked;
+
+    private Avalonia.Media.Imaging.Bitmap? _portrait, _shipIcon;
+    public Avalonia.Media.Imaging.Bitmap? Portrait { get => _portrait; private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
+    public Avalonia.Media.Imaging.Bitmap? ShipIcon { get => _shipIcon; private set => this.RaiseAndSetIfChanged(ref _shipIcon, value); }
+
+    /// <summary>
+    /// The pictures: kept from the row this replaces where they still apply, fetched where not.
+    ///
+    /// <para>⚠️ Kept, because the list is rebuilt every thirty seconds. Fetched afresh, even from
+    /// the cache, every picture blanked for a moment under anyone reading the tooltip.</para>
+    /// </summary>
+    public void LoadIcons(OnlineCharacterVm? was)
+    {
+        if (was is not null && was.CharacterId == characterId) Portrait = was.Portrait;
+        if (was is not null && was.ShipTypeId == shipTypeId)   ShipIcon = was.ShipIcon;
+
+        if (Portrait is null) _ = LoadPortraitAsync();
+        if (ShipIcon is null) _ = ItemIcons.LoadAsync(shipTypeId, b => ShipIcon = b);
+    }
+
+    private long CharacterId => characterId;
+    private int  ShipTypeId  => shipTypeId;
+
+    private async Task LoadPortraitAsync()
+    {
+        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/characters/{characterId}/portrait?size=32");
+        if (bmp is not null) Dispatcher.UIThread.Post(() => Portrait = bmp);
+    }
+}
 
 public class MainWindowViewModel : ReactiveObject
 {
@@ -239,6 +274,7 @@ public class MainWindowViewModel : ReactiveObject
     public TradeOpportunitiesViewModel    TradeOpportunitiesVm   { get; }
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
+    public SystemIndexViewModel           SystemIndexVm          { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -273,6 +309,8 @@ public class MainWindowViewModel : ReactiveObject
     public SalePostingViewModel           SalePostingVm          { get; }
     public StoresViewModel                StoresVm               { get; }
     public CorpActivityViewModel          CorpActivityVm         { get; }
+    public CorpStructuresViewModel        CorpStructuresVm       { get; }
+    public MercenaryDensViewModel         MercenaryDensVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public EveMailViewModel               EveMailVm              { get; }
     public PriceHistorySettingsViewModel  PriceHistorySettingsVm { get; }
@@ -543,6 +581,9 @@ public class MainWindowViewModel : ReactiveObject
             CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
     }
 
+    /// <summary>Who each row of <see cref="OnlineCharacters"/> is, in the same order.</summary>
+    private List<long> _onlineCharacterIds = [];
+
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         try
@@ -582,11 +623,15 @@ public class MainWindowViewModel : ReactiveObject
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
                     ship = $"{hull} \"{r.ShipName}\"";
 
-                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked, r.CharacterId, r.ShipTypeId ?? 0);
             }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var was = OnlineCharacters.Zip(_onlineCharacterIds).ToDictionary(x => x.Second, x => x.First);
+                _onlineCharacterIds = [.. online.Select(r => r.CharacterId)];
+                foreach (var (vm, id) in list.Zip(_onlineCharacterIds)) vm.LoadIcons(was.GetValueOrDefault(id));
+
                 OnlineCharactersText  = text;
                 OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
@@ -870,6 +915,7 @@ public class MainWindowViewModel : ReactiveObject
             "items"      => (ShellText.NavItemBrowser,    ItemBrowserVm,            true),
             "industry"   => (ShellText.NavIndustryJobs,   IndustryBrowserVm,        true),
             "indy_parks" => (ShellText.NavIndyParks,      IndyParksVm,              true),
+            "system_index" => (ShellText.NavSystemIndex,  SystemIndexVm,            true),
             "prod_calc"  => (ShellText.NavProductionCalc, ProductionCalcVm,         true),
             "fitting"    => (ShellText.NavFitting,        FittingVm,                true),
             "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
@@ -900,6 +946,8 @@ public class MainWindowViewModel : ReactiveObject
             "player_entities"  => (ShellText.NavPlayerEntities, PlayerEntitiesVm, true),
             "npc_entities"     => (ShellText.NavNpcEntities,    NpcEntitiesVm,    true),
             "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
+            "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
+            "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
@@ -935,6 +983,18 @@ public class MainWindowViewModel : ReactiveObject
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Opens a tool if it is not open, without moving off the tab being worked in. A tool already
+    /// open is left where it is.
+    /// </summary>
+    public void OpenToolInBackground(string toolId)
+    {
+        if (AllTabs.Any(t => t.Id == toolId)) return;
+        var showing = Main.SelectedTab;
+        OpenTool(toolId);
+        if (showing is not null) Show(showing);
     }
 
     /// <summary>Opens the Background Processes tool at the tab named — what a status-bar label does.
@@ -1089,7 +1149,9 @@ public class MainWindowViewModel : ReactiveObject
         EveScoutService                 eveScout,
         SystemGraph                     systemGraph,
         SovCampaignService              sovCampaigns,
-        EveConsole.Services.Pi.PiService piService)
+        EveConsole.Services.Pi.PiService piService,
+        ParkComparisonService           parkCompare,
+        CostIndexHistoryService         costIndexHistory)
     {
         // The main window's selection, as those who ask the main view model for it see it.
         Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
@@ -1161,7 +1223,9 @@ public class MainWindowViewModel : ReactiveObject
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
-        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
+        CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
+        MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
+        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
@@ -1185,6 +1249,7 @@ public class MainWindowViewModel : ReactiveObject
         // ContractsVm is built further down; the lambda runs long after, so the flow analysis is the only thing objecting.
         OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
+        OverviewVm.NavigateToEveMail           = () => { OpenTool("eve_mail"); EveMailVm.ShowUnread(); };
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1201,6 +1266,10 @@ public class MainWindowViewModel : ReactiveObject
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
+        // Indy Parks, Compare, and the System Index tool: one record of cost indices for both.
+        IndyParksVm.Compare = new ParkComparisonViewModel(parkCompare, costIndexHistory, dbFactory);
+        IndyParksVm.ParksChanged += () => _ = IndyParksVm.Compare.LoadParksAsync();
+        SystemIndexVm       = new SystemIndexViewModel(dbFactory, costIndexHistory);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
@@ -1230,8 +1299,10 @@ public class MainWindowViewModel : ReactiveObject
                                      new WorklistHaulingViewModel(dbFactory, worklistSettings, errorLogger),
                                      new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService,
                                                            industryBlueprintService, worklistSettings),
-                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings),
-                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings));
+                                     new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings,
+                                         worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault()),
+                                     new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings,
+                                         worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault()));
 
         // ⚠️ After construction, not with the other Overview wiring above — WorklistVm does not
         // exist until this line, so assigning it earlier set null and left every worklist section
@@ -1250,7 +1321,8 @@ public class MainWindowViewModel : ReactiveObject
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ItemValuationVm        = new ItemValuationViewModel(dbFactory);
-        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
+                                     new PlayerActivityService(dbFactory, corpActivityService));
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
@@ -1259,10 +1331,24 @@ public class MainWindowViewModel : ReactiveObject
                                      appPrefs, indyStructureLink);
         Pi                     = piService;
         PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
+        // Refresh in the PI tool reads the colonies from ESI on the poll's next pass, and the
+        // tool shows what that brings as soon as the layouts are in.
+        PlanetaryIndustryVm.AskEsi = () =>
+        {
+            pollingService.ResetCallTime("char.planets");
+            pollingService.ResetCallTime("char.planets.layouts");
+        };
+        pollingService.EndpointPolled += key =>
+        {
+            if (key == "char.planets.layouts") Dispatcher.UIThread.Post(PlanetaryIndustryVm.EsiPolled);
+        };
         // The Overview's PI alerts open the colony they are about, or the list for several.
         OverviewVm.Pi                     = piService;
         OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
         OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
+        // The structure alerts open Corp Structures on the corporation, and the structure they name.
+        OverviewVm.NavigateToCorpStructures = (corp, structure) => { OpenTool("corp_structures"); CorpStructuresVm.Show(corp, structure); };
+        OverviewVm.NavigateToMercenaryDens  = den => { OpenTool("mercenary_dens"); MercenaryDensVm.Show(den); };
         var universeMapService = new UniverseMapService(dbFactory);
         // Each system tab gets a page of its own, wired to the Item Browser like the rest.
         SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
@@ -1283,7 +1369,8 @@ public class MainWindowViewModel : ReactiveObject
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
-                                                        corpActivityService, salePostingService, errorLogger);
+                                                        corpActivityService, salePostingService, errorLogger, batchAddService,
+                                                        parkCompare);
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>
@@ -1306,6 +1393,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
+        EntityNavigator.Instance.OpenPublicContract = id => { OpenTool("contracts"); ContractsVm.SelectPublicById(id); };
         EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
         // A region or constellation is territory you zoom to on a map: the map tab used last,
         // framed on it, or a new map tab if none is open.
@@ -1470,6 +1558,7 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("industry",      ShellText.NavIndustryJobs),
                 new NavItem("indy_parks",    ShellText.NavIndyParks),
+                new NavItem("system_index",  ShellText.NavSystemIndex),
                 new NavItem("prod_calc",     ShellText.NavProductionCalc),
                 new NavItem("planetary_industry", ShellText.NavPlanetaryIndustry),
                 new NavItem("price_overrides", ShellText.NavPriceOverrides),
@@ -1498,6 +1587,8 @@ public class MainWindowViewModel : ReactiveObject
             new("corp", ShellText.NavGroupCorp,
             [
                 new NavItem("corp_activity", ShellText.NavCorpActivity),
+                new NavItem("corp_structures", ShellText.NavCorpStructures),
+                new NavItem("mercenary_dens",  ShellText.NavMercenaryDens),
                 new NavItem("killmails",     ShellText.NavKillmails),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),

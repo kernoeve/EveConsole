@@ -52,8 +52,24 @@ public sealed record NeedDriver(
     /// no product behind it. The product as the screen names it; DriverName stays English.</summary>
     public string Label => DriverTypeId <= 0
         ? Kind
-        : Units > 1 ? $"{SdeNames.Type(DriverTypeId, DriverName)} ×{Units:N0}"
-                    : SdeNames.Type(DriverTypeId, DriverName);
+        : Units > 1 ? $"{PrintLabel.Name(DriverTypeId, DriverName, Print)} ×{Units:N0}"
+                    : PrintLabel.Name(DriverTypeId, DriverName, Print);
+
+    /// <summary>When what is being made is itself a blueprint (a T2 print invented): a copy.</summary>
+    public PrintKind Print { get; init; }
+}
+
+/// <summary>
+/// What a haul plan worked from, by station and item: the station's own need, what it could spare
+/// beyond that, and what it still can once the plan's hauls have taken their share.
+/// </summary>
+public sealed record HaulPlanFacts(
+    IReadOnlyDictionary<(long Station, int TypeId), long> Need,
+    IReadOnlyDictionary<(long Station, int TypeId), long> Spare,
+    IReadOnlyDictionary<(long Station, int TypeId), long> SpareLeft)
+{
+    public static readonly HaulPlanFacts None = new(
+        new Dictionary<(long, int), long>(), new Dictionary<(long, int), long>(), new Dictionary<(long, int), long>());
 }
 
 /// <summary>
@@ -80,7 +96,10 @@ public sealed record StationNeed(
     IReadOnlyList<NeedDriver>? Drivers = null,
 
     /// <param name="InBuild">Units already coming out of a running job that delivers HERE.</param>
-    long   InBuild = 0)
+    long   InBuild = 0,
+
+    /// <param name="Print">A blueprint's kind: see <see cref="PrintLabel"/>.</param>
+    PrintKind Print = PrintKind.None)
 {
     /// <summary>What is asking for this, largest first. Empty when nothing itemised it.</summary>
     public IReadOnlyList<NeedDriver> Why => Drivers ?? [];
@@ -142,6 +161,18 @@ public class LogisticsGenerator(
 {
     public string Id          => "logistics";
     public string DisplayName => WorklistText.SourceLogistics;
+
+    /// <summary>
+    /// What the last plan worked from: each station's own need, and what each station could spare
+    /// before the plan's hauls and after them. Null until a plan has run.
+    ///
+    /// <para>⚠️ For the Bottlenecks Hauling analysis, which has to agree with this plan about what
+    /// can move. Reckoned on its own from the asset table it counted every unit in a hangar as a
+    /// pickup, so it reported trips this plan will never raise — components the station holding
+    /// them needs four times over — while the one trip holding up 132 jobs, already raised, was
+    /// left off the card altogether.</para>
+    /// </summary>
+    public HaulPlanFacts? LastFacts { get; private set; }
 
     /// <param name="Priority">Inherited from whatever asked for it. A haul feeding an urgent
     /// order has to outrank one feeding a routine top-up, and the reason alone cannot say that:
@@ -285,6 +316,71 @@ public class LogisticsGenerator(
             drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId).Where(t => t > 0)
                    .Distinct().ToList(), ct);
 
+        // Everything each build wants at its station, by item — its materials and its print — so
+        // a trip can say what a build it is for would still lack once the cargo is down.
+        var buildNeeds = drivers
+            .SelectMany(kv => kv.Value.Where(d => d.DriverTypeId > 0)
+                                      .Select(d => (kv.Key.Station, kv.Key.TypeId, d.DriverTypeId, d.Qty)))
+            .GroupBy(x => (x.Station, x.DriverTypeId))
+            .ToDictionary(g => g.Key, g => g.GroupBy(x => x.TypeId).ToDictionary(t => t.Key, t => t.Sum(x => x.Qty)));
+        var needTypes = buildNeeds.Values.SelectMany(n => n.Keys).Distinct().ToList();
+        var needNames = await NamesAsync(db, needTypes, ct);
+        var (_, needVolumes) = await PriceAndVolumeAsync(db, needTypes, ct);
+
+        // Whether a blueprint the plan moves is a copy or an original, for its picture and name.
+        //
+        // ⚠️ The plan moves a TYPE: stock is counted by type at a station, originals and copies
+        // alike. What is wanted at the far end says which: copies for invention, and a print a
+        // build consumes (a copy bought by the run) are copies; a print a build runs on is an
+        // original where one is owned. Anything else — stock going home — is what stands free at
+        // the source. Reaction formulas are not labelled: they are always originals.
+        var printFacts = await PrintFactsAsync(ctx, ct);
+        PrintKind PrintAt(long to, int typeId, long from) => printFacts.At(drivers, to, typeId, from);
+
+        // ⚠️ Against what this build wants, not everything the station does. Measured against the
+        // station, its levels and every other job included, a site holding 141M Isogen against a
+        // want of 154M told each of twenty-odd builds it lacked 13M Isogen, while any one of them
+        // fitted. What the queue comes to in total is not what stops a job: see
+        // IndustryJobGenerator. Other trips bound for the same station are not counted: they are
+        // what the reader still has to fly.
+        List<WorklistLine> MissingAfter(int driver, IEnumerable<long> stations,
+                                        IReadOnlyDictionary<(long Station, int TypeId), long> dropped) =>
+            [.. stations.Distinct()
+                .SelectMany(st => buildNeeds.GetValueOrDefault((st, driver))?.Select(n => (st, n.Key, n.Value)) ?? [])
+                .Select(x => (x.st, x.Key, Short: x.Value
+                                                  - stock.GetValueOrDefault((x.st, x.Key))
+                                                  - dropped.GetValueOrDefault((x.st, x.Key))))
+                .Where(x => x.Short > 0)
+                .GroupBy(x => x.Key)
+                .Select(g => new WorklistLine(g.Key,
+                                 needNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                                 g.Sum(x => x.Short))
+                             { Volume = g.Sum(x => x.Short) * needVolumes.GetValueOrDefault(g.Key),
+                               Print  = PrintAt(g.First().st, g.Key, 0) })
+                .OrderByDescending(l => l.Volume)
+                .ThenBy(l => l.TypeName)];
+
+        // ⚠️ Whether a build wanting this much lacks it before the cargo lands. A build is waiting on
+        // a trip only for something it is short of: a Heavy Water run taking surplus to the fuel
+        // block yard listed every fuel block build there, though the yard held all the Heavy Water
+        // they wanted and their jobs were Ready.
+        bool ShortBefore(long station, int typeId, long wanted) =>
+            wanted > stock.GetValueOrDefault((station, typeId));
+
+        // ⚠️ Capital hulls apart from all of it: nobody loads one, so no ship, contract, staging
+        // station or loop can take one. Each is its own task for a pilot to fly, and only to
+        // somewhere it can dock, which surplus going home had no reason to know.
+        var docking = await CapitalDocking.LoadAsync(db, ct);
+        var hullMoves = moves.Where(m => docking.IsHull(m.TypeId) && m.From != m.To && m.Qty > 0
+                                         && docking.CanDock(m.TypeId, m.To)).ToList();
+        moves.RemoveAll(m => docking.IsHull(m.TypeId));
+        var hullTrips = (await TripsAsync(db, hullMoves.Select(m => (m.From, m.To)), systems, ct))
+            .ToDictionary(kv => kv.Key, kv => kv.Value with
+            {
+                Method = HaulMethod.Fly, PilotId = 0, PilotName = "", Pilots = 0,
+                ShipTypeId = 0, ShipName = "", Capacity = 0, ContractM3 = 0,
+            });
+
         // Which kind of trip each pair of stations is, and how its lane is set to make it.
         IEnumerable<(long, long)> Pairs() => moves.Where(m => m.From != m.To && m.Qty > 0).Select(m => (m.From, m.To));
         var trips = await TripsAsync(db, Pairs(), systems, ct);
@@ -302,12 +398,23 @@ public class LogisticsGenerator(
         // one task per pair of stations.
         bool InSystem(Move m) => trips.TryGetValue((m.From, m.To), out var t) && t.Lane == HaulLane.InSystem;
         var local = moves.Where(m => m.From != m.To && m.Qty > 0 && InSystem(m)).ToList();
-        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, ct);
+        var loops = await LoopsAsync(db, local, trips, systems, names, places, drivers, driverNames, unplanned, MissingAfter, ShortBefore, PrintAt, ct);
 
         // A service's trip is sized by the contract, and that by its volume.
         var between = moves.Where(m => !InSystem(m)).ToList();
         var (_, tripVolumes) = await PriceAndVolumeAsync(db, between.Select(m => m.TypeId).Distinct().ToList(), ct);
-        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes), .. loops];
+        var flown = hullMoves
+            .GroupBy(m => m.TypeId)
+            .SelectMany(g => Tasks([.. g], names, places, drivers, driverNames, hullTrips, [], MissingAfter, ShortBefore, PrintAt)
+                .Select(t => t with
+                {
+                    Key    = $"{t.Key}:hull{g.Key}",
+                    Title  = string.Format(WorklistText.HaulTitleFlyHull,
+                                           SdeNames.Type(g.Key, t.TypeName), t.Lines.Sum(l => l.Quantity)),
+                    Detail = Sentences.Join(t.MarkedDetail, WorklistText.HaulHullFlyDetail),
+                }));
+
+        return [.. Tasks(between, names, places, drivers, driverNames, trips, tripVolumes, MissingAfter, ShortBefore, PrintAt), .. loops, .. flown];
     }
 
     /// <summary>
@@ -410,7 +517,9 @@ public class LogisticsGenerator(
         AppDbContext db, List<Move> moves, Dictionary<(long From, long To), Trip> trips,
         Dictionary<long, int> systems, Dictionary<int, string> names, Dictionary<long, string> places,
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, Dictionary<int, string> driverNames,
-        IReadOnlyDictionary<long, double> unplannedM3, CancellationToken ct)
+        IReadOnlyDictionary<long, double> unplannedM3,
+        Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter,
+        Func<long, int, long, bool> shortBefore, Func<long, int, long, PrintKind> printAt, CancellationToken ct)
     {
         var items = new List<WorklistItem>();
         if (moves.Count == 0) return items;
@@ -571,28 +680,42 @@ public class LogisticsGenerator(
                         st.StationId, Place(st.StationId), st.TurnBefore,
                         st.DropOff.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
                                                                     c.Quantity * c.UnitM3, c.From, Place(c.From))
-                                               { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList(),
+                                               { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId),
+                                                 Print = printAt(c.To, c.TypeId, c.From) }).ToList(),
                         st.PickUp.Select(c => new WorklistStopLine(c.TypeId, Name(c.TypeId), c.Quantity,
                                                                    c.Quantity * c.UnitM3, c.To, Place(c.To))
-                                              { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId) }).ToList()))
+                                              { Value = c.Quantity * prices.GetValueOrDefault(c.TypeId),
+                                                Print = printAt(c.To, c.TypeId, c.From) }).ToList()))
                     .ToList();
 
                 var manifest = moved.GroupBy(m => m.TypeId)
-                    .Select(g => (TypeId: g.Key, Qty: g.Sum(m => m.Qty)))
+                    .Select(g => (TypeId: g.Key, Qty: g.Sum(m => m.Qty), Print: printAt(g.First().To, g.Key, g.First().From)))
                     .OrderByDescending(x => x.Qty)
                     .ToList();
 
                 // Asked for wherever the loop drops something, as a trip's are at its one destination.
+                // Each with what it would still lack once the whole loop is down, fewest first.
+                var loopDrop = moved.GroupBy(m => (m.To, m.TypeId))
+                    .ToDictionary(g => (Station: g.Key.To, g.Key.TypeId), g => g.Sum(m => m.Qty));
+                // Only builds short of something the loop drops: enough of it there already, and it
+                // is not what the build waits on. Nothing left missing once the loop is done, and it
+                // starts then.
                 var wanters = moved
-                    .SelectMany(m => drivers.GetValueOrDefault((m.To, m.TypeId), []))
-                    .Where(d => d.DriverTypeId > 0)
-                    .GroupBy(d => d.DriverTypeId)
-                    .Select(g => new WorklistWaitingJob(
-                        Key: "", Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
-                        TypeId: g.Key,
-                        TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
-                        Unblocked: false, StillShortOf: [], WantsUnits: g.Sum(d => d.Qty)))
-                    .OrderByDescending(w => w.WantsUnits)
+                    .SelectMany(m => drivers.GetValueOrDefault((m.To, m.TypeId), [])
+                        .Where(d => shortBefore(m.To, m.TypeId, d.Qty))
+                        .Select(d => (Station: m.To, Driver: d)))
+                    .Where(x => x.Driver.DriverTypeId > 0)
+                    .GroupBy(x => x.Driver.DriverTypeId)
+                    .Select(g => (g, Missing: missingAfter(g.Key, g.Select(x => x.Station), loopDrop)))
+                    .Select(x => new WorklistWaitingJob(
+                        Key: "", Title: driverNames.GetValueOrDefault(x.g.Key, string.Format(WorklistText.TypeWithId, x.g.Key)),
+                        TypeId: x.g.Key,
+                        TypeName: driverNames.GetValueOrDefault(x.g.Key, string.Format(WorklistText.TypeWithId, x.g.Key)),
+                        Unblocked: x.Missing.Count == 0, StillShortOf: [], WantsUnits: x.g.Sum(y => y.Driver.Qty),
+                        ByLoop: true, Missing: x.Missing,
+                        Print: printAt(0, x.g.Key, 0) == PrintKind.None ? PrintKind.None : PrintKind.Copy))
+                    .OrderBy(w => w.MissingLines.Count)
+                    .ThenByDescending(w => w.WantsUnits)
                     .ToList();
 
                 var reason = moved.Min(m => m.Reason);
@@ -606,14 +729,17 @@ public class LogisticsGenerator(
                     Key          = pilot.Id > 0 ? $"haulloop:{sys.Key}:{pilot.Id}" : $"haulloop:{sys.Key}",
                     Source       = Id,
                     Kind         = WorklistKind.Haul,
-                    Title        = string.Format(WorklistText.HaulTitleItems, manifest.Count),
+                    // ⚠️ One item: its name. "1 item(s)" hid 945 million Tritanium for 132 stopped jobs.
+                    Title        = manifest.Count == 1 ? PrintLabel.Name(manifest[0].TypeId, Name(manifest[0].TypeId), manifest[0].Print)
+                                                       : string.Format(WorklistText.HaulTitleItems, manifest.Count),
                     Detail       = Because(reason)
                                  + (later > 0 ? " " + string.Format(WorklistText.HaulLoopMore, stops.Count, later) : "")
                                  + (plan.TooBig.Count > 0 ? " " + string.Format(WorklistText.HaulLoopTooBig, plan.TooBig.Count) : ""),
                     Readiness    = WorklistReadiness.Ready,
                     LocationId   = first,
                     LocationName = Place(first),
-                    Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty)).ToList(),
+                    Lines        = manifest.Select(c => new WorklistLine(c.TypeId, Name(c.TypeId), c.Qty) { Print = c.Print }).ToList(),
+                    Print        = manifest[0].Print,
                     Stops        = stops,
                     LoopTurns    = plan.Turns,
                     LoopSystemId = sys.Key,
@@ -1024,6 +1150,7 @@ public class LogisticsGenerator(
 
         var want    = new Dictionary<(long Station, int TypeId), Want>();
         var drivers = new Dictionary<(long Station, int TypeId), List<NeedDriver>>();
+        var docking = await CapitalDocking.LoadAsync(db, ct);
 
         void Need(long station, int typeId, long qty, HaulReason why, int priority = 0, long level = 0,
                   long orderJobs = 0, long jobs = 0, long ruleJobs = 0,
@@ -1044,6 +1171,12 @@ public class LogisticsGenerator(
                                                         Units = Math.Max(list[at].Units, driverUnits) };
                 else list.Add(new NeedDriver(driverTypeId, "", kind, driverUnits, qty));
             }
+
+            // ⚠️ After the driver and before the want: the build still lacks the hull, which is
+            // what a trip bringing its other parts has to say, but no trip can bring it. A want
+            // here would also have taken the hull away from a place that could use it.
+            if (!docking.CanDock(typeId, station)) return;
+
             var had = want.GetValueOrDefault(key);
             want[key] = new Want(
                 had is null ? qty : had.Qty + qty,
@@ -1069,6 +1202,9 @@ public class LogisticsGenerator(
                                 scope, wrapped, corps, inScope, Need, ct);
         await AddStationLevelDemandAsync(db, Need, ct);
 
+        if ((await InventionService.LabsAsync(db, parkId, ct)).Copying is { } copyLab)
+            KeepCopyLabOriginals(allPrints, owned, copyLab.Site, Need);
+
         return (want, stock, drivers, ctx);
     }
 
@@ -1089,8 +1225,9 @@ public class LogisticsGenerator(
 
         try
         {
-            var (want, stock, drivers, _) = await GatherAsync(db, parkId, ct);
-            if (want.Count == 0) return [];
+            var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
+            if (want.Count == 0 || ctx is null) return [];
+            var printFacts = await PrintFactsAsync(ctx, ct);
 
             var places = await PlaceNamesAsync(db, ct);
 
@@ -1183,9 +1320,12 @@ public class LogisticsGenerator(
                                                           string.Format(WorklistText.TypeWithId, d.DriverTypeId))
                                 : "",
                         })
+                        .Select(d => d with { Print = printFacts.OfBuild(d.DriverTypeId) })
                         .OrderByDescending(d => d.Qty)
                         .ToList(),
-                    ShareOfBuild(kv.Key, kv.Value)))
+                    ShareOfBuild(kv.Key, kv.Value),
+                    // A print kept where it stands (an original at the copy lab) is judged there.
+                    printFacts.At(drivers, kv.Key.Station, kv.Key.TypeId, kv.Key.Station)))
                 .OrderBy(n => n.StationName).ThenBy(n => n.TypeName)
                 .ToList();
         }
@@ -1304,7 +1444,8 @@ public class LogisticsGenerator(
             catch (OperationCanceledException) { throw; }
             catch { continue; }
 
-            if (root?.StationId is not { } site) continue;
+            // A hull that cannot dock where it is wanted is built where it is wanted.
+            if (root is null || (d.BoundSite ?? root.StationId) is not { } site) continue;
 
             // Only this job's own inputs. Its sub-assemblies are separate jobs at their own
             // facilities, and they appear in the demand list in their own right.
@@ -1329,7 +1470,8 @@ public class LogisticsGenerator(
             //
             // In practice this is quiet: a print normally already sits at the structure that
             // builds from it, so the want is met by stock and no move comes of it.
-            if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd))
+            if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd)
+                && !OriginalBusyAt(allPrints, owned, bpProd.TypeId, site))
             {
                 var prints = PrintsWanted(allPrints, owned, printsInAssets, bpProd,
                                  IndustryJobSplit.RunsFor(d.Units, Math.Max(1, bpProd.Quantity)));
@@ -1399,7 +1541,8 @@ public class LogisticsGenerator(
             // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
             var source = n.Recipe.SourceBlueprintTypeId;
-            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded);
+            var copies = SourceCopiesWanted(allPrints, owned, printsInAssets, source, n.Plan.CopyRunsNeeded)
+                       - BusyCopiesAt(allPrints, owned, source, lab.Value.Site);
 
             if (copies > 0)
             {
@@ -1416,6 +1559,9 @@ public class LogisticsGenerator(
             var mine = allPrints.Where(p => p.TypeId == source && owned.Owns(p)).ToList();
             if (copyLab is { } cl
                 && mine.Any(p => p.IsOriginal)
+                // ⚠️ None there at all, busy or free: a busy one is copying already, and a free one
+                // is held there by KeepCopyLabOriginals — wanting one more on top sent a second.
+                && !mine.Any(p => p.IsOriginal && p.LocationId == cl.Site)
                 && mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs) < n.Plan.CopyRunsNeeded)
             {
                 var (oOrder, oRule, oParent) = n.Demand.SplitOf(1);
@@ -1424,6 +1570,55 @@ public class LogisticsGenerator(
                      driverTypeId: n.Recipe.ProductTypeId, driverUnits: n.Demand.Units,
                      driverKind: NeedDriverKind.BlueprintFor);
             }
+        }
+    }
+
+    /// <summary>
+    /// Whether an original of this blueprint is at the site already, busy in a job there.
+    ///
+    /// <para>⚠️ The site HAS its original, then; nothing is to be brought. Stock comes from assets,
+    /// and a print installed in a job is not in them — so the site read as empty and the planner
+    /// fetched another: a free original pulled out of the copy lab to a factory whose own was
+    /// building, and one sent to the copy lab because the one there was making copies. A busy
+    /// print comes back to the same hangar when its job ends.</para>
+    /// </summary>
+    private static bool OriginalBusyAt(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, int typeId, long site) =>
+        allPrints.Any(p => p.TypeId == typeId && p.IsOriginal && p.LockedInJob
+                        && p.LocationId == site && owned.Owns(p));
+
+    /// <summary>
+    /// Copies of this blueprint at the site already, busy in a job there.
+    ///
+    /// <para>⚠️ Subtracted from the copies the lab wants, for the reason <see cref="OriginalBusyAt"/>
+    /// gives: a copy in an invention job is not in assets, so the lab read as short, and with no
+    /// free copy anywhere the only free prints of the type were originals at a factory — which the
+    /// plan then hauled to the lab as if they were copies.</para>
+    /// </summary>
+    private static long BusyCopiesAt(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, int typeId, long site) =>
+        allPrints.Count(p => p.TypeId == typeId && !p.IsOriginal && p.LockedInJob
+                          && p.LocationId == site && owned.Owns(p));
+
+    /// <summary>
+    /// Keeps the copy lab's originals where they are.
+    ///
+    /// <para>An original at the copy lab is there to be copied from, and taking it to a factory
+    /// stops the copying. So each free one there is wanted where it stands, and is not spare for
+    /// another site — unless it is the only original of its type owned: then a factory that has
+    /// none takes it, as before, rather than nothing being built at all. With several originals all
+    /// at the lab, one of them may still go.</para>
+    ///
+    /// <para>Free ones only: a busy one is not in stock, and wanting it would send another.</para>
+    /// </summary>
+    private static void KeepCopyLabOriginals(
+        IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, long copyLab, NeedFn need)
+    {
+        foreach (var type in allPrints.Where(p => p.IsOriginal && owned.Owns(p)).GroupBy(p => p.TypeId))
+        {
+            var freeHere = type.Count(p => p.LocationId == copyLab && !p.LockedInJob);
+            var keep     = Math.Min(freeHere, type.Count() - 1);
+            if (keep > 0) need(copyLab, type.Key, keep, HaulReason.Restock);
         }
     }
 
@@ -1601,9 +1796,9 @@ public class LogisticsGenerator(
     /// <summary>
     /// Fills each station's wants from the nearest station that can spare the material.
     ///
-    /// <para>A source is only offered what it holds beyond its own need, so satisfying one
-    /// structure never starves another. Same system first, then gate distance, then station id so
-    /// two equally good sources always resolve the same way.</para>
+    /// <para>A source is only offered what it holds beyond its own need and its level, so satisfying
+    /// one structure never starves another. Same system first, then gate distance, then station id
+    /// so two equally good sources always resolve the same way.</para>
     /// </summary>
     private async Task<List<Move>> AllocateAsync(
         Dictionary<(long Station, int TypeId), Want> want,
@@ -1611,16 +1806,21 @@ public class LogisticsGenerator(
         Dictionary<long, int> systems, CancellationToken ct)
     {
         var moves = new List<Move>();
-        if (want.Count == 0) return moves;
+        if (want.Count == 0) { LastFacts = HaulPlanFacts.None; return moves; }
 
-        // Spare stock: what a station holds beyond whatever it wants itself.
+        // ⚠️ Spare stock: what a station holds beyond its own jobs AND its level. A level protects
+        // what a station already holds, so one large need elsewhere cannot wipe out every buffer in
+        // the region. What it does not do is pull stock in while a job wants it: see below.
         var spare = new Dictionary<(long Station, int TypeId), long>();
         foreach (var (key, qty) in stock)
         {
-            var mine = want.GetValueOrDefault(key)?.Qty ?? 0;
-            var free = qty - mine;
+            var free = qty - (want.GetValueOrDefault(key)?.Qty ?? 0);
             if (free > 0) spare[key] = free;
         }
+        var spareBefore = new Dictionary<(long Station, int TypeId), long>(spare);
+
+        // What each station is getting from the jobs' pass, for what its level still lacks after.
+        var received = new Dictionary<(long Station, int TypeId), long>();
 
         var jumpCache = new Dictionary<int, Dictionary<int, int>>();
 
@@ -1636,43 +1836,10 @@ public class LogisticsGenerator(
         var suppliers = new HashSet<long>();
         long currentDest = 0;
 
-        // Most urgent destination first, and only then by id.
-        //
-        // This used to walk by station id alone. That is deterministic, which was the point, but
-        // it decides who gets scarce stock by which structure happens to have the smaller number:
-        // 460 Capital Ship Maintenance Bays existed, two sites wanted 1,190 between them, and the
-        // lower-id site took 299 to fill itself while the site building a customer's Avatar got
-        // the 161 left over. Priority already encodes what matters — the Avatar's materials carry
-        // the order's own rank — and it was simply not being consulted.
-        //
-        // Ranked per destination rather than per want, because the loop must still visit a
-        // destination's wants together: the supplier-reuse rule below assumes it, and interleaving
-        // destinations would turn one run into several.
-        var destRank = want
-            .GroupBy(k => k.Key.Station)
-            .ToDictionary(g => g.Key, g => g.Max(x => x.Value.Priority));
-
-        foreach (var ((dest, typeId), w) in want
-                     .OrderByDescending(k => destRank[k.Key.Station])
-                     .ThenBy(k => k.Key.Station)
-                     .ThenBy(k => k.Key.TypeId))
+        // Moves what it can of a gap to a station, and says how much it could not.
+        async Task<long> FillAsync(long dest, int typeId, long gap, HaulReason reason, int priority)
         {
             if (dest != currentDest) { suppliers.Clear(); currentDest = dest; }
-
-            var have = stock.GetValueOrDefault((dest, typeId));
-            var gap  = w.Qty - have;
-            if (gap <= 0) continue;
-
-            // A level is allowed to run a little light before it is worth a trip, or a station
-            // told to hold a thousand raises a haul for the twelve units something just consumed.
-            // The band applies only to the level: whatever a job needs is needed in full, so the
-            // trigger sits at the job demand plus the discounted level, and the fill still tops
-            // the station all the way back up rather than leaving it parked at the trigger.
-            if (w.Level > 0)
-            {
-                var jobPart = w.Qty - w.Level;
-                if (have >= jobPart + w.Level * (1 - restockBand)) continue;
-            }
 
             var destSystem = systems.GetValueOrDefault(dest);
             if (destSystem != 0 && !jumpCache.ContainsKey(destSystem))
@@ -1712,13 +1879,74 @@ public class LogisticsGenerator(
             {
                 if (gap <= 0) break;
                 var take = Math.Min(gap, s.Value);
-                moves.Add(new Move(s.Key.Station, dest, typeId, take, w.Reason, w.Priority));
+                moves.Add(new Move(s.Key.Station, dest, typeId, take, reason, priority));
                 spare[s.Key] -= take;
                 gap -= take;
                 suppliers.Add(s.Key.Station);
+                received[(dest, typeId)] = received.GetValueOrDefault((dest, typeId)) + take;
             }
+            return gap;
         }
 
+        // Items a job still lacks after every source has given what it can.
+        var stillWanted = new HashSet<int>();
+
+        // ── Jobs first, by how urgent they are ────────────────────────────
+        //
+        // Most urgent destination first, and only then by id.
+        //
+        // This used to walk by station id alone. That is deterministic, which was the point, but
+        // it decides who gets scarce stock by which structure happens to have the smaller number:
+        // 460 Capital Ship Maintenance Bays existed, two sites wanted 1,190 between them, and the
+        // lower-id site took 299 to fill itself while the site building a customer's Avatar got
+        // the 161 left over. Priority already encodes what matters — the Avatar's materials carry
+        // the order's own rank — and it was simply not being consulted.
+        //
+        // Ranked per destination rather than per want, because the loop must still visit a
+        // destination's wants together: the supplier-reuse rule below assumes it, and interleaving
+        // destinations would turn one run into several.
+        var jobWants = want.Where(k => k.Value.Qty > k.Value.Level).ToList();
+        var destRank = jobWants
+            .GroupBy(k => k.Key.Station)
+            .ToDictionary(g => g.Key, g => g.Max(x => x.Value.Priority));
+
+        foreach (var ((dest, typeId), w) in jobWants
+                     .OrderByDescending(k => destRank[k.Key.Station])
+                     .ThenBy(k => k.Key.Station)
+                     .ThenBy(k => k.Key.TypeId))
+        {
+            var gap = w.Qty - w.Level - stock.GetValueOrDefault((dest, typeId));
+            if (gap > 0 && await FillAsync(dest, typeId, gap, w.Reason, w.Priority) > 0)
+                stillWanted.Add(typeId);
+        }
+
+        // ── Then station levels, from what is left ────────────────────────
+        //
+        // ⚠️ Always last, and only for what is surplus: no job anywhere still wants it, whether that
+        // job could start today or not. Filled ahead of them, 2,500 Power Cores "kept" at a yard with
+        // no use for them pulled in 979 more, while the jobs stopped at the next structure got none.
+        foreach (var ((dest, typeId), w) in want
+                     .Where(k => k.Value.Level > 0 && !stillWanted.Contains(k.Key.TypeId))
+                     .OrderBy(k => k.Key.Station)
+                     .ThenBy(k => k.Key.TypeId))
+        {
+            var have = stock.GetValueOrDefault((dest, typeId)) + received.GetValueOrDefault((dest, typeId));
+            var gap  = w.Qty - have;
+            if (gap <= 0) continue;
+
+            // A level is allowed to run a little light before it is worth a trip, or a station
+            // told to hold a thousand raises a haul for the twelve units something just consumed.
+            // The fill still tops the station all the way back up rather than leaving it parked at
+            // the trigger.
+            var jobPart = w.Qty - w.Level;
+            if (have >= jobPart + w.Level * (1 - restockBand)) continue;
+
+            await FillAsync(dest, typeId, gap, HaulReason.Restock, 0);
+        }
+
+        LastFacts = new HaulPlanFacts(
+            want.ToDictionary(kv => kv.Key, kv => kv.Value.Qty), spareBefore,
+            spare.Where(kv => kv.Value > 0).ToDictionary(kv => kv.Key, kv => kv.Value));
         return moves;
     }
 
@@ -1811,6 +2039,46 @@ public class LogisticsGenerator(
         return homes;
     }
 
+    /// <summary>
+    /// What the plan needs to tell a blueprint copy from an original: see <see cref="At"/>.
+    /// </summary>
+    private sealed record PrintFacts(HashSet<int> PrintIds, HashSet<int> OwnsOriginal, HashSet<(long Site, int TypeId)> OriginalAt)
+    {
+        /// <summary>
+        /// Whether the blueprint wanted at <paramref name="to"/> is a copy or an original.
+        ///
+        /// <para>⚠️ The plan moves a TYPE: stock is counted by type at a station, originals and
+        /// copies alike. What is wanted at the far end says which: copies for invention, and a print
+        /// a build consumes (a copy bought by the run) are copies; a print a build runs on is an
+        /// original where one is owned. Anything else — stock going home, an original kept at the
+        /// copy lab — is an original where one stands free at <paramref name="from"/>, else a
+        /// copy. Not a blueprint, or a reaction formula (always an original): None.</para>
+        /// </summary>
+        public PrintKind At(Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers, long to, int typeId, long from)
+        {
+            if (!PrintIds.Contains(typeId)) return PrintKind.None;
+            var kinds = drivers.GetValueOrDefault((to, typeId))?.Select(d => d.DriverKind).ToHashSet() ?? [];
+            if (kinds.Contains(NeedDriverKind.CopiesForInvention) || kinds.Contains(NeedDriverKind.Build)) return PrintKind.Copy;
+            if (kinds.Contains(NeedDriverKind.BlueprintFor))
+                return OwnsOriginal.Contains(typeId) ? PrintKind.Original : PrintKind.Copy;
+            return OriginalAt.Contains((from, typeId)) ? PrintKind.Original : PrintKind.Copy;
+        }
+
+        /// <summary>A build that is itself a blueprint — a T2 print invented — makes copies.</summary>
+        public PrintKind OfBuild(int driverTypeId) => PrintIds.Contains(driverTypeId) ? PrintKind.Copy : PrintKind.None;
+    }
+
+    private async Task<PrintFacts> PrintFactsAsync(ProductionContext ctx, CancellationToken ct)
+    {
+        var formulas = ctx.BpProducts.Where(p => p.Activity == "reaction").Select(p => p.TypeId).ToHashSet();
+        var owners   = await assignment.PrintOwnershipAsync(settings.IncludeNonPersonalCorps, ct);
+        var prints   = await blueprints.LoadAllAsync(ct);
+        return new PrintFacts(
+            ctx.BpTypeIds.Where(id => !formulas.Contains(id)).ToHashSet(),
+            prints.Where(p => p.IsOriginal && owners.Owns(p)).Select(p => p.TypeId).ToHashSet(),
+            prints.Where(p => p.IsOriginal && !p.LockedInJob && owners.Owns(p)).Select(p => (p.LocationId, p.TypeId)).ToHashSet());
+    }
+
     // ── Output ────────────────────────────────────────────────────────────────
 
     private List<WorklistItem> Tasks(
@@ -1818,25 +2086,27 @@ public class LogisticsGenerator(
         Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
         Dictionary<int, string> driverNames,
         Dictionary<(long From, long To), Trip> trips,
-        Dictionary<int, double> volumes)
+        Dictionary<int, double> volumes,
+        Func<int, IEnumerable<long>, IReadOnlyDictionary<(long Station, int TypeId), long>, List<WorklistLine>> missingAfter,
+        Func<long, int, long, bool> shortBefore, Func<long, int, long, PrintKind> printAt)
     {
         var items = new List<WorklistItem>();
 
-        // A service's trip too big for one contract is one task per contract.
-        foreach (var (run, part, parts) in moves
+        foreach (var run in moves
                      .Where(m => m.From != m.To && m.Qty > 0)
                      .GroupBy(m => (m.From, m.To))
-                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To)
-                     .SelectMany(g =>
-                     {
-                         List<List<Move>> split = trips.GetValueOrDefault(g.Key) is { Method: HaulMethod.Service, ContractM3: > 0 } t
-                             ? Contracts([.. g], volumes, t.ContractM3)
-                             : [[.. g]];
-                         return split.Select((p, i) => (Run: p.GroupBy(m => (m.From, m.To)).Single(), Part: i, Parts: split.Count));
-                     }))
+                     .OrderBy(g => g.Key.From).ThenBy(g => g.Key.To))
         {
+            // ⚠️ A service's trip too big for one contract is still one task, with its lines marked
+            // by contract. A task per contract counted one errand several times over, and each said
+            // it freed the same sixty jobs, since what a load frees is decided by the whole trip.
+            List<List<Move>> split = trips.GetValueOrDefault(run.Key) is { Method: HaulMethod.Service, ContractM3: > 0 } t
+                ? Contracts([.. run], volumes, t.ContractM3)
+                : [[.. run]];
+            var parts = split.Count;
+
             var cargo  = run.GroupBy(m => m.TypeId)
-                            .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty)))
+                            .Select(g => (TypeId: g.Key, Qty: g.Sum(x => x.Qty), Print: printAt(g.First().FinalTo, g.Key, g.First().From)))
                             .OrderByDescending(x => x.Qty)
                             .ToList();
             var reason = run.Min(m => m.Reason);   // the best cargo sets the worth of the run
@@ -1856,31 +2126,49 @@ public class LogisticsGenerator(
             //
             // A trip stopping short at a staging or drop-off station is still for the jobs at the
             // stations past it: each line's own end.
+            //
+            // Each with what it would still lack at its station once this cargo is down, fewest
+            // first: the ones this trip all but starts lead.
+            var tripDrop = run.GroupBy(m => (m.FinalTo, m.TypeId))
+                .ToDictionary(g => (Station: g.Key.FinalTo, g.Key.TypeId), g => g.Sum(m => m.Qty));
+            //
+            // Only builds short of something this trip brings: enough of it there already, and it is
+            // not what the build waits on. Nothing left missing once it is down, and the build
+            // starts on arrival.
             var wanters = run.Select(m => (m.FinalTo, m.TypeId)).Distinct()
-                .SelectMany(k => drivers.GetValueOrDefault(k, []))
-                .Where(d => d.DriverTypeId > 0)
-                .GroupBy(d => d.DriverTypeId)
-                .Select(g => new WorklistWaitingJob(
+                .SelectMany(k => drivers.GetValueOrDefault(k, [])
+                    .Where(d => shortBefore(k.FinalTo, k.TypeId, d.Qty))
+                    .Select(d => (Station: k.FinalTo, Driver: d)))
+                .Where(x => x.Driver.DriverTypeId > 0)
+                .GroupBy(x => x.Driver.DriverTypeId)
+                .Select(g => (g, Missing: missingAfter(g.Key, g.Select(x => x.Station), tripDrop)))
+                .Select(x => new WorklistWaitingJob(
                     Key:   "",
-                    Title: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
-                    TypeId:   g.Key,
-                    TypeName: driverNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
-                    Unblocked:    false,
+                    Title: driverNames.GetValueOrDefault(x.g.Key, string.Format(WorklistText.TypeWithId, x.g.Key)),
+                    TypeId:   x.g.Key,
+                    TypeName: driverNames.GetValueOrDefault(x.g.Key, string.Format(WorklistText.TypeWithId, x.g.Key)),
+                    Unblocked:    x.Missing.Count == 0,
                     StillShortOf: [],
-                    WantsUnits:   g.Sum(d => d.Qty)))
-                .OrderByDescending(w => w.WantsUnits)
+                    WantsUnits:   x.g.Sum(y => y.Driver.Qty),
+                    Units:        x.g.Max(y => y.Driver.Units),
+                    Missing:      x.Missing,
+                    // A build that is itself a blueprint — a T2 print invented — makes copies.
+                    Print:        printAt(0, x.g.Key, 0) == PrintKind.None ? PrintKind.None : PrintKind.Copy))
+                .OrderBy(w => w.MissingLines.Count)
+                .ThenByDescending(w => w.WantsUnits)
                 .ToList();
 
             items.Add(new WorklistItem
             {
                 // Keyed on the pair, not the cargo: it is one trip, and a key that changed as
-                // items were added or removed would reset its age every refresh. A contract after
-                // a service's first is keyed by its place in line.
-                Key          = part == 0 ? $"haul:{run.Key.From}:{run.Key.To}" : $"haul:{run.Key.From}:{run.Key.To}:{part + 1}",
+                // items were added or removed would reset its age every refresh.
+                Key          = $"haul:{run.Key.From}:{run.Key.To}",
                 Source       = Id,
                 Kind         = WorklistKind.Haul,
-                Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContract, cargo.Count, part + 1, parts)
-                                         : string.Format(WorklistText.HaulTitleItems, cargo.Count),
+                Title        = parts > 1 ? string.Format(WorklistText.HaulTitleItemsContracts, cargo.Count, parts)
+                             // One item: its name, as the loop's are.
+                             : cargo.Count == 1 ? PrintLabel.Name(cargo[0].TypeId, names.GetValueOrDefault(cargo[0].TypeId, string.Format(WorklistText.TypeWithId, cargo[0].TypeId)), cargo[0].Print)
+                             : string.Format(WorklistText.HaulTitleItems, cargo.Count),
                 // The manifest lives on the row's own lines now. Repeating four of them here and
                 // hiding the rest behind "and 9 more" was a worse answer to the same question.
                 Detail       = Because(reason) + Onward(run.Select(m => m.FinalTo).Where(t => t != run.Key.To).Distinct(), places),
@@ -1900,12 +2188,21 @@ public class LogisticsGenerator(
                 HaulShipName    = trip?.ShipName ?? "",
                 HaulCapacity    = trip?.Capacity ?? 0,
                 HaulPilots      = trip?.Pilots ?? 0,
-                Lines        = cargo
-                    .Select(c => new WorklistLine(
-                        c.TypeId,
-                        names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
-                        c.Qty))
-                    .ToList(),
+                Lines        = parts > 1
+                    ? [.. split.SelectMany((contract, n) => contract
+                          .GroupBy(m => m.TypeId)
+                          .OrderByDescending(g => g.Sum(m => m.Qty))
+                          .Select(g => new WorklistLine(
+                              g.Key,
+                              names.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                              g.Sum(m => m.Qty))
+                              { Print = printAt(g.First().FinalTo, g.Key, g.First().From), Contract = n + 1 }))]
+                    : [.. cargo.Select(c => new WorklistLine(
+                          c.TypeId,
+                          names.GetValueOrDefault(c.TypeId, string.Format(WorklistText.TypeWithId, c.TypeId)),
+                          c.Qty) { Print = c.Print })],
+                Print        = cargo[0].Print,
+                Landings     = [.. tripDrop.Select(kv => new WorklistDelivered(kv.Key.Station, kv.Key.TypeId, kv.Value))],
                 WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),

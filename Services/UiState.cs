@@ -43,7 +43,11 @@ public static class UiState
     /// <summary>"all" or "personal": whether the Asset Browser shows every owner it holds, or only
     /// the user's characters and the corporations marked personal.</summary>
     public const string AssetScope            = "assets.scope";
+    /// <summary>How the Asset Browser's Detailed View groups its rows: an AssetGroupBy name.</summary>
+    public const string AssetGroupBy          = "assets.group_by";
     public const string Theme                 = "ui.theme";
+    /// <summary>The user's own themes, as JSON: see CustomThemes.</summary>
+    public const string CustomThemes          = "ui.custom_themes";
     /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
     public const string Scale                 = "ui.scale";
     /// <summary>The interface language's code, "zh-Hans"; absent for the system's language. Read
@@ -59,13 +63,30 @@ public static class UiState
     public const string IndustryOppsMode        = "industryopps.mode";
     public const string IndustryOppsMinIskVol   = "industryopps.min_isk_vol";
     public const string IndustryOppsMinUnitVol  = "industryopps.min_unit_vol";
-    public const string IndustryOppsSkipFaction = "industryopps.skip_faction";
+    public const string IndustryOppsMinMargin   = "industryopps.min_margin";
+    public const string IndustryOppsMinMargin30d = "industryopps.min_margin_30d";
+    public const string IndustryOppsSkipFaction = "industryopps.skip_faction";   // read once, to seed the meta groups
+    public const string IndustryOppsMetaGroups  = "industryopps.meta_groups";
+
+    // Indy Parks, Compare: the job list (JSON) and the parks left unticked (ids).
+    public const string IndyCompareJobs     = "indyparks.compare.jobs";
+    public const string IndyCompareParksOff = "indyparks.compare.parks_off";
+    public const string IndyCompareSummaryBy = "indyparks.compare.summary_by";
+
+    // System Index: the systems listed (ids).
+    public const string SystemIndexSystems  = "systemindex.systems";
     public const string IndustryOppsBpoOnly     = "industryopps.bpo_only";
+    /// <summary>Industry Ops: only items whose blueprint the user holds (issue #152).</summary>
+    public const string IndustryOppsOwnedOnly   = "industryopps.owned_only";
     /// <summary>"0" when the Worklist is not to rebuild itself every few minutes — this machine's
     /// own, since one screen may be mid-loop while another is not.</summary>
     public const string WorklistAutoRefresh     = "worklist.auto_refresh";
     /// <summary>The results sort as "PropertyPath:asc" or "PropertyPath:desc".</summary>
     public const string IndustryOppsSort        = "industryopps.sort";
+
+    /// <summary>The corporation Corp Activity and Corp Structures were last left on (ids).</summary>
+    public const string CorpActivityCorp        = "corpactivity.corp";
+    public const string CorpStructuresCorp      = "corpstructures.corp";
 
     /// <summary>
     /// This client's value for <paramref name="key"/>.

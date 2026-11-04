@@ -26,6 +26,10 @@ public sealed class AlarmEvaluationContext
 /// The Alarms editor's words for one parameter of a check, in the interface language. A part
 /// left null shows the schema's own English.
 /// </summary>
+/// <summary>One situation of a check, quieted until <paramref name="Until"/> by the capsuleer being
+/// there; <paramref name="Ringing"/> when a stage was due, so the reset is an acknowledgement.</summary>
+public sealed record AlarmActivityReset(string ScopeKey, string Episode, DateTimeOffset Until, bool Ringing);
+
 public sealed record AlarmFieldText(string? Label = null, string? Description = null, string? Suffix = null);
 
 /// <summary>
@@ -123,6 +127,30 @@ public interface IAlarmCondition
     /// stages are the cadence. An acknowledgement quiets the scope's episode for the snooze.</para>
     /// </summary>
     int Stages => 0;
+
+    /// <summary>
+    /// For a staged check: whether the capsuleer typing or speaking in the agent chat — about
+    /// anything, from the first key or the moment the microphone opens — resets this check's
+    /// situations. True for a wake-up call, whose whole question is whether a person is at the
+    /// keyboard; false, the default, for a check where talking about something else says
+    /// nothing about what it raised. What a reset does is <see cref="ActivityResetsAsync"/>.
+    /// </summary>
+    bool ActivityAcknowledges => false;
+
+    /// <summary>
+    /// The heading of the window a situation of this check brings to be acknowledged. Null, the
+    /// default, uses the alarm's name — which is the capsuleer's own label and may not be fit to
+    /// show the person it is waking.
+    /// </summary>
+    string? AckWindowTitle => null;
+
+    /// <summary>
+    /// For an <see cref="ActivityAcknowledges"/> check: each of its situations going on now, and
+    /// until when the capsuleer's activity at <see cref="AlarmEvaluationContext.Now"/> quiets it.
+    /// </summary>
+    Task<IReadOnlyList<AlarmActivityReset>> ActivityResetsAsync(
+        JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<AlarmActivityReset>>([]);
 
     /// <summary>
     /// How often a new alarm of this check looks, in seconds, when the editor's general default

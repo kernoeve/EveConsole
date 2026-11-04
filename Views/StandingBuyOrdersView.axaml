@@ -142,6 +142,31 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- Where the buying price stands against what the item costs to build and is worth. -->
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildCost}" Width="130" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding BuildCostText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                         VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MarketText.TipBuildCost}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColMarketValue}" Width="140" SortMemberPath="MarketValue" ClipboardContentBinding="{Binding MarketValueText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding MarketValueText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                         VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MarketText.TipMarketValue}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColBidVsValue}" Width="110" SortMemberPath="BidVsValue" ClipboardContentBinding="{Binding BidVsValueText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
+              <TextBlock Text="{Binding BidVsValueText}" FontSize="11" Foreground="{Binding BidVsValueColor}"
+                         VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MarketText.TipBidVsValue}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:MarketText.ColRemaining}"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />
         <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColExpires}" Width="180" SortMemberPath="Expiry" ClipboardContentBinding="{Binding Expiry}">

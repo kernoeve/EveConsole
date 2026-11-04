@@ -59,14 +59,21 @@ public sealed class AlarmActionRunner
     public Action<string, string, string?, Func<Task>?>? ShowDialogCallback { get; set; }
 
     /// <summary>
-    /// A repeating sound has started for a situation: show the window whose one button stops it.
-    /// Separate from the Dialog action, which may not have been chosen — a sound that will not
-    /// stop until acknowledged must bring its own way of being acknowledged. Set by MainWindow.
+    /// A situation waits to be acknowledged — a repeating sound has started, or a wake-up call
+    /// has reached a stage: show the window whose one button acknowledges it, or bring it to the
+    /// front, saying whether the sound repeats yet: (situation, name, summary, sounding,
+    /// acknowledge). Separate from the Dialog action, which may not have been chosen — a sound
+    /// that will not stop until acknowledged must bring its own way of being acknowledged, and a
+    /// wake-up call one that needs no word to the agent. Set by MainWindow.
     /// </summary>
-    public Action<AlarmAck, string, string, Func<Task>>? SoundStartedCallback { get; set; }
+    public Action<AlarmAck, string, string, bool, Func<Task>>? SoundStartedCallback { get; set; }
 
-    /// <summary>The repeating sound for a situation has ended of itself — close its window. Set by MainWindow.</summary>
+    /// <summary>The situation has ended of itself, or was answered elsewhere — close its window. Set by MainWindow.</summary>
     public Action<AlarmAck>? SoundStoppedCallback { get; set; }
+
+    /// <summary>Cuts off what the voice is saying — a wake-up line the capsuleer has already
+    /// answered by typing or speaking. Set by MainWindow.</summary>
+    public Action? StopSpeechCallback { get; set; }
 
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
@@ -151,7 +158,7 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Dialog:
                         signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
                         signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-                        signal.DialogButton = stage is not null ? AlarmsText.ButtonImAwake : null;
+                        signal.DialogButton = stage is not null ? AlarmsText.ButtonAcknowledge : null;
                         somethingElse       = true;
                         break;
 
@@ -242,6 +249,10 @@ public sealed class AlarmActionRunner
 
         if (s is null || s.Kind != AlarmSignal.SignalKind) return;
 
+        // Before the mute: a muted client is still a keyboard somebody can answer at.
+        if (s.Ack is { } fired && s.ConditionType is { } type && _registry.Find(type) is { ActivityAcknowledges: true })
+            lock (_awaitingLock) _awaiting[(fired.AlarmId, fired.ScopeKey)] = (fired, type);
+
         // ⚠️ Checked here, on the receiving side, and never on the worker. Muting is a fact about
         // this machine — one client can be quiet while another is not — and a worker that filtered
         // on its own setting would silence everybody's.
@@ -249,10 +260,20 @@ public sealed class AlarmActionRunner
 
         var ack = s.Ack;
 
+        // The window's heading: what the check says the situation is, or the alarm's name.
+        var heading = s.ConditionType is { } kind && _registry.Find(kind)?.AckWindowTitle is { } title ? title : s.Name;
+
+        // A wake-up call shows its window from the first stage, whatever the stage does, and keeps
+        // it through the rest: answering it must not depend on talking to the agent. A stage that
+        // sets a sound repeating brings the window below, with the sound.
+        if (ack is not null && !(s.SoundKey is not null && s.SoundLoop)
+            && s.ConditionType is { } watched && _registry.Find(watched) is { ActivityAcknowledges: true })
+            StartLoop(ack, watched, null, 0, heading, s.Summary);
+
         if (s.SoundKey is not null)
         {
             if (s.SoundLoop && ack is not null && s.ConditionType is not null)
-                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, s.Name, s.Summary);
+                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, heading, s.Summary);
             else
             {
                 try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
@@ -311,20 +332,8 @@ public sealed class AlarmActionRunner
 
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var until = DateTimeOffset.UtcNow.AddMinutes(Math.Max(1, ack.SnoozeMinutes));
-            var row   = await db.AlarmSnoozes.FindAsync([ack.AlarmId, ack.ScopeKey], ct);
-            if (row is null)
-                db.AlarmSnoozes.Add(new AlarmSnooze
-                {
-                    AlarmId = ack.AlarmId, ScopeKey = ack.ScopeKey, Episode = ack.Episode, Until = until,
-                });
-            else
-            {
-                row.Episode = ack.Episode;
-                row.Until   = until;
-            }
-            await db.SaveChangesAsync(ct);
+            await WriteSnoozeAsync(ack.AlarmId, ack.ScopeKey, ack.Episode,
+                                   DateTimeOffset.UtcNow.AddMinutes(Math.Max(1, ack.SnoozeMinutes)), ct);
         }
         catch (Exception ex)
         {
@@ -332,32 +341,174 @@ public sealed class AlarmActionRunner
         }
     }
 
-    // ── A sound that will not stop until someone is awake ──────────────────────
+    // ── Anything said in the agent chat ────────────────────────────────────────
     //
-    // One player, so one loop, over however many situations are ringing at once; a situation
+    // The situations of an ActivityAcknowledges check (the wake-up call) that have fired here
+    // and may still be unanswered, whatever their actions were — a stage with only a dialog
+    // and a sound is answered by a word in the chat as much as one the agent spoke. Left when
+    // acknowledged or found over.
+    private readonly object _awaitingLock = new();
+    private readonly Dictionary<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)> _awaiting = new();
+
+    private readonly SemaphoreSlim _activityGate = new(1, 1);
+    private DateTimeOffset _lastActivityPass = DateTimeOffset.MinValue;
+
+    /// <summary>
+    /// How often a burst of keys with nothing ringing reads the database. A first-stage clock
+    /// restarted up to this late is the price; anything ringing or asked is never held back.
+    /// </summary>
+    private static readonly TimeSpan ActivityPassGap = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// The capsuleer is typing or speaking in the agent chat — called on the first key and the
+    /// moment the microphone opens, not when a message is finally sent. Nothing about what they
+    /// say is judged: being there is the answer.
+    ///
+    /// <para>At once, before any database: a repeating sound and its window stop, and so does a
+    /// wake-up line still being spoken. Then every <see cref="IAlarmCondition.ActivityAcknowledges"/>
+    /// check is asked what the activity does to each of its situations — acknowledged when a
+    /// stage is due, the clock restarted when none is yet — and that is written for every
+    /// client. <paramref name="replyTo"/>, the situation the agent's last line asked about, and
+    /// anything that fired here which the pass did not reach, are acknowledged as a reply
+    /// always was.</para>
+    /// </summary>
+    public async Task UserActiveAsync(AlarmAck? replyTo, CancellationToken ct = default)
+    {
+        KeyValuePair<(long AlarmId, string ScopeKey), (AlarmAck Ack, string ConditionType)>[] awaiting;
+        lock (_awaitingLock) awaiting = _awaiting.ToArray();
+
+        var urgent = awaiting.Length > 0 || replyTo is not null;
+        if (urgent)
+        {
+            foreach (var kv in awaiting) EndLoop(kv.Key, tellWindow: true);
+            if (replyTo is not null) EndLoop((replyTo.AlarmId, replyTo.ScopeKey), tellWindow: true);
+            try { StopSpeechCallback?.Invoke(); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+        }
+        else if (DateTimeOffset.UtcNow - _lastActivityPass < ActivityPassGap) return;
+
+        // One pass at a time. A key with nothing ringing does not queue behind one.
+        if (!await _activityGate.WaitAsync(urgent ? Timeout.Infinite : 0, ct)) return;
+        try
+        {
+            _lastActivityPass = DateTimeOffset.UtcNow;
+            var written = new HashSet<(long, string)>();
+            var rang    = false;
+            try
+            {
+                var types = _registry.All.Where(c => c.ActivityAcknowledges).Select(c => c.TypeKey).ToList();
+                List<Alarm> alarms;
+                await using (var db = await _dbFactory.CreateDbContextAsync(ct))
+                    alarms = await db.Alarms.AsNoTracking()
+                        .Where(a => a.Enabled && types.Contains(a.ConditionType)).ToListAsync(ct);
+
+                var now = DateTimeOffset.UtcNow;
+                foreach (var alarm in alarms)
+                {
+                    if (_registry.Find(alarm.ConditionType) is not { } condition) continue;
+                    using var config = JsonDocument.Parse(string.IsNullOrWhiteSpace(alarm.ConditionJson) ? "{}" : alarm.ConditionJson);
+                    var resets = await condition.ActivityResetsAsync(config.RootElement, new AlarmEvaluationContext
+                    {
+                        DbFactory = _dbFactory, ConnectionString = "", Alarm = alarm, Now = now,
+                    }, ct);
+                    foreach (var r in resets)
+                    {
+                        await WriteSnoozeAsync(alarm.Id, r.ScopeKey, r.Episode, r.Until, ct);
+                        written.Add((alarm.Id, r.ScopeKey));
+                        rang |= r.Ringing;
+                    }
+                }
+            }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", "resetting wake-up calls on activity", ex); }
+
+            // Ringing on another client, so nothing here knew to cut the voice.
+            if (rang && !urgent)
+            {
+                try { StopSpeechCallback?.Invoke(); }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+            }
+
+            foreach (var kv in awaiting)
+            {
+                lock (_awaitingLock) _awaiting.Remove(kv.Key);
+                if (written.Contains(kv.Key)) continue;
+                var holds = false;
+                try
+                {
+                    // Still going on and not yet acknowledged, here or on another client.
+                    holds = _registry.Find(kv.Value.ConditionType) is { } condition
+                         && await condition.StillHoldsAsync(kv.Key.AlarmId, kv.Key.ScopeKey, kv.Value.Ack.Episode, _dbFactory, ct);
+                }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
+                if (!holds) continue;
+                await AcknowledgeAsync(kv.Value.Ack, ct);
+                written.Add(kv.Key);
+            }
+
+            if (replyTo is not null && !written.Contains((replyTo.AlarmId, replyTo.ScopeKey)))
+                await AcknowledgeAsync(replyTo, ct);
+        }
+        finally { _activityGate.Release(); }
+    }
+
+    /// <summary>The situation's episode is quiet until then, for the worker's condition and every client.</summary>
+    private async Task WriteSnoozeAsync(long alarmId, string scopeKey, string episode, DateTimeOffset until, CancellationToken ct)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var row = await db.AlarmSnoozes.FindAsync([alarmId, scopeKey], ct);
+        if (row is null)
+            db.AlarmSnoozes.Add(new AlarmSnooze { AlarmId = alarmId, ScopeKey = scopeKey, Episode = episode, Until = until });
+        else
+        {
+            row.Episode = episode;
+            row.Until   = until;
+        }
+        await db.SaveChangesAsync(ct);
+    }
+
+    // ── A situation that will not go away until someone is awake ───────────────
+    //
+    // One player, so one loop, over however many situations are waiting at once; a situation
     // leaves the set when it is acknowledged here, or when the condition says it no longer
-    // holds — acknowledged on another client, docked, jumped, logged off. Between plays, not
-    // mid-note, because a klaxon cut short sounds like a fault rather than a decision.
+    // holds — acknowledged on another client, docked, jumped, logged off. A wake-up call joins
+    // at its first stage with no sound, only its window to keep or close; the stage that sets a
+    // sound repeating gives it one. Between plays, not mid-note, because a klaxon cut short
+    // sounds like a fault rather than a decision.
     private readonly object _loopLock = new();
-    private readonly Dictionary<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)> _loops = new();
+    private readonly Dictionary<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string? SoundKey, int Volume)> _loops = new();
     private Task? _loopTask;
     private static readonly TimeSpan LoopGap = TimeSpan.FromSeconds(1.5);
 
-    private void StartLoop(AlarmAck ack, string conditionType, string soundKey, int volume, string name, string summary)
+    /// <summary>How often a situation with nothing to play asks whether it still holds.</summary>
+    private static readonly TimeSpan WatchGap = TimeSpan.FromSeconds(5);
+
+    /// <param name="soundKey">Null: watched for its window only, or keeping a sound an earlier stage started.</param>
+    private void StartLoop(AlarmAck ack, string conditionType, string? soundKey, int volume, string name, string summary)
     {
-        bool fresh;
         lock (_loopLock)
         {
-            fresh = !_loops.ContainsKey((ack.AlarmId, ack.ScopeKey));
+            if (soundKey is null && _loops.TryGetValue((ack.AlarmId, ack.ScopeKey), out var was))
+                (soundKey, volume) = (was.SoundKey, was.Volume);
             _loops[(ack.AlarmId, ack.ScopeKey)] = (ack.Episode, conditionType, soundKey, volume);
             if (_loopTask is null || _loopTask.IsCompleted) _loopTask = Task.Run(LoopAsync);
         }
 
-        // One window per situation, however many stages ring for it.
-        if (fresh && SoundStartedCallback is { } started)
+        // One window per situation, however many stages it reaches; each brings it to the front,
+        // and the one that starts the sound says so on it. The button cuts off a line still being
+        // spoken, as a word in the chat does.
+        var sounding = soundKey is not null;
+        if (SoundStartedCallback is { } started)
             Dispatcher.UIThread.Post(() =>
             {
-                try { started(ack, name, summary, () => AcknowledgeAsync(ack)); }
+                try
+                {
+                    started(ack, name, summary, sounding, () =>
+                    {
+                        try { StopSpeechCallback?.Invoke(); }
+                        catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+                        return AcknowledgeAsync(ack);
+                    });
+                }
                 catch (Exception ex) { _errors.Log("AlarmActionRunner", "sound window", ex); }
             });
     }
@@ -372,7 +523,7 @@ public sealed class AlarmActionRunner
         lock (_loopLock)
         {
             removed = _loops.Remove(key);
-            if (_loops.Count == 0) _sounds.Stop();
+            if (!_loops.Values.Any(l => l.SoundKey is not null)) _sounds.Stop();
         }
 
         if (removed && tellWindow && SoundStoppedCallback is { } stopped)
@@ -387,7 +538,7 @@ public sealed class AlarmActionRunner
     {
         while (true)
         {
-            KeyValuePair<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)>[] ringing;
+            KeyValuePair<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string? SoundKey, int Volume)>[] ringing;
             lock (_loopLock)
             {
                 if (_loops.Count == 0) return;
@@ -415,12 +566,19 @@ public sealed class AlarmActionRunner
                 if (!holds) EndLoop(kv.Key, tellWindow: true);
             }
 
-            (string SoundKey, int Volume) next;
+            (string? SoundKey, int Volume) next;
             lock (_loopLock)
             {
                 if (_loops.Count == 0) return;
-                var v = _loops.Values.First();
+                var v = _loops.Values.FirstOrDefault(l => l.SoundKey is not null);
                 next = (v.SoundKey, v.Volume);
+            }
+
+            // Nothing ringing yet: only windows to keep or close.
+            if (next.SoundKey is null)
+            {
+                await Task.Delay(WatchGap);
+                continue;
             }
 
             try { await _sounds.PlayAsync(next.SoundKey, next.Volume); }

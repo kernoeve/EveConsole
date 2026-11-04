@@ -64,10 +64,22 @@ public partial class ItemValuationView : UserControl
         // typed in: Enter puts its newline in as usual and the appraisal follows. Both events
         // fire before the text lands, so the appraisal is queued behind them; and the key is
         // watched even once the box has handled it, since handling it is what the box does.
-        // A paste is the list, so once it is valued the box folds away; a line typed in leaves
-        // the box open, since the typing is not done.
-        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) => AppraiseSoon(foldAfter: true));
+        // A paste into an empty box, or over the whole of it, is the list, so once it is valued
+        // the box folds away; a paste added to a list, like a line typed in, leaves the box open,
+        // since the adding is not done.
+        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) => AppraiseSoon(foldAfter: PasteIsWholeList()));
         InputBox.AddHandler(KeyDownEvent, (_, e) => { if (e.Key == Key.Enter) AppraiseSoon(foldAfter: false); }, RoutingStrategies.Bubble, handledEventsToo: true);
+    }
+
+    /// <summary>Whether the paste about to land replaces everything in the box: the box is empty,
+    /// or all of its text is selected. Asked as the paste starts, before the text changes.</summary>
+    private bool PasteIsWholeList()
+    {
+        var text = InputBox.Text ?? "";
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        var start = Math.Clamp(Math.Min(InputBox.SelectionStart, InputBox.SelectionEnd), 0, text.Length);
+        var end   = Math.Clamp(Math.Max(InputBox.SelectionStart, InputBox.SelectionEnd), 0, text.Length);
+        return string.IsNullOrWhiteSpace(text[..start]) && string.IsNullOrWhiteSpace(text[end..]);
     }
 
     private void AppraiseSoon(bool foldAfter) =>
@@ -169,6 +181,13 @@ public partial class ItemValuationView : UserControl
     {
         if      (e.PropertyName == nameof(ItemValuationViewModel.CompareTotals)) RefreshCompareBand();
         else if (e.PropertyName == nameof(ItemValuationViewModel.ValueTotals))   RefreshValuesBand();
+        else if (e.PropertyName == nameof(ItemValuationViewModel.HasOutput))
+        {
+            // Half the tab each way when there is an output, none when not. The splitter moves it.
+            ValuesTab.RowDefinitions[4].Height    = _vm?.HasOutput == true ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+            ValuesTab.RowDefinitions[4].MinHeight = _vm?.HasOutput == true ? 140 : 0;
+            ValuesTab.RowDefinitions[2].MinHeight = _vm?.HasOutput == true ? 120 : 0;
+        }
     }
 
     // ── The values grid's band ──────────────────────────────────────────────

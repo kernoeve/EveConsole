@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.IndustryOpportunitiesView"
              x:DataType="vm:IndustryOpportunitiesViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -18,6 +19,10 @@
     </Style>
     <Style Selector="DataGridColumnHeader">
       <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="DataGrid.summary DataGridColumnHeader">
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="MinHeight" Value="22" />
     </Style>
 
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
@@ -50,8 +55,9 @@
       <DockPanel>
 
         <Button DockPanel.Dock="Right"
-                Content="{x:Static loc:IndustryText.Calculate}"
-                Command="{Binding CalculateCommand}"
+                Content="{x:Static loc:IndustryText.OppsRefresh}"
+                Command="{Binding RefreshCommand}"
+                ToolTip.Tip="{x:Static loc:IndustryText.TipOppsRefresh}"
                 Padding="18 6"
                 Background="{DynamicResource BorderSubtleBrush}"
                 Foreground="{DynamicResource AccentBrush}"
@@ -59,7 +65,9 @@
                 BorderThickness="1"
                 FontSize="12" />
 
-        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <!-- ⚠️ Wraps rather than running on under the Refresh button: on a narrower window the
+             checkboxes at the end of one long row went behind it. Each label stays with its box. -->
+        <WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="6" VerticalAlignment="Center">
 
           <ComboBox ItemsSource="{Binding ModeOptions}"
                     SelectedItem="{Binding SelectedMode}"
@@ -72,6 +80,7 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.PriceAt}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <ComboBox ItemsSource="{Binding MarketConfigs}"
@@ -84,23 +93,41 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
+          </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.Min30dIskVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
                    Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
 
+          <StackPanel Orientation="Horizontal" Spacing="12">
           <TextBlock Text="{x:Static loc:IndustryText.Min30dUnitVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
                    Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
 
-          <CheckBox IsChecked="{Binding SkipFactionItems}"
-                    Content="{x:Static loc:IndustryText.SkipFaction}"
-                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
-                    VerticalAlignment="Center" />
+          <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{x:Static loc:IndustryText.MinMarginPct}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}" />
+          <TextBox Text="{Binding MinMargin}" Width="80" FontSize="12"
+                   Watermark="{x:Static loc:IndustryText.HintNoFilter}"
+                   ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}"
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{x:Static loc:IndustryText.MinMargin30dPct}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin30d}" />
+          <TextBox Text="{Binding MinMargin30d}" Width="80" FontSize="12"
+                   Watermark="{x:Static loc:IndustryText.HintNoFilter}"
+                   ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin30d}"
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
 
           <CheckBox IsChecked="{Binding BpoOnly}"
                     Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
@@ -108,8 +135,171 @@
                     VerticalAlignment="Center"
                     ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
 
-        </StackPanel>
+          <CheckBox IsChecked="{Binding OwnedOnly}"
+                    Content="{x:Static loc:IndustryText.OnlyBlueprintsIOwn}"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
+
+        </WrapPanel>
       </DockPanel>
+
+     </StackPanel>
+    </Border>
+
+    <!-- ── Status footer ────────────────────────────────────────────────────── -->
+    <Border DockPanel.Dock="Bottom"
+            Background="{DynamicResource SurfaceInputBrush}" Padding="12 8"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 1 0 0">
+      <TextBlock Text="{Binding StatusText}"
+                 Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                 VerticalAlignment="Center" />
+    </Border>
+
+    <!-- ── Results area ───────────────────────────────────────────────────────── -->
+    <Grid>
+
+    <TabControl Padding="0" Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
+      <TabControl.Styles>
+        <Style Selector="TabItem">
+          <Setter Property="FontSize"    Value="11" />
+          <Setter Property="Foreground"  Value="{DynamicResource TextMutedBrush}" />
+          <Setter Property="Background"  Value="Transparent" />
+          <Setter Property="Padding"     Value="14 6" />
+        </Style>
+        <Style Selector="TabItem:selected">
+          <Setter Property="Foreground"  Value="{DynamicResource AccentBrush}" />
+        </Style>
+      </TabControl.Styles>
+
+      <!-- ── Summary: the best of each kind of item, by 30-day profit ───────── -->
+      <TabItem Header="{x:Static loc:IndustryText.OppsTabSummary}">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:IndustryText.OppsSummaryNote}" Margin="12 8 12 4"
+                     FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+          <!-- Ten lists, two to a row, sharing the tab's whole width and height alike. -->
+          <ItemsControl ItemsSource="{Binding SummarySections}" Margin="8 0 8 8">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Rows="5" Columns="2" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:OppsSummarySectionVm">
+                <Border Margin="4" CornerRadius="3" Background="{DynamicResource SurfacePanelBrush}"
+                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                  <Grid RowDefinitions="Auto,*">
+                    <!-- The list's title, and on the same line, centred over the five sales columns
+                         (78 + 86 + 76 + 84 + 86 wide), what they are measured over. -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,410">
+                      <TextBlock Grid.Column="0" Text="{Binding Title}" Margin="8 3" FontSize="11" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{x:Static loc:IndustryText.OppsSales30dLabel}" FontSize="10.5"
+                                 Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <!-- Compact: ten of these share the tab, so every row counts. -->
+                    <DataGrid Grid.Row="1" x:CompileBindings="False" ItemsSource="{Binding Rows}" Classes="summary" RowHeight="20"
+                              AutoGenerateColumns="False" IsReadOnly="True" CanUserSortColumns="True"
+                              CanUserResizeColumns="True" CanUserReorderColumns="False"
+                              SelectionMode="Extended" ContextRequested="OnGridContextRequested"
+                              Background="Transparent" IsVisible="{Binding !IsEmpty}">
+                        <DataGrid.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
+                            <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+                            <Separator />
+                            <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}" Click="OnAddBuyOrder" />
+                          </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate x:DataType="vm:IndustryRow">
+                                <Panel>
+                                  <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                                          ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
+                                    <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                  </Button>
+                                  <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Panel>
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildCost}" Width="94" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding BuildCostDisplay}" Foreground="{DynamicResource InfoBrush}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.OppsColUnits}" Width="78" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding UnitVol30dDisplay}" Foreground="{DynamicResource TextMutedBrush}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.OppsColAvg}" Width="86" SortMemberPath="AvgPrice30d" ClipboardContentBinding="{Binding AvgPrice30dDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding AvgPrice30dDisplay}" Foreground="{DynamicResource TextMutedBrush}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="76" SortMemberPath="Margin30d" ClipboardContentBinding="{Binding Margin30dDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding Margin30dDisplay}" Foreground="{Binding Margin30d, Converter={x:Static views:ProfitColorConverter.Instance}}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.OppsColSales}" Width="84" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding IskVol30dDisplay}" Foreground="{DynamicResource TextMutedBrush}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTemplateColumn Header="{x:Static loc:IndustryText.OppsColProfit}" Width="86" SortMemberPath="Profit30d" ClipboardContentBinding="{Binding Profit30dDisplay}">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding Profit30dDisplay}" Foreground="{Binding Profit30d, Converter={x:Static views:ProfitColorConverter.Instance}}"
+                                           HorizontalAlignment="Right" Padding="0 0 6 0" VerticalAlignment="Center" />
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="1" Text="{x:Static loc:IndustryText.OppsSummaryEmpty}" IsVisible="{Binding IsEmpty}"
+                               Margin="8 4" FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </DockPanel>
+      </TabItem>
+
+      <!-- ── Detail: every item, narrowed by its own filters ─────────────────── -->
+      <TabItem Header="{x:Static loc:IndustryText.OppsTabDetail}">
+        <DockPanel>
+            <!-- The Detail tab's own filters: they narrow this grid only, as they change, without
+                 recalculating. The Summary tab sorts every kind of item. -->
+            <Border DockPanel.Dock="Top" Padding="12 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+             <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{x:Static loc:IndustryText.MetaGroupsLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+          <views:MultiChoiceDropDown DataContext="{Binding MetaGroups}" Width="200" FontSize="12"
+                                     ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+          </StackPanel>
 
       <!-- ── Excluded market groups ─────────────────────────────────────────── -->
       <StackPanel Orientation="Horizontal" Spacing="8">
@@ -150,6 +340,45 @@
                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       </StackPanel>
 
+      <!-- ── Included market groups: only items in these, when any are chosen ─ -->
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{x:Static loc:IndustryText.IncludeGroups}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:IndustryText.TipIncludeGroups}" />
+
+        <ItemsControl ItemsSource="{Binding IncludedMarketGroups}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:ExcludedMarketGroupVm">
+              <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                      CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Button x:CompileBindings="False"
+                          Content="✕"
+                          Command="{Binding $parent[UserControl].DataContext.RemoveIncludedGroupCommand}"
+                          CommandParameter="{Binding}"
+                          Background="Transparent" BorderThickness="0"
+                          Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                          Cursor="Hand" VerticalAlignment="Center"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipRemoveThisInclusion}" />
+                  <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                             VerticalAlignment="Center" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button Content="{x:Static loc:IndustryText.AddGroup}"
+                Command="{Binding AddIncludedGroupCommand}"
+                Padding="8 3" FontSize="11"
+                Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+      </StackPanel>
+
       <!-- ── Name filter: narrows the list as typed, no recalculation ───────── -->
       <StackPanel Orientation="Horizontal" Spacing="8">
         <TextBlock Text="{x:Static loc:CommonText.ItemNameFilterLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
@@ -162,148 +391,193 @@
                    VerticalAlignment="Center" />
       </StackPanel>
 
-     </StackPanel>
+             </StackPanel>
+            </Border>
+
+          <!-- ResultsView, not Results: the sort lives there, so it survives the tab being left. -->
+          <DataGrid x:CompileBindings="False"
+                    ItemsSource="{Binding ResultsView}"
+                    DoubleTapped="OnGridDoubleTapped"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    CanUserSortColumns="True"
+                    CanUserResizeColumns="True"
+                    CanUserReorderColumns="False"
+                    SelectionMode="Extended" ContextRequested="OnGridContextRequested">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="{x:Static loc:IndustryText.OppsMenuNewQueue}" Click="OnNewQueue" />
+                <MenuItem Header="{x:Static loc:IndustryText.OppsMenuAddQueue}" Click="OnAddQueue" />
+                <Separator />
+                <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}" Click="OnAddBuyOrder" />
+              </ContextMenu>
+            </DataGrid.ContextMenu>
+
+            <DataGrid.Columns>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:IndustryRow">
+                    <Panel>
+                      <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                              ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
+                        <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </Button>
+                      <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildCost}" Width="110" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding BuildCostDisplay}"
+                               Foreground="{DynamicResource InfoBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSellPrice}" Width="110" SortMemberPath="SellPrice" ClipboardContentBinding="{Binding SellPriceDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding SellPriceDisplay}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitUnit}" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding ProfitUnitDisplay}"
+                               Foreground="{DynamicResource GoodBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding MarginDisplay}"
+                               Foreground="{DynamicResource AccentBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildTime}" Width="100" SortMemberPath="BuildSeconds" ClipboardContentBinding="{Binding BuildTimeDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding BuildTimeDisplay}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSlotDays}" Width="90" SortMemberPath="SlotDays" ClipboardContentBinding="{Binding SlotDaysDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding SlotDaysDisplay}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitSlotDay}" Width="130" SortMemberPath="ProfitPerSlotDay" ClipboardContentBinding="{Binding ProfitPerSlotDayDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding ProfitPerSlotDayDisplay}"
+                               Foreground="{DynamicResource GoodBrush}" FontWeight="SemiBold"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColUnitsSold30d}" Width="105" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding UnitVol30dDisplay}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColAvgPrice30d}" Width="110" SortMemberPath="AvgPrice30d" ClipboardContentBinding="{Binding AvgPrice30dDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding AvgPrice30dDisplay}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin30d}" Width="90" SortMemberPath="Margin30d" ClipboardContentBinding="{Binding Margin30dDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Margin30dDisplay}"
+                               Foreground="{Binding Margin30d, Converter={x:Static views:ProfitColorConverter.Instance}}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColIskSold30d}" Width="110" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding IskVol30dDisplay}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfit30d}" Width="110" SortMemberPath="Profit30d" ClipboardContentBinding="{Binding Profit30dDisplay}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Profit30dDisplay}"
+                               Foreground="{Binding Profit30d, Converter={x:Static views:ProfitColorConverter.Instance}}"
+                               HorizontalAlignment="Right" Padding="0 0 8 0"
+                               VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+    </TabControl>
+
+    <!-- What Add to Production Calc Queue did, said in the middle and faded out, as the
+         Production Calculator says a copy. Over everything, and never in the way of a click. -->
+    <Border x:Name="QueueToast" HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="10"
+            IsHitTestVisible="False" Opacity="0" Padding="18 10" CornerRadius="6" BoxShadow="0 4 18 0 #66000000"
+            Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.35"/>
+        </Transitions>
+      </Border.Transitions>
+      <TextBlock x:Name="QueueToastText" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
     </Border>
-
-    <!-- ── Status footer ────────────────────────────────────────────────────── -->
-    <Border DockPanel.Dock="Bottom"
-            Background="{DynamicResource SurfaceInputBrush}" Padding="12 8"
-            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 1 0 0">
-      <TextBlock Text="{Binding StatusText}"
-                 Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
-                 VerticalAlignment="Center" />
-    </Border>
-
-    <!-- ── Results area ───────────────────────────────────────────────────────── -->
-    <Grid>
-
-    <!-- ResultsView, not Results: the sort lives there, so it survives the tab being left. -->
-    <DataGrid x:CompileBindings="False"
-              ItemsSource="{Binding ResultsView}"
-              DoubleTapped="OnGridDoubleTapped"
-              AutoGenerateColumns="False"
-              IsReadOnly="True"
-              CanUserSortColumns="True"
-              CanUserResizeColumns="True"
-              CanUserReorderColumns="False"
-              ClipboardCopyMode="None">
-
-      <DataGrid.Columns>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate x:DataType="vm:IndustryRow">
-              <Panel>
-                <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
-                        ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                  <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
-                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </Button>
-                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-              </Panel>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildCost}" Width="110" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding BuildCostDisplay}"
-                         Foreground="{DynamicResource InfoBrush}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSellPrice}" Width="110" SortMemberPath="SellPrice" ClipboardContentBinding="{Binding SellPriceDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding SellPriceDisplay}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitUnit}" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding ProfitUnitDisplay}"
-                         Foreground="{DynamicResource GoodBrush}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding MarginDisplay}"
-                         Foreground="{DynamicResource AccentBrush}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildTime}" Width="100" SortMemberPath="BuildSeconds" ClipboardContentBinding="{Binding BuildTimeDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding BuildTimeDisplay}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSlotDays}" Width="90" SortMemberPath="SlotDays" ClipboardContentBinding="{Binding SlotDaysDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding SlotDaysDisplay}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitSlotDay}" Width="130" SortMemberPath="ProfitPerSlotDay" ClipboardContentBinding="{Binding ProfitPerSlotDayDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding ProfitPerSlotDayDisplay}"
-                         Foreground="{DynamicResource GoodBrush}" FontWeight="SemiBold"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColUnitsSold30d}" Width="105" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding UnitVol30dDisplay}"
-                         Foreground="{DynamicResource TextMutedBrush}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColIskSold30d}" Width="110" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding IskVol30dDisplay}"
-                         Foreground="{DynamicResource TextMutedBrush}"
-                         HorizontalAlignment="Right" Padding="0 0 8 0"
-                         VerticalAlignment="Center" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-
-      </DataGrid.Columns>
-    </DataGrid>
 
     <!-- Calculating overlay — shown while the scan is running -->
     <Border IsVisible="{Binding IsCalculating}"

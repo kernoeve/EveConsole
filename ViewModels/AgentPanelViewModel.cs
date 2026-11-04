@@ -156,6 +156,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// until the next one. Nobody dictates for longer than this in one breath.</summary>
     private void OnCaptureBegan()
     {
+        // Pressing to talk is being there, before a word is transcribed.
+        NoteActivity();
         IsRecording = true;
         ErrorText   = "";
         StatusText  = AgentText.StatusRecording;
@@ -436,8 +438,27 @@ public sealed class AgentPanelViewModel : ReactiveObject
         _pendingAckText = spokenText;
     }
 
-    /// <summary>Set by MainWindow: takes the acknowledgement back to the alarm runner.</summary>
-    public Func<AlarmAck, Task>? AcknowledgeCallback { get; set; }
+    /// <summary>
+    /// Set by MainWindow: the capsuleer is typing or speaking here, with the situation the last
+    /// line asked about if one is waiting. The alarm runner resets every wake-up call by it.
+    /// </summary>
+    public Func<AlarmAck?, Task>? UserActivityCallback { get; set; }
+
+    /// <summary>
+    /// The capsuleer is here: a key in the box, the microphone opening, a message sent. Called
+    /// the moment it happens, not when a reply is composed or a model has answered — whether
+    /// they need waking is answered by their being there, and nothing they say is weighed.
+    /// </summary>
+    public void NoteActivity()
+    {
+        if (UserActivityCallback is not { } active) return;
+        var ack = _pendingAck;
+        _pendingAck = null;
+        _ = active(ack);
+    }
+
+    /// <summary>Cuts the voice off mid-line: a wake-up call the capsuleer has answered.</summary>
+    public void StopSpeaking() => _tts?.Stop();
 
     public async Task NotifyAsync(string message)
     {
@@ -517,21 +538,26 @@ public sealed class AgentPanelViewModel : ReactiveObject
     private async Task SendAsync(bool showUserMessage)
     {
         var text = Input.Trim();
-        if (string.IsNullOrEmpty(text) || IsBusy) return;
+        if (string.IsNullOrEmpty(text)) return;
+
+        // ⚠️ Before the busy check: a person who answers while the model is still on its last
+        // turn — a local model can take a while over "acknowledge in a few words" — is there all
+        // the same, though the message waits. That reply was dropped here, and the next stage
+        // fired at them. Only a message the capsuleer wrote counts; an alarm's own prompt
+        // arrives this way too. (A typed one has counted since its first key.)
+        if (showUserMessage) NoteActivity();
+        if (IsBusy) return;
 
         // "/data …" or "/chat …": this one message goes where the capsuleer says.
         var forced = TakeOverride(ref text);
         if (string.IsNullOrEmpty(text)) return;
 
-        // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
+        // What the app said aloud, handed to the model with the reply to it.
         string? replyingTo = null;
-        if (showUserMessage && _pendingAck is { } ack)
+        if (showUserMessage && _pendingAckText is { } said)
         {
-            _pendingAck     = null;
-            replyingTo      = _pendingAckText;
+            replyingTo      = said;
             _pendingAckText = null;
-            if (AcknowledgeCallback is { } acknowledge)
-                _ = acknowledge(ack);
         }
 
         ApplyNavigationIntent(text);

@@ -65,6 +65,68 @@ public sealed class PostingChoice(int id, string name)
     public override string ToString() => Name;
 }
 
+/// <summary>A market config an Industry Ops section can price at, plus its id.</summary>
+public sealed class MarketConfigChoice(int id, string name)
+{
+    public int    Id   { get; } = id;
+    public string Name { get; } = name;
+    public override string ToString() => Name;
+}
+
+/// <summary>
+/// A market group chosen in an Industry Ops section, with its own ✕.
+///
+/// <para>⚠️ The command is on the chip rather than reached from the template through a
+/// <c>$parent</c> cast, which can fail to resolve at run time and take the app down with it.</para>
+/// </summary>
+public sealed class MarketGroupChip
+{
+    public MarketGroupChip(int id, string name, Action<MarketGroupChip> remove)
+    {
+        MarketGroupId = id;
+        Name          = name;
+        RemoveCommand = ReactiveCommand.Create(() => remove(this));
+    }
+
+    public int    MarketGroupId { get; }
+    public string Name          { get; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+}
+
+/// <summary>
+/// One column of an Industry Ops section's table: its own name, the header it prints (its own
+/// unless renamed), and the commands that remove it or move it — on the row, not reached from
+/// the template through a cast.
+/// </summary>
+public sealed class OppsColumnVm : ReactiveObject
+{
+    public OppsColumnVm(string key, string name, string header, bool isItem,
+                        Action<OppsColumnVm> remove, Action<OppsColumnVm, int> move)
+    {
+        Key     = key;
+        Name    = name;
+        _header = header;
+        IsItem  = isItem;
+        RemoveCommand   = ReactiveCommand.Create(() => remove(this));
+        MoveUpCommand   = ReactiveCommand.Create(() => move(this, -1));
+        MoveDownCommand = ReactiveCommand.Create(() => move(this, +1));
+    }
+
+    public string Key    { get; }
+    /// <summary>The column's own name, which is also its header until renamed.</summary>
+    public string Name   { get; }
+    /// <summary>The item: always first, never removed or moved; only its header can change.</summary>
+    public bool   IsItem { get; }
+    public bool   CanMove => !IsItem;
+
+    private string _header;
+    public string Header { get => _header; set => this.RaiseAndSetIfChanged(ref _header, value); }
+
+    public ReactiveCommand<Unit, Unit> RemoveCommand   { get; }
+    public ReactiveCommand<Unit, Unit> MoveUpCommand   { get; }
+    public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
+}
+
 /// <summary>One of the five Top 10 lists, ticked or not.</summary>
 public sealed class CategoryChoice(string key, string title) : ReactiveObject
 {
@@ -108,6 +170,24 @@ public sealed class DayChoice(int bit, string name) : ReactiveObject
 /// saved into a task that runs at 00:01 with nobody watching, so "which corp", "which month" and
 /// "which projects" have to be part of the section itself.</para>
 /// </summary>
+/// <summary>A system in a System Index section's list, with a button to take it out.</summary>
+public sealed class IndexSystemChoice
+{
+    public IndexSystemChoice(int systemId, string name, string region, Action<IndexSystemChoice> remove)
+    {
+        SystemId = systemId;
+        Name     = name;
+        Region   = region;
+        RemoveCommand = ReactiveCommand.Create(() => remove(this));
+    }
+
+    public int    SystemId { get; }
+    public string Name     { get; }
+    public string Region   { get; }
+    public string Label    => Region.Length > 0 ? $"{Name}  ·  {Region}" : Name;
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+}
+
 public sealed class MessageBlockVm : ReactiveObject
 {
     /// <summary>
@@ -169,9 +249,17 @@ public sealed class MessageBlockVm : ReactiveObject
         IReadOnlyList<PostingChoice>  postings,
         Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? loadProjects = null,
         bool                          fresh = false,
-        Func<bool>?                   destinationIsWebhook = null)
+        Func<bool>?                   destinationIsWebhook = null,
+        IReadOnlyList<MarketConfigChoice>?           markets   = null,
+        Func<Task<MarketGroupPickerResult?>>?        pickGroup = null,
+        ParkComparisonService?                       parkCompare = null,
+        IDbContextFactory<AppDbContext>?             dbFactory   = null)
     {
+        _parkCompare = parkCompare;
+        _dbFactory   = dbFactory;
         _destinationIsWebhook = destinationIsWebhook ?? (() => false);
+        Markets       = markets ?? [];
+        _pickGroup    = pickGroup;
         Corps         = corps;
         Postings      = postings;
         _loadProjects = loadProjects;
@@ -201,6 +289,38 @@ public sealed class MessageBlockVm : ReactiveObject
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
+        // Industry Ops. A new section starts from the tool's defaults, never from what the tool
+        // last remembered: each section is set up on its own.
+        _oppsMode   = OppsModeOptions.FirstOrDefault(o => o.Key == model.OppsMode) ?? OppsModeOptions[0];
+        _oppsMarket = Markets.FirstOrDefault(m => m.Id == model.OppsConfigId)
+                      ?? (fresh ? Markets.FirstOrDefault() : null);
+        _oppsMinIskVol     = Num(model.OppsMinIskVol30d);
+        _oppsMinUnitVol    = Num(model.OppsMinUnitVol30d);
+        _oppsMinMargin     = Num(model.OppsMinMarginPct);
+        _oppsMinMargin30d  = Num(model.OppsMinMargin30dPct);
+        int[] meta = fresh && IsOpps ? OppsMetaGroups.Default : [.. model.MetaGroupsOrDefault()];
+        OppsMetaPicker = new MultiChoice(OppsMetaGroups.All.Select(g =>
+            new CategoryChoice(g.Id.ToString(), g.Label) { Selected = meta.Contains(g.Id) }));
+        _oppsBpoOnly       = model.OppsBpoOnly;
+        _oppsOwnedOnly     = model.OppsOwnedOnly;
+        _oppsExcludedIds   = [.. model.OppsExcludedGroupIds];
+        _oppsIncludedIds   = [.. model.OppsIncludedGroupIds];
+        // The item first, then the columns in the order saved; a saved header is what was typed.
+        string[] columns = fresh && IsOpps ? IndustryOppsReport.DefaultColumns : [IndustryOppsReport.Item, .. model.OppsColumns];
+        var known = IndustryOppsReport.Columns.ToDictionary(c => c.Key);
+        foreach (var key in columns.Distinct().Where(known.ContainsKey))
+            OppsTable.Add(Column(known[key], model.OppsHeaders.GetValueOrDefault(key)));
+        AddOppsColumnCommand = ReactiveCommand.Create(AddOppsColumn);
+        RefreshAddable();
+        _oppsSortBy        = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
+                             ?? OppsSortOptions.First(o => o.Key == IndustryOppsReport.DefaultSort);
+        _oppsSortDirection = model.OppsSortDescending ? SortDirectionOptions[0] : SortDirectionOptions[1];
+        _oppsRowLimit      = model.OppsRowLimit > 0 ? model.OppsRowLimit.ToString() : "";
+
+        AddOppsExcludedCommand    = ReactiveCommand.CreateFromTask(() => AddOppsGroupAsync(_oppsExcludedIds, OppsExcluded));
+        AddOppsIncludedCommand    = ReactiveCommand.CreateFromTask(() => AddOppsGroupAsync(_oppsIncludedIds, OppsIncluded));
+        if (_oppsExcludedIds.Count + _oppsIncludedIds.Count > 0) _ = LoadOppsGroupNamesAsync();
+
         SelectAllCommand  = ReactiveCommand.Create(() => SelectAllProjects(true));
         SelectNoneCommand = ReactiveCommand.Create(() => SelectAllProjects(false));
 
@@ -208,6 +328,28 @@ public sealed class MessageBlockVm : ReactiveObject
         // will be posted rather than promising it from behind a watermark.
         if (fresh && IsProjects && _sectionTitle.Length == 0)
             _sectionTitle = DefaultTitle;
+        if (fresh && IsOpps && _sectionTitle.Length == 0)
+            _sectionTitle = AlarmsText.OppsDefaultTitle;
+
+        // Indy Park Compare and System Index. A new section starts with every park ticked and the
+        // outputs most posts want; nothing is read from either tool's remembered choices.
+        _compareParkIds  = [.. model.CompareParkIds];
+        CompareOutputsPicker = new MultiChoice(ParkCompareOutputs.All.Select(k => new CategoryChoice(k, ParkCompareOutputs.Label(k))
+            { Selected = (fresh && IsParkCompare ? ParkCompareOutputs.Default : [.. model.CompareOutputs]).Contains(k) }));
+        IndexOutputsPicker = new MultiChoice(SystemIndexOutputs.All.Select(k => new CategoryChoice(k, SystemIndexOutputs.Label(k))
+            { Selected = (fresh && IsSystemIndex ? SystemIndexOutputs.Default : [.. model.IndexOutputs]).Contains(k) }));
+        CompareOutputsPicker.SelectionChanged += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        IndexOutputsPicker.SelectionChanged   += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        _savedJobs = model.CompareJobs;
+        if (parkCompare is not null && dbFactory is not null)
+            CompareJobList = new CompareJobListVm(parkCompare, dbFactory, model.CompareJobs);
+        _indexIds = [.. model.IndexSystemIds];
+        if (fresh && IsParkCompare && _sectionTitle.Length == 0) _sectionTitle = AlarmsText.HeadingParkCompare;
+        if (fresh && IsSystemIndex && _sectionTitle.Length == 0) _sectionTitle = AlarmsText.HeadingSystemIndex;
+        this.WhenAnyValue(x => x.IndexSearchText).Throttle(TimeSpan.FromMilliseconds(250))
+            .ObserveOn(RxApp.MainThreadScheduler).Subscribe(t => _ = SearchSystemsAsync(t ?? ""));
+        if (IsParkCompare) _ = LoadCompareParksAsync();
+        if (IsSystemIndex) _ = LoadIndexSystemsAsync();
 
         if (IsProjects) _ = ReloadProjectsAsync();
     }
@@ -230,8 +372,9 @@ public sealed class MessageBlockVm : ReactiveObject
             foreach (var n in new[]
                      {
                          nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
-                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart),
-                         nameof(Heading), nameof(ShowWebhookChartWarning),
+                         nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart), nameof(IsOpps),
+                         nameof(IsParkCompare), nameof(IsSystemIndex),
+                         nameof(Heading), nameof(ShowWebhookChartWarning), nameof(ShowWebhookPicturesWarning),
                      })
                 this.RaisePropertyChanged(n);
 
@@ -247,6 +390,9 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool IsTop10    => Type == MessageBlock.TypeTop10;
     public bool IsSale     => Type == MessageBlock.TypeSale;
     public bool IsProjects => Type == MessageBlock.TypeProjects;
+    public bool IsOpps     => Type == MessageBlock.TypeIndustryOpps;
+    public bool IsParkCompare => Type == MessageBlock.TypeParkCompare;
+    public bool IsSystemIndex => Type == MessageBlock.TypeSystemIndex;
 
     /// <summary>Standing projects need a corp too; only the two report blocks need a month.</summary>
     public bool NeedsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly
@@ -263,6 +409,9 @@ public sealed class MessageBlockVm : ReactiveObject
         MessageBlock.TypeMonthly  => AlarmsText.HeadingMonthlySummary,
         MessageBlock.TypeSale     => AlarmsText.HeadingSalePosting,
         MessageBlock.TypeProjects => AlarmsText.HeadingStandingProjects,
+        MessageBlock.TypeIndustryOpps => AlarmsText.HeadingIndustryOpps,
+        MessageBlock.TypeParkCompare  => AlarmsText.HeadingParkCompare,
+        MessageBlock.TypeSystemIndex  => AlarmsText.HeadingSystemIndex,
         MessageBlock.TypeIskChart      => AlarmsText.HeadingIskChart,
         MessageBlock.TypeActivityChart => AlarmsText.HeadingActivityChart,
         MessageBlock.TypeKillChart     => AlarmsText.HeadingKillChart,
@@ -419,7 +568,17 @@ public sealed class MessageBlockVm : ReactiveObject
 
     /// <summary>Called by the editor when the destination changes, since it is not this
     /// section's own property to watch.</summary>
-    public void DestinationChanged() => this.RaisePropertyChanged(nameof(ShowWebhookChartWarning));
+    public void DestinationChanged()
+    {
+        this.RaisePropertyChanged(nameof(ShowWebhookChartWarning));
+        this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+    }
+
+    /// <summary>True while an Indy Park Compare or System Index section has pictures chosen and
+    /// the task is aimed at a webhook: its tables will go, its pictures will not.</summary>
+    public bool ShowWebhookPicturesWarning => _destinationIsWebhook()
+        && ((IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
+            || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(k => k != SystemIndexOutputs.Table)));
 
     private string _projectsNote = "";
     public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
@@ -472,6 +631,263 @@ public sealed class MessageBlockVm : ReactiveObject
         }
     }
 
+    // ── Indy Park Compare ────────────────────────────────────────────────────
+
+    private readonly ParkComparisonService?           _parkCompare;
+    private readonly IDbContextFactory<AppDbContext>? _dbFactory;
+
+    /// <summary>The parks ticked, kept apart from the dropdown so a save before the park list has
+    /// loaded still keeps them.</summary>
+    private List<int> _compareParkIds;
+
+    private MultiChoice _compareParks = new([]);
+    /// <summary>Every park; a new section ticks them all, a saved one only those it kept.</summary>
+    public MultiChoice CompareParks { get => _compareParks; private set => this.RaiseAndSetIfChanged(ref _compareParks, value); }
+
+    private async Task LoadCompareParksAsync()
+    {
+        if (_parkCompare is null) return;
+        List<(int Id, string Name)> parks;
+        try { parks = await Task.Run(() => _parkCompare.ParksAsync()); }
+        catch { return; }
+        var choice = new MultiChoice(parks.Select(p => new CategoryChoice(p.Id.ToString(), p.Name)
+            { Selected = _fresh || _compareParkIds.Contains(p.Id) }));
+        choice.SelectionChanged += () => _compareParkIds = [.. choice.SelectedKeys.Select(int.Parse)];
+        _compareParkIds = [.. choice.SelectedKeys.Select(int.Parse)];
+        CompareParks = choice;
+    }
+
+    /// <summary>The section's job list, edited as on the Compare tab.</summary>
+    public CompareJobListVm? CompareJobList { get; }
+
+    /// <summary>The list as loaded, for a section shown without the services to edit it.</summary>
+    private readonly List<CompareJobSpec> _savedJobs;
+
+    public int CompareJobCount => CompareJobList?.Jobs.Count ?? _savedJobs.Count;
+    public int CompareParkCount => _compareParkIds.Count;
+
+    /// <summary>The pictures and tables the section posts.</summary>
+    public MultiChoice CompareOutputsPicker { get; }
+
+    // ── System Index ─────────────────────────────────────────────────────────
+
+    /// <summary>The systems' ids in order, kept apart from the list so a save before the names
+    /// have loaded still keeps them.</summary>
+    private List<int> _indexIds;
+
+    public ObservableCollection<IndexSystemChoice> IndexSystems { get; } = [];
+
+    /// <summary>The table and the charts the section posts.</summary>
+    public MultiChoice IndexOutputsPicker { get; }
+
+    private async Task LoadIndexSystemsAsync()
+    {
+        if (_dbFactory is null || _indexIds.Count == 0) return;
+        List<IndexSystem> found;
+        try { found = await Task.Run(() => SystemIndexReport.LookUpAsync(_dbFactory, _indexIds)); }
+        catch { return; }
+        IndexSystems.Clear();
+        foreach (var s in found) IndexSystems.Add(SystemChoice(s));
+    }
+
+    private IndexSystemChoice SystemChoice(IndexSystem s) => new(s.SystemId, s.Name, s.Region, c =>
+    {
+        IndexSystems.Remove(c);
+        _indexIds.Remove(c.SystemId);
+    });
+
+    private string _indexSearchText = "";
+    public string IndexSearchText { get => _indexSearchText; set => this.RaiseAndSetIfChanged(ref _indexSearchText, value); }
+
+    public ObservableCollection<IndexSystem> IndexSearchResults { get; } = [];
+
+    private bool _showIndexResults;
+    public bool ShowIndexResults { get => _showIndexResults; private set => this.RaiseAndSetIfChanged(ref _showIndexResults, value); }
+
+    private async Task SearchSystemsAsync(string text)
+    {
+        IndexSearchResults.Clear();
+        if (_dbFactory is null || text.Trim().Length < 2) { ShowIndexResults = false; return; }
+        var found = await Task.Run(() => SystemIndexReport.SearchAsync(_dbFactory, text));
+        if (IndexSearchText.Trim() != text.Trim()) return;   // typed on since
+        foreach (var s in found) IndexSearchResults.Add(s);
+        ShowIndexResults = IndexSearchResults.Count > 0;
+    }
+
+    /// <summary>A search result picked: added to the end of the list, after the click that picked it.</summary>
+    public IndexSystem? PickedIndexSystem
+    {
+        get => null;
+        set
+        {
+            if (value is not { } pick) return;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                IndexSearchText = "";
+                if (_indexIds.Contains(pick.SystemId)) return;
+                _indexIds.Add(pick.SystemId);
+                IndexSystems.Add(SystemChoice(pick));
+            });
+        }
+    }
+
+    // ── Industry Ops ─────────────────────────────────────────────────────────
+
+    public static readonly LabelledChoice[] OppsModeOptions =
+    [
+        new(nameof(IndustryMode.BuildAndSellOrder),      IndustryText.ModeBuildSellOrder),
+        new(nameof(IndustryMode.BuildAndSellToBuyOrder), IndustryText.ModeBuildSellToBuyOrder),
+    ];
+
+    /// <summary>Any column, the item included, can be the sort.</summary>
+    public static readonly LabelledChoice[] OppsSortOptions =
+        [.. IndustryOppsReport.Columns.Select(c => new LabelledChoice(c.Key, c.Header))];
+
+    public static readonly LabelledChoice[] SortDirectionOptions =
+    [
+        new("desc", AlarmsText.SortHighestFirst),
+        new("asc",  AlarmsText.SortLowestFirst),
+    ];
+
+    public IReadOnlyList<LabelledChoice>     OppsModes          => OppsModeOptions;
+    public IReadOnlyList<LabelledChoice>     OppsSorts          => OppsSortOptions;
+    public IReadOnlyList<LabelledChoice>     SortDirections     => SortDirectionOptions;
+    public IReadOnlyList<MarketConfigChoice> Markets            { get; }
+
+    private LabelledChoice _oppsMode;
+    public LabelledChoice OppsMode { get => _oppsMode; set => this.RaiseAndSetIfChanged(ref _oppsMode, value ?? OppsModeOptions[0]); }
+
+    private MarketConfigChoice? _oppsMarket;
+    public MarketConfigChoice? OppsMarket { get => _oppsMarket; set => this.RaiseAndSetIfChanged(ref _oppsMarket, value); }
+
+    // The four boxes hold what was typed; a blank box is no filter. Checked on Save.
+    private string _oppsMinIskVol, _oppsMinUnitVol, _oppsMinMargin, _oppsMinMargin30d;
+    public string OppsMinIskVol    { get => _oppsMinIskVol;    set => this.RaiseAndSetIfChanged(ref _oppsMinIskVol, value); }
+    public string OppsMinUnitVol   { get => _oppsMinUnitVol;   set => this.RaiseAndSetIfChanged(ref _oppsMinUnitVol, value); }
+    public string OppsMinMargin    { get => _oppsMinMargin;    set => this.RaiseAndSetIfChanged(ref _oppsMinMargin, value); }
+    public string OppsMinMargin30d { get => _oppsMinMargin30d; set => this.RaiseAndSetIfChanged(ref _oppsMinMargin30d, value); }
+
+    private bool _oppsBpoOnly, _oppsOwnedOnly;
+
+    /// <summary>The meta groups, ticked or not, as one dropdown. A new section starts as the tool does.</summary>
+    public MultiChoice OppsMetaPicker { get; }
+    public bool OppsBpoOnly     { get => _oppsBpoOnly;     set => this.RaiseAndSetIfChanged(ref _oppsBpoOnly, value); }
+    public bool OppsOwnedOnly   { get => _oppsOwnedOnly;   set => this.RaiseAndSetIfChanged(ref _oppsOwnedOnly, value); }
+
+    /// <summary>
+    /// The groups chosen, by id. ⚠️ The ids are the record, the chips beside them are only how
+    /// they are shown: the names arrive a moment after the section is built, and reading the
+    /// chips then would make a freshly opened task look edited.
+    /// </summary>
+    private readonly List<int> _oppsExcludedIds, _oppsIncludedIds;
+    public ObservableCollection<MarketGroupChip> OppsExcluded { get; } = [];
+    public ObservableCollection<MarketGroupChip> OppsIncluded { get; } = [];
+
+    public ReactiveCommand<Unit, Unit> AddOppsExcludedCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddOppsIncludedCommand { get; }
+
+    private readonly Func<Task<MarketGroupPickerResult?>>? _pickGroup;
+
+    private async Task AddOppsGroupAsync(List<int> ids, ObservableCollection<MarketGroupChip> shown)
+    {
+        if (_pickGroup is null || await _pickGroup() is not { } pick) return;
+        if (ids.Contains(pick.MarketGroupId)) return;
+        ids.Add(pick.MarketGroupId);
+        shown.Add(Chip(ids, shown, pick.MarketGroupId, SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
+    }
+
+    /// <summary>A chip whose ✕ takes the group out of both the ids and the chips.</summary>
+    private static MarketGroupChip Chip(List<int> ids, ObservableCollection<MarketGroupChip> shown, int id, string name) =>
+        new(id, name, chip => { ids.Remove(chip.MarketGroupId); shown.Remove(chip); });
+
+    private async Task LoadOppsGroupNamesAsync()
+    {
+        Dictionary<int, string> names;
+        try { names = await Task.Run(() => IndustryOpportunitiesService.MarketGroupNamesAsync([.. _oppsExcludedIds, .. _oppsIncludedIds])); }
+        catch { names = []; }
+        // A group the SDE no longer has is still shown, by number, so it can be removed.
+        foreach (var id in _oppsExcludedIds) OppsExcluded.Add(Chip(_oppsExcludedIds, OppsExcluded, id, names.GetValueOrDefault(id, $"#{id}")));
+        foreach (var id in _oppsIncludedIds) OppsIncluded.Add(Chip(_oppsIncludedIds, OppsIncluded, id, names.GetValueOrDefault(id, $"#{id}")));
+    }
+
+    /// <summary>The table's columns, the item first, in the order printed.</summary>
+    public ObservableCollection<OppsColumnVm> OppsTable { get; } = [];
+
+    /// <summary>The columns not in the table yet, for the Add dropdown.</summary>
+    public ObservableCollection<LabelledChoice> OppsAddable { get; } = [];
+
+    private LabelledChoice? _oppsToAdd;
+    public LabelledChoice? OppsToAdd { get => _oppsToAdd; set => this.RaiseAndSetIfChanged(ref _oppsToAdd, value); }
+
+    public ReactiveCommand<Unit, Unit> AddOppsColumnCommand { get; }
+
+    private OppsColumnVm Column(IndustryOppsReport.Column c, string? header) => new(
+        c.Key, c.Header, header is { Length: > 0 } ? header : c.Header, c.Key == IndustryOppsReport.Item,
+        col => { OppsTable.Remove(col); RefreshAddable(); },
+        (col, by) =>
+        {
+            // The item holds the first place: nothing moves above it.
+            var i = OppsTable.IndexOf(col);
+            var j = i + by;
+            if (i < 0 || j < 1 || j >= OppsTable.Count) return;
+            OppsTable.Move(i, j);
+        });
+
+    private void AddOppsColumn()
+    {
+        if (OppsToAdd is not { } pick) return;
+        var c = IndustryOppsReport.Columns.First(x => x.Key == pick.Key);
+        OppsTable.Add(Column(c, null));
+        RefreshAddable();
+    }
+
+    /// <summary>The dropdown offers what is not in the table, in the grid's order, the first picked.</summary>
+    private void RefreshAddable()
+    {
+        OppsAddable.Clear();
+        foreach (var c in IndustryOppsReport.Columns.Where(c => OppsTable.All(t => t.Key != c.Key)))
+            OppsAddable.Add(new LabelledChoice(c.Key, c.Header));
+        OppsToAdd = OppsAddable.FirstOrDefault();
+    }
+
+    private LabelledChoice _oppsSortBy;
+    public LabelledChoice OppsSortBy { get => _oppsSortBy; set => this.RaiseAndSetIfChanged(ref _oppsSortBy, value ?? OppsSortOptions[0]); }
+
+    private LabelledChoice _oppsSortDirection;
+    public LabelledChoice OppsSortDirection { get => _oppsSortDirection; set => this.RaiseAndSetIfChanged(ref _oppsSortDirection, value ?? SortDirectionOptions[0]); }
+
+    /// <summary>How many rows, as typed. Blank is all of them.</summary>
+    private string _oppsRowLimit;
+    public string OppsRowLimit { get => _oppsRowLimit; set => this.RaiseAndSetIfChanged(ref _oppsRowLimit, value); }
+
+    private static string Num(double? v) => v?.ToString("0.##########") ?? "";
+
+    /// <summary>A box's number: null when blank, and when it is not a number of 0 or more
+    /// (which <see cref="OppsBadField"/> reports). "15%" reads as 15.</summary>
+    private static double? Parse(string text) =>
+        double.TryParse(text.Trim().TrimEnd('%'), out var v) && v >= 0 ? v : null;
+
+    /// <summary>The label of the first box holding something other than a number of 0 or more
+    /// (or, for Rows, a whole one), or null when all of them are fine.</summary>
+    public string? OppsBadField
+    {
+        get
+        {
+            foreach (var (text, label) in new[]
+                     {
+                         (OppsMinIskVol,    IndustryText.Min30dIskVol),
+                         (OppsMinUnitVol,   IndustryText.Min30dUnitVol),
+                         (OppsMinMargin,    IndustryText.MinMarginPct),
+                         (OppsMinMargin30d, IndustryText.MinMargin30dPct),
+                     })
+                if (text.Trim().Length > 0 && Parse(text) is null) return label;
+
+            if (OppsRowLimit.Trim().Length > 0 && !(int.TryParse(OppsRowLimit.Trim(), out var n) && n >= 0))
+                return AlarmsText.RowLimitLabel;
+            return null;
+        }
+    }
+
     /// <summary>
     /// This section is now on disk, so stop defaulting new projects to ticked.
     ///
@@ -498,6 +914,33 @@ public sealed class MessageBlockVm : ReactiveObject
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
+
+        OppsMode             = OppsMode.Key,
+        OppsConfigId         = OppsMarket?.Id ?? 0,
+        OppsMinIskVol30d     = Parse(OppsMinIskVol),
+        OppsMinUnitVol30d    = Parse(OppsMinUnitVol),
+        OppsMinMarginPct     = Parse(OppsMinMargin),
+        OppsMinMargin30dPct  = Parse(OppsMinMargin30d),
+        OppsMetaGroups       = [.. OppsMetaPicker.SelectedKeys.Select(int.Parse)],
+        OppsBpoOnly          = OppsBpoOnly,
+        OppsOwnedOnly        = OppsOwnedOnly,
+        OppsExcludedGroupIds = [.. _oppsExcludedIds],
+        OppsIncludedGroupIds = [.. _oppsIncludedIds],
+        OppsColumns          = [.. OppsTable.Where(c => !c.IsItem).Select(c => c.Key)],
+        // Only headers changed from the column's own: one left alone follows the interface
+        // language, and a blank box means the column's own header too.
+        OppsHeaders          = OppsTable
+            .Where(c => c.Header.Trim().Length > 0 && c.Header.Trim() != c.Name)
+            .ToDictionary(c => c.Key, c => c.Header.Trim()),
+        OppsSortBy           = OppsSortBy.Key,
+        OppsSortDescending   = OppsSortDirection.Key == "desc",
+        OppsRowLimit         = int.TryParse(OppsRowLimit.Trim(), out var limit) && limit > 0 ? limit : 0,
+
+        CompareParkIds       = [.. _compareParkIds.OrderBy(x => x)],
+        CompareJobs          = CompareJobList?.Specs ?? _savedJobs,
+        CompareOutputs       = [.. CompareOutputsPicker.SelectedKeys],
+        IndexSystemIds       = [.. _indexIds],
+        IndexOutputs         = [.. IndexOutputsPicker.SelectedKeys],
     };
 }
 
@@ -510,11 +953,21 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
+    private readonly ParkComparisonService           _parkCompare;
     private readonly SlackService                    _slack;
     private readonly DiscordService                  _discord;
     private readonly CorpActivityService             _corp;
     private readonly SalePostingService              _sales;
     private readonly AppErrorLogger                  _errors;
+
+    /// <summary>For the market group picker an Industry Ops section opens.</summary>
+    public BatchAddService Batch { get; }
+
+    /// <summary>
+    /// Opens the market group picker and returns what was chosen. Set by the view, which is the
+    /// only thing with a window to hang the dialog off.
+    /// </summary>
+    public Func<Task<MarketGroupPickerResult?>>? PickMarketGroup { get; set; }
 
     public SchedulerViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
@@ -524,8 +977,12 @@ public sealed class SchedulerViewModel : ReactiveObject
         DiscordService                  discord,
         CorpActivityService             corp,
         SalePostingService              sales,
-        AppErrorLogger                  errors)
+        AppErrorLogger                  errors,
+        BatchAddService                 batch,
+        ParkComparisonService           parkCompare)
     {
+        _parkCompare = parkCompare;
+        Batch      = batch;
         _dbFactory = dbFactory;
         _scheduler = scheduler;
         _renderer  = renderer;
@@ -617,6 +1074,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     public ObservableCollection<DayChoice>          Days        { get; } = [];
     public ObservableCollection<CorpChoice>         Corps       { get; } = [];
     public ObservableCollection<PostingChoice>      Postings    { get; } = [];
+    public ObservableCollection<MarketConfigChoice> Markets     { get; } = [];
 
     public List<LabelledChoice> TaskTypes { get; } =
     [
@@ -632,6 +1090,9 @@ public sealed class SchedulerViewModel : ReactiveObject
         new(MessageBlock.TypeMonthly,  AlarmsText.SectionTypeMonthly),
         new(MessageBlock.TypeSale,     AlarmsText.SectionTypeSale),
         new(MessageBlock.TypeProjects, AlarmsText.SectionTypeProjects),
+        new(MessageBlock.TypeIndustryOpps, AlarmsText.SectionTypeIndustryOpps),
+        new(MessageBlock.TypeParkCompare,  AlarmsText.SectionTypeParkCompare),
+        new(MessageBlock.TypeSystemIndex,  AlarmsText.SectionTypeSystemIndex),
         new(MessageBlock.TypeIskChart,      AlarmsText.SectionTypeIskChart),
         new(MessageBlock.TypeActivityChart, AlarmsText.SectionTypeActivityChart),
         new(MessageBlock.TypeKillChart,     AlarmsText.SectionTypeKillChart),
@@ -911,6 +1372,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         await LoadCorpsAsync();
         await LoadPostingsAsync();
+        await LoadMarketsAsync();
 
         // ⚠️ Only when there is nothing to show. This also runs on every background tick that
         // changed a task, and asking Slack for its channel list once a minute would be a network
@@ -982,6 +1444,18 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         foreach (var p in rows)
             if (Postings.All(x => x.Id != p.Id)) Postings.Add(new PostingChoice(p.Id, p.Name));
+    }
+
+    /// <summary>The markets an Industry Ops section can price at. Merged for the same reason the
+    /// corps are: a section's chosen market is bound to this collection.</summary>
+    private async Task LoadMarketsAsync()
+    {
+        List<IndustryMarketConfig> rows;
+        try   { rows = await Task.Run(IndustryOpportunitiesService.LoadMarketConfigsAsync); }
+        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "markets", ex); return; }
+
+        foreach (var m in rows)
+            if (Markets.All(x => x.Id != m.ConfigId)) Markets.Add(new MarketConfigChoice(m.ConfigId, m.Name));
     }
 
     /// <summary>
@@ -1133,7 +1607,9 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
         new(model, Corps, Postings, LoadStandingProjectsAsync, fresh,
-            () => Destination?.IsWebhook == true);
+            () => Destination?.IsWebhook == true, Markets,
+            () => PickMarketGroup?.Invoke() ?? Task.FromResult<MarketGroupPickerResult?>(null),
+            _parkCompare, _dbFactory);
 
     private void AddSection()
     {
@@ -1280,6 +1756,15 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (b.IsSale    && b.Posting is null)                   return string.Format(AlarmsText.SectionNeedsPosting, n, heading);
             if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return string.Format(AlarmsText.SectionNeedsList, n, heading);
             if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return string.Format(AlarmsText.SectionEmpty, n, heading);
+            if (b.IsOpps    && b.OppsMarket is null)                return string.Format(AlarmsText.SectionNeedsMarket, n, heading);
+            if (b.IsParkCompare && b.CompareJobCount == 0)          return string.Format(AlarmsText.SectionNeedsJob, n, heading);
+            if (b.IsParkCompare && b.CompareParkCount == 0)         return string.Format(AlarmsText.SectionNeedsPark, n, heading);
+            if (b.IsParkCompare && !b.CompareOutputsPicker.SelectedKeys.Any()) return string.Format(AlarmsText.SectionNeedsOutput, n, heading);
+            if (b.IsSystemIndex && b.IndexSystems.Count == 0)       return string.Format(AlarmsText.SectionNeedsSystem, n, heading);
+            if (b.IsSystemIndex && !b.IndexOutputsPicker.SelectedKeys.Any())   return string.Format(AlarmsText.SectionNeedsOutput, n, heading);
+            if (b.IsOpps    && b.OppsBadField is { } field)         return string.Format(AlarmsText.SectionBadNumber, n, heading, field);
+            if (b.IsOpps    && b.OppsMetaPicker.AllSelected == false)
+                return string.Format(AlarmsText.SectionNeedsMetaGroup, n, heading);
 
             // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section
             // saved before its projects finished loading would store an empty list and quietly
@@ -1417,10 +1902,15 @@ public sealed class SchedulerViewModel : ReactiveObject
             // WARN Charts are named, not drawn. They contribute no text, so a preview that
             // showed only the text would call a chart-only message empty and read as broken.
             // Drawing them here would also mean rendering twice for a button that sends nothing.
+            // A Compare or System Index section names each of its pictures the same way.
             var noted = string.Join("\n", Blocks.Where(b => b.IsChart)
                 .Select(b => b.ShowWebhookChartWarning
                     ? string.Format(AlarmsText.PreviewChartSkipped, b.Heading)
-                    : string.Format(AlarmsText.PreviewChartUploaded, b.Heading)));
+                    : string.Format(AlarmsText.PreviewChartUploaded, b.Heading))
+                .Concat(Blocks.Where(b => b.IsParkCompare || b.IsSystemIndex).SelectMany(b =>
+                    ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true
+                        ? string.Format(AlarmsText.PreviewChartSkipped, title)
+                        : string.Format(AlarmsText.PreviewChartUploaded, title)))));
 
             var shown = string.Join("\n\n",
                 new[] { render.Text, noted }.Where(t => t.Length > 0));
@@ -1438,6 +1928,73 @@ public sealed class SchedulerViewModel : ReactiveObject
             PreviewText = "";
             StatusText  = string.Format(AlarmsText.StatusPreviewFailed, ex.Message);
         }
+    }
+
+    // ── Export / import ──────────────────────────────────────────────────────
+
+    /// <summary>Every task, as saved, to a JSON file.</summary>
+    public async Task ExportAsync(Stream stream)
+    {
+        var rows = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            return await db.ScheduledTasks.AsNoTracking().OrderBy(t => t.Name).ToListAsync();
+        });
+
+        await AlarmTaskTransfer.WriteTasksAsync(stream, rows,
+            (kind, id) => Destinations.FirstOrDefault(d => d.Kind == kind && d.Id == id)?.Label);
+        StatusText = string.Format(AlarmsText.StatusTasksExported, rows.Count);
+    }
+
+    /// <summary>
+    /// Adds the tasks in an export as new tasks. Nothing already here is replaced, and a task
+    /// identical to one here is skipped, so importing the same file twice adds nothing.
+    ///
+    /// <para>⚠️ Switched off, every one. An imported task posts to a channel the moment it comes
+    /// due, and where it posts may not mean the same thing here: a webhook's id is a row in the
+    /// exporting database. It is matched by name when the id does not fit, and left blank when
+    /// neither does — the editor then asks for it on Save.</para>
+    /// </summary>
+    public async Task ImportAsync(Stream stream)
+    {
+        var entries = await AlarmTaskTransfer.ReadTasksAsync(stream);
+        if (entries is null) { StatusText = AlarmsText.ErrNotATasksExport; return; }
+
+        var added = new List<ScheduledTask>();
+        foreach (var e in entries)
+        {
+            var cfg = ScheduledTaskConfig.FromJson(AlarmTaskTransfer.Text(e.Config));
+            if (cfg.DestinationKind.Length > 0
+                && !Destinations.Any(d => d.Kind == cfg.DestinationKind && d.Id == cfg.DestinationId))
+            {
+                var byName = Destinations.FirstOrDefault(d => d.Kind == cfg.DestinationKind && d.Label == e.DestinationLabel);
+                cfg.DestinationKind = byName?.Kind ?? "";
+                cfg.DestinationId   = byName?.Id   ?? "";
+            }
+
+            var task = AlarmTaskTransfer.ToTask(e, cfg);
+            task.Enabled = false;
+            added.Add(task);
+        }
+
+        var (imported, skipped) = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var here = (await db.ScheduledTasks.AsNoTracking().ToListAsync())
+                       .Select(t => (t.Name, t.TaskType, t.Config)).ToHashSet();
+            var n = 0;
+            foreach (var t in added)
+            {
+                if (!here.Add((t.Name, t.TaskType, t.Config))) continue;
+                db.ScheduledTasks.Add(t);
+                n++;
+            }
+            await db.SaveChangesAsync();
+            return (n, added.Count - n);
+        });
+
+        await LoadAsync();
+        StatusText = string.Format(AlarmsText.StatusTasksImported, imported, skipped);
     }
 
     /// <summary>

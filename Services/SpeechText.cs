@@ -14,9 +14,27 @@ namespace EveConsole.Services;
 /// </summary>
 public static partial class SpeechText
 {
-    /// <summary>Markdown and emoji out, then EVE's names into the form they are said.</summary>
+    /// <summary>Markdown, web addresses and emoji out, then EVE's names into the form they are said.</summary>
     public static string Prepare(string text) =>
-        EvePronunciation.Expand(WithoutEmoji(WithoutMarkdown(text ?? "")));
+        EvePronunciation.Expand(WithoutEmoji(WithoutUrls(WithoutMarkdown(text ?? ""))));
+
+    [GeneratedRegex(@"(?:https?://|www\.)[^\s<>""]+?(?=[.,;:!?)\]'""]*(?:\s|$))", RegexOptions.IgnoreCase)]
+    private static partial Regex Url { get; }
+    // What an address leaves behind: "more. https://x. 60" is "more. . 60" without it.
+    [GeneratedRegex(@"([.!?])(?:[ \t]*[.,;:])+")]  private static partial Regex StrandedMarks { get; }
+
+    /// <summary>
+    /// The text without web addresses. An intel report's d-scan link is worth a click in the chat
+    /// and nothing read aloud — "h t t p s colon slash slash" in the middle of a warning.
+    /// </summary>
+    public static string WithoutUrls(string text)
+    {
+        if (!text.Contains("://") && !text.Contains("www.", StringComparison.OrdinalIgnoreCase)) return text;
+        var result = Url.Replace(text, "");
+        result = Spaces.Replace(result, " ");
+        result = SpaceBeforeMark.Replace(result, "$1");
+        return StrandedMarks.Replace(result, "$1").Trim();
+    }
 
     [GeneratedRegex(@"```[\s\S]*?```")]                          private static partial Regex CodeBlock { get; }
     [GeneratedRegex(@"`([^`]+)`")]                                private static partial Regex InlineCode { get; }

@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>閉じる</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>確認 — サウンドを停止</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>削除</value>
   </data>
@@ -138,6 +135,9 @@
   </data>
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>アラームを選択するか、新しく作成してください。</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} 件のアラームを選択中。エクスポートはこれらだけを保存します。編集するには1件だけを選択してください。</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
@@ -361,6 +361,153 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>コーポの採掘グラフ</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>価格の取得先</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>30日間の最低取引額</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>30日間の最低取引数量</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>最低利益率 %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>30日間の最低利益率 %</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>除外するグループ</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>含めるグループ</value>
+  </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>メタグループ</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>セクション {0}（{1}）では少なくとも 1 つのメタグループをチェックする必要があります。</value>
+  </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>工業パーク比較</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>星系インデックス</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>工業パーク比較</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>星系インデックス</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>ジョブ別概要（画像）</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>パーク別概要（画像）</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>コストグラフ（画像）</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>時間グラフ（画像）</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>ジョブ別概要（表）</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>パーク別概要（表）</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>全パークの全ジョブ（表）</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>ジョブ別概要</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>パーク別概要</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>全パークの全ジョブ</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>今日の指数（表）</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>{0}グラフ（画像）</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>投稿内容</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>投稿時に、その日の価格と指数、スキル V で計算します。比較タブの設定は使いません。</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>各グラフは凡例付きで投稿されます。星系インデックスツールのリストは使いません。</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>この投稿先は Slack の Webhook で画像を送れません。このセクションの画像は省かれ、表だけが投稿されます。Slack チャンネルか Discord の Webhook なら画像も送れます。</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>セクション {0}（{1}）には少なくとも 1 つのジョブが必要です。</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>セクション {0}（{1}）では少なくとも 1 つのパークにチェックが必要です。</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>セクション {0}（{1}）には少なくとも 1 つの星系が必要です。</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>セクション {0}（{1}）では投稿する内容を選んでください。</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>列を追加</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>この列が投稿で表示する見出しです。そのまま、または空欄にすると列本来の見出しになります。</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>アイテムは常に最初の列です。変更しない見出しはインターフェイスの言語に従います。上書きすると名前を変更できます。</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>並べ替え</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>大きい順</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>小さい順</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>行数</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>投稿の送信時に、その時点の製造コストと市場価格から計算されます。設定はすべてここで行います。生産チャンスツール自体の選択は使われません。</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>テキスト</value>
   </data>
@@ -417,6 +564,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>コーポの採掘グラフ</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>生産チャンス</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>一定間隔</value>
@@ -555,6 +705,54 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>セクション{0}（{1}）では投稿を選択する必要があります。</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>セクション {0}（{1}）には価格を付ける市場が必要です。</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>セクション {0}（{1}）：{2} には 0 以上の数値を入力するか、空欄にしてください。</value>
+  </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>予定タスクをエクスポート</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>予定タスクをインポート</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>すべてのタスクを JSON ファイルに保存します。</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>JSON エクスポートのタスクを新しいタスクとして追加します。確認するまでオフのままです。既存のものは置き換えられず、すでにあるタスクはスキップされます。</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>エクスポートしたタスク：{0}。</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>インポートしたタスク：{0}（確認するまでオフ）。既存のためスキップ：{1}。</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>このファイルは予定タスクのエクスポートではありません。</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>アラームをエクスポート</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>アラームをインポート</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>選択したアラームとそのアクションを JSON ファイルに保存します。何も選択していない場合はすべてのアラームを保存します。Ctrl または Shift で複数選択できます。</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>JSON エクスポートのアラームをアクションごと新しいアラームとして追加します。既存のものは置き換えられず、すでにあるアラームはスキップされます。</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>エクスポートしたアラーム：{0}。</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>インポートしたアラーム：{0}。既存のためスキップ：{1}。このバージョンにないチェックのためスキップ：{2}。</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>このファイルはアラームのエクスポートではありません。</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>セクション{0}（{1}）ではリストを1つ以上選択する必要があります。</value>
@@ -703,6 +901,9 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>サウンドは確認するまで繰り返されます。</value>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>ここかエージェントのチャットで応答するまで、呼び出しは続きます。</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>アラームのサウンドを選択</value>
   </data>
@@ -734,10 +935,10 @@
     <value>自分のキャラクターのいずれかが出港したときに発動します。必要に応じて、指定したステーション、ストラクチャ、システム、リージョンからの出港、指定した船体や艦船クラスでの出港、特定の状態での出港に限定できます — 装備の有無、ジャンプ燃料が指定値未満かどうか、弾薬が指定値未満かどうか。フィルターはどれも対象を絞り込むため、2つのアラームで同じ出港を二重に扱うのではなく、別々の出港を対象にできます。出港は位置のポーリングにより約10秒以内に検知されます。積んでいたものは、ESIが1時間ごとに更新する最新の資産スナップショットから判断され、一致するたびにそのスナップショットがどれだけ古いかが示されます。</value>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>出港状態が長すぎる（目覚まし）</value>
+    <value>出港状態が長すぎる</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>あなたを起こします。指定した船体または艦船クラスに乗った自分のキャラクターが出港し、一定の秒数が経っても同じシステムにとどまっているときに、最大3段階で発動します — たとえば、パイロットが居眠りしている間にテザリング中の超大型輸送艦やジャンプドライブ搭載型輸送艦です。または「ジャンプでの到着」にチェックを入れると、ジャンプ可能な船体がジャンプドライブやブリッジで到着し、まだ宇宙空間にいるときに発動します — ジャンプ直後の30秒間です。入港、システムからの移動、ログオフで終了します。ダイアログのボタンを押すか、AIアシスタントに何か返信すると、しばらく静かになります。その時間が過ぎても艦船がまだそこにいる場合、ステージは最初からやり直しになります。各ステージには独自のアクションがあります — 「TTSで直接読み上げ」またはAIアシスタントによるステージの文の読み上げ、ダイアログ、確認するまで繰り返すサウンド。繰り返しとクールダウンは適用されません。</value>
+    <value>指定した船体または艦船クラスに乗った自分のキャラクターが出港し、一定の秒数が経っても同じシステムにとどまっているときに、最大3段階で発動します — たとえば、パイロットが居眠りしている間にテザリング中の超大型輸送艦やジャンプドライブ搭載型輸送艦です。または「ジャンプでの到着」にチェックを入れると、ジャンプ可能な船体がジャンプドライブやブリッジで到着し、まだ宇宙空間にいるときに発動します — ジャンプ直後の30秒間です。入港、システムからの移動、ログオフで終了します。ダイアログのボタンを押すか、AIアシスタントのチャットで何か入力するか話すと、しばらく静かになります。その時間が過ぎても艦船がまだそこにいる場合、ステージは最初からやり直しになります。どのステージにもまだ達していないうちにそこで入力するか話すと、代わりにタイマーが最初からやり直しになります。各ステージには独自のアクションがあります — 「TTSで直接読み上げ」またはAIアシスタントによるステージの文の読み上げ、ダイアログ、確認するまで繰り返すサウンド。繰り返しとクールダウンは適用されません。</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>ストアの注文イベント</value>
@@ -869,7 +1070,7 @@
     <value>確認後の休止時間</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>艦船が出港したままの間、返信やダイアログのボタンでこのアラームを静かにしておく時間です — タイタンのブリッジを待てる程度の長さにしてください。その後、ステージは最初からやり直しになります。</value>
+    <value>艦船が出港したままの間、ダイアログのボタン、またはAIアシスタントのチャットでの入力や発話でこのアラームを静かにしておく時間です — タイタンのブリッジを待てる程度の長さにしてください。その後、ステージは最初からやり直しになります。</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>分</value>
@@ -1073,19 +1274,19 @@
     <value>弾薬不足</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>{0}、起きてください</value>
+    <value>出港時間超過</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}の{1}は{3}前に{2}に到着し、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+    <value>{0}の{1}は{3}前に{2}に到着し、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「確認」を押してください。</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}の{1}は{2}で出港してから{3}経ちますが、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「起きています」を押してください。</value>
+    <value>{0}の{1}は{2}で出港してから{3}経ちますが、まだ入港していません。艦船が宇宙空間にいる間、このアラームを{4}分間静かにするには「確認」を押してください。</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}、{1}の{2}は{4}前に{3}に到着し、まだ入港していません。大丈夫ですか？</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>起きてください、{0}。{1}の{2}は到着から{4}経っても、まだ{3}の宇宙空間にいます。今すぐ入港してください。</value>
+    <value>{0}、{1}の{2}は到着から{4}経っても、まだ{3}の宇宙空間にいます。問題がないか確認してください。</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}！{1}の{2}は到着から{4}の間、{3}にとどまっています。今すぐ入港してください！</value>
@@ -1094,10 +1295,10 @@
     <value>{0}、{1}の{2}は{3}で出港してから{4}経っています。大丈夫ですか？</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>起きてください、{0}。{1}の{2}は{4}前に{3}で出港し、まだ入港していません。入港するか、返事をしてください。</value>
+    <value>{0}、{1}の{2}は{4}経っても、まだ{3}で出港したままです。問題がないか確認してください。</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}！{1}の{2}は{4}経っても、まだ{3}で出港したままです。起きて、今すぐ入港してください。</value>
+    <value>{0}！{1}の{2}は{4}経っても、まだ{3}で出港したままです。今すぐ入港してください。</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>ポッド</value>
@@ -1237,29 +1438,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>チャイム — ソフト</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>チャイム — ガラス</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>ベル — クリスタル</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>チャイム — マリンバ</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>チャイム — 3和音</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>チャイム — ビブラフォン</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>ピン — ガラス</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>ピン — 明るい</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>ベル — 真鍮</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>ベル — ハンドベル</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>ベル — 卓上ベル</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>ベル — 低音</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>ベル — 重厚</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>ゴング — 低音</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>ゴング — SF</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>アラート — 2回</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>アラート — ブリップ</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>アラート — ビープ</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>アラーム — 緊急</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>アラーム — 戦闘配置</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>警告 — 2トーン</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>警告 — 2トーン（ソフト）</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>警告 — クラクション</value>
@@ -1269,6 +1509,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>警告 — サイレン</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>警告 — 高速サイレン</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>警告 — ホーン</value>
@@ -1291,8 +1534,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>再生に失敗しました：{0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>起きています</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>確認</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>（AIアシスタントが設定されていないため、アラートとして記録されました。）</value>

@@ -1495,6 +1495,9 @@
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>토큰이 이 컴퓨터의 키링에 저장되어 있습니다.</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>토큰이 이 Mac의 키체인에 저장되어 있습니다.</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>키링을 사용할 수 없어 토큰이 이 컴퓨터의 config.json에 입력한 그대로 저장되어 있습니다.</value>
   </data>

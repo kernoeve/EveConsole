@@ -106,8 +106,50 @@ public class AlertSettingsViewModel : ReactiveObject
     private bool _piFreeSlots = true;
     public bool PiFreeSlots { get => _piFreeSlots; set => this.RaiseAndSetIfChanged(ref _piFreeSlots, value); }
 
-    private bool _piStaleData = true;
-    public bool PiStaleData { get => _piStaleData; set => this.RaiseAndSetIfChanged(ref _piStaleData, value); }
+    private bool _unreadMail = true;
+    public bool UnreadMail { get => _unreadMail; set => this.RaiseAndSetIfChanged(ref _unreadMail, value); }
+
+    // Structures: only corporations with structure alerts on (Settings → Corporations). The fit
+    // each structure type should carry is set on Corp Structures → Config.
+    private bool _structureFuel = true;
+    public bool StructureFuel { get => _structureFuel; set => this.RaiseAndSetIfChanged(ref _structureFuel, value); }
+
+    private decimal _structureFuelDays = 3;
+    public decimal StructureFuelDays { get => _structureFuelDays; set => this.RaiseAndSetIfChanged(ref _structureFuelDays, value); }
+
+    private bool _structureAttacked = true;
+    public bool StructureAttacked { get => _structureAttacked; set => this.RaiseAndSetIfChanged(ref _structureAttacked, value); }
+
+    private bool _structureFitMissing = true;
+    public bool StructureFitMissing { get => _structureFitMissing; set => this.RaiseAndSetIfChanged(ref _structureFitMissing, value); }
+
+    private bool _structureFitWrong = true;
+    public bool StructureFitWrong { get => _structureFitWrong; set => this.RaiseAndSetIfChanged(ref _structureFitWrong, value); }
+
+    private bool _structureAmmoLow = true;
+    public bool StructureAmmoLow { get => _structureAmmoLow; set => this.RaiseAndSetIfChanged(ref _structureAmmoLow, value); }
+
+    private decimal _structureAmmoPct = 50;
+    public decimal StructureAmmoPct { get => _structureAmmoPct; set => this.RaiseAndSetIfChanged(ref _structureAmmoPct, value); }
+
+    private bool _structureFightersLow = true;
+    public bool StructureFightersLow { get => _structureFightersLow; set => this.RaiseAndSetIfChanged(ref _structureFightersLow, value); }
+
+    private decimal _structureFightersPct = 50;
+    public decimal StructureFightersPct { get => _structureFightersPct; set => this.RaiseAndSetIfChanged(ref _structureFightersPct, value); }
+
+    private bool _denAnarchy = true;
+    public bool DenAnarchy { get => _denAnarchy; set => this.RaiseAndSetIfChanged(ref _denAnarchy, value); }
+
+    private decimal _denAnarchyLevel = 3;
+    /// <summary>The anarchy level, 0–4, a den is raised at.</summary>
+    public decimal DenAnarchyLevel { get => _denAnarchyLevel; set => this.RaiseAndSetIfChanged(ref _denAnarchyLevel, value); }
+
+    private bool _denAttacked = true;
+    public bool DenAttacked { get => _denAttacked; set => this.RaiseAndSetIfChanged(ref _denAttacked, value); }
+
+    private bool _denNewMto = true;
+    public bool DenNewMto { get => _denNewMto; set => this.RaiseAndSetIfChanged(ref _denNewMto, value); }
 
     public string Status
     {
@@ -159,38 +201,73 @@ public class AlertSettingsViewModel : ReactiveObject
         PiStorage                  = s.PiStorage;
         PiInputs                   = s.PiInputs;
         PiFreeSlots                = s.PiFreeSlots;
-        PiStaleData                = s.PiStaleData;
+        UnreadMail                 = s.UnreadMail;
+        StructureFuel              = s.StructureFuel;
+        StructureFuelDays          = s.StructureFuelDays;
+        StructureAttacked          = s.StructureAttacked;
+        StructureFitMissing        = s.StructureFitMissing;
+        StructureFitWrong          = s.StructureFitWrong;
+        StructureAmmoLow           = s.StructureAmmoLow;
+        StructureAmmoPct           = s.StructureAmmoPct;
+        StructureFightersLow       = s.StructureFightersLow;
+        StructureFightersPct       = s.StructureFightersPct;
+        DenAnarchy                 = s.DenAnarchy;
+        DenAnarchyLevel            = s.DenAnarchyLevel;
+        DenAttacked                = s.DenAttacked;
+        DenNewMto                  = s.DenNewMto;
     }
 
     private async Task SaveAsync()
     {
         int days      = (int)Math.Clamp(SkillQueueEmptyDays, 1, 365);
-        int empty     = SkillQueueEmpty             ? 1 : 0;
-        int paused    = SkillQueuePaused            ? 1 : 0;
-        int emptyDay  = SkillQueueEmptyInDays       ? 1 : 0;
-        int safety    = AssetSafety                 ? 1 : 0;
-        int inactive  = InactiveStandingProjects    ? 1 : 0;
-        int buyOrders = StandingBuyOrdersAttention  ? 1 : 0;
-        int unrigged  = UnriggedIndustryJobs        ? 1 : 0;
-        int ready     = IndustryJobsReady           ? 1 : 0;
-        int outstanding = OutstandingContracts      ? 1 : 0;
-        int expiring  = ExpiringContracts           ? 1 : 0;
-        int piExtract = PiExtractors                ? 1 : 0;
-        int piStorage = PiStorage                   ? 1 : 0;
-        int piInputs  = PiInputs                    ? 1 : 0;
-        int piSlots   = PiFreeSlots                 ? 1 : 0;
-        int piStale   = PiStaleData                 ? 1 : 0;
+        // ⚠️ bool, never 1/0: these columns are BOOLEAN on PostgreSQL, which refuses an integer
+        // for one, so every save of this tab failed there — every box came back ticked on the next
+        // open. SQLite stores a bool as 1/0 anyway.
+        bool empty     = SkillQueueEmpty;
+        bool paused    = SkillQueuePaused;
+        bool emptyDay  = SkillQueueEmptyInDays;
+        bool safety    = AssetSafety;
+        bool inactive  = InactiveStandingProjects;
+        bool buyOrders = StandingBuyOrdersAttention;
+        bool unrigged  = UnriggedIndustryJobs;
+        bool ready     = IndustryJobsReady;
+        bool outstanding = OutstandingContracts;
+        bool expiring  = ExpiringContracts;
+        bool piExtract = PiExtractors;
+        bool piStorage = PiStorage;
+        bool piInputs  = PiInputs;
+        bool piSlots   = PiFreeSlots;
+        bool mail      = UnreadMail;
+        bool stFuel    = StructureFuel;
+        int  stDays    = (int)Math.Clamp(StructureFuelDays, 1, 60);
+        bool stAttack  = StructureAttacked;
+        bool stMissing = StructureFitMissing;
+        bool stWrong   = StructureFitWrong;
+        bool stAmmo    = StructureAmmoLow;
+        int  stAmmoPct = (int)Math.Clamp(StructureAmmoPct, 1, 100);
+        bool stFighter = StructureFightersLow;
+        int  stFighterPct = (int)Math.Clamp(StructureFightersPct, 1, 100);
+        bool denAnarchy = DenAnarchy;
+        int  denLevel   = (int)Math.Clamp(DenAnarchyLevel, 0, 4);
+        bool denAttack  = DenAttacked;
+        bool denMto     = DenNewMto;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+            // "PiStaleData" is retired (see AlertSettings) but still NOT NULL, so a first save names it.
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO "AlertSettings"
                     ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
-                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData")
+                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData","UnreadMail",
+                     "StructureFuel","StructureFuelDays","StructureAttacked","StructureFitMissing","StructureFitWrong",
+                     "StructureAmmoLow","StructureAmmoPct","StructureFightersLow","StructureFightersPct",
+                     "DenAnarchy","DenAnarchyLevel","DenAttacked","DenNewMto")
                 VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
-                        {piExtract},{piStorage},{piInputs},{piSlots},{piStale})
+                        {piExtract},{piStorage},{piInputs},{piSlots},{false},{mail},
+                        {stFuel},{stDays},{stAttack},{stMissing},{stWrong},{stAmmo},{stAmmoPct},{stFighter},{stFighterPct},
+                        {denAnarchy},{denLevel},{denAttack},{denMto})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -207,7 +284,20 @@ public class AlertSettingsViewModel : ReactiveObject
                     "PiStorage"                   = excluded."PiStorage",
                     "PiInputs"                    = excluded."PiInputs",
                     "PiFreeSlots"                 = excluded."PiFreeSlots",
-                    "PiStaleData"                 = excluded."PiStaleData"
+                    "UnreadMail"                  = excluded."UnreadMail",
+                    "StructureFuel"               = excluded."StructureFuel",
+                    "StructureFuelDays"           = excluded."StructureFuelDays",
+                    "StructureAttacked"           = excluded."StructureAttacked",
+                    "StructureFitMissing"         = excluded."StructureFitMissing",
+                    "StructureFitWrong"           = excluded."StructureFitWrong",
+                    "StructureAmmoLow"            = excluded."StructureAmmoLow",
+                    "StructureAmmoPct"            = excluded."StructureAmmoPct",
+                    "StructureFightersLow"        = excluded."StructureFightersLow",
+                    "StructureFightersPct"        = excluded."StructureFightersPct",
+                    "DenAnarchy"                  = excluded."DenAnarchy",
+                    "DenAnarchyLevel"             = excluded."DenAnarchyLevel",
+                    "DenAttacked"                 = excluded."DenAttacked",
+                    "DenNewMto"                   = excluded."DenNewMto"
                 """).ConfigureAwait(false);
         });
 

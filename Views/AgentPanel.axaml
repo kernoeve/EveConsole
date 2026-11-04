@@ -123,8 +123,8 @@
                         BorderBrush="{Binding IsSummary, Converter={StaticResource SummaryBorder}}"
                         BorderThickness="1">
                   <!-- Selectable, so a figure or a name the agent produced can be copied out
-                       rather than retyped. -->
-                  <SelectableTextBlock Text="{Binding Content}"
+                       rather than retyped. Web addresses in it are links. -->
+                  <SelectableTextBlock views:LinkText.Text="{Binding Content}"
                                        TextWrapping="Wrap"
                                        Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
                                        FontSize="11"
@@ -201,7 +201,6 @@
                  CornerRadius="6"
                  FontSize="11"
                  Padding="8 6"
-                 IsEnabled="{Binding !IsBusy}"
                  KeyDown="OnInputKeyDown"/>
 
         <!-- Mic button — click to start recording, click again to stop + transcribe -->
@@ -214,7 +213,6 @@
                 CornerRadius="6"
                 FontSize="13"
                 Padding="8 5"
-                IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasSpeechInput}"
                 ToolTip.Tip="{x:Static loc:AgentText.TipHoldToTalkRelease}">
           <Panel>

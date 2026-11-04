@@ -38,6 +38,9 @@ public enum WorklistReadiness
 /// </summary>
 public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
 
+/// <summary>What stops a task now, which is what the summary at the top of the list divides by.</summary>
+public enum WorklistStop { None, NoSlot, NotDue, Materials, PrintsInUse, NoPrintHere, Other }
+
 /// <summary>
 /// One item on a task that moves or acquires several things at once.
 ///
@@ -57,7 +60,11 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 /// <param name="Wanted">How many the job needed in total, which is what makes a shortfall
 /// legible: three short of four is a different situation from three short of thirty thousand.</param>
 public sealed record WorklistShortage(
-    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy);
+    int TypeId, string TypeName, long Short, long Wanted, bool MustBuy)
+{
+    /// <summary>A print short here is a copy bought by the run: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+}
 
 /// <summary>
 /// One stopped job that is waiting on something a haul is carrying.
@@ -68,19 +75,22 @@ public sealed record WorklistShortage(
 /// kept disproving.</param>
 /// <param name="StillShortOf">What it would go on waiting for once this haul lands, not counting
 /// anything the haul is carrying. Empty when the only thing in its way is the queue.</param>
-/// <param name="QueuedBehind">⚠️ It wants something ON this manifest and still will not start:
-/// an earlier job has already claimed that stock, and this crate came out of the same pile. A
-/// different fact from being short of something else, and the row has to say which or the reader
-/// goes looking for a missing item that is right there on the list.</param>
 /// <param name="WithOtherLoops">Not started by this loop alone, but by it and the other pilots'
 /// loops in the same system together: what it lacks here, one of them drops.</param>
 /// <param name="ByLoop">Judged against an in-system loop's whole run — everything every stop puts
 /// down — so it starts when the loop is done rather than when one load lands.</param>
+/// <param name="Missing">On a planned build: what its station would still lack of each thing the
+/// build needs there once this cargo is down, this cargo's own items included where the drop does
+/// not cover them — how many, and their m³.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
-    bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
-    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false)
+    bool Unblocked, IReadOnlyList<string> StillShortOf,
+    long WantsUnits = 0, bool WithOtherLoops = false, bool ByLoop = false,
+    IReadOnlyList<WorklistLine>? Missing = null, PrintKind Print = PrintKind.None,
+    long Units = 0, bool ThenNoSlot = false, bool ThenNoPrint = false)
 {
+    public IReadOnlyList<WorklistLine> MissingLines => Missing ?? [];
+
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
@@ -92,12 +102,26 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
+        ThenNoSlot                ? WorklistText.WaitThenNoSlot
+        : ThenNoPrint             ? WorklistText.WaitThenNoPrint
+        : Unblocked               ? (ByLoop ? WorklistText.WaitStartsAfterLoop : WorklistText.WaitStartsOnArrival)
         : WithOtherLoops          ? WorklistText.WaitStartsWithOtherLoop
-        : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
-        : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
-        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
-                         StillShortOf.Count);
+        // ⚠️ How many different things it still lacks, not how many units it wants. "Wants 14,938"
+        // added up everything on the trip it asked for, minerals and parts alike, and said nothing
+        // about whether the drop is the last thing it is waiting on.
+        : IsPlanned               ? (MissingLines.Count == 0
+                                        ? WorklistText.WaitNothingElseMissing
+                                        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
+                                                         MissingLines.Count))
+        // Counted off the same list the tooltip on it shows, this cargo's items included where
+        // the drop does not cover them: "also short of" left those out of the count.
+        //
+        // ⚠️ Never "queued behind another job". A job's shortages are already what is left once
+        // the jobs planned before it have taken their share, so what it lacks can always be named
+        // — and the label went on any job with nothing recorded, an Avatar waiting on a dozen
+        // parts included, with nothing queued about it.
+        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitNeedsMoreOther),
+                         Math.Max(MissingLines.Count, StillShortOf.Count));
 
     /// <summary>
     /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the
@@ -110,12 +134,11 @@ public sealed record WorklistWaitingJob(
     public string StatusTip =>
         IsPlanned ? WorklistText.WaitTipPlanned
         : Unblocked ? (ByLoop ? WorklistText.WaitTipStartsAfterLoop : WorklistText.WaitTipStarts)
-        : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
         : (StillShortOf.Count > 6
               ? string.Format(WorklistText.WaitTipStillShortMore,
                               string.Join(CommonText.ListSeparator, StillShortOf.Take(6)), StillShortOf.Count - 6)
               : string.Format(WorklistText.WaitTipStillShort, string.Join(CommonText.ListSeparator, StillShortOf)))
-          + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
+          ;
 
     public Avalonia.Media.IBrush StatusColor =>
         Unblocked      ? EveConsole.Services.Palette.Good
@@ -123,8 +146,28 @@ public sealed record WorklistWaitingJob(
         :                  EveConsole.Services.Palette.TextFaint;
 }
 
+/// <summary>Output of a finished job: what, how much, and the facility it lands in.</summary>
+public sealed record WorklistDelivered(long Site, int TypeId, long Units);
+
+/// <summary>One material a stopped job wants: how much for the whole row, and how much is at its
+/// site after the jobs that can really start.</summary>
+public sealed record WorklistBillLine(int TypeId, string TypeName, long Wanted, long Here)
+{
+    public PrintKind Print { get; init; }
+}
+
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
+    /// <summary>Where this line is and who has it, when its task is on no one station or pilot: a
+    /// delivery's output.</summary>
+    public string Place { get; init; } = "";
+
+    /// <summary>Which contract of a courier trip this goes in, from one. Zero on anything else.</summary>
+    public int Contract { get; init; }
+
+    /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     public double Volume { get; init; }
     public double Value  { get; init; }
 
@@ -155,6 +198,9 @@ public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 public sealed record WorklistStopLine(int TypeId, string TypeName, long Quantity, double Volume,
                                       long OtherId, string OtherName)
 {
+    /// <summary>A blueprint's kind, for its picture and its name's suffix: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     /// <summary>What it is worth, at the prices the rest of the list uses; 0 when unpriced.</summary>
     public double Value { get; init; }
 
@@ -197,12 +243,21 @@ public sealed record WorklistItem
     public required string Title  { get; init; }
 
     /// <summary>The specifics — quantity, price, how far off it is.</summary>
-    public string Detail { get; init; } = "";
+    public string Detail { get => ItemRef.Plain(_detail); init => _detail = value; }
+    private readonly string _detail = "";
+
+    /// <summary><see cref="Detail"/> with the items its writer marked (see <see cref="ItemRef"/>),
+    /// for the tooltip, and for a pass adding to it, which must not lose them.</summary>
+    public string MarkedDetail => _detail;
 
     public WorklistReadiness Readiness { get; init; } = WorklistReadiness.Ready;
 
     /// <summary>What is in the way. Only meaningful when not <see cref="WorklistReadiness.Ready"/>.</summary>
-    public string BlockedBy { get; init; } = "";
+    public string BlockedBy { get => ItemRef.Plain(_blockedBy); init => _blockedBy = value; }
+    private readonly string _blockedBy = "";
+
+    /// <summary><see cref="BlockedBy"/> with its items marked: see <see cref="MarkedDetail"/>.</summary>
+    public string MarkedBlockedBy => _blockedBy;
 
     /// <summary>
     /// Blocked specifically because no blueprint is free — not for want of material, a character,
@@ -216,6 +271,22 @@ public sealed record WorklistItem
     public bool BlockedByPrint { get; init; }
 
     /// <summary>
+    /// Of those, no usable print at the site at all, rather than every one there in use: one is
+    /// answered by moving or buying a print, the other only by waiting or owning more.
+    /// </summary>
+    public bool PrintMissing { get; init; }
+
+    /// <summary>What stops this now. A wait with no slot pool is a wait for a time, not a slot.</summary>
+    public WorklistStop Stop => Readiness switch
+    {
+        WorklistReadiness.Ready   => WorklistStop.None,
+        WorklistReadiness.Waiting => Pool is null ? WorklistStop.NotDue : WorklistStop.NoSlot,
+        _ => BlockedByPrint       ? PrintMissing ? WorklistStop.NoPrintHere : WorklistStop.PrintsInUse
+           : Shortages.Count > 0  ? WorklistStop.Materials
+           :                        WorklistStop.Other,
+    };
+
+    /// <summary>
     /// What this job is short of, itemised.
     ///
     /// <para>⚠️ Structured rather than read back out of <see cref="BlockedBy"/>. The generator
@@ -224,6 +295,28 @@ public sealed record WorklistItem
     /// wanted the detail had to parse prose or go without.</para>
     /// </summary>
     public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
+
+    /// <summary>Runs on a job row.</summary>
+    public int Runs { get; init; }
+
+    /// <summary>
+    /// Everything a job stopped for materials wants, short or not, for working out how many of its
+    /// runs a load would start: see <see cref="ArrivalPlan"/>.
+    /// </summary>
+    public IReadOnlyList<WorklistBillLine> Bill { get; init; } = [];
+
+    /// <summary>A slot and a print were there for this job when it was planned: only its materials
+    /// stop it.</summary>
+    public bool HasSlot { get; init; }
+
+    /// <summary>With its materials here it would still want a print, there being a slot for it.</summary>
+    public bool ThenNeedsPrint { get; init; }
+
+    /// <summary>
+    /// Where a haul's cargo ends up, which is not always where the trip stops: cargo landed at a
+    /// staging station is still for the jobs past it. Empty means <see cref="Deliveries"/>.
+    /// </summary>
+    public IReadOnlyList<WorklistDelivered> Landings { get; init; } = [];
 
     /// <summary>
     /// The stopped jobs waiting on something this haul carries, and whether it finishes their wait.
@@ -345,6 +438,10 @@ public sealed record WorklistItem
     /// Empty for tasks about a single item, and the row then has nothing to expand.</para>
     /// </summary>
     public IReadOnlyList<WorklistLine> Lines { get; init; } = [];
+
+    /// <summary>What a delivery of finished jobs hands over, and where: what it makes available to a
+    /// job waiting there, which a task on no station cannot say through its own location.</summary>
+    public IReadOnlyList<WorklistDelivered> Delivers { get; init; } = [];
 
     /// <summary>
     /// Total m³ of what this task moves or buys. Filled by the service rather than by generators,
@@ -476,6 +573,13 @@ public sealed record WorklistItem
     /// one. Set where the generator knows; a blueprint it did not is caught by the row falling back.
     /// </summary>
     public string? TypeImage { get; init; }
+
+    /// <summary>
+    /// What the row's item is when it is a blueprint: a copy or an original, which decides its
+    /// picture and its name's suffix (see <see cref="PrintLabel"/>). None for anything else, and
+    /// for a reaction formula, always an original.
+    /// </summary>
+    public PrintKind Print { get; init; }
 }
 
 /// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>

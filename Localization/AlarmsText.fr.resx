@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Ignorer</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Acquitter — arrêter le son</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Retirer</value>
   </data>
@@ -138,6 +135,12 @@
   </data>
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Sélectionnez une alarme, ou créez-en une.</value>
+  </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarme sélectionnée. Exporter n'enregistre que celle-ci ; sélectionnez-en une seule pour la modifier.</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarmes sélectionnées. Exporter n'enregistre que celles-ci ; sélectionnez-en une seule pour la modifier.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Enregistrer</value>
@@ -361,6 +364,153 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>Graphique d'extraction minière de la corporation</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Opportunités industrielles</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Opportunités industrielles</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>Prix à</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>Vol. ISK min. 30 j</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>Vol. unités min. 30 j</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>Marge min. %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>Marge min. % 30 j</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>Exclure des groupes</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>Inclure des groupes</value>
+  </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>Méta-groupes</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>La section {0} ({1}) a besoin d'au moins un méta-groupe coché.</value>
+  </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Comparaison de parcs industriels</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>Indice des systèmes</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Comparaison de parcs industriels</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>Indice des systèmes</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Synthèse par travail (image)</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Synthèse par parc (image)</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>Graphique des coûts (image)</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>Graphique des durées (image)</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Synthèse par travail (tableau)</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Synthèse par parc (tableau)</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Chaque travail dans chaque parc (tableau)</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Synthèse par travail</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Synthèse par parc</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Chaque travail dans chaque parc</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Indices du jour (tableau)</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>Graphique {0} (image)</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>Parcs</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>Travaux</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>Publier</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>Systèmes</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Calculé au moment de la publication, aux prix et indices de ce jour, compétences au niveau V. Rien n'est repris de l'onglet Comparer.</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Chaque graphique est publié avec sa propre légende. Rien n'est repris de la liste de l'outil Indice des systèmes.</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>Cette destination est un webhook Slack, qui ne peut pas transmettre d'image : les images de cette section seront omises et seuls ses tableaux publiés. Un canal Slack ou un webhook Discord les transmet.</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>La section {0} ({1}) doit avoir au moins un travail.</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>La section {0} ({1}) doit avoir au moins un parc coché.</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>La section {0} ({1}) doit avoir au moins un système.</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>La section {0} ({1}) doit avoir quelque chose à publier.</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>Colonnes</value>
+  </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Ajouter la colonne</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>L'en-tête que cette colonne affiche dans la publication. Laissez-le tel quel, ou vide, pour garder celui de la colonne.</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>L'objet est toujours la première colonne. Un en-tête laissé tel quel suit la langue de l'interface ; écrivez par-dessus pour le renommer.</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>Trier par</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Du plus grand au plus petit</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Du plus petit au plus grand</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>Lignes</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>Toutes</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Calculé à l'envoi de la publication, à partir des coûts de fabrication et des prix du marché disponibles à ce moment-là. Tout se règle ici : les choix propres à l'outil Opportunités industrielles ne sont pas utilisés.</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>Texte</value>
   </data>
@@ -417,6 +567,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>Graphique d'extraction minière de la corporation</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Opportunités industrielles</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>À intervalles réguliers</value>
@@ -555,6 +708,54 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>La section {0} ({1}) nécessite une annonce.</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>La section {0} ({1}) a besoin d'un marché où établir les prix.</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Section {0} ({1}) : {2} accepte un nombre supérieur ou égal à 0, ou rien.</value>
+  </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Exporter les tâches planifiées</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Importer des tâches planifiées</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Enregistre toutes les tâches dans un fichier JSON.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Ajoute les tâches d'un export JSON comme nouvelles tâches, désactivées jusqu'à ce que vous les ayez vérifiées. Rien n'est remplacé ; une tâche déjà présente est ignorée.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Tâches exportées : {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Tâches importées : {0}, désactivées jusqu'à ce que vous les ayez vérifiées. Déjà présentes, ignorées : {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>Ce fichier n'est pas un export de tâches planifiées.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Exporter les alarmes</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Importer des alarmes</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Enregistre les alarmes sélectionnées et leurs actions dans un fichier JSON — toutes les alarmes si aucune n'est sélectionnée. Ctrl ou Maj pour en sélectionner plusieurs.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Ajoute les alarmes d'un export JSON comme nouvelles alarmes, avec leurs actions. Rien n'est remplacé ; une alarme déjà présente est ignorée.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Alarmes exportées : {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Alarmes importées : {0}. Déjà présentes, ignorées : {1}. Vérifications que cette version ne connaît pas, ignorées : {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>Ce fichier n'est pas un export d'alarmes.</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>La section {0} ({1}) nécessite au moins une liste.</value>
@@ -706,6 +907,9 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Le son se répète jusqu'à ce que vous l'acquittiez.</value>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>L'appel continue jusqu'à ce que vous répondiez, ici ou dans le chat de l'agent.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Choisir un son d'alarme</value>
   </data>
@@ -737,10 +941,10 @@
     <value>Se déclenche quand l'un de vos personnages appareille. Éventuellement seulement depuis certaines stations, structures, certains systèmes ou certaines régions, seulement avec certaines coques ou classes de vaisseaux, et seulement dans un état donné — équipé ou non, carburant de saut inférieur ou non à une valeur, munitions inférieures ou non à une valeur. Chaque filtre restreint : deux alarmes peuvent donc couvrir des appareillages différents plutôt que deux fois le même. L'appareillage est détecté par la collecte de l'emplacement en une dizaine de secondes ; ce qui se trouvait à bord est évalué d'après le dernier instantané des biens, qu'ESI actualise toutes les heures, et chaque correspondance indique l'âge de cet instantané.</value>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Trop longtemps dans l'espace (réveil)</value>
+    <value>Trop longtemps dans l'espace</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Vous réveille. Se déclenche en trois étapes au plus quand l'un de vos personnages, dans une coque ou une classe de vaisseau indiquée, appareille et se trouve toujours dans le même système après un certain nombre de secondes — un transport de fret ou un transport de fret hyperspatial arrimé pendant que son pilote s'assoupit. Ou, si les arrivées par saut sont cochées, quand une coque capable de sauter est arrivée par propulseur hyperspatial ou par pont et se trouve toujours dans l'espace — les trente secondes qui suivent un saut. S'amarrer, quitter le système ou se déconnecter y met fin. Appuyer sur le bouton de la boîte de dialogue, ou répondre quoi que ce soit à l'assistant, la fait taire un moment ; quand ce délai expire et que le vaisseau est toujours là, les étapes recommencent. Chaque étape a ses propres actions — TTS direct ou l'assistant pour prononcer la phrase de l'étape, une boîte de dialogue, un son qui se répète jusqu'à l'acquittement. La répétition et le délai de réarmement ne s'appliquent pas.</value>
+    <value>Se déclenche en trois étapes au plus quand l'un de vos personnages, dans une coque ou une classe de vaisseau indiquée, appareille et se trouve toujours dans le même système après un certain nombre de secondes — un transport de fret ou un transport de fret hyperspatial arrimé pendant que son pilote s'assoupit. Ou, si les arrivées par saut sont cochées, quand une coque capable de sauter est arrivée par propulseur hyperspatial ou par pont et se trouve toujours dans l'espace — les trente secondes qui suivent un saut. S'amarrer, quitter le système ou se déconnecter y met fin. Appuyer sur le bouton de la boîte de dialogue, ou écrire ou parler dans le chat de l'assistant, la fait taire un moment ; quand ce délai expire et que le vaisseau est toujours là, les étapes recommencent. Écrire ou parler là avant qu'une étape soit due relance plutôt son chronomètre. Chaque étape a ses propres actions — TTS direct ou l'assistant pour prononcer la phrase de l'étape, une boîte de dialogue, un son qui se répète jusqu'à l'acquittement. La répétition et le délai de réarmement ne s'appliquent pas.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>Événements des commandes de boutique</value>
@@ -872,7 +1076,7 @@
     <value>Silence après un acquittement</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>Durée pendant laquelle une réponse ou le bouton de la boîte de dialogue fait taire l'alarme tant que le vaisseau reste dans l'espace — assez longtemps pour attendre un pont de titan. Ensuite, les étapes recommencent.</value>
+    <value>Durée pendant laquelle le bouton de la boîte de dialogue, ou écrire ou parler dans le chat de l'assistant, fait taire l'alarme tant que le vaisseau reste dans l'espace — assez longtemps pour attendre un pont de titan. Ensuite, les étapes recommencent.</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>minutes</value>
@@ -1091,19 +1295,19 @@
     <value>peu de munitions</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Réveillez-vous, {0}</value>
+    <value>Trop longtemps hors station</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Le vaisseau de {0} ({1}) est arrivé à {2} il y a {3} et ne s'est pas amarré. Appuyez sur « Je suis là » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
+    <value>Le vaisseau de {0} ({1}) est arrivé à {2} il y a {3} et ne s'est pas amarré. Appuyez sur « Confirmer » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Le vaisseau de {0} ({1}) est dans l'espace à {2} depuis {3} et ne s'est pas amarré. Appuyez sur « Je suis là » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
+    <value>Le vaisseau de {0} ({1}) est dans l'espace à {2} depuis {3} et ne s'est pas amarré. Appuyez sur « Confirmer » pour faire taire cette alarme pendant {4} minutes tant que le vaisseau reste dehors.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, le vaisseau de {1} ({2}) est arrivé à {3} il y a {4} et n'est pas encore amarré. Tout va bien ?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Réveillez-vous, {0}. Le vaisseau de {1} ({2}) est toujours dans l'espace à {3}, {4} après son arrivée. Amarrez-vous maintenant.</value>
+    <value>{0}, le vaisseau de {1} ({2}) est toujours dans l'espace à {3}, {4} après son arrivée. Confirmez que tout va bien, s'il vous plaît.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0} ! Le vaisseau de {1} ({2}) est immobile à {3} depuis son arrivée, il y a {4}. Amarrez-vous maintenant !</value>
@@ -1112,10 +1316,10 @@
     <value>{0}, le vaisseau de {1} ({2}) est dans l'espace à {3} depuis {4}. Tout va bien ?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Réveillez-vous, {0}. Le vaisseau de {1} ({2}) a appareillé à {3} il y a {4} et n'est toujours pas amarré. Amarrez-vous, ou répondez-moi.</value>
+    <value>{0}, le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Confirmez que tout va bien, s'il vous plaît.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0} ! Le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Réveillez-vous et amarrez-vous maintenant.</value>
+    <value>{0} ! Le vaisseau de {1} ({2}) est toujours dans l'espace à {3} après {4}. Amarrez-vous maintenant.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>capsule</value>
@@ -1264,29 +1468,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Carillon — doux</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Carillon — verre</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Cloche — cristal</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Carillon — marimba</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Carillon — triade</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Carillon — vibraphone</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — verre</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — clair</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Cloche — laiton</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Cloche — à main</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Cloche — de comptoir</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Cloche — grave</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Cloche — lourde</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — grave</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — science-fiction</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alerte — double</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Alerte — blips</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Alerte — bips</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarme — urgente</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarme — postes de combat</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Avertissement — deux tons</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Avertissement — deux tons doux</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Avertissement — klaxon</value>
@@ -1296,6 +1539,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Avertissement — sirène</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Avertissement — sirène rapide</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Avertissement — corne</value>
@@ -1318,8 +1564,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Échec de la lecture : {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Je suis là</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Confirmer</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(L'assistant n'est pas configuré : ceci a donc été enregistré comme alerte.)</value>

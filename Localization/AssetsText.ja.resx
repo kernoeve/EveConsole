@@ -142,6 +142,78 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>アイテムブラウザで開く</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>名前をコピー</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>名前をコピー</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>{0} をコピーしました</value>
+  </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>閲覧</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>クイックバー</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>まだ何もありません。「閲覧」または検索結果でアイテムを右クリックするか、アイテム名の横のクイックバーボタンを使うと、ここに保存できます。ここを右クリックすると新しいフォルダーを作成できます。</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ クイックバーに追加</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ クイックバーにあり</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>このアイテムをクイックバーに保存します。クイックバーはこのデータベースを使うすべてのアプリで共有されます。</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>このアイテムをクイックバーから外します。</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>最上位</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>クイックバーに追加</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>クイックバーから削除</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>フォルダーへ移動</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>新しいフォルダー…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>フォルダー名を変更…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>フォルダーを削除（中身は一つ上へ）</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>新しいクイックバーフォルダー</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>クイックバーフォルダー名の変更</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>フォルダー名</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} をクイックバーに追加しました</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} はすでにクイックバーにあります</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} をクイックバーから削除しました</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>装備からアイテムを追加</value>
   </data>
@@ -211,14 +283,38 @@
   <data name="ColContracts" xml:space="preserve">
     <value>購入契約</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>マーケット価格</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>マーケット価格（目標）</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>製造価格</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>マーケット価格（在庫）</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>体積（m³）</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>マーケット価格（差分）</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>製造価格（差分）</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>体積 - 目標</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>体積 - 在庫</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>体積 - 差分</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>不足 {0}件</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…ほか{0}件</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>アイテムを追加…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>操作</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>在庫レベル</value>
@@ -243,6 +339,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>製造コスト：</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>1回あたり {0}</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>再処理価値：</value>
@@ -381,6 +480,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>マーケット注文</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>このアイテムをどちらかの側に含むアイテム交換 {0:N0} 件。単価は、そのアイテムが片側の唯一の品で、反対側がISKのみの場合に限り表示します。コピーは1回分あたりの価格です。</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>過去の契約：最新の {0:N0} 件のみ。</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>このフィルターに合い、このアイテムを含むアイテム交換はありません。公開契約は契約ツールによる全リージョンの取得から得られます。</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>側</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>要求</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>設計図</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>コピー ME{0} TE{1}、{2} 回分</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>原本 ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>単価 / 1回分</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>契約のその他</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>提供：{0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>要求：{0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>その他なし</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>契約：{0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>ソース：</value>
@@ -810,6 +960,9 @@ Warrior II 5
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>再処理価値</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>再処理後のリストの内容です。アプリの収率で計算し、このステーションの価格で評価します。再処理できないものはそのまま残り、残りとして表示されます。</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>クリップボードにアイテム名がないため、リストはそのままです。「リストを編集」ではどんなテキストでも入力できます。</value>
@@ -1266,6 +1419,42 @@ Warrior II 5
   </data>
   <data name="DivisionNumbered" xml:space="preserve">
     <value>部門{0}</value>
+  </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>すべて展開</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>すべて折りたたむ</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} 件</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>タイプ {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>配達物</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0}（{1}）</value>
   </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>生産ジョブ</value>

@@ -1,0 +1,172 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.MercenaryDensView"
+             x:DataType="vm:MercenaryDensViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="DataGridCell"><Setter Property="Padding" Value="4 0" /></Style>
+
+    <!-- A section of the detail panel: a header strip over a panel. -->
+    <Style Selector="Border.section">
+      <Setter Property="Background"      Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius"    Value="4" />
+      <Setter Property="ClipToBounds"    Value="True" />
+    </Style>
+    <Style Selector="Border.sectionHead">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Padding"    Value="10 5" />
+    </Style>
+    <Style Selector="TextBlock.sectionTitle">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontSize"     Value="11" />
+      <Setter Property="Foreground"   Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.note">
+      <Setter Property="FontSize"     Value="10" />
+      <Setter Property="Foreground"   Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <!-- After .value: of two styles alike the later one wins. -->
+    <Style Selector="TextBlock.soon">     <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="TextBlock.critical"> <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                                          <Setter Property="FontWeight" Value="SemiBold" /></Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Summary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding Status}"  FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+        </StackPanel>
+        <Button Grid.Column="1" Command="{Binding RefreshCommand}" Content="{x:Static loc:CorpText.Refresh}"
+                Padding="12 4" FontSize="11" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,5,400">
+
+      <!-- ── The dens ─────────────────────────────────────────────── -->
+      <!-- Fixed widths: a fill column pushes the ones after it off the grid. Templated columns
+           name their clipboard text — they copy blank otherwise. -->
+      <DataGrid Grid.Column="0" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+                IsVisible="{Binding HasRows}" AutoGenerateColumns="False" IsReadOnly="True"
+                RowHeight="26" CanUserReorderColumns="False" SelectionMode="Single"
+                Background="{DynamicResource SurfaceBaseBrush}">
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Width="30" CanUserSort="False" ClipboardContentBinding="{Binding Info.TypeName}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:MercenaryDenRowVm">
+                <Image Source="{Binding Icon}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColOwner}"       Binding="{Binding Owner}"       Width="150" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColPlanet}"      Binding="{Binding Planet}"      Width="150" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColSystem}"       Binding="{Binding Location}"    Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRegion}"       Binding="{Binding Region}"      Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColSkyhookOwner}" Binding="{Binding SkyhookCorp}" Width="170" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColState}"        Binding="{Binding StateText}"   Width="80" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColInfomorphs}"  Binding="{Binding Infomorphs}"  Width="90"
+                              SortMemberPath="InfomorphsSort" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColPerHour}"     Binding="{Binding PerHour}"     Width="80"
+                              SortMemberPath="PerHourSort" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColDevelopment}" Binding="{Binding Development}" Width="95"
+                              SortMemberPath="DevelopmentSort" CellStyleClasses="num" />
+          <!-- Anarchy: red at or above the level the alert is raised at. -->
+          <DataGridTemplateColumn Header="{x:Static loc:CorpText.DenColAnarchy}" Width="85"
+                                  SortMemberPath="AnarchySort" ClipboardContentBinding="{Binding Anarchy}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:MercenaryDenRowVm">
+                <TextBlock Text="{Binding Anarchy}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 4 0"
+                           Classes.critical="{Binding AnarchyHigh}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsReinforcedUntil}" Binding="{Binding Reinforced}"  Width="170" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.DenColOperations}"  Binding="{Binding Operations}"  Width="80"
+                              CellStyleClasses="num" />
+        </DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.DenNone}" IsVisible="{Binding !HasRows}"
+                 FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="460" />
+
+      <GridSplitter Grid.Column="1" Background="{DynamicResource BorderSubtleBrush}" ResizeDirection="Columns" />
+
+      <!-- ── The chosen den ───────────────────────────────────────── -->
+      <ScrollViewer Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}">
+        <StackPanel Margin="12" Spacing="10" IsVisible="{Binding HasDetail}">
+          <StackPanel Spacing="3">
+            <SelectableTextBlock Text="{Binding DetailTitle}" FontSize="15" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextBrightBrush}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding DetailSubtitle}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          </StackPanel>
+
+          <Border Classes="section">
+            <StackPanel>
+              <Border Classes="sectionHead"><TextBlock Classes="sectionTitle" Text="{x:Static loc:CorpText.DenSectionDen}" /></Border>
+              <ItemsControl ItemsSource="{Binding DetailFields}" Margin="10 6">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CorpStructureField">
+                    <Grid ColumnDefinitions="140,*" Margin="0 2">
+                      <TextBlock Grid.Column="0" Classes="label" Text="{Binding Label}" />
+                      <TextBlock Grid.Column="1" Classes="value" Text="{Binding Value}"
+                                 Classes.soon="{Binding IsSoon}" Classes.critical="{Binding IsCritical}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="section">
+            <StackPanel>
+              <Border Classes="sectionHead"><TextBlock Classes="sectionTitle" Text="{x:Static loc:CorpText.DenSectionOperations}" /></Border>
+              <StackPanel Margin="10 6" Spacing="2">
+                <Grid ColumnDefinitions="90,*,110" IsVisible="{Binding HasOperations}">
+                  <TextBlock Grid.Column="0" Classes="note" Text="{x:Static loc:CorpText.CsColState}" />
+                  <TextBlock Grid.Column="1" Classes="note" Text="{x:Static loc:CorpText.DenColExpires}" />
+                  <TextBlock Grid.Column="2" Classes="note" Text="{x:Static loc:CorpText.DenColSeen}" HorizontalAlignment="Right" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding OperationRows}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MercenaryOperationRowVm">
+                      <Grid ColumnDefinitions="90,*,110" Margin="0 2">
+                        <TextBlock Grid.Column="0" Classes="value" Text="{Binding State}" />
+                        <TextBlock Grid.Column="1" Classes="value" Text="{Binding Expires}" />
+                        <TextBlock Grid.Column="2" Classes="value" Text="{Binding Seen}" HorizontalAlignment="Right" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Classes="note" Text="{x:Static loc:CorpText.DenNoOperations}" IsVisible="{Binding !HasOperations}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <TextBlock Classes="note" Text="{x:Static loc:CorpText.DenNote}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

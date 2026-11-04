@@ -91,14 +91,410 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>30日間の最低取引数量</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>勢力アイテムを除外</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>BPOに由来しないアイテムを除外</value>
   </data>
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>ブループリントが購入可能なBPOであるか、BPOから発明されるもの（T1 BPOからのT2など）のアイテムのみを対象にします。入手可能なBPOがない勢力・回数限定のBPCアイテム、ストーリーライン・士官・デッドスペースのアイテム、BPOをゲーム内で購入できなくなった「期間限定」イベントアイテムは除外されます。</value>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>所有している設計図のみ</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>そのアイテム自体の設計図（オリジナルまたはコピー）を、あなたのキャラクターまたは個人用に指定したコーポレーションが持っているアイテムのみ。次回の計算から適用されます。</value>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>最低利益率 %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>利益率（利益を製造コストで割ったもの、利益率の列）がこの割合以上のアイテムのみ。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>有効な最低利益率をパーセントで入力してください（空欄なら絞り込みなし）。</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>含めるグループ</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>選択すると、これらのマーケットグループとその下のグループのアイテムのみになります。除外グループはその中でも適用されます。次回の計算から適用されます。</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>このグループを削除</value>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30日間の最低利益率 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>30日間の平均価格での利益率（30日間の利益率の列）がこの割合以上のアイテムのみ。過去30日間に売れなかったアイテムは除外されます。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>有効な30日間の最低利益率をパーセントで入力してください（空欄なら絞り込みなし）。</value>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 売り注文なし：30日間の平均価格で算出。</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>メタグループ</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>チェックしたメタグループのアイテムのみ：テックレベルやアイテムの種類（テック I、テック II、勢力…）です。すべてチェックすると絞り込みなし。次回の計算から適用されます。</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>メタグループを少なくとも 1 つチェックしてください。</value>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>比較</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>比較するジョブ</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>追加するアイテムか設計図を入力…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>製造する数です。計画は必要なだけジョブを組みます。</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>そのアイテム自体の設計図の ME（0〜10）。部品は計算機の通常の ME を使います。</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>材料</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>ジョブ費用</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>余剰</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>合計は材料とジョブ費用の和から余剰を引いたものです。必要以上に作った部品は消費されずに残るため、生産計算機の純コストと同じ扱いです。</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>単価</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>最安との差</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>最安</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>ここでは製造しない</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>アイテムか設計図を追加し、それぞれの作業を選び、比較するパークにチェックを入れて計算します。</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>アイテムを少なくとも 1 つ追加してください。</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>パークを少なくとも 1 つチェックしてください。</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>計算中…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>アイテム：{0}  ·  パーク：{1}。費用は今日の価格と指数で計算し、下のグラフは過去の指数に従います。</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>全アイテムの合計</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>これらのパークの星系にはまだコスト指数の履歴がありません。</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>{0:yyyy-MM-dd} から {1:yyyy-MM-dd} までの日ごとの総費用：今日の計画・材料・税に、その日の星系コスト指数を当てたもの。</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>グラフは最初の {0} 件のみ描きます。表にはすべて表示されます。</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>発明</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME 研究</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE 研究</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>ラン</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>必要ラン</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>コピー数</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>目標 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>目標 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>コピー 1 枚あたりのラン数。</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>発明される設計図の必要ラン数。スキルをすべて V として、その数が見込めるだけの試行を作業リストと同じ方法で計画します。</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>コピーの枚数。</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>研究する目標 ME（1〜10）。ME 0 から始めます。</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>研究する目標 TE（2〜20%）。TE 0 から始めます。</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>デクリプターなし</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}（確率 {1:0.##}×、ラン {2:+0;-0;0}、ME {3:+0;-0;0}、TE {4:+0;-0;0}）</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} 枚 × {1} ランのコピー</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} 回の試行（成功率 {1:P1}）で {2} × {3} ランの BPC（ME {4}、TE {5}）；コピー {6} ラン；{7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>作業</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>時間はすべてのジョブの所要時間の合計です（順に実行した場合、スキルはすべて V）。</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>グラフの対象</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>各日の指数で計算したコスト</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>パークごとのジョブ時間</value>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>パーク</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>各ジョブの各パークでのコストと時間。それぞれそのジョブで最良のパークと比べます。</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>画像をコピー</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>コピーしました</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>画像としてコピーします。Discord、Slack、文書にそのまま貼り付けられます。</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>画像をコピーできませんでした: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>下へ移動</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>コスト</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>リアクション</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>インベンション</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME 研究</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE 研究</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>星系を追加</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>星系名を入力…</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>星系を追加するとコスト指数が表示されます。</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>星系：{0}。今日の指数を表示し、グラフは履歴を示します。</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>このアクティビティではこれらの星系の履歴がまだありません。</value>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>各グラフは 1 つのアクティビティの日ごとのコスト指数です（{0:yyyy-MM-dd}〜{1:yyyy-MM-dd}）。星系の横の点がその線の色です。</value>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>上のフィルターで再計算します。概要と詳細のタブは 1 回の計算を共有し、詳細タブ独自のフィルターは変更するとすぐに一覧を絞り込みます。</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>各一覧：その種類で過去 30 日に利益を出して売れたすべてのアイテムを利益の大きい順に表示。全メタグループが対象です。上のフィルターは適用され、詳細タブのものは適用されません。</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>過去 30 日、ここで利益を出して売れたものはありません。</value>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>生産計算機のキューを新規作成</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>生産計算機のキューに追加</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} 個のアイテムを生産キューに追加しました</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 個のアイテムは製造できないため追加しませんでした</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>過去 30 日の販売</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>平均価格</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>売上</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 艦船 — 大型・キャピタル</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 艦船 — 小型・中型</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 艦船 — 大型・キャピタル</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 艦船 — 小型・中型</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>弾薬とドローン</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>モジュール</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>リグとサブシステム</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>展開物</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>コンポーネント</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>ストラクチャーモジュールとリグ</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>テック I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>テック II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>テック III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>ストーリーライン</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>アビサル</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>ストラクチャー テック I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>ストラクチャー テック II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>ストラクチャー 勢力</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>なし（素材、部品など）</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>除外するグループ</value>
@@ -141,6 +537,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>30日間の販売額</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30日間の平均価格</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30日間の利益率</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30日間の利益</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>生産チャンスを検索中…</value>
@@ -1119,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1回あたりBPC 1個（ME{0}の契約価格）</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1回あたりBPC 1回分（発明コスト）：成功率 {0:P0}、成功1回で {1} 回分、{2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>試行1回 {0:N0} × {1:N0} 回 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>試行1回 {0:N0} ISK（データコア、デクリプター、T1コピー1回分、手数料）÷（成功率 {1:P1} × {2} 回分）＝ コピー1回分 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>余剰：{0:N1} 回分</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>発明の試行1回につきT1コピー1回分。原本から複製します。</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>成功した試行1回で得られる設計図コピー（デクリプター込み）。</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>産出：平均 {0:N1} 回分</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>成功1回：ME{0} TE{1}、{2} 回分</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>発明：成功率 {0:P0}、{1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>試行回数：{0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>中間製品</value>

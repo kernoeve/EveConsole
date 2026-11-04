@@ -712,6 +712,42 @@
     <value>Station best bid</value>
     <comment>Column header in StandingBuyOrdersView.</comment>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Best Bid / Value</value>
+    <comment>Standing Buy Orders: column header, the station's best bid as a percentage of the market value.</comment>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>What a unit is worth, as the app values assets: the asset-value market and price type in Settings → Market (the same figure as Net Worth).</value>
+    <comment>Standing Buy Orders: tooltip on the Market Value column.</comment>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>What a unit costs to build, from the app's build cost pass (the figure Industry Ops and the Production Calculator use). Empty for an item that is not built.</value>
+    <comment>Standing Buy Orders: tooltip on the Build Cost column.</comment>
+  </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Add to Standing Buy Orders…</value>
+    <comment>Item right-click menus in several tools: opens a new standing buy order on the item, for the station to be picked.</comment>
+  </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} item added to Standing Buy Orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders" from another tool. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} items added to Standing Buy Orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders" from another tool. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} item was already a standing buy order at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders": items already ordered there. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} items were already standing buy orders at {1}</value>
+    <comment>Message after "Add to Standing Buy Orders": items already ordered there. {0} is the count, {1} the station.</comment>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>The best bid at the station — ours or anyone's, whichever is higher — as a share of the market value. Over 100% means the station is paying more than the item is worth.</value>
+    <comment>Standing Buy Orders: tooltip on the Best Bid / Value column.</comment>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Remaining</value>
     <comment>Column header in StandingBuyOrdersView.</comment>
@@ -927,6 +963,10 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>Contract {0} is not stored on this side — it may be a public listing, or not yet polled.</value>
     <comment>Status line. {0} is a contract number.</comment>
+  </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Showing contract {0} only. Change any filter to see the rest.</value>
+    <comment>Public contracts: one contract opened from elsewhere; {0} contract id</comment>
   </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} +{1} more</value>

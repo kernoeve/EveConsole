@@ -680,6 +680,12 @@ public class BuildCostService
         // Keeping them separate means MaterialCost and JobCost in BuildCosts match what the
         // Production Calculator shows, rather than folding sub-component job fees into MaterialCost.
 
+        // The plan context, for the full-chain recompute at the end — and, here, for what an
+        // invented copy costs, which the pass below needs for its build-or-buy decision.
+        var calc = new ProductionCalculatorService(
+            scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
+        var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
+
         var unitCosts     = new Dictionary<int, decimal>();
         var rawMatCosts   = new Dictionary<int, decimal>(); // leaf-input market cost only
         var totalJobCosts = new Dictionary<int, decimal>(); // all job fees through the chain
@@ -806,6 +812,14 @@ public class BuildCostService
                     bpcRun = opts.OrderBy(o => Math.Abs(o.Me - defaultMe))
                                  .ThenBy(o => o.PerRun)
                                  .First().PerRun;
+
+                // …and an invented copy, which costs its invention. A contract override on the
+                // blueprint is the user's figure for it, as the calculator reads it too.
+                else if (!isReaction && planContext.InventionRecipes.ContainsKey(bpTypeId))
+                    bpcRun = overrides.TryGetValue(bpTypeId, out var bpOv) && bpOv.ContractValue is { } pinned
+                        ? pinned
+                        : ScienceCost.Invention(planContext, bpTypeId,
+                              t => marketPrices.TryGetValue(t, out var p) ? p : 0m)?.PerRun ?? 0m;
             }
 
             // Capture the recipe for the full-chain recompute (quantities rounded per whole job).
@@ -870,12 +884,9 @@ public class BuildCostService
         // ── Full-chain recompute ──────────────────────────────────────────────
         {
             // Cost every item through the Production Calculator itself, so the stored figure and
-            // what the calculator shows cannot drift apart. The context is loaded once — it is
+            // what the calculator shows cannot drift apart. The context (loaded once, above) is
             // the same for every item and is nearly all of a plan's cost, so paying it per item
             // would turn a minute into twenty.
-            var calc = new ProductionCalculatorService(
-                scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>());
-            var planContext = await calc.LoadContextAsync(defaultPark.Id, ct);
 
             // ⚠️ This is where the titan fix actually lands. The stored cost comes from the
             // calculator, not from the pass above, so telling the pass to include a BPC and not
@@ -1053,7 +1064,10 @@ public class BuildCostService
                             Quantity = outQ * BatchRuns(typeId),
                             MeLevel  = me,
                         }],
-                        planContext);
+                        planContext,
+                        // A T2 item's copy costs its invention, as a faction item's costs its
+                        // contract. See ScienceCost.Invention.
+                        inventionCost: true);
 
                     // Unclassified items no longer abort the plan, so they arrive as
                     // warnings instead of an exception. Still logged — a gap in the rig

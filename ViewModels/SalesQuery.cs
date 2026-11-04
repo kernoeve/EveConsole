@@ -195,10 +195,28 @@ internal static class SalesQuery
                 m.LocationId, m.IsStation > 0, m.BuyerId, BuyerKind(m.BuyerId)));
         }
 
+        // CCP's adjusted prices: the last word on what an item is worth when no snapshot has one.
+        var adjusted = await db.EsiAdjustedPrices.AsNoTracking().Where(p => typeIds.Contains(p.TypeId))
+            .ToDictionaryAsync(p => p.TypeId, p => p.AdjustedPrice);
+
+        // What one line of a contract is worth, only to decide which item the contract is named
+        // after: market value, else build cost, else the adjusted price.
+        double Worth(ContractItemDto i, DateTimeOffset when)
+        {
+            var (bu, mv) = Snap(i.TypeId, when);
+            var unit = mv ?? bu ?? (adjusted.TryGetValue(i.TypeId, out var a) ? a : 0);
+            return unit * i.Quantity;
+        }
+
         foreach (var c in contracts)
         {
             var when = ParseDate(c.DateStr);
-            var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
+            // ⚠️ The most valuable item leads. Its name heads the row ("Avatar +3 more items"), and
+            // its type and market group are the ones the Sales Tracker files the whole sale under.
+            // It used to be whichever item the database returned first, so a titan sold with its
+            // rigs went down as a rig sale.
+            var its  = itemsByContract.TryGetValue(c.SaleId, out var list)
+                ? list.OrderByDescending(i => Worth(i, when)).ThenBy(i => i.TypeId).ToList() : [];
             string namesText, units;
             if (its.Count == 0)      { namesText = SalesText.NoItems; units = ""; }
             else if (its.Count == 1) { namesText = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }

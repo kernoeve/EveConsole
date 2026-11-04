@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Закрыть</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Подтвердить — выключить звук</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Убрать</value>
   </data>
@@ -138,6 +135,18 @@
   </data>
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Выберите тревогу или создайте новую.</value>
+  </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>Выбран {0} сигнал. Экспорт сохранит только его; чтобы изменить, выберите один.</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>Выбрано {0} сигнала. Экспорт сохранит только их; чтобы изменить, выберите один.</value>
+  </data>
+  <data name="AlarmsSelectedFew" xml:space="preserve">
+    <value>Выбрано {0} сигнала. Экспорт сохранит только их; чтобы изменить, выберите один.</value>
+  </data>
+  <data name="AlarmsSelectedMany" xml:space="preserve">
+    <value>Выбрано {0} сигналов. Экспорт сохранит только их; чтобы изменить, выберите один.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранить</value>
@@ -361,6 +370,153 @@
   <data name="HeadingMiningChart" xml:space="preserve">
     <value>График добычи корпорации</value>
   </data>
+  <data name="HeadingIndustryOpps" xml:space="preserve">
+    <value>Возможности производства</value>
+  </data>
+  <data name="OppsDefaultTitle" xml:space="preserve">
+    <value>Возможности производства</value>
+  </data>
+  <data name="OppsModeLabel" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="OppsPriceAtLabel" xml:space="preserve">
+    <value>Цены по</value>
+  </data>
+  <data name="OppsMinIskVolLabel" xml:space="preserve">
+    <value>Мин. объём торгов за 30 д (ISK)</value>
+  </data>
+  <data name="OppsMinUnitVolLabel" xml:space="preserve">
+    <value>Мин. объём торгов за 30 д (ед.)</value>
+  </data>
+  <data name="OppsMinMarginLabel" xml:space="preserve">
+    <value>Мин. маржа %</value>
+  </data>
+  <data name="OppsMinMargin30dLabel" xml:space="preserve">
+    <value>Мин. маржа % 30 д</value>
+  </data>
+  <data name="OppsExcludeGroupsLabel" xml:space="preserve">
+    <value>Исключить группы</value>
+  </data>
+  <data name="OppsIncludeGroupsLabel" xml:space="preserve">
+    <value>Включить группы</value>
+  </data>
+  <data name="OppsMetaGroupsLabel" xml:space="preserve">
+    <value>Мета-группы</value>
+  </data>
+  <data name="SectionNeedsMetaGroup" xml:space="preserve">
+    <value>В разделе {0} ({1}) должна быть отмечена хотя бы одна мета-группа.</value>
+  </data>
+  <data name="SectionTypeParkCompare" xml:space="preserve">
+    <value>Сравнение промпарков</value>
+  </data>
+  <data name="SectionTypeSystemIndex" xml:space="preserve">
+    <value>Индексы систем</value>
+  </data>
+  <data name="HeadingParkCompare" xml:space="preserve">
+    <value>Сравнение промпарков</value>
+  </data>
+  <data name="HeadingSystemIndex" xml:space="preserve">
+    <value>Индексы систем</value>
+  </data>
+  <data name="CompareOutSummaryJobsImage" xml:space="preserve">
+    <value>Сводка по работам (изображение)</value>
+  </data>
+  <data name="CompareOutSummaryParksImage" xml:space="preserve">
+    <value>Сводка по паркам (изображение)</value>
+  </data>
+  <data name="CompareOutCostChart" xml:space="preserve">
+    <value>График стоимости (изображение)</value>
+  </data>
+  <data name="CompareOutTimeChart" xml:space="preserve">
+    <value>График времени (изображение)</value>
+  </data>
+  <data name="CompareOutSummaryJobsTable" xml:space="preserve">
+    <value>Сводка по работам (таблица)</value>
+  </data>
+  <data name="CompareOutSummaryParksTable" xml:space="preserve">
+    <value>Сводка по паркам (таблица)</value>
+  </data>
+  <data name="CompareOutDetailTable" xml:space="preserve">
+    <value>Каждая работа в каждом парке (таблица)</value>
+  </data>
+  <data name="CompareTitleSummaryJobs" xml:space="preserve">
+    <value>Сводка по работам</value>
+  </data>
+  <data name="CompareTitleSummaryParks" xml:space="preserve">
+    <value>Сводка по паркам</value>
+  </data>
+  <data name="CompareTitleDetail" xml:space="preserve">
+    <value>Каждая работа в каждом парке</value>
+  </data>
+  <data name="IndexOutTable" xml:space="preserve">
+    <value>Индексы на сегодня (таблица)</value>
+  </data>
+  <data name="IndexOutChart" xml:space="preserve">
+    <value>График: {0} (изображение)</value>
+  </data>
+  <data name="SectionParksLabel" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="SectionJobsLabel" xml:space="preserve">
+    <value>Работы</value>
+  </data>
+  <data name="SectionPostLabel" xml:space="preserve">
+    <value>Публиковать</value>
+  </data>
+  <data name="SectionSystemsLabel" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="ParkCompareSectionNote" xml:space="preserve">
+    <value>Рассчитывается при публикации, по ценам и индексам того дня, при навыках на V. Со вкладки «Сравнение» ничего не берётся.</value>
+  </data>
+  <data name="SystemIndexSectionNote" xml:space="preserve">
+    <value>Каждый график публикуется со своей легендой. Список инструмента «Индексы систем» не используется.</value>
+  </data>
+  <data name="WebhookPicturesNote" xml:space="preserve">
+    <value>Это назначение — вебхук Slack, который не может передать изображение: картинки этого раздела будут пропущены, опубликуются только таблицы. Канал Slack или вебхук Discord их передаёт.</value>
+  </data>
+  <data name="SectionNeedsJob" xml:space="preserve">
+    <value>Разделу {0} ({1}) нужна хотя бы одна работа.</value>
+  </data>
+  <data name="SectionNeedsPark" xml:space="preserve">
+    <value>В разделе {0} ({1}) нужно отметить хотя бы один парк.</value>
+  </data>
+  <data name="SectionNeedsSystem" xml:space="preserve">
+    <value>Разделу {0} ({1}) нужна хотя бы одна система.</value>
+  </data>
+  <data name="SectionNeedsOutput" xml:space="preserve">
+    <value>В разделе {0} ({1}) нужно выбрать, что публиковать.</value>
+  </data>
+  <data name="ColumnsLabel" xml:space="preserve">
+    <value>Столбцы</value>
+  </data>
+  <data name="AddColumn" xml:space="preserve">
+    <value>Добавить столбец</value>
+  </data>
+  <data name="TipColumnHeader" xml:space="preserve">
+    <value>Заголовок, который этот столбец показывает в сообщении. Оставьте как есть или пустым, чтобы использовать собственный заголовок столбца.</value>
+  </data>
+  <data name="OppsItemAlwaysNote" xml:space="preserve">
+    <value>Предмет — всегда первый столбец. Неизменённый заголовок следует языку интерфейса; чтобы переименовать, просто впишите свой.</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>Сортировать по</value>
+  </data>
+  <data name="SortHighestFirst" xml:space="preserve">
+    <value>Сначала наибольшие</value>
+  </data>
+  <data name="SortLowestFirst" xml:space="preserve">
+    <value>Сначала наименьшие</value>
+  </data>
+  <data name="RowLimitLabel" xml:space="preserve">
+    <value>Строк</value>
+  </data>
+  <data name="HintAllRows" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="OppsSectionNote" xml:space="preserve">
+    <value>Рассчитывается при отправке сообщения по стоимости производства и рыночным ценам на тот момент. Всё настраивается здесь: собственные настройки инструмента «Возможности производства» не используются.</value>
+  </data>
   <data name="HeadingText" xml:space="preserve">
     <value>Текст</value>
   </data>
@@ -417,6 +573,9 @@
   </data>
   <data name="SectionTypeMiningChart" xml:space="preserve">
     <value>График добычи корпорации</value>
+  </data>
+  <data name="SectionTypeIndustryOpps" xml:space="preserve">
+    <value>Возможности производства</value>
   </data>
   <data name="KindInterval" xml:space="preserve">
     <value>С интервалом</value>
@@ -555,6 +714,54 @@
   </data>
   <data name="SectionNeedsPosting" xml:space="preserve">
     <value>Для раздела {0} ({1}) нужно объявление.</value>
+  </data>
+  <data name="SectionNeedsMarket" xml:space="preserve">
+    <value>Разделу {0} ({1}) нужен рынок для цен.</value>
+  </data>
+  <data name="SectionBadNumber" xml:space="preserve">
+    <value>Раздел {0} ({1}): в поле «{2}» нужно число от 0 или пусто.</value>
+  </data>
+  <data name="TitleExportTasks" xml:space="preserve">
+    <value>Экспорт запланированных задач</value>
+  </data>
+  <data name="TitleImportTasks" xml:space="preserve">
+    <value>Импорт запланированных задач</value>
+  </data>
+  <data name="TipExportTasks" xml:space="preserve">
+    <value>Сохраняет все задачи в файл JSON.</value>
+  </data>
+  <data name="TipImportTasks" xml:space="preserve">
+    <value>Добавляет задачи из экспорта JSON как новые, выключенными, пока вы их не проверите. Ничего здесь не заменяется; уже существующая задача пропускается.</value>
+  </data>
+  <data name="StatusTasksExported" xml:space="preserve">
+    <value>Экспортировано задач: {0}.</value>
+  </data>
+  <data name="StatusTasksImported" xml:space="preserve">
+    <value>Импортировано задач: {0}, они выключены, пока вы их не проверите. Уже есть, пропущено: {1}.</value>
+  </data>
+  <data name="ErrNotATasksExport" xml:space="preserve">
+    <value>Этот файл не является экспортом запланированных задач.</value>
+  </data>
+  <data name="TitleExportAlarms" xml:space="preserve">
+    <value>Экспорт тревог</value>
+  </data>
+  <data name="TitleImportAlarms" xml:space="preserve">
+    <value>Импорт тревог</value>
+  </data>
+  <data name="TipExportAlarms" xml:space="preserve">
+    <value>Сохраняет выбранные сигналы и их действия в файл JSON — все сигналы, если ничего не выбрано. Ctrl или Shift — выбрать несколько.</value>
+  </data>
+  <data name="TipImportAlarms" xml:space="preserve">
+    <value>Добавляет тревоги из экспорта JSON как новые, вместе с действиями. Ничего здесь не заменяется; уже существующая тревога пропускается.</value>
+  </data>
+  <data name="StatusAlarmsExported" xml:space="preserve">
+    <value>Экспортировано тревог: {0}.</value>
+  </data>
+  <data name="StatusAlarmsImported" xml:space="preserve">
+    <value>Импортировано тревог: {0}. Уже есть, пропущено: {1}. Проверки, которых нет в этой версии, пропущено: {2}.</value>
+  </data>
+  <data name="ErrNotAnAlarmsExport" xml:space="preserve">
+    <value>Этот файл не является экспортом тревог.</value>
   </data>
   <data name="SectionNeedsList" xml:space="preserve">
     <value>Для раздела {0} ({1}) нужен хотя бы один список.</value>
@@ -712,6 +919,9 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Звук повторяется, пока вы его не подтвердите.</value>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>Вызов продолжается, пока вы не ответите — здесь или в чате агента.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Выбор звука тревоги</value>
   </data>
@@ -743,10 +953,10 @@
     <value>Срабатывает, когда один из ваших персонажей выходит из дока. При желании — только с указанных станций, сооружений, в указанных системах или секторах, только на указанных корпусах или классах кораблей и только в заданном состоянии: оснащён или нет, топлива для прыжков меньше заданного или нет, боеприпасов меньше заданного или нет. Каждый фильтр сужает выборку, так что две тревоги можно настроить на разные выходы из дока, а не на один и тот же дважды. Выход из дока замечается опросом местоположения примерно за десять секунд; что было на борту, определяется по последнему снимку имущества, который ESI обновляет раз в час, и в каждом совпадении указано, насколько он старый.</value>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Слишком долго вне дока (будильник)</value>
+    <value>Слишком долго вне дока</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Будит вас. Срабатывает в несколько этапов (до трёх), когда один из ваших персонажей на указанном корпусе или классе корабля выходит из дока и через заданное число секунд всё ещё находится в той же системе — например, пришвартованный фрейтер или джамп-фрейтер, пока пилот задремал. Или, если отмечены прибытия после прыжка, — когда корабль с гипердвигателем прибыл гиперпрыжком или через гипермост и всё ещё в космосе: те самые тридцать секунд после прыжка. Вход в док, уход из системы или выход из игры прекращают её. Нажатие кнопки в окне или любой ответ помощнику на время заглушают тревогу; когда это время истекает, а корабль всё ещё там, этапы начинаются заново. У каждого этапа свои действия — «Озвучка напрямую» или помощник, чтобы произнести фразу этапа, окно, звук, повторяющийся до подтверждения. Повтор и пауза здесь не действуют.</value>
+    <value>Срабатывает в несколько этапов (до трёх), когда один из ваших персонажей на указанном корпусе или классе корабля выходит из дока и через заданное число секунд всё ещё находится в той же системе — например, пришвартованный фрейтер или джамп-фрейтер, пока пилот задремал. Или, если отмечены прибытия после прыжка, — когда корабль с гипердвигателем прибыл гиперпрыжком или через гипермост и всё ещё в космосе: те самые тридцать секунд после прыжка. Вход в док, уход из системы или выход из игры прекращают её. Нажатие кнопки в окне или любой ввод текста или голоса в чате помощника на время заглушают тревогу; когда это время истекает, а корабль всё ещё там, этапы начинаются заново. Ввод там до того, как наступил какой-либо этап, вместо этого перезапускает его отсчёт. У каждого этапа свои действия — «Озвучка напрямую» или помощник, чтобы произнести фразу этапа, окно, звук, повторяющийся до подтверждения. Повтор и пауза здесь не действуют.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>События заказов магазина</value>
@@ -878,7 +1088,7 @@
     <value>Тишина после подтверждения</value>
   </data>
   <data name="AdriftSnoozeNote" xml:space="preserve">
-    <value>Как долго ответ или кнопка в окне заглушают тревогу, пока корабль остаётся вне дока, — достаточно, чтобы дождаться гипермоста титана. Потом этапы начинаются заново.</value>
+    <value>Как долго кнопка в окне или ввод текста или голоса в чате помощника заглушают тревогу, пока корабль остаётся вне дока, — достаточно, чтобы дождаться гипермоста титана. Потом этапы начинаются заново.</value>
   </data>
   <data name="SuffixMinutes" xml:space="preserve">
     <value>мин</value>
@@ -1127,19 +1337,19 @@
     <value>мало боеприпасов</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Проснитесь, {0}</value>
+    <value>Слишком долго вне дока</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Корабль персонажа {0} ({1}) прибыл в систему {2} {3} назад и так и не вошёл в док. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+    <value>Корабль персонажа {0} ({1}) прибыл в систему {2} {3} назад и так и не вошёл в док. Нажмите «Подтвердить», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Корабль персонажа {0} ({1}) уже {3} находится вне дока в системе {2}. Нажмите «Я не сплю», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
+    <value>Корабль персонажа {0} ({1}) уже {3} находится вне дока в системе {2}. Нажмите «Подтвердить», чтобы тревога молчала {4} мин, пока корабль остаётся в космосе.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, корабль персонажа {1} ({2}) прибыл в систему {3} {4} назад и ещё не вошёл в док. У вас всё в порядке?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) всё ещё в космосе в системе {3} — спустя {4} после прибытия. Немедленно войдите в док.</value>
+    <value>{0}, корабль персонажа {1} ({2}) всё ещё в космосе в системе {3} — спустя {4} после прибытия. Пожалуйста, подтвердите, что всё в порядке.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! Корабль персонажа {1} ({2}) уже {4} стоит в системе {3} после прибытия. Немедленно войдите в док!</value>
@@ -1148,10 +1358,10 @@
     <value>{0}, корабль персонажа {1} ({2}) уже {4} находится вне дока в системе {3}. У вас всё в порядке?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Проснитесь, {0}. Корабль персонажа {1} ({2}) вышел из дока в системе {3} {4} назад и до сих пор не вернулся в док. Войдите в док или ответьте мне.</value>
+    <value>{0}, корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Пожалуйста, подтвердите, что всё в порядке.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! Корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Проснитесь и немедленно войдите в док.</value>
+    <value>{0}! Корабль персонажа {1} ({2}) всё ещё вне дока в системе {3} спустя {4}. Немедленно войдите в док.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>капсула</value>
@@ -1318,29 +1528,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Перезвон — мягкий</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Перезвон — стеклянный</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Колокол — хрустальный</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Перезвон — маримба</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Перезвон — трезвучие</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Перезвон — вибрафон</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Звон — стеклянный</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Звон — яркий</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Колокол — латунный</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Колокол — ручной</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Колокол — настольный</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Колокол — низкий</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Колокол — тяжёлый</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Гонг — низкий</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Гонг — фантастический</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Сигнал — двойной</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Сигнал — блипы</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Сигнал — гудки</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Тревога — срочная</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Тревога — боевая</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Предупреждение — двухтональное</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Предупреждение — мягкое двухтональное</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Предупреждение — клаксон</value>
@@ -1350,6 +1599,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Предупреждение — сирена</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Предупреждение — быстрая сирена</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Предупреждение — гудок</value>
@@ -1372,8 +1624,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Ошибка воспроизведения: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Я не сплю</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Подтвердить</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(Помощник не настроен, поэтому это записано как оповещение.)</value>

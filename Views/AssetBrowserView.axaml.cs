@@ -58,7 +58,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
 
-        AssetGrid.ItemsSource = ViewModel.Rows;
+        AssetGrid.ItemsSource = ViewModel.DisplayRows;
 
         if (!_handlersAdded)
         {
@@ -86,6 +86,11 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         ViewModel.WhenAnyValue(vm => vm.Columns)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(cols => RegenerateColumns(AssetGrid, cols));
+
+        // Replaced whole as groups open and close (see DisplayRows), so the grid is handed each.
+        ViewModel.WhenAnyValue(vm => vm.DisplayRows)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(rows => { if (AssetGrid.Columns.Count > 0) AssetGrid.ItemsSource = rows; });
 
         LocationGrid.ItemsSource = ViewModel.LocationRows;
         ViewModel.WhenAnyValue(vm => vm.LocationColumns)
@@ -174,6 +179,24 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
             CanUserResize = false,
             CellTemplate  = new FuncDataTemplate<GridRow>((row, scope) =>
             {
+                // A group's own row: its opener, where the item's icon would be.
+                if (row is AssetGroupRow group)
+                {
+                    var opener = new TextBlock
+                    {
+                        Text                = group.IsExpanded ? "▾" : "▸",
+                        Padding             = new Thickness(2, 0),
+                        VerticalAlignment   = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        FontSize            = 15,
+                        Foreground          = Palette.TextPrimary,
+                        Background          = Brushes.Transparent,
+                        Cursor              = new Cursor(StandardCursorType.Hand),
+                    };
+                    opener.PointerPressed += (_, e) => { ViewModel?.ToggleGroup(group); e.Handled = true; };
+                    return opener;
+                }
+
                 var typeId = TypeIdOf(row);
                 if (typeId <= 0)
                     return new TextBlock
@@ -234,7 +257,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         }
 
         if (ViewModel is null) return;
-        grid.ItemsSource = grid == AssetGrid      ? ViewModel.Rows
+        grid.ItemsSource = grid == AssetGrid      ? ViewModel.DisplayRows
                          : grid == LocationGrid   ? ViewModel.LocationRows
                          : grid == SystemGrid     ? ViewModel.SystemRows
                                                   : ViewModel.RegionRows;
@@ -648,11 +671,16 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
 
     private void OnAssetGridDoubleTapped(object? sender, TappedEventArgs e)
     {
+        // A group's row opens or closes it.
+        if (_anchorRow is AssetGroupRow group) { ViewModel?.ToggleGroup(group); return; }
         if (ViewModel?.OpenInItemBrowser is null || _anchorRow is null) return;
         var typeIdStr = _anchorRow["Type Id"];
         if (!int.TryParse(typeIdStr, out var typeId) || typeId <= 0) return;
         ViewModel.OpenInItemBrowser(typeId, _anchorRow["Type Name"]);
     }
+
+    private void OnExpandAllClick(object? sender, RoutedEventArgs e)   => ViewModel?.ExpandAll();
+    private void OnCollapseAllClick(object? sender, RoutedEventArgs e) => ViewModel?.CollapseAll();
 
     private void OnLoadMoreClick(object? sender, RoutedEventArgs e)
     {

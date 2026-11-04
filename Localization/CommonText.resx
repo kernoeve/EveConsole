@@ -460,6 +460,14 @@
     <value>All or part of a name</value>
     <comment>Industry and Trade Opportunities, placeholder in the item name filter box.</comment>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0} selected</value>
+    <comment>A multi-select dropdown's button when more than three of its items are ticked. {0} is how many.</comment>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>All but {0}</value>
+    <comment>A multi-select dropdown's button when every item but one is ticked. {0} is the one left out.</comment>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>Shows only the items whose name contains this text, in any case. The list narrows as you type; there is no need to calculate again.</value>
     <comment>Industry and Trade Opportunities, tooltip on the item name filter box.</comment>
@@ -467,5 +475,13 @@
   <data name="ItemNameFilterShowing" xml:space="preserve">
     <value>Showing {0:N0} of {1:N0}</value>
     <comment>Industry and Trade Opportunities, beside the item name filter. {0} is the number of items the filter shows, {1} all the items calculated.</comment>
+  </data>
+  <data name="PrintCopyName" xml:space="preserve">
+    <value>{0} (Copy)</value>
+    <comment>A blueprint copy (BPC) wherever one is named: {0} is the blueprint's name. Shown with the light-blue copy picture.</comment>
+  </data>
+  <data name="PrintOriginalName" xml:space="preserve">
+    <value>{0} (Original)</value>
+    <comment>A blueprint original (BPO) wherever one is named: {0} is the blueprint's name. Shown with the dark-blue original picture. Not used for reaction formulas.</comment>
   </data>
 </root>

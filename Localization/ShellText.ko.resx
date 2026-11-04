@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>산업 단지</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>항성계 지수</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>생산 계산기</value>
   </data>
@@ -120,6 +123,12 @@
   </data>
   <data name="NavCorpActivity" xml:space="preserve">
     <value>코퍼레이션 활동</value>
+  </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>코프 구조물</value>
+  </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>용병 은신처</value>
   </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>킬 메일</value>

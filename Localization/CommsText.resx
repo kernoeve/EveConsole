@@ -188,6 +188,10 @@
     <value>All Mail</value>
     <comment>Mail folder.</comment>
   </data>
+  <data name="MailFolderUnread" xml:space="preserve">
+    <value>Unread</value>
+    <comment>Mail folder: every unread mail, however old (All Mail shows the newest 500). The unread mail alert opens it.</comment>
+  </data>
   <data name="MailFolderInbox" xml:space="preserve">
     <value>Inbox</value>
     <comment>Mail folder.</comment>

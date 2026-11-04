@@ -41,7 +41,7 @@ public sealed class OpenAiTtsService : IDisposable
     {
         try
         {
-            Core.Initialize();
+            VlcRuntime.Initialize();
             _vlc = new LibVLC(enableDebugLogs: false);
         }
         catch

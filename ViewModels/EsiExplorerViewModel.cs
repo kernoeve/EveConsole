@@ -23,6 +23,15 @@ public class GridRow
     /// from somewhere other than the query — the Industry Jobs rig note, for one,
     /// which needs an async lookup the synchronous reader loop can't do.</summary>
     public void Set(string col, string value) => _data[col] = value;
+
+    /// <summary>A group's own row (the Asset Browser's grouped Detailed View) rather than a row of
+    /// data: drawn heavier, and its cells are not links.</summary>
+    public virtual bool IsGroupHeader => false;
+
+    /// <summary>How deep the row sits under groups, drawn as left padding in <see cref="IndentColumn"/>.
+    /// ⚠️ Padding, not spaces in the text: the text is what Copy takes.</summary>
+    public int     Indent       { get; set; }
+    public string? IndentColumn { get; set; }
 }
 
 public class FilterOp(string label, string sql, bool useLike = false)

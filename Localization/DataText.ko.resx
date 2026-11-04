@@ -1429,6 +1429,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>스타베이스</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>용병 은신처</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>용병 작전</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>시설</value>
   </data>

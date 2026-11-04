@@ -641,7 +641,7 @@
     <value>Une Keepstar se trouve ici. Les super porte-vaisseaux et les titans peuvent s'amarrer</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>Capitaux — Fortizar ou station PNJ</value>
+    <value>Capitaux — Fortizar, Sotiyo ou station PNJ</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>Les vaisseaux capitaux peuvent s'amarrer, les supercapitaux non</value>

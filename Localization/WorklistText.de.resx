@@ -368,16 +368,16 @@
     <value>Einheiten pro Tag, die die vorhandenen Originale zusammen ohne Pause herstellen könnten.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Tatsächlich hergestellte Einheiten pro Tag in den letzten 90 Tagen. Kann nie über der Obergrenze liegen und taugt deshalb nicht, um den Bedarf zu messen.</value>
+    <value>Tatsächlich pro Tag produzierte Einheiten, über dieselben Tage wie die Zahl für „alle belegt“. Sie kann die Obergrenze nie überschreiten und taugt deshalb nicht, um den Bedarf zu messen.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Anteil der Zeit, die jedes Original in einem Auftrag verbringt. Nur zur Einordnung: Es zeigt keine Engpässe, und danach zu ordnen, stellt starke Nutzung über echte Beschränkungen.</value>
+    <value>Anteil der Zeit, die jedes Original in einem Auftrag verbringt, über dieselben Tage wie die Zahl für „alle belegt“. Nur zur Einordnung: Es zeigt keine Engpässe, und danach zu ordnen, stellt starke Nutzung über echte Beschränkungen.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Alle belegt</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Anteil der letzten 90 Tage, in dem JEDES Original gleichzeitig belegt war – Forschung und Kopieren ebenso gezählt wie Bauen. Diese Zahl sagt, ob ein weiterer Auftrag Warten bedeutet hätte.</value>
+    <value>Anteil der Zeit, in dem JEDES Original gleichzeitig belegt war – Forschung und Kopieren ebenso gezählt wie Bauen. Gemessen über die letzten 90 Tage oder seit dem ersten Auftrag dieser Originale, falls das später war, und nie unter 30 Tagen. Diese Zahl sagt, ob ein weiterer Auftrag Warten bedeutet hätte.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Rang</value>
@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>Tage</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Material für belegte Blaupausen zurückhalten, die frei werden innerhalb von</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Kann ein weiter oben eingeordneter Auftrag nur deshalb nicht starten, weil seine Blaupause in einem laufenden Auftrag steckt, und endet dieser innerhalb so vieler Stunden, werden die Materialien an seinem Standort für ihn zurückgehalten, damit weiter unten eingeordnete Aufträge sie nicht vorher verbrauchen. 0 schaltet das aus.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>Stunden</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Die Materialien am Standort sind für ihn zurückgehalten: Die Blaupause wird innerhalb von {0} Stunden frei.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Besitzumfang</value>
   </data>
@@ -1015,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Ansturm</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Kein freier Slot</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>In Arbeit</value>
   </data>
@@ -1040,7 +1055,7 @@
     <value>Keine Engpässe: Kein Pool hat Arbeit, die auf einen Slot wartet, und bei keiner Blaupause waren alle Exemplare oft genug belegt, um etwas warten zu lassen. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. ⚠ {3:N0} Slot(s) frei, während bei {4} Blaupause(n) alle Exemplare belegt sind – die Beschränkung sind hier die Blaupausen, nicht die Slots. {5}</value>
+    <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. ⚠ {3:N0} Slot(s) frei in denselben Pools, in denen bei {4} Blaupause(n) alle Originale belegt sind und Aufträge stillstehen – die Beschränkung sind dort die Blaupausen, nicht die Slots. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} Pool(s) mit Arbeit, die auf einen Slot wartet; {1} Blaupause(n), die einen Blick wert sind; {2} Material(ien), die schneller verbraucht als hergestellt werden. {3}</value>
@@ -1474,6 +1489,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>startet bei Ankunft</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>wartet dann auf einen Slot</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>wartet dann auf eine Blaupause</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>startet, sobald auch die andere Runde fertig ist</value>
   </data>
@@ -1492,17 +1513,17 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>Startet nach der Runde gestoppte Aufträge neu ({0:N0}): {1} und {2:N0} weitere.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>braucht {0:N0}</value>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>braucht noch {0:N0} Gegenstand</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>wartet hinter einem anderen Auftrag</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>braucht noch {0:N0} Gegenstände</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>ihm fehlt auch {0:N0} Gegenstand</value>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>sonst fehlt nichts</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>ihm fehlen auch {0:N0} Gegenstände</value>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Danach fehlt noch</value>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Ein Bau, für den diese Lieferung bestimmt ist. Für ihn hat der Planer den Flug angelegt; er ist noch nicht als eigene Aufgabe ausgewiesen.</value>
@@ -1510,17 +1531,11 @@
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Dieser Transport bringt alles, was dem Auftrag fehlt, daher startet er, sobald die Fracht ankommt.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>Der Auftrag braucht etwas von dieser Ladeliste, aber ein früherer Auftrag hat diesen Bestand bereits beansprucht – diese Ladung erreicht ihn nicht.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Es fehlt noch: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Es fehlt noch: {0} und {1:N0} weitere.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>Er wartet außerdem hinter einem anderen Auftrag auf etwas von dieser Ladeliste.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>Insgesamt {0:N0}. {1}</value>
@@ -1675,6 +1690,21 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>Industrieaufträge</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Abgeschlossene Aufträge</value>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>{0:N0} abgeschlossenen Industrieauftrag ausliefern</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>{0:N0} abgeschlossene Industrieaufträge ausliefern</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Fertig und bereit zur Auslieferung: {0}. Das Ausliefern gibt den Platz frei und legt das Ergebnis in den Hangar.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>und {0:N0} weitere</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} {1:N0} bauen.</value>
   </data>
@@ -1706,7 +1736,13 @@
     <value>Blaupause in einem laufenden Auftrag belegt ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>Keine Blaupause frei in {0} ({1})</value>
+    <value>Keine nutzbare Blaupause in {0} (beste vorhandene: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Jede Blaupause hier ist belegt: {0:N0} laufen, {1:N0} starten gleich</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Die Blaupause ist für einen früheren Auftrag reserviert, dem Material fehlt</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Fehlmenge: {1:N0}.</value>
@@ -1733,7 +1769,7 @@
     <value>Der Rest dieses Auftrags, wartet auf Materialien.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>Für weitere Durchläufe ({0:N0}) ist keine Blaupause frei – separat aufgeführt.</value>
+    <value>Weitere Durchläufe ({0:N0}) sind separat aufgeführt.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Begrenzt durch das 30-Tage-Limit von EVE für einen einzelnen Auftrag.</value>
@@ -1757,16 +1793,16 @@
     <value>Materialien nicht in {0}: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>Nicht vorhanden: {0}</value>
+    <value>Nichts übrig: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>Nicht vorhanden in {0}: {1}</value>
+    <value>Nichts übrig in {0}: {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>Nicht vorhanden: {0}; anderswo: {1}</value>
+    <value>Nichts übrig: {0}; anderswo: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>Nicht vorhanden in {0}: {1}; anderswo: {2}</value>
+    <value>Nichts übrig in {0}: {1}; anderswo: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} und {1} weitere</value>
@@ -1918,8 +1954,89 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} Gegenstandstyp(en)</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} Gegenstandstyp(en), Auftrag {1} von {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} Gegenstand/Gegenstände in {1} Verträgen</value>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} fliegen</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>Ein Capital lässt sich nicht transportieren: Ein Pilot muss es fliegen und zwischen Systemen springen.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} kann nicht in {1} andocken: Es muss dort gebaut werden und darf nicht abdocken</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>VERTRAG {0} VON {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Jetzt erledigen</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Blockiert</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Kein freier Slot</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Noch nicht fällig</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Beste nächste Schritte</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>Material fehlt</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>alle Blaupausen belegt</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>keine Blaupause hier</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>Sonstige</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>ausliefern</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0}-Slots {1:N0}/{2:N0} voll</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0}-Slots {1:N0}/{2:N0}, {3:N0} frei</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Seit der letzten Aktualisierung: {0:N0} neu bereit, {1:N0} nicht mehr bereit</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>gibt {0:N0} frei</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Kaufen</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Transport</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Reaktion</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Erfinden</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Ausliefern</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Klicken, um nur diese anzuzeigen. Erneut klicken zum Zurücksetzen.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Klicken, um zu dieser Aufgabe in der Liste zu springen.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Aufträge warten darauf.</value>
@@ -2339,7 +2456,7 @@
     <value>{0} × {1} Slots gegenüber den {2:N0}, die jetzt laufen. Training geht nicht sofort – das ist die Obergrenze, die es einbringt.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Gemessen über {0:N0} Blaupause(n) in {1} Tagen: Bei {2:N0} waren nie alle Originale gleichzeitig belegt, der Median liegt bei {3:N0} %, und das am stärksten belegte Zehntel beginnt bei {4:N0} % – das ist die Grenze für die Markierungen.</value>
+    <value>Gemessen über {0:N0} Blaupause(n) in bis zu {1} Tagen: Bei {2:N0} waren nie alle Originale gleichzeitig belegt, der Median liegt bei {3:N0} %, und das am stärksten belegte Zehntel beginnt bei {4:N0} % – das ist die Grenze für die Markierungen.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Alle BPOs waren in {0:N0} % der letzten {1} Tage belegt. Aufträge, die gerade nicht starten können: {2:N0}. Ein weiteres BPO hebt die Obergrenze von {3:N2} auf {4:N2}/Tag.</value>
@@ -2360,10 +2477,40 @@
     <value>Alle Formeln waren in {0:N0} % der letzten {1} Tage belegt, aber heute steht nichts dafür an. Beobachten statt kaufen.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>Aufträge, die nicht starten können: {0:N0}, obwohl die vorhandenen BPOs selten alle gleichzeitig belegt waren ({1:N0} %). Prüfen Sie, was wirklich fehlt, bevor Sie ein weiteres BPO kaufen – das sieht nach etwas anderem als der Blaupause aus.</value>
+    <value>Aufträge, die nicht starten können, weil an ihrem Standort gerade kein BPO frei ist: {0:N0}, obwohl die BPOs selten alle gleichzeitig belegt waren ({1:N0} %). Das sieht eher nach einem kurzen Ansturm oder falsch gelagerten BPOs aus als nach einem Mangel; prüfen Sie das, bevor Sie ein weiteres kaufen.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>Aufträge, die nicht starten können: {0:N0}, obwohl die vorhandenen Formeln selten alle gleichzeitig belegt waren ({1:N0} %). Prüfen Sie, was wirklich fehlt, bevor Sie eine weitere Formel kaufen – das sieht nach etwas anderem als der Formel aus.</value>
+    <value>Aufträge, die nicht starten können, weil an ihrem Standort gerade keine Formel frei ist: {0:N0}, obwohl die Formeln selten alle gleichzeitig belegt waren ({1:N0} %). Das sieht eher nach einem kurzen Ansturm oder falsch gelagerten Formeln aus als nach einem Mangel; prüfen Sie das, bevor Sie eine weitere kaufen.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>Aufträge, die auf einen Fertigungsslot warten und nicht auf ein BPO: {0:N0}. Ein weiteres BPO würde also keinen davon starten. Alle BPOs waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>Aufträge, die auf einen Reaktionsslot warten und nicht auf eine Formel: {0:N0}. Eine weitere Formel würde also keinen davon starten. Alle Formeln waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>Im Kopierlabor: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>Kopieraufträge, die auf einen Forschungsslot warten und nicht auf ein BPO: {0:N0}. Ein weiteres BPO würde also keinen davon starten. Alle BPOs hier waren in den letzten {2} Tagen zu {1:N0} % belegt.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (zum Kopieren)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Zweck</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>Wofür diese Originale da sind. Die im Kopierlabor kopieren, die anderen bauen, und keine vertritt die andere, daher hat jede Gruppe ihre eigene Zeile. Das einzige Original eines Typs macht beides.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Bauen + Kopieren</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>Aufträge, die es jetzt wollen: {0:N0}, aber alle BPOs waren fast die ganzen letzten {1} Tage frei. Ein Einzelfall statt eines dauerhaften Bedarfs – ein BPC dient womöglich besser als ein Original.</value>
@@ -2407,11 +2554,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} in {1} – {2:N0} m³</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>{0:N0} Transport(e) planen</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} Transport(e) halten {1:N0} Auftrag/Aufträge auf</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>Aufträge, die auf bereits vorhandenes Material warten, ohne dass etwas unterwegs ist: {0:N0}.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>Für {0:N0} davon steht noch kein Transport auf der Arbeitsliste.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Alle stehen bereits auf der Arbeitsliste: Werden sie geflogen, läuft die Arbeit wieder an.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Fertigungsslots hinzufügen</value>
@@ -2436,12 +2586,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} – gibt {1:N0} Aufgabe(n) frei</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} nach {1} – {2:N0} ({3:N0} m³), startet {4:N0} Aufträge neu</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} nach {1} – {2:N0} ({3:N0} m³), von {4:N0} Aufträgen gebraucht, keiner allein dadurch neu gestartet</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Die schlimmsten {0} werden angezeigt; der Rest steht im Tab.</value>
@@ -2485,9 +2629,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: mindestens halb voll mit Ertrag (geschätzt)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Die Werte sind aus alten Daten geschätzt: Die Kolonie wurde eine Weile nicht im Spiel geöffnet.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Material zu {0} bringen</value>
   </data>
@@ -2517,12 +2658,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Jetzt Stufe {0}; Command Center Upgrades erlaubt {1}. Mehr CPU und Stromnetz für Extraktorköpfe und Fabriken.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>{0} im Spiel öffnen</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Die Daten der Kolonie sind {0} alt, daher ist ihren Schätzungen nicht mehr zu trauen. Das Öffnen der Kolonie im Spiel aktualisiert sie.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>Ziel für {0:N0} Besitzsicherheit-Paket bis {1:d. MMM HH:mm} wählen</value>

@@ -28,6 +28,14 @@
     <value>Updated {0}</value>
     <comment>PI tool, beside the Refresh button. {0} is the date and time of the last reading.</comment>
   </data>
+  <data name="UpdatedAskingEsi" xml:space="preserve">
+    <value>Updated {0} · asking ESI for newer colony data…</value>
+    <comment>PI tool, beside the Refresh button, just after Refresh asked ESI for the colonies. {0} is the date and time of the last reading.</comment>
+  </data>
+  <data name="UpdatedReadFromEsi" xml:space="preserve">
+    <value>Updated {0} · colonies last read from ESI {1}</value>
+    <comment>PI tool, beside the Refresh button. {0} is when the screen was last updated, {1} when a colony layout was last read from ESI.</comment>
+  </data>
   <data name="SummarySeparator" xml:space="preserve">
     <value> · </value>
     <comment>PI tool: what separates the parts of the summary line, as in "22 colonies · 3 extractors stopped". Keep the spaces as your language spaces a list.</comment>
@@ -228,16 +236,8 @@
     <value>OK</value>
     <comment>PI tool, status chip: nothing due. Short.</comment>
   </data>
-  <data name="AgeStale" xml:space="preserve">
-    <value>{0} (old)</value>
-    <comment>PI tool, Data age column, when the data is older than the setting. {0} is the age, as in "3d 4h".</comment>
-  </data>
   <data name="TipAge" xml:space="preserve">
     <value>Last opened in the game at {0}.</value>
-    <comment>Tooltip in the PI tool, Data age column. {0} is a date and time.</comment>
-  </data>
-  <data name="TipAgeStale" xml:space="preserve">
-    <value>Last opened in the game at {0}: too long ago for its estimates to be trusted. Open the colony in the game to refresh it.</value>
     <comment>Tooltip in the PI tool, Data age column. {0} is a date and time.</comment>
   </data>
   <data name="PerDay" xml:space="preserve">
@@ -282,10 +282,6 @@
   </data>
   <data name="ReasonInputsLow" xml:space="preserve">
     <value>Input runs out within the lead time (estimated).</value>
-    <comment>Tooltip line on the PI tool's status chip.</comment>
-  </data>
-  <data name="ReasonStale" xml:space="preserve">
-    <value>Data too old to trust.</value>
     <comment>Tooltip line on the PI tool's status chip.</comment>
   </data>
   <data name="ReasonNothingDue" xml:space="preserve">
@@ -363,10 +359,6 @@
   <data name="DetailAge" xml:space="preserve">
     <value>Data {0} old: last opened in the game at {1}. Storage, factory and input figures are estimated from then.</value>
     <comment>PI tool, Colony tab. {0} is a length of time, {1} a date and time.</comment>
-  </data>
-  <data name="DetailAgeStale" xml:space="preserve">
-    <value>Data {0} old: last opened in the game at {1}, too long ago for the estimates to be trusted. Open the colony in the game to refresh it.</value>
-    <comment>PI tool, Colony tab, when the data is older than the setting. {0} is a length of time, {1} a date and time.</comment>
   </data>
   <data name="SectionCommandCenter" xml:space="preserve">
     <value>Command center</value>

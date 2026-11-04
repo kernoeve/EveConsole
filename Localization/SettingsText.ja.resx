@@ -13,6 +13,72 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>キャラクター</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>トークンのあるすべてのコーポレーション。個人コーポレーションは自分の合計や一覧に含まれます。ESI トークンの設定と同じもので、どちらでも変更できます。ストラクチャ警告をオンにすると、そのコーポレーションのストラクチャについて警告（警告タブ）を出します。</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>ティッカー</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>個人</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>ストラクチャ警告</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>このコーポレーションのストラクチャについて、燃料・攻撃・装備の警告を出します。</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>ストラクチャの燃料が切れるまで</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>ストラクチャが攻撃された（閉じられます）</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>ストラクチャに装備のモジュールが足りない</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>ストラクチャに装備とは別のモジュールが付いている</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>弾薬が次を下回る:</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>ファイターが次を下回る:</value>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>傭兵の隠れ家</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>隠れ家のアナーキーがレベル</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>以上（0–4）</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>隠れ家が攻撃された、または強化状態になった</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>新しい傭兵戦術作戦</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>自分のキャラクターの隠れ家（傭兵の隠れ家）。ゲームは隠れ家のアナーキーを所有者にしか伝えないため、他人の隠れ家は（自コーポレーションのスカイフック上でも）見えません。攻撃と新しい作戦は直近1日の通知から取得し、非表示にできます。</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>%（装備の数量に対して）</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>コーポレーション タブでストラクチャ警告にチェックを入れたコーポレーションのみが対象です。ストラクチャの種類ごとの装備は「コーポストラクチャ → 設定」で選びます。装備を選んでいない種類はチェックしません。モジュールは同じ種類のどのスロットにあっても構わず、余分なモジュールやリグは問題になりません。攻撃はキャラクターの通知から読み取り、1 日間表示します。</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>
@@ -84,6 +150,300 @@
   </data>
   <data name="ThemeLabel" xml:space="preserve">
     <value>テーマ：</value>
+  </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>テーマを編集…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>一から、または既存のテーマをコピーして、自分のテーマを作ります。</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>新しいテーマ</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>無地の配色から自分のテーマを始めます。</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>無地（ダーク）</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>無地（ライト）</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>このテーマから自分のテーマを作ります。</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>テーマ「{0}」を削除しますか？元に戻せません。</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>組み込み</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>組み込みテーマは変更できません。コピーすると、それをもとに自分のテーマを作れます。</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>ベース</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>テーマがダークかライトか。ここで設定しない色（標準コントロール、グラフの線、セキュリティの色）もこれで決まります。</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>クイックスタート</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>背景、文字色、アクセントを選んで残りを算出します。下の背景・線・文字・アクセントの各色は、この3色から混ぜて作られます。ステータスの色はそのままです。</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>残りを算出</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>下の背景・線・文字・アクセントを、この3色の濃淡に置き換えます。</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>これらの色は表やグラフで意味を表します。互いに、また背景とも見分けやすくしてください。</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>変更を元に戻す</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>このテーマを開いたときの色と名前に戻します。</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>このテーマを使う</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>保存しました</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>マイテーマ</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0}（コピー）</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>線</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>ステータスの色</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>ページの背景</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>パネルとカード</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>縞模様の行、入れ子のパネル</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>セクションの見出し</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>ポップアップ、メニュー、ツールチップ</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>テキストボックスとドロップダウン</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>ポインターの下</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>選択した行</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>区切り線とグリッド線</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>パネルとコントロールの枠</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>強調とフォーカス</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>最も淡い：ヒント、列見出し</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>暗め</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>控えめ：キャプション</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>セカンダリ</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>本文</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>見出し</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>アクセント</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>ポインターの下のアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>押したときのアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>アクセント文字の背景</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>濃いアクセント</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>淡いアクセント</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>良好：利益、オンライン</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>不良：損失、エラー</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>良好の背景</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>不良の背景</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>警告の背景</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>情報の背景</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>すべてのキャラクター</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>合計を表示</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>計算</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>パネル</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>数</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>変化</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>通常の行</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>縞模様の行</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>ポインターの下</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>選択中</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>不良</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>アクセント専用の背景に表示されるお知らせ。</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>見出し</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>本文。アプリのほとんどの文字はこの色です。</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>セカンダリの文字</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>キャプション</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>暗めの文字</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>ヒント</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>ページの上に浮かぶポップアップ、メニュー、ツールチップ。</value>
   </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>UIの拡大率：</value>
@@ -913,6 +1273,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ アプリのフォルダーに見つかりません</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper は macOS では利用できません。上で別の音声エンジンを選んでください。</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>音声モデルをダウンロード</value>
   </data>
@@ -1200,6 +1563,12 @@
   </data>
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>自分が発行した、または自分に割り当てられた有効な契約のうち、有効期間の最後の15%に入ったものを数えます。2週間の契約なら12日目からです。個人コーポレーションは自分として数えます。</value>
+  </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>未読の EVE メールがあるときに通知</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>アプリがメールを読み込んでいるすべてのキャラクターの未読メールを、キャラクターごとのコピーを別々に数えます。2 人のキャラクターに送られた 1 通のメールはゲームと同じく 2 通と数えます。ゲームで読んだメールは次のメール取得（タイマー）で数えられなくなります。通知をクリックすると EVE メールツールが開きます。</value>
   </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>データベースの種類</value>
@@ -1768,6 +2137,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>通知領域のアイコンを表示する（デスクトップセッションの開始時に開始）</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>メニューバーにアイコンを表示する（ログイン時に開始）</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>PostgreSQLが必要です。このクライアントはPostgreSQLを使用しています — ワーカーとすべてのクライアントが1つのサーバーを共有します。</value>
   </data>
@@ -1795,11 +2167,17 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>実行中です。デスクトップセッションの開始時に開始します。</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>実行中です。ログイン時に開始します。</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Windowsの起動時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>デスクトップセッションの開始時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>ログイン時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログアウトするまで残ります。</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>変更できませんでした — {0}</value>
@@ -2644,6 +3022,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>パスワードはデスクトップのキーリングに保存されています。config.jsonにはその参照だけが含まれます。</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>パスワードは macOS のキーチェーンに保存されています。config.jsonにはその参照だけが含まれます。</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>キーリングが見つからないため、パスワードは入力されたままconfig.jsonに保存されています。キーリングに保存するには、libsecret-tools（secret-tool）をインストールしてください。</value>
   </data>
@@ -3398,7 +3779,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
     <value>惑星インダストリーのアラートとタスク</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>概要のPIアラートとワークリストのPIタスクがどれだけ先まで見るか、コロニーのデータがいつ古すぎて信頼できなくなるか、投入資源の運搬でどれだけ運ぶかを設定します。どのアラートを出すかは「アラート」タブで設定します。</value>
+    <value>概要のPIアラートとワークリストのPIタスクがどれだけ先まで見るか、投入資源の運搬でどれだけ運ぶかを設定します。どのアラートを出すかは「アラート」タブで設定します。</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>エクストラクターの停止</value>
@@ -3414,9 +3795,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>時間前（推定）</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>コロニーのデータを古いとみなす日数</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>投入資源の運搬1回で運ぶ量</value>
@@ -3439,10 +3817,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>PIキャラクターに未使用のコロニースロットがある</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>コロニーが長くゲーム内で開かれておらず、推定値が信頼できない</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先か、どれだけ古いと古すぎるかは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
+    <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先かは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
   </data>
 </root>

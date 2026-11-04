@@ -93,7 +93,9 @@ public static class SharedHauls
                 // ⚠️ Behind the jobs it actually restarts, for the same reason. Work waiting on a
                 // job that stays stopped is not freed by this trip.
                 g.Where(x => x.Block.Wants.Count == 1).Sum(x => x.Block.StalledTasks),
-                g.Any(x => x.Block.HaulTasks > 0)))
+                // This item, not the job: a haul bringing a job one of its three wants does not
+                // make the other two moving.
+                g.Any(x => x.Want.Moving)))
             .Where(h => h.Jobs > 1)
 
             // Ranked by what the trip actually achieves, then by how much it is wanted. Ordering

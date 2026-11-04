@@ -769,6 +769,9 @@ public class IndyParksViewModel : ReactiveObject
     /// them.</summary>
     private readonly EsiPollingService?        _polling;
 
+    /// <summary>The Compare tab: the same items built in every park, side by side. Set by MainWindow.</summary>
+    public ParkComparisonViewModel? Compare { get; set; }
+
     public IndyParksViewModel(IDbContextFactory<AppDbContext> dbFactory,
                               CorpActivityService? corpActivity = null,
                               AppErrorLogger? errorLogger = null,
@@ -1777,7 +1780,8 @@ public class IndyParksViewModel : ReactiveObject
             var rigCategory = IndyRigMatching.RigCategoryFromName(name);
             if (rigCategory.Length == 0) continue;
 
-            if (exactOnly ? rigCategory == categoryKey
+            // An ME or TE research rig is an exact match for research, as a copy rig is for copying.
+            if (exactOnly ? rigCategory == categoryKey || IndyRigMatching.StructureCategory(rigCategory) == categoryKey
                           : IndyRigMatching.RigApplies(rigCategory, categoryKey))
                 return true;
         }

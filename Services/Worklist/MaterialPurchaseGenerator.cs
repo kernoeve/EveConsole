@@ -248,8 +248,20 @@ public class MaterialPurchaseGenerator(
 
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
+        // And prints contracts have moved since the polls: on a courier, or bought and not seen
+        // yet. Neither table can know of them, and a print bought and on its way was asked for
+        // again the moment it left the hangar. See ContractLag.
+        var printIds = queueBpIds.Concat(treeNeed.Keys).Concat(shelfWant.Keys).Distinct().ToList();
+        var printMoves = new Dictionary<int, long>();
+        foreach (var m in await ContractLag.MovesAsync(db, ct, printIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            printMoves[m.TypeId] = printMoves.GetValueOrDefault(m.TypeId) + m.Units;
+        }
+
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, printMoves, shelfWant,
                                   buyAt, buyName, alt));
 
         var shortIds = rawIds.Where(t => Missing(t) > 0).ToList();
@@ -259,7 +271,7 @@ public class MaterialPurchaseGenerator(
         // Ore, ice and gas already held count toward what they turn into, so a shortfall covered
         // by unrefined stock does not become a purchase.
         var subs      = await substitution.LoadAsync(ct);
-        var subsStock = await SubstituteStockAsync(db, subs, shortIds, reach, ct);
+        var subsStock = await SubstituteStockAsync(db, subs, shortIds, reach, scope, corps, ct);
 
         // Production already running that will yield the material itself — a bought intermediate
         // somebody is building anyway. Assets alone under-count what is coming: a reaction three
@@ -360,7 +372,7 @@ public class MaterialPurchaseGenerator(
         // Named as the screen shows them: this is only ever the opening of a row's detail.
         var users = need.Consumers
             .GroupBy(c => c.TypeId)
-            .Select(g => (Name: SdeNames.Type(g.Key, g.First().Name),
+            .Select(g => (Name: ItemRef.Of(g.Key, g.First().Name),
                           Runs: g.Sum(c => c.Runs), Units: g.Sum(c => c.Units)))
             .OrderByDescending(u => u.Units)
             .ToList();
@@ -465,7 +477,7 @@ public class MaterialPurchaseGenerator(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, (long Runs, string For)> treeNeed, HashSet<int> inventable,
-        Dictionary<int, int> ownedInAssets, Dictionary<int, long> shelfWant,
+        Dictionary<int, int> ownedInAssets, Dictionary<int, long> printMoves, Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
@@ -480,7 +492,7 @@ public class MaterialPurchaseGenerator(
             jobNeed[bp.TypeId] = jobNeed.GetValueOrDefault(bp.TypeId)
                                + IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
             // Only ever read out in the row's detail, so named as the screen shows it.
-            forWhat.TryAdd(bp.TypeId, SdeNames.Type(entry.TypeId, entry.TypeName));
+            forWhat.TryAdd(bp.TypeId, ItemRef.Of(entry.TypeId, entry.TypeName));
         }
 
         // What the material tree asks for, in runs, at every level — the queue above only sees
@@ -523,6 +535,10 @@ public class MaterialPurchaseGenerator(
             // the one with the gap.
             if (mine.Count == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
 
+            // ⚠️ Added whichever table spoke: a print in a courier is in neither. The same floor
+            // of one run apiece, since neither a cargo line nor a contract line carries runs.
+            held = Math.Max(0, held + printMoves.GetValueOrDefault(bpTypeId));
+
             var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
             var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // runs the stocking rule wants kept
 
@@ -548,6 +564,11 @@ public class MaterialPurchaseGenerator(
                                          : string.Format(WorklistText.PrintRunsForQueued, jobs));
             if (shelf > 0) parts.Add(string.Format(WorklistText.PrintRunsToStock, shelf));
 
+            // Runs are bought as copies: the copy's picture and "(Copy)". A reaction formula is
+            // always an original, and is neither labelled nor drawn as a copy.
+            var isFormula = ctx.BpProducts.Any(p => p.TypeId == bpTypeId && p.Activity == "reaction");
+            var print     = isFormula ? PrintKind.None : PrintKind.Copy;
+
             var haveText = CommonText.ClauseSeparator + (anyOriginal ? WorklistText.PrintOriginalOwned
                                  : held > 0    ? string.Format(WorklistText.PrintCopiesOwned, held)
                                                : WorklistText.PrintNoneOwned);
@@ -557,10 +578,10 @@ public class MaterialPurchaseGenerator(
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = string.Format(WorklistText.PrintTitle, SdeNames.Type(bpTypeId, bpName), stillNeeded),
+                Title         = string.Format(WorklistText.PrintTitle, PrintLabel.Name(bpTypeId, bpName, print), stillNeeded),
                 TitleTag      = "BPO/BPC",
-                // Runs are what is short, and runs are bought as copies: the copy's picture.
-                TypeImage     = "bpc",
+                TypeImage     = isFormula ? "bp" : "bpc",
+                Print         = print,
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
                 Detail        = $"{string.Join(" + ", parts)}{haveText} — "
@@ -620,7 +641,7 @@ public class MaterialPurchaseGenerator(
     private static async Task<Dictionary<int, (long Units, string Note)>> SubstituteStockAsync(
         AppDbContext db, Dictionary<int, List<Substitute>> subs,
         List<int> shortTypeIds, ProductionCalculatorService.AssetReach reach,
-        CancellationToken ct)
+        IReadOnlySet<long>? scope, IReadOnlySet<long>? corps, CancellationToken ct)
     {
         var wanted = shortTypeIds.Where(subs.ContainsKey).ToList();
         if (wanted.Count == 0) return [];
@@ -634,6 +655,17 @@ public class MaterialPurchaseGenerator(
             .Where(a => reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        // And what contracts have moved since, a courier's cargo included, exactly as the
+        // material's own stock is counted: compressed ore on its way yields as surely as compressed
+        // ore in a hangar, and leaving it out asked for its minerals the moment it left. Never
+        // below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, sourceIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            held[m.TypeId] = Math.Max(0, held.GetValueOrDefault(m.TypeId) + m.Units);
+        }
 
         var ordered = await OnOrderAsync(db, sourceIds, ct);
 
@@ -657,7 +689,7 @@ public class MaterialPurchaseGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
-                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
+                var shown = ItemRef.Of(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
                     ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)

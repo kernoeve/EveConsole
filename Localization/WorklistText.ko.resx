@@ -368,16 +368,16 @@
     <value>보유한 원본들이 쉬지 않고 돌아갈 때 하루에 만들 수 있는 수량입니다.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>최근 90일 동안 실제로 하루에 생산한 수량입니다. 상한을 넘을 수 없으므로 수요를 측정하는 데 쓸 수 없습니다.</value>
+    <value>실제로 생산된 하루 수량으로, 전체 사용 중 수치와 같은 기간으로 측정합니다. 상한을 넘을 수 없으므로 수요를 측정하는 데 쓸 수 없습니다.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>각 원본이 작업에 들어가 있던 시간의 비율입니다. 참고용일 뿐입니다: 병목을 식별하지 못하며, 이 값으로 순위를 매기면 실제 제약보다 많이 쓴 것이 위에 옵니다.</value>
+    <value>각 원본이 작업에 들어가 있던 시간의 비율로, 전체 사용 중 수치와 같은 기간으로 측정합니다. 참고용일 뿐입니다: 병목을 식별하지 못하며, 이 값으로 순위를 매기면 실제 제약보다 많이 쓴 것이 위에 옵니다.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>전부 사용 중</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>최근 90일 중 '모든' 원본이 동시에 사용 중이던 시간의 비율로, 제조뿐 아니라 연구와 복제도 셉니다. 작업을 하나 더 하려면 기다려야 했는지를 알려 주는 수치입니다.</value>
+    <value>'모든' 원본이 동시에 사용 중이던 시간의 비율로, 제조뿐 아니라 연구와 복제도 셉니다. 최근 90일 또는 그보다 늦다면 이 원본의 첫 작업 이후로 측정하며, 30일 미만으로는 측정하지 않습니다. 작업을 하나 더 하려면 기다려야 했는지를 알려 주는 수치입니다.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>순위</value>
@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>일</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>사용 중인 청사진이 다음 시간 안에 비면 재료를 확보</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>앞 순위의 작업이 실행 중인 작업에서 청사진이 풀리기만 기다리고 있고 그 작업이 이 시간 안에 끝나면, 해당 장소의 재료를 그 작업을 위해 확보해 뒤 순위의 작업이 먼저 써 버리지 않게 합니다. 0이면 꺼집니다.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>이 장소의 재료를 확보해 두었습니다. 청사진은 {0}시간 안에 풀립니다.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>자산 범위</value>
   </data>
@@ -1015,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>급증</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>빈 슬롯 없음</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>작업 대기</value>
   </data>
@@ -1040,7 +1055,7 @@
     <value>병목이 없습니다: 슬롯을 기다리는 작업이 있는 슬롯 풀이 없고, 모든 원본이 자주 사용 중이어서 무언가를 기다리게 한 블루프린트도 없습니다. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. ⚠ 블루프린트 {4}개의 원본이 모두 사용 중인데 슬롯 {3:N0}개가 비어 있습니다 — 여기서 제약은 슬롯이 아니라 원본입니다. {5}</value>
+    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. ⚠ 블루프린트 {4}개의 원본이 모두 사용 중이라 작업이 멈춘 바로 그 풀에서 슬롯 {3:N0}개가 비어 있습니다 — 그곳의 제약은 슬롯이 아니라 원본입니다. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. {3}</value>
@@ -1471,6 +1486,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>도착 시 시작</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>이후 슬롯 대기</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>이후 블루프린트 대기</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>다른 순환도 끝나면 시작</value>
   </data>
@@ -1489,14 +1510,14 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>순환이 끝나면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1} 외 {2:N0}개.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>{0:N0}개 필요</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>아이템 {0:N0}종 더 필요</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>다른 작업 뒤에 대기</value>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>더 부족한 것 없음</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>다른 아이템 {0:N0}개도 부족</value>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>이후에도 부족한 것</value>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>이 배송의 대상인 제조입니다. 계획기가 이 운반을 만든 이유이며, 아직 별도의 작업 항목으로 나뉘지 않았습니다.</value>
@@ -1504,17 +1525,11 @@
   <data name="WaitTipStarts" xml:space="preserve">
     <value>이 운반이 작업에 부족한 모든 것을 싣고 있으므로, 화물이 도착하면 작업이 시작됩니다.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>작업이 이 적재 목록의 무언가를 원하지만, 앞선 작업이 이미 그 재고를 가져갔습니다 — 이번 적재분은 이 작업에 닿지 않습니다.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>여전히 부족: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>여전히 부족: {0} 외 {1:N0}개.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>이 적재 목록의 무언가를 두고 다른 작업 뒤에서도 대기하고 있습니다.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>총 {0:N0}개. {1}</value>
@@ -1663,6 +1678,18 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>산업 작업</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>완료된 작업</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>완료된 작업 {0:N0}개 수령</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>완료되어 수령 대기 중: {0}. 수령하면 슬롯이 비고 결과물이 격납고에 들어갑니다.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>외 {0:N0}개</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} {1:N0}개 제조.</value>
   </data>
@@ -1694,7 +1721,13 @@
     <value>블루프린트가 진행 중인 작업에서 사용 중 ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0}에 사용 가능한 블루프린트 없음 ({1})</value>
+    <value>{0}에 사용할 수 있는 블루프린트 없음 (보유 중 최고: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>이곳의 블루프린트가 모두 사용 중입니다: 진행 중 {0:N0}개, 곧 시작 {1:N0}개</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>블루프린트가 재료가 부족한 앞선 작업을 위해 잡혀 있습니다</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} {1:N0}개 부족.</value>
@@ -1721,7 +1754,7 @@
     <value>이 작업의 나머지 부분으로, 재료를 기다리고 있습니다.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>추가 {0:N0}회는 사용 가능한 원본이 없어 따로 표시됩니다.</value>
+    <value>추가 {0:N0}회는 따로 표시됩니다.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>EVE의 작업당 30일 제한에 걸렸습니다.</value>
@@ -1745,16 +1778,16 @@
     <value>{0}에 없는 재료: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>미보유: {0}</value>
+    <value>여유분 없음: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>{0}에 미보유: {1}</value>
+    <value>{0}에 여유분 없음: {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>미보유: {0}; 다른 곳에 있음: {1}</value>
+    <value>여유분 없음: {0}; 다른 곳에 있음: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>{0}에 미보유: {1}; 다른 곳에 있음: {2}</value>
+    <value>{0}에 여유분 없음: {1}; 다른 곳에 있음: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} 외 {1}개</value>
@@ -1903,8 +1936,89 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>아이템 {0}종</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>아이템 {0}종, 계약 {1}/{2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>품목 {0}개 (계약 {1}건)</value>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} 직접 비행</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>캐피탈은 운반할 수 없습니다. 조종사가 직접 비행해야 하며 다른 성계라면 점프해야 합니다.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0}은(는) {1}에 도킹할 수 없습니다. 그곳에서 건조하고 언도킹하지 마십시오</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>계약 {0}/{1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>지금 할 일</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>빈 슬롯 없음</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>아직 때가 아님</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>다음 할 일</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>재료 부족</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>블루프린트 모두 사용 중</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>이곳에 블루프린트 없음</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>납품</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0} 슬롯 {1:N0}/{2:N0} 가득 참</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0} 슬롯 {1:N0}/{2:N0}, {3:N0}개 비어 있음</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>마지막 새로 고침 이후: 새로 준비됨 {0:N0}개, 더 이상 준비되지 않음 {1:N0}개</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>{0:N0}개 해제</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>운송</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>제작</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>반응</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>납품</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>클릭하면 이것만 표시합니다. 다시 클릭하면 해제합니다.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>클릭하면 목록에서 이 작업으로 이동합니다.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>작업들이 이것을 기다리고 있습니다.</value>
@@ -2321,7 +2435,7 @@
     <value>현재 가동 중인 {2:N0}개 대비 {0} × {1}개 슬롯. 훈련은 즉시 되지 않습니다 — 이것은 이 방법으로 얻을 수 있는 상한입니다.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>{1}일 동안 블루프린트 {0:N0}개를 측정했습니다: {2:N0}개는 모든 원본이 동시에 사용 중인 적이 없었고, 중앙값은 {3:N0}%, 가장 바쁜 상위 10%는 {4:N0}%부터 시작합니다 — 이것이 표시에 쓰는 기준선입니다.</value>
+    <value>최대 {1}일 동안 블루프린트 {0:N0}개를 측정했습니다: {2:N0}개는 모든 원본이 동시에 사용 중인 적이 없었고, 중앙값은 {3:N0}%, 가장 바쁜 상위 10%는 {4:N0}%부터 시작합니다 — 이것이 표시에 쓰는 기준선입니다.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었고, 지금 시작할 수 없는 작업이 {2:N0}개 있습니다. BPO를 하나 더 두면 상한이 하루 {3:N2}개에서 {4:N2}개로 오릅니다.</value>
@@ -2342,10 +2456,40 @@
     <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었지만, 오늘은 대기 중인 작업이 없습니다. 구매하기보다는 지켜볼 만합니다.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 BPO가 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). BPO를 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 블루프린트가 아닌 다른 문제로 보입니다.</value>
+    <value>현재 해당 장소에 사용 가능한 BPO가 없어 작업 {0:N0}개를 시작할 수 없지만, BPO가 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 부족보다는 일시적인 급증이나 BPO 위치 문제로 보이니 더 사기 전에 확인하십시오.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 반응식이 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 반응식을 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 반응식이 아닌 다른 문제로 보입니다.</value>
+    <value>현재 해당 장소에 사용 가능한 반응식이 없어 작업 {0:N0}개를 시작할 수 없지만, 반응식이 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 부족보다는 일시적인 급증이나 반응식 위치 문제로 보이니 더 사기 전에 확인하십시오.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>작업 {0:N0}개는 BPO가 아니라 제조 슬롯을 기다리고 있어 BPO를 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 모든 BPO가 사용 중이었습니다.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>작업 {0:N0}개는 반응식이 아니라 반응 슬롯을 기다리고 있어 반응식을 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 모든 반응식이 사용 중이었습니다.</value>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>복사 연구소: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>복사 작업 {0:N0}개는 BPO가 아니라 연구 슬롯을 기다리고 있어 BPO를 늘려도 하나도 시작되지 않습니다. 지난 {2}일 중 {1:N0}% 동안 이곳의 모든 BPO가 사용 중이었습니다.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (복사용)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>용도</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>이 원본의 용도입니다. 복사 연구소에 있는 원본은 복사하고 나머지는 제작하며 서로 대체하지 않으므로 각각 별도의 줄에서 측정합니다. 해당 종류의 유일한 원본은 둘 다 합니다.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>제작</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>제작 + 복사</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>지금 작업 {0:N0}개가 이것을 원하지만, 최근 {1}일 대부분 동안 모든 BPO가 비어 있었습니다. 지속적인 필요가 아니라 일회성이므로 원본보다 BPC가 나을 수 있습니다.</value>
@@ -2389,11 +2533,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{1}의 {0} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>운반 {0:N0}건 등록</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>운송 {0:N0}건이 작업 {1:N0}건을 막고 있습니다</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>작업 {0:N0}개가 이미 보유한 재료를 기다리고 있지만 운반 중인 것이 없습니다.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>필요한 것 중 {0:N0}건은 아직 작업 목록에 운송이 없습니다.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>모두 작업 목록에 있습니다. 운송하면 작업이 다시 시작됩니다.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>제조 슬롯 추가</value>
@@ -2418,12 +2565,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — 작업 항목 {1:N0}개 해소</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개 재시작</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개가 원하지만 이것만으로 재시작되는 작업 없음</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>가장 심각한 {0}개만 표시합니다. 나머지는 해당 탭에 있습니다.</value>
@@ -2464,9 +2605,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: 생산품이 절반 이상 참 (추정)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>오래된 데이터로 추정한 수치입니다: 한동안 게임에서 콜로니를 열지 않았습니다.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0}에 투입 자원 반입</value>
   </data>
@@ -2487,12 +2625,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>현재 레벨 {0}. 통제센터 업그레이드 스킬로 {1}까지 가능합니다. 추출기 헤드와 제조시설에 쓸 CPU와 파워그리드가 늘어납니다.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>게임에서 {0} 열기</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>데이터가 {0} 지나 추정치를 더 이상 믿을 수 없습니다. 게임에서 콜로니를 열면 갱신됩니다.</value>
   </data>
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>{1:M월 d일 HH:mm}까지 자산 보호 포장 {0:N0}개의 목적지 선택</value>

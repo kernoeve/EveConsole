@@ -34,7 +34,7 @@
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
       <Setter Property="FontSize" Value="10" />
-      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
     </Style>
 
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column

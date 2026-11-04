@@ -368,16 +368,16 @@
     <value>手元のオリジナルを休みなく稼働させた場合に、合わせて1日に生産できる数量です。</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>過去90日間に実際に生産された1日あたりの数量です。上限を超えることはないため、需要の測定には使えません。</value>
+    <value>実際に生産された1日あたりの数量で、全数使用中の数値と同じ日数で測定します。上限を超えることがないため、需要の測定には使えません。</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>各オリジナルがジョブに入っていた時間の割合です。参考情報にすぎません：ボトルネックを特定するものではなく、これで順位を付けると、実際の制約より多用されているものが上に来てしまいます。</value>
+    <value>各オリジナルがジョブに入っていた時間の割合で、全数使用中の数値と同じ日数で測定します。参考情報にすぎません：ボトルネックを特定するものではなく、これで順位を付けると、実際の制約より多用されているものが上に来てしまいます。</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>全稼働</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>過去90日間のうち、「すべての」オリジナルが同時に使用中だった時間の割合です。製造に加え、研究とコピーも数えます。もう1つジョブを実行したいときに待つ必要があったかどうかを示すのがこの数値です。</value>
+    <value>「すべての」オリジナルが同時に使用中だった時間の割合です。製造に加え、研究とコピーも数えます。過去90日間、またはそれより後ならこのオリジナルの最初のジョブ以降で測定し、30日未満にはなりません。もう1つジョブを実行したいときに待つ必要があったかどうかを示すのがこの数値です。</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>順位</value>
@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>日</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>使用中の設計図が次の時間内に空く場合は材料を確保</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>上位のジョブが、実行中のジョブから設計図が戻るのを待つだけで開始できず、そのジョブがこの時間内に終わる場合、その場所の材料をそのジョブのために確保し、下位のジョブが先に使い切らないようにします。0 で無効になります。</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>この場所の材料を確保しています。設計図は {0} 時間以内に空きます。</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>資産の対象範囲</value>
   </data>
@@ -1015,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>急増</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>空きスロットなし</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>ジョブ待ち</value>
   </data>
@@ -1040,7 +1055,7 @@
     <value>ボトルネックはありません：スロット待ちの作業があるプールはなく、すべてのオリジナルが使用中になって何かを待たせるほどのブループリントもありません。{0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。⚠ ブループリント{4}件のオリジナルがすべて使用中なのに、スロットは{3:N0}個空いています — ここでの制約はスロットではなくオリジナルです。{5}</value>
+    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。⚠ ブループリント{4}件のオリジナルがすべて使用中でジョブが止まっている同じプールで、スロットが{3:N0}個空いています — そこでの制約はスロットではなくオリジナルです。{5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。{3}</value>
@@ -1471,6 +1486,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>到着時に開始</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>その後スロット待ち</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>その後ブループリント待ち</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>もう一方の周回も終わると開始</value>
   </data>
@@ -1489,14 +1510,14 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>周回が終わると、止まっているジョブ{0:N0}件が再開します：{1}、ほか{2:N0}件。</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>{0:N0}個必要</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>あと{0:N0}種類のアイテムが必要</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>別のジョブの後ろで待機中</value>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>他に不足なし</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>他に{0:N0}種類のアイテムも不足</value>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>これの後も不足するもの</value>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>この配送の対象となる製造です。プランナーがこの便を作成した理由であり、まだ独立したタスクに分けられていません。</value>
@@ -1504,17 +1525,11 @@
   <data name="WaitTipStarts" xml:space="preserve">
     <value>この運搬でジョブに不足しているものがすべて届くため、積荷が到着すればジョブが開始されます。</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>このジョブはこのマニフェストにあるものを必要としていますが、先のジョブがすでにその在庫を確保しています — この積荷はこのジョブには届きません。</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>まだ{0}が不足しています。</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>まだ{0}、ほか{1:N0}件が不足しています。</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>このマニフェストにあるものについて、別のジョブの後ろでも待っています。</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>合計{0:N0}個。{1}</value>
@@ -1663,6 +1678,18 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>生産ジョブ</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>完了したジョブ</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>完了したジョブ{0:N0}件を配送</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>完了して配送待ち：{0}。配送するとスロットが空き、成果物がハンガーに入ります。</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>ほか{0:N0}件</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0}{1:N0}個を製造します。</value>
   </data>
@@ -1694,7 +1721,13 @@
     <value>ブループリントは実行中のジョブで使用中です（{0}）</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0}に空いているブループリントがありません（{1}）</value>
+    <value>{0}に使用できるブループリントがありません（所有する最良のもの：{1}）</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>ここのブループリントはすべて使用中です：稼働中{0:N0}件、開始予定{1:N0}件</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>ブループリントは、資材が不足している先のジョブのために確保されています</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0}{1:N0}個不足。</value>
@@ -1721,7 +1754,7 @@
     <value>このジョブの残りの分で、資源を待っています。</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>さらに{0:N0}回分は空いているブループリントがありません — 別に表示しています。</value>
+    <value>さらに{0:N0}回分は別に表示しています。</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>EVEの1ジョブあたり30日の上限で制限されています。</value>
@@ -1745,16 +1778,16 @@
     <value>{0}にない資源：{1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>未所有：{0}</value>
+    <value>余剰なし：{0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>{0}で未所有：{1}</value>
+    <value>{0}で余剰なし：{1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>未所有：{0}、別の場所：{1}</value>
+    <value>余剰なし：{0}、別の場所：{1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>{0}で未所有：{1}、別の場所：{2}</value>
+    <value>{0}で余剰なし：{1}、別の場所：{2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0}、ほか{1}件</value>
@@ -1903,8 +1936,89 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>アイテム{0}種類</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} 種類のアイテム、契約 {1}/{2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0}品目（{1}件の契約）</value>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>{0} × {1:N0} を操縦して移動</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>キャピタルは輸送できません。パイロットが操縦し、星系が離れていればジャンプする必要があります。</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0}は{1}にドックできません。そこで建造し、アンドックしないでください</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>契約 {0}/{1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>今すぐ実行</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>空きスロットなし</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>まだ時期ではない</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>次にやるべきこと</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>資材不足</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>ブループリントがすべて使用中</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>ここにブループリントなし</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>納品</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0}スロット {1:N0}/{2:N0} 満杯</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0}スロット {1:N0}/{2:N0}、空き{3:N0}</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>前回の更新以降：新たに実行可能 {0:N0}件、実行可能でなくなった {1:N0}件</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>{0:N0}件を解放</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>輸送</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>リアクション</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>発明</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>納品</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>クリックするとこれらだけを表示します。もう一度クリックすると解除します。</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>クリックするとリスト内のこのタスクに移動します。</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>ジョブがこれを待っています。</value>
@@ -2321,7 +2435,7 @@
     <value>現在稼働中の{2:N0}スロットに対して、{0} × {1}スロットです。トレーニングはすぐには終わりません — これは得られる上限です。</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>ブループリント{0:N0}件を{1}日間にわたって測定：すべてのオリジナルが同時に使用中になったことがないものが{2:N0}件、中央値は{3:N0}%、上位10%は{4:N0}%からで、これがフラグの基準線です。</value>
+    <value>ブループリント{0:N0}件を最大{1}日間にわたって測定：すべてのオリジナルが同時に使用中になったことがないものが{2:N0}件、中央値は{3:N0}%、上位10%は{4:N0}%からで、これがフラグの基準線です。</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>過去{1}日間の{0:N0}%ですべてのBPOが使用中で、現在ジョブ{2:N0}件が開始できません。BPOをもう1つ増やすと、上限は1日{3:N2}から{4:N2}になります。</value>
@@ -2342,10 +2456,40 @@
     <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中でしたが、現在これを待っているジョブはありません。購入するより様子を見る段階です。</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>ジョブ{0:N0}件が開始できませんが、手元のBPOがすべて同時に使用中になることはめったにありません（{1:N0}%）。BPOを追加で購入する前に、本当に不足しているものを確認してください — ブループリント以外の原因のようです。</value>
+    <value>現地に空いているBPOが今ないためジョブ{0:N0}件が開始できませんが、BPOがすべて同時に使用中になることはめったにありません（{1:N0}%）。不足というより一時的な急増か、BPOの置き場所の問題のようです。追加で購入する前に確認してください。</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>ジョブ{0:N0}件が開始できませんが、手元のフォーミュラがすべて同時に使用中になることはめったにありません（{1:N0}%）。フォーミュラを追加で購入する前に、本当に不足しているものを確認してください — フォーミュラ以外の原因のようです。</value>
+    <value>現地に空いているフォーミュラが今ないためジョブ{0:N0}件が開始できませんが、フォーミュラがすべて同時に使用中になることはめったにありません（{1:N0}%）。不足というより一時的な急増か、フォーミュラの置き場所の問題のようです。追加で購入する前に確認してください。</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>ジョブ{0:N0}件はBPOではなく製造スロットを待っているため、BPOを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、すべてのBPOが使用中でした。</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>ジョブ{0:N0}件はフォーミュラではなくリアクションスロットを待っているため、フォーミュラを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、すべてのフォーミュラが使用中でした。</value>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>コピーラボ：{0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>コピージョブ{0:N0}件はBPOではなく研究スロットを待っているため、BPOを増やしても1件も開始できません。過去{2}日間のうち{1:N0}%は、ここのすべてのBPOが使用中でした。</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0}（コピー用）</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>用途</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>このオリジナルの用途です。コピーラボにあるものはコピー、それ以外は製造に使い、互いに代わりにはならないため、それぞれ別の行で測定します。その種類で唯一のオリジナルは両方を行います。</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>製造＋コピー</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>現在ジョブ{0:N0}件がこれを必要としていますが、過去{1}日間のほぼすべての時間、どのBPOも空いていました。恒常的な需要ではなく一時的なものです — オリジナルよりBPCのほうが適しているかもしれません。</value>
@@ -2389,11 +2533,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{1}の{0} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>運搬タスクを{0:N0}件作成する</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} 件の輸送が {1:N0} 件の作業を止めています</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>ジョブ{0:N0}件がすでに所有している資源を待っていますが、何も運ばれていません。</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>そのうち {0:N0} 件の必要物資には、まだ作業リストに輸送がありません。</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>すべて作業リストに載っています。輸送すれば作業が再開します。</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>製造スロットを増やす</value>
@@ -2418,12 +2565,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — タスク{1:N0}件のブロックを解除</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が再開</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が必要としていますが、これだけで再開するものはありません</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>深刻な上位{0}件を表示しています。残りはタブにあります。</value>
@@ -2464,9 +2605,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}：産出物で半分以上埋まっています（推定）</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>数値は古いデータからの推定です：このコロニーはしばらくゲーム内で開かれていません。</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0}へ投入資源を運ぶ</value>
   </data>
@@ -2487,12 +2625,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>現在はレベル{0}で、司令基地強化の上限は{1}です。エクストラクターの抽出ヘッドと工場に使えるCPUとパワーグリッドが増えます。</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>ゲーム内で{0}を開く</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>データが{0}前のもので、推定値はもう信頼できません。ゲーム内でコロニーを開くと更新されます。</value>
   </data>
   <data name="SafetyChooseByOther" xml:space="preserve">
     <value>{1:M月d日 HH:mm}までにアセットセーフティラップ{0:N0}個の配送先を選択</value>

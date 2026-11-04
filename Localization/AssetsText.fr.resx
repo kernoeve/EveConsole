@@ -142,6 +142,78 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Ouvrir dans l'explorateur d'objets</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Copier le nom</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Copier le nom</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>{0} copié</value>
+  </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Parcourir</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Barre rapide</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Rien pour l'instant. Faites un clic droit sur un objet dans Parcourir ou dans les résultats de recherche, ou utilisez le bouton de la barre rapide à côté du nom d'un objet, pour le garder ici. Clic droit ici pour un nouveau dossier.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ Ajouter à la barre rapide</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ Dans la barre rapide</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Garde cet objet dans la barre rapide, partagée par toutes les applications de cette base de données.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Retire cet objet de la barre rapide.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Niveau supérieur</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Ajouter à la barre rapide</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Retirer de la barre rapide</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Déplacer vers un dossier</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>Nouveau dossier…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Renommer le dossier…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Supprimer le dossier (son contenu remonte d'un niveau)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>Nouveau dossier de la barre rapide</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Renommer le dossier de la barre rapide</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Nom du dossier</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} ajouté à la barre rapide</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} est déjà dans la barre rapide</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} retiré de la barre rapide</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Ajouter des objets depuis un montage</value>
   </data>
@@ -211,14 +283,41 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Contrats achat</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Prix marché</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Prix marché (cible)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Coût de constr.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Prix marché (dispo.)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Volume (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Prix marché (écart)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Coût de constr. (écart)</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Volume - cible</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Volume - dispo.</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Volume - écart</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>{0} en manque</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} en manque</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…et {0} de plus</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Ajouter un objet…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Actions</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Niveaux de stock</value>
@@ -243,6 +342,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Coût de construction :</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} par cycle</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Valeur de retraitement :</value>
@@ -381,6 +483,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Ordres du marché</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Contrats</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} échanges d'objets avec cet objet d'un côté ou de l'autre. Le prix unitaire n'apparaît que si l'objet est seul de son côté et que l'autre côté n'est que des ISK ; une copie est évaluée par cycle.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Contrats passés : les {0:N0} plus récents seulement.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Aucun échange d'objets correspondant à ces filtres ne propose cet objet. Les contrats publics viennent du balayage de toutes les régions par l'outil Contrats.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Côté</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Proposé</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Demandé</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Copie ME{0} TE{1}, {2} cycles</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Copie</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Par unité / cycle</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Reste du contrat</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Propose {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Demande {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Rien d'autre</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Contrats : {0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Source :</value>
@@ -810,6 +963,9 @@ Modifier la liste la fait réapparaître.</value>
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Valeur de retraitement</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Ce que devient la liste une fois retraitée, aux rendements de l'application et aux prix de cette station. Ce qui ne peut pas être retraité reste tel quel et est marqué comme restant.</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>Le presse-papiers ne nomme aucun objet : la liste n'a donc pas été modifiée. Modifier la liste accepte n'importe quel texte.</value>
@@ -1329,6 +1485,45 @@ Modifier la liste la fait réapparaître.</value>
   </data>
   <data name="DivisionNumbered" xml:space="preserve">
     <value>Division {0}</value>
+  </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>Aucun</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Emplacement</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Tout développer</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Tout réduire</value>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} objet</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} objets</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Type {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Livraisons</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Travail d'industrie</value>

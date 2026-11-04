@@ -9,7 +9,7 @@
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.17</Version>
+    <Version>0.9.18</Version>
   </PropertyGroup>
 
   <!-- ⚠️ Set only by release-build.yml (-p:OfficialRelease=true). It is how a binary knows it is a
@@ -32,6 +32,8 @@
   <PropertyGroup>
     <IsWindowsTarget Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOsPlatform('Windows'))</IsWindowsTarget>
     <IsWindowsTarget Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('win'))</IsWindowsTarget>
+    <IsMacTarget Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOsPlatform('OSX'))</IsMacTarget>
+    <IsMacTarget Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('osx'))</IsMacTarget>
   </PropertyGroup>
 
   <!-- An .ico and a Win32 manifest mean nothing on Linux, and the SDK refuses the manifest
@@ -49,6 +51,14 @@
        referenced, and the compiler wants the assembly on every target. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+  </ItemGroup>
+
+  <!-- LibVLC's macOS binaries, Apple Silicon and Intel, for a macOS target only (77 MB each).
+       Published as content into libvlc/osx-arm64 and libvlc/osx-x64, where VlcRuntime loads
+       the one for the Mac it runs on. A build for one architecture carries only that one; a
+       local build on a Mac, with no runtime given, carries both. -->
+  <ItemGroup Condition="'$(IsMacTarget)' == 'true'">
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -221,14 +231,32 @@
   <!-- ⚠️ The same binary, fetched the same way, for the other platform. Piper is a native
        executable rather than a nuget package, so each platform needs its own download; without
        this a Linux build has TTS code and nothing to run. ContinueOnError matches the Windows
-       target: a failed download costs speech, not the build. -->
-  <Target Name="DownloadPiperBinaryLinux" BeforeTargets="Build" Condition="$([MSBuild]::IsOsPlatform('Linux')) And !Exists('$(ProjectDir)Resources/piper/piper')">
+       target: a failed download costs speech, not the build.
+
+       ⚠️ Two things kept every Linux build without it until now, though the download ran: the
+       Content glob above is Windows-only, and a glob is read when the project is loaded, before
+       any target has downloaded anything, so a fresh checkout's single publish found nothing.
+       So the Linux copy lives in a folder of its own (not mixed into the tracked Windows files)
+       and is added as content by a target, after the download and before the content is laid
+       out (AssignTargetPaths). There is no Piper for macOS: see PiperTtsService.UnsupportedHere. -->
+  <Target Name="DownloadPiperBinaryLinux" BeforeTargets="AssignTargetPaths" Condition="$([MSBuild]::IsOsPlatform('Linux')) And !Exists('$(ProjectDir)Resources/piper-linux/piper/piper')">
     <Message Text="[EveConsole] Downloading Piper TTS binary for Linux x64..." Importance="high" />
-    <MakeDir Directories="$(ProjectDir)Resources/" />
+    <MakeDir Directories="$(ProjectDir)Resources/piper-linux/" />
     <Exec Command="curl -fsSL -o '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' https://github.com/rhasspy/piper/releases/latest/download/piper_linux_x86_64.tar.gz" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
-    <Exec Command="tar -xzf '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' -C '$(ProjectDir)Resources/' &amp;&amp; rm -f '$(ProjectDir)Resources/piper_linux_tmp.tar.gz'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
-    <Exec Command="chmod +x '$(ProjectDir)Resources/piper/piper'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="tar -xzf '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' -C '$(ProjectDir)Resources/piper-linux/' &amp;&amp; rm -f '$(ProjectDir)Resources/piper_linux_tmp.tar.gz'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="chmod +x '$(ProjectDir)Resources/piper-linux/piper/piper'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
+  </Target>
+
+  <Target Name="IncludePiperBinaryLinux" AfterTargets="DownloadPiperBinaryLinux" BeforeTargets="AssignTargetPaths" Condition="$([MSBuild]::IsOsPlatform('Linux'))">
+    <ItemGroup>
+      <_PiperLinux Include="$(ProjectDir)Resources/piper-linux/piper/**" />
+      <Content Include="@(_PiperLinux)">
+        <Link>piper/%(_PiperLinux.RecursiveDir)%(_PiperLinux.Filename)%(_PiperLinux.Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
   </Target>
 
 </Project>

@@ -103,6 +103,9 @@
           <MenuItem Header="{x:Static loc:SalesText.MenuOpenInItemBrowser}"
                     Command="{Binding OpenInItemBrowserCommand}"
                     IsEnabled="{Binding IsItemRowSelected}" />
+          <MenuItem Header="{x:Static loc:MarketText.MenuAddToStandingBuyOrders}"
+                    Command="{Binding AddToStandingBuyOrdersCommand}"
+                    IsEnabled="{Binding IsItemRowSelected}" />
           <Separator />
           <MenuItem Header="{x:Static loc:SalesText.MenuAddItemsFromMarketGroup}"
                     Command="{Binding AddFromMarketGroupCommand}" />
@@ -570,7 +573,7 @@
                               ToolTip.Tip="{x:Static loc:SalesText.TipCopyTheRawFormatted}" />
                     </Grid>
                     <SelectableTextBlock v:InlineRenderer.Segments="{Binding Segments}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12"
+                                         FontFamily="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" FontSize="12"
                                          TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>

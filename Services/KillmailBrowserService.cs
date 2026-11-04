@@ -113,6 +113,9 @@ public class KillmailBrowserService(
     /// <param name="solarSystemId">One system's kills, by its id — the system page's. Not
     /// <paramref name="systemFilter"/>, which is a text search over system AND region names and so
     /// also finds every system and region whose name contains the one asked for.</param>
+    /// <param name="involvedCharacterIds">The Killmail tool's Personal tab: kills with any of these
+    /// characters as the victim or anywhere on the attacker list, not only the final blow. An empty
+    /// list is no characters, so no kills — never "no filter".</param>
     public async Task<KillmailListPage> GetListAsync(
         int offset, int limit,
         DateOnly? fromDate = null, DateOnly? thruDate = null,
@@ -122,8 +125,11 @@ public class KillmailBrowserService(
         EntityKind? entityKind = null, long entityId = 0,
         bool matchShownNames = false,
         CancellationToken ct = default,
-        DateTimeOffset? since = null, DateTimeOffset? before = null)
+        DateTimeOffset? since = null, DateTimeOffset? before = null,
+        IReadOnlyCollection<long>? involvedCharacterIds = null)
     {
+        if (involvedCharacterIds is { Count: 0 }) return new KillmailListPage([], false);
+
         using var db = dbFactory.CreateDbContext();
 
         List<long>? characterIds = null;
@@ -217,6 +223,13 @@ public class KillmailBrowserService(
                 _                     => ("VictimAllianceId", "AllianceId"),
             };
             conditions.Add($"""(d."{victimCol}" = {entityId} OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."{attackerCol}" = {entityId}))""");
+        }
+
+        // Personal tab — our own characters' ids, not user text, so inlined like the lists above.
+        if (involvedCharacterIds is { Count: > 0 })
+        {
+            var idsStr = string.Join(",", involvedCharacterIds);
+            conditions.Add($"""(d."VictimCharId" IN ({idsStr}) OR EXISTS (SELECT 1 FROM "KillMailAttackers" a WHERE a."KillMailId" = d."KillMailId" AND a."CharacterId" IN ({idsStr})))""");
         }
 
         var whereSql = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";

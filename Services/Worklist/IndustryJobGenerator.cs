@@ -172,6 +172,7 @@ public class IndustryJobGenerator(
         // purchase. Shared with the hauling and purchasing generators, so all three net against
         // the same view of what exists.
         var inScope = await ScopeStock.LoadAsync(db, scope, wrapped, corps, ct);
+        var docking = await CapitalDocking.LoadAsync(db, ct);
 
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);
@@ -253,6 +254,42 @@ public class IndustryJobGenerator(
         // Every item by type, so a candidate can ask how its dependents are doing right now.
         var byType = queue.ToDictionary(s => s.Demand.TypeId);
 
+        // ── Stock needed where it stands ─────────────────────────────────────
+        //
+        // What each site's own work will eat, of the stock already there: the materials of every
+        // item the park builds at that site, against what the site holds. That stock is not there
+        // to be hauled to another site's job.
+        //
+        // ⚠️ "Owned somewhere in scope" made a material a hauling problem even when every unit of
+        // it was waiting for jobs where it stood. 15,868 Auto-Integrity Preservation Seals at the
+        // large-ship yard were spoken for by the battleships planned there, and every capital at
+        // the capital yard read "Materials not at … : Auto-Integrity Preservation Seal" — a haul
+        // nobody could make, so no seal was ever built for them and the capitals stayed stopped.
+        var heldForSite = new Dictionary<int, List<(long Site, long Held)>>();
+        {
+            var localNeed = new Dictionary<(long Site, int TypeId), long>();
+            foreach (var s in queue)
+            {
+                if (s.Demand.Units <= 0 || !ctx.BlueprintByProduct.ContainsKey(s.Demand.TypeId)) continue;
+                var plan = await PlanRootJobAsync(ctx, s.Demand.TypeId, s.Demand.Units, ct: ct);
+                if (plan?.StationId is not long site) continue;
+                foreach (var m in plan.Materials)
+                    localNeed[(site, m.MaterialTypeId)] = localNeed.GetValueOrDefault((site, m.MaterialTypeId)) + (long)m.TotalQty;
+            }
+
+            var atSite = new Dictionary<(long Site, int TypeId), long>();
+            foreach (var ((site, typeId, _), q) in stock.Corp)     atSite[(site, typeId)] = atSite.GetValueOrDefault((site, typeId)) + q;
+            foreach (var ((site, typeId, _), q) in stock.Personal) atSite[(site, typeId)] = atSite.GetValueOrDefault((site, typeId)) + q;
+
+            foreach (var ((site, typeId), need) in localNeed)
+            {
+                var held = Math.Min(need, atSite.GetValueOrDefault((site, typeId)));
+                if (held <= 0) continue;
+                if (!heldForSite.TryGetValue(typeId, out var list)) heldForSite[typeId] = list = [];
+                list.Add((site, held));
+            }
+        }
+
         // Of what the queued work actually eats from this item, how much cannot be met.
         //
         // ⚠️ Against the NEED, never the shelf level. Pressurized Oxidizers holds 8 against a
@@ -328,25 +365,68 @@ public class IndustryJobGenerator(
             return (int)Math.Ceiling(n * starving);
         }
 
+        // For each blocked final job planned so far, what it must have BUILT: its shortages that
+        // cannot be hauled to it. Gathered at the top of every pass from the rows the last pass
+        // wrote, so a part's claim reflects the jobs actually stopped. See FinalBottleneck.
+        var blockedFinalNeeds = new List<HashSet<int>>();
+        var rowsSeen = 0;
+
+        // What the operation sells: a final product, or anything a customer has ordered — the
+        // ordered item is the product being sold, whether or not a rule calls it final. Only for
+        // what holds jobs up; the stock bands still go by the rule's flag.
+        static bool Sold(PlanState s) => s.Demand.IsFinal || s.Demand.OrderUnits > 0;
+        void NoteBlockedFinals()
+        {
+            for (; rowsSeen < items.Count; rowsSeen++)
+            {
+                var row = items[rowsSeen];
+                if (row.Readiness != WorklistReadiness.Blocked || row.Shortages.Count == 0) continue;
+                if (!byType.TryGetValue(row.TypeId, out var final) || !Sold(final)) continue;
+                var needs = row.Shortages.Where(m => m.MustBuy).Select(m => m.TypeId).ToHashSet();
+                if (needs.Count > 0) blockedFinalNeeds.Add(needs);
+            }
+        }
+
+        // Each item's dependents as a set, for the held-up test above. Fixed for the run.
+        var dependentSets = new Dictionary<int, IReadOnlySet<int>>();
+        IReadOnlySet<int> DependentsOf(PlanState s) =>
+            dependentSets.TryGetValue(s.Demand.TypeId, out var set)
+                ? set
+                : dependentSets[s.Demand.TypeId] = s.Demand.Dependents as IReadOnlySet<int> ?? s.Demand.Dependents.ToHashSet();
+
         // How much finished output stands behind this item — what the operation sells or flies,
         // rather than every task of any kind.
-        int BlockedFinalNow(PlanState s)
+        //
+        // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item, and
+        // nothing consumes a hull, so counting only dependents scored every finished product zero
+        // on the one key meant to protect it. Its components each scored one for blocking it — so
+        // the parts outranked the ship, and the moment they were made the hull dropped level with
+        // any intermediate being built to top up a shelf. The flag exists precisely to stop a
+        // titan queueing behind stock work.
+        //
+        // ⚠️ And only the final JOBS that are blocked for want of it, or of something made from
+        // it — never every final it happens to feed, and never on its own low coverage. A part
+        // no planned final job is short of stops nothing today. See FinalBottleneck for the
+        // Core Temperature Regulator and Tungsten Carbide cases.
+        double BlockedFinalNow(PlanState s)
         {
             var starving = Starving(s);
-            if (starving <= 0) return 0;
+            return starving <= 0 ? 0 : ((Sold(s) ? 1 : 0) + JobsHeldUpNow(s)) * starving;
+        }
 
-            // ⚠️ A final product counts ITSELF. Dependents are the things that CONSUME an item,
-            // and nothing consumes a hull, so counting only dependents scored every finished
-            // product zero on the one key meant to protect it. Its components each scored one
-            // for blocking it — so the parts outranked the ship, and the moment they were made
-            // the hull dropped level with any intermediate being built to top up a shelf. The
-            // flag exists precisely to stop a titan queueing behind stock work.
-            var n = s.Demand.IsFinal ? 1 : 0;
-
-            foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal)
-                    n++;
-            return (int)Math.Ceiling(n * starving);
+        // How many blocked sold jobs this item holds up, this pass — read by the sort key above
+        // and by the band in LivePriority, so counted once a pass and cleared at its top.
+        var jobsHeldUpThisPass = new Dictionary<int, int>();
+        int JobsHeldUpNow(PlanState s)
+        {
+            if (jobsHeldUpThisPass.TryGetValue(s.Demand.TypeId, out var n)) return n;
+            return jobsHeldUpThisPass[s.Demand.TypeId] = FinalBottleneck.JobsHeldUp(
+                s.Demand.TypeId,
+                Starving(s),
+                DependentsOf(s),
+                blockedFinalNeeds,
+                // An item with no demand of its own here is not short of anything this run.
+                t => byType.TryGetValue(t, out var m) ? Starving(m) : 0.0);
         }
 
         // What the item's OWN shelf justifies, measured where that shelf stands NOW.
@@ -474,6 +554,14 @@ public class IndustryJobGenerator(
                     // buffer. It falls back to what its own level justifies.
                     if (!chainStillShort) continue;
 
+                    // ⚠️ A FINAL's band only while a sold job is actually stopped for this item,
+                    // or for something made from it. Core Temperature Regulators kept 80 for
+                    // feeding Capital Core Temperature Regulators the hulls' levels still wanted,
+                    // with every capital regulator job waiting on its blueprint and no hull short
+                    // of one — and took the fiber ahead of conduits a hull would need next. A band
+                    // from a stock rule below the final band still comes down as before.
+                    if (candidate >= WorklistPriority.ServesOther && JobsHeldUpNow(s) == 0) continue;
+
                     // ⚠️ Capped at ServesOther. Serving a hull is worth less than being the hull,
                     // or the parts sort above the ship and the emptiest hull on the board drags
                     // every shared component up to its own number.
@@ -515,12 +603,26 @@ public class IndustryJobGenerator(
         // LockedInJob flag is not enough on its own.
         var printsCommitted = new HashSet<long>();
 
+        // ⚠️ The ones among them that are not working yet: free in EVE, spoken for by a job with no
+        // slot, or by one short of every material. Whatever queues behind those is held up by the
+        // slot or the material. Only a print running, or going to a job that can start now, is in
+        // use, and "the blueprint is busy" may be said only when that is all of them.
+        var printsNoSlot = new HashSet<long>();
+        var printsShort  = new HashSet<long>();
+
+        // Slots spoken for by jobs that only a print is stopping: a print arriving starts them, so
+        // the jobs behind them cannot count on those slots either. See where it is read.
+        var slotsSpoken = new Dictionary<(long Character, IndustryPool Pool), int>();
+
         // Counts the passes, so a row can say where the plan reached it. See
         // WorklistItem.PlanSequence for why the value has to travel with the item.
         var planSeq = 0;
 
         while (true)
         {
+            NoteBlockedFinals();
+            jobsHeldUpThisPass.Clear();
+
             var state = queue
                 .Where(s => !s.Done)
                 // ⚠️ Priority first, and every key below it re-evaluated on every pass. An
@@ -548,7 +650,7 @@ public class IndustryJobGenerator(
             // TEMPORARY: captured before this pass changes anything, so a row shows the
             // numbers that actually chose it.
             var dbgPrio  = LivePriority(state);
-            var dbgFinal = BlockedFinalNow(state);
+            var dbgFinal = (int)Math.Ceiling(BlockedFinalNow(state));
             var dbgBlock = BlockedNow(state);
             var dbgCover = Coverage(state);
 
@@ -595,8 +697,11 @@ public class IndustryJobGenerator(
                 // is named as the screen names it. The park's own label for its structure, the
                 // fallback, is the user's words and stays as they are.
                 var probe    = await PlanRootJobAsync(ctx, d.TypeId, d.Units, ct: ct);
-                var siteId   = probe?.StationId;
-                var siteName = probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
+                var siteId   = d.BoundSite ?? probe?.StationId;
+                var siteName = d.BoundSite is { } boundTo && boundTo != probe?.StationId
+                                   ? structureBySite.GetValueOrDefault(boundTo)?.DisplayName
+                                     ?? string.Format(WorklistText.LocationWithId, boundTo)
+                             : probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
                              : probe?.StructureName ?? "";
 
                 if (siteId is null)
@@ -651,6 +756,49 @@ public class IndustryJobGenerator(
                     settings.MaxJobDaysFor(pool),
                     prints);
 
+                // What a job stopped for materials wants, for what a haul would do for it.
+                List<WorklistBillLine> BillOf(Dictionary<int, long> mats, IndustryCandidate who,
+                                              Dictionary<(long, int), long> taken) =>
+                    [.. mats.Select(m => new WorklistBillLine(
+                            m.Key, ctx.TypeNames.GetValueOrDefault(m.Key, string.Format(WorklistText.TypeWithId, m.Key)),
+                            m.Value,
+                            Math.Max(0, stock.Reachable(siteId.Value, m.Key, who) - taken.GetValueOrDefault((siteId.Value, m.Key))))
+                        { Print = ctx.BpTypeIds.Contains(m.Key) ? PrintKind.Copy : PrintKind.None })];
+
+                // Why a job cannot start for its materials, named by what would fix it.
+                string MaterialsWhy(IReadOnlyList<MissingMaterial> short_)
+                {
+                    // Named as the screen shows them: these only go into the sentence. The
+                    // shortages recorded with the row keep the English.
+                    string Item(int typeId, string english) =>
+                        ItemRef.Of(typeId, english, ctx.BpTypeIds.Contains(typeId) ? PrintKind.Copy : PrintKind.None);
+                    var haul = short_.Where(m => !m.MustBuy).Select(m => Item(m.TypeId, m.Name)).ToList();
+                    var buy  = short_.Where(m =>  m.MustBuy && !m.CannotDock).Select(m => Item(m.TypeId, m.Name)).ToList();
+                    var hull = short_.Where(m =>  m.CannotDock).Select(m => Item(m.TypeId, m.Name)).ToList();
+
+                    if (hull.Count > 0)
+                    {
+                        var built = string.Format(WorklistText.BlockedHullCannotDock, Names(hull), siteName);
+                        return haul.Count + buy.Count == 0
+                            ? built
+                            : built + "; " + MaterialsWhy([.. short_.Where(m => !m.CannotDock)]);
+                    }
+
+                    // With the scope's name where there is one: "not owned" means nothing
+                    // owned in that region, which is not the same claim as nothing anywhere.
+                    var scopePlace = settings.IndustryScopePlace;
+                    return buy.Count == 0
+                        ? string.Format(WorklistText.BlockedMaterialsNotAt, siteName, Names(haul))
+                        : haul.Count == 0
+                            ? scopePlace.Length > 0
+                                ? string.Format(WorklistText.BlockedNotOwnedIn, scopePlace, Names(buy))
+                                : string.Format(WorklistText.BlockedNotOwned, Names(buy))
+                            : scopePlace.Length > 0
+                                ? string.Format(WorklistText.BlockedNotOwnedInElsewhere,
+                                                scopePlace, Names(buy), Names(haul))
+                                : string.Format(WorklistText.BlockedNotOwnedElsewhere, Names(buy), Names(haul));
+                }
+
                 // ⚠️ One job, then back to the picker. The split still plans the whole remaining
                 // shortfall — that is what sizes this job and what the "of N" wording counts —
                 // but only the first is taken, because by the time it is installed this item may
@@ -682,7 +830,7 @@ public class IndustryJobGenerator(
                     // after the jobs already planned in this pass.
                     var needed  = await MaterialsFor(job.Runs);
                     var missing = MissingAtSite(
-                        stock, inScope, ctx, owner, needed, siteId.Value, committed);
+                        stock, inScope, ctx, owner, needed, siteId.Value, committed, heldForSite, docking);
 
                     // ── How much of this job can actually start ───────────────────────
                     //
@@ -699,11 +847,18 @@ public class IndustryJobGenerator(
                         ? job.Runs
                         : await AffordableRunsAsync(job.Runs);
 
-                    // What the startable half takes, whether or not it can start today. Used only
-                    // to measure the remainder honestly: those materials are spoken for by the
-                    // first row, so counting them as available to the second would understate the
-                    // shortage — and when every slot happens to be busy, would report no shortage
-                    // at all and print an empty list of missing things.
+                    // ⚠️ Only a job that can start is cut to its materials. One waiting on a slot
+                    // needs a slot, and by the time it has one the stock will have moved: if a run
+                    // of it could go today, the slot is what stops it. It reads as short of materials
+                    // only when not one run could go, which a slot would not change.
+                    if (busy && runnable > 0) runnable = job.Runs;
+
+                    if (runnable <= 0) printsShort.Add(job.Print.ItemId);
+                    else if (busy)     printsNoSlot.Add(job.Print.ItemId);
+
+                    // What the startable half takes. Used only to measure the remainder honestly:
+                    // those materials are spoken for by the first row, so counting them as available
+                    // to the second would understate the shortage.
                     var claimed = committed;
 
                     if (runnable > 0)
@@ -726,24 +881,15 @@ public class IndustryJobGenerator(
                         // A slot is only taken by a job that can actually start.
                         if (!busy) slotsLeft[owner.Config.CharacterId][pool] -= 1;
 
-                        // ⚠️ Materials are reserved by ANY job that is planned, including one
-                        // waiting on a slot. They are two different resources and only the slot
-                        // is free again next pass: a waiting job still eats its materials the
-                        // moment it starts, so leaving them unreserved lets the next pass see
-                        // the same stock and plan the same units over again.
-                        //
-                        // That is why the same thirteen runs appeared four times. The reactor
-                        // holds 2,563,078 Tritanium against 10,000 a run and every reaction slot
-                        // is full, so every job after the first was slot-blocked, reserved
-                        // nothing, and the pass after it measured against untouched stock and
-                        // cut an identical job. The shelf was credited each time — coverage rose
-                        // — while the material it would consume was promised away repeatedly.
-                        //
-                        // What the reader should see instead is one waiting job for what the
-                        // material covers, and the rest reported as blocked for want of it.
-                        foreach (var (typeId, qty) in mats)
-                            committed[(siteId.Value, typeId)] =
-                                committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
+                        // ⚠️ Materials are reserved only by a job that can start. They used to be reserved
+                        // by any job planned, including one waiting on a slot, so with reaction slots
+                        // full the queue spent the stock on paper and the jobs behind it read "short of
+                        // materials" while the materials sat in the hangar, beside jobs that could not
+                        // have used them. A job is short of what the jobs really starting leave it.
+                        if (!busy)
+                            foreach (var (typeId, qty) in mats)
+                                committed[(siteId.Value, typeId)] =
+                                    committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
 
                         Emit(runnable, readiness, blockedBy, "",
                              runnable < job.Runs
@@ -764,26 +910,9 @@ public class IndustryJobGenerator(
                         var restRuns = job.Runs - runnable;
                         var restMats = await MaterialsFor(restRuns);
                         var short_   = MissingAtSite(
-                            stock, inScope, ctx, owner, restMats, siteId.Value, claimed);
+                            stock, inScope, ctx, owner, restMats, siteId.Value, claimed, heldForSite, docking);
 
-                        // Named as the screen shows them: these only go into the sentence below.
-                        // The shortages recorded with the row keep the English.
-                        var haul = short_.Where(m => !m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
-                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
-
-                        // With the scope's name where there is one: "not owned" means nothing
-                        // owned in that region, which is not the same claim as nothing anywhere.
-                        var scopePlace = settings.IndustryScopePlace;
-                        var why = buy.Count == 0
-                            ? string.Format(WorklistText.BlockedMaterialsNotAt, siteName, Names(haul))
-                            : haul.Count == 0
-                                ? scopePlace.Length > 0
-                                    ? string.Format(WorklistText.BlockedNotOwnedIn, scopePlace, Names(buy))
-                                    : string.Format(WorklistText.BlockedNotOwned, Names(buy))
-                                : scopePlace.Length > 0
-                                    ? string.Format(WorklistText.BlockedNotOwnedInElsewhere,
-                                                    scopePlace, Names(buy), Names(haul))
-                                    : string.Format(WorklistText.BlockedNotOwnedElsewhere, Names(buy), Names(haul));
+                        var why = MaterialsWhy(short_);
 
                         // ⚠️ A distinct key, so this and the startable half snooze and age
                         // separately. The startable half keeps the original key: it is the row
@@ -795,15 +924,19 @@ public class IndustryJobGenerator(
                              // ⚠️ The same list the sentence above was built from, kept whole.
                              // What is short and whether it is owned at all is the input to every
                              // material bottleneck question, and it was being thrown away here.
+                             // A print short here is a copy bought by the run (see PrintLabel).
                              short_.Select(m => new WorklistShortage(
-                                        m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))
-                                   .ToList());
+                                        m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
+                                        { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })
+                                   .ToList(),
+                             BillOf(restMats, owner, claimed));
                     }
 
                     // Builds one row for part or all of this planned job.
                     void Emit(int runs, WorklistReadiness readiness, string blockedBy,
                               string keySuffix, string extraDetail,
-                              IReadOnlyList<WorklistShortage>? shortages = null)
+                              IReadOnlyList<WorklistShortage>? shortages = null,
+                              IReadOnlyList<WorklistBillLine>? bill = null)
                     {
                         var produced = runs * perRun;
 
@@ -867,6 +1000,9 @@ public class IndustryJobGenerator(
                             Readiness     = readiness,
                             BlockedBy     = blockedBy,
                             Shortages     = shortages ?? [],
+                            Bill          = bill ?? [],
+                            Runs          = runs,
+                            HasSlot       = !busy,
                             // ⚠️ Only a job that can start names a character. An owner is still picked
                             // above — material reach is per character, so the check needs one — but
                             // reporting it on a job that cannot run reads as an instruction, and the
@@ -953,7 +1089,7 @@ public class IndustryJobGenerator(
                             var mid  = lo + (hi - lo) / 2;
                             var mats = await MaterialsFor(mid);
                             if (MissingAtSite(stock, inScope, ctx, owner, mats,
-                                              siteId.Value, committed).Count == 0)
+                                              siteId.Value, committed, heldForSite, docking).Count == 0)
                                 lo = mid;
                             else
                                 hi = mid;
@@ -1030,11 +1166,21 @@ public class IndustryJobGenerator(
                         }
                     }
 
-                    var printWhy = reference is null
-                        ? WorklistText.BlockedNoBlueprintOwned
-                        : reference.LockedInJob
-                            ? string.Format(WorklistText.BlockedBlueprintBusy, reference.Describe())
-                            : string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference.Describe());
+                    // ⚠️ What really stops these runs, counted over every print at the site. The
+                    // wording used to come from the one best print, so with twenty-six formulas free
+                    // and two running, the job queued behind them read "busy" whenever that one
+                    // happened to be a running one. Slots ran out long before the formulas did, and
+                    // the tab counting print shortages believed the sentence.
+                    //
+                    // In use means running, or going to a job that can start now. Anything less and
+                    // a blueprint is sitting there, whatever else is holding the job up.
+                    var running = printsByType.GetValueOrDefault(product.TypeId, [])
+                        .Count(b => b.LockedInJob && b.LocationId == siteId.Value && reaches.Any(r => r.CanUse(b)));
+                    var noSlot   = usable.Count(p => printsNoSlot.Contains(p.ItemId));
+                    var onMats   = usable.Count(p => printsShort.Contains(p.ItemId));
+                    var starting = usable.Count - noSlot - onMats;
+                    var noneHere = running + usable.Count == 0;
+                    var allInUse = !noneHere && noSlot == 0 && onMats == 0;
 
                     var assumed = " " + (reference is null
                         ? string.Format(WorklistText.JobSizedFullyResearched, FullyResearchedTe)
@@ -1087,7 +1233,78 @@ public class IndustryJobGenerator(
                             ctx, d.TypeId, runs * (long)Math.Max(1, product.Quantity), refMe, ct);
 
                         var npShort = MissingAtSite(
-                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed);
+                            stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite, docking);
+
+                        // Whether a run of it could go on what is here. Short of the whole job but not
+                        // of a run is not short: see the printed path above.
+                        var npOneRun = await MaterialsForAsync(
+                            ctx, d.TypeId, (long)Math.Max(1, product.Quantity), refMe, ct);
+                        var npOut = MissingAtSite(
+                            stock, inScope, ctx, eligible[0], npOneRun, siteId.Value, committed, heldForSite, docking).Count > 0;
+
+                        // ⚠️ A print is the answer only if there is a slot to run it in, after the jobs
+                        // ahead of this one have theirs. With reaction slots at 181/181, a job whose
+                        // formulas were all running read "blueprints all in use" and told the reader
+                        // to buy a formula that could not have started. Slots come first.
+                        //
+                        // ⚠️ Materials before a print only when not one run could go. Ten Charons, one
+                        // BPO in use, materials for eight: all ten wait on the BPO. Which of them the
+                        // materials reach is a question for months from now, when that BPO gets there,
+                        // and by then the stock will have moved. Such a job says nothing about them.
+                        var wantsPrint = noneHere || allInUse;
+                        var slotFor = !wantsPrint ? null : eligible.FirstOrDefault(c =>
+                            slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool)
+                            - slotsSpoken.GetValueOrDefault((c.Config.CharacterId, pool)) > 0);
+                        var onPrint = slotFor is not null && !npOut;
+                        if (onPrint)
+                            slotsSpoken[(slotFor!.Config.CharacterId, pool)] =
+                                slotsSpoken.GetValueOrDefault((slotFor!.Config.CharacterId, pool)) + 1;
+
+                        // ⚠️ Its materials held, when only a busy print stops it and that print frees
+                        // soon. Unheld, they went to whatever ranked below and could start: the
+                        // conduits and seals planned ahead of the Core Temperature Regulators had
+                        // their blueprints in jobs ending within hours, claimed no fiber, and the
+                        // regulators took every unit at the site. One job's worth per print that
+                        // frees in time, and only what the site holds — the rest is still a
+                        // shortage to report.
+                        var heldNote = "";
+                        var holdHours = settings.HoldForBusyPrintHours;
+                        if (holdHours > 0 && allInUse && onPrint)
+                        {
+                            var freeBy   = DateTimeOffset.UtcNow.AddHours(holdHours);
+                            var freeSoon = printsByType.GetValueOrDefault(product.TypeId, [])
+                                .Count(b => b.LockedInJob && b.LocationId == siteId.Value
+                                         && b.BusyUntil is { } until && until <= freeBy
+                                         && reaches.Any(r => r.CanUse(b)));
+                            if (state.HeldForPrints < freeSoon)
+                            {
+                                state.HeldForPrints++;
+                                foreach (var (typeId, qty) in npMats)
+                                {
+                                    var here = stock.Reachable(siteId.Value, typeId, eligible[0])
+                                             - committed.GetValueOrDefault((siteId.Value, typeId));
+                                    var take = Math.Min(qty, Math.Max(0, here));
+                                    if (take > 0)
+                                        committed[(siteId.Value, typeId)] = committed.GetValueOrDefault((siteId.Value, typeId)) + take;
+                                }
+                                heldNote = " " + string.Format(WorklistText.JobHeldForBusyPrint,
+                                    holdHours.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture));
+                            }
+                        }
+
+                        // Anything but a print reads the way a job with its print does: short of
+                        // materials, or else waiting on a slot.
+                        var waiting = !onPrint && (wantsPrint || noSlot > 0) && !npOut;
+                        var why = onPrint && reference is null ? WorklistText.BlockedNoBlueprintOwned
+                            : onPrint && noneHere   ? string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference!.Describe())
+                            : onPrint               ? string.Format(WorklistText.BlockedAllPrintsInUse, running, starting)
+                            : waiting               ? WorklistText.WaitingAllSlotsBusy
+                            : npShort.Count > 0     ? MaterialsWhy(npShort)
+                            :                         WorklistText.BlockedPrintHeldForMaterials;
+
+                        // Credited as any job waiting on a slot is: it will happen. Its materials are
+                        // not reserved: see the printed path above.
+                        if (waiting) state.Planned += runs * (long)Math.Max(1, product.Quantity);
 
                         items.Add(new WorklistItem
                         {
@@ -1103,13 +1320,20 @@ public class IndustryJobGenerator(
                                 : string.Format(WorklistText.JobTitleRuns, shown, runs),
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = string.Format(WorklistText.JobDetailShort, head, d.Units)
-                                          + " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName)
-                                          + assumed,
-                            Readiness      = WorklistReadiness.Blocked,
-                            BlockedBy      = printWhy,
-                            BlockedByPrint = true,
-                            Shortages      = [.. npShort.Select(m => new WorklistShortage(
-                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy))],
+                                          + (noneHere ? " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName) : "")
+                                          + assumed + heldNote,
+                            Readiness      = waiting ? WorklistReadiness.Waiting : WorklistReadiness.Blocked,
+                            BlockedBy      = why,
+                            BlockedByPrint = onPrint,
+                            PrintMissing   = onPrint && noneHere,
+                            Runs           = (int)runs,
+                            HasSlot        = false,
+                            // Its free print goes to the job ahead of it once materials come, too.
+                            ThenNeedsPrint = slotFor is not null || noSlot == 0 && onMats > 0,
+                            Bill           = waiting || onPrint ? [] : BillOf(npMats, eligible[0], committed),
+                            Shortages      = waiting || onPrint ? [] : [.. npShort.Select(m => new WorklistShortage(
+                                                    m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
+                                                    { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],
                             LocationId    = siteId.Value,
                             LocationName  = siteName,
                             TypeId        = d.TypeId,
@@ -1188,6 +1412,9 @@ public class IndustryJobGenerator(
 
         /// <summary>No further visit is useful — finished, or unable to go further.</summary>
         public bool Done { get; set; }
+
+        /// <summary>Jobs waiting on a busy print that have had their materials held.</summary>
+        public int HeldForPrints { get; set; }
 
         /// <summary>
         /// How many rows have been emitted for runs no print could carry.
@@ -1300,11 +1527,23 @@ public class IndustryJobGenerator(
     /// </summary>
     private static List<MissingMaterial> MissingAtSite(
         SiteStock stock, ScopeStock inScope, ProductionContext ctx, IndustryCandidate who,
-        Dictionary<int, long> needed, long siteId, Dictionary<(long, int), long> committed)
+        Dictionary<int, long> needed, long siteId, Dictionary<(long, int), long> committed,
+        IReadOnlyDictionary<int, List<(long Site, long Held)>> heldForSite, CapitalDocking docking)
     {
         if (needed.Count == 0) return [];
 
         var missing = new List<MissingMaterial>();
+
+        // What other sites still need of the stock standing there, beyond what their planned jobs
+        // have already claimed (that is in `spoken`): not there to haul here.
+        long HeldElsewhere(int typeId)
+        {
+            if (!heldForSite.TryGetValue(typeId, out var held)) return 0;
+            long sum = 0;
+            foreach (var (site, h) in held)
+                if (site != siteId) sum += Math.Max(0, h - committed.GetValueOrDefault((site, typeId)));
+            return sum;
+        }
 
         // ⚠️ What earlier jobs in this pass already claimed, scope-wide.
         //
@@ -1323,6 +1562,10 @@ public class IndustryJobGenerator(
                      - committed.GetValueOrDefault((siteId, typeId));
             if (here >= wanted) continue;
 
+            // ⚠️ A hull that cannot dock here is not fetched from anywhere, however many are owned.
+            // Told "elsewhere", the reader looks for a trip that cannot be flown.
+            var cannotDock = !docking.CanDock(typeId, siteId);
+
             missing.Add(new MissingMaterial(
                 ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
                 typeId,
@@ -1331,17 +1574,21 @@ public class IndustryJobGenerator(
                 // than exists — and those call for entirely different answers.
                 Short: Math.Max(0, wanted - here),
                 Wanted: wanted,
-                // Owned in scope but not here is a hauling problem. Not owned in scope at all is
-                // a buying one, and only the second should raise a purchase.
-                MustBuy: inScope.Reachable(typeId, who)
-                       - spoken.GetValueOrDefault(typeId) < wanted));
+                // Owned in scope and free is a hauling problem. Not owned in scope, or owned only
+                // where other work still needs it, is one of making or buying more — only the
+                // first can be answered by a hauler.
+                MustBuy: cannotDock
+                       || inScope.Reachable(typeId, who)
+                          - spoken.GetValueOrDefault(typeId)
+                          - HeldElsewhere(typeId) < wanted,
+                CannotDock: cannotDock));
         }
 
         return missing;
     }
 
     private sealed record MissingMaterial(
-        string Name, int TypeId, long Short, long Wanted, bool MustBuy);
+        string Name, int TypeId, long Short, long Wanted, bool MustBuy, bool CannotDock = false);
 
 
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>

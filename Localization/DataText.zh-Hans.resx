@@ -1429,6 +1429,15 @@
   <data name="EndpointStarbases" xml:space="preserve">
     <value>星堡</value>
   </data>
+  <data name="EndpointSkyhooks" xml:space="preserve">
+    <value>天钩</value>
+  </data>
+  <data name="EndpointMercenaryDens" xml:space="preserve">
+    <value>雇佣兵巢穴</value>
+  </data>
+  <data name="EndpointMercenaryOperations" xml:space="preserve">
+    <value>雇佣兵行动</value>
+  </data>
   <data name="EndpointFacilities" xml:space="preserve">
     <value>设施</value>
   </data>

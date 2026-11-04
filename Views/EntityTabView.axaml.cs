@@ -13,6 +13,10 @@ public partial class EntityTabView : ReactiveUserControl<EntityTabViewModel>
     // Double-clicking a roster or history row opens that entity in its own tab. The target
     // kind depends on which tab is asking — an alliance's members are corporations, an NPC
     // corporation's are agents — so the view model decides rather than the view.
+    /// <summary>Right-click Copy Name on the entity's name: as the copy button beside it.</summary>
+    private async void OnCopyName(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => await CopyTextButton.CopyAsync(this, (DataContext as EntityTabViewModel)?.Name);
+
     private void OnMemberDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is not EntityTabViewModel vm) return;

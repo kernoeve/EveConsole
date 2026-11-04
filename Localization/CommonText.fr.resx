@@ -346,10 +346,22 @@
   <data name="ItemNameFilterHint" xml:space="preserve">
     <value>Tout ou partie d'un nom</value>
   </data>
+  <data name="CountSelected" xml:space="preserve">
+    <value>{0} sélectionnés</value>
+  </data>
+  <data name="AllBut" xml:space="preserve">
+    <value>Tous sauf {0}</value>
+  </data>
   <data name="TipItemNameFilter" xml:space="preserve">
     <value>N'affiche que les objets dont le nom contient ce texte, sans tenir compte des majuscules. La liste se réduit pendant la saisie ; inutile de relancer le calcul.</value>
   </data>
   <data name="ItemNameFilterShowing" xml:space="preserve">
     <value>{0:N0} sur {1:N0} affichés</value>
+  </data>
+  <data name="PrintCopyName" xml:space="preserve">
+    <value>{0} (copie)</value>
+  </data>
+  <data name="PrintOriginalName" xml:space="preserve">
+    <value>{0} (original)</value>
   </data>
 </root>

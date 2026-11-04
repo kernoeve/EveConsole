@@ -1501,6 +1501,9 @@ Cliquez pour ouvrir le contrat {0} dans l'outil Contrats.</value>
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>Un jeton est enregistré dans le trousseau de cette machine.</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>Un jeton est enregistré dans le trousseau de ce Mac.</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>Un jeton est enregistré sur cette machine dans config.json, tel que saisi ; aucun trousseau n'était disponible.</value>
   </data>

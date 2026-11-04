@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>インディパーク</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>星系指数</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生産計算</value>
   </data>
@@ -120,6 +123,12 @@
   </data>
   <data name="NavCorpActivity" xml:space="preserve">
     <value>コーポの活動</value>
+  </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>コーポストラクチャ</value>
+  </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>傭兵の隠れ家</value>
   </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>キルレポート</value>

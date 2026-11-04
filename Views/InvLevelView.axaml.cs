@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 using EveConsole.Localization;
 
@@ -163,6 +164,25 @@ public partial class InvLevelView : UserControl
             vm.DeleteSelectedItemCommand.Execute().Subscribe();
             e.Handled = true;
         }
+    }
+
+    // ── Selection ─────────────────────────────────────────────────────────────
+
+    /// <summary>Every highlighted item to the view model: the send-tos act on all of them, in
+    /// whichever groups they are.</summary>
+    private void OnGridSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is InvLevelViewModel vm)
+            vm.SelectedItemRows = MainGrid.SelectedItems.OfType<InvItemRow>().ToList();
+    }
+
+    /// <summary>A right-click on a row that is not among those highlighted acts on that row; on
+    /// one that is, on all of them.</summary>
+    private void OnGridContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if ((e.Source as Avalonia.Visual)?.FindAncestorOfType<DataGridRow>(includeSelf: true) is { DataContext: { } row }
+            && !MainGrid.SelectedItems.Contains(row))
+            MainGrid.SelectedItem = row;
     }
 
     // ── Row links ─────────────────────────────────────────────────────────────

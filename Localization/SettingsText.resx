@@ -13,6 +13,94 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>Characters</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Settings: tab listing every corporation with a token.</comment>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>Every corporation with a token. Personal corporations count toward your own totals and lists — the same setting as on ESI Tokens, settable in either place. Structure alerts raises the structure alerts (Alerts tab) for the corporation's structures.</value>
+    <comment>Settings → Corporations: note above the list.</comment>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>Ticker</value>
+    <comment>Settings → Corporations: column, the corporation's ticker.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Settings → Corporations: column, the corporation's name.</comment>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>Personal</value>
+    <comment>Settings → Corporations: column, tick box — a personal corporation.</comment>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>Structure alerts</value>
+    <comment>Settings → Corporations: column, tick box — raise structure alerts for this corporation.</comment>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>Raise the structure alerts — fuel, attacks and fit — for this corporation's structures.</value>
+    <comment>Settings → Corporations: tooltip of the Structure alerts tick box.</comment>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Settings → Alerts: heading of the structure alerts.</comment>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>A structure runs out of fuel within</value>
+    <comment>Settings → Alerts: tick box, followed by a number of days.</comment>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>A structure is attacked (dismissible)</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>A structure is missing a module of its fit</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>A structure has another module where its fit has one</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>Ammo below</value>
+    <comment>Settings → Alerts: tick box, followed by a percentage of the fit's ammo.</comment>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>Fighters below</value>
+    <comment>Settings → Alerts: tick box, followed by a percentage of the fit's fighters.</comment>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Mercenary dens</value>
+    <comment>Settings → Alerts: section title, mercenary den alerts.</comment>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>A den's anarchy at level</value>
+    <comment>Settings → Alerts: tick box before the level box — a den's anarchy at level N.</comment>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>or above (0–4)</value>
+    <comment>Settings → Alerts: after the level box (0–4).</comment>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>A den attacked or reinforced</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>A new mercenary tactical operation</value>
+    <comment>Settings → Alerts: tick box, a new mercenary tactical operation at a den.</comment>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Your characters' own dens (Mercenary Dens). The game tells a den's anarchy only to its owner, so a den of anyone else's — even on your corporation's skyhook — is not seen. Attacks and new operations come from the notifications of the last day and can be dismissed.</value>
+    <comment>Settings → Alerts: note under the mercenary den alerts.</comment>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% of the fit</value>
+    <comment>Settings → Alerts: after a percentage — of what the structure's fit carries.</comment>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>Only for the corporations with structure alerts ticked on the Corporations tab. The fit each structure type should carry is chosen on Corp Structures → Config; a type with no fit chosen is not checked. Modules count in any slot of the right kind, and extra modules or rigs are fine. Attacks come from your characters' notifications and are raised for a day.</value>
+    <comment>Settings → Alerts: note under the structure alerts.</comment>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
     <comment>CCP's Static Data Export; usually left as SDE.</comment>
@@ -87,6 +175,398 @@
   </data>
   <data name="ThemeLabel" xml:space="preserve">
     <value>Theme:</value>
+  </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>Edit themes…</value>
+    <comment>Settings &gt; Other and the title bar theme menu: opens the theme editor.</comment>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>Make a theme of your own, from scratch or from a copy of another.</value>
+    <comment>Tooltip on the Edit themes button.</comment>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>Themes</value>
+    <comment>Theme editor: window title.</comment>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>THEMES</value>
+    <comment>Theme editor: heading over the list of themes (shown in capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>New theme</value>
+    <comment>Theme editor: button that opens a menu of blank themes to start from.</comment>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>Start a theme of your own from blank colours.</value>
+    <comment>Tooltip on New theme.</comment>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>Blank, dark</value>
+    <comment>Theme editor, New theme menu: a blank theme on a dark background.</comment>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>Blank, light</value>
+    <comment>Theme editor, New theme menu: a blank theme on a light background.</comment>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Theme editor: button that makes a new theme of the user's own from the selected one.</comment>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>Make a theme of your own from this one.</value>
+    <comment>Tooltip on Copy.</comment>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Theme editor: deletes the selected theme (only the user's own).</comment>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>Delete the theme "{0}"? This can't be undone.</value>
+    <comment>Theme editor: asked before deleting. {0} = the theme's name.</comment>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>Built-in</value>
+    <comment>Theme editor list: marks a theme that comes with the application and cannot be changed.</comment>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>Built-in themes can't be changed. Copy this one to make a theme of your own from it.</value>
+    <comment>Theme editor: shown over a built-in theme's colours.</comment>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Theme editor: label of the theme's name box.</comment>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>Ground</value>
+    <comment>Theme editor: label of the dark/light choice — what the theme is drawn on.</comment>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>Whether the theme is dark or light. It also decides the colours not set here: the standard controls, chart lines and security colours.</value>
+    <comment>Tooltip on Ground.</comment>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Theme editor: the dark ground choice.</comment>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>Theme editor: the light ground choice.</comment>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>Quick start</value>
+    <comment>Theme editor: heading of the three starting colours.</comment>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>Pick a background, a text colour and an accent, then work out the rest: every background, line, text and accent shade below is mixed from these three. Status colours are left as they are.</value>
+    <comment>Theme editor: explains the quick start.</comment>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>Background</value>
+    <comment>Theme editor quick start: the background colour.</comment>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>Text</value>
+    <comment>Theme editor quick start: the text colour.</comment>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>Accent</value>
+    <comment>Theme editor quick start: the accent colour.</comment>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>Work out the rest</value>
+    <comment>Theme editor: button that fills every colour from the three quick start colours.</comment>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>Replaces the backgrounds, lines, text and accent below with shades of these three colours.</value>
+    <comment>Tooltip on Work out the rest.</comment>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>These carry meaning in grids and charts. Keep them easy to tell apart from each other and from the backgrounds.</value>
+    <comment>Theme editor: note over the status colours.</comment>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>PREVIEW</value>
+    <comment>Theme editor: heading over the preview (shown in capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>Undo changes</value>
+    <comment>Theme editor: puts back the theme as it was when it was opened.</comment>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>Puts back the colours and name this theme had when you opened it.</value>
+    <comment>Tooltip on Undo changes.</comment>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>Use this theme</value>
+    <comment>Theme editor: applies the selected theme to the application.</comment>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>Saved</value>
+    <comment>Theme editor status line, for two seconds after a change is saved.</comment>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>My theme</value>
+    <comment>Theme editor: the name a new blank theme starts with.</comment>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0} (copy)</value>
+    <comment>Theme editor: the name of a copy. {0} = the name of the theme copied.</comment>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>BACKGROUNDS</value>
+    <comment>Theme editor: heading of the background colours (capitals where the script has them).</comment>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>LINES</value>
+    <comment>Theme editor: heading of the line and border colours.</comment>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>TEXT</value>
+    <comment>Theme editor: heading of the text colours.</comment>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>ACCENT</value>
+    <comment>Theme editor: heading of the accent colours.</comment>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>STATUS COLOURS</value>
+    <comment>Theme editor: heading of good/bad/warning/information colours.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>Page background</value>
+    <comment>Theme editor colour: the window and page background.</comment>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>Panels and cards</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>Banded rows, nested panels</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>Section headers</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>Popups, menus, tooltips</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>Text boxes and drop-downs</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>Under the pointer</value>
+    <comment>Theme editor colour: what is under the mouse pointer.</comment>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>Selected row</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>Dividers and grid lines</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>Panel and control edges</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>Emphasis and focus</value>
+    <comment>Theme editor colour: strong borders and focus outlines.</comment>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>Faintest: hints, column headers</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>Dim</value>
+    <comment>Theme editor colour: dim text.</comment>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>Muted: captions</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>Secondary</value>
+    <comment>Theme editor colour: secondary text.</comment>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>Body text</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>Headings</value>
+    <comment>Theme editor colour: the brightest text.</comment>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>Accent</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>Accent under the pointer</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>Accent when pressed</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>Behind accent text</value>
+    <comment>Theme editor colour: the background of notices in the accent colour.</comment>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>Deep accent</value>
+    <comment>Theme editor colour: a darker accent.</comment>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>Pale accent</value>
+    <comment>Theme editor colour: a lighter accent.</comment>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>Good: profit, online</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>Bad: loss, errors</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>Information</value>
+    <comment>Theme editor colour.</comment>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>Behind good</value>
+    <comment>Theme editor colour: background under good text.</comment>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>Behind bad</value>
+    <comment>Theme editor colour: background under bad text.</comment>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>Behind warning</value>
+    <comment>Theme editor colour: background under warning text.</comment>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>Behind information</value>
+    <comment>Theme editor colour: background under information text.</comment>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Theme editor preview: sample tab.</comment>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>Market</value>
+    <comment>Theme editor preview: sample tab, the selected one.</comment>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Theme editor preview: sample tab.</comment>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Theme editor preview: sample label before a date box.</comment>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>All characters</value>
+    <comment>Theme editor preview: sample drop-down choice.</comment>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>Show totals</value>
+    <comment>Theme editor preview: sample tick box.</comment>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Theme editor preview: sample button.</comment>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Theme editor preview: sample accent button.</comment>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>A panel</value>
+    <comment>Theme editor preview: title of the sample panel.</comment>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>Count</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>Change</value>
+    <comment>Theme editor preview: sample column header.</comment>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>A row</value>
+    <comment>Theme editor preview: a plain grid row.</comment>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>A banded row</value>
+    <comment>Theme editor preview: the alternate-shaded grid row.</comment>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>Under the pointer</value>
+    <comment>Theme editor preview: the grid row under the mouse.</comment>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>Selected</value>
+    <comment>Theme editor preview: the selected grid row.</comment>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>Good</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>Bad</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>Information</value>
+    <comment>Theme editor preview: sample status.</comment>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>A notice, on the accent's own background.</value>
+    <comment>Theme editor preview: sample notice.</comment>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>A heading</value>
+    <comment>Theme editor preview: sample heading.</comment>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>Body text, which most of the application is written in.</value>
+    <comment>Theme editor preview: sample body text.</comment>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>Secondary text</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>A caption</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>Dim text</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>A hint</value>
+    <comment>Theme editor preview: sample text.</comment>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>A popup, menu or tooltip, raised over the page.</value>
+    <comment>Theme editor preview: sample popup.</comment>
   </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>UI scale:</value>
@@ -1182,6 +1662,10 @@
     <value>⚠ Not found in app directory</value>
     <comment>Text in SettingsWindow.</comment>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper is not available on macOS. Choose another voice engine above.</value>
+    <comment>Settings → AI Agent → Voices, Piper selected, on macOS: Piper cannot run there.</comment>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Download Voice Model</value>
     <comment>Button or option in SettingsWindow.</comment>
@@ -1565,6 +2049,14 @@
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>Counts active contracts you issued, or that are assigned to you, that are in the last 15% of their life: a two-week contract from its twelfth day. Personal corporations count as you.</value>
     <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>Alert when there is unread EVE mail</value>
+    <comment>Settings → Alerts: tick box for the unread EVE mail alert.</comment>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>Counts unread mail on every character the app reads mail for, each character's copy on its own: one mail sent to two of your characters counts twice, as the game counts it. Mail read in the game stops counting at the next mail poll (Timers). The alert opens the EVE Mail tool.</value>
+    <comment>Settings → Alerts: note under the unread EVE mail tick box.</comment>
   </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>Database Type</value>
@@ -2311,6 +2803,10 @@ The application will restart.</value>
     <value>Show a notification-area icon, starting with your desktop session</value>
     <comment>Checkbox (Linux): the notification-area icon starts with the desktop session.</comment>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Show a menu bar icon, starting when you log in</value>
+    <comment>Checkbox (macOS): the menu bar icon starts when the person logs in.</comment>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Requires PostgreSQL, which this client is using — the worker and every client share the one server.</value>
     <comment>Polling tab, background service: this client is on PostgreSQL.</comment>
@@ -2347,6 +2843,10 @@ The application will restart.</value>
     <value>Running, and will start with your desktop session.</value>
     <comment>Notification-area icon status.</comment>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>Running, and will start when you log in.</value>
+    <comment>Menu bar icon status (macOS).</comment>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Will not start with Windows. Any icon already showing stays until you choose {0} on it, or log off.</value>
     <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
@@ -2354,6 +2854,10 @@ The application will restart.</value>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Will not start with your desktop session. Any icon already showing stays until you choose {0} on it, or log off.</value>
     <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Will not start when you log in. Any icon already showing stays until you choose {0} on it, or log out.</value>
+    <comment>Status of the menu bar icon's startup setting (macOS). {0} is the icon menu's Exit item.</comment>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Could not change it — {0}</value>
@@ -3479,6 +3983,10 @@ The application will restart.</value>
     <value>The password is held in your desktop keyring; config.json contains only a reference to it.</value>
     <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on Linux with a desktop keyring. config.json is a file name.</comment>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>The password is held in your macOS Keychain; config.json contains only a reference to it.</value>
+    <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on macOS. Keychain is the macOS name; config.json is a file name.</comment>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>No keyring was found, so the password is stored in config.json as typed. Install libsecret-tools (secret-tool) to have it kept in the keyring instead.</value>
     <comment>Settings → Database → PostgreSQL Server: no keyring was found. config.json is a file name; libsecret-tools and secret-tool are package and program names.</comment>
@@ -4488,7 +4996,7 @@ The application will restart.</value>
     <comment>Section heading in SettingsWindow, Industry tab.</comment>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, when a colony's data counts as too old to trust, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
+    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
     <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry alerts and tasks heading.</comment>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
@@ -4510,10 +5018,6 @@ The application will restart.</value>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>hours ahead (estimated)</value>
     <comment>After a number box in SettingsWindow, Industry tab. Storage and input times are estimates.</comment>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>Colony data too old after</value>
-    <comment>Label before a number box in SettingsWindow, Industry tab: days since a colony was last opened in the game.</comment>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>An input haul brings</value>
@@ -4543,12 +5047,8 @@ The application will restart.</value>
     <value>A PI character has an unused colony slot</value>
     <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section. "PI" is the game's abbreviation for Planetary Industry.</comment>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>A colony has not been opened in the game for too long to trust its estimates</value>
-    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>Only characters with the PI box ticked on the Characters tab. How soon "soon" is, and how old is too old, are set on the Industry tab, and the Worklist's PI tasks use the same times.</value>
+    <value>Only characters with the PI box ticked on the Characters tab. The Industry tab sets how soon "soon" is, and the Worklist's PI tasks use the same times.</value>
     <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
   </data>
 </root>

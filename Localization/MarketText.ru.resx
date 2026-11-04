@@ -535,6 +535,45 @@
   <data name="ColStationBestBid" xml:space="preserve">
     <value>Лучшая цена на станции</value>
   </data>
+  <data name="ColBidVsValue" xml:space="preserve">
+    <value>Лучшая ставка / стоимость</value>
+  </data>
+  <data name="TipMarketValue" xml:space="preserve">
+    <value>Стоимость единицы так, как приложение оценивает активы: рынок и тип цены для стоимости активов в Настройки → Рынок (та же цифра, что и в чистых активах).</value>
+  </data>
+  <data name="TipBuildCost" xml:space="preserve">
+    <value>Стоимость производства единицы по расчёту себестоимости приложения (та же цифра, что в Industry Ops и калькуляторе производства). Пусто для предметов, которые не производятся.</value>
+  </data>
+  <data name="MenuAddToStandingBuyOrders" xml:space="preserve">
+    <value>Добавить в постоянные ордера на покупку…</value>
+  </data>
+  <data name="ToastBuyOrdersAddedOne" xml:space="preserve">
+    <value>{0} предмет добавлен в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedOther" xml:space="preserve">
+    <value>{0} предмета добавлено в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedFew" xml:space="preserve">
+    <value>{0} предмета добавлены в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAddedMany" xml:space="preserve">
+    <value>{0} предметов добавлено в постоянные ордера на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOne" xml:space="preserve">
+    <value>{0} предмет уже был в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyOther" xml:space="preserve">
+    <value>{0} предмета уже было в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyFew" xml:space="preserve">
+    <value>{0} предмета уже были в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="ToastBuyOrdersAlreadyMany" xml:space="preserve">
+    <value>{0} предметов уже было в постоянных ордерах на покупку: {1}</value>
+  </data>
+  <data name="TipBidVsValue" xml:space="preserve">
+    <value>Лучшая ставка на станции — наша или чужая, какая выше — как доля рыночной стоимости. Больше 100% — станция платит больше, чем стоит предмет.</value>
+  </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Осталось</value>
   </data>
@@ -696,6 +735,9 @@
   </data>
   <data name="ContractNotStored" xml:space="preserve">
     <value>Контракт {0} не сохранён в приложении — возможно, это общедоступный контракт или его ещё не получили опросом.</value>
+  </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>Показан только контракт {0}. Измените любой фильтр, чтобы увидеть остальные.</value>
   </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} и ещё {1}</value>

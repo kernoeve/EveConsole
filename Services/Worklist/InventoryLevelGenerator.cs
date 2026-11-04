@@ -254,6 +254,11 @@ public class InventoryLevelGenerator(
             .Select(g => new { TypeId = g.Key, Qty = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Qty, ct);
 
+        // And what contracts have moved since, a courier's cargo included, as stock of the item
+        // itself is counted. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, sourceIds))
+            held[m.TypeId] = Math.Max(0, held.GetValueOrDefault(m.TypeId) + m.Units);
+
         var result = new Dictionary<int, (long, string)>();
 
         foreach (var typeId in wanted)
@@ -274,7 +279,7 @@ public class InventoryLevelGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
-                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
+                var shown = ItemRef.Of(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
                     ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)

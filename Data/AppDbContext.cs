@@ -84,6 +84,14 @@ public class AppDbContext : DbContext
     public DbSet<StructureName>         EsiStructureNames        => Set<StructureName>();
     public DbSet<StructureNameFailure>  EsiStructureNameFailures => Set<StructureNameFailure>();
     public DbSet<CorpStarbase>          EsiCorpStarbases         => Set<CorpStarbase>();
+    public DbSet<CorpStructureService>  EsiCorpStructureServices => Set<CorpStructureService>();
+    public DbSet<CorpStarbaseDetail>    EsiCorpStarbaseDetails   => Set<CorpStarbaseDetail>();
+    public DbSet<CorpFuelBay>           EsiCorpFuelBays          => Set<CorpFuelBay>();
+    public DbSet<CorpStructureFit>      CorpStructureFits        => Set<CorpStructureFit>();
+    public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
+    public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
+    public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
+    public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
@@ -1137,6 +1145,55 @@ public class AppDbContext : DbContext
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.StarbaseId).ValueGeneratedNever();
             e.ToTable("EsiCorpStarbases"); });
+
+        mb.Entity<CorpStructureService>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StructureId, x.Name });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StructureId).ValueGeneratedNever();
+            e.ToTable("EsiCorpStructureServices"); });
+
+        mb.Entity<CorpStarbaseDetail>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StarbaseId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StarbaseId).ValueGeneratedNever();
+            e.ToTable("EsiCorpStarbaseDetails"); });
+
+        mb.Entity<CorpFuelBay>(e => {
+            e.HasKey(x => new { x.CorporationId, x.LocationId, x.TypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.LocationId).ValueGeneratedNever();
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("EsiCorpFuelBays"); });
+
+        mb.Entity<CorpStructureFit>(e => {
+            e.HasKey(x => new { x.CorporationId, x.StructureTypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.StructureTypeId).ValueGeneratedNever();
+            e.ToTable("CorpStructureFits"); });
+
+        mb.Entity<CorpSkyhook>(e => {
+            e.HasKey(x => new { x.CorporationId, x.SkyhookId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.SkyhookId).ValueGeneratedNever();
+            e.ToTable("EsiCorpSkyhooks"); });
+
+        mb.Entity<CorpSkyhookReagent>(e => {
+            e.HasKey(x => new { x.CorporationId, x.SkyhookId, x.TypeId });
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.Property(x => x.SkyhookId).ValueGeneratedNever();
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.ToTable("EsiCorpSkyhookReagents"); });
+
+        mb.Entity<CharMercenaryDen>(e => {
+            e.HasKey(x => new { x.CharacterId, x.DenId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.DenId).ValueGeneratedNever();
+            e.ToTable("EsiMercenaryDens"); });
+
+        mb.Entity<CharMercenaryOperation>(e => {
+            e.HasKey(x => new { x.CharacterId, x.OperationId });
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("EsiMercenaryOperations"); });
 
         mb.Entity<CorpFacility>(e => {
             e.HasKey(x => new { x.CorporationId, x.FacilityId });

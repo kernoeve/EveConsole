@@ -24,3 +24,5 @@ EveConsole-linux-x64.tar.gz
 
 # The compose file's secrets. .env.example is the template.
 packaging/docker/.env
+# The Linux Piper runtime, downloaded by the build on Linux (EveConsole.csproj)
+Resources/piper-linux/

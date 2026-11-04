@@ -142,6 +142,78 @@
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Открыть в разделе «Просмотр предметов»</value>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Копировать название</value>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Скопировать название</value>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>Скопировано: {0}</value>
+  </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Панель быстрого доступа</value>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Здесь пока пусто. Щёлкните правой кнопкой предмет в «Обзоре» или в результатах поиска либо нажмите кнопку панели рядом с названием предмета, чтобы сохранить его здесь. Щёлкните здесь правой кнопкой, чтобы создать папку.</value>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ На панель</value>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ На панели</value>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Сохраняет предмет на панели быстрого доступа, общей для всех приложений с этой базой данных.</value>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Убирает предмет с панели быстрого доступа.</value>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Верхний уровень</value>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Добавить на панель быстрого доступа</value>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Убрать с панели быстрого доступа</value>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Переместить в папку</value>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>Новая папка…</value>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Переименовать папку…</value>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Удалить папку (содержимое поднимется на уровень выше)</value>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>Новая папка панели</value>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Переименование папки панели</value>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Название папки</value>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0}: добавлено на панель быстрого доступа</value>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0}: уже на панели быстрого доступа</value>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0}: убрано с панели быстрого доступа</value>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Добавить предметы из оснастки</value>
   </data>
@@ -211,14 +283,47 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Контракты (покупка)</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Рын. цена</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Рын. цена (цель)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Стоим. произв.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Рын. цена (доступно)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Объём (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Рын. цена (разница)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Стоим. произв. (разница)</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Объём - цель</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Объём - доступно</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Объём - разница</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="InvShortFew" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortMany" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Добавить предмет…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Действия</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Уровни запасов</value>
@@ -243,6 +348,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Стоимость производства:</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} за прогон</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Стоимость при переработке:</value>
@@ -381,6 +489,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Рыночные ордера</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} обменов предметами с этим предметом на любой из сторон. Цена за единицу показана, только когда предмет один на своей стороне, а с другой — только ISK; копия оценивается за прогон.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Прошлые контракты: только {0:N0} самых новых.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Ни один обмен предметами, подходящий под эти фильтры, не содержит этот предмет. Публичные контракты берутся из обхода всех регионов инструментом «Контракты».</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Сторона</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Предлагается</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Требуется</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Чертёж</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Копия ME{0} TE{1}, {2} прогонов</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Оригинал ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Копия</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>За единицу / прогон</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Остальное в контракте</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Предлагает {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Требует {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Больше ничего</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Контракты: {0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Источник:</value>
@@ -811,6 +970,9 @@ Warrior II 5
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Стоимость при переработке</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Во что превратится список после переработки, с выходом приложения и по ценам этой станции. То, что нельзя переработать, остаётся как есть и отмечается как остаток.</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>В буфере обмена нет названий предметов, поэтому список не изменён. «Изменить список» принимает любой текст.</value>
@@ -1456,6 +1618,51 @@ Warrior II 5
   </data>
   <data name="DivisionNumbered" xml:space="preserve">
     <value>Подразделение {0}</value>
+  </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Развернуть все</value>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Свернуть все</value>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} предмет</value>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} предмета</value>
+  </data>
+  <data name="GroupRowItemsFew" xml:space="preserve">
+    <value>{1} — {0:N0} предмета</value>
+  </data>
+  <data name="GroupRowItemsMany" xml:space="preserve">
+    <value>{1} — {0:N0} предметов</value>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Доставки</value>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Промышленный проект</value>

@@ -188,6 +188,102 @@
     <value>Open in Item Browser</value>
     <comment>Right-click menu item in InvLevelView and the Asset Browser.</comment>
   </data>
+  <data name="MenuCopyName" xml:space="preserve">
+    <value>Copy Name</value>
+    <comment>Item Browser: right-click on the item's name in the header.</comment>
+  </data>
+  <data name="TipCopyName" xml:space="preserve">
+    <value>Copy the name</value>
+    <comment>Item Browser: tooltip on the copy button beside the item's name.</comment>
+  </data>
+  <data name="ToastNameCopied" xml:space="preserve">
+    <value>Copied {0}</value>
+    <comment>Item Browser: message after the item's name is copied. {0} is the name.</comment>
+  </data>
+  <data name="TabBrowse" xml:space="preserve">
+    <value>Browse</value>
+    <comment>Item Browser, left pane: the tab with the market tree and the search results.</comment>
+  </data>
+  <data name="TabQuickbar" xml:space="preserve">
+    <value>Quickbar</value>
+    <comment>Item Browser, left pane: the tab with the items kept to hand, as in the game's market window.</comment>
+  </data>
+  <data name="QuickbarEmptyNote" xml:space="preserve">
+    <value>Nothing here yet. Right-click an item under Browse or in the search results, or use the quickbar button beside an item's name, to keep it here. Right-click here for a new folder.</value>
+    <comment>Item Browser, Quickbar tab, while it is empty.</comment>
+  </data>
+  <data name="BtnAddToQuickbar" xml:space="preserve">
+    <value>☆ Add to Quickbar</value>
+    <comment>Item Browser, item header button while the item is not on the quickbar.</comment>
+  </data>
+  <data name="BtnInQuickbar" xml:space="preserve">
+    <value>★ On Quickbar</value>
+    <comment>Item Browser, item header button while the item is on the quickbar; clicking takes it off.</comment>
+  </data>
+  <data name="TipAddToQuickbar" xml:space="preserve">
+    <value>Keeps this item on the quickbar, shared by every app on this database.</value>
+    <comment>Item Browser, tooltip on the Add to Quickbar button.</comment>
+  </data>
+  <data name="TipRemoveFromQuickbar" xml:space="preserve">
+    <value>Takes this item off the quickbar.</value>
+    <comment>Item Browser, tooltip on the On Quickbar button.</comment>
+  </data>
+  <data name="QuickbarTopLevel" xml:space="preserve">
+    <value>Top level</value>
+    <comment>Item Browser, quickbar menus: the place outside every folder.</comment>
+  </data>
+  <data name="MenuAddToQuickbar" xml:space="preserve">
+    <value>Add to Quickbar</value>
+    <comment>Item Browser, right-click on an item.</comment>
+  </data>
+  <data name="MenuRemoveFromQuickbar" xml:space="preserve">
+    <value>Remove from Quickbar</value>
+    <comment>Item Browser, right-click on an item on the quickbar.</comment>
+  </data>
+  <data name="MenuMoveToFolder" xml:space="preserve">
+    <value>Move to Folder</value>
+    <comment>Item Browser, Quickbar tab right-click: a submenu of the folders.</comment>
+  </data>
+  <data name="MenuNewFolder" xml:space="preserve">
+    <value>New Folder…</value>
+    <comment>Item Browser, Quickbar tab right-click: on a folder, a folder inside it; elsewhere, at the top level.</comment>
+  </data>
+  <data name="MenuRenameFolder" xml:space="preserve">
+    <value>Rename Folder…</value>
+    <comment>Item Browser, Quickbar tab right-click on a folder.</comment>
+  </data>
+  <data name="MenuDeleteFolder" xml:space="preserve">
+    <value>Delete Folder (Its Items Move Up)</value>
+    <comment>Item Browser, Quickbar tab right-click on a folder: what was in it goes where the folder was.</comment>
+  </data>
+  <data name="TitleNewFolder" xml:space="preserve">
+    <value>New Quickbar Folder</value>
+    <comment>Item Browser: title of the dialog naming a new quickbar folder.</comment>
+  </data>
+  <data name="TitleRenameFolder" xml:space="preserve">
+    <value>Rename Quickbar Folder</value>
+    <comment>Item Browser: title of the dialog renaming a quickbar folder.</comment>
+  </data>
+  <data name="LabelFolderName" xml:space="preserve">
+    <value>Folder name</value>
+    <comment>Item Browser, quickbar folder dialog: the label over the box.</comment>
+  </data>
+  <data name="HintFolderName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Item Browser, quickbar folder dialog: the empty box's hint.</comment>
+  </data>
+  <data name="StatusAddedToQuickbar" xml:space="preserve">
+    <value>{0} added to the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
+  <data name="StatusAlreadyInQuickbar" xml:space="preserve">
+    <value>{0} is already on the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
+  <data name="StatusRemovedFromQuickbar" xml:space="preserve">
+    <value>{0} removed from the quickbar</value>
+    <comment>Item Browser status line. {0} is the item's name.</comment>
+  </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Add Items From Fit</value>
     <comment>Menu item in InvLevelView.</comment>
@@ -280,17 +376,53 @@
     <value>CONTRACTS BUYING</value>
     <comment>Column header in InvLevelView.</comment>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>MKT PRICE</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>MKT PRICE (TARGET)</value>
+    <comment>Inventory Levels column header: market price x target total, in ISK.</comment>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>BUILD PRICE</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>MKT PRICE (AVAIL)</value>
+    <comment>Inventory Levels column header: market price x available, in ISK.</comment>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>VOLUME (m³)</value>
-    <comment>Column header in InvLevelView.</comment>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>MKT PRICE (DIFF)</value>
+    <comment>Inventory Levels column header: market price x Diff, in ISK; negative = what the shortfall costs to buy.</comment>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>BUILD PRICE (DIFF)</value>
+    <comment>Inventory Levels column header: build price x Diff, in ISK; negative = what the shortfall costs to build.</comment>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>VOLUME - TARGET</value>
+    <comment>Inventory Levels column header: the cubic metres the target total takes up (unit volume x target total).</comment>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>VOLUME - AVAIL</value>
+    <comment>Inventory Levels column header: the cubic metres of what is available (unit volume x available).</comment>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>VOLUME - DIFF</value>
+    <comment>Inventory Levels column header: available volume minus target volume, in cubic metres; negative = how much more has to be brought in.</comment>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>{0} short</value>
+    <comment>Inventory Levels, the % cell of a group or collection header: how many of its items are below their target. {0} is the count.</comment>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} short</value>
+    <comment>Inventory Levels, the % cell of a group or collection header: how many of its items are below their target. {0} is the count.</comment>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…and {0} more</value>
+    <comment>Inventory Levels: last line of a group or collection's % tooltip, under the 20 worst items short. {0} how many more are short.</comment>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Add item…</value>
+    <comment>Inventory Levels, the actions menu of a group header: opens the dialog to add one item to this group.</comment>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Actions</value>
+    <comment>Inventory Levels: tooltip of the small ⋯ button on a group or collection header, which opens its menu (add item, edit, rename, export, delete…).</comment>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Inventory Levels</value>
@@ -323,6 +455,10 @@
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Build Cost:</value>
     <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} per run</value>
+    <comment>Item Browser header, the build cost of a blueprint copy: what one run of it costs to invent. {0} is an ISK amount, already formatted.</comment>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Reproc Value:</value>
@@ -507,6 +643,74 @@
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Market Orders</value>
     <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Item Browser tab: active contracts with the item</comment>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} item exchanges with this item on either side. Per unit is shown only where the item is all there is on its side and only ISK comes the other way; a copy is priced per run.</value>
+    <comment>Contracts tab caption; {0} contract count</comment>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Past contracts: the newest {0:N0} only.</value>
+    <comment>Contracts tab caption, after the count, when past contracts were cut to the newest; {0} the cap</comment>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>No item exchange matching these filters lists this item. Public contracts come from the Contracts tool's sweep of every region.</value>
+    <comment>Contracts tab: nothing listed</comment>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Side</value>
+    <comment>Contracts tab column: offered or wanted</comment>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Offered</value>
+    <comment>Contracts tab: the issuer gives the item</comment>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Wanted</value>
+    <comment>Contracts tab: the issuer asks for the item</comment>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Blueprint</value>
+    <comment>Contracts tab column: blueprint ME/TE/runs</comment>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Copy ME{0} TE{1}, {2} runs</value>
+    <comment>Contracts tab: a copy's ME, TE, runs</comment>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+    <comment>Contracts tab: an original's ME, TE</comment>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Contracts tab: a copy with no details listed</comment>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Per unit / run</value>
+    <comment>Contracts tab column: ISK per unit, or per run for a copy</comment>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Rest of contract</value>
+    <comment>Contracts tab column: everything else on the contract</comment>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Offers {0}</value>
+    <comment>Contracts tab: {0} items the issuer also gives</comment>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Wants {0}</value>
+    <comment>Contracts tab: {0} items the issuer asks for</comment>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Nothing else</value>
+    <comment>Contracts tab: nothing else on the contract</comment>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Contracts: {0}</value>
+    <comment>Contracts tab load error; {0} message</comment>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Source:</value>
@@ -1076,6 +1280,10 @@ away: Edit list brings it back.</value>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Reprocessed value</value>
     <comment>Item Valuation, heading over the reprocessed columns.</comment>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>What the list comes to once reprocessed, at the app's yields, priced at this station. Anything that cannot be reprocessed stays as it is and is marked as left over.</value>
+    <comment>Item Valuation: tooltip on the heading of the reprocessed output list.</comment>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>The clipboard names no item, so the list was left as it was. Edit list takes any text.</value>
@@ -1768,6 +1976,58 @@ away: Edit list brings it back.</value>
   <data name="DivisionNumbered" xml:space="preserve">
     <value>Division {0}</value>
     <comment>Asset Browser and the Item Browser's Assets tab, Container column: a corporation hangar division the corporation has not named, as one step of the container path. {0} is its number (1–7).</comment>
+  </data>
+  <data name="GroupByNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Asset Browser, Detailed View: Group by option: no grouping, the grid as it always was.</comment>
+  </data>
+  <data name="GroupByOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Asset Browser, Detailed View: Group by option: by the character or corporation owning the assets.</comment>
+  </data>
+  <data name="GroupBySystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Asset Browser, Detailed View: Group by option: by solar system.</comment>
+  </data>
+  <data name="GroupByStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Asset Browser, Detailed View: Group by option: by station or structure (or the system, for assets in space).</comment>
+  </data>
+  <data name="GroupByLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Asset Browser, Detailed View: Group by option: station or structure, then owner, then each container (hangar division, POS structure, ship, asset safety wrap, container), as deep as they go.</comment>
+  </data>
+  <data name="GroupExpandAll" xml:space="preserve">
+    <value>Expand all</value>
+    <comment>Asset Browser, Detailed View: Button: open every group.</comment>
+  </data>
+  <data name="GroupCollapseAll" xml:space="preserve">
+    <value>Collapse all</value>
+    <comment>Asset Browser, Detailed View: Button: close every group.</comment>
+  </data>
+  <data name="GroupRowItemsOne" xml:space="preserve">
+    <value>{1} — {0:N0} item</value>
+    <comment>Asset Browser, Detailed View: A group's own row. {1} is the group's name, {0} how many asset rows are in it.</comment>
+  </data>
+  <data name="GroupRowItemsOther" xml:space="preserve">
+    <value>{1} — {0:N0} items</value>
+    <comment>Asset Browser, Detailed View: A group's own row. {1} is the group's name, {0} how many asset rows are in it.</comment>
+  </data>
+  <data name="GroupSystemInRegion" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Asset Browser, Detailed View: A System group's name. {0} is the solar system, {1} its region.</comment>
+  </data>
+  <data name="GroupTypeWithId" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Asset Browser, Detailed View: A container group named by an item type the SDE does not have. {0} is the type id.</comment>
+  </data>
+  <data name="GroupDeliveries" xml:space="preserve">
+    <value>Deliveries</value>
+    <comment>Asset Browser, Detailed View: A Location group: a corporation's deliveries hangar, beside its hangar divisions.</comment>
+  </data>
+  <data name="GroupPlaceWithId" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Asset Browser, Detailed View: a Station or Location group the app has no name for, told apart by its id. {0} is the label (&lt;Unknown Structure&gt;), {1} the station or structure id.</comment>
   </data>
   <data name="FlagIndustryJob" xml:space="preserve">
     <value>Industry Job</value>

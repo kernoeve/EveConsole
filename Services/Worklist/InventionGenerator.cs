@@ -38,6 +38,11 @@ public class InventionGenerator(
     ProductionCalculatorService     production,
     WorklistSettings                settings) : IWorklistGenerator
 {
+    private const string CopyJobKey = "invention_copy:";
+
+    /// <summary>A job copying a blueprint: its TypeId is the blueprint, where a build's is the product.</summary>
+    public static bool IsCopyJob(WorklistItem item) => item.Key.StartsWith(CopyJobKey, StringComparison.Ordinal);
+
     public string Id          => "invention";
     public string DisplayName => WorklistText.SourceInvention;
 
@@ -172,8 +177,8 @@ public class InventionGenerator(
 
             // A level of the blueprint itself is short in copy runs; one of the item, in T2 runs.
             var head = recipe.BlueprintTarget
-                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, SdeNames.Type(d.TypeId, name))
-                : string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
+                ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, ItemRef.Of(d.TypeId, name, PrintKind.Copy))
+                : string.Format(WorklistText.InventionHead, ItemRef.Of(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
                                      timeCtx, copiers, slotsLeft, siteStock, d.Priority, name, head));
@@ -204,8 +209,12 @@ public class InventionGenerator(
     {
         // What the titles and the reasons say — screen text. The rows' TypeName and their manifest
         // lines keep the English.
-        var shown       = SdeNames.Type(recipe.ProductTypeId, name);
-        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+        // A level of the T2 print itself is invented as copies: "(Copy)" and the copy's picture.
+        var print       = recipe.BlueprintTarget ? PrintKind.Copy : PrintKind.None;
+        var shown       = PrintLabel.Name(recipe.ProductTypeId, name, print);
+        // Drawn as the copy it is, without the suffix: these sentences say "copy" or "BPC" themselves.
+        var sourceShown = ItemRef.Mark(recipe.SourceBlueprintTypeId,
+                                       SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName), PrintKind.Copy);
 
         // The source copies standing at the lab. Nothing else can carry an attempt: the copy is
         // installed in the job and locked for its duration, so concurrent invention jobs need a
@@ -375,6 +384,7 @@ public class InventionGenerator(
                     LocationId    = lab.Site,
                     LocationName  = lab.Name,
                     TypeId        = recipe.ProductTypeId,
+                    Print         = print,
                     TypeName      = name,
                     Priority      = priority,
                     Lines         = lineMats
@@ -389,6 +399,7 @@ public class InventionGenerator(
 
         // No copy at the lab at all: the split placed nothing, but the work is still real and the
         // reader needs to know why it is not listed.
+        var slotToInvent = inventors.Any(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
         if (split.Jobs.Count == 0)
             items.Add(new WorklistItem
             {
@@ -400,12 +411,16 @@ public class InventionGenerator(
                 Quantity  = plan.Attempts,
                 Detail    = string.Format(WorklistText.InventionNoCopyDetail,
                                           head, plan.Chance, plan.SuccessesNeeded, plan.RunsPerBpc),
-                Readiness = WorklistReadiness.Blocked,
-                BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name),
-                BlockedByPrint = true,
+                // A copy would not start with no slot to run it in: slots first, as for a job.
+                Readiness = slotToInvent ? WorklistReadiness.Blocked : WorklistReadiness.Waiting,
+                BlockedBy      = slotToInvent ? string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name)
+                                              : WorklistText.WaitingScienceSlotsBusy,
+                BlockedByPrint = slotToInvent,
+                PrintMissing   = slotToInvent,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
+                Print     = print,
                 TypeName  = name,
                 Priority  = priority,
             });
@@ -419,7 +434,7 @@ public class InventionGenerator(
         // A datacore, and how many of it the lab holds against what the job wants.
         string HaveOfWant(int typeId, long have, long want) =>
             string.Format(WorklistText.NameHaveOfWant,
-                          SdeNames.Type(typeId, names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId))),
+                          ItemRef.Of(typeId, names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId))),
                           have, want);
     }
 
@@ -464,23 +479,26 @@ public class InventionGenerator(
             .FirstOrDefault();
 
         // For the titles. The rows' TypeName keeps the English.
-        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+        // The job makes copies, and the row is drawn as one: "(Copy)" with the copy's picture.
+        var copiesShown = PrintLabel.Name(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName, PrintKind.Copy);
 
         if (original is null)
             return [new WorklistItem
             {
-                Key       = $"invention_copy:{recipe.ProductTypeId}",
+                Key       = $"{CopyJobKey}{recipe.ProductTypeId}",
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = string.Format(WorklistText.CopyTitleNoOriginal, sourceShown),
+                Title     = string.Format(WorklistText.CopyTitleNoOriginal, copiesShown),
                 Detail    = string.Format(WorklistText.CopyNeedsRunsDetail, head, plan.CopyRunsNeeded, ownedCopyRuns),
                 Readiness = WorklistReadiness.Blocked,
                 BlockedBy      = WorklistText.BlockedNoBpoToCopy,
                 BlockedByPrint = true,
+                PrintMissing   = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
                 TypeImage = "bpc",   // what the job makes: copies
+                Print     = PrintKind.Copy,
                 Priority  = priority,
             }];
 
@@ -506,11 +524,11 @@ public class InventionGenerator(
 
         return [new WorklistItem
         {
-            Key           = $"invention_copy:{recipe.ProductTypeId}",
+            Key           = $"{CopyJobKey}{recipe.ProductTypeId}",
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
-            Title         = string.Format(WorklistText.CopyTitle, sourceShown, copies, perCopy),
+            Title         = string.Format(WorklistText.CopyTitle, copiesShown, copies, perCopy),
             Quantity      = copies,
             Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
                           // "at the lab" only when it is: one elsewhere is what the blocked reason is about.
@@ -518,13 +536,13 @@ public class InventionGenerator(
                                              : string.Format(WorklistText.PrintUsing, original.Describe()))
                           + durText,
             Readiness     = ready ? WorklistReadiness.Ready
-                          : atCopyLab && !busy ? WorklistReadiness.Waiting
+                          : atCopyLab && (!busy || free is null) ? WorklistReadiness.Waiting
                           : WorklistReadiness.Blocked,
-            BlockedBy     = busy       ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
+            BlockedBy     = busy && free is not null ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
                           : !atCopyLab ? string.Format(WorklistText.BlockedOriginalNotAt, lab.Name)
                           : !ready     ? WorklistText.WaitingScienceSlotsBusy
                           : "",
-            BlockedByPrint = busy,
+            BlockedByPrint = busy && free is not null,
             CharacterId   = who?.Config.CharacterId ?? 0,
             CharacterName = who?.Config.CharacterName ?? "",
             LocationId    = lab.Site,
@@ -532,6 +550,7 @@ public class InventionGenerator(
             TypeId        = recipe.SourceBlueprintTypeId,
             TypeName      = recipe.SourceBlueprintName,
             TypeImage     = "bpc",   // what the job makes: copies
+            Print         = PrintKind.Copy,
             Priority      = priority,
         }];
     }
@@ -546,7 +565,7 @@ public class InventionGenerator(
     // Named as the screen shows it. ⚠️ Only here: the settings pick a decryptor by its English
     // Name (InventionService.DecryptorFor).
     private static string DecryptorText(Decryptor d) =>
-        d.IsNone ? WorklistText.NoDecryptor : $"{SdeNames.Type(d.TypeId, d.Name)} ×{d.ChanceMultiplier:0.0#}";
+        d.IsNone ? WorklistText.NoDecryptor : $"{ItemRef.Of(d.TypeId, d.Name)} ×{d.ChanceMultiplier:0.0#}";
 
     private Decryptor DecryptorFor(int productTypeId, ProductionContext ctx, List<Decryptor> all) =>
         InventionService.DecryptorFor(

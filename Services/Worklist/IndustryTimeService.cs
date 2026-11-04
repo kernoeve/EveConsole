@@ -34,8 +34,10 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     private const int AttrStructMfgTime   = 2602;
     private const int AttrStructRxnTime   = 2721;
 
-    // Science rig bonuses. Copying and invention are separately bonused, so a lab rigged for one
-    // does nothing for the other and they cannot share a lookup.
+    // Science rig bonuses on the old outpost rigs only. ⚠️ A Standup laboratory rig carries its
+    // time bonus on 2593, the same attribute as a manufacturing rig, and which activity it serves
+    // is in its name (IndyRigMatching): an M-Set Invention Accelerator II is 2593 = -24. Reading
+    // only these two left every Standup lab rig at no bonus at all.
     private const int AttrCopyRigTime      = 2780;
     private const int AttrInventionRigTime = 2781;
 
@@ -61,8 +63,21 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
     /// </summary>
     private const int SkillScience = 3402;
 
+    /// <summary>-5% ME research time a level, and -5% TE research time a level.</summary>
+    private const int SkillMetallurgy = 3409;
+    private const int SkillResearch   = 3403;
+
     public const string CopyingActivity   = "copying";
     public const string InventionActivity = "invention";
+    public const string MeResearchActivity = "research_material";
+    public const string TeResearchActivity = "research_time";
+
+    /// <summary>
+    /// The game's research level table: research from level 0 to level n takes the blueprint's
+    /// base research time × <c>LevelFactor[n] / 105</c>, and costs the same multiple — the
+    /// blueprint's time is for the first level. 250 × 2^(1.25n − 2.5), as the game rounds it.
+    /// </summary>
+    public static readonly int[] ResearchLevelFactor = [0, 105, 250, 595, 1414, 3360, 8000, 19000, 45255, 107700, 256000];
 
     public sealed class TimeContext
     {
@@ -96,7 +111,8 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
 
         var baseTimes = (await db.HoboBlueprintActivities.AsNoTracking()
                 .Where(a => a.Activity == "manufacturing" || a.Activity == "reaction"
-                         || a.Activity == CopyingActivity || a.Activity == InventionActivity)
+                         || a.Activity == CopyingActivity || a.Activity == InventionActivity
+                         || a.Activity == MeResearchActivity || a.Activity == TeResearchActivity)
                 .Select(a => new { a.TypeId, a.Activity, a.Time })
                 .ToListAsync(ct))
             .GroupBy(a => (a.TypeId, a.Activity))
@@ -277,8 +293,9 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
 
     /// <summary>
     /// Laboratory rig reduction for this activity, scaled by security class exactly as the
-    /// manufacturing rigs are. Copying and invention are bonused separately, so a rig that helps
-    /// one may do nothing for the other.
+    /// manufacturing rigs are. Which rigs serve which activity is the category the rig's name
+    /// gives it (copying, invention, research; the XL Laboratory Optimization serves all three),
+    /// so a rig that helps one does nothing for the others.
     /// </summary>
     private static double ScienceRigBonus(
         TimeContext ctx, IndyStructure? structure, string itemCategoryKey, string activity)
@@ -286,7 +303,9 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         if (structure is null || itemCategoryKey.Length == 0) return 0;
         if (!ctx.RigsByStructure.TryGetValue(structure.Id, out var fitted)) return 0;
 
-        var bonusAttr = activity == CopyingActivity ? ctx.CopyRigTime : ctx.InventionRigTime;
+        var outpostAttr = activity == CopyingActivity ? ctx.CopyRigTime
+                        : activity == InventionActivity ? ctx.InventionRigTime
+                        : null;
 
         double total = 0;
         foreach (var rigTypeId in fitted)
@@ -294,11 +313,50 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             if (!IndyRigMatching.RigApplies(
                     ctx.RigCategories.GetValueOrDefault(rigTypeId, ""), itemCategoryKey))
                 continue;
-            if (!bonusAttr.TryGetValue(rigTypeId, out var pct)) continue;
+            // A Standup rig's time bonus is 2593; only an old outpost rig carries 2780/2781.
+            if (!(ctx.MfgRigTime.TryGetValue(rigTypeId, out var pct) && pct > 0)
+                && !(outpostAttr is not null && outpostAttr.TryGetValue(rigTypeId, out pct)))
+                continue;
 
             total += pct * SecurityMultiplier(ctx, structure, rigTypeId);
         }
         return total;
+    }
+
+    /// <summary>
+    /// Seconds to research a blueprint from level 0 to <paramref name="targetLevel"/> (1–10) of
+    /// ME (<see cref="MeResearchActivity"/>) or TE (<see cref="TeResearchActivity"/>, where level
+    /// n is TE 2n%). Null when the blueprint has no research time on record.
+    ///
+    /// <para><c>base × LevelFactor[n] / 105 × (1 − 0.05·Metallurgy or Research) × (1 − 0.03·Advanced
+    /// Industry) × role × (1 − rigs)</c>: the copying chain with the research skill in place of
+    /// Science, and the same engineering-complex role bonus.</para>
+    /// </summary>
+    public static double? PerResearchSeconds(
+        TimeContext    ctx,
+        int            blueprintTypeId,
+        string         activity,
+        int            targetLevel,
+        IndyStructure? structure,
+        string         itemCategoryKey,
+        IReadOnlyDictionary<int, int> skills)
+    {
+        if (!ctx.BaseSeconds.TryGetValue((blueprintTypeId, activity), out var baseSeconds) || baseSeconds <= 0)
+            return null;
+        var level = Math.Clamp(targetLevel, 0, ResearchLevelFactor.Length - 1);
+
+        var skill = activity == MeResearchActivity ? SkillMetallurgy : SkillResearch;
+        var skillFactor = (1.0 - 0.05 * Math.Clamp(skills.GetValueOrDefault(skill), 0, 5))
+                        * (1.0 - 0.03 * Math.Clamp(skills.GetValueOrDefault(SkillAdvancedIndustry), 0, 5));
+
+        var roleFactor = 1.0;
+        if (structure is not null
+            && ctx.StructMfgTime.TryGetValue(structure.StructureTypeKey.ToLowerInvariant(), out var role))
+            roleFactor = role;
+
+        var rigFactor = Math.Max(0.0, 1.0 - ScienceRigBonus(ctx, structure, itemCategoryKey, activity));
+
+        return baseSeconds * ResearchLevelFactor[level] / 105.0 * skillFactor * roleFactor * rigFactor;
     }
 
     /// <summary>

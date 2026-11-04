@@ -51,14 +51,16 @@ public sealed class TrayIconController
     private const string RunName    = "EveConsoleTray";
 
     /// <summary>
-    /// ⚠️ HKEY_CURRENT_USER on Windows, and <c>~/.config/autostart</c> on Linux — both per-person
-    /// and per-session, which is exactly what a tray icon is. The machine-wide equivalents would
+    /// ⚠️ HKEY_CURRENT_USER on Windows, <c>~/.config/autostart</c> on Linux and
+    /// <c>~/Library/LaunchAgents</c> on macOS — all per-person and per-session, which is exactly
+    /// what a tray icon is. The machine-wide equivalents would
     /// ask for administrator approval to add an icon to one user's notification area, and would put
     /// it in everyone's.
     /// </summary>
     public static bool StartsAtLogon()
     {
         if (OperatingSystem.IsLinux()) return LinuxAutostart.StartsAtLogin();
+        if (OperatingSystem.IsMacOS()) return MacAutostart.StartsAtLogin();
         if (!OperatingSystem.IsWindows()) return false;
 
         try
@@ -72,6 +74,7 @@ public sealed class TrayIconController
     public static void SetStartsAtLogon(bool on)
     {
         if (OperatingSystem.IsLinux()) { LinuxAutostart.SetStartsAtLogin(on); return; }
+        if (OperatingSystem.IsMacOS()) { MacAutostart.SetStartsAtLogin(on); return; }
         if (!OperatingSystem.IsWindows()) return;
 
         using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKeyPath);
@@ -96,7 +99,10 @@ public sealed class TrayIconController
         {
             _icon = new TrayIcon
             {
-                Icon        = new WindowIcon(AssetLoader.Open(new Uri("avares://EveConsole/Assets/ec.ico"))),
+                // The menu bar draws its icons from a PNG; an .ico there shows as a blank slot.
+                Icon        = new WindowIcon(AssetLoader.Open(new Uri(OperatingSystem.IsMacOS()
+                                  ? "avares://EveConsole/Assets/logo_mark.png"
+                                  : "avares://EveConsole/Assets/ec.ico"))),
                 ToolTipText = "EVE Console",
                 IsVisible   = true,
                 Menu        = BuildMenu(),
@@ -148,8 +154,9 @@ public sealed class TrayIconController
     public Action? ShowBackgroundProcesses { get; set; }
 
     /// <summary>
-    /// ⚠️ Built fresh on each open rather than once. NativeMenu is small, and a menu assembled at
-    /// construction would keep whatever the first pass decided.
+    /// ⚠️ Built ONCE, when the icon is made. Nothing on it changes, and the menu bar on macOS will
+    /// not have a tray icon's menu replaced: every swap threw "The menu being updated does not
+    /// match" from Avalonia.Native, unhandled, every 30 seconds for as long as the icon was up.
     /// </summary>
     private NativeMenu BuildMenu()
     {
@@ -198,14 +205,10 @@ public sealed class TrayIconController
 
         var tip = $"EVE Console\n{worker}";
 
+        // The tooltip only: the menu is fixed (see BuildMenu).
         Dispatcher.UIThread.Post(() =>
         {
-            if (_icon is null) return;
-
-            // Rebuilt rather than edited: the mute item's text changes with the state, and a
-            // NativeMenu is small enough that replacing it beats tracking which item to update.
-            _icon.Menu        = BuildMenu();
-            _icon.ToolTipText = tip;
+            if (_icon is not null) _icon.ToolTipText = tip;
         });
     }
 }

@@ -3,6 +3,7 @@
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:svc="clr-namespace:EveConsole.Services"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.SchedulerView"
              x:DataType="vm:SchedulerViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -35,7 +36,7 @@
     </Style>
     <Style Selector="Button.small">
       <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="7 1" />
@@ -59,13 +60,19 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <StackPanel Spacing="5">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
         <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="{x:Static loc:AlarmsText.NewTask}" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
                 Content="{x:Static loc:AlarmsText.Refresh}" Margin="8 0 0 0" />
-        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="8 0 0 0">
+          <Button Classes="tool" Content="{x:Static loc:IndustryText.Export}" Click="OnExportClick"
+                  ToolTip.Tip="{x:Static loc:AlarmsText.TipExportTasks}" />
+          <Button Classes="tool" Content="{x:Static loc:IndustryText.Import}" Click="OnImportClick"
+                  ToolTip.Tip="{x:Static loc:AlarmsText.TipImportTasks}" />
+        </StackPanel>
+        <TextBlock Grid.Column="3" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
-        <TextBlock Grid.Column="3" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
+        <TextBlock Grid.Column="4" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
         <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
@@ -346,6 +353,87 @@
                                            Text="{x:Static loc:AlarmsText.EachListPrintsTheNote}" />
                               </StackPanel>
 
+                              <!-- Indy Park Compare: parks, the job list as the Compare tab edits it, and
+                                   which tables and pictures to post. Nothing comes from the tab. -->
+                              <StackPanel IsVisible="{Binding IsParkCompare}" Spacing="8">
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}" Watermark="{x:Static loc:AlarmsText.HeadingParkCompare}" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionParksLabel}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding CompareParks}" FontSize="12" />
+                                  </StackPanel>
+                                </Grid>
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
+                                  <views:MultiChoiceDropDown DataContext="{Binding CompareOutputsPicker}" FontSize="12" />
+                                </StackPanel>
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionJobsLabel}" />
+                                  <views:CompareJobListView DataContext="{Binding CompareJobList}" MaxHeight="460" />
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.ParkCompareSectionNote}" />
+                                <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
+                                        Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
+                                        CornerRadius="3" Padding="8 6">
+                                  <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
+                                             Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
+                                </Border>
+                              </StackPanel>
+
+                              <!-- System Index: the systems, in order (the order picks each line's colour), and
+                                   the table and charts to post. Nothing comes from the tool's list. -->
+                              <StackPanel IsVisible="{Binding IsSystemIndex}" Spacing="8">
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}" Watermark="{x:Static loc:AlarmsText.HeadingSystemIndex}" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding IndexOutputsPicker}" FontSize="12" />
+                                  </StackPanel>
+                                </Grid>
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionSystemsLabel}" />
+                                  <TextBox Text="{Binding IndexSearchText}" Watermark="{x:Static loc:IndustryText.IndexSearchHint}" />
+                                  <Border IsVisible="{Binding ShowIndexResults}" MaxHeight="180"
+                                          Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                          BorderThickness="1" CornerRadius="3">
+                                    <ListBox ItemsSource="{Binding IndexSearchResults}" SelectedItem="{Binding PickedIndexSystem}" Background="Transparent">
+                                      <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="svc:IndexSystem">
+                                          <TextBlock>
+                                            <Run Text="{Binding Name}" />
+                                            <Run Text="{Binding Region}" Foreground="{DynamicResource TextFaintBrush}" />
+                                          </TextBlock>
+                                        </DataTemplate>
+                                      </ListBox.ItemTemplate>
+                                    </ListBox>
+                                  </Border>
+                                  <ItemsControl ItemsSource="{Binding IndexSystems}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:IndexSystemChoice">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0 2 0 0">
+                                          <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                          <Button Grid.Column="1" Content="✕" Command="{Binding RemoveCommand}" Padding="7 1" FontSize="11"
+                                                  Foreground="{DynamicResource BadBrush}" Background="{DynamicResource SurfaceHeaderBrush}" />
+                                        </Grid>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.SystemIndexSectionNote}" />
+                                <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
+                                        Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
+                                        CornerRadius="3" Padding="8 6">
+                                  <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
+                                             Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
+                                </Border>
+                              </StackPanel>
+
                               <!-- Charts: whose figures, and a word about where they can go -->
                           <StackPanel IsVisible="{Binding IsChart}" Spacing="6">
                             <TextBlock Classes="hint"
@@ -429,6 +517,178 @@
                                 </StackPanel>
                               </StackPanel>
 
+                              <!-- Industry Ops: every filter of the tool, set here and nowhere else; then the table. -->
+                              <StackPanel IsVisible="{Binding IsOpps}" Spacing="8">
+                                <Grid ColumnDefinitions="*,10,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsModeLabel}" />
+                                    <ComboBox ItemsSource="{Binding OppsModes}" SelectedItem="{Binding OppsMode}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsPriceAtLabel}" />
+                                    <ComboBox ItemsSource="{Binding Markets}" SelectedItem="{Binding OppsMarket}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinIskVolLabel}" />
+                                    <TextBox Text="{Binding OppsMinIskVol}" Width="110"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinUnitVolLabel}" />
+                                    <TextBox Text="{Binding OppsMinUnitVol}" Width="110"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinMarginLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin}" />
+                                    <TextBox Text="{Binding OppsMinMargin}" Width="90"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMinMargin30dLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipMinMargin30d}" />
+                                    <TextBox Text="{Binding OppsMinMargin30d}" Width="90"
+                                             Watermark="{x:Static loc:IndustryText.HintNoFilter}" />
+                                  </StackPanel>
+                                  <StackPanel>
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsMetaGroupsLabel}"
+                                               ToolTip.Tip="{x:Static loc:IndustryText.TipMetaGroups}" />
+                                    <views:MultiChoiceDropDown DataContext="{Binding OppsMetaPicker}" Width="190" FontSize="11" />
+                                  </StackPanel>
+                                </WrapPanel>
+
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="14" LineSpacing="4">
+                                  <CheckBox IsChecked="{Binding OppsBpoOnly}" Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
+                                            ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
+                                  <CheckBox IsChecked="{Binding OppsOwnedOnly}" Content="{x:Static loc:IndustryText.OnlyBlueprintsIOwn}"
+                                            ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyBlueprintsIOwn}" />
+                                </WrapPanel>
+
+
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsExcludeGroupsLabel}" />
+                                  <WrapPanel Orientation="Horizontal">
+                                    <ItemsControl ItemsSource="{Binding OppsExcluded}">
+                                      <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                          <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                      </ItemsControl.ItemsPanel>
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MarketGroupChip">
+                                          <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                                  CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                              <Button Content="✕" Command="{Binding RemoveCommand}"
+                                                      Background="Transparent" BorderThickness="0"
+                                                      Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                                                      Cursor="Hand" VerticalAlignment="Center" />
+                                              <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                          </Border>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Classes="small" Content="{x:Static loc:IndustryText.AddGroup}"
+                                            Command="{Binding AddOppsExcludedCommand}" Margin="0 0 0 4" />
+                                  </WrapPanel>
+                                </StackPanel>
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OppsIncludeGroupsLabel}" ToolTip.Tip="{x:Static loc:IndustryText.TipIncludeGroups}" />
+                                  <WrapPanel Orientation="Horizontal">
+                                    <ItemsControl ItemsSource="{Binding OppsIncluded}">
+                                      <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                          <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                      </ItemsControl.ItemsPanel>
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MarketGroupChip">
+                                          <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                                  CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                              <Button Content="✕" Command="{Binding RemoveCommand}"
+                                                      Background="Transparent" BorderThickness="0"
+                                                      Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
+                                                      Cursor="Hand" VerticalAlignment="Center" />
+                                              <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                          </Border>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Classes="small" Content="{x:Static loc:IndustryText.AddGroup}"
+                                            Command="{Binding AddOppsIncludedCommand}" Margin="0 0 0 4" />
+                                  </WrapPanel>
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
+                                    <TextBox Text="{Binding SectionTitle}"
+                                             Watermark="{x:Static loc:AlarmsText.HintNoTitle}" />
+                                  </StackPanel>
+                                  <CheckBox Grid.Column="2" IsChecked="{Binding ShowHeaders}"
+                                            Content="{x:Static loc:AlarmsText.ColumnHeaders}"
+                                            VerticalAlignment="Bottom" Margin="0 0 0 5" />
+                                </Grid>
+
+                                <StackPanel Spacing="3">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ColumnsLabel}" />
+                                  <!-- One row per column, in the order printed: its name, the header it
+                                       prints, and up, down, remove. The item stays first. -->
+                                  <ItemsControl ItemsSource="{Binding OppsTable}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:OppsColumnVm">
+                                        <Grid ColumnDefinitions="130,*,Auto" Margin="0 0 0 3">
+                                          <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"
+                                                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                     TextTrimming="CharacterEllipsis" Margin="2 0 8 0" />
+                                          <TextBox Grid.Column="1" Text="{Binding Header}" Watermark="{Binding Name}"
+                                                   ToolTip.Tip="{x:Static loc:AlarmsText.TipColumnHeader}" />
+                                          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6 0 0 0"
+                                                      IsVisible="{Binding CanMove}">
+                                            <Button Classes="small" Content="↑" Command="{Binding MoveUpCommand}" />
+                                            <Button Classes="small" Content="↓" Command="{Binding MoveDownCommand}" />
+                                            <Button Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
+                                                    Command="{Binding RemoveCommand}" />
+                                          </StackPanel>
+                                        </Grid>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding OppsAddable.Count}">
+                                    <ComboBox ItemsSource="{Binding OppsAddable}" SelectedItem="{Binding OppsToAdd}" Width="200" />
+                                    <Button Classes="small" Content="{x:Static loc:AlarmsText.AddColumn}" Padding="10 3"
+                                            Command="{Binding AddOppsColumnCommand}" />
+                                  </StackPanel>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*,10,150,10,80">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SortByLabel}" />
+                                    <ComboBox ItemsSource="{Binding OppsSorts}" SelectedItem="{Binding OppsSortBy}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text=" " />
+                                    <ComboBox ItemsSource="{Binding SortDirections}" SelectedItem="{Binding OppsSortDirection}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="4">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.RowLimitLabel}" />
+                                    <TextBox Text="{Binding OppsRowLimit}"
+                                             Watermark="{x:Static loc:AlarmsText.HintAllRows}" />
+                                  </StackPanel>
+                                </Grid>
+
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsSectionNote}" />
+                              </StackPanel>
+
                             </StackPanel>
                           </Border>
                         </DataTemplate>
@@ -450,7 +710,7 @@
                                     VerticalScrollBarVisibility="Auto"
                                     MaxHeight="620" IsVisible="{Binding HasPreview}">
                         <SelectableTextBlock Text="{Binding PreviewText}"
-                                             FontFamily="Consolas, DejaVu Sans Mono, Liberation Mono, monospace"
+                                             FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                                              FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                       </ScrollViewer>
                     </StackPanel>

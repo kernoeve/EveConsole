@@ -368,16 +368,16 @@
     <value>Unidades al día que podrían producir entre todos los originales disponibles, funcionando sin pausa.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Unidades al día producidas realmente en los últimos 90 días. Nunca puede superar el techo, por lo que no sirve para medir la demanda.</value>
+    <value>Unidades realmente producidas al día, en los mismos días que la cifra de todos ocupados. Nunca puede superar el techo, por lo que no sirve para medir la demanda.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Proporción del tiempo de cada original dentro de un trabajo. Solo es contexto: no identifica cuellos de botella, y clasificar por ello pone el uso intenso por encima de las restricciones reales.</value>
+    <value>Proporción del tiempo de cada original dentro de un trabajo, en los mismos días que la cifra de todos ocupados. Solo es contexto: no identifica cuellos de botella, y clasificar por ello pone el uso intenso por encima de las restricciones reales.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Todos ocupados</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Proporción de los últimos 90 días en que TODOS los originales estaban ocupados a la vez, contando la investigación y la copia además de la fabricación. Esta es la cifra que dice si querer otro trabajo implicaba esperar.</value>
+    <value>Proporción del tiempo en que TODOS los originales estaban ocupados a la vez, contando la investigación y la copia además de la fabricación. Se mide en los últimos 90 días o desde el primer trabajo de estos originales si es posterior, y nunca en menos de 30 días. Esta es la cifra que dice si querer otro trabajo implicaba esperar.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Posición</value>
@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>días</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Reservar materiales para un plano ocupado que se libera en</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Cuando un trabajo situado por delante solo puede empezar cuando su plano salga de un trabajo en curso, y ese trabajo termina en estas horas, se le reservan los materiales de su ubicación para que los trabajos situados por debajo no los gasten antes. 0 lo desactiva.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>horas</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Sus materiales en la ubicación quedan reservados: el plano se libera en menos de {0} horas.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Alcance de bienes</value>
   </data>
@@ -1015,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Pico</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Sin ranura libre</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>En cola</value>
   </data>
@@ -1040,7 +1055,7 @@
     <value>No hay cuellos de botella: ningún grupo de ranuras tiene trabajo esperando una ranura y ningún plano ha tenido todos sus ejemplares ocupados con la frecuencia suficiente como para hacer esperar a nada. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. ⚠ {3:N0} ranura(s) libres mientras {4} plano(s) tienen todos sus ejemplares ocupados: la limitación aquí son los planos, no las ranuras. {5}</value>
+    <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. ⚠ {3:N0} ranura(s) libres en los mismos grupos donde {4} plano(s) tienen todos sus originales ocupados y trabajos detenidos: la limitación allí son los planos, no las ranuras. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>{0} grupo(s) de ranuras con trabajo esperando una ranura; {1} plano(s) que conviene revisar; {2} material(es) que se consumen más rápido de lo que se fabrican. {3}</value>
@@ -1474,6 +1489,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>empieza al llegar</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>luego espera una ranura</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>luego espera un plano</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>empieza cuando también termine el otro circuito</value>
   </data>
@@ -1492,17 +1513,17 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>Reanuda {0:N0} trabajo(s) detenido(s) cuando termine el circuito: {1} y {2:N0} más.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>quiere {0:N0}</value>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>le falta {0:N0} objeto más</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>en cola detrás de otro trabajo</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>le faltan {0:N0} objetos más</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>también le falta {0:N0} objeto</value>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>no le falta nada más</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>también le faltan {0:N0} objetos</value>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Aún faltará después de esto</value>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Una fabricación a la que va destinada esta entrega. Es para lo que el planificador generó el viaje, y aún no se ha separado en una tarea propia.</value>
@@ -1510,17 +1531,11 @@
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Este transporte lleva todo lo que le falta al trabajo, así que empieza cuando llega la carga.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>El trabajo quiere algo de este manifiesto, pero un trabajo anterior ya ha reservado esas existencias: esta carga no le llegará.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Aún le falta: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Aún le falta: {0} y {1:N0} más.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>También está detrás de otro trabajo por algo de este manifiesto.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} en total. {1}</value>
@@ -1675,6 +1690,21 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>Trabajos de industria</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Trabajos completados</value>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>Entregar {0:N0} trabajo completado</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>Entregar {0:N0} trabajos completados</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Terminados y pendientes de entrega: {0}. Entregarlos libera la ranura y deja el resultado en el hangar.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>y {0:N0} más</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} Fabricar {1:N0}.</value>
   </data>
@@ -1706,7 +1736,13 @@
     <value>Plano ocupado en un trabajo en curso ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>No hay ningún plano libre en {0} ({1})</value>
+    <value>No hay ningún plano utilizable en {0} (el mejor que tienes: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Todos los planos de aquí están en uso: {0:N0} en marcha, {1:N0} a punto de empezar</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Su plano está reservado para un trabajo anterior al que le faltan materiales</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Déficit: {1:N0}.</value>
@@ -1733,7 +1769,7 @@
     <value>El resto de este trabajo, esperando materiales.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>{0:N0} iteración(es) más no tienen ningún plano libre: se listan por separado.</value>
+    <value>{0:N0} iteración(es) más se listan por separado.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Limitado por el máximo de 30 días de EVE para un solo trabajo.</value>
@@ -1757,16 +1793,16 @@
     <value>Materiales que no están en {0}: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>No se poseen: {0}</value>
+    <value>Nada disponible: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>No se poseen en {0}: {1}</value>
+    <value>Nada disponible en {0}: {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>No se poseen: {0}; en otro sitio: {1}</value>
+    <value>Nada disponible: {0}; en otro sitio: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>No se poseen en {0}: {1}; en otro sitio: {2}</value>
+    <value>Nada disponible en {0}: {1}; en otro sitio: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} y {1} más</value>
@@ -1918,8 +1954,89 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>{0} objeto(s)</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} artículo(s), contrato {1} de {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} objeto(s) en {1} contratos</value>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>Pilotar {0} × {1:N0}</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>Una capital no se puede transportar: un piloto debe llevarla, saltando si los sistemas están separados.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} no puede atracar en {1}: hay que construirla allí y no desatracarla</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>CONTRATO {0} DE {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Hacer ahora</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Bloqueadas</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Sin ranura libre</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Aún no toca</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Mejores próximos pasos</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>faltan materiales</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>todos los planos en uso</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>sin plano aquí</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>otros</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>entregar</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>Ranuras de {0} {1:N0}/{2:N0} llenas</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>Ranuras de {0} {1:N0}/{2:N0}, {3:N0} libres</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Desde la última actualización: {0:N0} nuevas listas, {1:N0} ya no listas</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>libera {0:N0}</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Comprar</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Transportar</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Fabricar</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Reacción</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Entregar</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Haz clic para mostrar solo estas. Vuelve a hacer clic para quitar el filtro.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Haz clic para ir a esta tarea en la lista.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Hay trabajos esperando esto.</value>
@@ -2339,7 +2456,7 @@
     <value>{0} × {1} ranuras frente a las {2:N0} que funcionan ahora. El desarrollo de habilidades no es instantáneo: este es el techo que se consigue.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Medido en {0:N0} plano(s) durante {1} días: en {2:N0} de ellos nunca estuvieron todos los originales ocupados a la vez, la mediana está en el {3:N0} % y la décima parte más ocupada empieza en el {4:N0} %, que es el límite que usan las marcas.</value>
+    <value>Medido en {0:N0} plano(s) durante un máximo de {1} días: en {2:N0} de ellos nunca estuvieron todos los originales ocupados a la vez, la mediana está en el {3:N0} % y la décima parte más ocupada empieza en el {4:N0} %, que es el límite que usan las marcas.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Todos los BPO estuvieron ocupados el {0:N0} % de los últimos {1} días, y {2:N0} trabajo(s) no pueden empezar ahora mismo. Otro BPO sube el techo de {3:N2} a {4:N2}/día.</value>
@@ -2360,10 +2477,40 @@
     <value>Todas las fórmulas estuvieron ocupadas el {0:N0} % de los últimos {1} días, pero hoy no hay nada en cola para ella. Conviene vigilarlo más que comprar por ello.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} trabajo(s) no pueden empezar, aunque los BPO disponibles rara vez han estado todos ocupados a la vez ({1:N0} %). Comprueba qué falta realmente antes de comprar otro BPO: esto parece algo distinto del plano.</value>
+    <value>{0:N0} trabajo(s) no pueden empezar porque ahora mismo no hay ningún BPO libre en su ubicación, aunque los BPO rara vez han estado todos ocupados a la vez ({1:N0} %). Parece más un pico breve o BPO en el lugar equivocado que una escasez: compruébalo antes de comprar otro.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} trabajo(s) no pueden empezar, aunque las fórmulas disponibles rara vez han estado todas ocupadas a la vez ({1:N0} %). Comprueba qué falta realmente antes de comprar otra fórmula: esto parece algo distinto de la fórmula.</value>
+    <value>{0:N0} trabajo(s) no pueden empezar porque ahora mismo no hay ninguna fórmula libre en su ubicación, aunque las fórmulas rara vez han estado todas ocupadas a la vez ({1:N0} %). Parece más un pico breve o fórmulas en el lugar equivocado que una escasez: compruébalo antes de comprar otra.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} trabajo(s) esperan una ranura de fabricación, no un BPO, así que otro BPO no pondría en marcha ninguno. Todos los BPO estuvieron ocupados el {1:N0} % de los últimos {2} días.</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} trabajo(s) esperan una ranura de reacción, no una fórmula, así que otra fórmula no pondría en marcha ninguno. Todas las fórmulas estuvieron ocupadas el {1:N0} % de los últimos {2} días.</value>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>En el laboratorio de copia: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>{0:N0} trabajo(s) de copia esperan una ranura de ciencia, no un BPO, así que otro BPO no pondría en marcha ninguno. Todos los BPO de aquí estuvieron ocupados el {1:N0} % de los últimos {2} días.</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (para copiar)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Uso</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>Para qué son estos originales. Los del laboratorio de copia copian y los demás fabrican, y ninguno sustituye al otro, así que cada grupo se mide en su propia línea. El único original de un tipo hace ambas cosas.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Fabricar</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Fabricar + copiar</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} trabajo(s) lo quieren ahora, pero todos los BPO estuvieron libres casi todo el tiempo de los últimos {1} días. Es algo puntual, no una necesidad permanente: puede que una BPC sirva mejor que un original.</value>
@@ -2407,11 +2554,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} en {1} — {2:N0} m3</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>Generar {0:N0} transporte(s)</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} transporte(s) retienen {1:N0} trabajo(s)</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>{0:N0} trabajo(s) esperando material que ya se posee, sin nada en movimiento.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>{0:N0} de lo que necesitan aún no tiene transporte en la lista de tareas.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Todos están ya en la lista de tareas: hacer esos viajes reanuda el trabajo.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Añadir ranuras de fabricación</value>
@@ -2436,12 +2586,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — desbloquea {1:N0} tarea(s)</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} a {1} — {2:N0} ({3:N0} m3), reactiva {4:N0} trabajos</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} a {1} — {2:N0} ({3:N0} m3), lo quieren {4:N0} trabajos, ninguno se reactiva solo con esto</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Se muestran los {0} peores; el resto está en la pestaña.</value>
@@ -2485,9 +2629,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: almacén lleno de producción a la mitad o más (estimación)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Las cifras se estiman con datos antiguos: la colonia lleva tiempo sin abrirse en el juego.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>Llevar suministro a {0}</value>
   </data>
@@ -2517,12 +2658,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Nivel {0} ahora; Actualizaciones del centro de mando permite el {1}. Más CPU y sistema de potencia para cabezales de extracción y fábricas.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>Abrir {0} en el juego</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Sus datos tienen {0} de antigüedad, así que sus estimaciones ya no son fiables. Abrir la colonia en el juego los actualiza.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>elige un destino para {0:N0} paquete de seguridad de los bienes antes del {1:d MMM HH:mm}</value>

@@ -641,7 +641,7 @@
     <value>Hier ist eine Keepstar. Supercarrier und Titans können andocken</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>Capital-Schiffe – Fortizar oder NPC-Station</value>
+    <value>Capital-Schiffe – Fortizar, Sotiyo oder NPC-Station</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>Capital-Schiffe können andocken, Supercarrier und Titans nicht</value>

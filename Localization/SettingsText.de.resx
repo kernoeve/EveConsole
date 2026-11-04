@@ -13,6 +13,72 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>Charaktere</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>Jede Corporation mit einem Token. Persönliche Corporations zählen zu deinen eigenen Summen und Listen – dieselbe Einstellung wie unter ESI-Tokens, an beiden Stellen setzbar. Strukturwarnungen löst die Strukturwarnungen (Registerkarte Warnungen) für die Strukturen der Corporation aus.</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>Kürzel</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>Persönlich</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>Strukturwarnungen</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>Die Strukturwarnungen – Treibstoff, Angriffe und Ausrüstung – für die Strukturen dieser Corporation auslösen.</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>Eine Struktur hat keinen Treibstoff mehr in</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>Eine Struktur wird angegriffen (ausblendbar)</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>Einer Struktur fehlt ein Modul ihrer Ausrüstung</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>Eine Struktur hat ein anderes Modul, wo ihre Ausrüstung eines vorsieht</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>Munition unter</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>Jäger unter</value>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Söldnerunterschlüpfe</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Anarchie eines Unterschlupfs ab Stufe</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>oder höher (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Ein Unterschlupf angegriffen oder verstärkt</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Eine neue taktische Söldneroperation</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Die eigenen Unterschlüpfe deiner Charaktere (Söldnerunterschlüpfe). Das Spiel teilt die Anarchie eines Unterschlupfs nur seinem Besitzer mit, daher ist der Unterschlupf eines anderen – selbst am Skyhook deiner Corporation – nicht sichtbar. Angriffe und neue Operationen stammen aus den Benachrichtigungen des letzten Tages und können verworfen werden.</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% der Ausrüstung</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>Nur für die Corporations, bei denen auf der Registerkarte Corporations Strukturwarnungen angehakt sind. Die Ausrüstung je Strukturtyp wird unter Corp-Strukturen → Konfiguration gewählt; ein Typ ohne gewählte Ausrüstung wird nicht geprüft. Module zählen in jedem Slot der passenden Art, zusätzliche Module oder Rigs sind kein Problem. Angriffe stammen aus den Benachrichtigungen deiner Charaktere und werden einen Tag lang gemeldet.</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>
@@ -84,6 +150,300 @@
   </data>
   <data name="ThemeLabel" xml:space="preserve">
     <value>Design:</value>
+  </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>Designs bearbeiten…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>Ein eigenes Design erstellen, neu oder als Kopie eines anderen.</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>Designs</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>DESIGNS</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>Neues Design</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>Ein eigenes Design mit neutralen Farben beginnen.</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>Leer, dunkel</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>Leer, hell</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>Aus diesem ein eigenes Design erstellen.</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>Das Design „{0}“ löschen? Das lässt sich nicht rückgängig machen.</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>Integriert</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>Integrierte Designs lassen sich nicht ändern. Kopiere dieses, um daraus ein eigenes zu machen.</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>Grundton</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>Ob das Design dunkel oder hell ist. Es bestimmt auch die Farben, die hier nicht eingestellt werden: Standard-Bedienelemente, Diagrammlinien und Sicherheitsfarben.</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>Schnellstart</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>Wähle Hintergrund, Textfarbe und Akzent und lass den Rest berechnen: Alle Hintergrund-, Linien-, Text- und Akzenttöne unten werden aus diesen dreien gemischt. Die Statusfarben bleiben, wie sie sind.</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>Hintergrund</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>Akzent</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>Rest berechnen</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>Ersetzt Hintergründe, Linien, Text und Akzent unten durch Töne dieser drei Farben.</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>Diese Farben tragen in Tabellen und Diagrammen Bedeutung. Sie sollten sich gut voneinander und von den Hintergründen unterscheiden.</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>VORSCHAU</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>Änderungen rückgängig</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>Stellt die Farben und den Namen wieder her, die dieses Design beim Öffnen hatte.</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>Dieses Design verwenden</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>Gespeichert</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>Mein Design</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0} (Kopie)</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>HINTERGRÜNDE</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>LINIEN</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>TEXT</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>AKZENT</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>STATUSFARBEN</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>Seitenhintergrund</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>Bereiche und Karten</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>Abwechselnde Zeilen, innere Bereiche</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>Abschnittsköpfe</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>Pop-ups, Menüs, Tooltips</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>Textfelder und Auswahllisten</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>Unter dem Mauszeiger</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>Ausgewählte Zeile</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>Trennlinien und Gitterlinien</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>Ränder von Bereichen und Bedienelementen</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>Hervorhebung und Fokus</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>Am blassesten: Hinweise, Spaltenköpfe</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>Gedämpft</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>Zurückhaltend: Beschriftungen</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>Sekundär</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>Fließtext</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>Überschriften</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>Akzent</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>Akzent unter dem Mauszeiger</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>Akzent beim Drücken</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>Hinter Akzenttext</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>Tiefer Akzent</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>Blasser Akzent</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>Gut: Gewinn, online</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>Schlecht: Verlust, Fehler</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>Hinter Gut</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>Hinter Schlecht</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>Hinter Warnung</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>Hinter Information</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>Markt</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>Alle Charaktere</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>Summen anzeigen</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>Berechnen</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>Ein Bereich</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>Anzahl</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>Änderung</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>Eine Zeile</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>Eine abwechselnde Zeile</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>Unter dem Mauszeiger</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>Ausgewählt</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>Gut</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>Schlecht</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>Ein Hinweis auf dem eigenen Hintergrund des Akzents.</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>Eine Überschrift</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>Fließtext, in dem der Großteil der Anwendung geschrieben ist.</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>Sekundärer Text</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>Eine Beschriftung</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>Gedämpfter Text</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>Ein Hinweis</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>Ein Pop-up, Menü oder Tooltip über der Seite.</value>
   </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>UI-Skalierung:</value>
@@ -913,6 +1273,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ Nicht im App-Verzeichnis gefunden</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper ist unter macOS nicht verfügbar. Wählen Sie oben eine andere Sprachausgabe.</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>Stimmmodell herunterladen</value>
   </data>
@@ -1200,6 +1563,12 @@
   </data>
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>Zählt aktive Verträge, die Sie erstellt haben oder die Ihnen zugewiesen sind und sich in den letzten 15 % ihrer Laufzeit befinden: bei einem Zwei-Wochen-Vertrag ab dem zwölften Tag. Persönliche Corporations zählen als Sie.</value>
+  </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>Bei ungelesener EVE-Mail warnen</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>Zählt ungelesene Mails aller Charaktere, deren Mails die App liest, jede Charakterkopie für sich: Eine Mail an zwei deiner Charaktere zählt doppelt, wie im Spiel. Im Spiel gelesene Mails zählen ab der nächsten Mail-Abfrage (Timer) nicht mehr. Der Hinweis öffnet das Werkzeug EVE-Mail.</value>
   </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>Datenbanktyp</value>
@@ -1768,6 +2137,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>Symbol im Infobereich anzeigen, Start mit Ihrer Desktop-Sitzung</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>Symbol in der Menüleiste anzeigen, Start bei der Anmeldung</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Erfordert PostgreSQL, das dieser Client verwendet – der Hintergrunddienst und alle Clients teilen sich denselben Server.</value>
   </data>
@@ -1795,11 +2167,17 @@ Die Anwendung wird neu gestartet.</value>
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>Läuft und startet mit Ihrer Desktop-Sitzung.</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>Läuft und startet bei Ihrer Anmeldung.</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>Startet nicht mit Windows. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>Startet nicht mit Ihrer Desktop-Sitzung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>Startet nicht bei Ihrer Anmeldung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Konnte nicht geändert werden – {0}</value>
@@ -2644,6 +3022,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>Das Passwort liegt im Schlüsselbund Ihres Desktops; config.json enthält nur einen Verweis darauf.</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>Das Passwort liegt in Ihrem macOS-Schlüsselbund; config.json enthält nur einen Verweis darauf.</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>Es wurde kein Schlüsselbund gefunden, daher wird das Passwort so, wie es eingegeben wurde, in config.json gespeichert. Installieren Sie libsecret-tools (secret-tool), damit es stattdessen im Schlüsselbund aufbewahrt wird.</value>
   </data>
@@ -3401,7 +3782,7 @@ Die Anwendung wird neu gestartet.</value>
     <value>Warnungen und Aufgaben der Planetaren Industrie</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>Wie weit die PI-Warnungen der Übersicht und die PI-Aufgaben der Arbeitsliste vorausschauen, ab wann die Daten einer Kolonie zu alt sind, um ihnen zu trauen, und wie viel Material ein Transport bringt. Welche Warnungen überhaupt ausgelöst werden, legen Sie im Tab „Warnungen“ fest.</value>
+    <value>Wie weit die PI-Warnungen der Übersicht und die PI-Aufgaben der Arbeitsliste vorausschauen und wie viel Material ein Transport bringt. Welche Warnungen überhaupt ausgelöst werden, legen Sie im Tab „Warnungen“ fest.</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>Extraktoren stoppen</value>
@@ -3417,9 +3798,6 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>Stunden vorher (geschätzt)</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>Koloniedaten zu alt nach</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>Ein Materialtransport bringt</value>
@@ -3442,10 +3820,7 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>Ein PI-Charakter hat einen ungenutzten Kolonie-Slot</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>Eine Kolonie wurde zu lange nicht im Spiel geöffnet, um ihren Schätzungen zu trauen</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>Nur Charaktere mit gesetztem PI-Häkchen im Tab „Charaktere“. Wie bald „bald“ ist und wie alt zu alt ist, legen Sie im Tab „Industrie“ fest; die PI-Aufgaben der Arbeitsliste verwenden dieselben Zeiten.</value>
+    <value>Nur Charaktere mit gesetztem PI-Häkchen im Tab „Charaktere“. Wie bald „bald“ ist, legen Sie im Tab „Industrie“ fest; die PI-Aufgaben der Arbeitsliste verwenden dieselben Zeiten.</value>
   </data>
 </root>

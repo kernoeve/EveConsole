@@ -784,6 +784,7 @@ public class EsiClient
                 // Off Content rather than the response headers: Expires is a content header, and
                 // response.Headers does not carry it.
                 Expires            = response.Content.Headers.Expires,
+                LastModified       = response.Content.Headers.LastModified,
                 ETag               = headers.ETag?.Tag,
                 Error              = error,
             };

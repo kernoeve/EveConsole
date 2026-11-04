@@ -91,14 +91,416 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>Min. Handelsvol. 30 Tg. (Einh.)</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Fraktionsgegenstände auslassen</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Gegenstände ohne BPO-Herkunft auslassen</value>
   </data>
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Nur Gegenstände, deren Blaupause ein kaufbares BPO ist oder daraus erfunden wird (z. B. T2 aus einem T1-BPO). Schließt Fraktions- und BPC-Gegenstände mit begrenzten Durchläufen ohne erhältliches BPO aus, ebenso Storyline-, Offiziers- und Raumverwerfungsgegenstände sowie „Limited Time“-Event-Gegenstände, deren BPO im Spiel nicht mehr gekauft werden kann.</value>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Nur Blaupausen in meinem Besitz</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Nur Gegenstände, deren eigene Blaupause (Original oder Kopie) einer deiner Charaktere oder eine als persönlich markierte Corporation besitzt. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Min. Marge %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Nur Gegenstände, deren Marge (Gewinn geteilt durch Baukosten, die Spalte Marge) mindestens so viele Prozent beträgt. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Bitte gib eine gültige Mindestmarge in Prozent ein (oder lass das Feld leer, um nicht zu filtern).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Gruppen einschließen</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>Wenn welche gewählt sind, nur Gegenstände in diesen Marktgruppen oder den Gruppen darunter. Ausgeschlossene Gruppen gelten darin weiterhin. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Diese Gruppe entfernen</value>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Min. Marge % 30 Tg.</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Nur Gegenstände, deren Marge zum 30-Tage-Durchschnittspreis (die Spalte Marge 30 Tg.) mindestens so viele Prozent beträgt. Gegenstände, die in den letzten 30 Tagen nicht verkauft wurden, fallen weg. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Bitte gib eine gültige 30-Tage-Mindestmarge in Prozent ein (oder lass das Feld leer, um nicht zu filtern).</value>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* Keine Verkaufsaufträge: zum 30-Tage-Durchschnitt bewertet.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Metagruppen</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Nur Gegenstände in den angekreuzten Metagruppen: Techstufe oder Art des Gegenstands (Tech I, Tech II, Fraktion …). Alle angekreuzt heißt kein Filter. Gilt ab dem nächsten Berechnen.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Kreuze mindestens eine Metagruppe an.</value>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Parks</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Vergleich</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Parks</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Zu vergleichende Jobs</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Gegenstand oder Blaupause zum Hinzufügen eingeben …</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>Wie viele gebaut werden. Der Plan setzt so viele Aufträge an, wie dafür nötig sind.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>ME der Blaupause des Gegenstands selbst, 0 bis 10. Komponenten nutzen die übliche ME des Rechners.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Park</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Auftragskosten</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Überschuss</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Gesamt ist Material plus Auftragskosten, abzüglich Überschuss: Über Bedarf gebaute Komponenten bleiben erhalten und werden nicht verbraucht, wie bei den Nettokosten des Produktionsrechners.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>Pro Einheit</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>ggü. Bestem</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Bester</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Hier nicht gebaut</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Gegenstände oder Blaupausen hinzufügen, für jede den Vorgang wählen, die zu vergleichenden Parks ankreuzen, dann Berechnen.</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Mindestens einen Gegenstand hinzufügen.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Mindestens einen Park ankreuzen.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Berechne …</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Gegenstände: {0}  ·  Parks: {1}. Die Kosten nutzen heutige Preise und Indizes; das Diagramm unten folgt früheren Indizes.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>Alle Gegenstände zusammen</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>Für die Systeme dieser Parks gibt es noch keinen Kostenindex-Verlauf.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Gesamtkosten je Tag von {0:yyyy-MM-dd} bis {1:yyyy-MM-dd}: heutiger Plan, heutige Materialien und Steuern, mit dem Systemkostenindex des jeweiligen Tages.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>Das Diagramm zeigt die ersten {0}; die Tabelle listet alle.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Erfindung</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME-Forschung</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE-Forschung</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Läufe</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Gewünschte Läufe</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Kopien</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>Bis ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>Bis TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Läufe je Kopie.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Gewünschte Läufe der erfundenen Blaupause. Es werden so viele Versuche geplant, dass so viele zu erwarten sind, mit allen Skills auf V, wie die Arbeitsliste sie plant.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>Wie viele Kopien.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>Das ME, bis zu dem geforscht wird, 1 bis 10, ab ME 0.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>Das TE, bis zu dem geforscht wird, 2 bis 20 Prozent, ab TE 0.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>Kein Decryptor</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} ({1:0.##}× Chance, {2:+0;-0;0} Läufe, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × Kopie mit {1} Läufen</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} Versuche zu {1:P1} für {2} × BPC mit {3} Läufen (ME {4}, TE {5}); {6} Kopierläufe; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0 % → {0} %</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Vorgang</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Zeit</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Die Zeit ist die Summe aller Jobdauern, als liefen sie nacheinander, mit Skills auf V.</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Diagramme für</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Kosten mit den Indizes jedes Tages</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Jobzeit je Park</value>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>Zeilen</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>Jobs</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>Parks</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>Kosten und Zeit jedes Jobs in jedem Park, jeweils verglichen mit dem besten Park für diesen Job.</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>Bild kopieren</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>Kopiert</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>Als Bild kopieren, bereit zum Einfügen in Discord, Slack oder ein Dokument.</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>Das Bild konnte nicht kopiert werden: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>Nach oben</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>Nach unten</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>Kosten</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>Job</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Fertigung</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Reaktion</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Erfindung</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME-Forschung</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE-Forschung</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>System hinzufügen</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Systemnamen eingeben …</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Ein System hinzufügen, um seine Kostenindizes zu sehen.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Systeme: {0}. Heutige Indizes; das Diagramm zeigt den Verlauf.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>Für diese Systeme gibt es in dieser Tätigkeit noch keinen Verlauf.</value>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Jedes Diagramm zeigt den Kostenindex einer Tätigkeit je Tag, {0:yyyy-MM-dd} bis {1:yyyy-MM-dd}. Der Punkt neben einem System ist seine Linie.</value>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Mit den Filtern oben neu berechnen. Übersicht und Details teilen sich eine Berechnung; die eigenen Filter der Details grenzen deren Liste ein, sobald sie sich ändern.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Jede Liste: alle Gegenstände ihrer Art, die in den letzten 30 Tagen mit Gewinn verkauft wurden, der meiste Gewinn zuerst, in allen Metagruppen. Die Filter oben gelten, die der Details nicht.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Hier wurde in den letzten 30 Tagen nichts mit Gewinn verkauft.</value>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>Neue Produktionsrechner-Warteschlange</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Zur Produktionsrechner-Warteschlange hinzufügen</value>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} Gegenstand zur Produktionswarteschlange hinzugefügt</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} Gegenstände zur Produktionswarteschlange hinzugefügt</value>
+  </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} Gegenstand ausgelassen: Er lässt sich nicht bauen</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} Gegenstände ausgelassen: Sie lassen sich nicht bauen</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Verkäufe der letzten 30 Tage</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Ø Preis</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Umsatz</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Gewinn</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1-Schiffe – groß und Capital</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1-Schiffe – klein und mittel</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2-Schiffe – groß und Capital</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2-Schiffe – klein und mittel</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Munition und Drohnen</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Module</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Riggs und Subsysteme</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Aussetzbares</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Komponenten</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Strukturmodule und -riggs</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Storyline</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Abyssal</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Struktur Tech I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Struktur Tech II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Struktur Fraktion</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>Keine (Materialien, Komponenten …)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Gruppen ausschließen</value>
@@ -141,6 +543,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>Umsatz 30 Tg.</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Ø-Preis 30 Tg.</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Marge 30 Tg.</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Gewinn 30 Tg.</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Suche nach Industriechancen…</value>
@@ -1128,6 +1539,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC pro Durchlauf zum Vertragspreis bei ME{0}</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 BPC-Durchlauf pro Durchlauf zu den Erfindungskosten: {0:P0} Chance, {1} Durchläufe pro Erfolg, {2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} pro Versuch × {1:N0} Versuche = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK pro Versuch (Datenkerne, Decryptor, T1-Kopierdurchlauf, Gebühren) ÷ ({1:P1} Chance × {2} Durchläufe) = {3:N0} ISK pro Kopiedurchlauf</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Überschuss: {0:N1} Durchläufe</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>Ein T1-Kopierdurchlauf pro Erfindungsversuch, vom Original kopiert.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>Die Blaupausenkopie, die ein erfolgreicher Versuch ergibt, einschließlich Decryptor.</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Ertrag: {0:N1} Durchläufe im Mittel</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Pro Erfolg: ME{0} TE{1}, {2} Durchläufe</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Erfindung: {0:P0} Chance, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Versuche: {0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Zwischenprodukt</value>

@@ -211,6 +211,30 @@ public class WorklistSettings(AppPreferencesService prefs)
         _                     => MaxJobDaysManufacturing,
     };
 
+    // ── Holding materials for a busy blueprint ───────────────────────────────
+    //
+    // A job ranked ahead that cannot start only because its blueprint is busy in a running job
+    // holds the materials at its site when the blueprint frees within this many hours, so work
+    // ranked below it does not use them up meanwhile. Zero turns it off: then a busy print holds
+    // nothing, and whatever can start takes what is there.
+
+    public const string HoldForBusyPrintHoursKey = "worklist.industry.hold_for_busy_print_hours";
+
+    public double HoldForBusyPrintHours
+    {
+        get
+        {
+            var raw = prefs.Get(HoldForBusyPrintHoursKey);
+            if (string.IsNullOrEmpty(raw)) return 24.0;
+            return double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                                   System.Globalization.CultureInfo.InvariantCulture, out var h) && h > 0
+                ? h : 0.0;
+        }
+    }
+
+    public Task SetHoldForBusyPrintHoursAsync(double hours) =>
+        prefs.SetAsync(HoldForBusyPrintHoursKey, Math.Max(0, hours).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
     // Where copying and invention happen is not a setting. Indy Parks already assigns Blueprint
     // Copying and Blueprint Invention to a structure, the same way it assigns every manufacturing
     // category, and InventionService reads that. Asking a second time here would let the two
@@ -230,7 +254,11 @@ public class WorklistSettings(AppPreferencesService prefs)
     /// difference between four hulls per success and one, and the 50% it adds to the odds pays for
     /// the decryptor several times over on anything hull-sized.
     /// </summary>
-    public string ShipDecryptor => prefs.Get(ShipDecryptorKey) ?? "Parity Decryptor";
+    public string ShipDecryptor => prefs.Get(ShipDecryptorKey) ?? DefaultShipDecryptor;
+
+    /// <summary>The ship default, for readers that go to the preferences table directly — the
+    /// production context, which prices invented copies with these choices.</summary>
+    public const string DefaultShipDecryptor = "Parity Decryptor";
 
     /// <summary>
     /// Everything else defaults to none. A module or a round of ammunition already invents at ten

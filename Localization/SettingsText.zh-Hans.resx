@@ -13,6 +13,72 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>角色</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>所有拥有令牌的军团。个人军团计入你自己的总计和列表——与 ESI 令牌页上的设置相同，可在任一处设置。建筑警报会为该军团的建筑发出建筑警报（警报页）。</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>简称</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>个人</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>建筑警报</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>为该军团的建筑发出建筑警报——燃料、遭受攻击和装配。</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>建筑燃料将在以下时间内耗尽</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>建筑遭到攻击（可关闭）</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>建筑缺少其装配中的装备</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>建筑在其装配应有装备的位置装了其他装备</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>弹药低于</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>铁骑舰载机低于</value>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>雇佣兵巢穴</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>巢穴的无序度达到等级</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>或以上（0–4）</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>巢穴遭到攻击或进入增强</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>新的雇佣兵战术行动</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>你的角色自己的巢穴（雇佣兵巢穴）。游戏只把巢穴的无序度告诉其所有者，因此他人的巢穴——即使在你军团的天钩上——也看不到。攻击和新行动来自最近一天的通知，可以忽略。</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% 的装配数量</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>仅适用于在军团页勾选了建筑警报的军团。各类建筑应有的装配在“军团建筑 → 配置”中选择；未选择装配的类型不检查。装备放在同类的任意槽位均可，多出的装备或改装件不算问题。攻击来自你的角色收到的通知，显示一天。</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>
@@ -84,6 +150,300 @@
   </data>
   <data name="ThemeLabel" xml:space="preserve">
     <value>主题：</value>
+  </data>
+  <data name="EditThemesButton" xml:space="preserve">
+    <value>编辑主题…</value>
+  </data>
+  <data name="EditThemesTip" xml:space="preserve">
+    <value>从零开始或复制现有主题，制作自己的主题。</value>
+  </data>
+  <data name="ThemeEdTitle" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="ThemeEdListHeader" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="ThemeEdNew" xml:space="preserve">
+    <value>新建主题</value>
+  </data>
+  <data name="ThemeEdNewTip" xml:space="preserve">
+    <value>用空白配色开始制作自己的主题。</value>
+  </data>
+  <data name="ThemeEdNewDark" xml:space="preserve">
+    <value>空白（深色）</value>
+  </data>
+  <data name="ThemeEdNewLight" xml:space="preserve">
+    <value>空白（浅色）</value>
+  </data>
+  <data name="ThemeEdCopy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="ThemeEdCopyTip" xml:space="preserve">
+    <value>以此主题为基础制作自己的主题。</value>
+  </data>
+  <data name="ThemeEdDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="ThemeEdDeleteConfirm" xml:space="preserve">
+    <value>删除主题“{0}”？此操作无法撤销。</value>
+  </data>
+  <data name="ThemeEdBuiltInTag" xml:space="preserve">
+    <value>内置</value>
+  </data>
+  <data name="ThemeEdBuiltInNote" xml:space="preserve">
+    <value>内置主题无法修改。复制此主题即可在其基础上制作自己的主题。</value>
+  </data>
+  <data name="ThemeEdName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ThemeEdGround" xml:space="preserve">
+    <value>底色</value>
+  </data>
+  <data name="ThemeEdGroundTip" xml:space="preserve">
+    <value>主题是深色还是浅色。它也决定此处未设置的颜色：标准控件、图表线条和安全等级颜色。</value>
+  </data>
+  <data name="ThemeEdGroundDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="ThemeEdGroundLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="ThemeEdStartHeader" xml:space="preserve">
+    <value>快速开始</value>
+  </data>
+  <data name="ThemeEdStartNote" xml:space="preserve">
+    <value>选择背景色、文字颜色和强调色，然后生成其余颜色：下方所有背景、线条、文字和强调色的深浅都由这三种颜色调配而成。状态颜色保持不变。</value>
+  </data>
+  <data name="ThemeEdStartGround" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdStartText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdStartAccent" xml:space="preserve">
+    <value>强调色</value>
+  </data>
+  <data name="ThemeEdFill" xml:space="preserve">
+    <value>生成其余颜色</value>
+  </data>
+  <data name="ThemeEdFillTip" xml:space="preserve">
+    <value>用这三种颜色的深浅替换下方的背景、线条、文字和强调色。</value>
+  </data>
+  <data name="ThemeEdStatusNote" xml:space="preserve">
+    <value>这些颜色在表格和图表中表示含义。请让它们彼此之间以及与背景之间都易于区分。</value>
+  </data>
+  <data name="ThemeEdPreviewHeader" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="ThemeEdRevert" xml:space="preserve">
+    <value>撤销更改</value>
+  </data>
+  <data name="ThemeEdRevertTip" xml:space="preserve">
+    <value>恢复此主题在打开时的颜色和名称。</value>
+  </data>
+  <data name="ThemeEdWear" xml:space="preserve">
+    <value>使用此主题</value>
+  </data>
+  <data name="ThemeEdSaved" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="ThemeEdNewName" xml:space="preserve">
+    <value>我的主题</value>
+  </data>
+  <data name="ThemeEdCopyName" xml:space="preserve">
+    <value>{0}（副本）</value>
+  </data>
+  <data name="ThemeEdGroupSurfaces" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="ThemeEdGroupLines" xml:space="preserve">
+    <value>线条</value>
+  </data>
+  <data name="ThemeEdGroupText" xml:space="preserve">
+    <value>文字</value>
+  </data>
+  <data name="ThemeEdGroupAccent" xml:space="preserve">
+    <value>强调色</value>
+  </data>
+  <data name="ThemeEdGroupStatus" xml:space="preserve">
+    <value>状态颜色</value>
+  </data>
+  <data name="ThemeTokenSurfaceBase" xml:space="preserve">
+    <value>页面背景</value>
+  </data>
+  <data name="ThemeTokenSurfacePanel" xml:space="preserve">
+    <value>面板和卡片</value>
+  </data>
+  <data name="ThemeTokenSurfacePanelAlt" xml:space="preserve">
+    <value>间隔行、嵌套面板</value>
+  </data>
+  <data name="ThemeTokenSurfaceHeader" xml:space="preserve">
+    <value>分区标题</value>
+  </data>
+  <data name="ThemeTokenSurfaceRaised" xml:space="preserve">
+    <value>弹出窗口、菜单、提示</value>
+  </data>
+  <data name="ThemeTokenSurfaceInput" xml:space="preserve">
+    <value>文本框和下拉框</value>
+  </data>
+  <data name="ThemeTokenSurfaceHover" xml:space="preserve">
+    <value>鼠标悬停处</value>
+  </data>
+  <data name="ThemeTokenSurfaceSelected" xml:space="preserve">
+    <value>选中的行</value>
+  </data>
+  <data name="ThemeTokenBorderSubtle" xml:space="preserve">
+    <value>分隔线和网格线</value>
+  </data>
+  <data name="ThemeTokenBorderDefault" xml:space="preserve">
+    <value>面板和控件边框</value>
+  </data>
+  <data name="ThemeTokenBorderStrong" xml:space="preserve">
+    <value>强调和焦点</value>
+  </data>
+  <data name="ThemeTokenTextFaint" xml:space="preserve">
+    <value>最淡：提示、列标题</value>
+  </data>
+  <data name="ThemeTokenTextDim" xml:space="preserve">
+    <value>暗淡</value>
+  </data>
+  <data name="ThemeTokenTextMuted" xml:space="preserve">
+    <value>柔和：说明文字</value>
+  </data>
+  <data name="ThemeTokenTextSecondary" xml:space="preserve">
+    <value>次要</value>
+  </data>
+  <data name="ThemeTokenTextPrimary" xml:space="preserve">
+    <value>正文</value>
+  </data>
+  <data name="ThemeTokenTextBright" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="ThemeTokenAccent" xml:space="preserve">
+    <value>强调色</value>
+  </data>
+  <data name="ThemeTokenAccentHover" xml:space="preserve">
+    <value>鼠标悬停时的强调色</value>
+  </data>
+  <data name="ThemeTokenAccentPressed" xml:space="preserve">
+    <value>按下时的强调色</value>
+  </data>
+  <data name="ThemeTokenAccentSurface" xml:space="preserve">
+    <value>强调文字的背景</value>
+  </data>
+  <data name="ThemeTokenAccentDeep" xml:space="preserve">
+    <value>深强调色</value>
+  </data>
+  <data name="ThemeTokenAccentPale" xml:space="preserve">
+    <value>浅强调色</value>
+  </data>
+  <data name="ThemeTokenGood" xml:space="preserve">
+    <value>良好：盈利、在线</value>
+  </data>
+  <data name="ThemeTokenBad" xml:space="preserve">
+    <value>不良：亏损、错误</value>
+  </data>
+  <data name="ThemeTokenWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemeTokenInfo" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="ThemeTokenGoodSurface" xml:space="preserve">
+    <value>良好的背景</value>
+  </data>
+  <data name="ThemeTokenBadSurface" xml:space="preserve">
+    <value>不良的背景</value>
+  </data>
+  <data name="ThemeTokenWarnSurface" xml:space="preserve">
+    <value>警告的背景</value>
+  </data>
+  <data name="ThemeTokenInfoSurface" xml:space="preserve">
+    <value>信息的背景</value>
+  </data>
+  <data name="ThemePrevTabOne" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="ThemePrevTabTwo" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="ThemePrevTabThree" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="ThemePrevFrom" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="ThemePrevEveryone" xml:space="preserve">
+    <value>所有角色</value>
+  </data>
+  <data name="ThemePrevTick" xml:space="preserve">
+    <value>显示合计</value>
+  </data>
+  <data name="ThemePrevRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="ThemePrevCalculate" xml:space="preserve">
+    <value>计算</value>
+  </data>
+  <data name="ThemePrevPanelTitle" xml:space="preserve">
+    <value>一个面板</value>
+  </data>
+  <data name="ThemePrevColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ThemePrevColCount" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ThemePrevColChange" xml:space="preserve">
+    <value>变化</value>
+  </data>
+  <data name="ThemePrevRow" xml:space="preserve">
+    <value>普通行</value>
+  </data>
+  <data name="ThemePrevRowBanded" xml:space="preserve">
+    <value>间隔行</value>
+  </data>
+  <data name="ThemePrevRowHover" xml:space="preserve">
+    <value>鼠标悬停的行</value>
+  </data>
+  <data name="ThemePrevRowSelected" xml:space="preserve">
+    <value>已选中</value>
+  </data>
+  <data name="ThemePrevGood" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="ThemePrevBad" xml:space="preserve">
+    <value>不良</value>
+  </data>
+  <data name="ThemePrevWarn" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="ThemePrevInfo" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="ThemePrevNotice" xml:space="preserve">
+    <value>一条通知，显示在强调色自己的背景上。</value>
+  </data>
+  <data name="ThemePrevHeading" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="ThemePrevBody" xml:space="preserve">
+    <value>正文，应用中的大部分文字都是这种颜色。</value>
+  </data>
+  <data name="ThemePrevSecondary" xml:space="preserve">
+    <value>次要文字</value>
+  </data>
+  <data name="ThemePrevMuted" xml:space="preserve">
+    <value>说明文字</value>
+  </data>
+  <data name="ThemePrevDim" xml:space="preserve">
+    <value>暗淡文字</value>
+  </data>
+  <data name="ThemePrevFaint" xml:space="preserve">
+    <value>提示</value>
+  </data>
+  <data name="ThemePrevPopup" xml:space="preserve">
+    <value>浮于页面之上的弹出窗口、菜单或提示。</value>
   </data>
   <data name="UiScaleLabel" xml:space="preserve">
     <value>界面缩放：</value>
@@ -913,6 +1273,9 @@
   <data name="NotFoundInAppDirectory" xml:space="preserve">
     <value>⚠ 未在应用目录中找到</value>
   </data>
+  <data name="PiperNotOnMac" xml:space="preserve">
+    <value>Piper 在 macOS 上不可用。请在上方选择其他语音引擎。</value>
+  </data>
   <data name="DownloadVoiceModel" xml:space="preserve">
     <value>下载语音模型</value>
   </data>
@@ -1200,6 +1563,12 @@
   </data>
   <data name="CountsActiveContractsYouNote" xml:space="preserve">
     <value>统计由你发布或指派给你、已进入有效期最后 15% 的有效合同：例如两周期限的合同从第 12 天起。个人军团也算作你本人。</value>
+  </data>
+  <data name="AlertUnreadMail" xml:space="preserve">
+    <value>有未读 EVE 邮件时提醒</value>
+  </data>
+  <data name="UnreadMailNote" xml:space="preserve">
+    <value>统计应用为其读取邮件的每个角色的未读邮件，每个角色的副本单独计算：一封发给你两个角色的邮件算两封，与游戏中的计数方式相同。在游戏中读过的邮件会在下次邮件轮询（计时器）后不再计入。点击提醒会打开 EVE 邮件工具。</value>
   </data>
   <data name="DatabaseType" xml:space="preserve">
     <value>数据库类型</value>
@@ -1768,6 +2137,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="SvcTrayCheckboxLinux" xml:space="preserve">
     <value>显示通知区域图标，并随桌面会话启动</value>
   </data>
+  <data name="SvcTrayCheckboxMac" xml:space="preserve">
+    <value>显示菜单栏图标，并在登录时启动</value>
+  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>需要 PostgreSQL，此客户端正在使用它——后台工作进程和所有客户端共用同一个服务器。</value>
   </data>
@@ -1795,11 +2167,17 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="SvcTrayRunningLinux" xml:space="preserve">
     <value>正在运行，并将随桌面会话启动。</value>
   </data>
+  <data name="SvcTrayRunningMac" xml:space="preserve">
+    <value>正在运行，登录时将自动启动。</value>
+  </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
     <value>不会随 Windows 启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
     <value>不会随桌面会话启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
+  </data>
+  <data name="SvcTrayOffMac" xml:space="preserve">
+    <value>登录时不会启动。已显示的图标会保留，直到你在其上选择{0}或注销。</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>无法更改——{0}</value>
@@ -2644,6 +3022,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="DbSecretLibSecret" xml:space="preserve">
     <value>密码保存在你的桌面密钥环中；config.json 中只包含对它的引用。</value>
   </data>
+  <data name="DbSecretKeychain" xml:space="preserve">
+    <value>密码保存在你的 macOS 钥匙串中；config.json 中只包含对它的引用。</value>
+  </data>
   <data name="DbSecretNone" xml:space="preserve">
     <value>未找到密钥环，因此密码按输入的原样保存在 config.json 中。安装 libsecret-tools（secret-tool）后，即可改为保存在密钥环中。</value>
   </data>
@@ -3398,7 +3779,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>行星开发提醒与工作项</value>
   </data>
   <data name="PiTimingNote" xml:space="preserve">
-    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警、殖民地数据多旧就不再可信，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
+    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
   </data>
   <data name="PiLeadExtractors" xml:space="preserve">
     <value>采集器即将停止</value>
@@ -3414,9 +3795,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="PiHoursAheadEstimated" xml:space="preserve">
     <value>小时前预警（预计）</value>
-  </data>
-  <data name="PiStaleAfter" xml:space="preserve">
-    <value>殖民地数据过旧阈值</value>
   </data>
   <data name="PiInputDays" xml:space="preserve">
     <value>一趟原料运送带来</value>
@@ -3439,10 +3817,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="PiAlertFreeSlots" xml:space="preserve">
     <value>行星开发角色有未使用的殖民地栏位</value>
   </data>
-  <data name="PiAlertStale" xml:space="preserve">
-    <value>殖民地太久未在游戏中打开，其预计数据已不可信</value>
-  </data>
   <data name="PiAlertsNote" xml:space="preserve">
-    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久、多旧算过旧，均在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
+    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
   </data>
 </root>

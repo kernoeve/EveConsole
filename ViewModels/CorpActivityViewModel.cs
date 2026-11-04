@@ -803,7 +803,34 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public Corporation? SelectedCorp
     {
         get => _selectedCorp;
-        set => this.RaiseAndSetIfChanged(ref _selectedCorp, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedCorp, value);
+            // Remembered on this machine — a choice, not a pick made for the user while the list
+            // fills, nor the null a refilled list passes through.
+            _autoPicked = _picking;
+            if (value is not null && !_picking) UiState.SetLong(UiState.CorpActivityCorp, value.Id);
+        }
+    }
+
+    private bool _picking, _autoPicked;
+
+    /// <summary>
+    /// Selects the corporation chosen last time on this machine, else the first — when nothing is
+    /// selected, or when the selection was this method's own and the remembered one has since
+    /// been added. The corporations arrive one at a time at startup, and the first in is rarely
+    /// the one that was chosen.
+    /// </summary>
+    private void PickRemembered()
+    {
+        if (Corps.Count == 0) return;
+        var id   = UiState.GetLong(UiState.CorpActivityCorp, 0);
+        var want = Corps.FirstOrDefault(c => c.Id == id);
+        if (SelectedCorp is not null && Corps.Contains(SelectedCorp) && !(_autoPicked && want is not null)) return;
+
+        _picking = true;
+        try { SelectedCorp = want ?? Corps[0]; }
+        finally { _picking = false; }
     }
 
     // ── Status ────────────────────────────────────────────────────────────────
@@ -1298,8 +1325,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> CloneStandingProjectCommand        { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> RefreshMaintainCommand             { get; private set; } = null!;
     public ReactiveCommand<Unit, Unit> OpenMaintainItemInBrowserCommand   { get; private set; } = null!;
+    public ReactiveCommand<Unit, Unit> AddMaintainItemToBuyOrdersCommand  { get; private set; } = null!;
 
     public Action<int, string>? RequestOpenInItemBrowser { get; set; }
+    /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>
+    public Action<IReadOnlyList<int>>? AddToStandingBuyOrders { get; set; }
 
     private StandingProjectRowVm? _selectedMaintainRow;
     public StandingProjectRowVm? SelectedMaintainRow
@@ -1447,16 +1477,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         _selectedSummaryYear  = now.Year;
         _selectedSummaryMonth = Top10Months[now.Month - 1];
 
-        // Auto-select first corp if already available
-        if (Corps.Count > 0)
-            SelectedCorp = Corps[0];
-
-        // Also auto-select when the corps list first populates (e.g. after auth)
-        Corps.CollectionChanged += (_, _) =>
-        {
-            if (SelectedCorp is null && Corps.Count > 0)
-                SelectedCorp = Corps[0];
-        };
+        // The corp chosen last time, if already available; again as the list populates (after
+        // auth, or at startup one corp at a time).
+        PickRemembered();
+        Corps.CollectionChanged += (_, _) => PickRemembered();
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
@@ -1472,6 +1496,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         OpenMaintainItemInBrowserCommand = ReactiveCommand.Create(
             () => { if (SelectedMaintainRow is { IsDeliverItem: true, ItemTypeId: { } id })
                         RequestOpenInItemBrowser?.Invoke(id, SelectedMaintainRow.ItemTypeName); },
+            this.WhenAnyValue(x => x.SelectedMaintainRow)
+                .Select(r => r is { IsDeliverItem: true }));
+        AddMaintainItemToBuyOrdersCommand = ReactiveCommand.Create(
+            () => { if (SelectedMaintainRow is { IsDeliverItem: true, ItemTypeId: { } id })
+                        AddToStandingBuyOrders?.Invoke([id]); },
             this.WhenAnyValue(x => x.SelectedMaintainRow)
                 .Select(r => r is { IsDeliverItem: true }));
         OpenMaintainItemInBrowserCommand.ThrownExceptions.Subscribe(_ => { });

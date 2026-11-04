@@ -780,6 +780,40 @@ public sealed class AlarmsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedAlarm, value);
     }
 
+    /// <summary>Every alarm selected in the list — Ctrl and Shift add to it. What Export saves.</summary>
+    private IReadOnlyList<long> _selectedIds = [];
+
+    /// <summary>The list's selection, from the view: the ListBox's SelectedItems is not bindable as a list.</summary>
+    public void SetSelection(IEnumerable<AlarmRowVm> rows)
+    {
+        _selectedIds = [.. rows.Select(r => r.Id).Distinct()];
+        IsMultiSelect = _selectedIds.Count > 1;
+        MultiSelectText = IsMultiSelect
+            ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.AlarmsSelectedOther), _selectedIds.Count) : "";
+    }
+
+    private bool _isMultiSelect;
+    /// <summary>More than one alarm selected: the editor and its buttons give way to a note, since
+    /// they edit one alarm.</summary>
+    public bool IsMultiSelect
+    {
+        get => _isMultiSelect;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isMultiSelect, value);
+            this.RaisePropertyChanged(nameof(ShowEditor));
+            this.RaisePropertyChanged(nameof(ShowPlaceholder));
+        }
+    }
+
+    private string _multiSelectText = "";
+    public string MultiSelectText { get => _multiSelectText; private set => this.RaiseAndSetIfChanged(ref _multiSelectText, value); }
+
+    /// <summary>The editor and its action bar: an alarm being edited, and only one selected.</summary>
+    public bool ShowEditor      => HasEditor && !IsMultiSelect;
+    /// <summary>"Select an alarm, or create one."</summary>
+    public bool ShowPlaceholder => !HasEditor && !IsMultiSelect;
+
     // ── Editor state ─────────────────────────────────────────────────────────
     private long _editingId;
     public long EditingId { get => _editingId; private set => this.RaiseAndSetIfChanged(ref _editingId, value); }
@@ -840,7 +874,16 @@ public sealed class AlarmsViewModel : ReactiveObject
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
     private bool _hasEditor;
-    public bool HasEditor { get => _hasEditor; private set => this.RaiseAndSetIfChanged(ref _hasEditor, value); }
+    public bool HasEditor
+    {
+        get => _hasEditor;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _hasEditor, value);
+            this.RaisePropertyChanged(nameof(ShowEditor));
+            this.RaisePropertyChanged(nameof(ShowPlaceholder));
+        }
+    }
 
     private bool _hasAlerts;
     public bool HasAlerts { get => _hasAlerts; private set => this.RaiseAndSetIfChanged(ref _hasAlerts, value); }
@@ -1835,6 +1878,93 @@ public sealed class AlarmsViewModel : ReactiveObject
         await LoadAsync();
         SelectedAlarm = Alarms.FirstOrDefault(a => a.Id == savedId);
         StatusText    = wasNew ? AlarmsText.AlarmCreated : AlarmsText.AlarmSaved;
+    }
+
+    // ── Export / import ──────────────────────────────────────────────────────
+
+    /// <summary>The selected alarms and their actions, as saved, to a JSON file — every alarm when
+    /// none is selected.</summary>
+    public async Task ExportAsync(Stream stream)
+    {
+        var ids = _selectedIds.ToList();
+        var all = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var query   = db.Alarms.AsNoTracking();
+            if (ids.Count > 0) query = query.Where(a => ids.Contains(a.Id));
+            var alarms  = await query.OrderBy(a => a.Name).ToListAsync();
+            var actions = (await db.AlarmActions.AsNoTracking().ToListAsync()).ToLookup(a => a.AlarmId);
+            return alarms.Select(a => (a, actions[a.Id].AsEnumerable())).ToList();
+        });
+
+        await AlarmTaskTransfer.WriteAlarmsAsync(stream, all);
+        StatusText = string.Format(AlarmsText.StatusAlarmsExported, all.Count);
+    }
+
+    /// <summary>
+    /// Adds the alarms in an export as new alarms, actions and all. Nothing already here is
+    /// replaced; an alarm identical to one here (name, check and its settings) is skipped, and so
+    /// is one whose check this version does not have.
+    ///
+    /// <para>Each is primed as it is saved, as one made here is, so it starts from now rather
+    /// than firing on everything that already happened.</para>
+    /// </summary>
+    public async Task ImportAsync(Stream stream)
+    {
+        var entries = await AlarmTaskTransfer.ReadAlarmsAsync(stream);
+        if (entries is null) { StatusText = AlarmsText.ErrNotAnAlarmsExport; return; }
+
+        var known   = entries.Where(e => _service.Registry.Find(e.ConditionType) is not null).ToList();
+        var unknown = entries.Count - known.Count;
+
+        var newIds = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var here = (await db.Alarms.AsNoTracking().ToListAsync())
+                       .Select(a => (a.Name, a.ConditionType, a.ConditionJson)).ToHashSet();
+            var ids = new List<long>();
+            foreach (var e in known)
+            {
+                var conditionJson = AlarmTaskTransfer.Text(e.Condition);
+                if (!here.Add((e.Name, e.ConditionType, conditionJson))) continue;
+
+                var alarm = new Alarm
+                {
+                    Name            = e.Name,
+                    Enabled         = e.Enabled,
+                    ConditionType   = e.ConditionType,
+                    ConditionJson   = conditionJson,
+                    Repeat          = e.Repeat,
+                    PollSeconds     = Math.Max(2, e.PollSeconds),
+                    CooldownSeconds = Math.Max(0, e.CooldownSeconds),
+                    ActiveFrom      = Alarm.ParseClock(e.ActiveFrom) is { } f ? f.ToString(@"hh\:mm") : null,
+                    ActiveThru      = Alarm.ParseClock(e.ActiveThru) is { } t ? t.ToString(@"hh\:mm") : null,
+                    CreatedAt       = DateTimeOffset.Now,
+                    CreatedBy       = "user",
+                };
+                db.Alarms.Add(alarm);
+                await db.SaveChangesAsync();
+
+                var ordinal = 0;
+                foreach (var a in e.Actions ?? [])
+                    db.AlarmActions.Add(new AlarmAction
+                    {
+                        AlarmId = alarm.Id, Kind = a.Kind, ConfigJson = AlarmTaskTransfer.Text(a.Config), Ordinal = ordinal++,
+                    });
+                await db.SaveChangesAsync();
+                ids.Add(alarm.Id);
+            }
+            return ids;
+        });
+
+        foreach (var id in newIds)
+        {
+            await _service.PrimeAsync(id);
+            _service.Invalidate(id);
+        }
+
+        await LoadAsync();
+        StatusText = string.Format(AlarmsText.StatusAlarmsImported, newIds.Count, known.Count - newIds.Count, unknown);
     }
 
     private async Task DeleteAsync()

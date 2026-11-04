@@ -120,10 +120,6 @@
     <value>Min 30d Unit Vol</value>
     <comment>Text in IndustryOpportunitiesView.</comment>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Skip faction</value>
-    <comment>Button or option in IndustryOpportunitiesView.</comment>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Skip Non BPO traceable Items</value>
     <comment>Button or option in IndustryOpportunitiesView.</comment>
@@ -131,6 +127,546 @@
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, storyline, officer and deadspace items, and 'Limited Time' event items whose BPO can no longer be bought in game.</value>
     <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Only blueprints I own</value>
+    <comment>Industry Ops filter checkbox: keep only items whose blueprint (original or copy) the user holds.</comment>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Only items whose own blueprint, an original or a copy, is held by one of your characters or a corporation marked personal. Applies at the next Calculate.</value>
+    <comment>Tooltip of that checkbox.</comment>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Min Margin %</value>
+    <comment>Industry Ops filter label: the lowest margin kept, in percent.</comment>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Only items whose margin (profit over build cost, the Margin column) is at least this many percent. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Min Margin % box.</comment>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Please enter a valid minimum margin in percent (or leave blank for no filter).</value>
+    <comment>Industry Ops status line when the Min Margin % box holds something that is not a number of 0 or more.</comment>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Include Groups</value>
+    <comment>Industry Ops: label of the list of market groups an item must be in (beside Exclude Groups).</comment>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>When any are chosen, only items in these market groups or the groups under them. Exclude Groups still apply inside them. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Include Groups label.</comment>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Remove this group</value>
+    <comment>Tooltip of the ✕ on an included group.</comment>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Min Margin % 30d</value>
+    <comment>Industry Ops filter label: the lowest margin at the 30-day average price kept, in percent.</comment>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Only items whose margin at the 30-day average price (the Margin 30d column) is at least this many percent. Items that did not sell in the last 30 days are left out. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Min Margin % 30d box.</comment>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Please enter a valid minimum 30-day margin in percent (or leave blank for no filter).</value>
+    <comment>Industry Ops status line when the Min Margin % 30d box holds something that is not a number of 0 or more.</comment>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* No sell orders: priced at the 30-day average.</value>
+    <comment>Scheduled post: note under an Industry Ops table when a sell price is marked * (from 30-day history).</comment>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Meta Groups</value>
+    <comment>Industry Ops filter label: the row of meta group tick boxes.</comment>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Only items in the ticked meta groups: the tech level or kind of item (Tech I, Tech II, Faction…). All ticked is no filter. Applies at the next Calculate.</value>
+    <comment>Tooltip of the Meta Groups label.</comment>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Tick at least one meta group.</value>
+    <comment>Industry Ops status line when every meta group box is unticked.</comment>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Indy Parks: the tab holding the parks themselves.</comment>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Compare</value>
+    <comment>Indy Parks: the tab comparing build costs across parks.</comment>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Indy Parks, Compare tab: label over the dropdown of parks to compare.</comment>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Jobs to compare</value>
+    <comment>Indy Parks, Compare tab: label over the job list.</comment>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Type an item or blueprint to add…</value>
+    <comment>Indy Parks, Compare tab: watermark of the search box that adds items.</comment>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Indy Parks, Compare tab: column header and label: how many units to build.</comment>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>How many to build. The plan runs as many jobs as that takes.</value>
+    <comment>Indy Parks, Compare tab: tooltip of a job's units box.</comment>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>The item's own blueprint ME, 0 to 10. Components use the calculator's usual ME.</value>
+    <comment>Indy Parks, Compare tab: tooltip of a job's ME box.</comment>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Park</value>
+    <comment>Indy Parks, Compare tab: results column: the park.</comment>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Materials</value>
+    <comment>Indy Parks, Compare tab: results column: what the bought inputs cost.</comment>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Job Cost</value>
+    <comment>Indy Parks, Compare tab: results column: job installation costs, every step.</comment>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Leftovers</value>
+    <comment>Indy Parks, Compare tab: results column: the value of components made beyond need, kept and so taken off the total.</comment>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Total is materials plus job cost, less the leftovers: components made beyond need are kept, not used up, as in the Production Calculator's Net Cost.</value>
+    <comment>Indy Parks, Compare tab: note under the status line, over the results.</comment>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Indy Parks, Compare tab: results column: materials and job costs together.</comment>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>Per Unit</value>
+    <comment>Indy Parks, Compare tab: results column: total over units made.</comment>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>vs Best</value>
+    <comment>Indy Parks, Compare tab: results column: how much dearer than the cheapest park, or 'Best'.</comment>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Best</value>
+    <comment>Indy Parks, Compare tab: the cheapest park for an item, in the vs Best column.</comment>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Not built here</value>
+    <comment>Indy Parks, Compare tab: an item this park's plan does not build (bought, or no usable blueprint).</comment>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Add items or blueprints, pick each one's operation, tick the parks to compare, then Calculate.</value>
+    <comment>Indy Parks, Compare tab: status line before the first calculation.</comment>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Add at least one item.</value>
+    <comment>Indy Parks, Compare tab: status line: Calculate with an empty job list.</comment>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Tick at least one park.</value>
+    <comment>Indy Parks, Compare tab: status line: Calculate with no park ticked.</comment>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Calculating…</value>
+    <comment>Indy Parks, Compare tab: status line while calculating.</comment>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Items: {0}  ·  Parks: {1}. Costs use today's prices and indices; the chart below follows past indices.</value>
+    <comment>Indy Parks, Compare tab: status line after calculating. {0} items, {1} parks.</comment>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>All items together</value>
+    <comment>Indy Parks, Compare tab: the chart choice summing the whole job list.</comment>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>No system cost index history for these parks' systems yet.</value>
+    <comment>Indy Parks, Compare tab: note where the chart would be, with no index history.</comment>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Total cost each day from {0:yyyy-MM-dd} to {1:yyyy-MM-dd}: today's plan, materials and taxes, with that day's system cost indices.</value>
+    <comment>Indy Parks, Compare tab: note over the chart. {0} first day, {1} last day.</comment>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>The chart draws the first {0}; the table lists them all.</value>
+    <comment>Indy Parks, Compare tab: added to the chart note when there are more lines than colours. {0} the number drawn.</comment>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Indy Parks Compare: operation dropdown, build what the item or blueprint makes.</comment>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Compare operation: blueprint copying.</comment>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>Compare operation: invention.</comment>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME research</value>
+    <comment>Compare operation: material efficiency research.</comment>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE research</value>
+    <comment>Compare operation: time efficiency research.</comment>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Compare, copy line: label of the box for runs on each copy.</comment>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Runs wanted</value>
+    <comment>Compare, invention line: label of the box for runs of the invented blueprint wanted.</comment>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Copies</value>
+    <comment>Compare, copy line: label of the box for the number of copies.</comment>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>To ME</value>
+    <comment>Compare, ME research line: label of the box for the ME level to research to.</comment>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>To TE %</value>
+    <comment>Compare, TE research line: label of the box for the TE percent to research to.</comment>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Runs on each copy.</value>
+    <comment>Tooltip on the copy line's runs box.</comment>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Runs of the invented blueprint wanted. Enough attempts are planned to expect that many, with skills at V, as the Worklist plans them.</value>
+    <comment>Tooltip on the invention line's runs box.</comment>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>How many copies.</value>
+    <comment>Tooltip on the copy line's copies box.</comment>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>The ME to research to, 1 to 10, starting from ME 0.</value>
+    <comment>Tooltip on the ME research line's box.</comment>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>The TE to research to, 2 to 20 percent, starting from TE 0.</value>
+    <comment>Tooltip on the TE research line's box.</comment>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>No decryptor</value>
+    <comment>Compare, invention line: the decryptor dropdown's first choice, and the detail column when none is used.</comment>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} ({1:0.##}× chance, {2:+0;-0;0} runs, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+    <comment>Compare, invention line: one decryptor in the dropdown. {0} name, {1} chance multiplier, {2} run modifier, {3} ME modifier, {4} TE modifier.</comment>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × {1}-run copies</value>
+    <comment>Compare, Detail column of a copy line. {0} copies, {1} runs on each.</comment>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} attempts at {1:P1} for {2} × {3}-run BPCs (ME {4}, TE {5}); {6} copy runs; {7}</value>
+    <comment>Compare, Detail column of an invention line. {0} attempts, {1} success chance, {2} successes needed, {3} runs per invented copy, {4} its ME, {5} its TE, {6} source copy runs, {7} decryptor name or 'No decryptor'.</comment>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+    <comment>Compare, Detail column of an ME research line. {0} target ME level.</comment>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+    <comment>Compare, Detail column of a TE research line. {0} target TE percent.</comment>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Operation</value>
+    <comment>Compare results grid: column header.</comment>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Time</value>
+    <comment>Compare results grid: column header, total job time.</comment>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Compare results grid: column header, what the line does in numbers.</comment>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Time is every job's duration added up, as if run one after another, with skills at V.</value>
+    <comment>Compare: note above the results grid, under the total note.</comment>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Charts for</value>
+    <comment>Compare: label of the dropdown choosing which line both charts show.</comment>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Cost with each day's indices</value>
+    <comment>Compare: title of the left chart, cost over time.</comment>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Job time per park</value>
+    <comment>Compare: title of the right chart, job time as a bar per park.</comment>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Indy Parks Compare: heading of the summary grid between the detail grid and the charts.</comment>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>Rows</value>
+    <comment>Compare summary: label of the dropdown choosing what the rows are (jobs or parks).</comment>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Compare summary: rows are the jobs, a group of columns per park.</comment>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>Parks</value>
+    <comment>Compare summary: rows are the parks, a group of columns per job.</comment>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>Each job's cost and time in each park, each against the best park for that job.</value>
+    <comment>Compare summary: note beside the heading.</comment>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>Copy image</value>
+    <comment>Compare: button over a chart or the summary that copies it to the clipboard as a picture.</comment>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>Copied</value>
+    <comment>Compare: the copy button's text for a moment after the picture is on the clipboard.</comment>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>Copy this as a picture, ready to paste into Discord, Slack or a document.</value>
+    <comment>Tooltip on the Copy image buttons.</comment>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>Could not copy the picture: {0}</value>
+    <comment>Compare: status when putting the picture on the clipboard failed. {0} the reason.</comment>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>Move up the list</value>
+    <comment>Compare job list: button moving a line one place up.</comment>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>Move down the list</value>
+    <comment>Compare job list: button moving a line one place down.</comment>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Compare summary: column header, the job's total cost in that park.</comment>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>Job</value>
+    <comment>Compare summary: header of the row-title column when rows are jobs.</comment>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>System Index tool: column and chart choice: the manufacturing index.</comment>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>System Index tool: column and chart choice: the reaction index.</comment>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>System Index tool: column and chart choice: the invention index.</comment>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>System Index tool: column and chart choice: the copying index.</comment>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME Research</value>
+    <comment>System Index tool: column and chart choice: material efficiency research.</comment>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE Research</value>
+    <comment>System Index tool: column and chart choice: time efficiency research.</comment>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>System Index tool: table column: the solar system.</comment>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>System Index tool: table column: the system's region.</comment>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>Add system</value>
+    <comment>System Index tool: label of the search box.</comment>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Type a system name…</value>
+    <comment>System Index tool: watermark of the search box.</comment>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>System Index tool: button reading the indices again.</comment>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Add a system to see its cost indices.</value>
+    <comment>System Index tool: status line with no systems listed.</comment>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Systems: {0}. Today's indices; the chart shows the history.</value>
+    <comment>System Index tool: status line. {0} systems listed.</comment>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>No history for these systems in this activity yet.</value>
+    <comment>System Index tool: note where the chart would be.</comment>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Each chart is one activity's cost index each day, {0:yyyy-MM-dd} to {1:yyyy-MM-dd}. The dot beside a system is its line.</value>
+    <comment>System Index tool: note over the six charts. {0} first day, {1} last day.</comment>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Industry Ops: the button that recalculates both tabs (was Calculate).</comment>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Recalculate with the filters above. The Summary and Detail tabs share one calculation; the Detail tab's own filters narrow its list as they change.</value>
+    <comment>Industry Ops: tooltip on Refresh.</comment>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Industry Ops: tab with the ten best-of lists.</comment>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Industry Ops: tab with the full grid and its filters.</comment>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Each list: every item of its kind that sold at a profit over the last 30 days, most profit first, in every meta group. The filters above apply; the Detail tab's do not.</value>
+    <comment>Industry Ops, Summary tab: note above the lists.</comment>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Nothing here sold at a profit in the last 30 days.</value>
+    <comment>Industry Ops, Summary tab: shown in a list with no items.</comment>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>New Production Calc Queue</value>
+    <comment>Industry Ops grids, right-click: empty the Production Calculator's queue, put the highlighted items in, and go there.</comment>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Add to Production Calc Queue</value>
+    <comment>Industry Ops grids, right-click: add the highlighted items to the Production Calculator's queue, staying here.</comment>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} item added to the production queue</value>
+    <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} items added to the production queue</value>
+    <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
+  </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} item left out: nothing builds it</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} items left out: nothing builds them</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Sales Over the Past 30 Days</value>
+    <comment>Industry Ops, Summary tab: label centred over the Units, Avg Price, Margin, Sales and Profit columns of each list.</comment>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Avg Price</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Sales</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Industry Ops, Summary tab: column header; the label above says these are the last 30 days.</comment>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 Ships — Large &amp; Capital</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 Ships — Small &amp; Medium</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 Ships — Large &amp; Capital</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 Ships — Small &amp; Medium</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Ammo &amp; Drones</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Modules</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Rigs &amp; Subsystems</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Deployables</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Components</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Structure Modules &amp; Rigs</value>
+    <comment>Industry Ops, Summary tab: title over one of the ten lists.</comment>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech I.</comment>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech II.</comment>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Tech III.</comment>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Faction</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Faction.</comment>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Storyline</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Storyline.</comment>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Abyssal</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Abyssal.</comment>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Structure Tech I</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Tech I.</comment>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Structure Tech II</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Tech II.</comment>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Structure Faction</value>
+    <comment>Industry Ops, Meta Groups filter: a tick box for items whose SDE meta group is Structure Faction.</comment>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>None (materials, components…)</value>
+    <comment>Industry Ops, Meta Groups filter: the tick box for items with no meta group at all, such as materials, components and ammunition.</comment>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Exclude Groups</value>
@@ -185,8 +721,20 @@
     <comment>Column header in IndustryOpportunitiesView.</comment>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>ISK Sold 30d</value>
+    <value>Sales 30d</value>
     <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Avg Price 30d</value>
+    <comment>Column header in IndustryOpportunitiesView. The volume-weighted average price per unit over the last 30 days.</comment>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Margin 30d</value>
+    <comment>Column header in IndustryOpportunitiesView. The margin at the 30-day average price: (average price minus build cost) over build cost.</comment>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Profit 30d</value>
+    <comment>Column header in IndustryOpportunitiesView. Total profit on the units sold in the last 30 days: ISK sold minus build cost times units sold.</comment>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Scanning for industry opportunities…</value>
@@ -1503,6 +2051,50 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC per run @ ME{0} contract price</value>
     <comment>Production Calculator, Jobs tab, formula column of a blueprint copy line: one copy is bought per run, at its contract price. {0} is the blueprint's material efficiency level (ME).</comment>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 BPC run per run, at its invention cost: {0:P0} chance, {1} runs a success, {2}</value>
+    <comment>Production Calculator, Jobs tab, formula column of an invented blueprint copy line: one run of the copy per run of the job, priced at what inventing it costs. {0} is the invention chance (a percentage), {1} the runs a successful invention gives, {2} the decryptor's name or 'No decryptor'.</comment>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>Copy job tag</comment>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} per attempt × {1:N0} attempts = {2:N0}</value>
+    <comment>Invention material line: {0} per attempt, {1} attempts, {2} total</comment>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK an attempt (datacores, decryptor, T1 copy run, fees) ÷ ({1:P1} chance × {2} runs) = {3:N0} ISK a copy run</value>
+    <comment>Invention job breakdown: {0} attempt cost, {1} chance, {2} runs a success, {3} per copy run</comment>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Leftover: {0:N1} runs</value>
+    <comment>Invention job: spare copy runs on average</comment>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>One T1 copy run for each invention attempt, copied off the original.</value>
+    <comment>Copy job breakdown line</comment>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>The blueprint copy one successful attempt makes, decryptor included.</value>
+    <comment>Tooltip on the invented copy line</comment>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Out: {0:N1} runs on average</value>
+    <comment>Invention job: copy runs made on average</comment>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Each success: ME{0} TE{1}, {2} runs</value>
+    <comment>ME, TE and runs of the copy one invention success makes</comment>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Invention: {0:P0} chance, {1}</value>
+    <comment>Invention job tag: {0} chance, {1} decryptor name</comment>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Attempts: {0:N0}</value>
+    <comment>Invention job: attempts</comment>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermediate</value>

@@ -70,6 +70,34 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     public IBrush StationBidColor { get; } = r.IsOutbid ? Palette.Warn
                                            : r.IsLocationTracked ? Palette.TextPrimary : Palette.TextFaint;
 
+    /// <summary>What a unit costs to build; "—" for an item that is not built or not yet costed.</summary>
+    public string BuildCostText { get; } = r.BuildCost is { } b ? $"{b:N2}" : "—";
+    public double BuildCost     { get; } = r.BuildCost ?? -1;
+
+    /// <summary>What a unit is worth, as the asset valuation prices it; "—" with no price.</summary>
+    public string MarketValueText { get; } = r.MarketValue is { } v ? $"{v:N2}" : "—";
+    public double MarketValue     { get; } = r.MarketValue ?? -1;
+
+    /// <summary>
+    /// The best bid at the station — ours or anyone's, whichever is higher — as a share of the
+    /// market value: how close the buying price sits to what the item is worth. Empty without a
+    /// value or a bid.
+    /// </summary>
+    public double BidVsValue { get; } = BestBid(r) is { } bid && r.MarketValue is { } mv and > 0 ? (double)bid / mv : -1;
+    public string BidVsValueText => BidVsValue >= 0 ? $"{BidVsValue:P1}" : "";
+
+    /// <summary>Over 100%: the station is paying more than the item is worth.</summary>
+    public IBrush BidVsValueColor => BidVsValue > 1 ? Palette.Warn : Palette.TextPrimary;
+
+    private static decimal? BestBid(StandingBuyOrderRow r) =>
+        (r.OurBestPrice, r.CompetingBestBid) switch
+        {
+            ({ } ours, { } theirs) => Math.Max(ours, theirs),
+            ({ } ours, null)       => ours,
+            (null, { } theirs)     => theirs,
+            _                      => null,
+        };
+
     public string? PriceTooltip { get; } = !r.IsLocationTracked
         ? MarketText.TipStationNotTracked
         : r.IsOutbid
@@ -235,10 +263,57 @@ public class StandingBuyOrdersViewModel : ReactiveObject
         StatusText = string.Join("  ·  ", parts);
     }
 
-    private async Task AddAsync()
+    private Task AddAsync() => AddWithAsync(null);
+    /// <summary>What adding from another tool did: how many were added, how many were already
+    /// standing orders at that station, and where; null when the station was asked for and not given.</summary>
+    public sealed record AddedFromElsewhere(int Added, int AlreadyThere, long LocationId, string LocationName);
+
+    /// <summary>
+    /// "Add to Standing Buy Orders" from another tool: every item, at the station of the standing
+    /// buy order added last — no dialog, and the user stays where they are. With no order yet,
+    /// <paramref name="askStation"/> is shown for the first item (filled in) and its station is
+    /// used for the rest. Each can be moved here afterwards.
+    /// </summary>
+    public async Task<AddedFromElsewhere?> AddItemsAsync(IReadOnlyList<int> typeIds,
+        Func<StandingBuyOrder, Task<StandingBuyOrder?>> askStation)
+    {
+        if (typeIds.Count == 0) return null;
+        var added = 0;
+        var already = 0;
+        var queue = typeIds.Distinct().ToList();
+
+        (long Id, string Name)? station = await _service.LastLocationAsync();
+        if (station is null)
+        {
+            // ⚠️ The English name, as an order keeps it: the tool asking may show it translated.
+            var first  = queue[0];
+            var picked = await askStation(new StandingBuyOrder { TypeId = first, TypeName = await _service.TypeNameAsync(first) ?? "" });
+            if (picked is null) return null;
+            if (await _service.AddAsync(picked)) added++; else already++;
+            station = (picked.LocationId, picked.LocationName);
+            queue.RemoveAt(0);
+        }
+
+        foreach (var typeId in queue)
+        {
+            var order = new StandingBuyOrder
+            {
+                TypeId       = typeId,
+                TypeName     = await _service.TypeNameAsync(typeId) ?? "",
+                LocationId   = station.Value.Id,
+                LocationName = station.Value.Name,
+            };
+            if (await _service.AddAsync(order)) added++; else already++;
+        }
+
+        await LoadAsync();
+        return new AddedFromElsewhere(added, already, station.Value.Id, station.Value.Name);
+    }
+
+    private async Task AddWithAsync(StandingBuyOrder? start)
     {
         if (ShowDialog is null) return;
-        var result = await ShowDialog(null);
+        var result = await ShowDialog(start);
         if (result is null) return;
 
         if (!await _service.AddAsync(result))

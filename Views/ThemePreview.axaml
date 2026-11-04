@@ -1,0 +1,139 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             x:Class="EveConsole.Views.ThemePreview">
+
+  <!-- ⚠️ Every colour below is an ordinary DynamicResource on the palette's own keys, as in any
+       view. What makes it a preview is the scope's Resources, filled in code with the theme being
+       edited: a lookup finds those before it reaches the application's, so this corner wears the
+       edited theme while the window around it wears the one in use. The real controls in it —
+       buttons, a text box, a drop-down, a tick box — are dressed by the application's own styles,
+       and so show the theme as it will really look. -->
+  <ThemeVariantScope x:Name="Scope">
+    <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+            BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+      <DockPanel>
+
+        <!-- Tabs, the middle one chosen. -->
+        <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="12 0">
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <TextBlock Text="{x:Static loc:SettingsText.ThemePrevTabOne}" Foreground="{DynamicResource TextMutedBrush}"
+                       FontSize="12" Padding="0 9" />
+            <Border BorderBrush="{DynamicResource AccentBrush}" BorderThickness="0 0 0 2">
+              <TextBlock Text="{x:Static loc:SettingsText.ThemePrevTabTwo}" Foreground="{DynamicResource AccentBrush}"
+                         FontSize="12" Padding="0 9 0 7" />
+            </Border>
+            <TextBlock Text="{x:Static loc:SettingsText.ThemePrevTabThree}" Foreground="{DynamicResource TextMutedBrush}"
+                       FontSize="12" Padding="0 9" />
+          </StackPanel>
+        </Border>
+
+        <!-- A tool's bar of filters and actions. -->
+        <WrapPanel DockPanel.Dock="Top" Margin="12 10 12 4" ItemSpacing="8" LineSpacing="6">
+          <TextBlock Text="{x:Static loc:SettingsText.ThemePrevFrom}" Foreground="{DynamicResource TextFaintBrush}"
+                     FontSize="11" VerticalAlignment="Center" />
+          <TextBox Text="2026-10-01" Width="104" FontSize="12" />
+          <ComboBox SelectedIndex="0" FontSize="12" MinWidth="130">
+            <ComboBoxItem Content="{x:Static loc:SettingsText.ThemePrevEveryone}" />
+          </ComboBox>
+          <CheckBox Content="{x:Static loc:SettingsText.ThemePrevTick}" IsChecked="True" FontSize="12" />
+          <Button Content="{x:Static loc:SettingsText.ThemePrevRefresh}" />
+          <Button Content="{x:Static loc:SettingsText.ThemePrevCalculate}" Foreground="{DynamicResource AccentBrush}"
+                  BorderBrush="{DynamicResource AccentBrush}" />
+        </WrapPanel>
+
+        <ScrollViewer>
+          <StackPanel Margin="12 6 12 12" Spacing="10">
+
+            <!-- A panel with its header strip, and a grid in it: a row, a banded row, the row under
+                 the pointer and the selected one — each labelled with what it shows. -->
+            <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                    BorderThickness="1" CornerRadius="4" ClipToBounds="True">
+              <StackPanel>
+                <Border Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 6">
+                  <TextBlock Text="{x:Static loc:SettingsText.ThemePrevPanelTitle}" FontWeight="SemiBold"
+                             Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+                </Border>
+                <Grid ColumnDefinitions="*,80,80" Margin="10 6 10 4">
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemePrevColName}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+                  <TextBlock Grid.Column="1" Text="{x:Static loc:SettingsText.ThemePrevColCount}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.ThemePrevColChange}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" />
+                </Grid>
+                <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                  <Grid ColumnDefinitions="*,80,80" Margin="10 5">
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemePrevRow}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="640" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="+312" FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+                <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                  <Grid ColumnDefinitions="*,80,80" Margin="10 5">
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemePrevRowBanded}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="480" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="−45" FontSize="12" Foreground="{DynamicResource BadBrush}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+                <Border Background="{DynamicResource SurfaceHoverBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                  <Grid ColumnDefinitions="*,80,80" Margin="10 5">
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemePrevRowHover}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="360" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="+88" FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+                <Border Background="{DynamicResource SurfaceSelectedBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                  <Grid ColumnDefinitions="*,80,80" Margin="10 5">
+                    <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemePrevRowSelected}" FontSize="12" Foreground="{DynamicResource TextBrightBrush}" />
+                    <TextBlock Grid.Column="1" Text="250" FontSize="12" Foreground="{DynamicResource TextBrightBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="+40" FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <!-- The four status colours on their own grounds. -->
+            <WrapPanel ItemSpacing="6" LineSpacing="6">
+              <Border Background="{DynamicResource GoodSurfaceBrush}" CornerRadius="3" Padding="9 3">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevGood}" Foreground="{DynamicResource GoodBrush}" FontSize="11" FontWeight="SemiBold" />
+              </Border>
+              <Border Background="{DynamicResource BadSurfaceBrush}" CornerRadius="3" Padding="9 3">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevBad}" Foreground="{DynamicResource BadBrush}" FontSize="11" FontWeight="SemiBold" />
+              </Border>
+              <Border Background="{DynamicResource WarnSurfaceBrush}" CornerRadius="3" Padding="9 3">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevWarn}" Foreground="{DynamicResource WarnBrush}" FontSize="11" FontWeight="SemiBold" />
+              </Border>
+              <Border Background="{DynamicResource InfoSurfaceBrush}" CornerRadius="3" Padding="9 3">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevInfo}" Foreground="{DynamicResource InfoBrush}" FontSize="11" FontWeight="SemiBold" />
+              </Border>
+            </WrapPanel>
+
+            <!-- A notice on the accent's own ground. -->
+            <Border Background="{DynamicResource AccentSurfaceBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="1" CornerRadius="3" Padding="10 7">
+              <TextBlock Text="{x:Static loc:SettingsText.ThemePrevNotice}" Foreground="{DynamicResource AccentBrush}"
+                         FontSize="12" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- The text steps, brightest first, and a popup raised over the page. -->
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevHeading}" Foreground="{DynamicResource TextBrightBrush}" FontSize="15" FontWeight="SemiBold" />
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevBody}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" TextWrapping="Wrap" />
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevSecondary}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevMuted}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevDim}" Foreground="{DynamicResource TextDimBrush}" FontSize="11" />
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevFaint}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
+              </StackPanel>
+              <Border Grid.Column="1" VerticalAlignment="Top" Margin="12 0 0 0" MaxWidth="200"
+                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
+                      BorderThickness="1" CornerRadius="4" Padding="10 8" BoxShadow="0 4 12 0 #40000000">
+                <TextBlock Text="{x:Static loc:SettingsText.ThemePrevPopup}" Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="12" TextWrapping="Wrap" />
+              </Border>
+            </Grid>
+
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+  </ThemeVariantScope>
+</UserControl>

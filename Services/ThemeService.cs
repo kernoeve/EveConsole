@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Styling;
 using EveConsole.Localization;
+using ReactiveUI;
 
 namespace EveConsole.Services;
 
@@ -19,8 +20,9 @@ namespace EveConsole.Services;
 /// </summary>
 public static class ThemeService
 {
-    /// <summary>The themes on offer, in the order a menu should list them.</summary>
-    public static IReadOnlyList<ThemeChoice> All { get; } =
+    /// <summary>The themes that come with the application, in the order a menu should list them.
+    /// ⚠️ Never changed by the user: the theme editor copies them, it does not edit them.</summary>
+    public static IReadOnlyList<ThemeChoice> BuiltIn { get; } =
     [
         new("dark",        ShellText.ThemeDark,       ThemeVariant.Dark),
         new("light",       ShellText.ThemeLight,      ThemeVariant.Light),
@@ -36,6 +38,13 @@ public static class ThemeService
         new("beige-dark",  ShellText.ThemeBeigeDark,  AppThemes.BeigeDark),
         new("beige-light", ShellText.ThemeBeigeLight, AppThemes.BeigeLight),
     ];
+
+    /// <summary>The user's own, after the built-in ones. One instance per theme for its life, so a
+    /// rename shows in a combo that has it selected without the selection being replaced.</summary>
+    private static readonly List<ThemeChoice> Own = [];
+
+    /// <summary>Every theme on offer: the built-in ones, then the user's own.</summary>
+    public static IReadOnlyList<ThemeChoice> All => [.. BuiltIn, .. Own];
 
     /// <summary>
     /// ⚠️ Dark. This application has only ever been dark, so anything else would change how it
@@ -62,9 +71,16 @@ public static class ThemeService
     /// </summary>
     public static event Action? Changed;
 
+    /// <summary>Raised when a theme of the user's own is added or deleted, for the lists of themes
+    /// to follow. A rename needs nothing: the choice's Name changes in place.</summary>
+    public static event Action? ListChanged;
+
     /// <summary>Reads the saved choice and puts it on. Called once, before the first window.</summary>
     public static void ApplySaved()
     {
+        CustomThemes.Load();
+        SyncOwn();
+
         var saved = UiState.Get(UiState.Theme) ?? DefaultKey;
         Apply(Find(saved) is null ? DefaultKey : saved);
     }
@@ -89,14 +105,96 @@ public static class ThemeService
         Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Keeps a theme of the user's own: added, or its new name and colours taken. If it is the
+    /// one being worn, the application takes the new colours at once.
+    /// </summary>
+    public static void SaveOwn(CustomTheme theme)
+    {
+        var added = CustomThemes.Find(theme.Key) is null;
+        CustomThemes.Save(theme);
+        SyncOwn();
+
+        if (string.Equals(Current, theme.Key, StringComparison.OrdinalIgnoreCase))
+        {
+            // The variant is new when the ground changed; the same one otherwise, and its colours
+            // have already been announced. Either way the charts are rebuilt by hand.
+            // ⚠️ A new variant goes on by way of its ground. Variants are equal by key, so asking
+            // for the new one straight over the old is no change at all, and the application kept
+            // the old parent: a theme moved to light still drew dark Fluent controls.
+            if (Application.Current is { } app && !ReferenceEquals(app.RequestedThemeVariant, Find(theme.Key)!.Variant))
+            {
+                var variant = Find(theme.Key)!.Variant;
+                app.RequestedThemeVariant = variant.InheritVariant;
+                app.RequestedThemeVariant = variant;
+            }
+            ChartPaint.Restyle();
+            Changed?.Invoke();
+        }
+
+        if (added) ListChanged?.Invoke();
+    }
+
+    /// <summary>Deletes a theme of the user's own. Wearing it, the application goes to its ground.</summary>
+    public static void DeleteOwn(string key)
+    {
+        var ground = CustomThemes.IsLightTheme(key) ? "light" : "dark";
+        var wearing = string.Equals(Current, key, StringComparison.OrdinalIgnoreCase);
+
+        // Off it first: a variant being worn is not removed from under the windows wearing it.
+        if (wearing) Apply(ground);
+
+        CustomThemes.Delete(key);
+        SyncOwn();
+        ListChanged?.Invoke();
+    }
+
+    public static bool IsOwn(string key) => CustomThemes.Find(key) is not null;
+
+    private static void SyncOwn()
+    {
+        Own.RemoveAll(c => CustomThemes.Find(c.Key) is null);
+        foreach (var t in CustomThemes.All)
+        {
+            var variant = CustomThemes.VariantOf(t.Key);
+            if (variant is null) continue;
+            var choice = Own.FirstOrDefault(c => c.Key == t.Key);
+            if (choice is null) Own.Add(new ThemeChoice(t.Key, t.Name, variant, isOwn: true));
+            else { choice.Name = t.Name; choice.Variant = variant; }
+        }
+    }
+
     private static ThemeChoice? Find(string key) =>
         All.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>One entry in the theme list. Key is what is stored; Name is what is shown.</summary>
-/// <param name="Key">⚠️ Stable, and not the display name: renaming "Dark" to "Midnight" in the menu
-/// must not silently reset everybody who had it selected.</param>
-public sealed record ThemeChoice(string Key, string Name, ThemeVariant Variant)
+public sealed class ThemeChoice : ReactiveObject
 {
+    /// <param name="key">⚠️ Stable, and not the display name: renaming "Dark" to "Midnight" in the
+    /// menu must not silently reset everybody who had it selected.</param>
+    public ThemeChoice(string key, string name, ThemeVariant variant, bool isOwn = false)
+    {
+        Key     = key;
+        _name   = name;
+        Variant = variant;
+        IsOwn   = isOwn;
+    }
+
+    public string Key { get; }
+
+    private string _name;
+    public string Name
+    {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    /// <summary>Settable for a theme of the user's own, whose ground can change.</summary>
+    public ThemeVariant Variant { get; set; }
+
+    /// <summary>The user's own, which can be edited and deleted; the built-in ones cannot.</summary>
+    public bool IsOwn { get; }
+
     public override string ToString() => Name;
 }

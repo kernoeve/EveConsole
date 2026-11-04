@@ -96,6 +96,14 @@ jobs:
       - name: PI engine check
         run: dotnet run --project tools/PiEngineCheck/PiEngineCheck.csproj -c Release
 
+      # ⚠️ Does the job planner still give a reaction slot to the item a hull is actually waiting
+      # on? Slots go out in ranking order, so a ranking that favours stocked items over an empty
+      # one looks like a full list, not an error: every racial composite sat at zero with no job
+      # while broad, part-stocked intermediates took all 131 slots. This checks, on a constructed
+      # chain, that a waiting final counts only for its most-starved input.
+      - name: Worklist rank check
+        run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no
@@ -146,6 +154,20 @@ jobs:
       - name: Publish (self-contained linux-x64)
         run: dotnet publish EveConsole.csproj -c Release -r linux-x64 --self-contained true -o publish-linux
 
+      # ⚠️ Every Linux build shipped without Piper until #163, and nothing noticed: the download
+      # ran and logged success, but the files never reached the output. So this looks in the
+      # published folder, where the app looks (piper/piper beside it), and runs the binary: it
+      # must be executable, find every library it links against, and start.
+      - name: Piper is in the Linux build and starts
+        run: |
+          piper=publish-linux/piper/piper
+          [ -x "$piper" ] || { echo "::error::$piper is missing or not executable"; ls -la publish-linux/piper 2>&1 | head; exit 1; }
+          [ -d publish-linux/piper/espeak-ng-data ] || { echo "::error::espeak-ng-data is missing beside piper"; exit 1; }
+          if ldd "$piper" | grep "not found"; then echo "::error::piper cannot find the libraries above"; exit 1; fi
+          "$piper" --help > piper-help.txt 2>&1 || true
+          grep -qi "usage" piper-help.txt || { echo "::error::piper did not start"; cat piper-help.txt; exit 1; }
+          echo "piper: $(du -sh publish-linux/piper | cut -f1), starts"
+
       - name: Docker compose file is valid
         run: POSTGRES_PASSWORD=ci docker compose -f packaging/docker/docker-compose.yml config -q
 
@@ -191,3 +213,106 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
+
+  # ── macOS ──────────────────────────────────────────────────────────────────────────
+  #
+  # Nobody here has a Mac, so this job IS the macOS test. It answers three questions on a real
+  # one, on every PR: does the app start, does a saved secret survive the Keychain, and does an
+  # unsigned Velopack package build for Apple Silicon and for Intel — which release-build.yml
+  # depends on, and which can only be built on a Mac.
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build EveConsole.csproj -c Release
+
+      # The real App on a fresh data folder, Avalonia's headless platform with real drawing: the
+      # main window has to open, and a secret has to come back out of the Keychain. Passing prints
+      # "SMOKE PASS" — see tools/StartupSmoke for why the line and not the exit code.
+      - name: Starts on macOS, and the Keychain keeps a secret
+        run: |
+          dotnet run --project tools/StartupSmoke/StartupSmoke.csproj -c Release -- "$RUNNER_TEMP/smoke" 60 | tee smoke.log
+          grep -q "SMOKE PASS" smoke.log
+
+      - name: The windows it drew
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-startup
+          path: ${{ runner.temp }}/smoke/*.png
+          if-no-files-found: warn
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      # Velopack's macOS bundle wants an .icns. Made here from the logo, with the Mac's own tools,
+      # rather than a generated binary kept in the repository. release-build.yml does the same.
+      - name: App icon
+        run: |
+          mkdir EveConsole.iconset
+          for size in 16 32 128 256 512; do
+            sips -z $size $size Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}.png > /dev/null
+            double=$((size * 2))
+            [ $double -le 512 ] && sips -z $double $double Assets/logo_mark.png --out EveConsole.iconset/icon_${size}x${size}@2x.png > /dev/null
+          done
+          iconutil -c icns EveConsole.iconset -o EveConsole.icns
+
+      # Unsigned, as releases are until there is an Apple Developer ID. A channel per
+      # architecture: both would otherwise be "osx", and each install updates from its own.
+      - name: Package (unsigned) for Apple Silicon and Intel
+        run: |
+          for rid in osx-arm64 osx-x64; do
+            dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true -o publish-$rid
+            sed -e "s/@VERSION@/0.0.1-ci/" -e "s/@SHORT_VERSION@/0.0.1/" packaging/macos/Info.plist > Info-$rid.plist
+            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.0.1-ci \
+                     --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
+                     --plist Info-$rid.plist --channel $rid --outputDir releases-$rid
+            ls -la releases-$rid
+          done
+
+      # What a user's Mac gets, checked inside the package rather than in the publish folder:
+      # the Info.plist macOS reads (⚠️ without NSMicrophoneUsageDescription macOS ends the app
+      # the first time it opens the microphone, with no dialog), and the native libraries for
+      # sound, speech and the microphone, for that package's own architecture.
+      - name: Check what the packages carry
+        run: |
+          for rid in osx-arm64 osx-x64; do
+            arch=${rid#osx-}
+            rm -rf app-$rid && mkdir app-$rid
+            unzip -q releases-$rid/*-Portable.zip -d app-$rid
+            app=$(find app-$rid -maxdepth 2 -name "*.app" | head -1)
+            echo "== $app"
+            plutil -lint "$app/Contents/Info.plist"
+            plutil -p "$app/Contents/Info.plist"
+            plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist" > /dev/null
+            [ "$(plutil -extract CFBundleExecutable raw "$app/Contents/Info.plist")" = EveConsole ]
+            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib; do
+              found=$(find "$app/Contents/MacOS" -path "*$lib" | head -1)
+              [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
+            done
+          done
+
+      # The packages themselves, to try on a real Mac: the portable zip for each architecture.
+      # Kept two weeks — a build to test, not a release. Already compressed, so stored as is.
+      - name: Mac build to try — Apple Silicon
+        uses: actions/upload-artifact@v4
+        with:
+          name: EveConsole-osx-arm64
+          path: releases-osx-arm64/*-Portable.zip
+          retention-days: 14
+          compression-level: 0
+
+      - name: Mac build to try — Intel
+        uses: actions/upload-artifact@v4
+        with:
+          name: EveConsole-osx-x64
+          path: releases-osx-x64/*-Portable.zip
+          retention-days: 14
+          compression-level: 0

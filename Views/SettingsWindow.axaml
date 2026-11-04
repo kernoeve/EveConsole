@@ -4,6 +4,7 @@
         xmlns:models="clr-namespace:EveConsole.Models"
         xmlns:agent="clr-namespace:EveConsole.Agent"
         xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:svc="clr-namespace:EveConsole.Services"
         xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
@@ -324,6 +325,56 @@
             </StackPanel>
           </Border>
 
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Corporations ════════════════════════════════════════════════════ -->
+    <!-- What each corporation with a token is used for. Personal is the same setting as the tick
+         box on ESI Tokens, settable from either. -->
+    <TabItem Header="{x:Static loc:SettingsText.TabCorporations}">
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12" Margin="0 0 4 0">
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{x:Static loc:SettingsText.Corporations}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.CorporationsTabNote}" />
+
+              <DataGrid ItemsSource="{Binding CharacterVm.CorpSettingsRows}" MinHeight="120" MaxHeight="480"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="{x:Static loc:SettingsText.ColTicker}" Binding="{Binding Ticker}" FontSize="11" Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SettingsText.ColCorporation}" Binding="{Binding Name}" FontSize="11" Width="*" />
+
+                  <!-- Editable in place, saving on change. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColPersonal}" Width="90" SortMemberPath="IsPersonal"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding IsPersonal}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:CorpSettingsRowVm">
+                        <CheckBox IsChecked="{Binding IsPersonal, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="{x:Static loc:SettingsText.TipPersonalCorpsCountToward}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColStructureAlerts}" Width="130" SortMemberPath="StructureAlerts"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding StructureAlerts}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:CorpSettingsRowVm">
+                        <CheckBox IsChecked="{Binding StructureAlerts, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="{x:Static loc:SettingsText.TipStructureAlerts}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
     </TabItem>
@@ -891,7 +942,7 @@
               <TextBlock Text="{x:Static loc:SettingsText.PiTimingTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
               <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="{x:Static loc:SettingsText.PiTimingNote}" />
-              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto">
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadExtractors}"
                            FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding ExtractorLeadHours}"
@@ -916,20 +967,12 @@
                 <TextBlock Grid.Row="4" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiStaleAfter}"
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
                            FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding StaleDays}"
-                               Minimum="1" Maximum="365" Increment="1" FormatString="0"
-                               FontSize="12" Width="120" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.Days}" FontSize="12"
-                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
-
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
-                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <NumericUpDown Grid.Row="8" Grid.Column="2" Value="{Binding InputDays}"
+                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding InputDays}"
                                Minimum="1" Maximum="60" Increment="1" FormatString="0"
                                FontSize="12" Width="120" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="8" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
+                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
               </Grid>
               <!-- Both boxes above save as they are changed; this says so for a moment. -->
@@ -2333,13 +2376,15 @@
                           <!-- Piper -->
                           <StackPanel IsVisible="{Binding ShowPiper}" Spacing="8">
                             <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                       Text="{x:Static loc:SettingsText.PiperIsAFastNote}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                       Text="{x:Static loc:SettingsText.PiperIsAFastNote}" IsVisible="{Binding !IsPiperUnsupportedHere}" />
+                            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                                       Text="{x:Static loc:SettingsText.PiperNotOnMac}" IsVisible="{Binding IsPiperUnsupportedHere}" />
+                            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding !IsPiperUnsupportedHere}">
                               <TextBlock Text="{x:Static loc:SettingsText.RuntimeLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
                               <TextBlock Text="{x:Static loc:SettingsText.Bundled}" FontSize="11" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"
                                          IsVisible="{Binding IsPiperBinaryAvailable}" />
                               <TextBlock Text="{x:Static loc:SettingsText.NotFoundInAppDirectory}" FontSize="11" Foreground="{DynamicResource WarnBrush}"
-                                         VerticalAlignment="Center" IsVisible="{Binding !IsPiperBinaryAvailable}" />
+                                         VerticalAlignment="Center" IsVisible="{Binding ShowPiperNotFound}" />
                             </StackPanel>
                             <TextBlock Text="{x:Static loc:SettingsText.Voice}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <ComboBox ItemsSource="{Binding PiperVoiceLabels}" SelectedItem="{Binding SelectedPiperVoiceLabel}"
@@ -3129,12 +3174,110 @@
             <CheckBox Content="{x:Static loc:SettingsText.PiAlertFreeSlots}"
                       IsChecked="{Binding AlertsVm.PiFreeSlots}"
                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
-            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStale}"
-                      IsChecked="{Binding AlertsVm.PiStaleData}"
-                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        Text="{x:Static loc:SettingsText.PiAlertsNote}" />
+          </StackPanel>
+        </Border>
+
+        <!-- EVE Mail alert -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:ShellText.NavEveMail}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="{x:Static loc:SettingsText.AlertUnreadMail}"
+                      IsChecked="{Binding AlertsVm.UnreadMail}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.UnreadMailNote}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Structure alerts: only the corporations ticked on the Corporations tab. The fit each
+             structure type should carry is set on Corp Structures → Config. -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:SettingsText.StructureAlertsTitle}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="{x:Static loc:SettingsText.AlertStructureFuel}"
+                        IsChecked="{Binding AlertsVm.StructureFuel}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.StructureFuelDays}" IsEnabled="{Binding AlertsVm.StructureFuel}"
+                             Minimum="1" Maximum="60" Increment="1" FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:SettingsText.Days}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <CheckBox Content="{x:Static loc:SettingsText.AlertStructureAttacked}"
+                      IsChecked="{Binding AlertsVm.StructureAttacked}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.AlertStructureFitMissing}"
+                      IsChecked="{Binding AlertsVm.StructureFitMissing}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.AlertStructureFitWrong}"
+                      IsChecked="{Binding AlertsVm.StructureFitWrong}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="{x:Static loc:SettingsText.AlertStructureAmmoLow}"
+                        IsChecked="{Binding AlertsVm.StructureAmmoLow}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.StructureAmmoPct}" IsEnabled="{Binding AlertsVm.StructureAmmoLow}"
+                             Minimum="1" Maximum="100" Increment="5" FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:SettingsText.PercentOfTheFit}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="{x:Static loc:SettingsText.AlertStructureFightersLow}"
+                        IsChecked="{Binding AlertsVm.StructureFightersLow}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.StructureFightersPct}" IsEnabled="{Binding AlertsVm.StructureFightersLow}"
+                             Minimum="1" Maximum="100" Increment="5" FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:SettingsText.PercentOfTheFit}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.StructureAlertsNote}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Mercenary den alerts: the user's characters' own dens (Mercenary Dens). -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:SettingsText.DenAlertsTitle}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <CheckBox Content="{x:Static loc:SettingsText.AlertDenAnarchy}"
+                        IsChecked="{Binding AlertsVm.DenAnarchy}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding AlertsVm.DenAnarchyLevel}" IsEnabled="{Binding AlertsVm.DenAnarchy}"
+                             Minimum="0" Maximum="4" Increment="1" FormatString="0" FontSize="12"
+                             Width="120" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:SettingsText.DenAnarchyOrAbove}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+            <CheckBox Content="{x:Static loc:SettingsText.AlertDenAttacked}"
+                      IsChecked="{Binding AlertsVm.DenAttacked}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.AlertDenNewMto}"
+                      IsChecked="{Binding AlertsVm.DenNewMto}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.DenAlertsNote}" />
           </StackPanel>
         </Border>
 
@@ -3956,12 +4099,23 @@
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
-                <Grid ColumnDefinitions="Auto,*">
+                <Grid ColumnDefinitions="Auto,*,Auto">
                   <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <!-- ⚠️ A template on Name rather than the item's ToString: a theme of the user's
+                       own can be renamed in the editor while it is the one selected here. -->
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{Binding Themes}"
-                            SelectedItem="{Binding SelectedTheme}" />
+                            SelectedItem="{Binding SelectedTheme}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="svc:ThemeChoice">
+                        <TextBlock Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Grid.Column="2" Margin="8 0 0 0" Content="{x:Static loc:SettingsText.EditThemesButton}"
+                          ToolTip.Tip="{x:Static loc:SettingsText.EditThemesTip}"
+                          Command="{Binding EditThemesCommand}" />
                 </Grid>
 
                 <Grid ColumnDefinitions="Auto,*">

@@ -84,6 +84,16 @@ public sealed record SlotPressure(
 /// same prints impose, so it measures what was achieved and never what was wanted.</param>
 /// <param name="BusyDays">Days these prints spent inside a job during the window. Against the
 /// days they were available, this is the only honest read on whether they are the limit.</param>
+public enum PrintRole
+{
+    /// <summary>Originals away from the copy lab, with others at it: they build, and only build.</summary>
+    Build,
+    /// <summary>Originals at the copy lab, with others elsewhere: they copy, and only copy.</summary>
+    Copy,
+    /// <summary>The only original of its type, which goes wherever the work is.</summary>
+    Both,
+}
+
 public sealed record ItemBandwidth(
     int    ProductTypeId,
     string ProductName,
@@ -111,6 +121,14 @@ public sealed record ItemBandwidth(
 
     /// <summary>How many of those there are, which is what the Blocking column shows.</summary>
     public int StalledTasks { get; init; }
+
+    /// <summary>
+    /// Jobs of this with a print to run on and no slot to run in. Another print starts none of them.
+    /// </summary>
+    public int NoSlotNow { get; init; }
+
+    /// <summary>What these originals are for, and so what their contention is measured against.</summary>
+    public PrintRole Role { get; init; } = PrintRole.Build;
 
     /// <summary>Units a day one print can turn out, running without a pause.</summary>
     public double PerPrintPerDay => CycleDays <= 0 ? 0 : UnitsPerRun / CycleDays;
@@ -169,6 +187,18 @@ public sealed record ItemBandwidth(
     public int RecentDays { get; init; }
 
     /// <summary>
+    /// The worse of the quarter and the last month: what the rank, the flags and the order go by.
+    ///
+    /// <para>⚠️ Not the quarter alone. Phoenix's originals sat half idle through a slow August, so
+    /// the quarter said 7% and buried it low on the list, while all three were occupied with
+    /// three more jobs queued. A shortage is measured at its worst, and the columns still show both.</para>
+    /// </summary>
+    public double PeakContentionPercent => Math.Max(ContentionPercent, RecentContentionPercent);
+
+    /// <summary>The days that peak was measured over, for the sentence quoting it.</summary>
+    public int PeakDays => RecentContentionPercent > ContentionPercent && RecentDays > 0 ? RecentDays : WindowDays;
+
+    /// <summary>
     /// Whether the squeeze is getting worse, which a quarter-long average cannot say.
     ///
     /// <para><b>⚠️ A ninety-day figure hides a busy month inside a quiet quarter.</b> Prints that
@@ -192,10 +222,14 @@ public sealed record ItemBandwidth(
     /// its neighbours. Without it, an operation with no contention anywhere would still report its
     /// top tenth as bottlenecks — ranking something is not the same as it being a problem.</para>
     /// </summary>
-    public bool IsTight => ContentionPercent > 0 && ContentionRank >= 90;
+    public bool IsTight => PeakContentionPercent > 0 && (ContentionRank >= 90 || PeakContentionPercent >= FullyUsedPercent);
+
+    /// <summary>What counts as flat out. Hand-run prints never reach 100: the time between jobs is
+    /// free time, but this is as busy as they get.</summary>
+    private const double FullyUsedPercent = 90;
 
     /// <summary>Never all occupied, or unremarkable against the rest — another copy buys nothing.</summary>
-    public bool IsIdle => ContentionPercent <= 0 || ContentionRank < 50;
+    public bool IsIdle => PeakContentionPercent <= 0 || ContentionRank < 50;
 
     /// <summary>
     /// Whether this is a standing shortage or a spike, which is the whole question.
@@ -217,6 +251,7 @@ public sealed record ItemBandwidth(
     /// <summary>What the row amounts to, in a word. Called Verdict on every tab that has one.</summary>
     public string Verdict =>
         IsTight && BlockedNow > 0 ? "Blocking"
+      : BlockedNow == 0 && NoSlotNow > 0 ? "NoSlot"
       : IsTight && WantedNow > 0  ? "Steady"
       : IsTight                   ? "Contended"
       : BlockedNow > 0            ? "Blocked"
@@ -237,23 +272,33 @@ public sealed record ItemBandwidth(
     /// "every copy was busy" read as a statement about blueprint copies to anyone who plays the
     /// game, which is the opposite of what it measures.</para>
     /// </summary>
-    public string Advice => Verdict switch
+    public string Advice => Role == PrintRole.Copy
+        ? string.Format(WorklistText.PrintAdviceAtCopyLab, Verdict == "NoSlot"
+              ? string.Format(WorklistText.PrintAdviceNoSlotCopy, NoSlotNow, PeakContentionPercent, PeakDays)
+              : AdviceText)
+        : AdviceText;
+
+    private string AdviceText => Verdict switch
     {
         "Blocking" => string.Format(
             IsReaction ? WorklistText.PrintAdviceBlockingFormula : WorklistText.PrintAdviceBlockingBpo,
-            ContentionPercent, WindowDays, BlockedNow, CapacityPerDay, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, BlockedNow, CapacityPerDay, CeilingWithOneMore),
+
+        "NoSlot" => string.Format(
+            IsReaction ? WorklistText.PrintAdviceNoSlotFormula : WorklistText.PrintAdviceNoSlotBpo,
+            NoSlotNow, PeakContentionPercent, PeakDays),
 
         "Steady" => string.Format(
             IsReaction ? WorklistText.PrintAdviceSteadyFormula : WorklistText.PrintAdviceSteadyBpo,
-            ContentionPercent, WindowDays, WantedNow, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, WantedNow, CeilingWithOneMore),
 
         "Contended" => string.Format(
             IsReaction ? WorklistText.PrintAdviceContendedFormula : WorklistText.PrintAdviceContendedBpo,
-            ContentionPercent, WindowDays),
+            PeakContentionPercent, PeakDays),
 
         "Blocked" => string.Format(
             IsReaction ? WorklistText.PrintAdviceBlockedFormula : WorklistText.PrintAdviceBlockedBpo,
-            BlockedNow, ContentionPercent),
+            BlockedNow, PeakContentionPercent),
 
         "Surge" => string.Format(
             IsReaction ? WorklistText.PrintAdviceSurgeFormula : WorklistText.PrintAdviceSurgeBpo,
@@ -261,11 +306,11 @@ public sealed record ItemBandwidth(
 
         "Minor" => string.Format(
             IsReaction ? WorklistText.PrintAdviceMinorFormula : WorklistText.PrintAdviceMinorBpo,
-            ContentionPercent, WindowDays, CeilingWithOneMore),
+            PeakContentionPercent, PeakDays, CeilingWithOneMore),
 
         _ => string.Format(
             IsReaction ? WorklistText.PrintAdviceBuildingFormula : WorklistText.PrintAdviceBuildingBpo,
-            WantedNow, ContentionPercent, CeilingWithOneMore),
+            WantedNow, PeakContentionPercent, CeilingWithOneMore),
     };
 
     public void OpenItem() => EntityNavigator.Instance.Item(ProductTypeId);
@@ -315,6 +360,9 @@ public class BottleneckService(
     /// period it was committed in.</para>
     /// </summary>
     private const int WindowDays = 90;
+
+    /// <summary>ESI's activity for making copies.</summary>
+    private const int CopyActivity = 5;
 
     /// <summary>
     /// How little contention still earns a row on the list.
@@ -477,16 +525,17 @@ public class BottleneckService(
         // Tasks that would install this blueprint, by whether the player can act on them.
         var usingIt = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
-            .GroupBy(i => i.TypeId)
+            .GroupBy(i => (i.TypeId, InventionGenerator.IsCopyJob(i)))
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Using", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId)).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId) { Print = i.Print }).ToList());
 
         var wantedNow = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)
-            .GroupBy(i => i.TypeId)
+            .GroupBy(i => (i.TypeId, InventionGenerator.IsCopyJob(i)))
             .ToDictionary(g => g.Key,
                           g => (All: g.Count(),
+                                NoSlot: g.Count(i => i.Readiness == WorklistReadiness.Waiting),
                                 // ⚠️ Only where the print is the ONLY thing missing. The
                                 // print-blocked rows are runs no free blueprint could carry, and
                                 // those runs were never material-checked — so a Thanatos short of
@@ -504,6 +553,11 @@ public class BottleneckService(
             .Where(owned.Owns).Where(p => p.IsOriginal).ToList();
         if (prints.Count == 0) return [];
 
+        // ⚠️ What occupies an original is a job on that original. A job on a copy of the same type
+        // leaves every original free, but counted against them it put Phoenix top of this list at
+        // 28% all-busy when its originals were all busy 6% of the time. So matched by item, not type.
+        var originals = prints.Select(p => p.ItemId).ToHashSet();
+
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var since       = DateTimeOffset.UtcNow.AddDays(-WindowDays);
@@ -519,12 +573,14 @@ public class BottleneckService(
         // building. Counting only manufacturing and reaction reported the Thanatos prints as
         // uncontended at 0% while both spent 40% of the quarter locked in copying and invention,
         // and dropped the row from the list altogether.
+        //
+        // By print, because a type's originals can have different jobs: see the lines below.
         var occupied = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.BlueprintId != 0)
-                .Select(j => new { j.BlueprintTypeId, j.StartDate, j.EndDate })
+                .Select(j => new { j.BlueprintId, j.StartDate, j.EndDate })
                 .ToListAsync(ct))
-            .Where(j => j.EndDate > since && j.StartDate < now)
-            .GroupBy(j => j.BlueprintTypeId)
+            .Where(j => j.EndDate > since && j.StartDate < now && originals.Contains(j.BlueprintId))
+            .GroupBy(j => j.BlueprintId)
             .ToDictionary(g => g.Key, g => g.Select(j => (j.StartDate, j.EndDate)).ToList());
 
         // Production only, for the rates: a copy job says nothing about how fast a hull is built.
@@ -532,11 +588,10 @@ public class BottleneckService(
                 .Where(j => j.Runs > 0 && j.ProductTypeId != null
                          && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11))
                 .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value,
-                                   j.Runs, j.Duration, j.StartDate, j.EndDate, j.BlueprintId, j.ActivityId })
+                                   j.Runs, j.Duration, j.StartDate, j.EndDate, j.ActivityId })
                 .ToListAsync(ct))
             .Where(j => j.EndDate > since && j.StartDate < now)
             .ToList();
-        if (runs.Count == 0) return [];
 
         var byBlueprint = runs
             .GroupBy(j => j.BlueprintTypeId)
@@ -545,113 +600,178 @@ public class BottleneckService(
                 g => (ProductTypeId: g.First().ProductTypeId,
                       CycleDays:     g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
                       Runs:          g.Sum(j => (long)j.Runs),
-                      // ⚠️ Clipped to the window at both ends. A job running longer than the
-                      // window used to be counted whole against it, which put one print at 120%
-                      // of a time it could not have spent.
-                      BusyDays:      g.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
-                      // ⚠️ The intervals are kept, not reduced to a number here. Contention can
-                      // only be worked out once the copies OWNED are known, and that lives with
-                      // the blueprint stock rather than with the job history.
-                      Jobs:          g.Select(j => (j.StartDate, j.EndDate)).ToList(),
                       // Reactions are run from a formula, not a blueprint, and the wording
                       // follows the thing the reader is holding.
                       IsReaction:    g.Any(j => j.ActivityId == 9 || j.ActivityId == 11)));
 
-        var productIds = byBlueprint.Values.Select(v => v.ProductTypeId).Distinct().ToList();
-        var bpIds      = byBlueprint.Keys.ToList();
+        // And copying, for the same reason, per copy made. Not limited to the window for the cycle:
+        // that depends on the print, not the month, and a lab idle since summer still has a rate.
+        var copying = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Runs > 0 && j.ActivityId == CopyActivity)
+                .Select(j => new { j.BlueprintTypeId, j.Runs, j.Duration, j.EndDate })
+                .ToListAsync(ct))
+            .GroupBy(j => j.BlueprintTypeId)
+            .ToDictionary(
+                g => g.Key,
+                g => (CycleDays: g.Average(j => (double)j.Duration / j.Runs) / 86400.0,
+                      Runs:      g.Where(j => j.EndDate > since).Sum(j => (long)j.Runs)));
+
+        var bpIds = prints.Select(p => p.TypeId).Distinct().ToList();
 
         // ⚠️ Keyed by BLUEPRINT, not by product. A handful of items have more than one recipe —
         // Tungsten Carbide is made by its own formula at 10,000 a run and by a leftover "Test
         // Reaction Blueprint" at 20 — so keying on the product both threw on the duplicate and,
         // had it not, would have priced a run at a five-hundredth of its real output. The output
         // quantity belongs to the blueprint that produces it and to nothing else.
-        var perRun = (await db.SdeBlueprintProducts.AsNoTracking()
+        var products = (await db.SdeBlueprintProducts.AsNoTracking()
                 .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
                          && bpIds.Contains(p.TypeId))
-                .Select(p => new { p.TypeId, p.Quantity })
+                .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
                 .ToListAsync(ct))
             .GroupBy(p => p.TypeId)
-            .ToDictionary(g => g.Key, g => Math.Max(1, g.Max(p => p.Quantity)));
+            .ToDictionary(g => g.Key, g => (ProductTypeId: g.First().ProductTypeId,
+                                            PerRun: Math.Max(1, g.Max(p => p.Quantity))));
 
+        var productIds = products.Values.Select(v => v.ProductTypeId)
+            .Concat(byBlueprint.Values.Select(v => v.ProductTypeId)).Distinct().ToList();
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => productIds.Contains(t.TypeId))
             .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // ⚠️ Where the planner does its copying, because the planner's rule decides what a print is
+        // for: with originals both at the lab and elsewhere, neither stands in for the other (see
+        // LogisticsGenerator.KeepCopyLabOriginals), so their contention is measured apart. As one
+        // line, a lab's only BPO copying flat out read as uncontended whenever two more sat idle at
+        // the factory, and nothing said to buy a second. A lone original does both jobs, and is one.
+        var parkId  = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
+        var copyLab = (await InventionService.LabsAsync(db, parkId, ct)).Copying?.Site;
+
         var result = new List<ItemBandwidth>();
 
-        foreach (var (bpTypeId, made) in byBlueprint)
+        foreach (var type in prints.GroupBy(p => p.TypeId))
         {
-            var mine = prints.Where(p => p.TypeId == bpTypeId).ToList();
-            if (mine.Count == 0 || made.CycleDays <= 0) continue;   // built from copies, or unmeasurable
+            var bpTypeId = type.Key;
+            var atLab    = type.Where(p => p.LocationId == copyLab).ToList();
+            var away     = type.Where(p => p.LocationId != copyLab).ToList();
 
-            var units = perRun.GetValueOrDefault(bpTypeId, 1);
-            var chain = TaskChain.Stalled(stoppedBy, made.ProductTypeId);
+            List<(PrintRole Role, List<BlueprintStock> Mine)> lines = type.Count() == 1
+                ? [(PrintRole.Both, [.. type])]
+                : [.. away.Count  > 0 ? [(PrintRole.Build, away)]  : Array.Empty<(PrintRole, List<BlueprintStock>)>(),
+                   .. atLab.Count > 0 ? [(PrintRole.Copy,  atLab)] : Array.Empty<(PrintRole, List<BlueprintStock>)>()];
 
-            result.Add(new ItemBandwidth(
-                made.ProductTypeId,
-                names.GetValueOrDefault(made.ProductTypeId, string.Format(WorklistText.TypeWithId, made.ProductTypeId)),
-                made.CycleDays,
-                mine.Count,
-                mine.Count(p => p.LockedInJob),
-                made.Runs * units / (double)WindowDays,
-                made.BusyDays,
-                units,
-                WindowDays,
-                wantedNow.GetValueOrDefault(made.ProductTypeId).All,
-                wantedNow.GetValueOrDefault(made.ProductTypeId).Blocked,
-                made.IsReaction)
+            var builds = byBlueprint.TryGetValue(bpTypeId, out var made);
+            var copies = copying.TryGetValue(bpTypeId, out var copied);
+
+            foreach (var (role, mine) in lines)
             {
-                BlueprintTypeId = bpTypeId,
-                // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
-                // seen made "all busy" mean "the one I happened to use was busy": five formulas
-                // owned, jobs only ever run on one, and a print busy 31% of the time reported 31%
-                // contention while the other four sat idle — alongside a 6% utilisation figure
-                // that could not be true at the same time. Owned is also the number a buying
-                // decision turns on: how often would today's copies have left me waiting.
-                // ⚠️ From the occupancy set, which counts research and copying too. Contention is
-                // about the print being unavailable, and a print locked in a copy job is exactly
-                // as unavailable as one locked in a build.
-                ContentionPercent = 100.0 * AllBusyDays(
-                                        occupied.GetValueOrDefault(bpTypeId, made.Jobs),
-                                        mine.Count, since, now) / WindowDays,
+                var isCopy = role == PrintRole.Copy || role == PrintRole.Both && !builds;
+                if (isCopy ? !copies : !builds) continue;   // built from copies, or unmeasurable
 
-                RecentContentionPercent = 100.0 * AllBusyDays(
-                                        occupied.GetValueOrDefault(bpTypeId, made.Jobs),
-                                        mine.Count, recentSince, now) / RecentWindowDays,
-                RecentDays = RecentWindowDays,
+                var cycle = isCopy ? copied.CycleDays : made.CycleDays;
+                if (cycle <= 0) continue;
 
-                // Everything waiting on what this blueprint makes, and the tasks that
-                // would install it. Both, because a print worth buying is one where the
-                // work is queued behind it AND there is something to install.
-                StalledTasks = chain.Count,
-                Tasks        = [.. chain,
-                                .. usingIt.GetValueOrDefault(made.ProductTypeId) ?? []],
-            });
+                var productId = builds ? made.ProductTypeId : products.GetValueOrDefault(bpTypeId).ProductTypeId;
+                if (productId == 0) continue;
+
+                var units = isCopy ? 1 : products.TryGetValue(bpTypeId, out var pr) ? pr.PerRun : 1;
+
+                // What wants this line: builds of the product, copies off the blueprint, or both.
+                var doesBuild = role != PrintRole.Copy;
+                var doesCopy  = role != PrintRole.Build;
+                var want      = doesBuild ? wantedNow.GetValueOrDefault((productId, false)) : default;
+                var wantCopy  = doesCopy  ? wantedNow.GetValueOrDefault((bpTypeId, true))   : default;
+
+                var chain = (doesBuild ? TaskChain.Stalled(stoppedBy, productId) : [])
+                    .Concat(doesCopy ? TaskChain.Stalled(stoppedBy, bpTypeId) : [])
+                    .DistinctBy(t => t.Title)
+                    .ToList();
+
+                var jobs = mine.SelectMany(p => occupied.GetValueOrDefault(p.ItemId, [])).ToList();
+
+                // ⚠️ Measured since these prints went to work, not across the whole window. The days
+                // before their first job say nothing about them: Fenrir's building BPO ran 45 of the
+                // 55 days since its first job, and read 50% against all 90 with a queue behind it.
+                // Thirty days at the least, or one job begun this morning would read 100%.
+                var begun = jobs.Count == 0 ? now : jobs.Min(j => j.StartDate);
+                var days  = Math.Max(RecentWindowDays, (now - (begun > since ? begun : since)).TotalDays);
+
+                result.Add(new ItemBandwidth(
+                    productId,
+                    names.GetValueOrDefault(productId, string.Format(WorklistText.TypeWithId, productId)),
+                    cycle,
+                    mine.Count,
+                    mine.Count(p => p.LockedInJob),
+                    (isCopy ? copied.Runs : made.Runs * units) / days,
+                    // ⚠️ Clipped to the window at both ends: a job running longer than the window was
+                    // once counted whole, which put one print at 120%. And every activity, as
+                    // contention is: an original copying is no more free to build than one building.
+                    jobs.Sum(j => Overlap(j.StartDate, j.EndDate, since, now)),
+                    units,
+                    (int)Math.Round(days),
+                    want.All + wantCopy.All,
+                    want.Blocked + wantCopy.Blocked,
+                    !isCopy && made.IsReaction)
+                {
+                    BlueprintTypeId = bpTypeId,
+                    Role            = role,
+                    NoSlotNow       = want.NoSlot + wantCopy.NoSlot,
+                    // ⚠️ Against the copies OWNED, not the copies seen working. Counting the ones
+                    // seen made "all busy" mean "the one I happened to use was busy": five formulas
+                    // owned, jobs only ever run on one, and a print busy 31% of the time reported 31%
+                    // contention while the other four sat idle — alongside a 6% utilisation figure
+                    // that could not be true at the same time. Owned is also the number a buying
+                    // decision turns on: how often would today's copies have left me waiting.
+                    // ⚠️ From the occupancy set, which counts research and copying too. Contention is
+                    // about the print being unavailable, and a print locked in a copy job is exactly
+                    // as unavailable as one locked in a build.
+                    ContentionPercent = 100.0 * AllBusyDays(jobs, mine.Count, since, now) / days,
+
+                    RecentContentionPercent = 100.0 * AllBusyDays(jobs, mine.Count, recentSince, now) / RecentWindowDays,
+                    RecentDays = RecentWindowDays,
+
+                    // Everything waiting on what this blueprint makes, and the tasks that
+                    // would install it. Both, because a print worth buying is one where the
+                    // work is queued behind it AND there is something to install.
+                    StalledTasks = chain.Count,
+                    Tasks        = [.. chain,
+                                    .. doesBuild ? usingIt.GetValueOrDefault((productId, false)) ?? [] : [],
+                                    .. doesCopy  ? usingIt.GetValueOrDefault((bpTypeId, true))   ?? [] : []],
+                });
+            }
         }
 
         // ⚠️ Ranked against every blueprint measured, before anything is filtered out. Rank it
         // after filtering and the scale is drawn from the survivors — which is the list deciding
         // its own cut-off from the rows it already chose, and would call the least bad of a
         // healthy set a bottleneck.
-        var spread = result.Select(r => r.ContentionPercent).OrderBy(v => v).ToList();
+        var spread = result.Select(r => r.PeakContentionPercent).OrderBy(v => v).ToList();
         result = result
-            .Select(r => r with { ContentionRank = Percentile(spread, r.ContentionPercent) })
+            .Select(r => r with { ContentionRank = Percentile(spread, r.PeakContentionPercent) })
             .ToList();
 
         _lastScale = Describe(spread);
 
         // ⚠️ Ranked on contention, never on use. Use ranks a formula somebody already bought eight
         // copies of above one they own a single copy of, which is precisely backwards: the eight
-        // are the fix, and the one is the problem. Blocked work first among equals, since that is
-        // the difference between a door that was shut and a door somebody was trying to open.
+        // are the fix, and the one is the problem. The quarter first, the last month to break a
+        // tie, and blocked work after that, among equals.
+        //
+        // ⚠️ Not blocked work first. It was, and the tab opened on a page of formulas never once
+        // all busy — 4% used, 0% all busy — each with jobs that could not start for some other
+        // reason (their verdict says so), above the hulls whose every original was busy a quarter
+        // of the time. A tab about which prints are the constraint leads with the prints that are.
+        //
+        // ⚠️ The floor on either window. On the quarter alone, a print busy every day of last month
+        // could still miss it, on the very list that compares the two to catch that.
         return result
-            .Where(r => r.ContentionPercent >= (r.Prints <= 1 ? SinglePrintFloorPercent
-                                                              : ListFloorPercent)
+            .Where(r => r.PeakContentionPercent
+                            >= (r.Prints <= 1 ? SinglePrintFloorPercent : ListFloorPercent)
                      || r.BlockedNow > 0)
-            .OrderByDescending(r => r.BlockedNow > 0)
-            .ThenByDescending(r => r.StalledTasks)
+            .OrderByDescending(r => r.PeakContentionPercent)
             .ThenByDescending(r => r.ContentionPercent)
+            .ThenByDescending(r => r.BlockedNow)
+            .ThenByDescending(r => r.StalledTasks)
             .ThenByDescending(r => r.WantedNow)
             .ToList();
     }
@@ -717,8 +837,8 @@ public class BottleneckService(
     /// time. Owned is also the number a buying decision turns on: how often would the copies I
     /// have now have left me waiting.</para>
     ///
-    /// <para>⚠️ A print bought part-way through the window therefore makes the months before it
-    /// look less contended than they were. That is the right way round for the question being
+    /// <para>⚠️ A second print bought part-way through the window therefore makes the months before
+    /// it look less contended than they were. That is the right way round for the question being
     /// asked — what is worth buying NOW — and the wrong way round for a history lesson.</para>
     /// </summary>
     private static double AllBusyDays(

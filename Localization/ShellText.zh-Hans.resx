@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>工业园区</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>星系指数</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生产计算器</value>
   </data>
@@ -120,6 +123,12 @@
   </data>
   <data name="NavCorpActivity" xml:space="preserve">
     <value>军团活动</value>
+  </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>军团建筑</value>
+  </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>雇佣兵巢穴</value>
   </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>击毁报告</value>

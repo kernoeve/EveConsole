@@ -92,29 +92,43 @@
       <!-- Parties -->
       <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto,Auto">
         <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="{x:Static loc:MarketText.Issuer}" />
-        <Panel Grid.Row="0" Grid.Column="1">
-          <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
-                  ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
-            <TextBlock Text="{Binding Issuer}" Classes="val linktext" Margin="0" />
-          </Button>
-          <TextBlock Text="{Binding Issuer}" Classes="val" IsVisible="{Binding !HasIssuerLink}" />
-        </Panel>
+        <!-- Each name with its portrait or logo; a grid, not a horizontal stack, so a long name
+             still wraps. -->
+        <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="Auto,*">
+          <Image Grid.Column="0" Source="{Binding IssuerIcon}" Width="18" Height="18" VerticalAlignment="Top" Margin="0 0 6 4"
+                 IsVisible="{Binding IssuerIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <Panel Grid.Column="1">
+            <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
+                    ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
+              <TextBlock Text="{Binding Issuer}" Classes="val linktext" Margin="0" />
+            </Button>
+            <TextBlock Text="{Binding Issuer}" Classes="val" IsVisible="{Binding !HasIssuerLink}" />
+          </Panel>
+        </Grid>
         <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="{x:Static loc:MarketText.Assignee}" />
-        <Panel Grid.Row="1" Grid.Column="1">
-          <Button Classes="link" Click="OnOpenAssignee" IsVisible="{Binding HasAssigneeLink}"
-                  ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
-            <TextBlock Text="{Binding Assignee}" Classes="val linktext" Margin="0" />
-          </Button>
-          <TextBlock Text="{Binding Assignee}" Classes="val" IsVisible="{Binding !HasAssigneeLink}" />
-        </Panel>
+        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*">
+          <Image Grid.Column="0" Source="{Binding AssigneeIcon}" Width="18" Height="18" VerticalAlignment="Top" Margin="0 0 6 4"
+                 IsVisible="{Binding AssigneeIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <Panel Grid.Column="1">
+            <Button Classes="link" Click="OnOpenAssignee" IsVisible="{Binding HasAssigneeLink}"
+                    ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
+              <TextBlock Text="{Binding Assignee}" Classes="val linktext" Margin="0" />
+            </Button>
+            <TextBlock Text="{Binding Assignee}" Classes="val" IsVisible="{Binding !HasAssigneeLink}" />
+          </Panel>
+        </Grid>
         <TextBlock Grid.Row="2" Grid.Column="0" Classes="lbl" Text="{x:Static loc:MarketText.Acceptor}" />
-        <Panel Grid.Row="2" Grid.Column="1">
-          <Button Classes="link" Click="OnOpenAcceptor" IsVisible="{Binding HasAcceptorLink}"
-                  ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
-            <TextBlock Text="{Binding Acceptor}" Classes="val linktext" Margin="0" />
-          </Button>
-          <TextBlock Text="{Binding Acceptor}" Classes="val" IsVisible="{Binding !HasAcceptorLink}" />
-        </Panel>
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*">
+          <Image Grid.Column="0" Source="{Binding AcceptorIcon}" Width="18" Height="18" VerticalAlignment="Top" Margin="0 0 6 4"
+                 IsVisible="{Binding AcceptorIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <Panel Grid.Column="1">
+            <Button Classes="link" Click="OnOpenAcceptor" IsVisible="{Binding HasAcceptorLink}"
+                    ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
+              <TextBlock Text="{Binding Acceptor}" Classes="val linktext" Margin="0" />
+            </Button>
+            <TextBlock Text="{Binding Acceptor}" Classes="val" IsVisible="{Binding !HasAcceptorLink}" />
+          </Panel>
+        </Grid>
       </Grid>
 
       <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" />
@@ -148,11 +162,19 @@
       <!-- Locations -->
       <Grid ColumnDefinitions="82,*" RowDefinitions="Auto,Auto">
         <TextBlock Grid.Row="0" Grid.Column="0" Classes="lbl" Text="{x:Static loc:MarketText.From}" />
-        <TextBlock Grid.Row="0" Grid.Column="1" Classes="val" Text="{Binding StartLocation}" />
+        <!-- Each place with its station's or structure's picture. -->
+        <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="Auto,*">
+          <Image Grid.Column="0" Source="{Binding StartIcon}" Width="18" Height="18" VerticalAlignment="Top" Margin="0 0 6 4"
+                 IsVisible="{Binding StartIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Grid.Column="1" Classes="val" Text="{Binding StartLocation}" />
+        </Grid>
         <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="{x:Static loc:MarketText.To}"
                    IsVisible="{Binding IsCourier}" />
-        <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding EndLocation}"
-                   IsVisible="{Binding IsCourier}" />
+        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*" IsVisible="{Binding IsCourier}">
+          <Image Grid.Column="0" Source="{Binding EndIcon}" Width="18" Height="18" VerticalAlignment="Top" Margin="0 0 6 4"
+                 IsVisible="{Binding EndIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Grid.Column="1" Classes="val" Text="{Binding EndLocation}" />
+        </Grid>
       </Grid>
 
       <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" />
@@ -194,17 +216,18 @@
           <ItemsControl ItemsSource="{Binding Rows}" IsVisible="{Binding HasRows}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:CourierCargoRowVm">
-                <Grid ColumnDefinitions="*,110,90,Auto" Margin="0 1">
-                  <Button Grid.Column="0" Classes="link" Click="OnOpenCargoItem"
+                <Grid ColumnDefinitions="24,*,110,90,Auto" Margin="0 1">
+                  <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="link" Click="OnOpenCargoItem"
                           ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                     <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="11" TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <NumericUpDown Grid.Column="1" Value="{Binding Quantity, Mode=TwoWay}" Minimum="0" Increment="1"
+                  <NumericUpDown Grid.Column="2" Value="{Binding Quantity, Mode=TwoWay}" Minimum="0" Increment="1"
                                  FormatString="N0" ShowButtonSpinner="False" FontSize="11" Margin="6 0"
                                  ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoQuantity}" />
-                  <TextBlock Grid.Column="2" Text="{Binding VolumeText}" FontSize="11" TextAlignment="Right"
+                  <TextBlock Grid.Column="3" Text="{Binding VolumeText}" FontSize="11" TextAlignment="Right"
                              VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                  <Button Grid.Column="3" Content="✕" FontSize="10" Padding="6 1" Margin="8 0 0 0" Click="OnRemoveCargo"
+                  <Button Grid.Column="4" Content="✕" FontSize="10" Padding="6 1" Margin="8 0 0 0" Click="OnRemoveCargo"
                           ToolTip.Tip="{x:Static loc:MarketText.TipCourierCargoRemove}" />
                 </Grid>
               </DataTemplate>

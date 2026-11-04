@@ -150,6 +150,7 @@ public class ProfitColorConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is decimal d) return d > 0 ? Palette.Good : d < 0 ? Palette.Bad : Palette.TextMuted;
+        if (value is double x)  return x > 0 ? Palette.Good : x < 0 ? Palette.Bad : Palette.TextMuted;   // NaN: muted
         return Palette.TextMuted;
     }
 

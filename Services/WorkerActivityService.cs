@@ -119,6 +119,7 @@ public sealed class WorkerActivityService
         // ⚠️ Subscribed only while this client is the worker. Every client's log raises this, and a
         // client that relayed its own empty feed would overwrite the worker's on everyone else.
         _log.Flushed += OnCallsLogged;
+        _signals.PeerConnected += OnPeerConnected;
 
         _cts = CancellationTokenSource.CreateLinkedTokenSource(outerCt);
         var ct = _cts.Token;
@@ -144,9 +145,36 @@ public sealed class WorkerActivityService
         }, ct);
     }
 
+    /// <summary>Set when a tray connects; the next pass sends everything rather than the changes.</summary>
+    private volatile bool _resendAll;
+
+    /// <summary>How much of the call log a newly connected tray is given, newest last.</summary>
+    private const int CallsOnConnect = 200;
+
+    /// <summary>
+    /// A tray has connected (SQLite only — on PostgreSQL a window opening reads the table instead).
+    ///
+    /// <para>⚠️ A signal has no replay, and this publisher sends only what CHANGED. So without this
+    /// a tray opened onto a quiet system showed every row blank and an empty call log until
+    /// something happened to move — which on a settled worker can be most of an hour.</para>
+    /// </summary>
+    private void OnPeerConnected()
+    {
+        _resendAll = true;
+
+        // The log is the window's collection and lives on the UI thread. Posted, not invoked: a
+        // worker with no message loop running simply sends the tray no history.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            var recent = _log.Entries.Take(CallsOnConnect).Reverse().ToList();   // oldest first
+            lock (_pending) _pending.InsertRange(0, recent);
+        });
+    }
+
     public async Task StopAsync()
     {
         _log.Flushed -= OnCallsLogged;
+        _signals.PeerConnected -= OnPeerConnected;
         lock (_pending) _pending.Clear();
 
         if (_cts is null) return;
@@ -165,6 +193,13 @@ public sealed class WorkerActivityService
 
     private async Task PublishAsync(CancellationToken ct)
     {
+        if (_resendAll)
+        {
+            _resendAll       = false;
+            _lastSent        = new Dictionary<string, string>(StringComparer.Ordinal);
+            _lastInFlightKey = "\0";   // matches nothing, so the in-flight list goes too
+        }
+
         var now  = DateTimeOffset.UtcNow;
         var rows = _sample();
 
@@ -282,7 +317,9 @@ public sealed class WorkerActivityService
                 InFlight = inFlight,
             });
 
-            if (ClientSignals.Fits(payload) || dropped >= batch.Count) break;
+            // The limit is pg_notify's; the local socket to a tray has none, and a tray connecting
+            // is sent a couple of hundred calls at once.
+            if (!DbEngine.IsPostgres || ClientSignals.Fits(payload) || dropped >= batch.Count) break;
 
             // Halve what remains rather than shedding one at a time: a burst can be hundreds, and
             // re-serialising the whole list per entry would cost more than the relay is worth.

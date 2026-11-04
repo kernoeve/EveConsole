@@ -41,6 +41,80 @@ public class AssetBrowserViewModel : ReactiveObject
 
     public IReadOnlyList<ScopeOption> ScopeOptions => AllScopes;
 
+    // ── Group by: the Detailed View's rows under headings ────────────────────
+    //
+    // None is the grid as it always was, a page at a time. Any other grouping reads every matching
+    // row at once — a group's count and totals are of all of it, not of the page loaded — and shows
+    // the groups, each opening onto what is in it.
+
+    public static readonly IReadOnlyList<Choice<AssetGroupBy>> GroupByOptions =
+    [
+        new(AssetGroupBy.None,     AssetsText.GroupByNone),
+        new(AssetGroupBy.Owner,    AssetsText.GroupByOwner),
+        new(AssetGroupBy.System,   AssetsText.GroupBySystem),
+        new(AssetGroupBy.Station,  AssetsText.GroupByStation),
+        new(AssetGroupBy.Location, AssetsText.GroupByLocation),
+    ];
+
+    public IReadOnlyList<Choice<AssetGroupBy>> GroupByChoices => GroupByOptions;
+
+    private Choice<AssetGroupBy> _groupBy = GroupByOptions[0];
+
+    /// <summary>The chosen grouping, remembered on this machine; a change reloads the grid.</summary>
+    public Choice<AssetGroupBy> GroupBy
+    {
+        get => _groupBy;
+        set
+        {
+            if (value is null || value.Value == _groupBy.Value) return;
+            this.RaiseAndSetIfChanged(ref _groupBy, value);
+            this.RaisePropertyChanged(nameof(IsGrouped));
+            UiState.Set(UiState.AssetGroupBy, value.Value.ToString());
+            _expanded.Clear();
+            _cts.Cancel();
+            _cts = new CancellationTokenSource();
+            _ = LoadAsync(_cts.Token);
+        }
+    }
+
+    public bool IsGrouped => _groupBy.Value != AssetGroupBy.None;
+
+    /// <summary>What the Detailed View shows: <see cref="Rows"/>, or the groups flattened.
+    /// ⚠️ Replaced whole, never filled a row at a time: a grouped view can be tens of thousands of
+    /// rows, and a bound collection raising a change per row freezes the UI.</summary>
+    private IReadOnlyList<GridRow> _displayRows = [];
+    public IReadOnlyList<GridRow> DisplayRows
+    {
+        get => _displayRows;
+        private set => this.RaiseAndSetIfChanged(ref _displayRows, value);
+    }
+
+    private List<AssetGroupRow> _groups = [];
+
+    // The groups open, by their path's key, so a sort or a filter keeps them open.
+    private readonly HashSet<string> _expanded = [];
+
+    public void ToggleGroup(AssetGroupRow group)
+    {
+        group.IsExpanded = !group.IsExpanded;
+        if (group.IsExpanded) _expanded.Add(group.Key); else _expanded.Remove(group.Key);
+        DisplayRows = AssetGroups.Flatten(_groups);
+    }
+
+    public void ExpandAll()   => SetAllExpanded(true);
+    public void CollapseAll() => SetAllExpanded(false);
+
+    private void SetAllExpanded(bool open)
+    {
+        _expanded.Clear();
+        foreach (var g in AssetGroups.All(_groups))
+        {
+            g.IsExpanded = open;
+            if (open) _expanded.Add(g.Key);
+        }
+        DisplayRows = AssetGroups.Flatten(_groups);
+    }
+
     private ScopeOption _scope = AllScopes[1];
 
     /// <summary>The chosen scope, remembered on this machine; a change reloads every tab.</summary>
@@ -223,6 +297,9 @@ public class AssetBrowserViewModel : ReactiveObject
         _connectionString = connectionString;
         var remembered = UiState.Get(UiState.AssetScope);
         _scope = AllScopes.FirstOrDefault(s => s.Key == remembered) ?? AllScopes[1];
+        var grouping = UiState.Get(UiState.AssetGroupBy);
+        _groupBy = GroupByOptions.FirstOrDefault(g => g.Value.ToString() == grouping) ?? GroupByOptions[0];
+        _displayRows = Rows;
         _ = LoadAsync();
     }
 
@@ -303,6 +380,8 @@ public class AssetBrowserViewModel : ReactiveObject
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             Rows.Clear();
+            _groups     = [];
+            DisplayRows = Rows;
             Columns    = [];
             HasMore    = false;
             StatusText = CommonText.Loading;
@@ -319,7 +398,8 @@ public class AssetBrowserViewModel : ReactiveObject
 
             await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
-            await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
+            if (IsGrouped) await LoadGroupedAsync(conn, _groupBy.Value, ct);
+            else           await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
             await LoadAggregationAsync(conn, ct);
         }
         catch (OperationCanceledException) { }
@@ -375,6 +455,136 @@ public class AssetBrowserViewModel : ReactiveObject
         AddFilterParams(cmd);
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
     }
+
+    /// <summary>
+    /// Every matching row, under its groups. The rows are read and named exactly as a page is; the
+    /// grouping, the counts and the totals are then worked out here.
+    /// </summary>
+    private async Task LoadGroupedAsync(DbConnection conn, AssetGroupBy by, CancellationToken ct)
+    {
+        var order = _sortColumn is not null
+            ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
+            : "ORDER BY \"Owner Name\", \"Type Name\"";
+
+        var leaves  = new List<AssetLeaf>();
+        List<string> columns;
+        using (var cmd = conn.Command($"{QueryPrefix} SELECT * FROM Base {BuildWhere()} {order}"))
+        {
+            AddFilterParams(cmd);
+            using var reader = await cmd.ExecuteReaderAsync(ct);
+            columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
+            var at = columns.Select((c, i) => (c, i)).ToDictionary(x => x.c, x => x.i);
+
+            long   Long(string c)   => at.TryGetValue(c, out var i) && !reader.IsDBNull(i) ? Convert.ToInt64(reader.GetValue(i), CultureInfo.InvariantCulture) : 0;
+            string Text(string c)   => at.TryGetValue(c, out var i) && !reader.IsDBNull(i) ? Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture) ?? "" : "";
+            double Number(string c) => at.TryGetValue(c, out var i) && !reader.IsDBNull(i) ? RawNumber(reader.GetValue(i)) : 0;
+
+            while (await reader.ReadAsync(ct))
+            {
+                var row = new Dictionary<string, string>(reader.FieldCount);
+                for (int i = 0; i < reader.FieldCount; i++)
+                    row[reader.GetName(i)] = reader.IsDBNull(i) ? "" : FormatValue(reader.GetName(i), reader.GetValue(i));
+                ShowNames(row);
+                leaves.Add(new AssetLeaf(new GridRow(row),
+                    Long("Item Id"), Long("Owner Id"), Text("Owner Type"), Long("Root Location Id"), Long("Solar System Id"),
+                    Text("Flag"), Number("Quantity"), Number("Value"), Number("Total Volume")));
+            }
+        }
+
+        // The Location grouping walks each item up through what holds it, as far as that goes.
+        Func<AssetLeaf, List<(string Key, string Label)>>? containers = null;
+        if (by == AssetGroupBy.Location)
+            containers = await ContainerPathsAsync(conn, ct);
+
+        static (string, string) Owner(AssetLeaf l) => ($"o{l.OwnerType}{l.OwnerId}", l.Row["Owner Name"]);
+        // A place the app could not name is told apart by its id: several of them read as one
+        // "<Unknown Structure>" over and over.
+        static (string, string) Place(AssetLeaf l)
+        {
+            var name = l.Row["Location Name"];
+            return ($"l{l.RootId}",
+                    name == AssetsText.LocUnknownStation || name == AssetsText.LocUnknownStructure
+                 || name == AssetsText.LocUnknownSystem  || name == AssetsText.LocUnresolved
+                        ? string.Format(AssetsText.GroupPlaceWithId, name, l.RootId)
+                        : name);
+        }
+        static (string, string) System(AssetLeaf l)
+        {
+            var name   = l.Row["Solar System"];
+            var region = l.Row["Region Name"];
+            return ($"s{l.SystemId}",
+                    name.Length == 0 ? AssetsText.LocUnknownSystem
+                  : region.Length == 0 ? name : string.Format(AssetsText.GroupSystemInRegion, name, region));
+        }
+
+        List<(string Key, string Label)> PathOf(AssetLeaf l) => by switch
+        {
+            AssetGroupBy.Owner   => [Owner(l)],
+            AssetGroupBy.System  => [System(l)],
+            AssetGroupBy.Station => [Place(l)],
+            _                    => [Place(l), Owner(l), .. containers!(l)],
+        };
+
+        var groups = AssetGroups.Build(leaves, PathOf, _expanded);
+        var shown  = AssetGroups.Flatten(groups);
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _groups     = groups;
+            Columns     = columns;
+            DisplayRows = shown;
+            HasMore     = false;
+            StatusText  = leaves.Count == 0 ? AssetsText.StatusNoAssets
+                        : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusAssetsTotalOther), leaves.Count);
+        });
+    }
+
+    /// <summary>
+    /// Each item's containers, below the station and the owner (AssetGroups.ContainerPath): the
+    /// asset table as a parent map, the corporations' division names and the container types' names.
+    /// </summary>
+    private static async Task<Func<AssetLeaf, List<(string Key, string Label)>>> ContainerPathsAsync(
+        DbConnection conn, CancellationToken ct)
+    {
+        var assets = new Dictionary<(long ItemId, long OwnerId), AssetNode>();
+        using (var cmd = conn.Command("""SELECT "ItemId", "OwnerId", "TypeId", "LocationId", "LocationFlag" FROM "EsiAssets" """))
+        using (var r = await cmd.ExecuteReaderAsync(ct))
+            while (await r.ReadAsync(ct))
+                assets[(r.GetInt64(0), r.GetInt64(1))] = new AssetNode(r.GetInt64(0), r.GetInt32(2), r.GetInt64(3), r.IsDBNull(4) ? "" : r.GetString(4));
+
+        var divisions = new Dictionary<(long Corp, string Flag), string>();
+        using (var cmd = conn.Command("""SELECT "CorporationId", "Division", "Name" FROM "EsiCorpDivisions" WHERE "DivisionType" = 'hangar'"""))
+        using (var r = await cmd.ExecuteReaderAsync(ct))
+            while (await r.ReadAsync(ct))
+                if (!r.IsDBNull(2) && r.GetString(2).Length > 0)
+                    divisions[(r.GetInt64(0), "CorpSAG" + Convert.ToInt32(r.GetValue(1), CultureInfo.InvariantCulture))] = r.GetString(2);
+
+        var names   = new Dictionary<int, string>();
+        using (var cmd = conn.Command($"""SELECT "TypeId", "Name" FROM "SdeTypes" WHERE "TypeId" IN (SELECT DISTINCT "TypeId" FROM "EsiAssets")"""))
+        using (var r = await cmd.ExecuteReaderAsync(ct))
+            while (await r.ReadAsync(ct))
+                names[r.GetInt32(0)] = r.GetString(1);
+
+        string TypeName(int typeId) =>
+            SdeNames.Type(typeId, names.GetValueOrDefault(typeId, string.Format(AssetsText.GroupTypeWithId, typeId)));
+
+        string DivisionName(long corp, string flag) =>
+            flag == "CorpDeliveries" ? AssetsText.GroupDeliveries
+          : divisions.TryGetValue((corp, flag), out var name) ? name
+          : string.Format(AssetsText.DivisionNumbered, flag[^1] - '0');
+
+        return leaf => AssetGroups.ContainerPath(leaf.ItemId, leaf.OwnerId, leaf.RootId, leaf.Flag,
+                                                 assets, TypeName, DivisionName);
+    }
+
+    /// <summary>A number as the reader gives it: double, decimal (Build Cost), or text on SQLite.</summary>
+    private static double RawNumber(object value) => value switch
+    {
+        double d  => d,
+        decimal m => (double)m,
+        string s  => double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var p) ? p : 0,
+        _         => Convert.ToDouble(value, CultureInfo.InvariantCulture),
+    };
 
     private async Task AppendPageAsync(DbConnection conn, int total, CancellationToken ct)
     {

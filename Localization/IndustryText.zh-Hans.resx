@@ -91,14 +91,410 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>30 天成交量下限</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>跳过势力物品</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>跳过无法追溯到 BPO 的物品</value>
   </data>
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>只保留蓝图为可购买的蓝图原件、或由其发明而来的物品（例如由 T1 蓝图原件发明的 T2）。排除无法获得蓝图原件的势力 / 限量流程蓝图拷贝物品、故事线、官员和死亡空间物品，以及蓝图原件已无法在游戏中购买的“限时”活动物品。</value>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>仅限我拥有的蓝图</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>仅显示其蓝图（原件或拷贝）由你的某个角色或标记为个人的军团持有的物品。下次计算时生效。</value>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>最低利润率 %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>仅显示利润率（利润除以制造成本，即利润率一栏）不低于此百分比的物品。下次计算时生效。</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>请输入有效的最低利润率百分比（留空则不筛选）。</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>包含分组</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>选择后，仅显示这些市场分组及其子分组中的物品。排除分组在其中仍然生效。下次计算时生效。</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>移除此分组</value>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30 天最低利润率 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>仅显示按 30 天均价计算的利润率（即 30 天利润率一栏）不低于此百分比的物品。过去 30 天未售出的物品不显示。下次计算时生效。</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>请输入有效的 30 天最低利润率百分比（留空则不筛选）。</value>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 没有卖单：按 30 天均价定价。</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>元组</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>仅显示勾选元组中的物品：即科技等级或物品类别（一级科技、二级科技、势力……）。全部勾选即不筛选。下次计算时生效。</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>请至少勾选一个元组。</value>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>园区</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>比较</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>园区</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>要比较的作业</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>输入要添加的物品或蓝图…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>要制造的数量。计划会安排所需的全部任务。</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>该物品自身蓝图的材料效率，0 到 10。组件使用计算器的常规材料效率。</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>园区</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>材料</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>任务费用</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>总计 = 材料 + 任务费用 − 剩余：超出需要制造的组件会保留而不是消耗，与生产计算器的净成本一致。</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>单价</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>比最佳</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>最佳</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>此处不制造</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>添加物品或蓝图，为每项选择作业，勾选要比较的园区，然后点击计算。</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>请至少添加一个物品。</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>请至少勾选一个园区。</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>计算中…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>物品：{0}  ·  园区：{1}。费用按今天的价格和指数计算；下方图表按过往指数绘制。</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>全部物品合计</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>这些园区所在星系暂无成本指数历史。</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>{0:yyyy-MM-dd} 至 {1:yyyy-MM-dd} 每天的总成本：按今天的计划、材料和税费，配合当天的星系成本指数。</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>图表只绘制前 {0} 条；表格列出全部。</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>材料效率研究</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>时间效率研究</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>所需流程</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>份数</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>目标 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>目标 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>每份拷贝的流程数。</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>所需的发明蓝图流程数。按全部技能 V 级计划足够的尝试次数以期望得到这么多，与工作清单的计划方式相同。</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>拷贝份数。</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>研究到的 ME，1 到 10，从 ME 0 开始。</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>研究到的 TE，2% 到 20%，从 TE 0 开始。</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>不使用解码器</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}（几率 {1:0.##}×，流程 {2:+0;-0;0}，ME {3:+0;-0;0}，TE {4:+0;-0;0}）</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} 份 × 每份 {1} 流程</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} 次尝试，成功率 {1:P1}，得到 {2} × {3} 流程拷贝（ME {4}，TE {5}）；拷贝 {6} 流程；{7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>作业</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>时间是所有作业时长之和，按依次运行计算，技能均为 V 级。</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>图表对象</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>按每日指数计算的成本</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>各园区作业时间</value>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>作业</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>园区</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>每项作业在各园区的成本和时间，各自与该作业的最佳园区相比。</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>复制图片</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>已复制</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>将其复制为图片，可直接粘贴到 Discord、Slack 或文档中。</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>无法复制图片：{0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>成本</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>作业</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>材料效率研究</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>时间效率研究</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>添加星系</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>输入星系名称…</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>添加星系以查看其成本指数。</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>星系：{0}。显示今天的指数；图表显示历史。</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>这些星系在该活动上暂无历史。</value>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>每个图表是一项活动每天的成本指数，{0:yyyy-MM-dd} 至 {1:yyyy-MM-dd}。星系旁的圆点即其线条颜色。</value>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>按上方筛选条件重新计算。汇总和详情两个页共用一次计算；详情页自己的筛选条件变化时会直接缩小其列表。</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>每个列表：该类别中过去 30 天以盈利售出的所有物品，按利润从高到低，包括所有元组。上方筛选条件适用；详情页的筛选条件不适用。</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>过去 30 天这里没有以盈利价格售出的物品。</value>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>新建生产计算器队列</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>加入生产计算器队列</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>已将 {0} 件物品加入生产队列</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 件物品无法制造，未加入</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>过去 30 天的销售</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>均价</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>销售额</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 舰船——大型与旗舰</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 舰船——小型与中型</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 舰船——大型与旗舰</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 舰船——小型与中型</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>弹药与无人机</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>装备</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>改装件与子系统</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>可部署物</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>组件</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>建筑装备与改装件</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>一级科技</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>二级科技</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>三级科技</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>故事线</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>深渊</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>建筑一级科技</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>建筑二级科技</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>建筑势力</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>无（材料、组件等）</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>排除分组</value>
@@ -140,7 +536,16 @@
     <value>30 天销量</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>30 天 ISK 销售额</value>
+    <value>30 天销售额</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30 天均价</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30 天利润率</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30 天利润</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>正在扫描工业机会…</value>
@@ -1119,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>每流程 1 份 BPC，按 ME{0} 的合同价格</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>每流程 1 次 BPC 流程，按发明成本：成功率 {0:P0}，每次成功 {1} 流程，{2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>每次尝试 {0:N0} × {1:N0} 次 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>每次尝试 {0:N0} ISK（数据核心、解码器、T1 拷贝 1 流程、费用）÷（成功率 {1:P1} × {2} 流程）= 每拷贝流程 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>余料：{0:N1} 流程</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>每次发明尝试用一个 T1 拷贝流程，从原件复制。</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>一次成功尝试得到的蓝图拷贝（含解码器效果）。</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>产出：平均 {0:N1} 流程</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>每次成功：ME{0} TE{1}，{2} 流程</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>发明：成功率 {0:P0}，{1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>尝试次数：{0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>中间产物</value>

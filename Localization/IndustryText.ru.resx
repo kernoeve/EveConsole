@@ -91,14 +91,428 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>Мин. объём торгов за 30 д (ед.)</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>Пропускать фракционные</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>Пропускать предметы без доступного BPO</value>
   </data>
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>Только предметы, чертёж которых — покупаемый BPO или получается из него модернизацией (например, T2 из T1 BPO). Исключает фракционные предметы и предметы из BPC с ограниченным числом прогонов, для которых нельзя получить BPO, наградные, командирские и экспериментальные предметы, а также предметы событий с пометкой «Limited Time», чей BPO больше нельзя купить в игре.</value>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Только мои чертежи</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>Только предметы, чей собственный чертёж (оригинал или копия) есть у одного из ваших персонажей или у корпорации, отмеченной как личная. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>Мин. маржа %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>Только предметы, у которых маржа (прибыль к стоимости производства, столбец «Маржа») не ниже этого процента. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>Введите корректную минимальную маржу в процентах (или оставьте пустым, чтобы не фильтровать).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>Включить группы</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>Если выбраны, только предметы из этих рыночных групп и групп под ними. Исключённые группы действуют и внутри них. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>Убрать эту группу</value>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>Мин. маржа % 30 д</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>Только предметы, у которых маржа по средней цене за 30 дней (столбец «Маржа 30 д») не ниже этого процента. Предметы, не продававшиеся последние 30 дней, исключаются. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>Введите корректную минимальную маржу за 30 дней в процентах (или оставьте пустым, чтобы не фильтровать).</value>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* Нет ордеров на продажу: цена по средней за 30 дней.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>Мета-группы</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>Только предметы из отмеченных мета-групп: технический уровень или вид предмета (Tech I, Tech II, фракционные…). Всё отмечено — без фильтра. Применяется при следующем расчёте.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>Отметьте хотя бы одну мета-группу.</value>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>Сравнение</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>Работы для сравнения</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>Введите предмет или чертёж для добавления…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>Единиц</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>Сколько построить. План запускает столько работ, сколько для этого нужно.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>ME чертежа самого предмета, от 0 до 10. Для компонентов — обычная ME калькулятора.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>Парк</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>Стоимость работ</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>Излишки</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>Итого — это материалы плюс стоимость работ за вычетом излишков: компоненты, сделанные сверх нужного, остаются, а не расходуются, как в чистой стоимости калькулятора производства.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>Итого</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>За единицу</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>К лучшему</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>Лучший</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>Здесь не строится</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>Добавьте предметы или чертежи, выберите операцию для каждого, отметьте парки для сравнения и нажмите «Рассчитать».</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>Добавьте хотя бы один предмет.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>Отметьте хотя бы один парк.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>Расчёт…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>Предметов: {0}  ·  Парков: {1}. Стоимость — по сегодняшним ценам и индексам; график ниже следует прошлым индексам.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>Все предметы вместе</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>Для систем этих парков истории индексов стоимости пока нет.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>Итоговая стоимость за каждый день с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}: сегодняшние план, материалы и налоги с индексами стоимости того дня.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>На графике — первые {0}; в таблице — все.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>Изобретение</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>Прогоны</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>Нужно прогонов</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>Копий</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>До ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>До TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>Прогонов на каждой копии.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>Нужное число прогонов изобретённого чертежа. Планируется столько попыток, чтобы ожидать столько, при всех навыках на V, как их планирует список работ.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>Сколько копий.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>До какого ME исследовать, от 1 до 10, начиная с ME 0.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>До какого TE исследовать, от 2 до 20 процентов, начиная с TE 0.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>Без декриптора</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0} (шанс {1:0.##}×, прогоны {2:+0;-0;0}, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0} × копии по {1} прогонов</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0} попыток при {1:P1} на {2} × BPC по {3} прогонов (ME {4}, TE {5}); {6} прогонов копирования; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>Операция</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>Время — сумма длительностей всех работ, как если бы они шли одна за другой, при навыках на V.</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>Графики для</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>Стоимость по индексам каждого дня</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>Время работ по паркам</value>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>Работы</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>Парки</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>Стоимость и время каждой работы в каждом парке, в сравнении с лучшим парком для этой работы.</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>Копировать изображение</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>Скопировать как изображение, чтобы вставить в Discord, Slack или документ.</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>Не удалось скопировать изображение: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>Выше</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>Работа</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>Изобретение</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>Исследование ME</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>Исследование TE</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>Добавить систему</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>Введите название системы…</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>Добавьте систему, чтобы увидеть её индексы стоимости.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>Систем: {0}. Сегодняшние индексы; на графике — история.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>Для этих систем по этому виду работ истории пока нет.</value>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>Каждый график — индекс стоимости одного вида работ по дням, с {0:yyyy-MM-dd} по {1:yyyy-MM-dd}. Точка рядом с системой — цвет её линии.</value>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>Пересчитать с фильтрами выше. Вкладки «Сводка» и «Подробно» используют один расчёт; собственные фильтры «Подробно» сужают её список сразу при изменении.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>Каждый список — все предметы этого вида, проданные с прибылью за 30 дней, по убыванию прибыли, во всех метагруппах. Верхние фильтры действуют, фильтры «Подробно» — нет.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>Здесь за 30 дней ничего не продалось с прибылью.</value>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>Новая очередь калькулятора производства</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>Добавить в очередь калькулятора производства</value>
+  </data>
+  <data name="OppsToastQueuedOne" xml:space="preserve">
+    <value>{0} предмет добавлен в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>{0} предмета добавлено в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedFew" xml:space="preserve">
+    <value>{0} предмета добавлено в очередь производства</value>
+  </data>
+  <data name="OppsToastQueuedMany" xml:space="preserve">
+    <value>{0} предметов добавлено в очередь производства</value>
+  </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} предмет пропущен: его нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} предмета пропущено: их нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableFew" xml:space="preserve">
+    <value>{0} предмета пропущено: их нельзя произвести</value>
+  </data>
+  <data name="ToastNotBuildableMany" xml:space="preserve">
+    <value>{0} предметов пропущено: их нельзя произвести</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>Продажи за последние 30 дней</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>Единиц</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>Ср. цена</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>Корабли T1 — крупные и КБТ</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>Корабли T1 — малые и средние</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>Корабли T2 — крупные и КБТ</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>Корабли T2 — малые и средние</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>Боеприпасы и дроны</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>Модификаторы и подсистемы</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>Развёртываемые</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>Компоненты</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>Модули и модификаторы сооружений</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>Tech I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>Tech II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>Tech III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>Фракционные</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>Сюжетные</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>Бездна</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>Структуры Tech I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>Структуры Tech II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>Фракционные структуры</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>Нет (материалы, компоненты…)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>Исключить группы</value>
@@ -140,7 +554,16 @@
     <value>Прод. 30 д, ед.</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>Прод. 30 д, ISK</value>
+    <value>Продажи 30 д</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>Ср. цена 30 д</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>Маржа 30 д</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>Прибыль 30 д</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Поиск возможностей производства…</value>
@@ -1146,6 +1569,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC на прогон по цене в контрактах для ME{0}</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 прогон BPC на прогон по стоимости изобретения: шанс {0:P0}, {1} прогонов за успех, {2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} за попытку × {1:N0} попыток = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK за попытку (датакоры, декриптор, прогон копии T1, сборы) ÷ (шанс {1:P1} × {2} прогонов) = {3:N0} ISK за прогон копии</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Остаток: {0:N1} прогонов</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>Один прогон копии T1 на каждую попытку изобретения, скопированный с оригинала.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>Копия чертежа, которую даёт одна успешная попытка, с учётом декриптора.</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Выход: в среднем {0:N1} прогонов</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>За успех: ME{0} TE{1}, {2} прогонов</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Изобретение: шанс {0:P0}, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Попытки: {0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Полуфабрикат</value>

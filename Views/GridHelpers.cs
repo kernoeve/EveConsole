@@ -193,7 +193,8 @@ internal sealed class SelectableCell : Border
         {
             Cursor = new Cursor(StandardCursorType.Hand);
             // Not marked handled: the grid still needs the tap to select the cell.
-            Tapped         += (_, _) => { if (DataContext is GridRow r) _onClick(r); };
+            // A group's row names a group, not the thing the column links to.
+            Tapped         += (_, _) => { if (DataContext is GridRow { IsGroupHeader: false } r) _onClick(r); };
             PointerEntered += (_, _) => _tb.TextDecorations = TextDecorations.Underline;
             PointerExited  += (_, _) => _tb.TextDecorations = null;
         }
@@ -232,6 +233,13 @@ internal sealed class SelectableCell : Border
             _tb.Foreground = GridWarning.Brush;
         else
             _tb.ClearValue(TextBlock.ForegroundProperty);
+
+        // A group's own row reads as the heading over the rows below it, and each row sits as deep
+        // as its groups do.
+        _tb.FontWeight = row is { IsGroupHeader: true } ? FontWeight.SemiBold : FontWeight.Normal;
+        _tb.Padding    = row is { Indent: > 0 } && row.IndentColumn == _col
+            ? new Thickness(6 + 16 * row.Indent, 0, 6, 0)
+            : new Thickness(6, 0);
 
         // ⚠️ Transparent rather than null when unselected — see the constructor. Null would take
         // the cell out of hit testing again the first time anything refreshed it.

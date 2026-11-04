@@ -1495,6 +1495,9 @@
   <data name="TokenSavedKeyring" xml:space="preserve">
     <value>令牌已保存在本机的密钥环中。</value>
   </data>
+  <data name="TokenSavedKeychain" xml:space="preserve">
+    <value>令牌已保存在这台 Mac 的钥匙串中。</value>
+  </data>
   <data name="TokenSavedPlain" xml:space="preserve">
     <value>令牌以明文保存在本机的 config.json 中；没有可用的密钥环。</value>
   </data>

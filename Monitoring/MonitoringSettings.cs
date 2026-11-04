@@ -305,6 +305,11 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
         {
             candidates.Add(Path.Combine(profile, "OneDrive", "Documents", "EVE", "logs", subfolder));
             candidates.Add(Path.Combine(profile, "Documents", "EVE", "logs", subfolder));
+
+            // The Mac client before its native port ran under a Windows layer and kept its
+            // "Documents" inside its own drive image; older installs still write there.
+            candidates.Add(Path.Combine(profile, "Library", "Application Support", "EVE Online", "p_drive",
+                                        "User", "My Documents", "EVE", "logs", subfolder));
         }
 
         foreach (var c in candidates)

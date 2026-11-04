@@ -36,7 +36,11 @@ public sealed record ShortageTask(
     string Title,
     string State,
     string Why,
-    int    TypeId = 0);
+    int    TypeId = 0)
+{
+    /// <summary>The task's item when it is a blueprint: a copy or an original, for its picture.</summary>
+    public PrintKind Print { get; init; }
+}
 
 public sealed record ItemShortage(
     int    TypeId,
@@ -60,6 +64,9 @@ public sealed record ItemShortage(
     long   OnOrder = 0,
     IReadOnlyList<ShortageTask>? Tasks = null)
 {
+    /// <summary>A print short here is a copy bought by the run: see <see cref="PrintLabel"/>.</summary>
+    public PrintKind Print { get; init; }
+
     /// <summary>
     /// How much harder this is being drawn on now than across the whole window.
     ///
@@ -303,9 +310,11 @@ public sealed record ItemShortage(
 /// the rate that was wanted. Fix the constraint and the number rises — which means a buffer sized
 /// on today's figure is sized for today's constrained pipeline.</para>
 /// </summary>
+/// <param name="planner">The haul planner, whose last plan says what owned material can move.</param>
 public class ItemContentionService(
     IDbContextFactory<AppDbContext> dbFactory,
-    WorklistSettings                settings)
+    WorklistSettings                settings,
+    LogisticsGenerator?             planner = null)
 {
     /// <summary>How far back rates are measured. Matches the Bottlenecks tab's other windows.</summary>
     private const int WindowDays = 90;
@@ -327,8 +336,17 @@ public class ItemContentionService(
         // ⚠️ Only genuine shortages. A material sitting at another station stops this job just as
         // firmly, but the fix is a hauler rather than a purchase or a build, and the hauling view
         // is where it belongs.
+        //
+        // ⚠️ And what is owned but cannot move: needed by the station holding every unit of it,
+        // or promised to someone first. Neither a haul nor a purchase reaches it, so it was on
+        // neither tab — capital components the ship hangar needs four times over read as trips.
+        // It is short like anything nobody owns, and the answer is building more. HaulReach
+        // splits owned shortages with the Hauling rows, so none is on both.
+        var reach  = new HaulReach(items, planner?.LastFacts);
         var short_ = items
-            .SelectMany(i => i.Shortages.Where(s => s.MustBuy).Select(s => (Item: i, Short: s)))
+            .SelectMany(i => i.Shortages
+                .Where(s => s.MustBuy || (i.LocationId > 0 && !reach.CanHaul(i.LocationId, s.TypeId)))
+                .Select(s => (Item: i, Short: s)))
             .ToList();
         if (short_.Count == 0) return [];
 
@@ -348,6 +366,7 @@ public class ItemContentionService(
             .GroupBy(x => x.Short.TypeId)
             .ToDictionary(g => g.Key, g => (
                 Name:  g.First().Short.TypeName,
+                Print: g.First().Short.Print,
                 Jobs:  g.Count(),
                 // ⚠️ Summed across the jobs that fell short. What the work in front of this
                 // material wants beyond what it can get — the number that says whether a level
@@ -426,7 +445,7 @@ public class ItemContentionService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Making", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId)).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : WorklistText.WhyReadyToInstall, i.TypeId) { Print = i.Print }).ToList());
 
         var makes = items
             .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)
@@ -483,7 +502,7 @@ public class ItemContentionService(
                 // reads top to bottom as the question does.
                 [.. chain,
                     .. runningJobs.GetValueOrDefault(kv.Key) ?? [],
-                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]);
+                    .. makeTasks.GetValueOrDefault(kv.Key) ?? []]) { Print = kv.Value.Print };
             })
             // ⚠️ Stopped work first, then how much waits behind it. The harm is idle slots and
             // stalled jobs, not a ratio — a deficit with stock still on the shelf costs nothing

@@ -33,6 +33,30 @@ public static class ChartPaint
     /// <summary>An axis title carrying the app's accent, as the ISK axes do.</summary>
     public static SolidColorPaint AccentLabels => Make("Accent");
 
+    // ── Series that are things, not measures ─────────────────────────────────
+
+    /// <summary>
+    /// Colours for lines that each stand for one thing — a park, a system — in a fixed order.
+    ///
+    /// <para>⚠️ Checked, not chosen by eye: every adjacent pair stays apart under the three common
+    /// colour-vision deficiencies and for full colour, and all eight clear 3:1 on the dark
+    /// surfaces (dataviz validate_palette, surface #14141c). On the light theme's grey ground
+    /// they fall under 3:1, which every chart drawn with them answers with a legend and a table
+    /// beside it.</para>
+    ///
+    /// <para>⚠️ Never cycled: a ninth thing is left off the chart (the table still lists it), so
+    /// two lines never share a colour. A thing keeps its slot by its place in the user's own list,
+    /// so unticking another does not repaint it.</para>
+    /// </summary>
+    public static readonly string[] SeriesHex =
+        ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+
+    public static int MaxSeries => SeriesHex.Length;
+
+    /// <summary>The line for slot <paramref name="slot"/>, two pixels wide.</summary>
+    public static SolidColorPaint Series(int slot) =>
+        new(SkiaSharp.SKColor.Parse(SeriesHex[slot % SeriesHex.Length])) { StrokeThickness = 2 };
+
     // ── Remembering what a paint was for ──────────────────────────────────────
 
     /// <summary>
@@ -79,6 +103,54 @@ public static class ChartPaint
         }
     }
 
+    // ── Legends and tooltips: published as resources for every chart ─────────
+
+    /// <summary>Resource keys the application's chart styles read their legend and tooltip paints
+    /// from (App.axaml). Replaced with the theme's on every theme change.</summary>
+    public const string LegendTextKey   = "ChartLegendTextPaint";
+    public const string TooltipTextKey  = "ChartTooltipTextPaint";
+    public const string TooltipBackKey  = "ChartTooltipBackPaint";
+
+    /// <summary>
+    /// Puts the current theme's legend and tooltip paints where every chart's style finds them.
+    ///
+    /// <para>⚠️ Without these LiveCharts picks its own, light or dark, and it asks whether the
+    /// application's theme IS Dark — not whether it inherits it. Blue, Pink and Beige Dark are
+    /// themes of their own built on Dark, so it took them for light and drew near-black legend and
+    /// tooltip text on a dark ground: the Market Overview's pie legends, and every chart like them,
+    /// were unreadable there while plain Dark was fine.</para>
+    /// </summary>
+    public static void PublishChrome()
+    {
+        if (Avalonia.Application.Current is not { } app) return;
+        app.Resources[LegendTextKey]  = Make("TextMuted");
+        app.Resources[TooltipTextKey] = Make("TextPrimary");
+        app.Resources[TooltipBackKey] = new SolidColorPaint(Palette.Sk("SurfaceRaised"));
+    }
+
+    /// <summary>
+    /// Has every chart, as it loads, take its legend and tooltip paints from the resources
+    /// <see cref="PublishChrome"/> keeps current — bound, so a theme change reaches a chart already
+    /// on screen. A chart whose view sets one of them itself keeps its own.
+    ///
+    /// <para>⚠️ A class handler, not an application style: a style on the chart types never took
+    /// (their paints stayed unset), so the charts are reached the one way that is sure to.</para>
+    /// </summary>
+    public static void FollowThemeInCharts()
+    {
+        PublishChrome();
+        Avalonia.Controls.Control.LoadedEvent.AddClassHandler<LiveChartsGeneratedCode.SourceGenChart>((chart, _) =>
+        {
+            void Follow(Avalonia.AvaloniaProperty property, string key)
+            {
+                if (!chart.IsSet(property)) chart.Bind(property, Avalonia.Controls.ResourceNodeExtensions.GetResourceObservable(chart, key));
+            }
+            Follow(LiveChartsGeneratedCode.SourceGenChart.LegendTextPaintProperty,        LegendTextKey);
+            Follow(LiveChartsGeneratedCode.SourceGenChart.TooltipTextPaintProperty,       TooltipTextKey);
+            Follow(LiveChartsGeneratedCode.SourceGenChart.TooltipBackgroundPaintProperty, TooltipBackKey);
+        });
+    }
+
     /// <summary>
     /// Rebuilds the axis chrome of every tracked chart in the current theme.
     ///
@@ -88,6 +160,8 @@ public static class ChartPaint
     /// </summary>
     public static void Restyle()
     {
+        PublishChrome();
+
         List<object> owners;
         lock (Owners)
         {

@@ -71,9 +71,10 @@ public class PollingSettingsViewModel : ReactiveObject
     /// <summary>"Runs:" needs no explaining on Windows; on Linux it is the line that matters most.</summary>
     public string ServiceRunsLabel => ServiceIsSystemd ? "ExecStart:" : SettingsText.SvcRunsLabel;
 
-    public string TrayCheckboxText => OperatingSystem.IsWindows()
-        ? SettingsText.SvcTrayCheckboxWindows
-        : SettingsText.SvcTrayCheckboxLinux;
+    public string TrayCheckboxText =>
+        OperatingSystem.IsWindows() ? SettingsText.SvcTrayCheckboxWindows
+        : OperatingSystem.IsMacOS() ? SettingsText.SvcTrayCheckboxMac
+        :                             SettingsText.SvcTrayCheckboxLinux;
 
     private bool _serviceInstalled;
     public bool ServiceInstalled
@@ -221,16 +222,16 @@ public class PollingSettingsViewModel : ReactiveObject
                 TrayIconController.SetStartsAtLogon(value);
 
                 // Ticking a box should do something today, not next time they log in.
-                var windows = OperatingSystem.IsWindows();
+                var (running, off) =
+                    OperatingSystem.IsWindows() ? (SettingsText.SvcTrayRunningWindows, SettingsText.SvcTrayOffWindows)
+                    : OperatingSystem.IsMacOS() ? (SettingsText.SvcTrayRunningMac,     SettingsText.SvcTrayOffMac)
+                    :                             (SettingsText.SvcTrayRunningLinux,   SettingsText.SvcTrayOffLinux);
 
                 TrayStatus = value
                     ? TrayIconController.LaunchNow() is { } error
                         ? string.Format(SettingsText.SvcTrayStartFailed, error)
-                        : windows
-                            ? SettingsText.SvcTrayRunningWindows
-                            : SettingsText.SvcTrayRunningLinux
-                    : string.Format(windows ? SettingsText.SvcTrayOffWindows : SettingsText.SvcTrayOffLinux,
-                                    ShellText.TrayExit);
+                        : running
+                    : string.Format(off, ShellText.TrayExit);
             }
             catch (Exception ex) { TrayStatus = string.Format(SettingsText.SvcTrayChangeFailed, ex.Message.Split('\n')[0]); }
         }

@@ -91,14 +91,410 @@
   <data name="Min30dUnitVol" xml:space="preserve">
     <value>최소 30일 거래량</value>
   </data>
-  <data name="SkipFaction" xml:space="preserve">
-    <value>팩션 아이템 제외</value>
-  </data>
   <data name="SkipNonBpoTraceableItems" xml:space="preserve">
     <value>BPO 출처가 없는 아이템 제외</value>
   </data>
   <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
     <value>블루프린트가 구매할 수 있는 BPO이거나 그런 BPO에서 인벤션한 것(예: T1 BPO에서 나온 T2)인 아이템만 포함합니다. 구할 수 있는 BPO가 없는 팩션/한정 실행 BPC 아이템, 스토리라인·장교·데드스페이스 아이템, 그리고 게임에서 더 이상 BPO를 살 수 없는 '기간 한정' 이벤트 아이템은 제외합니다.</value>
+  </data>
+  <data name="OnlyBlueprintsIOwn" xml:space="preserve">
+    <value>보유한 설계도만</value>
+  </data>
+  <data name="TipOnlyBlueprintsIOwn" xml:space="preserve">
+    <value>해당 아이템의 설계도(원본 또는 사본)를 내 캐릭터나 개인용으로 표시한 콥이 보유한 아이템만 표시합니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="MinMarginPct" xml:space="preserve">
+    <value>최소 마진 %</value>
+  </data>
+  <data name="TipMinMargin" xml:space="preserve">
+    <value>마진(이익을 제조 비용으로 나눈 값, 마진 열)이 이 비율 이상인 아이템만 표시합니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrMinMargin" xml:space="preserve">
+    <value>올바른 최소 마진을 퍼센트로 입력하십시오(비워 두면 필터 없음).</value>
+  </data>
+  <data name="IncludeGroups" xml:space="preserve">
+    <value>포함할 그룹</value>
+  </data>
+  <data name="TipIncludeGroups" xml:space="preserve">
+    <value>선택하면 이 마켓 그룹과 그 하위 그룹의 아이템만 표시합니다. 제외 그룹은 그 안에서도 계속 적용됩니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="TipRemoveThisInclusion" xml:space="preserve">
+    <value>이 그룹 제거</value>
+  </data>
+  <data name="MinMargin30dPct" xml:space="preserve">
+    <value>30일 최소 마진 %</value>
+  </data>
+  <data name="TipMinMargin30d" xml:space="preserve">
+    <value>30일 평균가 기준 마진(30일 마진 열)이 이 비율 이상인 아이템만 표시합니다. 최근 30일간 판매되지 않은 아이템은 제외됩니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrMinMargin30d" xml:space="preserve">
+    <value>올바른 30일 최소 마진을 퍼센트로 입력하십시오(비워 두면 필터 없음).</value>
+  </data>
+  <data name="OppsReportHistoryPriced" xml:space="preserve">
+    <value>* 판매 주문 없음: 30일 평균가로 산정.</value>
+  </data>
+  <data name="MetaGroupsLabel" xml:space="preserve">
+    <value>메타 그룹</value>
+  </data>
+  <data name="TipMetaGroups" xml:space="preserve">
+    <value>체크한 메타 그룹의 아이템만 표시합니다. 테크 레벨이나 아이템 종류(테크 I, 테크 II, 팩션…)입니다. 모두 체크하면 필터가 없습니다. 다음 계산부터 적용됩니다.</value>
+  </data>
+  <data name="OppsErrNoMetaGroup" xml:space="preserve">
+    <value>메타 그룹을 하나 이상 체크하십시오.</value>
+  </data>
+  <data name="TabParks" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="TabCompare" xml:space="preserve">
+    <value>비교</value>
+  </data>
+  <data name="CompareParksLabel" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareJobsLabel" xml:space="preserve">
+    <value>비교할 작업</value>
+  </data>
+  <data name="CompareSearchHint" xml:space="preserve">
+    <value>추가할 아이템이나 청사진 입력…</value>
+  </data>
+  <data name="CompareUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="TipCompareUnits" xml:space="preserve">
+    <value>만들 수량입니다. 계획은 필요한 만큼 작업을 잡습니다.</value>
+  </data>
+  <data name="TipCompareMe" xml:space="preserve">
+    <value>아이템 자체 청사진의 ME(0~10)입니다. 부품은 계산기의 기본 ME를 씁니다.</value>
+  </data>
+  <data name="CompareColPark" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareColMaterials" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="CompareColJobCost" xml:space="preserve">
+    <value>작업 비용</value>
+  </data>
+  <data name="CompareColLeftovers" xml:space="preserve">
+    <value>잉여</value>
+  </data>
+  <data name="CompareTotalNote" xml:space="preserve">
+    <value>합계는 재료와 작업 비용의 합에서 잉여를 뺀 값입니다. 필요 이상으로 만든 부품은 소모되지 않고 남으므로 생산 계산기의 순비용과 같습니다.</value>
+  </data>
+  <data name="CompareColTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="CompareColPerUnit" xml:space="preserve">
+    <value>개당</value>
+  </data>
+  <data name="CompareColVsBest" xml:space="preserve">
+    <value>최저 대비</value>
+  </data>
+  <data name="CompareBest" xml:space="preserve">
+    <value>최저</value>
+  </data>
+  <data name="CompareNotBuilt" xml:space="preserve">
+    <value>여기서 만들지 않음</value>
+  </data>
+  <data name="CompareStart" xml:space="preserve">
+    <value>아이템이나 청사진을 추가하고 각각의 작업을 고른 뒤, 비교할 파크를 체크하고 계산하십시오.</value>
+  </data>
+  <data name="CompareErrNoItems" xml:space="preserve">
+    <value>아이템을 하나 이상 추가하십시오.</value>
+  </data>
+  <data name="CompareErrNoParks" xml:space="preserve">
+    <value>파크를 하나 이상 체크하십시오.</value>
+  </data>
+  <data name="CompareCalculating" xml:space="preserve">
+    <value>계산 중…</value>
+  </data>
+  <data name="CompareStatusDone" xml:space="preserve">
+    <value>아이템: {0}  ·  파크: {1}. 비용은 오늘의 가격과 지수로 계산하며, 아래 차트는 과거 지수를 따릅니다.</value>
+  </data>
+  <data name="CompareAllItems" xml:space="preserve">
+    <value>모든 아이템 합계</value>
+  </data>
+  <data name="CompareNoHistory" xml:space="preserve">
+    <value>이 파크들의 항성계에는 아직 비용 지수 기록이 없습니다.</value>
+  </data>
+  <data name="CompareChartNote" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}부터 {1:yyyy-MM-dd}까지 날마다의 총비용: 오늘의 계획·재료·세금에 그날의 항성계 비용 지수를 적용했습니다.</value>
+  </data>
+  <data name="CompareChartTooMany" xml:space="preserve">
+    <value>차트는 처음 {0}개만 그리며, 표에는 모두 나옵니다.</value>
+  </data>
+  <data name="CompareOpBuild" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="CompareOpCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="CompareOpInvention" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="CompareOpMeResearch" xml:space="preserve">
+    <value>ME 연구</value>
+  </data>
+  <data name="CompareOpTeResearch" xml:space="preserve">
+    <value>TE 연구</value>
+  </data>
+  <data name="CompareRunsPerCopy" xml:space="preserve">
+    <value>런</value>
+  </data>
+  <data name="CompareRunsWanted" xml:space="preserve">
+    <value>원하는 런</value>
+  </data>
+  <data name="CompareCopies" xml:space="preserve">
+    <value>사본 수</value>
+  </data>
+  <data name="CompareToMe" xml:space="preserve">
+    <value>목표 ME</value>
+  </data>
+  <data name="CompareToTe" xml:space="preserve">
+    <value>목표 TE %</value>
+  </data>
+  <data name="TipCompareRunsPerCopy" xml:space="preserve">
+    <value>사본 하나당 런 수입니다.</value>
+  </data>
+  <data name="TipCompareRunsWanted" xml:space="preserve">
+    <value>발명될 청사진의 원하는 런 수입니다. 스킬을 모두 V로 보고, 작업 목록과 같은 방식으로 그만큼을 기대할 수 있는 시도 횟수를 계획합니다.</value>
+  </data>
+  <data name="TipCompareCopies" xml:space="preserve">
+    <value>사본 수입니다.</value>
+  </data>
+  <data name="TipCompareToMe" xml:space="preserve">
+    <value>연구할 목표 ME(1~10)입니다. ME 0에서 시작합니다.</value>
+  </data>
+  <data name="TipCompareToTe" xml:space="preserve">
+    <value>연구할 목표 TE(2~20%)입니다. TE 0에서 시작합니다.</value>
+  </data>
+  <data name="CompareNoDecryptor" xml:space="preserve">
+    <value>디크립터 없음</value>
+  </data>
+  <data name="CompareDecryptorChoice" xml:space="preserve">
+    <value>{0}(확률 {1:0.##}×, 런 {2:+0;-0;0}, ME {3:+0;-0;0}, TE {4:+0;-0;0})</value>
+  </data>
+  <data name="CompareDetailCopy" xml:space="preserve">
+    <value>{0}개 × {1}런 사본</value>
+  </data>
+  <data name="CompareDetailInvention" xml:space="preserve">
+    <value>{0}회 시도(성공률 {1:P1})로 {2} × {3}런 BPC(ME {4}, TE {5}); 복사 {6}런; {7}</value>
+  </data>
+  <data name="CompareDetailMe" xml:space="preserve">
+    <value>ME 0 → {0}</value>
+  </data>
+  <data name="CompareDetailTe" xml:space="preserve">
+    <value>TE 0% → {0}%</value>
+  </data>
+  <data name="CompareColOperation" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="CompareColTime" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="CompareColDetail" xml:space="preserve">
+    <value>세부</value>
+  </data>
+  <data name="CompareTimeNote" xml:space="preserve">
+    <value>시간은 모든 작업 시간의 합계입니다(차례로 실행한 경우, 스킬은 모두 V).</value>
+  </data>
+  <data name="CompareChartsFor" xml:space="preserve">
+    <value>차트 대상</value>
+  </data>
+  <data name="CompareCostChartTitle" xml:space="preserve">
+    <value>날짜별 지수로 계산한 비용</value>
+  </data>
+  <data name="CompareTimeChartTitle" xml:space="preserve">
+    <value>파크별 작업 시간</value>
+  </data>
+  <data name="CompareSummaryTitle" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="CompareSummaryRows" xml:space="preserve">
+    <value>행</value>
+  </data>
+  <data name="CompareSummaryRowsJobs" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="CompareSummaryRowsParks" xml:space="preserve">
+    <value>파크</value>
+  </data>
+  <data name="CompareSummaryNote" xml:space="preserve">
+    <value>각 파크에서 각 작업의 비용과 시간이며, 각각 그 작업에 가장 좋은 파크와 비교합니다.</value>
+  </data>
+  <data name="CompareCopyImage" xml:space="preserve">
+    <value>이미지 복사</value>
+  </data>
+  <data name="CompareCopied" xml:space="preserve">
+    <value>복사됨</value>
+  </data>
+  <data name="TipCompareCopyImage" xml:space="preserve">
+    <value>이미지로 복사합니다. Discord, Slack 또는 문서에 바로 붙여 넣을 수 있습니다.</value>
+  </data>
+  <data name="CompareCopyFailed" xml:space="preserve">
+    <value>이미지를 복사할 수 없습니다: {0}</value>
+  </data>
+  <data name="TipCompareMoveUp" xml:space="preserve">
+    <value>위로 이동</value>
+  </data>
+  <data name="TipCompareMoveDown" xml:space="preserve">
+    <value>아래로 이동</value>
+  </data>
+  <data name="CompareColCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="CompareColJob" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="IndexManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="IndexReaction" xml:space="preserve">
+    <value>반응</value>
+  </data>
+  <data name="IndexInvention" xml:space="preserve">
+    <value>발명</value>
+  </data>
+  <data name="IndexCopying" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="IndexMeResearch" xml:space="preserve">
+    <value>ME 연구</value>
+  </data>
+  <data name="IndexTeResearch" xml:space="preserve">
+    <value>TE 연구</value>
+  </data>
+  <data name="IndexColSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="IndexColRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="IndexAddSystem" xml:space="preserve">
+    <value>항성계 추가</value>
+  </data>
+  <data name="IndexSearchHint" xml:space="preserve">
+    <value>항성계 이름 입력…</value>
+  </data>
+  <data name="IndexRefresh" xml:space="preserve">
+    <value>새로 고침</value>
+  </data>
+  <data name="IndexStart" xml:space="preserve">
+    <value>항성계를 추가하면 비용 지수가 표시됩니다.</value>
+  </data>
+  <data name="IndexStatus" xml:space="preserve">
+    <value>항성계: {0}. 오늘의 지수이며, 차트는 기록을 보여 줍니다.</value>
+  </data>
+  <data name="IndexNoHistory" xml:space="preserve">
+    <value>이 활동에는 아직 이 항성계들의 기록이 없습니다.</value>
+  </data>
+  <data name="IndexChartsNote" xml:space="preserve">
+    <value>각 차트는 한 활동의 날짜별 비용 지수입니다({0:yyyy-MM-dd}~{1:yyyy-MM-dd}). 항성계 옆의 점이 그 선의 색입니다.</value>
+  </data>
+  <data name="OppsRefresh" xml:space="preserve">
+    <value>새로 고침</value>
+  </data>
+  <data name="TipOppsRefresh" xml:space="preserve">
+    <value>위의 필터로 다시 계산합니다. 요약과 세부 탭은 한 번의 계산을 함께 쓰며, 세부 탭 자체 필터는 바꾸는 즉시 목록을 좁힙니다.</value>
+  </data>
+  <data name="OppsTabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="OppsTabDetail" xml:space="preserve">
+    <value>세부</value>
+  </data>
+  <data name="OppsSummaryNote" xml:space="preserve">
+    <value>각 목록: 지난 30일 동안 이익을 내며 팔린 해당 종류의 모든 아이템을 이익이 큰 순서로 보여 주며 모든 메타 그룹이 대상입니다. 위쪽 필터는 적용되고 세부 탭의 필터는 적용되지 않습니다.</value>
+  </data>
+  <data name="OppsSummaryEmpty" xml:space="preserve">
+    <value>지난 30일 동안 여기서 이익을 내며 팔린 것이 없습니다.</value>
+  </data>
+  <data name="OppsMenuNewQueue" xml:space="preserve">
+    <value>새 생산 계산기 대기열</value>
+  </data>
+  <data name="OppsMenuAddQueue" xml:space="preserve">
+    <value>생산 계산기 대기열에 추가</value>
+  </data>
+  <data name="OppsToastQueuedOther" xml:space="preserve">
+    <value>아이템 {0}개를 생산 대기열에 추가했습니다</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>아이템 {0}개는 제조할 수 없어 추가하지 않았습니다</value>
+  </data>
+  <data name="OppsSales30dLabel" xml:space="preserve">
+    <value>지난 30일 판매</value>
+  </data>
+  <data name="OppsColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="OppsColAvg" xml:space="preserve">
+    <value>평균 가격</value>
+  </data>
+  <data name="OppsColSales" xml:space="preserve">
+    <value>매출</value>
+  </data>
+  <data name="OppsColProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="OppsSecT1Large" xml:space="preserve">
+    <value>T1 함선 — 대형·캐피탈</value>
+  </data>
+  <data name="OppsSecT1Small" xml:space="preserve">
+    <value>T1 함선 — 소형·중형</value>
+  </data>
+  <data name="OppsSecT2Large" xml:space="preserve">
+    <value>T2 함선 — 대형·캐피탈</value>
+  </data>
+  <data name="OppsSecT2Small" xml:space="preserve">
+    <value>T2 함선 — 소형·중형</value>
+  </data>
+  <data name="OppsSecAmmoDrones" xml:space="preserve">
+    <value>탄약 및 드론</value>
+  </data>
+  <data name="OppsSecModules" xml:space="preserve">
+    <value>모듈</value>
+  </data>
+  <data name="OppsSecRigsSubsystems" xml:space="preserve">
+    <value>리그 및 서브시스템</value>
+  </data>
+  <data name="OppsSecDeployables" xml:space="preserve">
+    <value>배치물</value>
+  </data>
+  <data name="OppsSecComponents" xml:space="preserve">
+    <value>부품</value>
+  </data>
+  <data name="OppsSecStructureModules" xml:space="preserve">
+    <value>구조물 모듈 및 리그</value>
+  </data>
+  <data name="MetaTech1" xml:space="preserve">
+    <value>테크 I</value>
+  </data>
+  <data name="MetaTech2" xml:space="preserve">
+    <value>테크 II</value>
+  </data>
+  <data name="MetaTech3" xml:space="preserve">
+    <value>테크 III</value>
+  </data>
+  <data name="MetaFaction" xml:space="preserve">
+    <value>팩션</value>
+  </data>
+  <data name="MetaStoryline" xml:space="preserve">
+    <value>스토리라인</value>
+  </data>
+  <data name="MetaAbyssal" xml:space="preserve">
+    <value>어비설</value>
+  </data>
+  <data name="MetaStructureTech1" xml:space="preserve">
+    <value>구조물 테크 I</value>
+  </data>
+  <data name="MetaStructureTech2" xml:space="preserve">
+    <value>구조물 테크 II</value>
+  </data>
+  <data name="MetaStructureFaction" xml:space="preserve">
+    <value>구조물 팩션</value>
+  </data>
+  <data name="MetaNone" xml:space="preserve">
+    <value>없음(재료, 부품 등)</value>
   </data>
   <data name="ExcludeGroups" xml:space="preserve">
     <value>제외할 그룹</value>
@@ -141,6 +537,15 @@
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>30일 판매액</value>
+  </data>
+  <data name="ColAvgPrice30d" xml:space="preserve">
+    <value>30일 평균가</value>
+  </data>
+  <data name="ColMargin30d" xml:space="preserve">
+    <value>30일 마진</value>
+  </data>
+  <data name="ColProfit30d" xml:space="preserve">
+    <value>30일 이익</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>산업 기회 검색 중…</value>
@@ -1119,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1회당 BPC 1개 @ ME{0} 계약 가격</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1회당 BPC 1회분 @ 발명 비용: 확률 {0:P0}, 성공당 {1}회, {2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>복제</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>시도당 {0:N0} × {1:N0}회 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>시도당 {0:N0} ISK(데이터코어, 디크립터, T1 사본 1회분, 수수료) ÷ (확률 {1:P1} × {2}회) = 사본 1회분당 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>잉여: {0:N1}회</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>발명 시도마다 T1 사본 1회분, 원본에서 복제합니다.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>성공한 시도 1회로 얻는 블루프린트 사본(디크립터 포함).</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>산출: 평균 {0:N1}회</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>성공당: ME{0} TE{1}, {2}회</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>발명: 확률 {0:P0}, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>시도 횟수: {0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>중간재</value>

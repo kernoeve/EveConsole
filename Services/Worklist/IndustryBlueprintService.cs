@@ -30,6 +30,10 @@ public sealed record BlueprintStock
     /// </summary>
     public required bool   LockedInJob  { get; init; }
 
+    /// <summary>When the job it is locked in ends — past for one finished but not yet collected;
+    /// null when it is not in a job.</summary>
+    public DateTimeOffset? BusyUntil { get; init; }
+
     public string Describe() => IsOriginal
         ? string.Format(WorklistText.PrintDescribeBpo, Me, Te)
         : string.Format(WorklistText.PrintDescribeBpc, Me, Te, Runs);
@@ -115,11 +119,18 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
         // Prints locked in a job right now. The same live statuses used for slot counting:
         // "ready" holds its print as firmly as "active" does, since the job has not been
         // collected and the blueprint is still in it.
+        // With when each job ends, so a planned job waiting on a busy print can tell whether it
+        // frees soon. ⚠️ Read out and compared in memory: DateTimeOffset does not translate on SQLite.
         var locked = (await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.Status == "active" || j.Status == "paused" || j.Status == "ready")
-                .Select(j => j.BlueprintId)
+                .Select(j => new { j.BlueprintId, j.EndDate })
                 .ToListAsync(ct))
-            .ToHashSet();
+            .GroupBy(j => j.BlueprintId)
+            .ToDictionary(g => g.Key, g => g.Max(j => j.EndDate));
+
+        // Runs a delivered job has taken off a copy the snapshot has not caught up with: a copy
+        // spent to nothing is gone, though its row is still here. See DeliveryLag.
+        var spent = await DeliveryLag.SpentCopyRunsAsync(db, ct);
 
         var prints = rows
             .Select(r => new BlueprintStock
@@ -127,13 +138,14 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 ItemId      = r.ItemId,
                 TypeId      = r.TypeId,
                 IsOriginal  = r.Runs < 0,
-                Runs        = r.Runs < 0 ? int.MaxValue : r.Runs,
+                Runs        = r.Runs < 0 ? int.MaxValue : r.Runs - spent.GetValueOrDefault(r.ItemId),
                 Me          = r.MaterialEfficiency,
                 Te          = r.TimeEfficiency,
                 LocationId  = containerRoots.GetValueOrDefault(r.LocationId, r.LocationId),
                 OwnerType   = r.OwnerType,
                 OwnerId     = r.OwnerId,
-                LockedInJob = locked.Contains(r.ItemId),
+                LockedInJob = locked.ContainsKey(r.ItemId),
+                BusyUntil   = locked.TryGetValue(r.ItemId, out var until) ? until : null,
             })
             .Where(b => b.Runs > 0)   // a spent copy is a row that has not caught up yet
             .ToList();

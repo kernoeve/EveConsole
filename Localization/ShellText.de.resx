@@ -64,6 +64,9 @@
   <data name="NavIndyParks" xml:space="preserve">
     <value>Indy-Parks</value>
   </data>
+  <data name="NavSystemIndex" xml:space="preserve">
+    <value>Systemindex</value>
+  </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Produktionsrechner</value>
   </data>
@@ -120,6 +123,12 @@
   </data>
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Corp-Aktivität</value>
+  </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>Corp-Strukturen</value>
+  </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>Söldnerunterschlüpfe</value>
   </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Abschussberichte</value>

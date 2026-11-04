@@ -29,6 +29,10 @@ public class EveMailRowVm : ReactiveObject
     public DateTimeOffset TimeRaw      { get; }
     public string         CharName     { get; }
 
+    /// <summary>The characters whose copy of this mail is still unread — every one of them is
+    /// marked when it is opened. A corp or alliance mail is one row with a copy per character.</summary>
+    public IReadOnlyList<long> UnreadCharIds { get; private set; }
+
     /// <summary>Each addressee separately, so every name in the To line is its own link. A
     /// mailing list has no entity page, so it renders plain.</summary>
     public IReadOnlyList<EveMailPartyVm> Recipients { get; }
@@ -74,6 +78,7 @@ public class EveMailRowVm : ReactiveObject
         TimeText      = r.Timestamp.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TimeRaw       = r.Timestamp;
         CharName      = charName;
+        UnreadCharIds = r.UnreadCharacterIds;
         _isRead       = r.IsRead;
         _isUnread     = !r.IsRead;
         _fromColor    = r.IsRead ? Palette.TextMuted : Palette.TextBright;
@@ -96,14 +101,17 @@ public class EveMailRowVm : ReactiveObject
 
     public void MarkAsRead()
     {
+        UnreadCharIds = [];
         IsRead       = true;
         IsUnread     = false;
         FromColor    = Palette.TextMuted;
         SubjectColor = Palette.TextFaint;
     }
 
-    /// <summary>The row's identity in the list: one mail, in one character's mailbox.</summary>
-    public (int, long) Key => (MailId, CharId);
+    /// <summary>The row's identity in the list: one mail, whichever mailboxes it is in. ⚠️ Not the
+    /// character too: the copy a row speaks through moves to a read one once the unread ones are
+    /// read, and a key that moved with it replaced the row and lost the selection.</summary>
+    public int Key => MailId;
 
     /// <summary>
     /// Takes whatever the poll has changed since this row was built — read in the game, say —
@@ -112,6 +120,7 @@ public class EveMailRowVm : ReactiveObject
     public void Update(EveMailRow r)
     {
         if (r.IsRead && !IsRead) MarkAsRead();
+        else if (!r.IsRead) UnreadCharIds = r.UnreadCharacterIds;
     }
 
     public Task LoadPortraitAsync()
@@ -270,6 +279,7 @@ public class EveMailViewModel : ReactiveObject
 
         // Static folders — always present
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderAll,  null));
+        Folders.Add(new EveMailFolderVm(CommsText.MailFolderUnread, EveMailService.UnreadFolder));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderInbox,     1));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderSent,      2));
         Folders.Add(new EveMailFolderVm(CommsText.MailFolderCorp,      4));
@@ -408,13 +418,13 @@ public class EveMailViewModel : ReactiveObject
     private List<EveMailRowVm> Reconcile(List<EveMailRow> rows)
     {
         var added   = new List<EveMailRowVm>();
-        var existing = new Dictionary<(int, long), EveMailRowVm>();
+        var existing = new Dictionary<int, EveMailRowVm>();
         foreach (var vm in Mails) existing[vm.Key] = vm;
 
         for (var i = 0; i < rows.Count; i++)
         {
             var r   = rows[i];
-            var key = (r.MailId, r.CharacterId);
+            var key = r.MailId;
 
             if (existing.TryGetValue(key, out var vm))
             {
@@ -438,18 +448,41 @@ public class EveMailViewModel : ReactiveObject
         return added;
     }
 
+    /// <summary>All Mail, Unread, Inbox, Sent, Corp, Alliance: the folders that are always there.</summary>
+    private const int StaticFolders = 6;
+
+    /// <summary>
+    /// Every character's unread mail — what the Overview's unread mail alert opens. Both choices
+    /// are set before one load, rather than each loading as it changes.
+    /// </summary>
+    public void ShowUnread()
+    {
+        _suppressFolderLoad = true;
+        try
+        {
+            if (Characters.FirstOrDefault(c => c.IsAllCharacters) is { } all && !ReferenceEquals(_selectedChar, all))
+            {
+                _selectedChar = all;
+                this.RaisePropertyChanged(nameof(SelectedChar));
+            }
+            SelectedFolder = Folders.First(f => f.LabelId == EveMailService.UnreadFolder);
+        }
+        finally { _suppressFolderLoad = false; }
+        _ = LoadMailsAsync();
+    }
+
     private void RebuildFolders(List<EveMailLabelOption> customLabels)
     {
-        // Never remove the 5 static folders — clearing+re-adding them causes the ListBox binding
+        // Never remove the static folders — clearing+re-adding them causes the ListBox binding
         // to push SelectedFolder=null back, which triggers a reload loop.
-        // Only manage the custom label entries at index 5+.
+        // Only manage the custom label entries after them.
         _suppressFolderLoad = true;
         try
         {
             var savedLabelId = _selectedFolder?.LabelId;
 
-            while (Folders.Count > 5)
-                Folders.RemoveAt(5);
+            while (Folders.Count > StaticFolders)
+                Folders.RemoveAt(StaticFolders);
 
             foreach (var lbl in customLabels)
                 Folders.Add(new EveMailFolderVm(lbl.Name, lbl.LabelId));
@@ -499,9 +532,11 @@ public class EveMailViewModel : ReactiveObject
             if (ct.IsCancellationRequested) return;   // superseded; the newer load owns the pane
             BodyMarkup = body;
 
+            // Read for every character it reached, not only the copy opened: twenty copies of one
+            // corp mail used to wait to be opened twenty times.
             if (!mail.IsRead)
             {
-                await _svc.MarkReadAsync(mail.CharId, mail.MailId);
+                await _svc.MarkReadAsync(mail.UnreadCharIds.Count > 0 ? mail.UnreadCharIds : [mail.CharId], mail.MailId);
                 mail.MarkAsRead();
             }
         }

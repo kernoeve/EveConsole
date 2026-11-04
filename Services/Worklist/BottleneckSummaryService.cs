@@ -16,7 +16,7 @@ namespace EveConsole.Services.Worklist;
 ///
 /// <para>TypeId 0 for a point about no particular item, which is what the slot findings are.</para>
 /// </summary>
-public sealed record ObservationPoint(int TypeId, string Text)
+public sealed record ObservationPoint(int TypeId, string Text, PrintKind Print = PrintKind.None)
 {
     public static implicit operator ObservationPoint(string text) => new(0, text);
 }
@@ -162,9 +162,11 @@ public class BottleneckSummaryService
     {
         var blocking = prints
             .Where(p => p.IsReaction == reactions
-                     && p.ContentionPercent > 0
-                     && (p.BlockedNow > 0 || p.StalledTasks > 0))
-            .OrderByDescending(p => p.ContentionPercent)
+                     && p.PeakContentionPercent > 0
+                     // Stopped work behind a print counts only if the print is what is holding it:
+                     // with jobs waiting on a slot, buying one starts none of them.
+                     && (p.BlockedNow > 0 || p.StalledTasks > 0 && p.NoSlotNow == 0))
+            .OrderByDescending(p => p.PeakContentionPercent)
             .ThenByDescending(p => p.StalledTasks)
             .ToList();
         if (blocking.Count == 0) yield break;
@@ -180,7 +182,9 @@ public class BottleneckSummaryService
             // throughput one purchase buys.
             [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
                 string.Format(WorklistText.SummaryBuyPrint,
-                              SdeNames.Type(p.ProductTypeId, p.ProductName),
+                              p.Role == PrintRole.Copy
+                                  ? string.Format(WorklistText.PrintNameCopying, SdeNames.Type(p.ProductTypeId, p.ProductName))
+                                  : SdeNames.Type(p.ProductTypeId, p.ProductName),
                               p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
     }
 
@@ -191,9 +195,9 @@ public class BottleneckSummaryService
     ///
     /// <para>⚠️ Derived from the Buy tasks rather than from Item Contention's shortages, because
     /// the two answer different questions and the summary must not contradict the list it
-    /// summarises. Contention's MustBuy is a per-job, sequential test — each planned job reserves
-    /// its materials and a later one that cannot get its share is marked short — so it fires
-    /// when the plan's cumulative appetite exceeds stock, not when a shelf is empty. It told the
+    /// summarises. Contention's MustBuy is a per-job, sequential test — each job that can start
+    /// reserves its materials and a later one that cannot get its share is marked short — so it
+    /// fires when the appetite of what is starting exceeds stock, not when a shelf is empty. It told the
     /// reader to buy 40,698 Tungsten while 226,037 sat on hand against a level of 200,100, and
     /// the worklist raised no task for it, correctly.</para>
     ///
@@ -221,7 +225,7 @@ public class BottleneckSummaryService
             [.. buys.Take(MaxNamed).Select(x => new ObservationPoint(x.Item.TypeId,
                 x.Stalled.Count > 0
                     ? string.Format(WorklistText.SummaryBuyUnblocks, x.Item.Title, x.Stalled.Count)
-                    : x.Item.Title))]);
+                    : x.Item.Title, x.Item.Print))]);
     }
 
     // ── Buffers ───────────────────────────────────────────────────────────────
@@ -273,30 +277,28 @@ public class BottleneckSummaryService
     {
         if (hauls.Count == 0) yield break;
 
-        // Only what nobody has raised: a trip already on the list needs no decision.
-        var idle = hauls.Where(h => h.HaulTasks == 0).ToList();
-        if (idle.Count == 0) yield break;
-
-        // ⚠️ Trips serving several stopped jobs first. One row per job is the grid's business;
-        // what belongs here is the delivery worth making.
-        var shared = SharedHauls.Find(idle).Where(h => !h.Raised).ToList();
+        // ⚠️ What holds up the most work, whether a haul is raised for it or not. Only the
+        // trips nobody had raised were listed once, and a raised one simply vanished: the haul
+        // that 132 stopped jobs were waiting on — Tritanium, 945 million units, ready to fly —
+        // was nowhere on the card, while it named trips the plan could never make. A raised trip
+        // is still the bottleneck until it is flown; the line says whether it is on the worklist.
+        var shared = SharedHauls.Find(hauls);
+        var notRaised = hauls.SelectMany(h => h.Wants.Where(w => !w.Moving).Select(w => (h.StationId, w.TypeId)))
+            .Distinct().Count();
 
         List<ObservationPoint> points = shared.Count > 0
-            ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId,
-                  h.Unblocks > 0
-                      ? string.Format(WorklistText.SummaryTripRestarts,
-                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Unblocks)
-                      : string.Format(WorklistText.SummaryTripWanted,
-                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Jobs)))]
-            : [.. idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
+            ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId, h.Line))]
+            : [.. hauls.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
                    .Select(h => new ObservationPoint(h.TypeId,
                        string.Format(WorklistText.SummaryHaulAt, h.Title, h.StationName, h.Volume)))];
+        var deliveries = shared.Count > 0 ? shared.Count : hauls.Count;
 
         yield return new Observation(
             "hauling",
-            idle.Count + DistinctStopped(idle.Select(h => h.Tasks)),
-            string.Format(WorklistText.SummaryRaiseHauls, shared.Count > 0 ? shared.Count : idle.Count),
-            string.Format(WorklistText.SummaryHaulsIdle, idle.Count),
+            hauls.Count + DistinctStopped(hauls.Select(h => h.Tasks)),
+            string.Format(WorklistText.SummaryHaulsHoldUp, deliveries, hauls.Count),
+            (notRaised > 0 ? string.Format(WorklistText.SummaryHaulsNotRaised, notRaised) : WorklistText.SummaryHaulsAllRaised)
+          + More(deliveries),
             points);
     }
 

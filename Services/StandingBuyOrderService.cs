@@ -47,7 +47,16 @@ public sealed record StandingBuyOrderRow(
     /// wallet; this names the person who has to log in.</para>
     /// </summary>
     long   PlacedById = 0,
-    string PlacedByName = "");
+    string PlacedByName = "",
+
+    /// <summary>What a unit is worth as the asset valuation prices it (Settings → Market: the
+    /// asset-value market and price type), the yardstick a bid is read against. Null when there is
+    /// no price for it.</summary>
+    double? MarketValue = null,
+
+    /// <summary>What a unit costs to build, as the build cost pass last worked it out; null for
+    /// an item that is not built, or not yet costed.</summary>
+    double? BuildCost = null);
 
 /// <summary>
 /// Standing buy orders: the user declares a buy order they intend to keep up at a
@@ -86,6 +95,26 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
     }
 
     /// <summary>Returns false when an entry for the same type and location already exists.</summary>
+    /// <summary>The station of the standing buy order added last, the place new ones go; null
+    /// when there are none. Last by id: ⚠️ CreatedAt is a DateTimeOffset, which SQLite cannot order.</summary>
+    public async Task<(long LocationId, string LocationName)?> LastLocationAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var last = await db.StandingBuyOrders.AsNoTracking()
+            .OrderByDescending(o => o.Id)
+            .Select(o => new { o.LocationId, o.LocationName })
+            .FirstOrDefaultAsync(ct);
+        return last is null ? null : (last.LocationId, last.LocationName);
+    }
+
+    /// <summary>An item's English name, as an order keeps it; null for an unknown type.</summary>
+    public async Task<string?> TypeNameAsync(int typeId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.SdeTypes.AsNoTracking()
+            .Where(t => t.TypeId == typeId).Select(t => t.Name).FirstOrDefaultAsync(ct);
+    }
+
     public async Task<bool> AddAsync(StandingBuyOrder order, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -191,6 +220,17 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
         // two things above that are easy to get wrong.
         var bids = await competition.LoadBuyAsync(typeIds, locIds, ourOrderIds, ct);
 
+        // What each item is worth, as net worth values it: the one valuation the app has.
+        var values = await TypeValuation.PricesAsync(db, typeIds, ct);
+        double? ValueOf(int typeId) => values.TryGetValue(typeId, out var v) && v > 0 ? v : null;
+
+        // And what it costs to build, from the build cost pass the rest of the app reads.
+        var builds = await db.BuildCosts.AsNoTracking()
+            .Where(b => typeIds.Contains(b.TypeId) && b.TotalCost > 0)
+            .Select(b => new { b.TypeId, b.TotalCost })
+            .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+        double? BuildOf(int typeId) => builds.TryGetValue(typeId, out var v) ? v : null;
+
         var charNames = await db.Characters.AsNoTracking()
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         // Corporation.Id is int while MarketOrder.OwnerId is long, so widen the key
@@ -245,7 +285,9 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                     IsLocationTracked    : tracked,
                     CompetingBidText     : rivalText,
                     IsOutbid             : false,
-                    OutbidBy             : null));
+                    OutbidBy             : null,
+                    MarketValue          : ValueOf(sbo.TypeId),
+                    BuildCost            : BuildOf(sbo.TypeId)));
                 continue;
             }
 
@@ -347,7 +389,9 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 OwnerId              : distinctOwners.Count == 1 ? distinctOwners[0].OwnerId   : 0,
                 OwnerType            : distinctOwners.Count == 1 ? distinctOwners[0].OwnerType : "",
                 PlacedById           : placedByHere,
-                PlacedByName         : placedByHere > 0 ? charNames.GetValueOrDefault(placedByHere, "") : ""));
+                PlacedByName         : placedByHere > 0 ? charNames.GetValueOrDefault(placedByHere, "") : "",
+                MarketValue          : ValueOf(sbo.TypeId),
+                BuildCost            : BuildOf(sbo.TypeId)));
         }
 
         return rows;

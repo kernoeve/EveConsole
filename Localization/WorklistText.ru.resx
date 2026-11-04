@@ -368,16 +368,16 @@
     <value>Сколько единиц в день могли бы выпускать имеющиеся оригиналы вместе, работая без перерыва.</value>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Сколько единиц в день реально выпущено за последние 90 дней. Это значение никогда не превышает потолок, поэтому им нельзя измерять спрос.</value>
+    <value>Единиц в день, фактически произведённых за те же дни, что и показатель полной занятости. Это значение не может превысить потолок, поэтому им нельзя измерять спрос.</value>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Доля времени, которую каждый оригинал провёл в проектах. Только для справки: узких мест это не выявляет, а упорядочивание по этой доле ставит интенсивное использование выше реальных ограничений.</value>
+    <value>Доля времени, которую каждый оригинал провёл в проектах, за те же дни, что и показатель полной занятости. Только для справки: узких мест это не выявляет, а упорядочивание по этой доле ставит интенсивное использование выше реальных ограничений.</value>
   </data>
   <data name="AllBusy" xml:space="preserve">
     <value>Все заняты</value>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Доля последних 90 дней, когда ВСЕ оригиналы были заняты одновременно, — с учётом исследований и копирования, а не только производства. Именно эта цифра показывает, приходилось ли ждать, чтобы запустить ещё один проект.</value>
+    <value>Доля времени, когда ВСЕ оригиналы были заняты одновременно, — с учётом исследований и копирования, а не только производства. Считается за последние 90 дней или с первого проекта этих оригиналов, если он был позже, и не менее чем за 30 дней. Именно эта цифра показывает, приходилось ли ждать, чтобы запустить ещё один проект.</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Ранг</value>
@@ -724,6 +724,18 @@
   <data name="Days" xml:space="preserve">
     <value>д</value>
   </data>
+  <data name="HoldForBusyPrint" xml:space="preserve">
+    <value>Резервировать материалы для занятого чертежа, который освободится в течение</value>
+  </data>
+  <data name="TipHoldForBusyPrint" xml:space="preserve">
+    <value>Если работа выше в списке не может начаться только потому, что её чертёж занят в идущей работе, и та закончится в течение этого числа часов, материалы на её площадке резервируются для неё, чтобы работы ниже их не израсходовали. 0 отключает это.</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>ч</value>
+  </data>
+  <data name="JobHeldForBusyPrint" xml:space="preserve">
+    <value>Материалы на площадке зарезервированы: чертёж освободится в течение {0} ч.</value>
+  </data>
   <data name="AssetScope" xml:space="preserve">
     <value>Охват имущества</value>
   </data>
@@ -1015,6 +1027,9 @@
   <data name="BlueprintVerdictSurge" xml:space="preserve">
     <value>Всплеск</value>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>Нет свободного слота</value>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>Нарастает</value>
   </data>
@@ -1040,7 +1055,7 @@
     <value>Узких мест нет: ни в одном пуле работа не ждёт слота, и ни у одного чертежа все экземпляры не были заняты настолько часто, чтобы что-то приходилось ждать. {0}</value>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>Пулов, где работа ждёт слота: {0}; чертежей, на которые стоит взглянуть: {1}; материалов, которые расходуются быстрее, чем производятся: {2}. ⚠ Свободных слотов: {3:N0}, а у чертежей ({4}) заняты все экземпляры — ограничение здесь в чертежах, а не в слотах. {5}</value>
+    <value>Пулов, где работа ждёт слота: {0}; чертежей, на которые стоит взглянуть: {1}; материалов, которые расходуются быстрее, чем производятся: {2}. ⚠ Свободных слотов: {3:N0} в тех же пулах, где у чертежей ({4}) заняты все оригиналы и проекты стоят — ограничение там в чертежах, а не в слотах. {5}</value>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
     <value>Пулов, где работа ждёт слота: {0}; чертежей, на которые стоит взглянуть: {1}; материалов, которые расходуются быстрее, чем производятся: {2}. {3}</value>
@@ -1480,6 +1495,12 @@
   <data name="WaitStartsOnArrival" xml:space="preserve">
     <value>начнётся по прибытии</value>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>затем ждёт слот</value>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>затем ждёт чертёж</value>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>запустится, когда завершится и другой круг</value>
   </data>
@@ -1498,23 +1519,23 @@
   <data name="HaulLoopRestartsJobsMore" xml:space="preserve">
     <value>После круга запустятся остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>нужно {0:N0}</value>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>нужен ещё {0:N0} предмет</value>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>в очереди за другим проектом</value>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>нужно ещё {0:N0} предмета</value>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>также не хватает {0:N0} предмета</value>
+  <data name="WaitNeedsMoreFew" xml:space="preserve">
+    <value>нужно ещё {0:N0} предмета</value>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>также не хватает {0:N0} предмета</value>
+  <data name="WaitNeedsMoreMany" xml:space="preserve">
+    <value>нужно ещё {0:N0} предметов</value>
   </data>
-  <data name="WaitAlsoShortFew" xml:space="preserve">
-    <value>также не хватает {0:N0} предметов</value>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>больше ничего не нужно</value>
   </data>
-  <data name="WaitAlsoShortMany" xml:space="preserve">
-    <value>также не хватает {0:N0} предметов</value>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>После этого всё ещё не хватит</value>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>Производство, для которого предназначена эта доставка. Ради него планировщик и создал рейс, но в отдельную задачу оно ещё не выделено.</value>
@@ -1522,17 +1543,11 @@
   <data name="WaitTipStarts" xml:space="preserve">
     <value>Эта перевозка везёт всё, чего не хватает проекту, поэтому он начнётся, как только груз прибудет.</value>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>Проекту нужно кое-что из этого груза, но этот запас уже занят более ранним проектом — до этого проекта груз не дойдёт.</value>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Всё ещё не хватает: {0}.</value>
   </data>
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Всё ещё не хватает: {0} и ещё {1:N0}.</value>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>Кроме того, за чем-то из этого груза он стоит в очереди за другим проектом.</value>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>Всего {0:N0}. {1}</value>
@@ -1699,6 +1714,27 @@
   <data name="SourceIndustryJobs" xml:space="preserve">
     <value>Промышленные проекты</value>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Завершённые проекты</value>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>Доставить {0:N0} завершённый проект</value>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>Доставить {0:N0} завершённого проекта</value>
+  </data>
+  <data name="DeliverJobsTitleFew" xml:space="preserve">
+    <value>Доставить {0:N0} завершённых проекта</value>
+  </data>
+  <data name="DeliverJobsTitleMany" xml:space="preserve">
+    <value>Доставить {0:N0} завершённых проектов</value>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Завершены и ждут доставки: {0}. Доставка освобождает слот и кладёт результат в ангар.</value>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>и ещё {0:N0}</value>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} Произвести {1:N0}.</value>
   </data>
@@ -1730,7 +1766,13 @@
     <value>Чертёж занят в идущем проекте ({0})</value>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>{0}: нет свободного чертежа ({1})</value>
+    <value>{0}: нет пригодного чертежа (лучший из имеющихся: {1})</value>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Все чертежи здесь заняты: работают {0:N0}, скоро начнут {1:N0}</value>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Чертёж закреплён за более ранним проектом, которому не хватает материалов</value>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Не хватает {1:N0}.</value>
@@ -1757,7 +1799,7 @@
     <value>Остаток этого проекта, ждёт материалов.</value>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>Ещё прогонов без свободного чертежа: {0:N0} — они указаны отдельно.</value>
+    <value>Ещё прогонов, указанных отдельно: {0:N0}.</value>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
     <value>Ограничено лимитом EVE в 30 дней на один проект.</value>
@@ -1781,16 +1823,16 @@
     <value>Материалов нет в сооружении {0}: {1}</value>
   </data>
   <data name="BlockedNotOwned" xml:space="preserve">
-    <value>Нет в наличии: {0}</value>
+    <value>Нет свободных: {0}</value>
   </data>
   <data name="BlockedNotOwnedIn" xml:space="preserve">
-    <value>Нет в наличии ({0}): {1}</value>
+    <value>Нет свободных ({0}): {1}</value>
   </data>
   <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
-    <value>Нет в наличии: {0}; в другом месте: {1}</value>
+    <value>Нет свободных: {0}; в другом месте: {1}</value>
   </data>
   <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
-    <value>Нет в наличии ({0}): {1}; в другом месте: {2}</value>
+    <value>Нет свободных ({0}): {1}; в другом месте: {2}</value>
   </data>
   <data name="NamesAndMore" xml:space="preserve">
     <value>{0} и ещё {1}</value>
@@ -1948,8 +1990,89 @@
   <data name="HaulTitleItems" xml:space="preserve">
     <value>Предметов: {0}</value>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>Предметов: {0}, контракт {1} из {2}</value>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>Предметов: {0}, контрактов: {1}</value>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>Перегнать {0} × {1:N0}</value>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>Капитал нельзя перевезти: пилот должен перегнать его сам, прыгая между системами.</value>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} не может пристыковаться к {1}: его нужно построить там и не отстыковывать</value>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>КОНТРАКТ {0} ИЗ {1}</value>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Сделать сейчас</value>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>Нет свободного слота</value>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Ещё не время</value>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Лучшие следующие шаги</value>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>не хватает материалов</value>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>все чертежи заняты</value>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>здесь нет чертежа</value>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>другое</value>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>выдать</value>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>Слоты ({0}) {1:N0}/{2:N0}: заполнены</value>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>Слоты ({0}) {1:N0}/{2:N0}, свободно {3:N0}</value>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>С последнего обновления: новых готовых {0:N0}, больше не готовых {1:N0}</value>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>освобождает {0:N0}</value>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Купить</value>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Перевезти</value>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Построить</value>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>Реакция</value>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Копия</value>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Изобрести</value>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Выдать</value>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Нажмите, чтобы показать только их. Нажмите ещё раз, чтобы сбросить.</value>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Нажмите, чтобы перейти к этой задаче в списке.</value>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Этого ждут проекты.</value>
@@ -2375,7 +2498,7 @@
     <value>{0} × {1} слотов при {2:N0} работающих сейчас. Обучение не мгновенное — это потолок, которого так можно достичь.</value>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Измерено по чертежам ({0:N0}) за {1} д: у {2:N0} ни разу не были заняты все оригиналы одновременно, медиана — {3:N0}%, а самая загруженная десятая часть начинается с {4:N0}% — это и есть порог для отметок.</value>
+    <value>Измерено по чертежам ({0:N0}) за срок до {1} д: у {2:N0} ни разу не были заняты все оригиналы одновременно, медиана — {3:N0}%, а самая загруженная десятая часть начинается с {4:N0}% — это и есть порог для отметок.</value>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
     <value>Все BPO были заняты {0:N0}% времени за последние {1} д, и проектов, которые не могут начаться прямо сейчас: {2:N0}. Ещё один BPO поднимет потолок с {3:N2} до {4:N2}/д.</value>
@@ -2396,10 +2519,40 @@
     <value>Все формулы были заняты {0:N0}% времени за последние {1} д, но сегодня в очереди ничего нет. Стоит понаблюдать, а не покупать.</value>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>Проектов, которые не могут начаться: {0:N0}, хотя все имеющиеся BPO редко были заняты одновременно ({1:N0}%). Прежде чем покупать ещё один BPO, проверьте, чего на самом деле не хватает, — похоже, дело не в чертеже.</value>
+    <value>Проектов, которые не могут начаться, потому что на их площадке сейчас нет свободного BPO: {0:N0}, хотя все BPO редко были заняты одновременно ({1:N0}%). Это больше похоже на короткий всплеск или BPO не на своём месте, чем на нехватку: проверьте это, прежде чем покупать ещё один.</value>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>Проектов, которые не могут начаться: {0:N0}, хотя все имеющиеся формулы редко были заняты одновременно ({1:N0}%). Прежде чем покупать ещё одну формулу, проверьте, чего на самом деле не хватает, — похоже, дело не в формуле.</value>
+    <value>Проектов, которые не могут начаться, потому что на их площадке сейчас нет свободной формулы: {0:N0}, хотя все формулы редко были заняты одновременно ({1:N0}%). Это больше похоже на короткий всплеск или формулы не на своём месте, чем на нехватку: проверьте это, прежде чем покупать ещё одну.</value>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>Проектов, ждущих производственного слота, а не BPO: {0:N0}, так что ещё один BPO не запустит ни одного. Все BPO были заняты {1:N0}% последних дней ({2}).</value>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>Проектов, ждущих слота реакций, а не формулы: {0:N0}, так что ещё одна формула не запустит ни одного. Все формулы были заняты {1:N0}% последних дней ({2}).</value>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>В лаборатории копирования: {0}</value>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>Проектов копирования, ждущих научного слота, а не BPO: {0:N0}, так что ещё один BPO не запустит ни одного. Все BPO здесь были заняты {1:N0}% последних дней ({2}).</value>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (для копирования)</value>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>Для чего эти оригиналы. Те, что в лаборатории копирования, копируют, остальные строят, и друг друга они не заменяют, поэтому каждая группа считается отдельной строкой. Единственный оригинал этого типа делает и то, и другое.</value>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Постройка</value>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Копирование</value>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Постройка + копирование</value>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>Сейчас он нужен проектам ({0:N0}), но все BPO были свободны почти всё время за последние {1} д. Это разовая, а не постоянная потребность — BPC может подойти лучше, чем оригинал.</value>
@@ -2443,11 +2596,14 @@
   <data name="SummaryHaulAt" xml:space="preserve">
     <value>{0} ({1}) — {2:N0} m³</value>
   </data>
-  <data name="SummaryRaiseHauls" xml:space="preserve">
-    <value>Создать перевозки ({0:N0})</value>
+  <data name="SummaryHaulsHoldUp" xml:space="preserve">
+    <value>{0:N0} перевоз(ок) задерживают {1:N0} работ(ы)</value>
   </data>
-  <data name="SummaryHaulsIdle" xml:space="preserve">
-    <value>Проектов, ждущих уже имеющихся материалов, которые никто не везёт: {0:N0}.</value>
+  <data name="SummaryHaulsNotRaised" xml:space="preserve">
+    <value>Для {0:N0} из нужного ещё нет перевозки в списке задач.</value>
+  </data>
+  <data name="SummaryHaulsAllRaised" xml:space="preserve">
+    <value>Все они уже в списке задач: выполните перевозки, и работа возобновится.</value>
   </data>
   <data name="SummaryAddManufacturingSlots" xml:space="preserve">
     <value>Добавить производственные слоты</value>
@@ -2472,12 +2628,6 @@
   </data>
   <data name="SummaryBuyUnblocks" xml:space="preserve">
     <value>{0} — разблокирует задач: {1:N0}</value>
-  </data>
-  <data name="SummaryTripRestarts" xml:space="preserve">
-    <value>{0} → {1} — {2:N0} ({3:N0} m³), перезапустит проектов: {4:N0}</value>
-  </data>
-  <data name="SummaryTripWanted" xml:space="preserve">
-    <value>{0} → {1} — {2:N0} ({3:N0} m³), нужно проектам ({4:N0}), но ни один не перезапустится только от этой доставки</value>
   </data>
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Показаны худшие ({0}); остальные — на вкладке.</value>
@@ -2527,9 +2677,6 @@
   <data name="PiHaulOutCollect" xml:space="preserve">
     <value>{0}: хранилище заполнено продукцией наполовину или больше (оценка)</value>
   </data>
-  <data name="PiStaleNote" xml:space="preserve">
-    <value>Цифры рассчитаны по устаревшим данным: колонию давно не открывали в игре.</value>
-  </data>
   <data name="PiHaulInTitle" xml:space="preserve">
     <value>{0} — доставить материалы</value>
   </data>
@@ -2577,12 +2724,6 @@
   </data>
   <data name="PiUpgradeDetail" xml:space="preserve">
     <value>Сейчас уровень {0}; навык «Модификации наземной базы» позволяет {1}. Больше ЦПУ и энергосети для головок экстракторов и производственных комплексов.</value>
-  </data>
-  <data name="PiOpenTitle" xml:space="preserve">
-    <value>{0} — открыть в игре</value>
-  </data>
-  <data name="PiOpenDetail" xml:space="preserve">
-    <value>Возраст данных — {0}, и оценкам больше нельзя доверять. Если открыть колонию в игре, данные обновятся.</value>
   </data>
   <data name="SafetyChooseByOne" xml:space="preserve">
     <value>до {1:d MMM HH:mm} выберите место назначения для упаковок имущества ({0:N0})</value>
