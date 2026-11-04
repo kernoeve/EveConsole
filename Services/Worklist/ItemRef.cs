@@ -7,7 +7,7 @@ namespace EveConsole.Services.Worklist;
 /// An item named in a task's reason or note, marked where the name is written.
 ///
 /// <para>⚠️ Marked by whoever writes the name, because only they know it is an item. Finding items
-/// afterwards by matching names against the finished sentence cannot work: "ZD1-Z2 - Capital Ships
+/// afterwards by matching names against the finished sentence cannot work: "XQ1-Z2 - Capital Ships
 /// &amp; Research" is a structure with a skillbook's name inside it, and it got the skillbook's
 /// picture. What is not marked is never drawn as an item, whatever it looks like.</para>
 ///

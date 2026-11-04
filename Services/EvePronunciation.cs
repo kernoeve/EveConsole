@@ -98,7 +98,7 @@ public static partial class EvePronunciation
             if (sb.Length > 0) sb.Append(' ');
 
             // ⚠️ "A" alone is the article to a voice — "uh" — and it ran into the letters round
-            // it: "UALX-3" was heard as "U uh L X". "eigh" is the letter's sound written out.
+            // it: "QZLX-3" was heard as "Q Z uh L X". "eigh" is the letter's sound written out.
             if (c == '-')                sb.Append("tac");
             else if (char.IsAsciiDigit(c)) sb.Append(Digits[c - '0']);
             else if (c == 'A')           sb.Append("eigh");
