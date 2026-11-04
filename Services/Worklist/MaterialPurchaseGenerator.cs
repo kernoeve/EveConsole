@@ -271,7 +271,7 @@ public class MaterialPurchaseGenerator(
         // Ore, ice and gas already held count toward what they turn into, so a shortfall covered
         // by unrefined stock does not become a purchase.
         var subs      = await substitution.LoadAsync(ct);
-        var subsStock = await SubstituteStockAsync(db, subs, shortIds, reach, ct);
+        var subsStock = await SubstituteStockAsync(db, subs, shortIds, reach, scope, corps, ct);
 
         // Production already running that will yield the material itself — a bought intermediate
         // somebody is building anyway. Assets alone under-count what is coming: a reaction three
@@ -641,7 +641,7 @@ public class MaterialPurchaseGenerator(
     private static async Task<Dictionary<int, (long Units, string Note)>> SubstituteStockAsync(
         AppDbContext db, Dictionary<int, List<Substitute>> subs,
         List<int> shortTypeIds, ProductionCalculatorService.AssetReach reach,
-        CancellationToken ct)
+        IReadOnlySet<long>? scope, IReadOnlySet<long>? corps, CancellationToken ct)
     {
         var wanted = shortTypeIds.Where(subs.ContainsKey).ToList();
         if (wanted.Count == 0) return [];
@@ -655,6 +655,17 @@ public class MaterialPurchaseGenerator(
             .Where(a => reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+
+        // And what contracts have moved since, a courier's cargo included, exactly as the
+        // material's own stock is counted: compressed ore on its way yields as surely as compressed
+        // ore in a hangar, and leaving it out asked for its minerals the moment it left. Never
+        // below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, sourceIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            held[m.TypeId] = Math.Max(0, held.GetValueOrDefault(m.TypeId) + m.Units);
+        }
 
         var ordered = await OnOrderAsync(db, sourceIds, ct);
 
