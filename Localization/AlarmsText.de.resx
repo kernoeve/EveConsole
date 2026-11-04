@@ -1801,4 +1801,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0} Lichtjahre entfernt</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Aufgaben</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Kalender</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Woche</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Heute</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>+{0} weitere</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd, d. MMM yyyy</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Zeigt, was ab jetzt läuft, in EVE-Zeit, solange die App geöffnet ist. Ausgeschaltete Aufgaben werden nicht angezeigt. Zeiten nach dem nächsten Lauf einer Intervallaufgabe sind Schätzungen, da jeder Lauf vom letzten aus zählt. Klicke auf eine Aufgabe, um sie zu bearbeiten.</value>
+  </data>
 </root>

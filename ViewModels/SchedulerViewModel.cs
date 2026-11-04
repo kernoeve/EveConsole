@@ -992,6 +992,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         _sales     = sales;
         _errors    = errors;
 
+        Calendar = new SchedulerCalendarViewModel(OpenFromCalendar);
+
         NewCommand     = ReactiveCommand.CreateFromTask(NewTaskAsync);
         SaveCommand    = ReactiveCommand.CreateFromTask(SaveAsync);
         DiscardCommand = ReactiveCommand.CreateFromTask(DiscardAsync);
@@ -1040,6 +1042,24 @@ public sealed class SchedulerViewModel : ReactiveObject
     }
 
     private void OnTasksChanged() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+
+    /// <summary>The Calendar tab.</summary>
+    public SchedulerCalendarViewModel Calendar { get; }
+
+    private int _selectedTabIndex;
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
+    }
+
+    /// <summary>A run clicked on the calendar: its task in the editor, with the usual stop if the
+    /// one open has unsaved edits.</summary>
+    private void OpenFromCalendar(int taskId)
+    {
+        SelectedTabIndex = 0;
+        SelectedTask     = Tasks.FirstOrDefault(t => t.Id == taskId) ?? SelectedTask;
+    }
 
     /// <summary>
     /// Moving to another task, with a stop if the current one has unsaved edits.
@@ -1409,6 +1429,8 @@ public sealed class SchedulerViewModel : ReactiveObject
             _selectedTask = Tasks.FirstOrDefault(r => r.Id == keep);
         this.RaisePropertyChanged(nameof(SelectedTask));
 
+        Calendar.SetTasks(rows);
+
         StatusText = string.Format(AlarmsText.TaskCount, Tasks.Count);
     }
 
@@ -1570,6 +1592,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         if (!await MayDiscardAsync(AlarmsText.DiscardNewTask)) return;
         NewTask();
+        SelectedTabIndex = 0;   // The editor is on that tab, and New was pressed to use it.
     }
 
     private void NewTask()

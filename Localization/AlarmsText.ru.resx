@@ -1873,4 +1873,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>в {0} св. г.</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Календарь</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Неделя</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Сегодня</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Вперёд</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>ещё {0}</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd, d MMM yyyy</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Показывает, что будет запущено с этого момента, по времени EVE, пока приложение открыто. Выключенные задачи не показаны, а время после следующего запуска интервальной задачи приблизительно, так как каждый запуск отсчитывается от предыдущего. Нажмите на задачу, чтобы изменить её.</value>
+  </data>
 </root>

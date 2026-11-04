@@ -1765,4 +1765,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0}光年先</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>タスク</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>カレンダー</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>週</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>今日</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>前へ</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>次へ</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>他 {0} 件</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>yyyy年M月d日（ddd）</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>アプリの起動中に今後実行される内容を EVE 時間で表示します。オフのタスクは表示されません。間隔タスクの次回より後の時刻は、各実行が前回から数えられるため推定です。タスクをクリックすると編集できます。</value>
+  </data>
 </root>

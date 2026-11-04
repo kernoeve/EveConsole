@@ -1765,4 +1765,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0} 光年外</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>任务</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>日历</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>今天</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>上一个</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>下一个</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>还有 {0} 项</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>yyyy年M月d日 dddd</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>显示从现在起应用打开期间将运行的内容，时间为 EVE 时间。已关闭的任务不显示。间隔任务下次运行之后的时间为估算值，因为每次运行都从上一次算起。点击任务即可编辑。</value>
+  </data>
 </root>

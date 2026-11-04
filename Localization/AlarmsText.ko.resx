@@ -1765,4 +1765,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0}광년 거리</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>달력</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>월</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>주</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>오늘</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>이전</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>다음</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>외 {0}개</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>yyyy년 M월 d일 dddd</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>앱이 열려 있는 동안 앞으로 실행될 항목을 EVE 시간으로 표시합니다. 꺼진 작업은 표시되지 않으며, 간격 작업의 다음 실행 이후 시간은 각 실행이 직전 실행부터 계산되므로 추정치입니다. 작업을 클릭하면 편집할 수 있습니다.</value>
+  </data>
 </root>

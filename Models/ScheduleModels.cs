@@ -103,9 +103,14 @@ public static class ScheduleDue
     /// </summary>
     public static bool IsDue(ScheduledTask task, DateTime now)
     {
-        if (!task.Enabled) return false;
+        return IsDue(task, task.LastRunUtc?.UtcDateTime, now);
+    }
 
-        var last = task.LastRunUtc?.UtcDateTime;
+    /// <summary>The same question with a last run supplied, so <see cref="Upcoming"/> can ask what
+    /// would happen after a run that has not happened yet.</summary>
+    private static bool IsDue(ScheduledTask task, DateTime? last, DateTime now)
+    {
+        if (!task.Enabled) return false;
 
         return task.Kind switch
         {
@@ -186,6 +191,70 @@ public static class ScheduleDue
 
         return last is null || last.Value.Year != now.Year;
     }
+
+    /// <summary>
+    /// When <paramref name="task"/> will run between <paramref name="from"/> (inclusive) and
+    /// <paramref name="to"/> (exclusive), in order, never earlier than <paramref name="now"/>.
+    ///
+    /// <para>⚠️ A clock task's times are not worked out separately: each candidate is put to
+    /// <see cref="IsDue(ScheduledTask, DateTime?, DateTime)"/> with the run before it as the last
+    /// run. So a slot used up by Run Now is absent, and a run owed since the app was closed is
+    /// shown at <paramref name="now"/>, exactly as the runner would treat them.</para>
+    ///
+    /// <para>⚠️ Interval times are estimates past the first. Each run is measured from when the
+    /// last one really happened, and the loop only looks once a minute.</para>
+    /// </summary>
+    public static IReadOnlyList<DateTime> Upcoming(ScheduledTask task, DateTime now, DateTime from, DateTime to)
+    {
+        var runs = new List<DateTime>();
+        if (!task.Enabled || from >= to || now >= to) return runs;
+
+        var last = task.LastRunUtc?.UtcDateTime;
+
+        if (task.Kind == ScheduleKind.Interval)
+        {
+            var every = TimeSpan.FromMinutes(Math.Max(1, task.IntervalMinutes));
+            var next  = last is null || last.Value + every < now ? now : last.Value + every;
+
+            // Straight to the window: paging a year ahead should not walk every run on the way.
+            if (next < from) next += every * Math.Ceiling((from - next) / every);
+
+            for (; next < to; next += every) runs.Add(next);
+            return runs;
+        }
+
+        // Owed already: the next pass of the loop runs it, whatever day it was meant for.
+        if (now >= from && IsDue(task, last, now))
+        {
+            runs.Add(now);
+            last = now;
+        }
+
+        var first = from > now ? from : now;
+        for (var day = first.Date; day < to; day = day.AddDays(1))
+        {
+            var when = day.AddMinutes(task.TimeOfDayMinutes);
+            if (when <= now || when < from || when >= to) continue;
+
+            // The candidate must be this day's stated slot. IsDue says yes on any later day of a
+            // month too, since catching up is allowed; that case is the "owed" one above.
+            if (!IsScheduledOn(task, day) || !IsDue(task, last, when)) continue;
+
+            runs.Add(when);
+            last = when;
+        }
+
+        return runs;
+    }
+
+    private static bool IsScheduledOn(ScheduledTask task, DateTime day) => task.Kind switch
+    {
+        ScheduleKind.Weekly  => (task.DaysOfWeek & (1 << (int)day.DayOfWeek)) != 0,
+        ScheduleKind.Monthly => day.Day == Math.Clamp(task.DayOfMonth, 1, DateTime.DaysInMonth(day.Year, day.Month)),
+        ScheduleKind.Yearly  => day.Month == Math.Clamp(task.MonthOfYear, 1, 12)
+                                && day.Day == Math.Clamp(task.DayOfMonth, 1, DateTime.DaysInMonth(day.Year, day.Month)),
+        _                    => false,
+    };
 
     /// <summary>
     /// A plain-language description of the schedule, for the list, in the interface language.
