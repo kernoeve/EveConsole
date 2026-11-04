@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>已将 {0} 件物品加入生产队列</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 件物品无法制造，未加入</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>过去 30 天的销售</value>
   </data>
@@ -1521,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>每流程 1 份 BPC，按 ME{0} 的合同价格</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>每流程 1 次 BPC 流程，按发明成本：成功率 {0:P0}，每次成功 {1} 流程，{2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>每次尝试 {0:N0} × {1:N0} 次 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>每次尝试 {0:N0} ISK（数据核心、解码器、T1 拷贝 1 流程、费用）÷（成功率 {1:P1} × {2} 流程）= 每拷贝流程 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>余料：{0:N1} 流程</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>每次发明尝试用一个 T1 拷贝流程，从原件复制。</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>一次成功尝试得到的蓝图拷贝（含解码器效果）。</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>产出：平均 {0:N1} 流程</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>每次成功：ME{0} TE{1}，{2} 流程</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>发明：成功率 {0:P0}，{1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>尝试次数：{0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>中间产物</value>

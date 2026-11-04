@@ -775,6 +775,16 @@ public class ProductionCalculatorViewModel : ReactiveObject
         return added;
     }
 
+    /// <summary>Items by id from a tool that lists anything, added after what is queued. Those no
+    /// blueprint or formula makes are left out and counted, not queued at a made-up ME.</summary>
+    public async Task<(int Added, int NotBuilt)> QueueTypeIdsAsync(IReadOnlyList<int> typeIds)
+    {
+        var ids   = typeIds.Distinct().ToList();
+        var names = await _service.BuildableNamesAsync(ids);
+        var added = await QueueItemsAsync([.. ids.Where(names.ContainsKey).Select(id => (id, names[id]))], replace: false);
+        return (added, ids.Count - names.Count);
+    }
+
     private void Remove(ProductionQueueVm item) => Queue.Remove(item);
 
     private void ClearQueue()
@@ -801,7 +811,8 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 MeLevel  = q.MeLevel,
             }).ToList();
 
-            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost, bpcFollowsToggle: true);
+            var plan = await _service.CalculateAsync(requests, SelectedPark.Id, IncludeBpcCost, bpcFollowsToggle: true,
+                                                     inventionCost: true);
             // Before assigning, so the job rows arrive with their Missing values and durations
             // already filled — PlanJob and PlanJobMaterial have no change notification.
             await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);

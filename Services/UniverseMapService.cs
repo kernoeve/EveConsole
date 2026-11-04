@@ -42,25 +42,22 @@ public sealed record MapNode(
 }
 
 /// <summary>
-/// The largest hull that can dock somewhere in a system.
-///
-/// <para>⚠️ Taken from the hull's own <c>rigSize</c> attribute, not from a list of type names.
-/// Upwell structures are built in three sizes and the size IS the docking class, so a faction
-/// Fortizar classifies itself and a hull CCP adds next year classifies itself too. Ranked, so
-/// "the best in the system" is a MAX rather than a pile of booleans.</para>
+/// The largest hull that can dock somewhere in a system. Ranked, so "the best in the system" is a
+/// MAX rather than a pile of booleans. See <see cref="UniverseMapService"/> for how a structure is
+/// classified.
 /// </summary>
 public enum DockClass
 {
     /// <summary>Nothing here we can dock at, or nothing we can identify.</summary>
     None = 0,
 
-    /// <summary>Medium: Astrahus, Raitaru, Athanor. No capitals.</summary>
+    /// <summary>Astrahus, Raitaru, Athanor, Azbel, Tatara. No capitals.</summary>
     Subcap = 1,
 
-    /// <summary>Large, and every NPC station: capitals yes, supers no.</summary>
+    /// <summary>Fortizar, Sotiyo, and every NPC station: capitals yes, supers no.</summary>
     Capital = 2,
 
-    /// <summary>Extra-large: Keepstar and Sotiyo. The only places a super or titan can dock.</summary>
+    /// <summary>Keepstar. The only place a super or titan can dock.</summary>
     Super = 3,
 }
 
@@ -447,18 +444,20 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     ///
     /// <para>⚠️ By hull, and there is no attribute for it. An earlier version read the hull's
     /// <c>rigSize</c> on the reasoning that the three Upwell sizes are the docking classes. They
-    /// are not: rigSize governs which RIGS fit, and a Sotiyo is size 4 while taking neither
-    /// capitals nor supers. That version told the map a system could dock titans when all it
-    /// holds is a Sotiyo.</para>
+    /// are not: rigSize governs which RIGS fit, and a Sotiyo is size 4 while taking capitals and no
+    /// supers. That version told the map a system could dock titans when all it holds is a
+    /// Sotiyo.</para>
     ///
-    /// <para>Only a Keepstar takes supers and titans; only a Fortizar and an NPC station take
-    /// capitals; every other dockable hull is subcapital. Matching on the name covers the faction
+    /// <para>Only a Keepstar takes supers and titans; a Fortizar, a Sotiyo and an NPC station take
+    /// capitals; every other dockable hull is subcapital. <see cref="Worklist.CapitalDocking"/> holds
+    /// the same rule for moving hulls. Matching on the name covers the faction
     /// variants — five faction Fortizars and the Palatine Keepstar — and the whole category is 18
     /// published hulls, so the set this has to be right about is small and enumerable.</para>
     /// </summary>
     private static DockClass DockOf(string hullName, string groupName) =>
           hullName.Contains("Keepstar")      ? DockClass.Super
-        : hullName.Contains("Fortizar")      ? DockClass.Capital
+        : hullName.Contains("Fortizar")
+          || hullName.Contains("Sotiyo")     ? DockClass.Capital
         : DockableGroups.Contains(groupName) ? DockClass.Subcap
         : DockClass.None;
 

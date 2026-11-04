@@ -484,6 +484,78 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>未読の EVE メールが {0} 件あります。</value>
   </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>{0}（{1}）の燃料が {2} 後に切れます</value>
+  </data>
+  <data name="AlertStructureFuelOut" xml:space="preserve">
+    <value>{0}（{1}）の燃料が切れています</value>
+  </data>
+  <data name="AlertStructureFuelManyOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件の燃料が少なくなっています。最初は {2}、{3} 後</value>
+  </data>
+  <data name="AlertStructureFuelManyOutOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件の燃料が少なくなっています。{2} は切れています</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>{0}（{1}）に {2} がありません</value>
+  </data>
+  <data name="AlertStructureFitMissingManyOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件で装備のモジュールが足りません</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>{0}（{1}）には装備の {3} の代わりに {2} が付いています</value>
+  </data>
+  <data name="AlertStructureFitWrongManyOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件に装備とは別のモジュールが付いています</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>{0}（{1}）の弾薬が不足しています: {2}</value>
+  </data>
+  <data name="AlertStructureAmmoLowManyOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件の弾薬が不足しています</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>{0}（{1}）のファイターが不足しています: {2}</value>
+  </data>
+  <data name="AlertStructureFightersLowManyOther" xml:space="preserve">
+    <value>{1} のストラクチャ {0} 件のファイターが不足しています</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>{0}（{1}）が攻撃を受けています — シールド {2}、アーマー {3}、船体 {4} · {5}</value>
+  </data>
+  <data name="AlertStructureAttackedBy" xml:space="preserve">
+    <value>{0}（{1}）が {2} から攻撃を受けています — シールド {3}、アーマー {4}、船体 {5} · {6}</value>
+  </data>
+  <data name="AlertStructureLostShields" xml:space="preserve">
+    <value>{0}（{1}）のシールドが失われました — アーマータイマー {2} · {3}</value>
+  </data>
+  <data name="AlertStructureLostArmor" xml:space="preserve">
+    <value>{0}（{1}）のアーマーが失われました — 船体タイマー {2} · {3}</value>
+  </data>
+  <data name="AlertStructureDestroyed" xml:space="preserve">
+    <value>{0}（{1}）が破壊されました · {2}</value>
+  </data>
+  <data name="AlertDenName" xml:space="preserve">
+    <value>{0} の隠れ家（{1}）</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>{0}：アナーキー レベル {1}（{2}/100）</value>
+  </data>
+  <data name="AlertDenReinforced" xml:space="preserve">
+    <value>{0} は {1} まで強化状態（{2}）</value>
+  </data>
+  <data name="AlertDenReinforcedNote" xml:space="preserve">
+    <value>{0} が強化状態になりました · {1}</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>{0} が攻撃を受けています · {1}</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>{0} に新しい戦術作戦があります · {1}</value>
+  </data>
+  <data name="AlertDenUnknown" xml:space="preserve">
+    <value>{0} の傭兵の隠れ家</value>
+  </data>
   <data name="AlertContractsToYouOther" xml:space="preserve">
     <value>自分宛ての未締結の契約が{0}件あります。</value>
   </data>

@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>{0} 個のアイテムを生産キューに追加しました</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} 個のアイテムは製造できないため追加しませんでした</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>過去 30 日の販売</value>
   </data>
@@ -1521,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1回あたりBPC 1個（ME{0}の契約価格）</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1回あたりBPC 1回分（発明コスト）：成功率 {0:P0}、成功1回で {1} 回分、{2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>試行1回 {0:N0} × {1:N0} 回 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>試行1回 {0:N0} ISK（データコア、デクリプター、T1コピー1回分、手数料）÷（成功率 {1:P1} × {2} 回分）＝ コピー1回分 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>余剰：{0:N1} 回分</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>発明の試行1回につきT1コピー1回分。原本から複製します。</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>成功した試行1回で得られる設計図コピー（デクリプター込み）。</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>産出：平均 {0:N1} 回分</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>成功1回：ME{0} TE{1}、{2} 回分</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>発明：成功率 {0:P0}、{1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>試行回数：{0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>中間製品</value>

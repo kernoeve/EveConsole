@@ -661,6 +661,26 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "UnreadMail" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // Structure alerts, and which corporations they cover. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AlertSettings"
+            ADD COLUMN IF NOT EXISTS "StructureFuel"        BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFuelDays"    INTEGER NOT NULL DEFAULT 3,
+            ADD COLUMN IF NOT EXISTS "StructureAttacked"    BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFitMissing"  BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFitWrong"    BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureAmmoLow"     BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureAmmoPct"     INTEGER NOT NULL DEFAULT 50,
+            ADD COLUMN IF NOT EXISTS "StructureFightersLow" BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "StructureFightersPct" INTEGER NOT NULL DEFAULT 50,
+            ADD COLUMN IF NOT EXISTS "DenAnarchy"           BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "DenAnarchyLevel"      INTEGER NOT NULL DEFAULT 3,
+            ADD COLUMN IF NOT EXISTS "DenAttacked"          BOOLEAN NOT NULL DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS "DenNewMto"            BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "StructureAlerts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The HTTP status ESI answered a contract's item pull with, and the repair it makes
         // possible: corporation contracts issued by another corporation were once marked pulled
@@ -1022,6 +1042,128 @@ public static class PostgresSchema
                 DROP TABLE "EsiCorpMiningLedger";
             END IF;
         END $$
+        """,
+
+        // ── Corp Structures ──────────────────────────────────────────────────
+        //
+        // Each structure's services, each tower's settings, and the fuel in every bay with the
+        // reading its current run started from — see CorpFuelBay. Mirrored for SQLite in
+        // App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpStructureServices" (
+            "CorporationId" BIGINT NOT NULL,
+            "StructureId"   BIGINT NOT NULL,
+            "Name"          TEXT   NOT NULL,
+            "State"         TEXT   NOT NULL,
+            CONSTRAINT "PK_EsiCorpStructureServices" PRIMARY KEY ("CorporationId", "StructureId", "Name")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpStarbaseDetails" (
+            "CorporationId"            BIGINT           NOT NULL,
+            "StarbaseId"               BIGINT           NOT NULL,
+            "AllowAllianceMembers"     BOOLEAN          NOT NULL,
+            "AllowCorporationMembers"  BOOLEAN          NOT NULL,
+            "Anchor"                   TEXT             NOT NULL,
+            "Unanchor"                 TEXT             NOT NULL,
+            "Online"                   TEXT             NOT NULL,
+            "Offline"                  TEXT             NOT NULL,
+            "FuelBayTake"              TEXT             NOT NULL,
+            "FuelBayView"              TEXT             NOT NULL,
+            "AttackIfAtWar"            BOOLEAN          NOT NULL,
+            "AttackIfSecurityDropping" BOOLEAN          NOT NULL,
+            "AttackSecurityThreshold"  DOUBLE PRECISION NULL,
+            "AttackStandingThreshold"  DOUBLE PRECISION NULL,
+            "UseAllianceStandings"     BOOLEAN          NOT NULL,
+            "PulledAt"                 TIMESTAMPTZ      NOT NULL,
+            CONSTRAINT "PK_EsiCorpStarbaseDetails" PRIMARY KEY ("CorporationId", "StarbaseId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpFuelBays" (
+            "CorporationId"    BIGINT      NOT NULL,
+            "LocationId"       BIGINT      NOT NULL,
+            "TypeId"           INTEGER     NOT NULL,
+            "Quantity"         BIGINT      NOT NULL,
+            "SeenAt"           TIMESTAMPTZ NOT NULL,
+            "BaselineQuantity" BIGINT      NOT NULL,
+            "BaselineAt"       TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiCorpFuelBays" PRIMARY KEY ("CorporationId", "LocationId", "TypeId")
+        )
+        """,
+        // The fit each structure type should carry, per corporation (Corp Structures → Config).
+        """
+        CREATE TABLE IF NOT EXISTS "CorpStructureFits" (
+            "CorporationId"   BIGINT      NOT NULL,
+            "StructureTypeId" INTEGER     NOT NULL,
+            "FitSource"       TEXT        NOT NULL DEFAULT '',
+            "FitId"           BIGINT      NOT NULL DEFAULT 0,
+            "FitOwnerId"      BIGINT      NOT NULL DEFAULT 0,
+            "FitName"         TEXT        NOT NULL DEFAULT '',
+            "Items"           TEXT        NOT NULL DEFAULT '',
+            "ItemsAt"         TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_CorpStructureFits" PRIMARY KEY ("CorporationId", "StructureTypeId")
+        )
+        """,
+        // Skyhooks (Corp Structures) and mercenary dens (Mercenary Dens).
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpSkyhooks" (
+            "CorporationId"      BIGINT      NOT NULL,
+            "SkyhookId"          BIGINT      NOT NULL,
+            "PlanetId"           INTEGER     NOT NULL DEFAULT 0,
+            "State"              TEXT        NOT NULL DEFAULT '',
+            "IsActive"           BOOLEAN     NOT NULL DEFAULT FALSE,
+            "EffectiveWorkforce" BIGINT,
+            "ReinforcedUntil"    TIMESTAMPTZ,
+            "TheftStart"         TIMESTAMPTZ,
+            "TheftEnd"           TIMESTAMPTZ,
+            "PulledAt"           TIMESTAMPTZ,
+            CONSTRAINT "PK_EsiCorpSkyhooks" PRIMARY KEY ("CorporationId", "SkyhookId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpSkyhookReagents" (
+            "CorporationId"  BIGINT      NOT NULL,
+            "SkyhookId"      BIGINT      NOT NULL,
+            "TypeId"         INTEGER     NOT NULL,
+            "SecuredStock"   BIGINT      NOT NULL DEFAULT 0,
+            "UnsecuredStock" BIGINT      NOT NULL DEFAULT 0,
+            "LastCycle"      TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiCorpSkyhookReagents" PRIMARY KEY ("CorporationId", "SkyhookId", "TypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
+            "CharacterId"          BIGINT      NOT NULL,
+            "DenId"                BIGINT      NOT NULL,
+            "TypeId"               INTEGER     NOT NULL DEFAULT 0,
+            "PlanetId"             INTEGER     NOT NULL DEFAULT 0,
+            "SkyhookId"            BIGINT      NOT NULL DEFAULT 0,
+            "SkyhookCorporationId" BIGINT      NOT NULL DEFAULT 0,
+            "State"                TEXT        NOT NULL DEFAULT '',
+            "Infomorphs"           BIGINT      NOT NULL DEFAULT 0,
+            "DevelopmentAmount"    BIGINT      NOT NULL DEFAULT 0,
+            "DevelopmentLevel"     INTEGER     NOT NULL DEFAULT -1,
+            "AnarchyAmount"        BIGINT      NOT NULL DEFAULT 0,
+            "AnarchyLevel"         INTEGER     NOT NULL DEFAULT -1,
+            "ReinforcedUntil"      TIMESTAMPTZ,
+            "PulledAt"             TIMESTAMPTZ,
+            "PrevInfomorphs"       BIGINT,
+            "PrevPulledAt"         TIMESTAMPTZ,
+            CONSTRAINT "PK_EsiMercenaryDens" PRIMARY KEY ("CharacterId", "DenId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiMercenaryOperations" (
+            "CharacterId"   BIGINT      NOT NULL,
+            "OperationId"   TEXT        NOT NULL,
+            "DenId"         BIGINT      NOT NULL DEFAULT 0,
+            "DungeonTypeId" INTEGER     NOT NULL DEFAULT 0,
+            "State"         TEXT        NOT NULL DEFAULT '',
+            "Expires"       TIMESTAMPTZ NOT NULL,
+            "SeenAt"        TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiMercenaryOperations" PRIMARY KEY ("CharacterId", "OperationId")
+        )
         """,
 
         // ── Jump bridges entered by hand ─────────────────────────────────────
@@ -1436,8 +1578,13 @@ public static class PostgresSchema
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
              "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
              "OutstandingContracts", "ExpiringContracts",
-             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail")
-        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true)
+             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData", "UnreadMail",
+             "StructureFuel", "StructureFuelDays", "StructureAttacked", "StructureFitMissing", "StructureFitWrong",
+             "StructureAmmoLow", "StructureAmmoPct", "StructureFightersLow", "StructureFightersPct",
+             "DenAnarchy", "DenAnarchyLevel", "DenAttacked", "DenNewMto")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true, true,
+                true, 3, true, true, true, true, 50, true, 50,
+                true, 3, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

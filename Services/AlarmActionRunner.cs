@@ -59,13 +59,16 @@ public sealed class AlarmActionRunner
     public Action<string, string, string?, Func<Task>?>? ShowDialogCallback { get; set; }
 
     /// <summary>
-    /// A repeating sound has started for a situation: show the window whose one button stops it.
-    /// Separate from the Dialog action, which may not have been chosen — a sound that will not
-    /// stop until acknowledged must bring its own way of being acknowledged. Set by MainWindow.
+    /// A situation waits to be acknowledged — a repeating sound has started, or a wake-up call
+    /// has reached a stage: show the window whose one button acknowledges it, or bring it to the
+    /// front, saying whether the sound repeats yet: (situation, name, summary, sounding,
+    /// acknowledge). Separate from the Dialog action, which may not have been chosen — a sound
+    /// that will not stop until acknowledged must bring its own way of being acknowledged, and a
+    /// wake-up call one that needs no word to the agent. Set by MainWindow.
     /// </summary>
-    public Action<AlarmAck, string, string, Func<Task>>? SoundStartedCallback { get; set; }
+    public Action<AlarmAck, string, string, bool, Func<Task>>? SoundStartedCallback { get; set; }
 
-    /// <summary>The repeating sound for a situation has ended of itself — close its window. Set by MainWindow.</summary>
+    /// <summary>The situation has ended of itself, or was answered elsewhere — close its window. Set by MainWindow.</summary>
     public Action<AlarmAck>? SoundStoppedCallback { get; set; }
 
     /// <summary>Cuts off what the voice is saying — a wake-up line the capsuleer has already
@@ -155,7 +158,7 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Dialog:
                         signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
                         signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-                        signal.DialogButton = stage is not null ? AlarmsText.ButtonImAwake : null;
+                        signal.DialogButton = stage is not null ? AlarmsText.ButtonAcknowledge : null;
                         somethingElse       = true;
                         break;
 
@@ -257,10 +260,20 @@ public sealed class AlarmActionRunner
 
         var ack = s.Ack;
 
+        // The window's heading: what the check says the situation is, or the alarm's name.
+        var heading = s.ConditionType is { } kind && _registry.Find(kind)?.AckWindowTitle is { } title ? title : s.Name;
+
+        // A wake-up call shows its window from the first stage, whatever the stage does, and keeps
+        // it through the rest: answering it must not depend on talking to the agent. A stage that
+        // sets a sound repeating brings the window below, with the sound.
+        if (ack is not null && !(s.SoundKey is not null && s.SoundLoop)
+            && s.ConditionType is { } watched && _registry.Find(watched) is { ActivityAcknowledges: true })
+            StartLoop(ack, watched, null, 0, heading, s.Summary);
+
         if (s.SoundKey is not null)
         {
             if (s.SoundLoop && ack is not null && s.ConditionType is not null)
-                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, s.Name, s.Summary);
+                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, heading, s.Summary);
             else
             {
                 try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
@@ -453,32 +466,49 @@ public sealed class AlarmActionRunner
         await db.SaveChangesAsync(ct);
     }
 
-    // ── A sound that will not stop until someone is awake ──────────────────────
+    // ── A situation that will not go away until someone is awake ───────────────
     //
-    // One player, so one loop, over however many situations are ringing at once; a situation
+    // One player, so one loop, over however many situations are waiting at once; a situation
     // leaves the set when it is acknowledged here, or when the condition says it no longer
-    // holds — acknowledged on another client, docked, jumped, logged off. Between plays, not
-    // mid-note, because a klaxon cut short sounds like a fault rather than a decision.
+    // holds — acknowledged on another client, docked, jumped, logged off. A wake-up call joins
+    // at its first stage with no sound, only its window to keep or close; the stage that sets a
+    // sound repeating gives it one. Between plays, not mid-note, because a klaxon cut short
+    // sounds like a fault rather than a decision.
     private readonly object _loopLock = new();
-    private readonly Dictionary<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)> _loops = new();
+    private readonly Dictionary<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string? SoundKey, int Volume)> _loops = new();
     private Task? _loopTask;
     private static readonly TimeSpan LoopGap = TimeSpan.FromSeconds(1.5);
 
-    private void StartLoop(AlarmAck ack, string conditionType, string soundKey, int volume, string name, string summary)
+    /// <summary>How often a situation with nothing to play asks whether it still holds.</summary>
+    private static readonly TimeSpan WatchGap = TimeSpan.FromSeconds(5);
+
+    /// <param name="soundKey">Null: watched for its window only, or keeping a sound an earlier stage started.</param>
+    private void StartLoop(AlarmAck ack, string conditionType, string? soundKey, int volume, string name, string summary)
     {
-        bool fresh;
         lock (_loopLock)
         {
-            fresh = !_loops.ContainsKey((ack.AlarmId, ack.ScopeKey));
+            if (soundKey is null && _loops.TryGetValue((ack.AlarmId, ack.ScopeKey), out var was))
+                (soundKey, volume) = (was.SoundKey, was.Volume);
             _loops[(ack.AlarmId, ack.ScopeKey)] = (ack.Episode, conditionType, soundKey, volume);
             if (_loopTask is null || _loopTask.IsCompleted) _loopTask = Task.Run(LoopAsync);
         }
 
-        // One window per situation, however many stages ring for it.
-        if (fresh && SoundStartedCallback is { } started)
+        // One window per situation, however many stages it reaches; each brings it to the front,
+        // and the one that starts the sound says so on it. The button cuts off a line still being
+        // spoken, as a word in the chat does.
+        var sounding = soundKey is not null;
+        if (SoundStartedCallback is { } started)
             Dispatcher.UIThread.Post(() =>
             {
-                try { started(ack, name, summary, () => AcknowledgeAsync(ack)); }
+                try
+                {
+                    started(ack, name, summary, sounding, () =>
+                    {
+                        try { StopSpeechCallback?.Invoke(); }
+                        catch (Exception ex) { _errors.Log("AlarmActionRunner", "stopping speech", ex); }
+                        return AcknowledgeAsync(ack);
+                    });
+                }
                 catch (Exception ex) { _errors.Log("AlarmActionRunner", "sound window", ex); }
             });
     }
@@ -493,7 +523,7 @@ public sealed class AlarmActionRunner
         lock (_loopLock)
         {
             removed = _loops.Remove(key);
-            if (_loops.Count == 0) _sounds.Stop();
+            if (!_loops.Values.Any(l => l.SoundKey is not null)) _sounds.Stop();
         }
 
         if (removed && tellWindow && SoundStoppedCallback is { } stopped)
@@ -508,7 +538,7 @@ public sealed class AlarmActionRunner
     {
         while (true)
         {
-            KeyValuePair<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)>[] ringing;
+            KeyValuePair<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string? SoundKey, int Volume)>[] ringing;
             lock (_loopLock)
             {
                 if (_loops.Count == 0) return;
@@ -536,12 +566,19 @@ public sealed class AlarmActionRunner
                 if (!holds) EndLoop(kv.Key, tellWindow: true);
             }
 
-            (string SoundKey, int Volume) next;
+            (string? SoundKey, int Volume) next;
             lock (_loopLock)
             {
                 if (_loops.Count == 0) return;
-                var v = _loops.Values.First();
+                var v = _loops.Values.FirstOrDefault(l => l.SoundKey is not null);
                 next = (v.SoundKey, v.Volume);
+            }
+
+            // Nothing ringing yet: only windows to keep or close.
+            if (next.SoundKey is null)
+            {
+                await Task.Delay(WatchGap);
+                continue;
             }
 
             try { await _sounds.PlayAsync(next.SoundKey, next.Volume); }

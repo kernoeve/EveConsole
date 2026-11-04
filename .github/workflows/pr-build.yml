@@ -298,3 +298,21 @@ jobs:
               [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
             done
           done
+
+      # The packages themselves, to try on a real Mac: the portable zip for each architecture.
+      # Kept two weeks — a build to test, not a release. Already compressed, so stored as is.
+      - name: Mac build to try — Apple Silicon
+        uses: actions/upload-artifact@v4
+        with:
+          name: EveConsole-osx-arm64
+          path: releases-osx-arm64/*-Portable.zip
+          retention-days: 14
+          compression-level: 0
+
+      - name: Mac build to try — Intel
+        uses: actions/upload-artifact@v4
+        with:
+          name: EveConsole-osx-x64
+          path: releases-osx-x64/*-Portable.zip
+          retention-days: 14
+          compression-level: 0

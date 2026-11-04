@@ -13,6 +13,72 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>Personajes</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporaciones</value>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>Todas las corporaciones con un token. Las corporaciones personales cuentan en tus propios totales y listas: es el mismo ajuste que en Tokens ESI y se puede marcar en cualquiera de los dos sitios. Alertas de estructuras activa las alertas de estructuras (pestaña Alertas) para las estructuras de la corporación.</value>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>Ticker</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>Personal</value>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>Alertas de estructuras</value>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>Mostrar las alertas de estructuras —combustible, ataques y equipamiento— para las estructuras de esta corporación.</value>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>Estructuras</value>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>A una estructura se le acaba el combustible en</value>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>Una estructura es atacada (se puede descartar)</value>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>A una estructura le falta un módulo de su equipamiento</value>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>Una estructura tiene otro módulo donde su equipamiento lleva uno</value>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>Munición por debajo del</value>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>Cazas por debajo del</value>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Guaridas de mercenarios</value>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>Anarquía de una guarida en el nivel</value>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>o superior (0–4)</value>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>Una guarida atacada o reforzada</value>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>Una nueva operación táctica de mercenarios</value>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Las guaridas de tus propios personajes (Guaridas de mercenarios). El juego solo comunica la anarquía de una guarida a su propietario, así que la guarida de cualquier otro —incluso en el skyhook de tu corporación— no se ve. Los ataques y las nuevas operaciones salen de las notificaciones del último día y se pueden descartar.</value>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% del equipamiento</value>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>Solo para las corporaciones con Alertas de estructuras marcado en la pestaña Corporaciones. El equipamiento que debe llevar cada tipo de estructura se elige en Estructuras de corp → Configuración; un tipo sin equipamiento elegido no se comprueba. Los módulos cuentan en cualquier ranura del tipo adecuado, y los módulos o rigs de más no son problema. Los ataques salen de las notificaciones de tus personajes y se muestran durante un día.</value>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
   </data>

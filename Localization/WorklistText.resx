@@ -489,11 +489,11 @@
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="TipUnitsADayActually" xml:space="preserve">
-    <value>Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand.</value>
+    <value>Units a day actually produced, over the same days as the all-busy figure. It can never exceed the ceiling, which is why it cannot be used to measure demand.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="TipShareOfEachOriginals" xml:space="preserve">
-    <value>Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints.</value>
+    <value>Share of each original's time spent inside a job, over the same days as the all-busy figure. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="AllBusy" xml:space="preserve">
@@ -501,7 +501,7 @@
     <comment>Text in WorklistView.</comment>
   </data>
   <data name="TipShareOfTheLast" xml:space="preserve">
-    <value>Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting.</value>
+    <value>Share of the time when EVERY original was occupied at once, counting research and copying as well as building. Over the last 90 days, or since these originals' first job if that is later, and never under 30 days. This is the figure that says whether wanting another job meant waiting.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="Rank" xml:space="preserve">
@@ -1368,6 +1368,10 @@
     <value>Surge</value>
     <comment>Verdict on the BPO / Formula tab: a sudden queue for prints that are usually free.</comment>
   </data>
+  <data name="BlueprintVerdictNoSlot" xml:space="preserve">
+    <value>No free slot</value>
+    <comment>Verdict on the BPO / Formula tab: jobs of this item wait on a slot, not on a print.</comment>
+  </data>
   <data name="BlueprintVerdictBuilding" xml:space="preserve">
     <value>Building</value>
     <comment>Verdict on the BPO / Formula tab: jobs are queued for it.</comment>
@@ -1401,7 +1405,7 @@
     <comment>Bottlenecks status line. {0} is a note on how the flags were measured, or empty.</comment>
   </data>
   <data name="BottlenecksSummaryCrossed" xml:space="preserve">
-    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. ⚠ {3:N0} slot(s) sitting free while {4} blueprint(s) have every copy busy — the constraint here is prints, not slots. {5}</value>
+    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. ⚠ {3:N0} slot(s) sitting free in the same pools where {4} blueprint(s) have every original in use and jobs stopped — the constraint there is prints, not slots. {5}</value>
     <comment>Bottlenecks status line. {0} is the slot pools with work waiting, {1} the blueprints worth a look, {2} the materials used faster than made, {3} the free slots, {4} the blueprints with every copy busy, {5} a note on how the flags were measured, or empty.</comment>
   </data>
   <data name="BottlenecksSummary" xml:space="preserve">
@@ -1980,6 +1984,14 @@
     <value>starts on arrival</value>
     <comment>Beside a job in a Worklist row's "waiting on this" panel: this delivery is all the job lacks. Lower case.</comment>
   </data>
+  <data name="WaitThenNoSlot" xml:space="preserve">
+    <value>then waits for a slot</value>
+    <comment>Under a haul: jobs this load would cover, which would then wait for a free slot.</comment>
+  </data>
+  <data name="WaitThenNoPrint" xml:space="preserve">
+    <value>then waits for a blueprint</value>
+    <comment>Under a haul: jobs this load would cover, which would then wait for a blueprint to free up.</comment>
+  </data>
   <data name="WaitStartsWithOtherLoop" xml:space="preserve">
     <value>starts once the other loop is done too</value>
     <comment>Waiting-on-this status: the job is started by this hauling loop together with another pilot's loop in the same system, not by this one alone.</comment>
@@ -2004,21 +2016,21 @@
     <value>Restarts {0:N0} stopped job(s) once the loop is done: {1}, and {2:N0} more.</value>
     <comment>Added to an in-system hauling loop's detail. {0} is the stopped jobs the whole loop restarts, {1} what the first three make, {2} how many more.</comment>
   </data>
-  <data name="WaitWants" xml:space="preserve">
-    <value>wants {0:N0}</value>
-    <comment>Beside a planned build in a Worklist row's "waiting on this" panel. {0} is how many units of the cargo it wants. Lower case.</comment>
+  <data name="WaitNeedsMoreOne" xml:space="preserve">
+    <value>needs {0:N0} more item</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: how many different items its station would still lack once this trip's cargo is down. {0} is how many. Lower case.</comment>
   </data>
-  <data name="WaitQueuedBehind" xml:space="preserve">
-    <value>queued behind another job</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: an earlier job has already claimed the stock this delivery carries. Lower case.</comment>
+  <data name="WaitNeedsMoreOther" xml:space="preserve">
+    <value>needs {0:N0} more items</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: how many different items its station would still lack once this trip's cargo is down. {0} is how many. Lower case.</comment>
   </data>
-  <data name="WaitAlsoShortOne" xml:space="preserve">
-    <value>also short of {0:N0} item</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many (one). Lower case.</comment>
+  <data name="WaitNothingElseMissing" xml:space="preserve">
+    <value>nothing else missing</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel: once this cargo is down, its station holds everything it needs. Lower case.</comment>
   </data>
-  <data name="WaitAlsoShortOther" xml:space="preserve">
-    <value>also short of {0:N0} items</value>
-    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many. Lower case.</comment>
+  <data name="WaitTipMissingHead" xml:space="preserve">
+    <value>Still missing after this</value>
+    <comment>Heading of the tooltip on "needs N more items" in a Worklist row's "waiting on this" panel; the list under it names each item, how many and their m³.</comment>
   </data>
   <data name="WaitTipPlanned" xml:space="preserve">
     <value>A build this delivery is for. It is what the planner raised the trip for, and has not been broken out into a task of its own yet.</value>
@@ -2028,10 +2040,6 @@
     <value>This haul carries everything the job is short of, so it starts when the cargo lands.</value>
     <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
   </data>
-  <data name="WaitTipQueued" xml:space="preserve">
-    <value>The job wants something on this manifest, but an earlier job has already claimed that stock — this load will not reach it.</value>
-    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
-  </data>
   <data name="WaitTipStillShort" xml:space="preserve">
     <value>Still short of {0}.</value>
     <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel. {0} is a comma-separated list of items.</comment>
@@ -2039,10 +2047,6 @@
   <data name="WaitTipStillShortMore" xml:space="preserve">
     <value>Still short of {0}, and {1:N0} more.</value>
     <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel. {0} is a comma-separated list of the first items, {1} how many more there are.</comment>
-  </data>
-  <data name="WaitTipAlsoBehind" xml:space="preserve">
-    <value>It is also behind another job for something on this manifest.</value>
-    <comment>Added to the tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
   </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} in total. {1}</value>
@@ -2240,6 +2244,26 @@
     <value>Industry Jobs</value>
     <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): manufacturing and reaction jobs to start.</comment>
   </data>
+  <data name="SourceCompletedJobs" xml:space="preserve">
+    <value>Completed Jobs</value>
+    <comment>Worklist Config, Sources: finished industry jobs waiting to be delivered, raised as tasks at the top of the jobs.</comment>
+  </data>
+  <data name="DeliverJobsTitleOne" xml:space="preserve">
+    <value>Deliver {0:N0} completed job</value>
+    <comment>Worklist task: deliver finished industry jobs at one facility. {0} is how many jobs.</comment>
+  </data>
+  <data name="DeliverJobsTitleOther" xml:space="preserve">
+    <value>Deliver {0:N0} completed jobs</value>
+    <comment>Worklist task: deliver finished industry jobs at one facility. {0} is how many jobs.</comment>
+  </data>
+  <data name="DeliverJobsDetail" xml:space="preserve">
+    <value>Finished and waiting to be delivered: {0}. Delivering frees the slot and puts the output in the hangar.</value>
+    <comment>Worklist task detail for delivering finished jobs. {0} lists what comes out (item ×count).</comment>
+  </data>
+  <data name="DeliverJobsMore" xml:space="preserve">
+    <value>and {0:N0} more</value>
+    <comment>Appended to the list in DeliverJobsDetail. {0} is how many more items.</comment>
+  </data>
   <data name="JobDetailBuild" xml:space="preserve">
     <value>{0} Build {1:N0}.</value>
     <comment>Worklist job detail when the job cannot be planned at all. {0} is why it is wanted (one or more sentences), {1} the units to build. "Build" is a verb.</comment>
@@ -2281,8 +2305,16 @@
     <comment>Why a Worklist job is blocked: the blueprint is in another job. {0} describes it, as "BPO ME10/TE20".</comment>
   </data>
   <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
-    <value>No blueprint free at {0} ({1})</value>
+    <value>No usable blueprint at {0} (best owned: {1})</value>
     <comment>Why a Worklist job is blocked. {0} is the structure, {1} the best blueprint owned, as "BPO ME10/TE20".</comment>
+  </data>
+  <data name="BlockedAllPrintsInUse" xml:space="preserve">
+    <value>Every blueprint here is in use: {0:N0} running, {1:N0} about to start</value>
+    <comment>A job's blocked reason: every blueprint at the site is truly occupied. {0} = running now, {1} = going to jobs that can start now.</comment>
+  </data>
+  <data name="BlockedPrintHeldForMaterials" xml:space="preserve">
+    <value>Its blueprint is held for an earlier job that is short of materials</value>
+    <comment>A job's blocked reason: the print is free, but an earlier job that lacks materials has been given it.</comment>
   </data>
   <data name="JobDetailShort" xml:space="preserve">
     <value>{0} Short {1:N0}.</value>
@@ -2317,7 +2349,7 @@
     <comment>Added to the detail of the Worklist task holding the part of a job the materials on hand do not cover.</comment>
   </data>
   <data name="JobRunsNoFreePrint" xml:space="preserve">
-    <value>{0:N0} further run(s) have no free print — listed separately.</value>
+    <value>{0:N0} further run(s) are listed separately.</value>
     <comment>Added to a Worklist job's detail. {0} is the runs no free blueprint can carry; they are listed as other tasks.</comment>
   </data>
   <data name="JobCapGameLimit" xml:space="preserve">
@@ -2564,9 +2596,117 @@
     <value>{0} item(s)</value>
     <comment>Worklist haul title: how many kinds of item the trip carries. {0} is the number; the route is shown beside it.</comment>
   </data>
-  <data name="HaulTitleItemsContract" xml:space="preserve">
-    <value>{0} item(s), contract {1} of {2}</value>
-    <comment>Title of a hauling-service trip split across contracts. {0} = item types on it, {1} = which contract, {2} = how many contracts.</comment>
+  <data name="HaulTitleItemsContracts" xml:space="preserve">
+    <value>{0} item(s) in {1} contracts</value>
+    <comment>A courier trip too big for one contract, as one task. {0} = kinds of item, {1} = contracts.</comment>
+  </data>
+  <data name="HaulTitleFlyHull" xml:space="preserve">
+    <value>Fly {0} × {1:N0}</value>
+    <comment>Worklist haul title: a capital hull a pilot has to fly. {0} = hull, {1} = how many.</comment>
+  </data>
+  <data name="HaulHullFlyDetail" xml:space="preserve">
+    <value>A capital cannot be carried: a pilot has to fly it, jumping if the systems are apart.</value>
+    <comment>Sentence on a capital hull's haul task.</comment>
+  </data>
+  <data name="BlockedHullCannotDock" xml:space="preserve">
+    <value>{0} cannot dock at {1}: it has to be built there and not undocked</value>
+    <comment>A job's blocked reason: a capital hull it needs cannot dock at its site. {0} = hull(s), {1} = site.</comment>
+  </data>
+  <data name="HaulContractHeading" xml:space="preserve">
+    <value>CONTRACT {0} OF {1}</value>
+    <comment>Heading above one contract's lines in a courier trip. {0} = this contract, {1} = how many.</comment>
+  </data>
+  <data name="TopDoNow" xml:space="preserve">
+    <value>Do now</value>
+    <comment>Worklist summary: group of tasks that can be done now.</comment>
+  </data>
+  <data name="TopBlocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>Worklist summary: group of tasks that cannot start.</comment>
+  </data>
+  <data name="TopNoSlot" xml:space="preserve">
+    <value>No free slot</value>
+    <comment>Worklist summary and state: a job with no slot to run in.</comment>
+  </data>
+  <data name="TopNotDue" xml:space="preserve">
+    <value>Not due yet</value>
+    <comment>Worklist summary: tasks waiting for a time, not for anything the player can provide.</comment>
+  </data>
+  <data name="TopBestNext" xml:space="preserve">
+    <value>Best next moves</value>
+    <comment>Worklist summary: heading above the first few tasks to do.</comment>
+  </data>
+  <data name="TopMaterials" xml:space="preserve">
+    <value>short of materials</value>
+    <comment>Worklist summary: blocked for want of materials.</comment>
+  </data>
+  <data name="TopPrintsInUse" xml:space="preserve">
+    <value>blueprints all in use</value>
+    <comment>Worklist summary: blocked because every blueprint at the site is in use.</comment>
+  </data>
+  <data name="TopNoPrintHere" xml:space="preserve">
+    <value>no blueprint here</value>
+    <comment>Worklist summary: blocked because the site has no usable blueprint.</comment>
+  </data>
+  <data name="TopOther" xml:space="preserve">
+    <value>other</value>
+    <comment>Worklist summary: blocked for any other reason.</comment>
+  </data>
+  <data name="ChipDeliver" xml:space="preserve">
+    <value>deliver</value>
+    <comment>Worklist summary: finished jobs to deliver.</comment>
+  </data>
+  <data name="TopSlotsFull" xml:space="preserve">
+    <value>{0} slots {1:N0}/{2:N0} full</value>
+    <comment>Worklist summary. {0} = kind of slot, {1} = in use, {2} = capacity.</comment>
+  </data>
+  <data name="TopSlotsFree" xml:space="preserve">
+    <value>{0} slots {1:N0}/{2:N0}, {3:N0} free</value>
+    <comment>Worklist summary. {0} = kind of slot, {1} = in use, {2} = capacity, {3} = free.</comment>
+  </data>
+  <data name="TopSince" xml:space="preserve">
+    <value>Since last refresh: {0:N0} newly ready, {1:N0} no longer ready</value>
+    <comment>Worklist summary. {0} = tasks ready now that were not, {1} = tasks that were ready and are not now.</comment>
+  </data>
+  <data name="TopFrees" xml:space="preserve">
+    <value>frees {0:N0}</value>
+    <comment>Worklist summary, beside a next move. {0} = stopped jobs it restarts.</comment>
+  </data>
+  <data name="MoveBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Worklist, Best next moves: what the task is, in one word.</comment>
+  </data>
+  <data name="MoveHaul" xml:space="preserve">
+    <value>Haul</value>
+    <comment>Worklist, Best next moves: what the task is, in one word.</comment>
+  </data>
+  <data name="MoveBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A manufacturing job.</comment>
+  </data>
+  <data name="MoveReact" xml:space="preserve">
+    <value>React</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A reaction job.</comment>
+  </data>
+  <data name="MoveCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. A blueprint copy job.</comment>
+  </data>
+  <data name="MoveInvent" xml:space="preserve">
+    <value>Invent</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. An invention job.</comment>
+  </data>
+  <data name="MoveDeliver" xml:space="preserve">
+    <value>Deliver</value>
+    <comment>Worklist, Best next moves: what the task is, in one word. Delivering finished jobs.</comment>
+  </data>
+  <data name="TipTopStat" xml:space="preserve">
+    <value>Click to show only these. Click again to clear.</value>
+    <comment>Tooltip on a number in the Worklist summary.</comment>
+  </data>
+  <data name="TipTopMove" xml:space="preserve">
+    <value>Click to go to this task in the list.</value>
+    <comment>Tooltip on a next move in the Worklist summary.</comment>
   </data>
   <data name="HaulWhyUnblocking" xml:space="preserve">
     <value>Jobs are waiting on this.</value>
@@ -3125,7 +3265,7 @@
     <comment>Beside the remedy of adding an account. {0} is the characters on one account, {1} the most slots one character can have, {2} the slots running now.</comment>
   </data>
   <data name="ContentionScale" xml:space="preserve">
-    <value>Measured across {0:N0} blueprint(s) over {1} days: {2:N0} never had every original busy at once, the middle sits at {3:N0}%, and the busiest tenth start at {4:N0}% — which is the line the flags use.</value>
+    <value>Measured across {0:N0} blueprint(s) over up to {1} days: {2:N0} never had every original busy at once, the middle sits at {3:N0}%, and the busiest tenth start at {4:N0}% — which is the line the flags use.</value>
     <comment>End of the Bottlenecks status line: how the blueprint flags were measured. {0} is the blueprints measured, {1} the days, {2} how many never had every original busy at once, {3} the middle value, {4} where the busiest tenth begins, both as a share of the time.</comment>
   </data>
   <data name="PrintAdviceBlockingBpo" xml:space="preserve">
@@ -3153,12 +3293,52 @@
     <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured.</comment>
   </data>
   <data name="PrintAdviceBlockedBpo" xml:space="preserve">
-    <value>{0:N0} job(s) cannot start, though the BPOs on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another BPO — this looks like something other than the blueprint.</value>
+    <value>{0:N0} job(s) cannot start because no BPO is free at their site right now, though the BPOs have rarely all been busy at once ({1:N0}%). That looks more like a short surge or BPOs in the wrong place than a shortage, so check those before buying another.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every blueprint original was in a job at once.</comment>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} job(s) cannot start, though the formulas on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another formula — this looks like something other than the formula.</value>
+    <value>{0:N0} job(s) cannot start because no formula is free at their site right now, though the formulas have rarely all been busy at once ({1:N0}%). That looks more like a short surge or formulas in the wrong place than a shortage, so check those before buying another.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every reaction formula was in a job at once.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotBpo" xml:space="preserve">
+    <value>{0:N0} job(s) are waiting on a manufacturing slot, not on a BPO, so another BPO would start none of them. Every BPO was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on the BPO tab. {0} = jobs waiting on a slot, {1} = percent all busy, {2} = days in the window.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotFormula" xml:space="preserve">
+    <value>{0:N0} job(s) are waiting on a reaction slot, not on a formula, so another formula would start none of them. Every formula was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on the Formula tab. {0} = jobs waiting on a slot, {1} = percent all busy, {2} = days in the window.</comment>
+  </data>
+  <data name="PrintAdviceAtCopyLab" xml:space="preserve">
+    <value>At the copy lab: {0}</value>
+    <comment>Advice on a BPO tab row for the originals at the copy lab. {0} = the advice sentence.</comment>
+  </data>
+  <data name="PrintAdviceNoSlotCopy" xml:space="preserve">
+    <value>{0:N0} copy job(s) are waiting on a science slot, not on a BPO, so another BPO would start none of them. Every BPO here was busy {1:N0}% of the last {2} days.</value>
+    <comment>Advice on a BPO tab row for the originals at the copy lab. {0} = copy jobs waiting on a slot, {1} = percent all busy, {2} = days.</comment>
+  </data>
+  <data name="PrintNameCopying" xml:space="preserve">
+    <value>{0} (for copying)</value>
+    <comment>A product named with its originals at the copy lab, where a summary lists it to buy another. {0} = item name.</comment>
+  </data>
+  <data name="ColPrintUse" xml:space="preserve">
+    <value>Use</value>
+    <comment>Column header on the BPO tab: what these originals are for.</comment>
+  </data>
+  <data name="TipPrintUse" xml:space="preserve">
+    <value>What these originals are for. Those at the copy lab copy and the others build, and neither stands in for the other, so each is measured on its own line. The only original of a type does both.</value>
+    <comment>Tooltip on the Use column of the BPO tab.</comment>
+  </data>
+  <data name="PrintUseBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>BPO tab, Use column: originals that build.</comment>
+  </data>
+  <data name="PrintUseCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>BPO tab, Use column: originals at the copy lab.</comment>
+  </data>
+  <data name="PrintUseBoth" xml:space="preserve">
+    <value>Build + copy</value>
+    <comment>BPO tab, Use column: the only original of its type, which does both.</comment>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
     <value>{0:N0} job(s) want it now, but every BPO was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>

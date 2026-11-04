@@ -560,6 +560,14 @@
     <value>{0} items added to the production queue</value>
     <comment>Industry Ops: message shown for a moment after Add to Production Calc Queue. {0} how many.</comment>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} item left out: nothing builds it</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} items left out: nothing builds them</value>
+    <comment>Message shown for a moment after Add to Production Calc Queue from Inventory Levels or the Item Browser, when an item was left out because no blueprint or formula makes it. {0} how many.</comment>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Sales Over the Past 30 Days</value>
     <comment>Industry Ops, Summary tab: label centred over the Units, Avg Price, Margin, Sales and Profit columns of each list.</comment>
@@ -2043,6 +2051,50 @@
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC per run @ ME{0} contract price</value>
     <comment>Production Calculator, Jobs tab, formula column of a blueprint copy line: one copy is bought per run, at its contract price. {0} is the blueprint's material efficiency level (ME).</comment>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 BPC run per run, at its invention cost: {0:P0} chance, {1} runs a success, {2}</value>
+    <comment>Production Calculator, Jobs tab, formula column of an invented blueprint copy line: one run of the copy per run of the job, priced at what inventing it costs. {0} is the invention chance (a percentage), {1} the runs a successful invention gives, {2} the decryptor's name or 'No decryptor'.</comment>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>Copy job tag</comment>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} per attempt × {1:N0} attempts = {2:N0}</value>
+    <comment>Invention material line: {0} per attempt, {1} attempts, {2} total</comment>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK an attempt (datacores, decryptor, T1 copy run, fees) ÷ ({1:P1} chance × {2} runs) = {3:N0} ISK a copy run</value>
+    <comment>Invention job breakdown: {0} attempt cost, {1} chance, {2} runs a success, {3} per copy run</comment>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Leftover: {0:N1} runs</value>
+    <comment>Invention job: spare copy runs on average</comment>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>One T1 copy run for each invention attempt, copied off the original.</value>
+    <comment>Copy job breakdown line</comment>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>The blueprint copy one successful attempt makes, decryptor included.</value>
+    <comment>Tooltip on the invented copy line</comment>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Out: {0:N1} runs on average</value>
+    <comment>Invention job: copy runs made on average</comment>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Each success: ME{0} TE{1}, {2} runs</value>
+    <comment>ME, TE and runs of the copy one invention success makes</comment>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Invention: {0:P0} chance, {1}</value>
+    <comment>Invention job tag: {0} chance, {1} decryptor name</comment>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Attempts: {0:N0}</value>
+    <comment>Invention job: attempts</comment>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermediate</value>

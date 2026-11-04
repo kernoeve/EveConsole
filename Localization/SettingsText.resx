@@ -13,6 +13,94 @@
   <data name="TabCharacters" xml:space="preserve">
     <value>Characters</value>
   </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Settings: tab listing every corporation with a token.</comment>
+  </data>
+  <data name="CorporationsTabNote" xml:space="preserve">
+    <value>Every corporation with a token. Personal corporations count toward your own totals and lists — the same setting as on ESI Tokens, settable in either place. Structure alerts raises the structure alerts (Alerts tab) for the corporation's structures.</value>
+    <comment>Settings → Corporations: note above the list.</comment>
+  </data>
+  <data name="ColTicker" xml:space="preserve">
+    <value>Ticker</value>
+    <comment>Settings → Corporations: column, the corporation's ticker.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Settings → Corporations: column, the corporation's name.</comment>
+  </data>
+  <data name="ColPersonal" xml:space="preserve">
+    <value>Personal</value>
+    <comment>Settings → Corporations: column, tick box — a personal corporation.</comment>
+  </data>
+  <data name="ColStructureAlerts" xml:space="preserve">
+    <value>Structure alerts</value>
+    <comment>Settings → Corporations: column, tick box — raise structure alerts for this corporation.</comment>
+  </data>
+  <data name="TipStructureAlerts" xml:space="preserve">
+    <value>Raise the structure alerts — fuel, attacks and fit — for this corporation's structures.</value>
+    <comment>Settings → Corporations: tooltip of the Structure alerts tick box.</comment>
+  </data>
+  <data name="StructureAlertsTitle" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Settings → Alerts: heading of the structure alerts.</comment>
+  </data>
+  <data name="AlertStructureFuel" xml:space="preserve">
+    <value>A structure runs out of fuel within</value>
+    <comment>Settings → Alerts: tick box, followed by a number of days.</comment>
+  </data>
+  <data name="AlertStructureAttacked" xml:space="preserve">
+    <value>A structure is attacked (dismissible)</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureFitMissing" xml:space="preserve">
+    <value>A structure is missing a module of its fit</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureFitWrong" xml:space="preserve">
+    <value>A structure has another module where its fit has one</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertStructureAmmoLow" xml:space="preserve">
+    <value>Ammo below</value>
+    <comment>Settings → Alerts: tick box, followed by a percentage of the fit's ammo.</comment>
+  </data>
+  <data name="AlertStructureFightersLow" xml:space="preserve">
+    <value>Fighters below</value>
+    <comment>Settings → Alerts: tick box, followed by a percentage of the fit's fighters.</comment>
+  </data>
+  <data name="DenAlertsTitle" xml:space="preserve">
+    <value>Mercenary dens</value>
+    <comment>Settings → Alerts: section title, mercenary den alerts.</comment>
+  </data>
+  <data name="AlertDenAnarchy" xml:space="preserve">
+    <value>A den's anarchy at level</value>
+    <comment>Settings → Alerts: tick box before the level box — a den's anarchy at level N.</comment>
+  </data>
+  <data name="DenAnarchyOrAbove" xml:space="preserve">
+    <value>or above (0–4)</value>
+    <comment>Settings → Alerts: after the level box (0–4).</comment>
+  </data>
+  <data name="AlertDenAttacked" xml:space="preserve">
+    <value>A den attacked or reinforced</value>
+    <comment>Settings → Alerts: tick box.</comment>
+  </data>
+  <data name="AlertDenNewMto" xml:space="preserve">
+    <value>A new mercenary tactical operation</value>
+    <comment>Settings → Alerts: tick box, a new mercenary tactical operation at a den.</comment>
+  </data>
+  <data name="DenAlertsNote" xml:space="preserve">
+    <value>Your characters' own dens (Mercenary Dens). The game tells a den's anarchy only to its owner, so a den of anyone else's — even on your corporation's skyhook — is not seen. Attacks and new operations come from the notifications of the last day and can be dismissed.</value>
+    <comment>Settings → Alerts: note under the mercenary den alerts.</comment>
+  </data>
+  <data name="PercentOfTheFit" xml:space="preserve">
+    <value>% of the fit</value>
+    <comment>Settings → Alerts: after a percentage — of what the structure's fit carries.</comment>
+  </data>
+  <data name="StructureAlertsNote" xml:space="preserve">
+    <value>Only for the corporations with structure alerts ticked on the Corporations tab. The fit each structure type should carry is chosen on Corp Structures → Config; a type with no fit chosen is not checked. Modules count in any slot of the right kind, and extra modules or rigs are fine. Attacks come from your characters' notifications and are raised for a day.</value>
+    <comment>Settings → Alerts: note under the structure alerts.</comment>
+  </data>
   <data name="TabSde" xml:space="preserve">
     <value>SDE</value>
     <comment>CCP's Static Data Export; usually left as SDE.</comment>

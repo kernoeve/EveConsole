@@ -47,6 +47,13 @@ public static class WorklistPriority
     /// </summary>
     public const int AssetSafety     = 300;
 
+    /// <summary>
+    /// Finished jobs waiting to be delivered: before starting anything new, which may be waiting
+    /// on that very output or that very slot. Above everything, because it is a click that costs
+    /// nothing and every hour it waits holds a slot and an output hostage.
+    /// </summary>
+    public const int DeliverJobs     = 400;
+
     public const int OrderDriven     = 120;
     public const int Outbid          = 100;
 

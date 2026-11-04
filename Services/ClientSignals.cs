@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using EveConsole.Data;
 using Npgsql;
 
@@ -64,11 +65,19 @@ public sealed class ClientSignals(AppErrorLogger errors)
 
     public void Start()
     {
-        // One process, so a signal never leaves it: Publish raises Received directly and there is
-        // nothing to listen to.
-        if (!DbEngine.IsPostgres) return;
-
         _cts = new CancellationTokenSource();
+
+        // ⚠️ On SQLite there is one client, and Publish raises Received in it directly — but the
+        // tray is a second PROCESS, and heard nothing at all: its Background Processes window sat
+        // empty for as long as it was open. So the client serves a local socket and the tray
+        // listens on it. See LocalSocketPath.
+        if (!DbEngine.IsPostgres)
+        {
+            if (AppRuntime.IsTray) _ = LocalListenLoopAsync(_cts.Token);
+            else                   StartLocalServer(_cts.Token);
+            return;
+        }
+
         _ = ListenLoopAsync(_cts.Token);
     }
 
@@ -80,6 +89,168 @@ public sealed class ClientSignals(AppErrorLogger errors)
 
         try { _listener?.Dispose(); } catch { }
         _listener = null;
+
+        // The socket FILE is left: a client replacing this one (a restart) may already have bound
+        // a new one at that path, and deleting it would cut the tray off from the newcomer. A
+        // stale file is cleared by whoever binds next.
+        try { _server?.Dispose(); } catch { }
+        _server = null;
+        lock (_peers)
+        {
+            foreach (var p in _peers) try { p.Dispose(); } catch { }
+            _peers.Clear();
+        }
+    }
+
+    // ── SQLite: a local socket from the client to the tray ────────────────────
+
+    private Socket?               _server;
+    private readonly List<Socket> _peers = [];
+
+    /// <summary>
+    /// Raised on the client when a tray connects, on a background thread. A signal has no replay,
+    /// so whoever publishes state sends it again whole for the newcomer.
+    /// </summary>
+    public event Action? PeerConnected;
+
+    /// <summary>
+    /// Beside the profile's data, so a profile's client and tray find each other and not anyone
+    /// else's. ⚠️ A Unix socket path is capped at about 104 bytes on macOS, which a profile folder
+    /// can exceed; past that it goes to the temp folder under a name derived from the data folder.
+    /// </summary>
+    private static string LocalSocketPath
+    {
+        get
+        {
+            var path = Path.Combine(AppConfig.AppDataDir, "EveConsole.signals.sock");
+            if (System.Text.Encoding.UTF8.GetByteCount(path) <= 100) return path;
+
+            var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(AppConfig.AppDataDir)))[..16];
+            return Path.Combine(Path.GetTempPath(), $"eveconsole-{hash}.sock");
+        }
+    }
+
+    private void StartLocalServer(CancellationToken ct)
+    {
+        try
+        {
+            var path = LocalSocketPath;
+            if (File.Exists(path)) File.Delete(path);   // left by a client that died; only one can run
+
+            _server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            _server.Bind(new UnixDomainSocketEndPoint(path));
+            _server.Listen(4);
+
+            // Yours alone. The calls it carries name your characters, and a socket file takes the
+            // process's umask, which on most systems lets other users on the machine connect.
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+
+            _ = AcceptLoopAsync(_server, ct);
+        }
+        catch (Exception ex)
+        {
+            // No tray will hear anything, which is all this costs: the client itself is unaffected.
+            errors.Warn(nameof(ClientSignals), "serving the tray", ex.Message);
+        }
+    }
+
+    private async Task AcceptLoopAsync(Socket server, CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                var peer = await server.AcceptAsync(ct);
+                // A tray that stops reading must not stall the client that is publishing to it.
+                peer.SendTimeout = 2000;
+                lock (_peers) _peers.Add(peer);
+
+                try { PeerConnected?.Invoke(); }
+                catch (Exception ex) { errors.Log(nameof(ClientSignals), "a tray connected", ex); }
+            }
+            catch (OperationCanceledException) { return; }
+            catch (ObjectDisposedException)    { return; }
+            catch (Exception ex)
+            {
+                errors.Log(nameof(ClientSignals), "accepting the tray", ex);
+                try { await Task.Delay(TimeSpan.FromSeconds(5), ct); }
+                catch (OperationCanceledException) { return; }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sends to every connected tray. ⚠️ Length-prefixed rather than one per line: a payload is
+    /// whatever its publisher wrote, and a newline inside one would split it in two.
+    /// </summary>
+    private void SendToPeers(string payload)
+    {
+        List<Socket> peers;
+        lock (_peers)
+        {
+            if (_peers.Count == 0) return;
+            peers = [.. _peers];
+        }
+
+        var body  = System.Text.Encoding.UTF8.GetBytes(payload);
+        var frame = new byte[4 + body.Length];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(frame, body.Length);
+        body.CopyTo(frame, 4);
+
+        foreach (var p in peers)
+        {
+            try { p.Send(frame); }
+            catch
+            {
+                // Gone, or not reading: dropped. A tray that comes back connects again.
+                lock (_peers) _peers.Remove(p);
+                try { p.Dispose(); } catch { }
+            }
+        }
+    }
+
+    /// <summary>
+    /// The tray's side: connects to the client's socket and raises Received for each payload.
+    /// Retried for as long as the tray runs — the client is usually started after it, at logon,
+    /// and is closed and opened again many times while the icon stays up.
+    /// </summary>
+    private async Task LocalListenLoopAsync(CancellationToken ct)
+    {
+        var header = new byte[4];
+
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                using var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                await socket.ConnectAsync(new UnixDomainSocketEndPoint(LocalSocketPath), ct);
+                await using var stream = new NetworkStream(socket, ownsSocket: false);
+
+                while (!ct.IsCancellationRequested)
+                {
+                    await stream.ReadExactlyAsync(header, ct);
+                    var length = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header);
+                    if (length is < 0 or > 1 << 20) break;   // not ours; reconnect rather than trust it
+
+                    var body = new byte[length];
+                    await stream.ReadExactlyAsync(body, ct);
+
+                    try { Received?.Invoke(System.Text.Encoding.UTF8.GetString(body)); }
+                    catch (Exception ex) { errors.Log(nameof(ClientSignals), "handling a signal", ex); }
+                }
+            }
+            catch (OperationCanceledException) { return; }
+            catch
+            {
+                // No client running yet, or it has just closed: the normal state of a tray icon,
+                // not worth a line in the log every few seconds.
+            }
+
+            try { await Task.Delay(TimeSpan.FromSeconds(3), ct); }
+            catch (OperationCanceledException) { return; }
+        }
     }
 
     /// <summary>
@@ -95,6 +266,7 @@ public sealed class ClientSignals(AppErrorLogger errors)
         if (!DbEngine.IsPostgres)
         {
             Received?.Invoke(payload);
+            SendToPeers(payload);
             return;
         }
 

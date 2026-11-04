@@ -653,7 +653,7 @@
     <value>Здесь есть Keepstar. Суперкары и титаны могут войти в док</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>Корабли большого тоннажа — Fortizar или станция NPC</value>
+    <value>Корабли большого тоннажа — Fortizar, Sotiyo или станция NPC</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>Корабли большого тоннажа могут войти в док, суперкары и титаны — нет</value>

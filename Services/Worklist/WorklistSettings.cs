@@ -254,7 +254,11 @@ public class WorklistSettings(AppPreferencesService prefs)
     /// difference between four hulls per success and one, and the 50% it adds to the odds pays for
     /// the decryptor several times over on anything hull-sized.
     /// </summary>
-    public string ShipDecryptor => prefs.Get(ShipDecryptorKey) ?? "Parity Decryptor";
+    public string ShipDecryptor => prefs.Get(ShipDecryptorKey) ?? DefaultShipDecryptor;
+
+    /// <summary>The ship default, for readers that go to the preferences table directly — the
+    /// production context, which prices invented copies with these choices.</summary>
+    public const string DefaultShipDecryptor = "Parity Decryptor";
 
     /// <summary>
     /// Everything else defaults to none. A module or a round of ammunition already invents at ten

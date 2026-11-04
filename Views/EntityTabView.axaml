@@ -331,10 +331,11 @@
       </TabItem>
 
       <TabItem Header="{Binding HistoryHeader}" IsVisible="{Binding HasHistory}">
-        <Grid RowDefinitions="Auto,*" Margin="4 6">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding HistoryStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                      TextWrapping="Wrap" Margin="0 0 0 6"/>
           <DataGrid Grid.Row="1" ItemsSource="{Binding History}"
+                    SelectedItem="{Binding SelectedHistory}"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                     DoubleTapped="OnHistoryDoubleTapped">
@@ -356,6 +357,179 @@
               <DataGridTextColumn Header="{x:Static loc:CorpText.ColFrom}"     Binding="{Binding From}" FontSize="10"     Width="130"/>
               <DataGridTextColumn Header="{x:Static loc:CorpText.ColUntil}"    Binding="{Binding Until}" FontSize="10"    Width="130"/>
               <DataGridTextColumn Header="{x:Static loc:CorpText.ColDuration}" Binding="{Binding Duration}" FontSize="10" Width="130"/>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <!-- What the app holds of the pilot's activity over the row picked above -->
+          <Border Grid.Row="2" IsVisible="{Binding HasStintSummaries}" Margin="0 8 0 0" Padding="10 8"
+                  Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="1" CornerRadius="3">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding StintStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                         TextWrapping="Wrap" IsVisible="{Binding StintStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <StackPanel Spacing="6" IsVisible="{Binding Stint, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{Binding Stint.Heading}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <Grid ColumnDefinitions="Auto,16,*,24,Auto,16,*" RowDefinitions="Auto,4,Auto,4,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:CorpText.StintKills}"     FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Stint.KillsText}"              FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                  <TextBlock Grid.Row="0" Grid.Column="4" Text="{x:Static loc:CorpText.StintLosses}"    FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding Stint.LossesText}"             FontSize="11" Foreground="{DynamicResource BadBrush}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:CorpText.EntityRattingTax}"  FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Stint.RattingText}"            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="4" Text="{x:Static loc:CorpText.EntityIndustryTax}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="6" Text="{Binding Stint.IndustryText}"           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:CorpText.StintContracts}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding Stint.ContractsText}"          FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Grid.Row="4" Grid.Column="4" Text="{x:Static loc:CorpText.StintTrades}"    FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                  <TextBlock Grid.Row="4" Grid.Column="6" Text="{Binding Stint.TradesText}"             FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </Grid>
+                <TextBlock Text="{x:Static loc:CorpText.StintNote}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <!-- Contracts the pilot or corporation is on: public listings the sweep found, and ours -->
+      <TabItem Header="{x:Static loc:CorpText.TabEntityContracts}" IsVisible="{Binding HasActivity}">
+        <Grid RowDefinitions="Auto,Auto,*" Margin="4 6">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0 0 0 6">
+            <TextBlock Text="{x:Static loc:CorpText.FromLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+            <CalendarDatePicker SelectedDate="{Binding ActivityFrom}" FontSize="11" Height="24" Width="130"/>
+            <TextBlock Text="{x:Static loc:CorpText.ThruLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 0 0"/>
+            <CalendarDatePicker SelectedDate="{Binding ActivityThru}" FontSize="11" Height="24" Width="130"/>
+          </StackPanel>
+          <TextBlock Grid.Row="1" Text="{Binding ContractsStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="2" ItemsSource="{Binding EntityContracts}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10" CanUserSortColumns="True" CanUserResizeColumns="True"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColIssued}" Binding="{Binding IssuedText}" SortMemberPath="Issued" Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColType}"   Binding="{Binding TypeText}"   SortMemberPath="TypeText" Width="100"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRole}"     Binding="{Binding RoleText}"   SortMemberPath="RoleText" Width="120"/>
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColContents}" Width="2*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityContractRowVm">
+                    <Button Command="{Binding OpenContract}" Background="Transparent" BorderThickness="0" Padding="0"
+                            Cursor="Hand" HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="{x:Static loc:SalesText.TipOpenContract}">
+                      <TextBlock Text="{Binding Contents}" FontSize="10" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColPrice}"  Binding="{Binding PriceText}"  SortMemberPath="Price"  Width="110" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColReward}" Binding="{Binding RewardText}" SortMemberPath="Reward" Width="100" CellStyleClasses="num"/>
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColOtherParty}" Width="*" SortMemberPath="OtherParty" ClipboardContentBinding="{Binding OtherParty}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityContractRowVm">
+                    <Button Content="{Binding OtherParty}" Command="{Binding OpenOtherParty}" IsEnabled="{Binding HasOtherParty}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStatus}" Width="110" SortMemberPath="StatusText" ClipboardContentBinding="{Binding StatusText}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityContractRowVm">
+                    <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="10" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLocation}" Width="*" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityContractRowVm">
+                    <Button Content="{Binding Location}" Command="{Binding OpenLocation}" IsEnabled="{Binding HasLocationLink}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}" Binding="{Binding Region}" Width="110"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <!-- Trades our wallets hold: theirs if they are ours, else theirs with us -->
+      <TabItem Header="{x:Static loc:CorpText.TabEntityMarket}" IsVisible="{Binding HasActivity}">
+        <Grid RowDefinitions="Auto,Auto,*" Margin="4 6">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0 0 0 6">
+            <TextBlock Text="{x:Static loc:CorpText.FromLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+            <CalendarDatePicker SelectedDate="{Binding ActivityFrom}" FontSize="11" Height="24" Width="130"/>
+            <TextBlock Text="{x:Static loc:CorpText.ThruLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 0 0"/>
+            <CalendarDatePicker SelectedDate="{Binding ActivityThru}" FontSize="11" Height="24" Width="130"/>
+          </StackPanel>
+          <TextBlock Grid.Row="1" Text="{Binding TradesStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="2" ItemsSource="{Binding Trades}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10" CanUserSortColumns="True" CanUserResizeColumns="True"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColDate}" Binding="{Binding DateText}" SortMemberPath="Date" Width="130"/>
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColItem}" Width="2*" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityTradeRowVm">
+                    <Button Content="{Binding TypeName}" Command="{Binding OpenItem}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"
+                            ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSide}" Width="70" SortMemberPath="TheyBought" ClipboardContentBinding="{Binding SideText}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityTradeRowVm">
+                    <TextBlock Text="{Binding SideText}" Foreground="{Binding SideColor}" FontSize="10" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColQty}"        Binding="{Binding QuantityText}"  SortMemberPath="Quantity"  Width="70"  CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:FinanceText.ColUnitPrice}" Binding="{Binding UnitPriceText}" SortMemberPath="UnitPrice" Width="110" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:FinanceText.ColTotal}"   Binding="{Binding TotalText}"     SortMemberPath="Total"     Width="120" CellStyleClasses="num"/>
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColOtherParty}" Width="*" SortMemberPath="OtherParty" ClipboardContentBinding="{Binding OtherParty}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityTradeRowVm">
+                    <Button Content="{Binding OtherParty}" Command="{Binding OpenOtherParty}" IsEnabled="{Binding HasOtherParty}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:AssetsText.ColLocation}" Binding="{Binding Location}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <!-- Taxes the pilot or corporation paid into ours, as Corp Activity reports them -->
+      <TabItem Header="{x:Static loc:CorpText.TabCorpTaxes}" IsVisible="{Binding HasTaxes}">
+        <Grid RowDefinitions="Auto,*" Margin="4 6">
+          <TextBlock Grid.Row="0" Text="{Binding TaxesStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                     TextWrapping="Wrap" Margin="0 0 0 6"/>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding Taxes}"
+                    IsReadOnly="True" AutoGenerateColumns="False" FontSize="10" CanUserSortColumns="True" CanUserResizeColumns="True"
+                    Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColMonth}" Binding="{Binding MonthText}" SortMemberPath="SortKey" Width="90"/>
+              <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColCorporation}" Width="*" SortMemberPath="Corporation" ClipboardContentBinding="{Binding Corporation}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:EntityTaxMonthRowVm">
+                    <Button Content="{Binding Corporation}" Command="{Binding OpenCorporation}"
+                            Background="Transparent" BorderThickness="0" Padding="0"
+                            FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
+                            HorizontalContentAlignment="Left" VerticalAlignment="Center"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.EntityRattingTax}"  Binding="{Binding RattingText}"  SortMemberPath="Ratting"  Width="140" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.EntityIndustryTax}" Binding="{Binding IndustryText}" SortMemberPath="Industry" Width="140" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:FinanceText.ColTotal}"    Binding="{Binding TotalText}"    SortMemberPath="Total"    Width="140" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

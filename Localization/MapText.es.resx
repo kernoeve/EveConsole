@@ -641,7 +641,7 @@
     <value>Aquí hay una Keepstar. Pueden acoplar superportanaves y titanes</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>Naves capitales — Fortizar o estación PNJ</value>
+    <value>Naves capitales — Fortizar, Sotiyo o estación PNJ</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>Pueden acoplar naves capitales, pero no supercapitales</value>

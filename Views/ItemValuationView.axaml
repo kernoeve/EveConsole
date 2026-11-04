@@ -115,7 +115,7 @@
 
         <!-- ── Values ──────────────────────────────────────────────────── -->
         <TabItem Header="{x:Static loc:AssetsText.TabValues}">
-          <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0 6 0 0">
+          <Grid x:Name="ValuesTab" RowDefinitions="Auto,Auto,*,Auto,0,Auto" Margin="0 6 0 0">
 
             <!-- Volume and count beside the filter. Each value's total, standing and coverage sit
                  in its heading over the columns, as each station's do on the compare tab. -->
@@ -235,7 +235,74 @@
               </DataGrid.Columns>
             </DataGrid>
 
-            <TextBlock Grid.Row="3" Text="{Binding UnparsedText}" IsVisible="{Binding HasUnparsed}"
+            <GridSplitter Grid.Row="3" Height="4" Margin="0 6" HorizontalAlignment="Stretch" IsVisible="{Binding HasOutput}"
+                          Background="{DynamicResource BorderSubtleBrush}" />
+
+            <!-- What the list comes to reprocessed, and what could not go in. The row opens from the
+                 view: a hidden panel in a sized row would still hold its half of the tab. -->
+            <Grid Grid.Row="4" RowDefinitions="Auto,*" IsVisible="{Binding HasOutput}">
+              <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="24" Margin="0 0 0 8">
+                <TextBlock Text="{x:Static loc:AssetsText.TargetReprocessedOutput}" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                           ToolTip.Tip="{x:Static loc:AssetsText.TipReprocessedOutput}" />
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="{Binding OutputVolumeText}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <TextBlock Text="{x:Static loc:AssetsText.Volume}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="{Binding OutputMarketText}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <TextBlock Text="{x:Static loc:AssetsText.GroupMarketValue}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                </StackPanel>
+                <TextBlock Text="{Binding OutputCoverageText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+              </StackPanel>
+              <DataGrid Grid.Row="1" x:Name="OutputGrid"
+                        ItemsSource="{Binding OutputRows}"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                        FrozenColumnCount="1" CanUserReorderColumns="False">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColItem}" Width="*" MinWidth="240" SortMemberPath="DisplayName" ClipboardContentBinding="{Binding DisplayName}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ValueRowVm">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                          <Image Source="{Binding Icon}" Width="18" Height="18" IsVisible="{Binding HasType}" VerticalAlignment="Center" />
+                          <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasType}" ToolTip.Tip="{x:Static loc:AssetsText.TipOpenInItemBrowser}">
+                            <TextBlock Text="{Binding DisplayName}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                          </Button>
+                          <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasType}" Foreground="{Binding NameColor}"
+                                     TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding Section}" IsVisible="{Binding HasSection}" FontSize="9"
+                                     Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding Problem}" IsVisible="{Binding IsProblem}" FontSize="9"
+                                     Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="9"
+                                     Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
+                                     ToolTip.Tip="{x:Static loc:AssetsText.TipNoOrdersAtThis}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{x:Static loc:AssetsText.ColQty}"        Binding="{Binding QuantityText}" Width="110" SortMemberPath="Quantity"    CellStyleClasses="num" />
+                  <DataGridTextColumn Header="{x:Static loc:AssetsText.ColItemVolume}" Binding="{Binding VolumeText}"   Width="120" SortMemberPath="TotalVolume" CellStyleClasses="num" />
+                  <DataGridTemplateColumn Header="{x:Static loc:AssetsText.GroupMarketValue}" Width="130" SortMemberPath="MarketTotal" CellStyleClasses="ga gs" ClipboardContentBinding="{Binding Market.TotalText}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ValueRowVm">
+                        <TextBlock Text="{Binding Market.TotalText}" ToolTip.Tip="{Binding Market.TotalExact}" Foreground="{Binding Market.FigureColor}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="{x:Static loc:AssetsText.GroupBuildValue}" Width="130" SortMemberPath="BuildTotal" CellStyleClasses="gb gs" ClipboardContentBinding="{Binding Build.TotalText}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:ValueRowVm">
+                        <TextBlock Text="{Binding Build.TotalText}" ToolTip.Tip="{Binding Build.TotalExact}" Foreground="{Binding Build.FigureColor}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+
+            <TextBlock Grid.Row="5" Text="{Binding UnparsedText}" IsVisible="{Binding HasUnparsed}"
                        FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
           </Grid>
         </TabItem>

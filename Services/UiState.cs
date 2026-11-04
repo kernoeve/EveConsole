@@ -84,6 +84,10 @@ public static class UiState
     /// <summary>The results sort as "PropertyPath:asc" or "PropertyPath:desc".</summary>
     public const string IndustryOppsSort        = "industryopps.sort";
 
+    /// <summary>The corporation Corp Activity and Corp Structures were last left on (ids).</summary>
+    public const string CorpActivityCorp        = "corpactivity.corp";
+    public const string CorpStructuresCorp      = "corpstructures.corp";
+
     /// <summary>
     /// This client's value for <paramref name="key"/>.
     ///

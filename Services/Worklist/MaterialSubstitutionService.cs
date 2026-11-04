@@ -46,7 +46,13 @@ public class MaterialSubstitutionService(IDbContextFactory<AppDbContext> dbFacto
     public const double DecompressionYield = 0.95;
 
     private const int AsteroidCategory  = 25;   // ore, ice, moon ore
-    private const int CelestialCategory = 2;    // harvestable gas clouds
+
+    // ⚠️ Groups, not the category. Gas is filed under Celestial, and so is everything else that
+    // sits in space: freight and secure containers, comets, stations. Containers list the minerals
+    // they reprocess into, so with the whole category in, the Pyerite to buy was reduced by the
+    // hangar's containers, and the reason read "recoverable from 15 Giant Freight Container".
+    private const int HarvestableCloudGroup = 711;
+    private const int CompressedGasGroup    = 4168;
 
     /// <summary>
     /// Everything that reduces to something else, keyed by what it produces.
@@ -60,8 +66,8 @@ public class MaterialSubstitutionService(IDbContextFactory<AppDbContext> dbFacto
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var sources = await db.SdeTypes.AsNoTracking()
-            .Where(t => db.SdeGroups.Any(g => g.GroupId == t.GroupId
-                        && (g.CategoryId == AsteroidCategory || g.CategoryId == CelestialCategory)))
+            .Where(t => t.GroupId == HarvestableCloudGroup || t.GroupId == CompressedGasGroup
+                     || db.SdeGroups.Any(g => g.GroupId == t.GroupId && g.CategoryId == AsteroidCategory))
             .Select(t => new { t.TypeId, t.Name, t.PortionSize })
             .ToListAsync(ct);
         if (sources.Count == 0) return [];

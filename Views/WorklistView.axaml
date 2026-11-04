@@ -41,6 +41,23 @@
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
          already had, with the cursor and a hover underline as the only cues — the same rule the
          Killmail tool, Corp Activity and the system page follow. -->
+    <Style Selector="Button.topstat">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderBrush"         Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="1" />
+      <Setter Property="CornerRadius"        Value="3" />
+      <Setter Property="Padding"             Value="6 1" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.topstat:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background"  Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.topstat.active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
     <Style Selector="Button.link">
       <Setter Property="Background"          Value="Transparent" />
       <Setter Property="BorderThickness"     Value="0" />
@@ -85,44 +102,96 @@
 
     <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
 
-      <!-- The strip: one headline figure, then chips.
+      <!-- The summary: how full the slots are, then what can be done, what cannot and why.
            ⚠️ Every figure here is counted off the run, not off the rows below, so the filters and
            the two checkboxes leave it alone. That is the point: it says how much is blocked
-           without making you show the blocked ones.
-           ⚠️ Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
-           header a few pixels below, so carrying them here printed the same figures twice. And
-           ready appears once, as the headline; the state chips are blocked and waiting only. -->
+           without making you show the blocked ones. Each one narrows the list to what it counts. -->
       <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-              CornerRadius="3" Padding="16 12">
-        <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+              CornerRadius="3" Padding="10 6">
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,440">
 
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="{Binding ReadyCountText}" FontSize="30" FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextBrightBrush}"/>
-            <TextBlock Text="{x:Static loc:WorklistText.ReadyNow}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0 2 0 0"/>
-          </StackPanel>
-
-          <Rectangle Width="1" Fill="{DynamicResource BorderDefaultBrush}" VerticalAlignment="Stretch" Margin="0 2"/>
-
-          <ItemsControl ItemsSource="{Binding KindSummary}" VerticalAlignment="Center">
+          <ItemsControl Grid.Row="0" Grid.Column="0" ItemsSource="{Binding TopSlots}" Margin="0 0 0 4">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="20"/>
+                <WrapPanel Orientation="Horizontal"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:SummaryStatVm">
-                <StackPanel>
-                  <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextPrimaryBrush}"/>
-                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                             Margin="0 1 0 0"/>
-                </StackPanel>
+              <DataTemplate x:DataType="vm:TopSlotVm">
+                <Button Classes="topstat" Classes.active="{Binding Stat.IsActive}" Command="{Binding Stat.Pick}"
+                        ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}" Margin="0 0 10 0">
+                  <TextBlock Text="{Binding Stat.Label}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding Color}"/>
+                </Button>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-        </StackPanel>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SinceText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SinceText}"/>
+
+          <ItemsControl Grid.Row="1" Grid.Column="0" ItemsSource="{Binding TopGroups}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TopGroupVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="0 0 10 0" Margin="0 0 10 2">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Title}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="7 0 0 0"/>
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                      <Button Classes="topstat" Classes.active="{Binding Headline.IsActive}" Command="{Binding Headline.Pick}"
+                              ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Headline.Value}" FontSize="24" FontWeight="SemiBold" Foreground="{Binding HeadlineColor}"/>
+                      </Button>
+                      <ItemsControl ItemsSource="{Binding Parts}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="2"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:TopStatVm">
+                            <Button Classes="topstat" Classes.active="{Binding IsActive}" Command="{Binding Pick}"
+                                    ToolTip.Tip="{x:Static loc:WorklistText.TipTopStat}">
+                              <StackPanel>
+                                <TextBlock Text="{Binding Value}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                              </StackPanel>
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <StackPanel Grid.Row="1" Grid.Column="1">
+            <TextBlock Text="{x:Static loc:WorklistText.TopBestNext}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="7 0 0 1"/>
+            <ItemsControl ItemsSource="{Binding NextMoves}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NextMoveVm">
+                  <Button Classes="topstat" Command="{Binding Go}" HorizontalAlignment="Stretch"
+                          ToolTip.Tip="{x:Static loc:WorklistText.TipTopMove}" Padding="6 0">
+                    <Grid ColumnDefinitions="52,Auto,*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding Verb}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                      <Image Grid.Column="1" Source="{Binding Row.Icon}" Width="14" Height="14" Margin="0 0 5 0" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="2" Text="{Binding Line}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="3" Text="{Binding Frees}" FontSize="10" Margin="6 0 0 0"
+                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Grid>
       </Border>
 
       <!-- Sat with the filters rather than up beside Refresh, because that is what they are: two
@@ -406,8 +475,44 @@
                   </Panel>
                   <TextBlock Text="{Binding ChildQty}" FontSize="14"
                              Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                  <TextBlock Text="{Binding ChildOther}" FontSize="12"
+                  <TextBlock Text="{Binding ChildOther}" FontSize="12" IsVisible="{Binding ShowsPlainOther}"
                              Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center"/>
+                  <!-- A build waiting on a trip: "needs N more items", and on hover which, how many
+                       of each and their m³. -->
+                  <TextBlock Text="{Binding ChildOther}" FontSize="12" IsVisible="{Binding HasChildMissing}"
+                             Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center"
+                             TextDecorations="Underline" Cursor="Help">
+                    <ToolTip.Tip>
+                      <ToolTip MaxWidth="560">
+                        <StackPanel Spacing="2" MinWidth="380">
+                          <Grid ColumnDefinitions="20,*,80,80" Margin="0 0 0 4">
+                            <TextBlock Grid.ColumnSpan="2" Text="{x:Static loc:WorklistText.WaitTipMissingHead}"
+                                       FontWeight="SemiBold" FontSize="11" VerticalAlignment="Bottom"/>
+                            <TextBlock Grid.Column="2" Text="{x:Static loc:WorklistText.ColUnits}" FontSize="9"
+                                       Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                            <TextBlock Grid.Column="3" Text="m³" FontSize="9"
+                                       Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                          </Grid>
+                          <ItemsControl ItemsSource="{Binding ChildMissing}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:WaitMissingLineVm">
+                                <Grid ColumnDefinitions="20,*,80,80" Height="20">
+                                  <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" Margin="4 0 12 0"
+                                             VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                  <TextBlock Grid.Column="2" Text="{Binding Qty}" FontSize="11"
+                                             HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                  <TextBlock Grid.Column="3" Text="{Binding Volume}" FontSize="11"
+                                             Foreground="{DynamicResource TextMutedBrush}"
+                                             HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </ToolTip>
+                    </ToolTip.Tip>
+                  </TextBlock>
                 </StackPanel>
 
                 <!-- Haul: where from, where to, and how much of it. -->
@@ -550,9 +655,23 @@
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <TextBlock Text="&#x24D8;" FontSize="16"
                          IsVisible="{Binding HasDetailTip}"
-                         Foreground="{Binding ReadinessBarColor}"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                         ToolTip.Tip="{Binding DetailTip}"/>
+                         Foreground="{Binding InfoColor}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- A line a sentence, a heading's parts indented under it, each item it names
+                     with its picture: see DetailText. -->
+                <ToolTip.Tip>
+                  <ToolTip MaxWidth="620">
+                    <ItemsControl ItemsSource="{Binding DetailLines}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DetailLine">
+                          <TextBlock views:DetailInlines.Runs="{Binding Runs}" Margin="{Binding Margin}"
+                                     TextWrapping="Wrap" FontSize="12" LineHeight="20"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ToolTip>
+                </ToolTip.Tip>
+              </TextBlock>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -1187,7 +1306,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Item}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Item" Width="230" ClipboardContentBinding="{Binding Item}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Material}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTheItemThatRan}"/>
                     </DataGridTemplateColumn.Header>
@@ -1216,17 +1335,17 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn     Binding="{Binding Used}"    Width="75">
+                  <DataGridTextColumn SortMemberPath="UsedSort"     Binding="{Binding Used}"    Width="75">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Used}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipConsumedPerDayOver}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn     Binding="{Binding Made}"    Width="75">
+                  <DataGridTextColumn SortMemberPath="MadeSort"     Binding="{Binding Made}"    Width="75">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Made}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipProducedPerDayOver}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="75" ClipboardContentBinding="{Binding Balance}">
+                  <DataGridTemplateColumn SortMemberPath="BalanceSort" Width="75" ClipboardContentBinding="{Binding Balance}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Balance}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipMadePerUnitConsumed}"/>
                     </DataGridTemplateColumn.Header>
@@ -1237,17 +1356,17 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn    Binding="{Binding Level}"   Width="70">
+                  <DataGridTextColumn SortMemberPath="LevelSort"    Binding="{Binding Level}"   Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Level}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheInventoryLevels}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn  Binding="{Binding OnHand}"  Width="80">
+                  <DataGridTextColumn SortMemberPath="OnHandSort"  Binding="{Binding OnHand}"  Width="80">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.OnHand}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipUnitsTheIndustryScope}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Need}">
+                  <DataGridTemplateColumn SortMemberPath="NeedSort" Width="80" ClipboardContentBinding="{Binding Need}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Need}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheWorkOn}"/>
                     </DataGridTemplateColumn.Header>
@@ -1258,37 +1377,37 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn    Binding="{Binding Cover}"   Width="65">
+                  <DataGridTextColumn SortMemberPath="CoverSort"    Binding="{Binding Cover}"   Width="65">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Cover}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTheLevelMeasuredIn}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn    Binding="{Binding Surge}"   Width="60">
+                  <DataGridTextColumn SortMemberPath="SurgeSort"    Binding="{Binding Surge}"   Width="60">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Surge}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipHowMuchHarderThis}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                  <DataGridTextColumn SortMemberPath="BlockingSort" Binding="{Binding Blocking}" Width="75">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Blocking}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksThisShortageIs}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn  Binding="{Binding MakeRunning}" Width="70">
+                  <DataGridTextColumn SortMemberPath="MakeRunningSort"  Binding="{Binding MakeRunning}" Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Running}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipJobsMakingThisItem}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn    Binding="{Binding MakeReady}"   Width="60">
+                  <DataGridTextColumn SortMemberPath="MakeReadySort"    Binding="{Binding MakeReady}"   Width="60">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Ready}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksToMakeThis}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn  Binding="{Binding MakeWaiting}" Width="70">
+                  <DataGridTextColumn SortMemberPath="MakeWaitingSort"  Binding="{Binding MakeWaiting}" Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Waiting}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksToMakeThis2}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="60" ClipboardContentBinding="{Binding MakeBlocked}">
+                  <DataGridTemplateColumn SortMemberPath="MakeBlockedSort" Width="60" ClipboardContentBinding="{Binding MakeBlocked}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Stuck}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksToMakeThis3}"/>
                     </DataGridTemplateColumn.Header>
@@ -1299,7 +1418,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="110" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Verdict" Width="110" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts}"/>
                     </DataGridTemplateColumn.Header>
@@ -1382,7 +1501,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="220" ClipboardContentBinding="{Binding Product}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Product" Width="220" ClipboardContentBinding="{Binding Product}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Product}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatThisBlueprintOr}"/>
                     </DataGridTemplateColumn.Header>
@@ -1411,37 +1530,42 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn     Binding="{Binding Cycle}"    Width="70">
+                  <DataGridTextColumn Binding="{Binding Use}" Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{x:Static loc:WorklistText.ColPrintUse}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipPrintUse}"/>
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+                  <DataGridTextColumn SortMemberPath="CycleSort"     Binding="{Binding Cycle}"    Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Cycle}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipHowLongOneRun}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn       Binding="{Binding Prints}"  Width="55">
+                  <DataGridTextColumn SortMemberPath="PrintsSort"       Binding="{Binding Prints}"  Width="55">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="BPO" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipOriginalsOwnedCopiesAre}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Busy}"     Width="75">
+                  <DataGridTextColumn SortMemberPath="BusySort" Binding="{Binding Busy}"     Width="75">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Installed}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipHowManyOfThose}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn   Binding="{Binding Capacity}"    Width="85">
+                  <DataGridTextColumn SortMemberPath="CapacitySort"   Binding="{Binding Capacity}"    Width="85">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Ceiling}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipUnitsADayThe}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn      Binding="{Binding Demand}"      Width="85">
+                  <DataGridTextColumn SortMemberPath="MadeSort"      Binding="{Binding Demand}"      Width="85">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Made}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipUnitsADayActually}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Used}" Width="60" Foreground="{DynamicResource TextDimBrush}">
+                  <DataGridTextColumn SortMemberPath="UsedSort" Binding="{Binding Used}" Width="60" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Used}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipShareOfEachOriginals}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="75" ClipboardContentBinding="{Binding Cover}">
+                  <DataGridTemplateColumn SortMemberPath="CoverSort" Width="75" ClipboardContentBinding="{Binding Cover}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.AllBusy}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipShareOfTheLast}"/>
                     </DataGridTemplateColumn.Header>
@@ -1452,17 +1576,17 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Binding="{Binding Rank}" Width="70" Foreground="{DynamicResource TextDimBrush}">
+                  <DataGridTextColumn SortMemberPath="RankSort" Binding="{Binding Rank}" Width="70" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Rank}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhereThisSitsAmong}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Recent}" Width="55" Foreground="{DynamicResource TextDimBrush}">
+                  <DataGridTextColumn SortMemberPath="RecentSort" Binding="{Binding Recent}" Width="55" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.ColRecent30d}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTheSameAllBusy}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="70" ClipboardContentBinding="{Binding Trend}">
+                  <DataGridTemplateColumn SortMemberPath="TrendSort" Width="70" ClipboardContentBinding="{Binding Trend}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Trend}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhetherTheRecentSqueeze}"/>
                     </DataGridTemplateColumn.Header>
@@ -1473,27 +1597,27 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Binding="{Binding WithOneMore}" Width="85">
+                  <DataGridTextColumn SortMemberPath="WithOneMoreSort" Binding="{Binding WithOneMore}" Width="85">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.N1Print}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheCeilingBecomes}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn  Binding="{Binding Wanted}"  Width="65">
+                  <DataGridTextColumn SortMemberPath="WantedSort"  Binding="{Binding Wanted}"  Width="65">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Queued}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipJobsForThisProduct}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Blocked}" Width="95">
+                  <DataGridTextColumn SortMemberPath="BlockedSort" Binding="{Binding Blocked}" Width="95">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.BlockedNow}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipJobsHeldUpBy}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Blocking}" Width="75">
+                  <DataGridTextColumn SortMemberPath="BlockingSort" Binding="{Binding Blocking}" Width="75">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Blocking}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipTasksWaitingOnWhat}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Verdict" Width="80" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent" ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts2}"/>
                     </DataGridTemplateColumn.Header>
@@ -1594,7 +1718,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="250" ClipboardContentBinding="{Binding Task}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Task" Width="250" ClipboardContentBinding="{Binding Task}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Job}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipTheStoppedJobIt}"/>
@@ -1625,7 +1749,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Station}">
+                  <DataGridTemplateColumn SortMemberPath="Station" Width="230" ClipboardContentBinding="{Binding Station}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.WaitingAt}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipWhereTheJobWould}"/>
@@ -1644,42 +1768,42 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTextColumn Binding="{Binding Blocking}" Width="80">
+                  <DataGridTextColumn SortMemberPath="BlockingSort" Binding="{Binding Blocking}" Width="80">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Blocking}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipJobsStoppedBehindThis}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTextColumn Binding="{Binding Items}" Width="65">
+                  <DataGridTextColumn SortMemberPath="ItemsSort" Binding="{Binding Items}" Width="65">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Items}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipDistinctItemTypesThis}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTextColumn Binding="{Binding Volume}" Width="90">
+                  <DataGridTextColumn SortMemberPath="VolumeSort" Binding="{Binding Volume}" Width="90">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Volume}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipCubicMetresThisJob}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTextColumn Binding="{Binding Sources}" Width="80">
+                  <DataGridTextColumn SortMemberPath="SourcesSort" Binding="{Binding Sources}" Width="80">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Stops}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipStopsAHaulerWould}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTextColumn Binding="{Binding Hauls}" Width="70">
+                  <DataGridTextColumn SortMemberPath="HaulsSort" Binding="{Binding Hauls}" Width="70">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Hauls}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipHaulsAlreadyOnThe}"/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTemplateColumn Width="120" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
+                  <DataGridTemplateColumn SortMemberPath="Verdict" Width="120" ClipboardContentBinding="{Binding Verdict}" CellStyleClasses="child">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="{x:Static loc:WorklistText.Verdict}" Background="Transparent"
                                  ToolTip.Tip="{x:Static loc:WorklistText.TipWhatTheRowAmounts2}"/>

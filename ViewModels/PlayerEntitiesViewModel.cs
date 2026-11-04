@@ -16,10 +16,11 @@ public class PlayerEntitiesViewModel : ReactiveObject
     public EntityTabViewModel Corps     { get; }
     public EntityTabViewModel Alliances { get; }
 
-    public PlayerEntitiesViewModel(EntityBrowserService service, KillmailBrowserService killmails)
+    public PlayerEntitiesViewModel(EntityBrowserService service, KillmailBrowserService killmails,
+                                   PlayerActivityService activity)
     {
-        Pilots    = new EntityTabViewModel(service, killmails, EntityKind.Pilot);
-        Corps     = new EntityTabViewModel(service, killmails, EntityKind.PlayerCorp);
+        Pilots    = new EntityTabViewModel(service, killmails, EntityKind.Pilot, activity);
+        Corps     = new EntityTabViewModel(service, killmails, EntityKind.PlayerCorp, activity);
         Alliances = new EntityTabViewModel(service, killmails, EntityKind.Alliance);
 
         // A link on one tab opens the entity on the tab that owns that kind. NPC kinds are

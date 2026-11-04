@@ -283,14 +283,41 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Verträge (Kauf)</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Marktpreis</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Marktpreis (Ziel)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Baukosten</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Marktpreis (Verfügb.)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Volumen (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Marktpreis (Diff.)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Baukosten (Diff.)</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Volumen - Ziel</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Volumen - Verfügb.</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Volumen - Diff.</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>{0} fehlt</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} fehlen</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…und {0} weitere</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Artikel hinzufügen…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Aktionen</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Sollbestände</value>
@@ -315,6 +342,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Baukosten:</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} pro Durchlauf</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Aufbereitungswert:</value>
@@ -453,6 +483,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Marktaufträge</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} Tauschverträge mit diesem Gegenstand auf einer der beiden Seiten. Pro Einheit steht nur da, wo der Gegenstand allein auf seiner Seite steht und auf der anderen nur ISK; eine Kopie wird pro Durchlauf bepreist.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Vergangene Verträge: nur die neuesten {0:N0}.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Kein Tauschvertrag, der zu diesen Filtern passt, führt diesen Gegenstand. Öffentliche Verträge stammen aus dem Abruf aller Regionen im Verträge-Werkzeug.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Seite</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Angeboten</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Gesucht</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Blaupause</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Kopie ME{0} TE{1}, {2} Durchläufe</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Kopie</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Pro Einheit / Durchlauf</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Rest des Vertrags</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Bietet {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Sucht {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Sonst nichts</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Verträge: {0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Quelle:</value>
@@ -883,6 +964,9 @@ holt sie zurück.</value>
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Aufbereitungswert</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Was aus der Liste nach der Wiederaufbereitung wird, mit den Ausbeuten der App und zu Preisen dieser Station. Was sich nicht wiederaufbereiten lässt, bleibt unverändert und ist als übrig markiert.</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>Die Zwischenablage nennt keinen Gegenstand, daher wurde die Liste nicht verändert. „Liste bearbeiten“ nimmt beliebigen Text an.</value>

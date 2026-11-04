@@ -870,6 +870,158 @@ public class CorpStarbase
     public DateTimeOffset? OnlinedSince    { get; set; }
 }
 
+/// <summary>
+/// A corporation's skyhook, from /corporations/{id}/structures/skyhooks and its detail (both want
+/// a Station_Manager). A skyhook whose detail was refused keeps the last one read.
+/// </summary>
+public class CorpSkyhook
+{
+    public long   CorporationId { get; set; }
+    public long   SkyhookId     { get; set; }
+    public int    PlanetId      { get; set; }
+    /// <summary>ShieldVulnerable, ArmorReinforced, ArmorVulnerable, HullReinforced, HullVulnerable;
+    /// empty until the detail has been read.</summary>
+    public string State         { get; set; } = "";
+    public bool   IsActive      { get; set; }
+    /// <summary>Lowered by a mercenary den attached to the skyhook.</summary>
+    public long?  EffectiveWorkforce { get; set; }
+    public DateTimeOffset? ReinforcedUntil { get; set; }
+    public DateTimeOffset? TheftStart      { get; set; }
+    public DateTimeOffset? TheftEnd        { get; set; }
+    public DateTimeOffset? PulledAt        { get; set; }
+}
+
+/// <summary>A reagent a skyhook holds, secured and unsecured, as of its last cycle.</summary>
+public class CorpSkyhookReagent
+{
+    public long CorporationId  { get; set; }
+    public long SkyhookId      { get; set; }
+    public int  TypeId         { get; set; }
+    public long SecuredStock   { get; set; }
+    public long UnsecuredStock { get; set; }
+    public DateTimeOffset LastCycle { get; set; }
+}
+
+/// <summary>
+/// A character's mercenary den, from /characters/{id}/structures/mercenary-dens and its detail.
+/// Infomorphs, development and anarchy are as of <see cref="PulledAt"/>; the infomorphs at the
+/// reading before (<see cref="PrevInfomorphs"/>) give how fast they build.
+/// </summary>
+public class CharMercenaryDen
+{
+    public long   CharacterId        { get; set; }
+    public long   DenId              { get; set; }
+    public int    TypeId             { get; set; }
+    public int    PlanetId           { get; set; }
+    public long   SkyhookId          { get; set; }
+    public long   SkyhookCorporationId { get; set; }
+    /// <summary>Running, Paused (e.g. reinforced) or Disabled (e.g. the owner lacks the skills).</summary>
+    public string State              { get; set; } = "";
+    public long   Infomorphs         { get; set; }
+    public long   DevelopmentAmount  { get; set; }
+    /// <summary>0–4, from ESI's "Level0"–"Level4"; -1 when ESI sent none.</summary>
+    public int    DevelopmentLevel   { get; set; }
+    public long   AnarchyAmount      { get; set; }
+    public int    AnarchyLevel       { get; set; }
+    public DateTimeOffset? ReinforcedUntil { get; set; }
+    /// <summary>Null until the detail has been read once.</summary>
+    public DateTimeOffset? PulledAt  { get; set; }
+    public long?  PrevInfomorphs     { get; set; }
+    public DateTimeOffset? PrevPulledAt { get; set; }
+}
+
+/// <summary>A mercenary tactical operation open to a character, from one of their dens.</summary>
+public class CharMercenaryOperation
+{
+    public long   CharacterId   { get; set; }
+    /// <summary>ESI's UUID.</summary>
+    public string OperationId   { get; set; } = "";
+    public long   DenId         { get; set; }
+    public int    DungeonTypeId { get; set; }
+    /// <summary>Available, Started, Completed, Expired or Removed.</summary>
+    public string State         { get; set; } = "";
+    public DateTimeOffset Expires { get; set; }
+    /// <summary>When it was first seen: what the "new operation" alert goes by.</summary>
+    public DateTimeOffset SeenAt  { get; set; }
+}
+
+/// <summary>A service an Upwell structure offers, as the structure list names it, and its state
+/// (online / offline / cleanup). Replaced with the structure list on every poll.</summary>
+public class CorpStructureService
+{
+    public long   CorporationId { get; set; }
+    public long   StructureId   { get; set; }
+    public string Name          { get; set; } = "";
+    public string State         { get; set; } = "";
+}
+
+/// <summary>A tower's settings: who may use it, who may run it, and when its guns fire. The
+/// fuel in its bay goes to <see cref="CorpFuelBay"/> with everyone else's.</summary>
+public class CorpStarbaseDetail
+{
+    public long    CorporationId            { get; set; }
+    public long    StarbaseId               { get; set; }
+    public bool    AllowAllianceMembers     { get; set; }
+    public bool    AllowCorporationMembers  { get; set; }
+    public string  Anchor                   { get; set; } = "";
+    public string  Unanchor                 { get; set; } = "";
+    public string  Online                   { get; set; } = "";
+    public string  Offline                  { get; set; } = "";
+    public string  FuelBayTake              { get; set; } = "";
+    public string  FuelBayView              { get; set; } = "";
+    public bool    AttackIfAtWar            { get; set; }
+    public bool    AttackIfSecurityDropping { get; set; }
+    public double? AttackSecurityThreshold  { get; set; }
+    public double? AttackStandingThreshold  { get; set; }
+    public bool    UseAllianceStandings     { get; set; }
+    public DateTimeOffset PulledAt          { get; set; }
+}
+
+/// <summary>
+/// One fuel in one structure's or tower's fuel bay, and how fast it has been going.
+///
+/// <para>Quantity is the latest reading: for a structure from the corp's assets (flag
+/// StructureFuel), for a tower from its starbase detail. The baseline is the reading the current
+/// run started from — set when the row is first seen and again whenever the quantity goes UP,
+/// which is a refuel — so (BaselineQuantity − Quantity) over (SeenAt − BaselineAt) is the
+/// average burn since the bay was last topped up. Measured rather than worked out, it covers what
+/// the game data does not say: Metenox's magmatic gas, a jump bridge's liquid ozone, a tower's
+/// charters and any fuel bonus.</para>
+/// </summary>
+public class CorpFuelBay
+{
+    public long   CorporationId    { get; set; }
+    public long   LocationId       { get; set; }   // structure id or starbase id
+    public int    TypeId           { get; set; }
+    public long   Quantity         { get; set; }
+    public DateTimeOffset SeenAt   { get; set; }
+    public long   BaselineQuantity { get; set; }
+    public DateTimeOffset BaselineAt { get; set; }
+}
+
+/// <summary>
+/// The fit a corporation's structures of one type should carry, set on Corp Structures → Config.
+///
+/// <para>The fit is a saved one — EVE Console's (FitSource "app", FitId a SavedFit) or a
+/// character's in the game ("game", FitId the fitting, FitOwnerId the character). It is read
+/// afresh each time, so editing it changes what is checked. ⚠️ The game cannot change a fitting
+/// in place: saving it again deletes it and makes a new one with a new id, so a fitting gone by
+/// its id is looked for again by its owner, name and hull. Items is the fit as last read, as JSON
+/// in the game's fitting item form (type_id, flag, quantity) — what is checked when the fit itself
+/// can no longer be found.</para>
+/// </summary>
+public class CorpStructureFit
+{
+    public long   CorporationId   { get; set; }
+    public int    StructureTypeId { get; set; }
+    public string FitSource       { get; set; } = "";   // "app" or "game"
+    public long   FitId           { get; set; }
+    public long   FitOwnerId      { get; set; }         // the character, for a game fitting; 0 for the app's
+    public string FitName         { get; set; } = "";
+    public string Items           { get; set; } = "";
+    public DateTimeOffset ItemsAt { get; set; }
+}
+
 public class CorpFacility
 {
     public long   CorporationId { get; set; }

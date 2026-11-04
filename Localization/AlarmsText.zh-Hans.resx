@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>关闭</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>确认并停止声音</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>
   </data>
@@ -138,6 +135,9 @@
   </data>
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>选择一个警报，或新建一个。</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>已选择 {0} 个警报。导出只保存这些；单独选择一个即可编辑。</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
@@ -740,7 +740,7 @@
     <value>导入警报</value>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>将所有警报及其动作保存到 JSON 文件。</value>
+    <value>将所选警报及其动作保存到 JSON 文件——未选择时保存全部警报。按住 Ctrl 或 Shift 可多选。</value>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
     <value>将 JSON 导出文件中的警报（连同其动作）添加为新警报。不会替换这里已有的内容；已存在的警报会被跳过。</value>
@@ -901,6 +901,9 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>声音会一直重复，直到你确认为止。</value>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>在你于此处或代理聊天中回应之前，呼叫会一直持续。</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>选择警报声音</value>
   </data>
@@ -932,10 +935,10 @@
     <value>当你的某个角色出站时触发。可选择只针对从指定空间站、建筑、星系或星域的出站，只针对指定的船体或舰船类别，以及只针对特定状态——已装配或未装配、跳跃燃料是否低于某个数量、弹药是否低于某个数量。每个筛选条件都会缩小范围，因此可以设置两个警报分别覆盖不同的出站，而不会让同一次出站被报两次。位置轮询会在约十秒内发现出站；船上装载了什么则根据最近一次资产快照判断，ESI 每小时刷新一次该快照，每条匹配都会注明快照距今多久。</value>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>出站过久（叫醒服务）</value>
+    <value>出站过久</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>用来叫醒你。当你的某个角色驾驶指定的船体或舰船类别出站，并在若干秒后仍停留在同一星系时，最多分三个阶段触发——比如货舰或战略货舰处于系留状态，驾驶员却打起了瞌睡。或者，在勾选“跳跃抵达”时，当可跳跃的船体通过跳跃引擎或跳桥抵达、且仍在太空中时触发——也就是跳跃后的那三十秒。进站、离开该星系或下线都会使其结束。点击对话框中的按钮，或在 AI 助手聊天中输入或说出任何内容，都会让它暂时安静下来；静默期结束后如果舰船仍在原处，各阶段将重新开始。若在任何阶段到来之前在那里输入或说话，则改为重新开始计时。每个阶段都有自己的操作——通过“TTS 直接朗读”或 AI 助手说出该阶段的台词、弹出对话框、播放一直重复直到被确认的声音。重复和冷却时间设置不适用。</value>
+    <value>当你的某个角色驾驶指定的船体或舰船类别出站，并在若干秒后仍停留在同一星系时，最多分三个阶段触发——比如货舰或战略货舰处于系留状态，驾驶员却打起了瞌睡。或者，在勾选“跳跃抵达”时，当可跳跃的船体通过跳跃引擎或跳桥抵达、且仍在太空中时触发——也就是跳跃后的那三十秒。进站、离开该星系或下线都会使其结束。点击对话框中的按钮，或在 AI 助手聊天中输入或说出任何内容，都会让它暂时安静下来；静默期结束后如果舰船仍在原处，各阶段将重新开始。若在任何阶段到来之前在那里输入或说话，则改为重新开始计时。每个阶段都有自己的操作——通过“TTS 直接朗读”或 AI 助手说出该阶段的台词、弹出对话框、播放一直重复直到被确认的声音。重复和冷却时间设置不适用。</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>商店订单事件</value>
@@ -1271,19 +1274,19 @@
     <value>弹药不足</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>醒醒，{0}</value>
+    <value>出站时间过长</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“确认”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“确认”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}，{1} 的 {2} 在 {4}前抵达 {3}，现在还没有进站。一切还好吗？</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>醒醒，{0}。{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。马上进站。</value>
+    <value>{0}，{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。请确认一切正常。</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}！{1} 的 {2} 抵达后已经在 {3} 停了 {4}。立刻进站！</value>
@@ -1292,10 +1295,10 @@
     <value>{0}，{1} 的 {2} 在 {3} 出站已经 {4} 了。一切还好吗？</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>醒醒，{0}。{1} 的 {2} 在 {4}前从 {3} 出站，到现在还没有进站。快进站，或者回答我。</value>
+    <value>{0}，{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。请确认一切正常。</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。快醒醒，马上进站。</value>
+    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。马上进站。</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>太空舱</value>
@@ -1435,29 +1438,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>钟声——柔和</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>钟声——玻璃</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>铃声——水晶</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>钟声——马林巴</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>钟声——三和弦</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>钟声——颤音琴</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>叮声——玻璃</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>叮声——明亮</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>铃声——黄铜</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>铃声——手摇铃</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>铃声——服务铃</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>铃声——浑厚</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>铃声——厚重</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>锣声——低沉</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>锣声——科幻</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>提示音——双响</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>提示音——哔哔</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>提示音——蜂鸣</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>警报——紧急</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>警报——战斗准备</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>警告——双音</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>警告——柔和双音</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>警告——电笛</value>
@@ -1467,6 +1509,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>警告——警笛</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>警告——快速警笛</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>警告——号角</value>
@@ -1489,8 +1534,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>播放失败：{0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>我醒了</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>确认</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>（尚未设置 AI 助手，因此已改为记录一条提醒。）</value>

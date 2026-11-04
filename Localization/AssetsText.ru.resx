@@ -283,14 +283,47 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Контракты (покупка)</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Рын. цена</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Рын. цена (цель)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Стоим. произв.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Рын. цена (доступно)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Объём (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Рын. цена (разница)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Стоим. произв. (разница)</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Объём - цель</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Объём - доступно</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Объём - разница</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="InvShortFew" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvShortMany" xml:space="preserve">
+    <value>в дефиците: {0}</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Добавить предмет…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Действия</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Уровни запасов</value>
@@ -315,6 +348,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Стоимость производства:</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} за прогон</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Стоимость при переработке:</value>
@@ -453,6 +489,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Рыночные ордера</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} обменов предметами с этим предметом на любой из сторон. Цена за единицу показана, только когда предмет один на своей стороне, а с другой — только ISK; копия оценивается за прогон.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Прошлые контракты: только {0:N0} самых новых.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Ни один обмен предметами, подходящий под эти фильтры, не содержит этот предмет. Публичные контракты берутся из обхода всех регионов инструментом «Контракты».</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Сторона</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Предлагается</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Требуется</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Чертёж</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Копия ME{0} TE{1}, {2} прогонов</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Оригинал ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Копия</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>За единицу / прогон</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Остальное в контракте</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Предлагает {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Требует {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Больше ничего</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Контракты: {0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Источник:</value>
@@ -883,6 +970,9 @@ Warrior II 5
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Стоимость при переработке</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Во что превратится список после переработки, с выходом приложения и по ценам этой станции. То, что нельзя переработать, остаётся как есть и отмечается как остаток.</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>В буфере обмена нет названий предметов, поэтому список не изменён. «Изменить список» принимает любой текст.</value>

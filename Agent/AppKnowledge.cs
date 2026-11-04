@@ -293,6 +293,21 @@ public static class AppKnowledge
         wallet and contract counterparties who are members now — never its customers, the users
         of its structures or other corporations.
 
+        ### Corp Structures
+        A corporation's Upwell structures, towers and skyhooks: state, services, fuel left, run-out,
+        blocks and fuel ISK a day, Metenox pickup value and m³. Detail: timers, each fuel's burn,
+        services, fit by slot, fighters, ammo hold, Metenox ore (bay of 500,000 m³), tower
+        settings; a skyhook's workforce, theft window, reagents and your characters' dens on it.
+        Block burn comes from the service modules and fuel bonus, or the tower's size and faction;
+        Upwell time left is the game's fuel expiry. Assets need a Director. Config sets each type's
+        saved fit; a red info icon shows modules missing or wrong, ammo or fighters low. Alerts →
+        Structures, for corporations ticked on Settings → Corporations.
+
+        ### Mercenary Dens
+        Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,
+        development and anarchy (level 0–4 · amount of 100), open operations. Only a den's owner
+        sees its anarchy. Alerts → Mercenary dens: anarchy at a level, attacked, new operation.
+
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
 
@@ -407,7 +422,8 @@ public static class AppKnowledge
         Undocking from a player structure writes no log line.
 
         ## Settings (gear icon)
-        Tabs: ESI Tokens (add and manage authenticated characters), SDE (import or update the
+        Tabs: ESI Tokens (add and manage authenticated characters), Corporations (personal, structure
+        alerts), SDE (import or update the
         Static Data Export — needed before item and market lookups work), Market (price sources,
         and the default asset-value and manufacturing-cost pricing), Timers and Polling (each kind
         of ESI data's own refresh interval), Corp Top 10 (the exclude list), AI Agent (this
@@ -465,6 +481,8 @@ public static class AppKnowledge
         ("income_expense",      "Income & Expense",       "Income & Expense"),
         ("wallet",              "Wallet",                 "Wallet"),
         ("corp_activity",       "Corp Activity",          "Corp Activity"),
+        ("corp_structures",     "Corp Structures",        "Corp Structures"),
+        ("mercenary_dens",      "Mercenary Dens",         "Mercenary Dens"),
         ("killmails",           "Killmails",              "Killmails"),
         ("player_entities",     "Player Entities",        "Player Entities"),
         ("npc_entities",        "NPC Entities",           "NPC Entities"),

@@ -124,6 +124,12 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Corp-Aktivität</value>
   </data>
+  <data name="NavCorpStructures" xml:space="preserve">
+    <value>Corp-Strukturen</value>
+  </data>
+  <data name="NavMercenaryDens" xml:space="preserve">
+    <value>Söldnerunterschlüpfe</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Abschussberichte</value>
   </data>

@@ -718,6 +718,9 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>本地没有存储合同 {0}——它可能是公开合同，或尚未轮询到。</value>
   </data>
+  <data name="ShowingOneContract" xml:space="preserve">
+    <value>仅显示合同 {0}。更改任一筛选条件即可查看其余合同。</value>
+  </data>
   <data name="ContractContentsAndMore" xml:space="preserve">
     <value>{0} 及另外 {1} 项</value>
   </data>

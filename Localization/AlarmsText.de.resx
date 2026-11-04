@@ -7,9 +7,6 @@
   <data name="Dismiss" xml:space="preserve">
     <value>Verwerfen</value>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Bestätigen – Ton stoppen</value>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Entfernen</value>
   </data>
@@ -138,6 +135,12 @@
   </data>
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Wählen Sie einen Alarm aus, oder erstellen Sie einen.</value>
+  </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} Alarm ausgewählt. Export speichert nur diesen; wähle einen allein aus, um ihn zu bearbeiten.</value>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} Alarme ausgewählt. Export speichert nur diese; wähle einen allein aus, um ihn zu bearbeiten.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>
@@ -740,7 +743,7 @@
     <value>Alarme importieren</value>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>Speichert alle Alarme mit ihren Aktionen in einer JSON-Datei.</value>
+    <value>Speichert die ausgewählten Alarme und ihre Aktionen in einer JSON-Datei – alle Alarme, wenn keiner ausgewählt ist. Mit Strg oder Umschalt mehrere auswählen.</value>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
     <value>Fügt die Alarme aus einem JSON-Export samt Aktionen als neue Alarme hinzu. Hier wird nichts ersetzt; ein schon vorhandener Alarm wird übersprungen.</value>
@@ -904,6 +907,9 @@
   <data name="SoundRepeatsUntilAck" xml:space="preserve">
     <value>Der Ton wiederholt sich, bis Sie ihn bestätigen.</value>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>Der Ruf geht weiter, bis du antwortest, hier oder im Agenten-Chat.</value>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Alarmton auswählen</value>
   </data>
@@ -935,10 +941,10 @@
     <value>Löst aus, wenn einer Ihrer Charaktere abdockt. Optional nur von bestimmten Stationen, Strukturen, Systemen oder Regionen, nur in bestimmten Rümpfen oder Schiffsklassen und nur in einem bestimmten Zustand – ausgerüstet oder nicht, Sprungtreibstoff unter einer Zahl oder nicht, Munition unter einer Zahl oder nicht. Jeder Filter schränkt ein, sodass zwei Alarme verschiedene Abdockvorgänge abdecken können statt zweimal denselben. Das Abdocken erkennt die Standortabfrage innerhalb von etwa zehn Sekunden; was an Bord war, wird anhand des letzten Besitz-Schnappschusses beurteilt, den ESI stündlich aktualisiert, und jeder Treffer sagt, wie alt dieser war.</value>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Zu lange abgedockt (Weckruf)</value>
+    <value>Zu lange abgedockt</value>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Weckt Sie auf. Löst in bis zu drei Stufen aus, wenn einer Ihrer Charaktere in einem bestimmten Rumpf oder einer bestimmten Schiffsklasse abdockt und nach einer Anzahl Sekunden immer noch im selben System ist – ein angebundener Frachter oder Sprungfrachter, während sein Pilot eindöst. Oder, bei angekreuzten Sprungankünften, wenn ein sprungfähiger Rumpf per Sprungantrieb oder Brücke angekommen ist und sich noch im All befindet – die dreißig Sekunden nach einem Sprung. Andocken, das Verlassen des Systems oder Ausloggen beendet ihn. Ein Klick auf die Schaltfläche des Dialogs oder überhaupt Tippen oder Sprechen im Chat mit dem KI-Assistenten stellt ihn eine Weile ruhig; läuft diese Zeit ab und ist das Schiff noch da, beginnen die Stufen von vorn. Tippen oder Sprechen dort, bevor eine Stufe fällig ist, startet stattdessen ihre Uhr neu. Jede Stufe hat eigene Aktionen – „TTS direkt“ oder der KI-Assistent spricht den Text der Stufe, ein Dialog, ein Ton, der sich bis zur Bestätigung wiederholt. Wiederholung und Abklingzeit gelten hier nicht.</value>
+    <value>Löst in bis zu drei Stufen aus, wenn einer Ihrer Charaktere in einem bestimmten Rumpf oder einer bestimmten Schiffsklasse abdockt und nach einer Anzahl Sekunden immer noch im selben System ist – ein angebundener Frachter oder Sprungfrachter, während sein Pilot eindöst. Oder, bei angekreuzten Sprungankünften, wenn ein sprungfähiger Rumpf per Sprungantrieb oder Brücke angekommen ist und sich noch im All befindet – die dreißig Sekunden nach einem Sprung. Andocken, das Verlassen des Systems oder Ausloggen beendet ihn. Ein Klick auf die Schaltfläche des Dialogs oder überhaupt Tippen oder Sprechen im Chat mit dem KI-Assistenten stellt ihn eine Weile ruhig; läuft diese Zeit ab und ist das Schiff noch da, beginnen die Stufen von vorn. Tippen oder Sprechen dort, bevor eine Stufe fällig ist, startet stattdessen ihre Uhr neu. Jede Stufe hat eigene Aktionen – „TTS direkt“ oder der KI-Assistent spricht den Text der Stufe, ein Dialog, ein Ton, der sich bis zur Bestätigung wiederholt. Wiederholung und Abklingzeit gelten hier nicht.</value>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
     <value>Ereignisse zu Shop-Bestellungen</value>
@@ -1289,19 +1295,19 @@
     <value>wenig Munition</value>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Wachen Sie auf, {0}</value>
+    <value>Zu lange abgedockt</value>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>Die {1} von {0} ist vor {3} in {2} angekommen und hat nicht angedockt. Klicken Sie auf „Ich bin wach“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
+    <value>Die {1} von {0} ist vor {3} in {2} angekommen und hat nicht angedockt. Klicken Sie auf „Bestätigen“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>Die {1} von {0} ist seit {3} in {2} abgedockt und hat nicht wieder angedockt. Klicken Sie auf „Ich bin wach“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
+    <value>Die {1} von {0} ist seit {3} in {2} abgedockt und hat nicht wieder angedockt. Klicken Sie auf „Bestätigen“, um diesen Alarm {4} Minuten lang ruhigzustellen, solange das Schiff draußen bleibt.</value>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, die {2} von {1} ist vor {4} in {3} angekommen und hat noch nicht angedockt. Ist alles in Ordnung?</value>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Wachen Sie auf, {0}. Die {2} von {1} ist {4} nach der Ankunft immer noch im All, in {3}. Docken Sie jetzt an.</value>
+    <value>{0}, die {2} von {1} ist {4} nach der Ankunft immer noch im All, in {3}. Bitte bestätigen Sie, dass alles in Ordnung ist.</value>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! Die {2} von {1} steht seit der Ankunft schon {4} in {3}. Docken Sie jetzt an!</value>
@@ -1310,10 +1316,10 @@
     <value>{0}, die {2} von {1} ist seit {4} in {3} abgedockt. Ist alles in Ordnung?</value>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Wachen Sie auf, {0}. Die {2} von {1} ist vor {4} in {3} abgedockt und hat immer noch nicht angedockt. Docken Sie an, oder antworten Sie mir.</value>
+    <value>{0}, die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Bitte bestätigen Sie, dass alles in Ordnung ist.</value>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! Die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Wachen Sie auf und docken Sie jetzt an.</value>
+    <value>{0}! Die {2} von {1} ist nach {4} immer noch in {3} abgedockt. Docken Sie jetzt an.</value>
   </data>
   <data name="AdriftPod" xml:space="preserve">
     <value>Kapsel</value>
@@ -1462,29 +1468,68 @@
   <data name="SoundChimeSoft" xml:space="preserve">
     <value>Glockenton – sanft</value>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Glockenton – Glas</value>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Glocke – Kristall</value>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Glockenton – Marimba</value>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Glockenton – Dreiklang</value>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Glockenton – Vibraphon</value>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping – Glas</value>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping – hell</value>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Glocke – Messing</value>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Glocke – Handglocke</value>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Glocke – Tischglocke</value>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Glocke – tief</value>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Glocke – schwer</value>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong – tief</value>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong – Sci-Fi</value>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Signal – doppelt</value>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Signal – Blips</value>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Signal – Pieptöne</value>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarm – dringend</value>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarm – Gefechtsstationen</value>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Warnung – Zweiklang</value>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Warnung – Zweiklang sanft</value>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Warnung – Hupe</value>
@@ -1494,6 +1539,9 @@
   </data>
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Warnung – Sirene</value>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Warnung – Sirene schnell</value>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Warnung – Horn</value>
@@ -1516,8 +1564,8 @@
   <data name="SoundPlaybackFailed" xml:space="preserve">
     <value>Wiedergabe fehlgeschlagen: {0}</value>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>Ich bin wach</value>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Bestätigen</value>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(Der KI-Assistent ist nicht eingerichtet, daher wurde dies als Warnung erfasst.)</value>

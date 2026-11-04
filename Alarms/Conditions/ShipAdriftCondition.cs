@@ -70,10 +70,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private const int AttrJumpFuelType = 866;   // a hull with this dogma attribute has a jump drive
 
     public string TypeKey     => "undocked_too_long";
-    public string DisplayName => "Undocked too long (wake-up call)";
+    public string DisplayName => "Undocked too long";
 
     public string Description =>
-        "Wakes you up. Fires in up to three stages when one of your characters in a named hull or " +
+        "Fires in up to three stages when one of your characters in a named hull or " +
         "ship class undocks and is still sitting in that same system after a number of seconds — a " +
         "freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump " +
         "arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in " +
@@ -89,6 +89,9 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     /// <summary>A person typing or talking to the agent is there, whatever they say and whether or
     /// not the model ever answers — the model need not call anything.</summary>
     public bool ActivityAcknowledges => true;
+
+    /// <summary>What the call is about, never the name the alarm was given.</summary>
+    public string? AckWindowTitle => AlarmsText.AdriftTitle;
 
     public object ParameterSchema => new
     {
@@ -209,12 +212,13 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     {
         if (matches.Count == 1 && matches[0].Detail is { } d && d.ContainsKey("character"))
         {
-            // In the interface language. "I'm awake" in the body names the dialog's button.
-            return (string.Format(AlarmsText.AdriftTitle, SpokenUser(d)),
+            // In the interface language. "Acknowledge" in the body names the dialog's button.
+            return (AlarmsText.AdriftTitle,
                     string.Format(IsArrival(d) ? AlarmsText.AdriftBodyLanded : AlarmsText.AdriftBodyUndocked,
                                   Str(d, "character"), SpokenHullWord(d), Str(d, "system"), SpokenSpan(d), Snooze(config)));
         }
-        return (alarmName, IAlarmCondition.JoinSummaries(matches));
+        // Never the alarm's own name: it is the capsuleer's label, not what the call is about.
+        return (AlarmsText.AdriftTitle, IAlarmCondition.JoinSummaries(matches));
     }
 
     /// <summary>The stage's line, for an action that speaks it without a model.</summary>
@@ -238,7 +242,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var line  = StageLine(stage, d);
         return
             $"""
-             ALARM FIRED — a wake-up call, not a request to look anything up.
+             ALARM FIRED — a ship undocked too long, not a request to look anything up.
 
              {Str(d, "character")}'s {HullWord(d)} {(IsArrival(d) ? "landed in" : "undocked in")} {Str(d, "system")} {Span(d)} ago
              and is still there, not docked. Stage {stage} of {StageCount}.
@@ -264,15 +268,14 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var system  = Str(d, "system");
         var span    = SpokenSpan(d);
 
-        // Where the name opens the sentence it is capitalised — "Capsuleer, …" — and not where
-        // it follows "Wake up".
+        // The name opens every line, so it is capitalised — "Capsuleer, …".
         return (IsArrival(d), stage) switch
         {
             (true,  1) => string.Format(AlarmsText.AdriftLandedStage1,   Cap(user), name, hull, system, span),
-            (true,  2) => string.Format(AlarmsText.AdriftLandedStage2,   user,      name, hull, system, span),
+            (true,  2) => string.Format(AlarmsText.AdriftLandedStage2,   Cap(user), name, hull, system, span),
             (true,  _) => string.Format(AlarmsText.AdriftLandedStage3,   Cap(user), name, hull, system, span),
             (false, 1) => string.Format(AlarmsText.AdriftUndockedStage1, Cap(user), name, hull, system, span),
-            (false, 2) => string.Format(AlarmsText.AdriftUndockedStage2, user,      name, hull, system, span),
+            (false, 2) => string.Format(AlarmsText.AdriftUndockedStage2, Cap(user), name, hull, system, span),
             (false, _) => string.Format(AlarmsText.AdriftUndockedStage3, Cap(user), name, hull, system, span),
         };
     }

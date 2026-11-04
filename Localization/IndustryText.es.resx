@@ -421,6 +421,12 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>{0} objetos añadidos a la cola de producción</value>
   </data>
+  <data name="ToastNotBuildableOne" xml:space="preserve">
+    <value>{0} objeto omitido: no se puede fabricar</value>
+  </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>{0} objetos omitidos: no se pueden fabricar</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>Ventas de los últimos 30 días</value>
   </data>
@@ -1533,6 +1539,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1 BPC por iteración a precio de contrato de ME{0}</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1 iteración de BPC por iteración, a su coste de invención: {0:P0} de probabilidad, {1} iteraciones por éxito, {2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>{0:N0} por intento × {1:N0} intentos = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>{0:N0} ISK por intento (núcleos de datos, descifrador, iteración de copia T1, tasas) ÷ ({1:P1} de probabilidad × {2} iteraciones) = {3:N0} ISK por iteración de copia</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>Sobrante: {0:N1} iteraciones</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>Una iteración de copia T1 por cada intento de invención, copiada del original.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>La copia de plano que da un intento con éxito, con el descifrador incluido.</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>Salida: {0:N1} iteraciones de media</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>Por éxito: ME{0} TE{1}, {2} iteraciones</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>Invención: {0:P0} de probabilidad, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>Intentos: {0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>Intermedio</value>

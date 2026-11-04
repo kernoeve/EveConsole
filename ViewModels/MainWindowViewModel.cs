@@ -18,7 +18,42 @@ using Avalonia.Media;
 namespace EveConsole.ViewModels;
 
 /// <summary>One line of the online-characters hover in the header.</summary>
-public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+public sealed class OnlineCharacterVm(string name, string location, string ship, bool isDocked,
+                                      long characterId, int shipTypeId) : ReactiveObject
+{
+    public string Name     => name;
+    public string Location => location;
+    public string Ship     => ship;
+    public bool   IsDocked => isDocked;
+
+    private Avalonia.Media.Imaging.Bitmap? _portrait, _shipIcon;
+    public Avalonia.Media.Imaging.Bitmap? Portrait { get => _portrait; private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
+    public Avalonia.Media.Imaging.Bitmap? ShipIcon { get => _shipIcon; private set => this.RaiseAndSetIfChanged(ref _shipIcon, value); }
+
+    /// <summary>
+    /// The pictures: kept from the row this replaces where they still apply, fetched where not.
+    ///
+    /// <para>⚠️ Kept, because the list is rebuilt every thirty seconds. Fetched afresh, even from
+    /// the cache, every picture blanked for a moment under anyone reading the tooltip.</para>
+    /// </summary>
+    public void LoadIcons(OnlineCharacterVm? was)
+    {
+        if (was is not null && was.CharacterId == characterId) Portrait = was.Portrait;
+        if (was is not null && was.ShipTypeId == shipTypeId)   ShipIcon = was.ShipIcon;
+
+        if (Portrait is null) _ = LoadPortraitAsync();
+        if (ShipIcon is null) _ = ItemIcons.LoadAsync(shipTypeId, b => ShipIcon = b);
+    }
+
+    private long CharacterId => characterId;
+    private int  ShipTypeId  => shipTypeId;
+
+    private async Task LoadPortraitAsync()
+    {
+        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/characters/{characterId}/portrait?size=32");
+        if (bmp is not null) Dispatcher.UIThread.Post(() => Portrait = bmp);
+    }
+}
 
 public class MainWindowViewModel : ReactiveObject
 {
@@ -274,6 +309,8 @@ public class MainWindowViewModel : ReactiveObject
     public SalePostingViewModel           SalePostingVm          { get; }
     public StoresViewModel                StoresVm               { get; }
     public CorpActivityViewModel          CorpActivityVm         { get; }
+    public CorpStructuresViewModel        CorpStructuresVm       { get; }
+    public MercenaryDensViewModel         MercenaryDensVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public EveMailViewModel               EveMailVm              { get; }
     public PriceHistorySettingsViewModel  PriceHistorySettingsVm { get; }
@@ -544,6 +581,9 @@ public class MainWindowViewModel : ReactiveObject
             CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
     }
 
+    /// <summary>Who each row of <see cref="OnlineCharacters"/> is, in the same order.</summary>
+    private List<long> _onlineCharacterIds = [];
+
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         try
@@ -583,11 +623,15 @@ public class MainWindowViewModel : ReactiveObject
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
                     ship = $"{hull} \"{r.ShipName}\"";
 
-                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked, r.CharacterId, r.ShipTypeId ?? 0);
             }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var was = OnlineCharacters.Zip(_onlineCharacterIds).ToDictionary(x => x.Second, x => x.First);
+                _onlineCharacterIds = [.. online.Select(r => r.CharacterId)];
+                foreach (var (vm, id) in list.Zip(_onlineCharacterIds)) vm.LoadIcons(was.GetValueOrDefault(id));
+
                 OnlineCharactersText  = text;
                 OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
@@ -902,6 +946,8 @@ public class MainWindowViewModel : ReactiveObject
             "player_entities"  => (ShellText.NavPlayerEntities, PlayerEntitiesVm, true),
             "npc_entities"     => (ShellText.NavNpcEntities,    NpcEntitiesVm,    true),
             "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
+            "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
+            "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
@@ -1177,7 +1223,9 @@ public class MainWindowViewModel : ReactiveObject
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
-        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
+        CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
+        MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
+        KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
@@ -1273,7 +1321,8 @@ public class MainWindowViewModel : ReactiveObject
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
         ItemValuationVm        = new ItemValuationViewModel(dbFactory);
-        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
+        PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
+                                     new PlayerActivityService(dbFactory, corpActivityService));
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
@@ -1297,6 +1346,9 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.Pi                     = piService;
         OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
         OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
+        // The structure alerts open Corp Structures on the corporation, and the structure they name.
+        OverviewVm.NavigateToCorpStructures = (corp, structure) => { OpenTool("corp_structures"); CorpStructuresVm.Show(corp, structure); };
+        OverviewVm.NavigateToMercenaryDens  = den => { OpenTool("mercenary_dens"); MercenaryDensVm.Show(den); };
         var universeMapService = new UniverseMapService(dbFactory);
         // Each system tab gets a page of its own, wired to the Item Browser like the rest.
         SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
@@ -1341,6 +1393,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
+        EntityNavigator.Instance.OpenPublicContract = id => { OpenTool("contracts"); ContractsVm.SelectPublicById(id); };
         EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
         // A region or constellation is territory you zoom to on a map: the map tab used last,
         // framed on it, or a new map tab if none is open.
@@ -1534,6 +1587,8 @@ public class MainWindowViewModel : ReactiveObject
             new("corp", ShellText.NavGroupCorp,
             [
                 new NavItem("corp_activity", ShellText.NavCorpActivity),
+                new NavItem("corp_structures", ShellText.NavCorpStructures),
+                new NavItem("mercenary_dens",  ShellText.NavMercenaryDens),
                 new NavItem("killmails",     ShellText.NavKillmails),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),

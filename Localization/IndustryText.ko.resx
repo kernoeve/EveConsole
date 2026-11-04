@@ -418,6 +418,9 @@
   <data name="OppsToastQueuedOther" xml:space="preserve">
     <value>아이템 {0}개를 생산 대기열에 추가했습니다</value>
   </data>
+  <data name="ToastNotBuildableOther" xml:space="preserve">
+    <value>아이템 {0}개는 제조할 수 없어 추가하지 않았습니다</value>
+  </data>
   <data name="OppsSales30dLabel" xml:space="preserve">
     <value>지난 30일 판매</value>
   </data>
@@ -1521,6 +1524,39 @@
   </data>
   <data name="FormulaBpc" xml:space="preserve">
     <value>1회당 BPC 1개 @ ME{0} 계약 가격</value>
+  </data>
+  <data name="FormulaInventedBpc" xml:space="preserve">
+    <value>1회당 BPC 1회분 @ 발명 비용: 확률 {0:P0}, 성공당 {1}회, {2}</value>
+  </data>
+  <data name="JobKindCopying" xml:space="preserve">
+    <value>복제</value>
+  </data>
+  <data name="FormulaPerAttempt" xml:space="preserve">
+    <value>시도당 {0:N0} × {1:N0}회 = {2:N0}</value>
+  </data>
+  <data name="InventionModifiers" xml:space="preserve">
+    <value>시도당 {0:N0} ISK(데이터코어, 디크립터, T1 사본 1회분, 수수료) ÷ (확률 {1:P1} × {2}회) = 사본 1회분당 {3:N0} ISK</value>
+  </data>
+  <data name="FmtLeftoverMean" xml:space="preserve">
+    <value>잉여: {0:N1}회</value>
+  </data>
+  <data name="CopyingModifiers" xml:space="preserve">
+    <value>발명 시도마다 T1 사본 1회분, 원본에서 복제합니다.</value>
+  </data>
+  <data name="TipInventedCopy" xml:space="preserve">
+    <value>성공한 시도 1회로 얻는 블루프린트 사본(디크립터 포함).</value>
+  </data>
+  <data name="FmtOutMeanRuns" xml:space="preserve">
+    <value>산출: 평균 {0:N1}회</value>
+  </data>
+  <data name="InventedCopyOutput" xml:space="preserve">
+    <value>성공당: ME{0} TE{1}, {2}회</value>
+  </data>
+  <data name="JobKindInvention" xml:space="preserve">
+    <value>발명: 확률 {0:P0}, {1}</value>
+  </data>
+  <data name="FmtAttempts" xml:space="preserve">
+    <value>시도 횟수: {0:N0}</value>
   </data>
   <data name="SourceIntermediate" xml:space="preserve">
     <value>중간재</value>

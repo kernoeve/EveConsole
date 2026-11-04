@@ -30,6 +30,9 @@ public class EntityNavigator
     /// the contract, so following a link from elsewhere lands on the thing itself.</summary>
     public Action<int>?              OpenContract { get; set; }
 
+    /// <summary>A public contract, on the Contracts tool's public tab, listed on its own.</summary>
+    public Action<int>?              OpenPublicContract { get; set; }
+
     /// <summary>A player structure, by location id, in the Structure Browser. Separate from
     /// <see cref="OpenEntity"/> because a structure is not one of the entity kinds — it has a
     /// tool of its own, where an NPC station belongs to the entity browser.</summary>
@@ -49,6 +52,7 @@ public class EntityNavigator
     public void Region(int regionId)             { if (regionId > 0) OpenRegion?.Invoke(regionId); }
     public void Constellation(string name)       { if (name.Length > 0) OpenConstellation?.Invoke(name); }
     public void Contract(int contractId)         { if (contractId > 0) OpenContract?.Invoke(contractId); }
+    public void PublicContract(int contractId)   { if (contractId > 0) OpenPublicContract?.Invoke(contractId); }
     public void Structure(long structureId)      { if (structureId > 0) OpenStructure?.Invoke(structureId); }
     public void Notification(long notificationId) { if (notificationId > 0) OpenNotification?.Invoke(notificationId); }
 

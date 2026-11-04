@@ -16,11 +16,36 @@ namespace EveConsole.ViewModels;
 /// </summary>
 public static class ItemIcons
 {
-    public static Task<Bitmap?> GetAsync(int typeId, bool blueprint = false) =>
-        typeId <= 0
-            ? Task.FromResult<Bitmap?>(null)
-            : EveImageCache.GetAsync(
-                $"https://images.evetech.net/types/{typeId}/{(blueprint ? "bp" : "icon")}?size=32");
+    /// <remarks>⚠️ When the server refuses the one asked for, the other is tried. Not every caller
+    /// can tell a blueprint: a contract's line for one is not always marked as one (an original
+    /// listed as a plain item), and asking its /icon got a 400 and a blank picture. The refusal is
+    /// cached, so the wrong guess costs one request a session.</remarks>
+    public static async Task<Bitmap?> GetAsync(int typeId, bool blueprint = false)
+    {
+        if (typeId <= 0) return null;
+        return await EveImageCache.GetAsync(Url(typeId, blueprint ? "bp" : "icon"))
+            ?? await EveImageCache.GetAsync(Url(typeId, blueprint ? "icon" : "bp"));
+    }
+
+    /// <summary>A blueprint's picture by what it is: the light-blue copy's or the dark-blue
+    /// original's (see <see cref="PrintLabel"/>); the plain icon for anything else.</summary>
+    public static async Task<Bitmap?> GetAsync(int typeId, PrintKind print)
+    {
+        if (print == PrintKind.None) return await GetAsync(typeId);
+        if (typeId <= 0) return null;
+        return await EveImageCache.GetAsync(Url(typeId, PrintLabel.Picture(print)))
+            ?? await EveImageCache.GetAsync(Url(typeId, "icon"));
+    }
+
+    private static string Url(int typeId, string variant) =>
+        $"https://images.evetech.net/types/{typeId}/{variant}?size=32";
+
+    /// <summary>As <see cref="LoadAsync(int, Action{Bitmap}, bool)"/>, the picture by what the print is.</summary>
+    public static async Task LoadAsync(int typeId, Action<Bitmap> apply, PrintKind print)
+    {
+        var bmp = await GetAsync(typeId, print);
+        if (bmp is not null) Dispatcher.UIThread.Post(() => apply(bmp));
+    }
 
     /// <summary>
     /// Fetches an icon and hands it back on the UI thread.

@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -426,10 +427,29 @@ public class KillmailDetailVm : ReactiveObject
     };
 }
 
+/// <summary>One entry in the Personal tab's character list; id 0 is "All Characters".</summary>
+public sealed class KillmailCharacterOption
+{
+    public long   Id              { get; }
+    public string Name            { get; }
+    public bool   IsAllCharacters => Id == 0;
+
+    public KillmailCharacterOption(Character c) { Id = c.Id; Name = c.Name; }
+
+    private KillmailCharacterOption() { Id = 0; Name = CommsText.AllCharacters; }
+    public static readonly KillmailCharacterOption All = new();
+
+    public override string ToString() => Name;
+}
+
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 public class KillmailBrowserViewModel : ReactiveObject
 {
-    private readonly KillmailBrowserService _service;
+    public const int PersonalTab = 0;
+    public const int AllTab      = 1;
+
+    private readonly KillmailBrowserService          _service;
+    private readonly ObservableCollection<Character> _sourceChars;
 
     // Filters — all run server-side in KillmailBrowserService.GetListAsync, not against
     // whatever page happens to already be loaded (with 100K+ rows total and one page
@@ -473,6 +493,31 @@ public class KillmailBrowserViewModel : ReactiveObject
         get => _filterSystem;
         set => this.RaiseAndSetIfChanged(ref _filterSystem, value);
     }
+
+    // Personal lists the kills our own characters were on; All searches every kill by the
+    // character and corp boxes. Dates, ship and system/region apply to both.
+    private int _selectedTab = PersonalTab;
+    public int SelectedTab
+    {
+        get => _selectedTab;
+        set => this.RaiseAndSetIfChanged(ref _selectedTab, value);
+    }
+
+    public ObservableCollection<KillmailCharacterOption> Characters { get; } = [];
+
+    private KillmailCharacterOption? _selectedCharacter = KillmailCharacterOption.All;
+    public KillmailCharacterOption? SelectedCharacter
+    {
+        get => _selectedCharacter;
+        set => this.RaiseAndSetIfChanged(ref _selectedCharacter, value);
+    }
+
+    // Fires when characters arrive or leave, so "All Characters" re-queries through the same
+    // debounce as the filters — the list loads before the characters do.
+    private readonly System.Reactive.Subjects.Subject<Unit> _charactersChanged = new();
+
+    /// <summary>Set while the view model changes filters itself and reloads on its own.</summary>
+    private bool _quiet;
 
     // List — populated directly from whatever the server already filtered/paged, no
     // client-side re-filtering step.
@@ -529,9 +574,15 @@ public class KillmailBrowserViewModel : ReactiveObject
     private bool _isLoadingMore;
     public bool IsLoadingMore { get => _isLoadingMore; private set => this.RaiseAndSetIfChanged(ref _isLoadingMore, value); }
 
-    public KillmailBrowserViewModel(KillmailBrowserService service)
+    public KillmailBrowserViewModel(KillmailBrowserService service, ObservableCollection<Character> characters)
     {
-        _service = service;
+        _service     = service;
+        _sourceChars = characters;
+
+        // "All Characters" first, everyone else alphabetical however they arrive.
+        Characters.Add(KillmailCharacterOption.All);
+        foreach (var c in characters) InsertSorted(new KillmailCharacterOption(c));
+        characters.CollectionChanged += OnSourceCharsChanged;
 
         RefreshCommand = ReactiveUI.ReactiveCommand.CreateFromTask(LoadAsync);
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
@@ -551,12 +602,17 @@ public class KillmailBrowserViewModel : ReactiveObject
             FilterCorp   = "";
             FilterShip   = "";
             FilterSystem = "";
+            SelectedCharacter = KillmailCharacterOption.All;
         });
 
         // Filter changes re-query the server, so debounce rather than firing on every
         // keystroke — 400ms after the user stops typing/picking dates.
         this.WhenAnyValue(x => x.FilterFrom, x => x.FilterThru, x => x.FilterChar, x => x.FilterCorp, x => x.FilterShip, x => x.FilterSystem)
             .Skip(1)
+            .Select(_ => Unit.Default)
+            .Merge(this.WhenAnyValue(x => x.SelectedTab, x => x.SelectedCharacter).Skip(1).Select(_ => Unit.Default))
+            .Merge(_charactersChanged.Where(_ => _selectedTab == PersonalTab && _selectedCharacter?.IsAllCharacters != false))
+            .Where(_ => !_quiet)
             .Throttle(TimeSpan.FromMilliseconds(400), RxApp.TaskpoolScheduler)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => { var task = LoadAsync(); });
@@ -581,12 +637,7 @@ public class KillmailBrowserViewModel : ReactiveObject
             // the filters find those names — so the names are awaited before either.
             await SdeNames.EnsureLoadedAsync(ct);
 
-            var page = await _service.GetListAsync(
-                _offset, KillmailBrowserService.PageSize,
-                _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
-                _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem,
-                matchShownNames: true, ct: ct);
+            var page = await GetPageAsync(ct);
 
             var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             KillmailRows.Clear();
@@ -612,12 +663,7 @@ public class KillmailBrowserViewModel : ReactiveObject
         IsLoadingMore = true;
         try
         {
-            var page = await _service.GetListAsync(
-                _offset, KillmailBrowserService.PageSize,
-                _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
-                _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem,
-                matchShownNames: true, ct: ct);
+            var page = await GetPageAsync(ct);
 
             var newRows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             foreach (var r in newRows) KillmailRows.Add(r);
@@ -629,6 +675,59 @@ public class KillmailBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); StatusColor = Palette.Bad; }
         finally { IsLoadingMore = false; }
+    }
+
+    /// <summary>The page at <see cref="_offset"/> for the tab on screen. Personal ignores the
+    /// character and corp boxes, which belong to All.</summary>
+    private Task<KillmailListPage> GetPageAsync(CancellationToken ct)
+    {
+        var personal = _selectedTab == PersonalTab;
+        IReadOnlyCollection<long>? involved = !personal ? null
+            : _selectedCharacter is { IsAllCharacters: false } one ? [one.Id]
+            : _sourceChars.Select(c => c.Id).ToList();
+
+        return _service.GetListAsync(
+            _offset, KillmailBrowserService.PageSize,
+            _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
+            _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
+            personal ? null : _filterChar, personal ? null : _filterCorp, _filterShip, _filterSystem,
+            matchShownNames: true, ct: ct, involvedCharacterIds: involved);
+    }
+
+    /// <summary>Places a character after "All Characters" and before the first name that sorts
+    /// after it.</summary>
+    private void InsertSorted(KillmailCharacterOption option)
+    {
+        var at = 1;   // index 0 is always "All Characters"
+        while (at < Characters.Count
+               && string.Compare(Characters[at].Name, option.Name, StringComparison.OrdinalIgnoreCase) < 0)
+            at++;
+        Characters.Insert(at, option);
+    }
+
+    private void OnSourceCharsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            var keep = _selectedCharacter?.Id ?? 0;
+            while (Characters.Count > 1) Characters.RemoveAt(1);
+            foreach (var c in _sourceChars) InsertSorted(new KillmailCharacterOption(c));
+            SelectedCharacter = Characters.FirstOrDefault(o => o.Id == keep) ?? KillmailCharacterOption.All;
+        }
+
+        if (e.NewItems is not null)
+            foreach (Character c in e.NewItems)
+                if (Characters.All(o => o.Id != c.Id)) InsertSorted(new KillmailCharacterOption(c));
+
+        if (e.OldItems is not null)
+            foreach (Character c in e.OldItems)
+                if (Characters.FirstOrDefault(o => o.Id == c.Id) is { } opt)
+                {
+                    if (ReferenceEquals(opt, _selectedCharacter)) SelectedCharacter = KillmailCharacterOption.All;
+                    Characters.Remove(opt);
+                }
+
+        _charactersChanged.OnNext(Unit.Default);
     }
 
     private void UpdateStatusText()
@@ -650,11 +749,21 @@ public class KillmailBrowserViewModel : ReactiveObject
 
         // Not on screen, and reloading as-is would not help: the list defaults to the last 30
         // days, while a kill picked out of a pilot's history is usually older than that. Widen
-        // the range before looking again.
-        _filterFrom = null;
-        _filterThru = null;
-        this.RaisePropertyChanged(nameof(FilterFrom));
-        this.RaisePropertyChanged(nameof(FilterThru));
+        // the range before looking again — and on All, since a kill opened from a pilot, the map
+        // or corp activity is seldom one of ours.
+        // ⚠️ Raised quietly: the debounced reload would otherwise run again 400ms after this one,
+        // clear the list, and take the selection and the detail pane with it.
+        _filterFrom  = null;
+        _filterThru  = null;
+        _selectedTab = AllTab;
+        _quiet = true;
+        try
+        {
+            this.RaisePropertyChanged(nameof(FilterFrom));
+            this.RaisePropertyChanged(nameof(FilterThru));
+            this.RaisePropertyChanged(nameof(SelectedTab));
+        }
+        finally { _quiet = false; }
         await LoadAsync();
 
         row = KillmailRows.FirstOrDefault(r => r.KillMailId == killMailId);

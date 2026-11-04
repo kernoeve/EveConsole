@@ -283,14 +283,41 @@
   <data name="ColContracts" xml:space="preserve">
     <value>Contratos compra</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>Precio merc.</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>Precio merc. (obj.)</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>Precio fabr.</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>Precio merc. (disp.)</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>Volumen (m³)</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>Precio merc. (dif.)</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>Precio fabr. (dif.)</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>Volumen - obj.</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>Volumen - disp.</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>Volumen - dif.</value>
+  </data>
+  <data name="InvShortOne" xml:space="preserve">
+    <value>{0} por debajo</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} por debajo</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…y {0} más</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>Añadir objeto…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>Acciones</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>Niveles de inventario</value>
@@ -315,6 +342,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>Coste de fabricación:</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>{0} por iteración</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>Valor reprocesado:</value>
@@ -453,6 +483,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Pedidos del mercado</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>{0:N0} intercambios de objetos con este objeto en cualquiera de los lados. El precio por unidad solo aparece cuando el objeto es lo único en su lado y del otro solo hay ISK; una copia se valora por iteración.</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>Contratos pasados: solo los {0:N0} más recientes.</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>Ningún intercambio de objetos que coincida con estos filtros incluye este objeto. Los contratos públicos proceden del barrido de todas las regiones de la herramienta Contratos.</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>Lado</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>Ofrecido</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>Solicitado</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>Plano</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>Copia ME{0} TE{1}, {2} iteraciones</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>Original ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>Por unidad / iteración</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>Resto del contrato</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>Ofrece {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>Pide {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>Nada más</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>Contratos: {0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>Fuente:</value>
@@ -882,6 +963,9 @@ con Enter. Una vez valorada, la lista se pliega:
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Valor reprocesado</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>En qué se convierte la lista una vez reprocesada, con los rendimientos de la aplicación y a los precios de esta estación. Lo que no se puede reprocesar se queda como está y se marca como sobrante.</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>El portapapeles no nombra ningún objeto, así que la lista se ha dejado como estaba. «Editar lista» admite cualquier texto.</value>

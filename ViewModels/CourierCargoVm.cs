@@ -57,7 +57,11 @@ public sealed class CourierCargoRowVm : ReactiveObject
         TypeName  = typeName;
         UnitM3    = unitM3;
         _quantity = row.Quantity;
+        _ = ItemIcons.LoadAsync(TypeId, b => Icon = b);
     }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
 }
 
 /// <summary>

@@ -283,14 +283,38 @@
   <data name="ColContracts" xml:space="preserve">
     <value>买入合同</value>
   </data>
-  <data name="ColMktPrice" xml:space="preserve">
-    <value>市场价</value>
+  <data name="ColMktTarget" xml:space="preserve">
+    <value>市场价（目标）</value>
   </data>
-  <data name="ColBuildPrice" xml:space="preserve">
-    <value>制造价</value>
+  <data name="ColMktAvail" xml:space="preserve">
+    <value>市场价（可用）</value>
   </data>
-  <data name="ColVolumeM" xml:space="preserve">
-    <value>体积（m³）</value>
+  <data name="ColMktDiff" xml:space="preserve">
+    <value>市场价（差值）</value>
+  </data>
+  <data name="ColBuildDiff" xml:space="preserve">
+    <value>制造价（差值）</value>
+  </data>
+  <data name="ColVolTarget" xml:space="preserve">
+    <value>体积 - 目标</value>
+  </data>
+  <data name="ColVolAvail" xml:space="preserve">
+    <value>体积 - 可用</value>
+  </data>
+  <data name="ColVolDiff" xml:space="preserve">
+    <value>体积 - 差值</value>
+  </data>
+  <data name="InvShortOther" xml:space="preserve">
+    <value>{0} 项不足</value>
+  </data>
+  <data name="InvTipShortMore" xml:space="preserve">
+    <value>…另有 {0} 项</value>
+  </data>
+  <data name="InvMenuAddItem" xml:space="preserve">
+    <value>添加物品…</value>
+  </data>
+  <data name="InvTipActions" xml:space="preserve">
+    <value>操作</value>
   </data>
   <data name="TitleInventoryLevels" xml:space="preserve">
     <value>库存水平</value>
@@ -315,6 +339,9 @@
   </data>
   <data name="BuildCostLabel" xml:space="preserve">
     <value>制造成本：</value>
+  </data>
+  <data name="IskPerRun" xml:space="preserve">
+    <value>每流程 {0}</value>
   </data>
   <data name="ReprocValueLabel" xml:space="preserve">
     <value>精炼价值：</value>
@@ -453,6 +480,57 @@
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>市场订单</value>
+  </data>
+  <data name="TabContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="ContractsCaption" xml:space="preserve">
+    <value>任一方含有此物品的物品交换共 {0:N0} 个。仅当此物品是其一方的唯一物品、另一方只有 ISK 时才显示单价；拷贝按流程计价。</value>
+  </data>
+  <data name="ContractsHistoryCapped" xml:space="preserve">
+    <value>过去的合同：仅最新的 {0:N0} 个。</value>
+  </data>
+  <data name="ContractsNone" xml:space="preserve">
+    <value>没有符合这些筛选条件且含此物品的物品交换。公开合同来自合同工具对所有星域的抓取。</value>
+  </data>
+  <data name="ColSide" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="ContractSideOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ContractSideWanted" xml:space="preserve">
+    <value>求购</value>
+  </data>
+  <data name="ColBlueprint" xml:space="preserve">
+    <value>蓝图</value>
+  </data>
+  <data name="ContractCopyDetail" xml:space="preserve">
+    <value>拷贝 ME{0} TE{1}，{2} 流程</value>
+  </data>
+  <data name="ContractOriginalDetail" xml:space="preserve">
+    <value>原图 ME{0} TE{1}</value>
+  </data>
+  <data name="ContractCopy" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="ColPerUnit" xml:space="preserve">
+    <value>单价 / 每流程</value>
+  </data>
+  <data name="ColRestOfContract" xml:space="preserve">
+    <value>合同其余内容</value>
+  </data>
+  <data name="ContractRestOffers" xml:space="preserve">
+    <value>提供 {0}</value>
+  </data>
+  <data name="ContractRestWants" xml:space="preserve">
+    <value>求购 {0}</value>
+  </data>
+  <data name="ContractRestNothing" xml:space="preserve">
+    <value>无其他内容</value>
+  </data>
+  <data name="ErrContracts" xml:space="preserve">
+    <value>合同：{0}</value>
   </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>来源：</value>
@@ -882,6 +960,9 @@ Warrior II 5
   </data>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>精炼价值</value>
+  </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>列表经过再处理后的结果，按应用的产出率计算，并按此空间站的价格估值。无法再处理的物品保持原样，并标记为剩余。</value>
   </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>剪贴板中的内容没有提到任何物品，因此清单保持原样。“编辑清单”可以接受任意文本。</value>

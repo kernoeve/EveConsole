@@ -8,10 +8,6 @@
     <value>Dismiss</value>
     <comment>Button or option in AlarmDialogWindow.</comment>
   </data>
-  <data name="AcknowledgeStopTheSound" xml:space="preserve">
-    <value>Acknowledge — stop the sound</value>
-    <comment>Button or option in AlarmSoundWindow.</comment>
-  </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
     <comment>Button or option in AlarmsView.</comment>
@@ -183,6 +179,14 @@
   <data name="SelectAnAlarmOrCreate" xml:space="preserve">
     <value>Select an alarm, or create one.</value>
     <comment>Text in AlarmsView.</comment>
+  </data>
+  <data name="AlarmsSelectedOne" xml:space="preserve">
+    <value>{0} alarm selected. Export saves just this one; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more). Singular form.</comment>
+  </data>
+  <data name="AlarmsSelectedOther" xml:space="preserve">
+    <value>{0} alarms selected. Export saves just these; select one alone to edit it.</value>
+    <comment>Alarms: shown in place of the editor when several alarms are selected; {0} how many (2 or more).</comment>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
@@ -985,7 +989,7 @@
     <comment>Alarms: title of the open-file dialog for an alarm import.</comment>
   </data>
   <data name="TipExportAlarms" xml:space="preserve">
-    <value>Saves every alarm and its actions to a JSON file.</value>
+    <value>Saves the selected alarms and their actions to a JSON file — every alarm when none is selected. Ctrl or Shift selects more than one.</value>
     <comment>Alarms: tooltip of the Export button.</comment>
   </data>
   <data name="TipImportAlarms" xml:space="preserve">
@@ -1204,6 +1208,10 @@
     <value>The sound repeats until you acknowledge it.</value>
     <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
   </data>
+  <data name="WakeAnswerHere" xml:space="preserve">
+    <value>The call goes on until you answer it, here or in the agent chat.</value>
+    <comment>Line in that window under the situation, before any sound has started.</comment>
+  </data>
   <data name="PickSoundTitle" xml:space="preserve">
     <value>Choose an alarm sound</value>
     <comment>Title of the file picker behind Add Sound… in the alarm editor.</comment>
@@ -1245,11 +1253,11 @@
     <comment>Alarm editor, under the Check pick list when Ship undocks is picked.</comment>
   </data>
   <data name="CheckUndockedTooLong" xml:space="preserve">
-    <value>Undocked too long (wake-up call)</value>
-    <comment>Alarm editor, Check pick list: the check that wakes you when a ship sits in space too long after an undock or a jump.</comment>
+    <value>Undocked too long</value>
+    <comment>Alarm editor, Check pick list: the check that fires when a ship sits in space too long after an undock or a jump.</comment>
   </data>
   <data name="CheckUndockedTooLongNote" xml:space="preserve">
-    <value>Wakes you up. Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or typing or speaking in the agent chat at all, quiets it for a while; when that lapses and the ship is still there, the stages start over. Typing or speaking there before any stage is due restarts its clock instead. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
+    <value>Fires in up to three stages when one of your characters in a named hull or ship class undocks and is still sitting in that same system after a number of seconds — a freighter or jump freighter on a tether while its pilot dozes off. Or, ticked for jump arrivals, when a jump-capable hull has landed by jump drive or bridge and is still in space — the thirty seconds after a jump. Docking, leaving the system or logging off ends it. Pressing the dialog's button, or typing or speaking in the agent chat at all, quiets it for a while; when that lapses and the ship is still there, the stages start over. Typing or speaking there before any stage is due restarts its clock instead. Each stage has its own actions — TTS direct or the agent to say the stage's line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.</value>
     <comment>Alarm editor, under the Check pick list when Undocked too long is picked. "TTS direct" is the action that speaks without the agent.</comment>
   </data>
   <data name="CheckStoreOrder" xml:space="preserve">
@@ -1717,24 +1725,24 @@
     <comment>Spoken, in UndockSaidProblems: the ship left short of ammunition.</comment>
   </data>
   <data name="AdriftTitle" xml:space="preserve">
-    <value>Wake up, {0}</value>
-    <comment>Title of an Undocked too long (wake-up call) alarm's alert or dialog. {0} is the person's name as the agent knows it, or AdriftCapsuleer.</comment>
+    <value>Undocked Too Long</value>
+    <comment>Title of an Undocked too long alarm's alert, dialog and window. Never says "wake up".</comment>
   </data>
   <data name="AdriftBodyLanded" xml:space="preserve">
-    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} landed in {2} {3} ago and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after a jump arrival. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long ago (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftBodyUndocked" xml:space="preserve">
-    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press I'm awake to keep this quiet for {4} minutes while the ship stays out.</value>
-    <comment>Body of a wake-up call's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "I'm awake" is the dialog's button (ButtonImAwake); use the same words.</comment>
+    <value>{0}'s {1} has been undocked in {2} for {3} and has not docked. Press Acknowledge to keep this quiet for {4} minutes while the ship stays out.</value>
+    <comment>Body of an Undocked too long alarm's alert or dialog, after an undock. {0} is the character, {1} the hull name or AdriftPod, {2} the solar system, {3} how long (SpanSeconds, SpanMinutes), {4} a number of minutes. "Acknowledge" is the dialog's button (ButtonAcknowledge); use the same word.</comment>
   </data>
   <data name="AdriftLandedStage1" xml:space="preserve">
     <value>{0}, {1}'s {2} landed in {3} {4} ago and is not docked yet. Is everything all right?</value>
     <comment>Spoken at stage 1 of a wake-up call, after a jump arrival. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} is still in space in {3}, {4} after landing. Dock up now.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after a jump arrival. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still in space in {3}, {4} after landing. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after a jump arrival: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long since landing (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftLandedStage3" xml:space="preserve">
     <value>{0}! {1}'s {2} has been sitting in {3} for {4} since landing. Dock up now!</value>
@@ -1745,11 +1753,11 @@
     <comment>Spoken at stage 1 of a wake-up call, after an undock. {0} is the person's name as the agent knows it, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage2" xml:space="preserve">
-    <value>Wake up, {0}. {1}'s {2} undocked in {3} {4} ago and still is not docked. Dock up, or answer me.</value>
-    <comment>Spoken at stage 2 of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long ago (SpanSeconds, SpanMinutes).</comment>
+    <value>{0}, {1}'s {2} is still undocked in {3} after {4}. Please acknowledge that everything is okay.</value>
+    <comment>Spoken at stage 2 of an Undocked too long alarm, after an undock: asks again for an acknowledgement. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftUndockedStage3" xml:space="preserve">
-    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Wake up and dock now.</value>
+    <value>{0}! {1}'s {2} is still undocked in {3} after {4}. Dock now.</value>
     <comment>Spoken at stage 3, the last, of a wake-up call, after an undock. {0} is the person's name, or AdriftCapsuleer, capitalised; {1} the character; {2} the hull name or AdriftPod; {3} the solar system; {4} how long (SpanSeconds, SpanMinutes).</comment>
   </data>
   <data name="AdriftPod" xml:space="preserve">
@@ -1948,37 +1956,89 @@
     <value>Chime — soft</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundChimeGlass" xml:space="preserve">
+    <value>Chime — glass</value>
+    <comment>Alarm sound picker: a quiet two-note glass chime.</comment>
+  </data>
+  <data name="SoundBellCrystal" xml:space="preserve">
+    <value>Bell — crystal</value>
+    <comment>Alarm sound picker: a gentle crystal bell tap with a short shimmer.</comment>
+  </data>
+  <data name="SoundChimeMarimba" xml:space="preserve">
+    <value>Chime — marimba</value>
+    <comment>Alarm sound picker: a single warm marimba-like note.</comment>
+  </data>
   <data name="SoundChimeTriad" xml:space="preserve">
     <value>Chime — triad</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app (a three-note chime).</comment>
+  </data>
+  <data name="SoundChimeVibraphone" xml:space="preserve">
+    <value>Chime — vibraphone</value>
+    <comment>Alarm sound picker: three warm vibraphone notes rising one after another, a cheerful success sound.</comment>
   </data>
   <data name="SoundPingGlass" xml:space="preserve">
     <value>Ping — glass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundPingBright" xml:space="preserve">
+    <value>Ping — bright</value>
+    <comment>Alarm sound picker: a single crisp, bright glass ping with a short decay.</comment>
+  </data>
   <data name="SoundBellBrass" xml:space="preserve">
     <value>Bell — brass</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundBellHand" xml:space="preserve">
+    <value>Bell — hand</value>
+    <comment>Alarm sound picker: a small brass hand bell rung twice, quick and warm.</comment>
+  </data>
+  <data name="SoundBellDesk" xml:space="preserve">
+    <value>Bell — desk</value>
+    <comment>Alarm sound picker: a polished desk (reception) bell, one bright ding with a ringing tail.</comment>
   </data>
   <data name="SoundBellDeep" xml:space="preserve">
     <value>Bell — deep</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundBellHeavy" xml:space="preserve">
+    <value>Bell — heavy</value>
+    <comment>Alarm sound picker: one strike of a heavy, deep metal bell, booming but not harsh.</comment>
+  </data>
   <data name="SoundGongLow" xml:space="preserve">
     <value>Gong — low</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundGongScifi" xml:space="preserve">
+    <value>Gong — sci-fi</value>
+    <comment>Alarm sound picker: one deep gong hit with a subtle synthetic shimmer, like a starship bridge.</comment>
   </data>
   <data name="SoundAlertDouble" xml:space="preserve">
     <value>Alert — double</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundAlertBlips" xml:space="preserve">
+    <value>Alert — blips</value>
+    <comment>Alarm sound picker: two short, crisp sci-fi interface blips.</comment>
+  </data>
+  <data name="SoundAlertBeeps" xml:space="preserve">
+    <value>Alert — beeps</value>
+    <comment>Alarm sound picker: two quick, clean electronic beeps, like a ship's console.</comment>
+  </data>
   <data name="SoundAlarmUrgent" xml:space="preserve">
     <value>Alarm — urgent</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
   </data>
+  <data name="SoundAlarmBattle" xml:space="preserve">
+    <value>Alarm — battle stations</value>
+    <comment>Alarm sound picker: a tense, pulsing warning alarm with a deep undertone, as for a ship going to battle stations.</comment>
+  </data>
   <data name="SoundWarningTwoTone" xml:space="preserve">
     <value>Warning — two-tone</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningTwoToneSoft" xml:space="preserve">
+    <value>Warning — two-tone soft</value>
+    <comment>Alarm sound picker: a soft two-tone chime alternating up and down, gentle but noticeable.</comment>
   </data>
   <data name="SoundWarningKlaxon" xml:space="preserve">
     <value>Warning — klaxon</value>
@@ -1991,6 +2051,10 @@
   <data name="SoundWarningSiren" xml:space="preserve">
     <value>Warning — siren</value>
     <comment>Alarm editor, Sound pick list: one of the sounds that come with the app.</comment>
+  </data>
+  <data name="SoundWarningSirenWhoop" xml:space="preserve">
+    <value>Warning — siren whoop</value>
+    <comment>Alarm sound picker: a fast synthetic siren whooping up and down, like a red alert.</comment>
   </data>
   <data name="SoundWarningHorn" xml:space="preserve">
     <value>Warning — horn</value>
@@ -2020,9 +2084,9 @@
     <value>Playback failed: {0}</value>
     <comment>Alarms tool, when a sound could not play. {0} is the error.</comment>
   </data>
-  <data name="ButtonImAwake" xml:space="preserve">
-    <value>I'm awake</value>
-    <comment>The button on a wake-up call's dialog (Undocked too long): pressing it quiets the alarm for a while. Also named in AdriftBodyLanded and AdriftBodyUndocked.</comment>
+  <data name="ButtonAcknowledge" xml:space="preserve">
+    <value>Acknowledge</value>
+    <comment>The button of a staged alarm's dialog and window: acknowledges it.</comment>
   </data>
   <data name="AgentNotConfiguredNote" xml:space="preserve">
     <value>(The agent is not configured, so this was recorded as an alert.)</value>

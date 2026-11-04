@@ -94,6 +94,40 @@ public static class SingleInstance
         }
     }
 
+    /// <summary>Held by a tray process for its life, as <see cref="_lockFile"/> is by a client.</summary>
+    private static FileStream? _trayLockFile;
+
+    /// <summary>
+    /// One tray icon per profile: true when this tray may start, false when one is already up.
+    ///
+    /// <para>⚠️ Its own file, never the client's lock. The tray starts at logon, before anybody opens
+    /// the application — on SQLite, taking the client's lock would refuse the real client, a tray
+    /// icon locking somebody out of their own database. It writes nothing and holds nothing open,
+    /// so the only thing to protect is the menu bar from a second copy of itself.</para>
+    ///
+    /// <para>⚠️ Without it every tick of the setting started another: the box launches a tray at
+    /// once, unticking leaves the running one up (it says to use Exit), and ticking again stacked
+    /// a second icon beside it. Found on macOS with three in the menu bar; Windows did the same.</para>
+    ///
+    /// <para>In the profile's data folder, so a profile's tray and the ordinary one's do not
+    /// exclude each other. A second tray simply exits — the icon it would have shown is already
+    /// there.</para>
+    /// </summary>
+    private static bool TryTakeTrayLock()
+    {
+        try
+        {
+            Directory.CreateDirectory(AppConfig.AppDataDir);
+            _trayLockFile = new FileStream(
+                Path.Combine(AppConfig.AppDataDir, "EveConsole.tray.lock"),
+                FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            return true;
+        }
+        catch (IOException)                { return false; }   // a tray is already up
+        catch (UnauthorizedAccessException) { return false; }
+        catch                               { return true; }    // cannot lock at all: show the icon anyway
+    }
+
     /// <summary>
     /// Passed by an instance that is deliberately replacing itself. ⚠️ Without it the app cannot
     /// restart at all: RequestRestart launches the replacement BEFORE calling Environment.Exit, so
@@ -112,6 +146,10 @@ public static class SingleInstance
     /// </summary>
     public static bool TryAcquire(string[] args)
     {
+        // ⚠️ The tray has a lock of its own, on either engine, and never the client's: see
+        // TryTakeTrayLock. Before the PostgreSQL early-out, because two icons are wrong there too.
+        if (AppRuntime.IsTray) return TryTakeTrayLock();
+
         var replacing = args.Any(a =>
             string.Equals(a, RestartingArgument, StringComparison.OrdinalIgnoreCase));
 
@@ -122,12 +160,6 @@ public static class SingleInstance
         // you like. What must not happen twice is the background work, and that is the worker
         // lease's job, not this one's.
         if (DbEngine.IsPostgres) return true;
-
-        // ⚠️ And the tray never takes the lock, on either engine. It starts at logon, before anybody
-        // opens the application — so on SQLite it would take the file lock first and then refuse the
-        // real client, which is a tray icon locking somebody out of their own database. It writes
-        // nothing and holds nothing open; there is nothing here for it to protect.
-        if (AppRuntime.IsTray) return true;
 
         // ⚠️ The file lock first, because it is the one that holds on every platform. The
         // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are

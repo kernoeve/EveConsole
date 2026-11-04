@@ -635,7 +635,7 @@
     <value>キープスターがあります。大型艦載機母艦とタイタンが入港できます</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>主力艦 — フォータイザーまたはNPCステーション</value>
+    <value>主力艦 — フォータイザー、ソティヨまたはNPCステーション</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>主力艦は入港できますが、大型艦載機母艦とタイタンは入港できません</value>

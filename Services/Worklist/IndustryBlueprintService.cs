@@ -128,13 +128,17 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
             .GroupBy(j => j.BlueprintId)
             .ToDictionary(g => g.Key, g => g.Max(j => j.EndDate));
 
+        // Runs a delivered job has taken off a copy the snapshot has not caught up with: a copy
+        // spent to nothing is gone, though its row is still here. See DeliveryLag.
+        var spent = await DeliveryLag.SpentCopyRunsAsync(db, ct);
+
         var prints = rows
             .Select(r => new BlueprintStock
             {
                 ItemId      = r.ItemId,
                 TypeId      = r.TypeId,
                 IsOriginal  = r.Runs < 0,
-                Runs        = r.Runs < 0 ? int.MaxValue : r.Runs,
+                Runs        = r.Runs < 0 ? int.MaxValue : r.Runs - spent.GetValueOrDefault(r.ItemId),
                 Me          = r.MaterialEfficiency,
                 Te          = r.TimeEfficiency,
                 LocationId  = containerRoots.GetValueOrDefault(r.LocationId, r.LocationId),

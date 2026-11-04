@@ -357,15 +357,22 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.AgentVm.UserActivityCallback     = replyTo  => vm.AlarmActions.UserActiveAsync(replyTo);
         vm.AlarmActions.StopSpeechCallback  = ()       => vm.AgentVm.StopSpeaking();
 
-        // A repeating sound brings its own window with the one button that stops it, whether or
-        // not a Dialog action was chosen; the runner closes it when the sound ends of itself.
+        // A repeating sound, and a wake-up call from its first stage, brings its own window with
+        // the one button that acknowledges it, whether or not a Dialog action was chosen; one per
+        // situation, brought to the front by each stage. The runner closes it when the situation
+        // ends of itself.
         var soundWindows = new Dictionary<(long, string), Views.AlarmSoundWindow>();
-        vm.AlarmActions.SoundStartedCallback = (ack, name, summary, acknowledge) =>
+        vm.AlarmActions.SoundStartedCallback = (ack, name, summary, sounding, acknowledge) =>
         {
             var key = (ack.AlarmId, ack.ScopeKey);
-            if (soundWindows.TryGetValue(key, out var open)) { open.Activate(); return; }
+            if (soundWindows.TryGetValue(key, out var open))
+            {
+                open.Update(summary, sounding);
+                open.Activate();
+                return;
+            }
 
-            var w = new Views.AlarmSoundWindow(name, summary, acknowledge);
+            var w = new Views.AlarmSoundWindow(name, summary, sounding, acknowledge);
             w.Closed += (_, _) => soundWindows.Remove(key);
             soundWindows[key] = w;
             w.Show();
@@ -466,6 +473,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.CorpActivityVm.AddToStandingBuyOrders          = AddToBuyOrders;
         vm.IndustryOpportunitiesVm.AddToStandingBuyOrders = AddToBuyOrders;
         vm.ItemBrowserVm.AddToStandingBuyOrders           = AddToBuyOrders;
+
+        // "Add to Production Calc Queue" from a tool that lists anything: what can be built goes in
+        // after what is queued, the calculator opened behind, the user left where they are and told
+        // so — and told when an item was left out because nothing builds it.
+        void AddToProduction(IReadOnlyList<int> typeIds) =>
+            Dispatcher.UIThread.Post(async () =>
+            {
+                try
+                {
+                    var (added, notBuilt) = await vm.ProductionCalcVm.QueueTypeIdsAsync(typeIds);
+                    if (added > 0) vm.OpenToolInBackground("prod_calc");
+                    var parts = new List<string>();
+                    if (added > 0)
+                        parts.Add(EveConsole.Localization.Plurals.Format(EveConsole.Localization.IndustryText.ResourceManager,
+                            nameof(EveConsole.Localization.IndustryText.OppsToastQueuedOther), added));
+                    if (notBuilt > 0)
+                        parts.Add(EveConsole.Localization.Plurals.Format(EveConsole.Localization.IndustryText.ResourceManager,
+                            nameof(EveConsole.Localization.IndustryText.ToastNotBuildableOther), notBuilt));
+                    ShowToast(string.Join("\n", parts));
+                }
+                catch (Exception ex)
+                {
+                    ShowToast(string.Format(EveConsole.Localization.CommonText.ErrorWithMessage, ex.Message));
+                }
+            });
+        vm.InvLevelVm.AddToProductionQueue    = AddToProduction;
+        vm.ItemBrowserVm.AddToProductionQueue = AddToProduction;
 
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
