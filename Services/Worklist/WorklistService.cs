@@ -148,6 +148,8 @@ public class WorklistService(
                 .ToDictionary(x => x.Key,
                               x => x.GroupBy(d => d.TypeId).ToDictionary(y => y.Key, y => y.Sum(d => d.Quantity))));
 
+        var jobRows = all.Where(x => x.Kind == WorklistKind.Job && x.Source != "completed_jobs").ToLookup(x => x.TypeId);
+
         for (var si = 0; si < sections.Count; si++)
         {
             var section = sections[si];
@@ -178,21 +180,24 @@ public class WorklistService(
                                   g => g.GroupBy(d => d.TypeId).ToDictionary(x => x.Key, x => x.Sum(d => d.Quantity)));
                 if (drops.Count == 0) continue;
 
-                // ⚠️ A planned build that is a task on the list already, and not blocked, is not
-                // waiting on anything: its job can start. The four fuel block jobs at the yard
-                // were Ready and still listed under a Heavy Water run, as planned builds the
-                // cargo was "for". A blocked task keeps its planned line — what it is blocked on
-                // may well be this cargo (a print, say, which is no shortage of the job's).
-                var ready = all
-                    .Where(x => x.Kind == WorklistKind.Job && x.Readiness != WorklistReadiness.Blocked
-                             && x.Source != "completed_jobs"   // a delivery is not the build
-                             && drops.ContainsKey(x.LocationId))
-                    .Select(x => x.TypeId)
-                    .ToHashSet();
-                if (haul.WaitingJobs.Any(w => w.IsPlanned && ready.Contains(w.TypeId)))
+                // ⚠️ A planned build that is a task on the list already answers for itself. The planner
+                // says what asked for the cargo; the build's rows say what is stopping it. One that
+                // can start, or is waiting on a slot, is not waiting on this: the four fuel block jobs
+                // at the yard were Ready and still listed under a Heavy Water run. One stopped for
+                // materials is said below if this load is any of them, and otherwise is not waiting
+                // on it. One held by a print says so, and says nothing of materials it may or may not
+                // lack when that print gets to it. Only a build with no row at all keeps its line.
+                if (haul.WaitingJobs.Any(w => w.IsPlanned))
                     section.Items[n] = haul = haul with
                     {
-                        WaitingJobs = [.. haul.WaitingJobs.Where(w => !(w.IsPlanned && ready.Contains(w.TypeId)))],
+                        WaitingJobs = [.. haul.WaitingJobs.SelectMany(w =>
+                        {
+                            if (!w.IsPlanned || !jobRows.Contains(w.TypeId)) return [w];
+                            var held = jobRows[w.TypeId].Where(j => j.Stop is WorklistStop.PrintsInUse or WorklistStop.NoPrintHere).ToList();
+                            return held.Count == 0
+                                ? Array.Empty<WorklistWaitingJob>()
+                                : [w with { Unblocked = false, ThenNoPrint = true, Missing = [], Units = held.Sum(j => j.Quantity) }];
+                        })],
                     };
 
                 // ⚠️ How much of each stopped job this load starts, in runs: see ArrivalPlan. Nothing
