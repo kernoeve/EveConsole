@@ -143,7 +143,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
 - Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon (menu bar on macOS) shows which client is doing the work
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
-- Eight UI themes: light, dark, and blue/pink/beige in both, or your own from the theme editor, with a colour picker for everything and a live preview.  Applies immediately, remembered per machine rather than per database
+- Eight UI themes: light, dark, and blue/pink/beige in both, or your own from the theme editor, with colour pickers and a live preview.  Applies immediately, remembered per machine rather than per database
 - Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one
 - UI scale from 50% to 200%, per machine
 - The main window splits into two sides with tabs dragged between them, and any tool can be dragged out into a window of its own
@@ -258,7 +258,7 @@ The macOS builds are not signed by Apple yet, so macOS stops them the first time
 
 On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO.
 
-Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace) `~/.local/share/EveConsole/EveConsole.db` on Linux, or `~/Library/Application Support/EveConsole/EveConsole.db` on macOS.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
+Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace), `~/.local/share/EveConsole/EveConsole.db` on Linux, or `~/Library/Application Support/EveConsole/EveConsole.db` on macOS.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
 
 See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
 
