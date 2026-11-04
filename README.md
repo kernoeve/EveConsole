@@ -208,7 +208,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Player Entities - Every pilot, corp and alliance the app has met in a killmail, contract or chat log.  Shows zKillboard's stats for each, and pages in their whole kill and loss history from zKillboard
 - NPC Entities - Agents, NPC corporations and factions out of the SDE.  Search an agent by name, or ask what is in a station
 - Alerts - On the overview of the main screen alerts will show for things the tool believes you should look at (definable)
-- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (wake-up call), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
+- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (undocked too long), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
 - Eve Mail - Read and write eve mail... just because
 - Notifications - Your in-game notifications, without logging in
 - Slack - Optional.  Sends alerts to a direct message with yourself, and posts corp reports and sale postings to channels
