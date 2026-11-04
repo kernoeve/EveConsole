@@ -399,6 +399,7 @@ public class InventionGenerator(
 
         // No copy at the lab at all: the split placed nothing, but the work is still real and the
         // reader needs to know why it is not listed.
+        var slotToInvent = inventors.Any(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId) > 0);
         if (split.Jobs.Count == 0)
             items.Add(new WorklistItem
             {
@@ -410,10 +411,12 @@ public class InventionGenerator(
                 Quantity  = plan.Attempts,
                 Detail    = string.Format(WorklistText.InventionNoCopyDetail,
                                           head, plan.Chance, plan.SuccessesNeeded, plan.RunsPerBpc),
-                Readiness = WorklistReadiness.Blocked,
-                BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name),
-                BlockedByPrint = true,
-                PrintMissing   = true,
+                // A copy would not start with no slot to run it in: slots first, as for a job.
+                Readiness = slotToInvent ? WorklistReadiness.Blocked : WorklistReadiness.Waiting,
+                BlockedBy      = slotToInvent ? string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name)
+                                              : WorklistText.WaitingScienceSlotsBusy,
+                BlockedByPrint = slotToInvent,
+                PrintMissing   = slotToInvent,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
@@ -533,13 +536,13 @@ public class InventionGenerator(
                                              : string.Format(WorklistText.PrintUsing, original.Describe()))
                           + durText,
             Readiness     = ready ? WorklistReadiness.Ready
-                          : atCopyLab && !busy ? WorklistReadiness.Waiting
+                          : atCopyLab && (!busy || free is null) ? WorklistReadiness.Waiting
                           : WorklistReadiness.Blocked,
-            BlockedBy     = busy       ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
+            BlockedBy     = busy && free is not null ? string.Format(WorklistText.BlockedBlueprintBusy, original.Describe())
                           : !atCopyLab ? string.Format(WorklistText.BlockedOriginalNotAt, lab.Name)
                           : !ready     ? WorklistText.WaitingScienceSlotsBusy
                           : "",
-            BlockedByPrint = busy,
+            BlockedByPrint = busy && free is not null,
             CharacterId   = who?.Config.CharacterId ?? 0,
             CharacterName = who?.Config.CharacterName ?? "",
             LocationId    = lab.Site,

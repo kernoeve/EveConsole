@@ -610,6 +610,10 @@ public class IndustryJobGenerator(
         var printsNoSlot = new HashSet<long>();
         var printsShort  = new HashSet<long>();
 
+        // Slots spoken for by jobs that only a print is stopping: a print arriving starts them, so
+        // the jobs behind them cannot count on those slots either. See where it is read.
+        var slotsSpoken = new Dictionary<(long Character, IndustryPool Pool), int>();
+
         // Counts the passes, so a row can say where the plan reached it. See
         // WorklistItem.PlanSequence for why the value has to travel with the item.
         var planSeq = 0;
@@ -1219,6 +1223,20 @@ public class IndustryJobGenerator(
                         var npShort = MissingAtSite(
                             stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite, docking);
 
+                        // ⚠️ A print is the answer only if there is a slot to run it in, after the jobs
+                        // ahead of this one have theirs. With reaction slots at 181/181, a job whose
+                        // formulas were all running read "blueprints all in use" and told the reader
+                        // to buy a formula that could not have started. Slots come first. Jobs short
+                        // of material take none here: no print would start those.
+                        var wantsPrint = noneHere || allInUse;
+                        var slotFor = !wantsPrint ? null : eligible.FirstOrDefault(c =>
+                            slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool)
+                            - slotsSpoken.GetValueOrDefault((c.Config.CharacterId, pool)) > 0);
+                        var onPrint = slotFor is not null;
+                        if (slotFor is not null && npShort.Count == 0)
+                            slotsSpoken[(slotFor.Config.CharacterId, pool)] =
+                                slotsSpoken.GetValueOrDefault((slotFor.Config.CharacterId, pool)) + 1;
+
                         // ⚠️ Its materials held, when only a busy print stops it and that print frees
                         // soon. Unheld, they went to whatever ranked below and could start: the
                         // conduits and seals planned ahead of the Core Temperature Regulators had
@@ -1228,7 +1246,7 @@ public class IndustryJobGenerator(
                         // shortage to report.
                         var heldNote = "";
                         var holdHours = settings.HoldForBusyPrintHours;
-                        if (holdHours > 0 && allInUse)
+                        if (holdHours > 0 && allInUse && onPrint)
                         {
                             var freeBy   = DateTimeOffset.UtcNow.AddHours(holdHours);
                             var freeSoon = printsByType.GetValueOrDefault(product.TypeId, [])
@@ -1251,14 +1269,12 @@ public class IndustryJobGenerator(
                             }
                         }
 
-                        // A print is the answer only where one is what is missing. Otherwise this
-                        // reads the way a job with its print does: short of materials, or else
-                        // waiting on a slot.
-                        var onPrint = noneHere || allInUse;
-                        var waiting = !onPrint && noSlot > 0 && npShort.Count == 0;
-                        var why = reference is null ? WorklistText.BlockedNoBlueprintOwned
-                            : noneHere              ? string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference.Describe())
-                            : allInUse              ? string.Format(WorklistText.BlockedAllPrintsInUse, running, starting)
+                        // Anything but a print reads the way a job with its print does: short of
+                        // materials, or else waiting on a slot.
+                        var waiting = !onPrint && (wantsPrint || noSlot > 0) && npShort.Count == 0;
+                        var why = onPrint && reference is null ? WorklistText.BlockedNoBlueprintOwned
+                            : onPrint && noneHere   ? string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference!.Describe())
+                            : onPrint               ? string.Format(WorklistText.BlockedAllPrintsInUse, running, starting)
                             : npShort.Count > 0     ? MaterialsWhy(npShort)
                             : waiting               ? WorklistText.WaitingAllSlotsBusy
                             :                         WorklistText.BlockedPrintHeldForMaterials;
@@ -1287,12 +1303,12 @@ public class IndustryJobGenerator(
                                 : string.Format(WorklistText.JobTitleRuns, shown, runs),
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = string.Format(WorklistText.JobDetailShort, head, d.Units)
-                                          + (onPrint ? " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName) : "")
+                                          + (noneHere ? " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName) : "")
                                           + assumed + heldNote,
                             Readiness      = waiting ? WorklistReadiness.Waiting : WorklistReadiness.Blocked,
                             BlockedBy      = why,
                             BlockedByPrint = onPrint,
-                            PrintMissing   = noneHere,
+                            PrintMissing   = onPrint && noneHere,
                             Shortages      = [.. npShort.Select(m => new WorklistShortage(
                                                     m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
                                                     { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],
