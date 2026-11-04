@@ -3014,6 +3014,54 @@
     </ScrollViewer>
   </TabItem>
 
+  <!-- ── Online Services ───────────────────────────────────────────────── -->
+  <TabItem Header="{x:Static loc:SettingsText.TabOnlineServices}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.OnlineServicesTitle}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.OnlineServicesNote}" />
+
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{x:Static loc:SettingsText.OnlineSignIn}"
+                    Command="{Binding OnlineVm.SignInCommand}"
+                    IsVisible="{Binding OnlineVm.CanSignIn}"
+                    Padding="14 5" FontSize="12"
+                    Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.Cancel}"
+                    Command="{Binding OnlineVm.CancelCommand}"
+                    IsVisible="{Binding OnlineVm.IsSigningIn}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.OnlineSignOut}"
+                    Command="{Binding OnlineVm.SignOutCommand}"
+                    IsVisible="{Binding OnlineVm.IsSignedIn}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.OnlineReadTerms}"
+                    Command="{Binding OnlineVm.OpenTermsCommand}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                    BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+          </StackPanel>
+          <TextBlock Text="{Binding OnlineVm.Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" />
+          <TextBlock Text="{Binding OnlineVm.Usage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding OnlineVm.Usage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
   <TabItem Header="{x:Static loc:SettingsText.TabAlerts}">
     <ScrollViewer>

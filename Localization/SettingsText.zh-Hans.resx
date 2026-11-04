@@ -3820,4 +3820,85 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="PiAlertsNote" xml:space="preserve">
     <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>在线服务</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console 在线服务</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>可选。没有它 EVE Console 也能正常工作，但在登录之前，无法使用 eveconsole.com 上的服务，例如在 Slack Webhook 帖子中显示图表。你在 EVE 自己的页面上用一个 EVE 角色登录，不会请求任何权限。登录适用于连接到此数据库的所有 EVE Console。登录即表示你同意条款。</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>使用 EVE 登录</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>退出登录</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>阅读条款</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>未登录。</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>已登录为 {0}。</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>已存储 {0:N1} MB / {1:N0} MB。今日已上传 {2} / {3} 张。</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>正在等待你在浏览器中登录…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>已取消登录。</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>登录未完成。</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE 登录返回了错误（{0}）。</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>登录失败：{0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>登录成功</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} 已登录 EVE Console 在线服务。</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>你可以关闭此标签页并返回 EVE Console。</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>登录失败</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>你可以关闭此标签页，然后在设置中重试。</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>未登录。请在“设置”的“在线服务”中重新登录。</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>此角色不能使用在线服务。</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>已达到存储上限。图片过期后会释放空间。</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>已达到今日上传上限。</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>图片太大，无法上传。</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>目前无法验证 EVE 登录。请稍后重试。</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>无法连接到 eveconsole.com。</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com 返回了错误（{0}）。</value>
+  </data>
 </root>

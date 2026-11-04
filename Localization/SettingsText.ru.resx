@@ -3829,4 +3829,85 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PiAlertsNote" xml:space="preserve">
     <value>Только персонажи с флажком PI на вкладке «Персонажи». Что считать «скоро», задаётся на вкладке «Промышленность»; задачи PI в списке задач используют те же сроки.</value>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>Онлайн-сервисы</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>Онлайн-сервисы EVE Console</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>Необязательно. EVE Console работает и без этого, но сервисы eveconsole.com, например показ графиков в публикациях через вебхуки Slack, недоступны до входа. Вход выполняется одним персонажем EVE на странице самой EVE, и никаких разрешений не запрашивается. Вход действует для всех EVE Console, подключённых к этой базе данных. Выполняя вход, вы принимаете условия.</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>Войти через EVE</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>Прочитать условия</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>Вход не выполнен.</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>Вход выполнен: {0}.</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>Хранится {0:N1} МБ из {1:N0} МБ. Сегодня использовано загрузок: {2} из {3}.</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>Ожидание входа в браузере…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>Вход отменён.</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>Вход не был завершён.</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>Вход EVE вернул ошибку ({0}).</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>Не удалось войти: {0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>Вход выполнен</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0}: вход в онлайн-сервисы EVE Console выполнен.</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>Можно закрыть эту вкладку и вернуться в EVE Console.</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>Не удалось войти</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>Можно закрыть эту вкладку и повторить попытку в настройках.</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>Вход не выполнен. Войдите снова в разделе «Настройки», «Онлайн-сервисы».</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>Этому персонажу запрещено пользоваться онлайн-сервисами.</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>Достигнут лимит хранилища. Место освобождается по мере истечения срока изображений.</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>Достигнут дневной лимит загрузок.</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>Изображение слишком большое для загрузки.</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>Сейчас не удалось проверить вход EVE. Повторите попытку чуть позже.</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с eveconsole.com.</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com вернул ошибку ({0}).</value>
+  </data>
 </root>

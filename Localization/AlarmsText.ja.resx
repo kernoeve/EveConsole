@@ -239,7 +239,7 @@
     <value>12か月分の推移を画像として描画し、メッセージの下にアップロードします。</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>このセクションは投稿されません。タスクの投稿先がWebhookで、Webhookでは画像を送れないためです — 上でワークスペースのチャンネルを選択してください。選択しない場合、タスクの実行時にこのセクションはスキップされます。</value>
+    <value>このセクションは投稿されません。Slack Webhook はオンラインでホストされた画像しか表示できません。設定の「オンラインサービス」でサインインするか、上でワークスペースのチャンネルを選択してください。そうしない場合、タスクの実行時にこのセクションはスキップされます。</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>投稿</value>
@@ -464,7 +464,7 @@
     <value>各グラフは凡例付きで投稿されます。星系インデックスツールのリストは使いません。</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>この投稿先は Slack の Webhook で画像を送れません。このセクションの画像は省かれ、表だけが投稿されます。Slack チャンネルか Discord の Webhook なら画像も送れます。</value>
+    <value>Slack Webhook はオンラインでホストされた画像しか表示できません。設定の「オンラインサービス」でサインインするまで、このセクションの画像は省略され、表のみが投稿されます。Slack チャンネルまたは Discord Webhook ならいずれの場合も画像を送信できます。</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>セクション {0}（{1}）には少なくとも 1 つのジョブが必要です。</value>
@@ -782,7 +782,7 @@
     <value>表示を作成中…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — スキップ：投稿先がWebhookです]</value>
+    <value>[{0} — スキップ: Slack Webhook には設定の「オンラインサービス」でのサインインが必要です]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} — 画像としてアップロード]</value>
@@ -1598,7 +1598,7 @@
     <value>グラフ{0}件が失敗しました：{1}。</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>グラフのセクション{0}件をスキップしました：Webhookでは画像を送れません。</value>
+    <value>{0} 個のチャートセクションをスキップしました: Slack Webhook で画像を表示するには、設定の「オンラインサービス」でサインインが必要です。</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>発生させる内容がありません：アラートにテキストがありません。</value>
@@ -1797,5 +1797,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>アプリの起動中に今後実行される内容を EVE 時間で表示します。オフのタスクは表示されません。間隔タスクの次回より後の時刻は、各実行が前回から数えられるため推定です。タスクをクリックすると編集できます。</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>この Slack Webhook は画像をアドレスで表示するため、画像は eveconsole.com にアップロードされ、12 か月間保管されます。リンクを知っている人は誰でも見ることができます。</value>
   </data>
 </root>

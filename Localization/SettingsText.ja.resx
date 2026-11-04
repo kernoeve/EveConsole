@@ -3820,4 +3820,85 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="PiAlertsNote" xml:space="preserve">
     <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先かは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>オンラインサービス</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console オンラインサービス</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>任意です。EVE Console はこれがなくても動作しますが、Slack Webhook の投稿にチャートを表示するなどの eveconsole.com のサービスは、サインインするまで利用できません。EVE 自身のページで EVE キャラクター 1 人でサインインします。権限は要求されません。サインインは、このデータベースに接続しているすべての EVE Console に適用されます。サインインすると、利用規約に同意したことになります。</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>EVE でサインイン</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>利用規約を読む</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>サインインしていません。</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>{0} としてサインインしています。</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>保存済み {0:N1} MB / {1:N0} MB。本日のアップロード {2} / {3} 件。</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>ブラウザーでのサインインを待っています…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>サインインをキャンセルしました。</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>サインインは完了しませんでした。</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE のサインインがエラーを返しました（{0}）。</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>サインインに失敗しました: {0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>サインインしました</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} が EVE Console のオンラインサービスにサインインしました。</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>このタブを閉じて EVE Console に戻れます。</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>サインインに失敗しました</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>このタブを閉じて、設定からもう一度お試しください。</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>サインインしていません。設定の「オンラインサービス」でもう一度サインインしてください。</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>このキャラクターはオンラインサービスを利用できません。</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>保存容量の上限に達しました。画像は期限切れになると空きが増えます。</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>本日のアップロード上限に達しました。</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>画像が大きすぎてアップロードできません。</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>現在 EVE のサインインを確認できません。しばらくしてからもう一度お試しください。</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com に接続できませんでした。</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com がエラーを返しました（{0}）。</value>
+  </data>
 </root>

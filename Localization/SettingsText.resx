@@ -5051,4 +5051,112 @@ The application will restart.</value>
     <value>Only characters with the PI box ticked on the Characters tab. The Industry tab sets how soon "soon" is, and the Worklist's PI tasks use the same times.</value>
     <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>Online Services</value>
+    <comment>Settings window, tab header: EVE Console's optional services on eveconsole.com.</comment>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console Online Services</value>
+    <comment>Settings, Online Services tab, heading.</comment>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>Optional. EVE Console works without this, but services on eveconsole.com, such as showing charts in Slack webhook posts, are not available until you sign in. You sign in with one EVE character, on EVE's own page, and it asks for no permissions. The sign-in covers every EVE Console connected to this database. By signing in, you agree to the terms.</value>
+    <comment>Settings, Online Services tab, explains the optional sign-in.</comment>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>Sign In with EVE</value>
+    <comment>Settings, Online Services tab, button.</comment>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>Sign Out</value>
+    <comment>Settings, Online Services tab, button.</comment>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>Read the Terms</value>
+    <comment>Settings, Online Services tab, button that opens the terms on the web site.</comment>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>Not signed in.</value>
+    <comment>Settings, Online Services tab, status.</comment>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>Signed in as {0}.</value>
+    <comment>Settings, Online Services tab, status. {0} is the character's name.</comment>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>{0:N1} MB of {1:N0} MB stored. {2} of {3} uploads used today.</value>
+    <comment>Settings, Online Services tab. {0} megabytes stored, {1} the limit, {2} uploads today, {3} the daily limit.</comment>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>Waiting for you to sign in in your browser…</value>
+    <comment>Settings, Online Services tab, status while the browser sign-in is open.</comment>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>Sign-in cancelled.</value>
+    <comment>Settings, Online Services tab, status.</comment>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>The sign-in was not completed.</value>
+    <comment>Online Services sign-in: EVE's page did not complete the sign-in, usually because it was declined. Shown in Settings and on the browser page.</comment>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE's sign-in answered with an error ({0}).</value>
+    <comment>Online Services sign-in: EVE refused the token request. {0} is the HTTP status number.</comment>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>The sign-in failed: {0}</value>
+    <comment>Online Services sign-in failed unexpectedly. {0} is the error's own text.</comment>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>Sign-In Successful</value>
+    <comment>Browser page after signing in to the Online Services, heading. Matches the page after registering a character.</comment>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} is now signed in to EVE Console's online services.</value>
+    <comment>Browser page after signing in. {0} is the character's name.</comment>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>You can close this tab and return to EVE Console.</value>
+    <comment>Browser page after signing in, the small line at the bottom.</comment>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>Sign-In Failed</value>
+    <comment>Browser page when signing in to the Online Services failed, heading.</comment>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>You can close this tab and try again from Settings.</value>
+    <comment>Browser page when signing in failed, the small line at the bottom.</comment>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>Not signed in. Sign in again under Settings, Online Services.</value>
+    <comment>Online Services: the sign-in is missing or no longer valid.</comment>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>This character may not use the online services.</value>
+    <comment>Online Services: the character has been banned.</comment>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>The storage limit has been reached. Images free up as they expire.</value>
+    <comment>Online Services: an image would go over the character's storage limit.</comment>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>Today's upload limit has been reached.</value>
+    <comment>Online Services: the character has used today's uploads.</comment>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>The image is too large to upload.</value>
+    <comment>Online Services: an image is over the size limit.</comment>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>EVE's sign-in could not be checked just now. Try again shortly.</value>
+    <comment>Online Services sign-in: the service could not read EVE's sign-in keys.</comment>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com could not be reached.</value>
+    <comment>Online Services: no usable answer from eveconsole.com.</comment>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com answered with an error ({0}).</value>
+    <comment>Online Services: an unexpected error. {0} is the HTTP status number.</comment>
+  </data>
 </root>

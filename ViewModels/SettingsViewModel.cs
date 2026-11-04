@@ -19,6 +19,7 @@ public class SettingsViewModel : ReactiveObject
     public UpdateViewModel                UpdateVm        { get; }
     public SlackSettingsViewModel         SlackVm         { get; }
     public DiscordSettingsViewModel       DiscordVm       { get; }
+    public OnlineServicesSettingsViewModel OnlineVm       { get; }
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
@@ -51,6 +52,7 @@ public class SettingsViewModel : ReactiveObject
         DatabaseSettingsViewModel     databaseVm,
         SlackSettingsViewModel        slackVm,
         DiscordSettingsViewModel      discordVm,
+        OnlineServicesSettingsViewModel onlineVm,
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
         ZkillboardSettingsViewModel   zkbVm,
@@ -64,6 +66,7 @@ public class SettingsViewModel : ReactiveObject
     {
         SlackVm        = slackVm;
         DiscordVm      = discordVm;
+        OnlineVm       = onlineVm;
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
         ZkbVm          = zkbVm;

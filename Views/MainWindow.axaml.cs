@@ -770,11 +770,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
+                                               vm.OnlineServicesSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                // Over the shared preferences, which are already in memory.
                                                new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
+        // Not awaited: it asks the web, and the window should not wait for that to open.
+        _ = vm.OnlineServicesSettingsVm.RefreshAsync();
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);

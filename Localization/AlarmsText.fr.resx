@@ -242,7 +242,7 @@
     <value>Douze mois de tendances, dessinés sous forme d'image et envoyés sous le message.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>Cette section ne sera pas publiée. La tâche vise un webhook, et un webhook ne peut pas transporter d'image — choisissez un canal de l'espace de travail ci-dessus, sinon cette section sera ignorée à l'exécution de la tâche.</value>
+    <value>Cette section ne sera pas publiée. Un webhook Slack ne peut afficher qu'une image hébergée en ligne : connectez-vous dans Paramètres, Services en ligne, ou choisissez ci-dessus un canal de l'espace de travail. Sinon, cette section est ignorée à l'exécution de la tâche.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>Annonce</value>
@@ -467,7 +467,7 @@
     <value>Chaque graphique est publié avec sa propre légende. Rien n'est repris de la liste de l'outil Indice des systèmes.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Cette destination est un webhook Slack, qui ne peut pas transmettre d'image : les images de cette section seront omises et seuls ses tableaux publiés. Un canal Slack ou un webhook Discord les transmet.</value>
+    <value>Un webhook Slack ne peut afficher qu'une image hébergée en ligne. Tant que vous n'êtes pas connecté dans Paramètres, Services en ligne, les images de cette section seront omises et seuls ses tableaux seront publiés. Un canal Slack ou un webhook Discord les transmet dans tous les cas.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>La section {0} ({1}) doit avoir au moins un travail.</value>
@@ -785,7 +785,7 @@
     <value>Génération…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — ignoré : la destination est un webhook]</value>
+    <value>[{0} — ignoré : un webhook Slack nécessite une connexion dans Paramètres, Services en ligne]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} — envoyé sous forme d'image]</value>
@@ -1628,7 +1628,7 @@
     <value>{0} graphique(s) en échec : {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>{0} section(s) de graphique ignorée(s) : un webhook ne peut pas transporter d'image.</value>
+    <value>{0} section(s) de graphiques ignorée(s) : pour afficher des images, un webhook Slack nécessite une connexion dans Paramètres, Services en ligne.</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>Rien à déclencher : l'alerte n'a pas de texte.</value>
@@ -1833,5 +1833,8 @@
   </data>
   <data name="CalendarNote" xml:space="preserve">
     <value>Affiche ce qui s'exécutera à partir de maintenant, en heure d'EVE, tant que l'application est ouverte. Les tâches désactivées n'apparaissent pas, et les heures après la prochaine exécution d'une tâche à intervalle sont des estimations, car chaque exécution compte depuis la précédente. Cliquez sur une tâche pour la modifier.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>Ce webhook Slack affiche les images par leur adresse : elles sont donc envoyées sur eveconsole.com et conservées 12 mois. Toute personne ayant le lien peut les voir.</value>
   </data>
 </root>

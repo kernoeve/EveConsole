@@ -3820,4 +3820,85 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="PiAlertsNote" xml:space="preserve">
     <value>캐릭터 탭에서 PI 확인란을 선택한 캐릭터만 해당합니다. '곧'이 얼마나 가까운지는 산업 탭에서 정하며, 작업 목록의 PI 작업 항목도 같은 시간을 사용합니다.</value>
   </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>온라인 서비스</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console 온라인 서비스</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>선택 사항입니다. EVE Console은 이것 없이도 작동하지만, Slack 웹훅 게시물에 차트를 표시하는 등 eveconsole.com의 서비스는 로그인해야 사용할 수 있습니다. EVE 페이지에서 EVE 캐릭터 하나로 로그인하며, 권한은 요청하지 않습니다. 로그인은 이 데이터베이스에 연결된 모든 EVE Console에 적용됩니다. 로그인하면 약관에 동의하는 것입니다.</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>EVE로 로그인</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>로그아웃</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>약관 읽기</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>로그인하지 않았습니다.</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>{0}(으)로 로그인했습니다.</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>저장됨 {0:N1} MB / {1:N0} MB. 오늘 업로드 {2} / {3}개.</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>브라우저에서 로그인하기를 기다리는 중…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>로그인을 취소했습니다.</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>로그인이 완료되지 않았습니다.</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE 로그인에서 오류를 반환했습니다({0}).</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>로그인에 실패했습니다: {0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>로그인 성공</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0}(이)가 EVE Console 온라인 서비스에 로그인했습니다.</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>이 탭을 닫고 EVE Console로 돌아가도 됩니다.</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>로그인 실패</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>이 탭을 닫고 설정에서 다시 시도하세요.</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>로그인되어 있지 않습니다. 설정의 온라인 서비스에서 다시 로그인하세요.</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>이 캐릭터는 온라인 서비스를 사용할 수 없습니다.</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>저장 한도에 도달했습니다. 이미지가 만료되면 공간이 확보됩니다.</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>오늘의 업로드 한도에 도달했습니다.</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>이미지가 너무 커서 업로드할 수 없습니다.</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>지금은 EVE 로그인을 확인할 수 없습니다. 잠시 후 다시 시도하세요.</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com에 연결할 수 없습니다.</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com에서 오류를 반환했습니다({0}).</value>
+  </data>
 </root>

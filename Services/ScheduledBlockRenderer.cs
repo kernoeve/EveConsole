@@ -419,7 +419,7 @@ public class ScheduledBlockRenderer(
     /// between them.</para>
     /// </summary>
     public async Task<(byte[] Png, string Title)?> RenderChartAsync(
-        MessageBlock b, CancellationToken ct = default)
+        MessageBlock b, CancellationToken ct = default, int width = DefaultChartWidth)
     {
         if (!b.IsChart || b.CorpId <= 0) return null;
 
@@ -435,19 +435,30 @@ public class ScheduledBlockRenderer(
 
         if (chart is null) return null;
 
-        return (CorpTrendChartReport.RenderPng(chart), chart.Title);
+        return (CorpTrendChartReport.RenderPng(chart, width), chart.Title);
     }
+
+    private const int DefaultChartWidth = 1100;
+
+    /// <summary>
+    /// ⚠️ Narrower for a webhook. Slack shows an image block at about 600 wide however big it is,
+    /// and a click only opens it from there, so a chart drawn at 1100 has its labels halved in the
+    /// channel. Summary tables keep their width: their columns need it.
+    /// </summary>
+    private const int WebhookChartWidth = 800;
 
     /// <summary>
     /// Every picture a section sends, with the title each is posted under: a chart section's
     /// chart, an Indy Park Compare section's summaries and charts, a System Index section's
     /// charts. Empty when there is nothing to draw.
     /// </summary>
-    public async Task<List<(byte[] Png, string Title)>> RenderPicturesAsync(MessageBlock b, CancellationToken ct = default)
+    public async Task<List<(byte[] Png, string Title)>> RenderPicturesAsync(
+        MessageBlock b, CancellationToken ct = default, bool forWebhook = false)
     {
-        if (b.IsChart) return await RenderChartAsync(b, ct) is { } chart ? [chart] : [];
-        if (b.Type == MessageBlock.TypeParkCompare) return await ParkComparePicturesAsync(b, ct);
-        if (b.Type == MessageBlock.TypeSystemIndex) return await SystemIndexPicturesAsync(b, ct);
+        var width = forWebhook ? WebhookChartWidth : DefaultChartWidth;
+        if (b.IsChart) return await RenderChartAsync(b, ct, width) is { } chart ? [chart] : [];
+        if (b.Type == MessageBlock.TypeParkCompare) return await ParkComparePicturesAsync(b, width, ct);
+        if (b.Type == MessageBlock.TypeSystemIndex) return await SystemIndexPicturesAsync(b, width, ct);
         return [];
     }
 
@@ -525,7 +536,7 @@ public class ScheduledBlockRenderer(
         return string.Join("\n\n", parts.Where(p => p.Length > 0));
     }
 
-    private async Task<List<(byte[] Png, string Title)>> ParkComparePicturesAsync(MessageBlock b, CancellationToken ct)
+    private async Task<List<(byte[] Png, string Title)>> ParkComparePicturesAsync(MessageBlock b, int width, CancellationToken ct)
     {
         var pictures = ParkCompareOutputs.All.Where(k => ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k)).ToList();
         if (pictures.Count == 0 || await CompareRunAsync(b, ct) is not { } run) return [];
@@ -544,10 +555,10 @@ public class ScheduledBlockRenderer(
                 ParkCompareOutputs.SummaryParksImage => ParkCompareReport.SummaryPng(
                     ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), title),
                 ParkCompareOutputs.CostChart => ParkCompareReport.CostChart(run.Costs, run.History, null, labels, separators) is { } cost
-                    ? ParkCompareReport.ChartPng(cost) : null,
+                    ? ParkCompareReport.ChartPng(cost, width) : null,
                 // Taller: the job names under the bars are tilted once there are a few.
                 _ => ParkCompareReport.TimeChart(run.Costs, run.Labels, null, labels, separators) is { } time
-                    ? ParkCompareReport.ChartPng(time, height: 540) : null,
+                    ? ParkCompareReport.ChartPng(time, width, height: 540) : null,
             };
             if (png is not null) drawn.Add((png, title));
         }
@@ -567,7 +578,7 @@ public class ScheduledBlockRenderer(
         return SystemIndexReport.Table(systems, current, IndexHeading(b), formatName);
     }
 
-    private async Task<List<(byte[] Png, string Title)>> SystemIndexPicturesAsync(MessageBlock b, CancellationToken ct)
+    private async Task<List<(byte[] Png, string Title)>> SystemIndexPicturesAsync(MessageBlock b, int width, CancellationToken ct)
     {
         var activities = CostIndexHistoryService.Activities.Where(b.IndexOutputs.Contains).ToList();
         if (activities.Count == 0 || b.IndexSystemIds.Count == 0) return [];
@@ -580,7 +591,7 @@ public class ScheduledBlockRenderer(
         var drawn = new List<(byte[] Png, string Title)>();
         foreach (var activity in activities)
             if (SystemIndexReport.Chart(activity, systems, daily, labels, separators, textSize: 10) is { } chart)
-                drawn.Add((ParkCompareReport.ChartPng(chart), $"{heading} — {SystemIndexReport.ActivityName(activity)}"));
+                drawn.Add((ParkCompareReport.ChartPng(chart, width), $"{heading} — {SystemIndexReport.ActivityName(activity)}"));
         return drawn;
     }
 

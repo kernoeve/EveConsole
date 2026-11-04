@@ -321,7 +321,7 @@
     <comment>Note in SchedulerView.</comment>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs.</value>
+    <value>This section will not be posted. A Slack webhook can only show an image hosted online: sign in under Settings, Online Services, or pick a workspace channel above. Otherwise this section is skipped when the task runs.</value>
     <comment>Note in SchedulerView.</comment>
   </data>
   <data name="PostingLabel" xml:space="preserve">
@@ -621,7 +621,7 @@
     <comment>Scheduler, System Index section: hint under the section.</comment>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>This destination is a Slack webhook, which cannot carry an image: the pictures in this section will be left out and only its tables posted. A Slack channel or a Discord webhook carries them.</value>
+    <value>A Slack webhook can only show an image hosted online. Until you sign in under Settings, Online Services, the pictures in this section will be left out and only its tables posted. A Slack channel or a Discord webhook carries them either way.</value>
     <comment>Scheduler: warning in an Indy Park Compare or System Index section when the task posts to a webhook and pictures are chosen.</comment>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
@@ -1045,7 +1045,7 @@
     <comment>Scheduler status line while a preview is rendered.</comment>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — skipped: the destination is a webhook]</value>
+    <value>[{0} — skipped: a Slack webhook needs a sign-in under Settings, Online Services]</value>
     <comment>A line in the Scheduler's preview for a chart section. {0} is the section's heading.</comment>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
@@ -2169,7 +2169,7 @@
     <comment>Scheduler, added to the result of a task's run. {0} is the number of charts, {1} each chart's title and error, separated by semicolons.</comment>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>{0} chart section(s) skipped: a webhook cannot carry an image.</value>
+    <value>{0} chart section(s) skipped: to show images, a Slack webhook needs a sign-in under Settings, Online Services.</value>
     <comment>Scheduler, added to the result of a task's run that posts to a webhook. {0} is the number of chart sections left out.</comment>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
@@ -2443,5 +2443,9 @@
   <data name="CalendarNote" xml:space="preserve">
     <value>Shows what will run from now on, in EVE time, while the app is open. Tasks switched off are not shown, and times after an interval task's next run are estimates, since each run counts from the last one. Click a task to edit it.</value>
     <comment>Scheduler calendar, note under the grid.</comment>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>This Slack webhook shows pictures by their address, so they are uploaded to eveconsole.com and kept for 12 months. Anyone with the link can see them.</value>
+    <comment>Scheduler: note in a section with pictures when the task posts to a Slack webhook and the database is signed in to the Online Services.</comment>
   </data>
 </root>
