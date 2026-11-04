@@ -18,7 +18,42 @@ using Avalonia.Media;
 namespace EveConsole.ViewModels;
 
 /// <summary>One line of the online-characters hover in the header.</summary>
-public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+public sealed class OnlineCharacterVm(string name, string location, string ship, bool isDocked,
+                                      long characterId, int shipTypeId) : ReactiveObject
+{
+    public string Name     => name;
+    public string Location => location;
+    public string Ship     => ship;
+    public bool   IsDocked => isDocked;
+
+    private Avalonia.Media.Imaging.Bitmap? _portrait, _shipIcon;
+    public Avalonia.Media.Imaging.Bitmap? Portrait { get => _portrait; private set => this.RaiseAndSetIfChanged(ref _portrait, value); }
+    public Avalonia.Media.Imaging.Bitmap? ShipIcon { get => _shipIcon; private set => this.RaiseAndSetIfChanged(ref _shipIcon, value); }
+
+    /// <summary>
+    /// The pictures: kept from the row this replaces where they still apply, fetched where not.
+    ///
+    /// <para>⚠️ Kept, because the list is rebuilt every thirty seconds. Fetched afresh, even from
+    /// the cache, every picture blanked for a moment under anyone reading the tooltip.</para>
+    /// </summary>
+    public void LoadIcons(OnlineCharacterVm? was)
+    {
+        if (was is not null && was.CharacterId == characterId) Portrait = was.Portrait;
+        if (was is not null && was.ShipTypeId == shipTypeId)   ShipIcon = was.ShipIcon;
+
+        if (Portrait is null) _ = LoadPortraitAsync();
+        if (ShipIcon is null) _ = ItemIcons.LoadAsync(shipTypeId, b => ShipIcon = b);
+    }
+
+    private long CharacterId => characterId;
+    private int  ShipTypeId  => shipTypeId;
+
+    private async Task LoadPortraitAsync()
+    {
+        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/characters/{characterId}/portrait?size=32");
+        if (bmp is not null) Dispatcher.UIThread.Post(() => Portrait = bmp);
+    }
+}
 
 public class MainWindowViewModel : ReactiveObject
 {
@@ -546,6 +581,9 @@ public class MainWindowViewModel : ReactiveObject
             CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
     }
 
+    /// <summary>Who each row of <see cref="OnlineCharacters"/> is, in the same order.</summary>
+    private List<long> _onlineCharacterIds = [];
+
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         try
@@ -585,11 +623,15 @@ public class MainWindowViewModel : ReactiveObject
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
                     ship = $"{hull} \"{r.ShipName}\"";
 
-                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked, r.CharacterId, r.ShipTypeId ?? 0);
             }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var was = OnlineCharacters.Zip(_onlineCharacterIds).ToDictionary(x => x.Second, x => x.First);
+                _onlineCharacterIds = [.. online.Select(r => r.CharacterId)];
+                foreach (var (vm, id) in list.Zip(_onlineCharacterIds)) vm.LoadIcons(was.GetValueOrDefault(id));
+
                 OnlineCharactersText  = text;
                 OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;

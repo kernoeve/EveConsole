@@ -199,18 +199,26 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:OnlineCharacterVm">
                       <Grid Margin="0 1">
+                        <!-- The pictures' columns are a fixed width, so a row whose picture has not
+                             arrived, or who has no known ship, still lines up with the rest. -->
                         <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="22" />
                           <ColumnDefinition Width="Auto" SharedSizeGroup="who" />
                           <ColumnDefinition Width="16" />
                           <ColumnDefinition Width="Auto" SharedSizeGroup="where" />
                           <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="22" />
                           <ColumnDefinition Width="Auto" SharedSizeGroup="ship" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold"
+                        <Image Grid.Column="0" Source="{Binding Portrait}" Width="18" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
                                    Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
-                        <TextBlock Grid.Column="2" Text="{Binding Location}" FontSize="11"
+                        <TextBlock Grid.Column="3" Text="{Binding Location}" FontSize="11" VerticalAlignment="Center"
                                    Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
-                        <TextBlock Grid.Column="4" Text="{Binding Ship}" FontSize="11"
+                        <Image Grid.Column="5" Source="{Binding ShipIcon}" Width="18" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="6" Text="{Binding Ship}" FontSize="11" VerticalAlignment="Center"
                                    Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
                       </Grid>
                     </DataTemplate>
