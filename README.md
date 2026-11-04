@@ -238,7 +238,7 @@ Keep in mind this application is still very green.  You are free to play around 
 ## Getting started
 
 ### Requirements
-- Windows 10/11, macOS (Apple Silicon or Intel), or Linux (developed against Arch; anything current should be fine)
+- Windows 10/11, macOS 15 or later (Apple Silicon or Intel), or Linux (developed against Arch; anything current should be fine)
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - On Linux only: **VLC**, which is the one thing the app cannot carry itself -- it loads the system copy for alarm sounds.  `pacman -S vlc` on Arch, `apt install libvlc-dev` on Debian/Ubuntu.  Everything else is in the build
 - PostgreSQL is optional.  Only needed if you want several clients on one database
