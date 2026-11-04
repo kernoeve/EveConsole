@@ -248,8 +248,20 @@ public class MaterialPurchaseGenerator(
 
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
+        // And prints contracts have moved since the polls: on a courier, or bought and not seen
+        // yet. Neither table can know of them, and a print bought and on its way was asked for
+        // again the moment it left the hangar. See ContractLag.
+        var printIds = queueBpIds.Concat(treeNeed.Keys).Concat(shelfWant.Keys).Distinct().ToList();
+        var printMoves = new Dictionary<int, long>();
+        foreach (var m in await ContractLag.MovesAsync(db, ct, printIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            printMoves[m.TypeId] = printMoves.GetValueOrDefault(m.TypeId) + m.Units;
+        }
+
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, printMoves, shelfWant,
                                   buyAt, buyName, alt));
 
         var shortIds = rawIds.Where(t => Missing(t) > 0).ToList();
@@ -465,7 +477,7 @@ public class MaterialPurchaseGenerator(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, (long Runs, string For)> treeNeed, HashSet<int> inventable,
-        Dictionary<int, int> ownedInAssets, Dictionary<int, long> shelfWant,
+        Dictionary<int, int> ownedInAssets, Dictionary<int, long> printMoves, Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
@@ -522,6 +534,10 @@ public class MaterialPurchaseGenerator(
             // count-only arithmetic assumed, so nothing gets worse where the blueprints table is
             // the one with the gap.
             if (mine.Count == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
+
+            // ⚠️ Added whichever table spoke: a print in a courier is in neither. The same floor
+            // of one run apiece, since neither a cargo line nor a contract line carries runs.
+            held = Math.Max(0, held + printMoves.GetValueOrDefault(bpTypeId));
 
             var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
             var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // runs the stocking rule wants kept
