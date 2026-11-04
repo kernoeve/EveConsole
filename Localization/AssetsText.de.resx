@@ -965,6 +965,9 @@ holt sie zurück.</value>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Aufbereitungswert</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Was aus der Liste nach der Wiederaufbereitung wird, mit den Ausbeuten der App und zu Preisen dieser Station. Was sich nicht wiederaufbereiten lässt, bleibt unverändert und ist als übrig markiert.</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>Die Zwischenablage nennt keinen Gegenstand, daher wurde die Liste nicht verändert. „Liste bearbeiten“ nimmt beliebigen Text an.</value>
   </data>

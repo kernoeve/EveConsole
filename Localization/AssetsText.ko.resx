@@ -961,6 +961,9 @@
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>정제 가치</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>재처리 후 목록이 어떻게 되는지 보여 줍니다. 앱의 수율로 계산하고 이 정거장의 가격으로 평가합니다. 재처리할 수 없는 것은 그대로 남으며 남은 것으로 표시됩니다.</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>클립보드에 아이템 이름이 없어 목록을 그대로 두었습니다. 목록 수정에는 어떤 텍스트든 넣을 수 있습니다.</value>
   </data>

@@ -961,6 +961,9 @@ Warrior II 5
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>精炼价值</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>列表经过再处理后的结果，按应用的产出率计算，并按此空间站的价格估值。无法再处理的物品保持原样，并标记为剩余。</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>剪贴板中的内容没有提到任何物品，因此清单保持原样。“编辑清单”可以接受任意文本。</value>
   </data>

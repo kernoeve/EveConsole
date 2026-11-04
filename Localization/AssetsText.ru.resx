@@ -971,6 +971,9 @@ Warrior II 5
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Стоимость при переработке</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Во что превратится список после переработки, с выходом приложения и по ценам этой станции. То, что нельзя переработать, остаётся как есть и отмечается как остаток.</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>В буфере обмена нет названий предметов, поэтому список не изменён. «Изменить список» принимает любой текст.</value>
   </data>

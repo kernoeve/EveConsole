@@ -385,6 +385,20 @@ public sealed class ItemValuationViewModel : ReactiveObject
     private IReadOnlyList<CompareRowVm> _compareRows = [];
     public IReadOnlyList<CompareRowVm> CompareRows { get => _compareRows; private set => this.RaiseAndSetIfChanged(ref _compareRows, value); }
 
+    /// <summary>The list as it comes out of reprocessing, whatever the list above is showing. Not
+    /// filtered: the filter narrows the items, and what those come to is under other names.</summary>
+    private IReadOnlyList<ValueRowVm> _outputRows = [];
+    public IReadOnlyList<ValueRowVm> OutputRows { get => _outputRows; private set => this.RaiseAndSetIfChanged(ref _outputRows, value); }
+
+    /// <summary>Hidden when the list above is already the reprocessed output.</summary>
+    private bool _hasOutput;
+    public bool HasOutput { get => _hasOutput; private set => this.RaiseAndSetIfChanged(ref _hasOutput, value); }
+
+    private string _outputVolumeText = "—", _outputMarketText = "—", _outputCoverageText = "";
+    public string OutputVolumeText   { get => _outputVolumeText;   private set => this.RaiseAndSetIfChanged(ref _outputVolumeText, value); }
+    public string OutputMarketText   { get => _outputMarketText;   private set => this.RaiseAndSetIfChanged(ref _outputMarketText, value); }
+    public string OutputCoverageText { get => _outputCoverageText; private set => this.RaiseAndSetIfChanged(ref _outputCoverageText, value); }
+
     // ── The filter: free text against the item's name, over both grids ───────
     private IReadOnlyList<ValueRowVm>   _allValueRows   = [];
     private IReadOnlyList<CompareRowVm> _allCompareRows = [];
@@ -514,6 +528,10 @@ public sealed class ItemValuationViewModel : ReactiveObject
         InputText  = "";
         _valuation = null;
         _allValueRows = []; _allCompareRows = [];
+        OutputRows = [];
+        HasOutput  = false;
+        OutputVolumeText = OutputMarketText = "—";
+        OutputCoverageText = "";
         ValueRows   = [];
         CompareRows = [];
         CompareTotals = [];
@@ -590,6 +608,17 @@ public sealed class ItemValuationViewModel : ReactiveObject
         sb.AppendLine();
         foreach (var t in ValueTotals) sb.AppendLine($"{TotalLabel(t.Name)}\t{t.Exact}\t{t.PctText}\t{t.CoverageText}");
         sb.AppendLine($"{AssetsText.CopyTotalVolumeM3}\t{v.TotalVolume:0.##}");
+        if (HasOutput)
+        {
+            sb.AppendLine();
+            sb.AppendLine(AssetsText.TargetReprocessedOutput);
+            sb.AppendLine(string.Join("\t", AssetsText.ColItem, AssetsText.AssetColQuantity, AssetsText.CopyColVolumeM3,
+                                      AssetsText.CopyColMarketTotal, AssetsText.CopyColBuildTotal, AssetsText.CopyColNote));
+            foreach (var r in OutputRows)
+                sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{Num(r.Market.Total)}\t{Num(r.Build.Total)}\t{string.Join(" ", new[] { r.Section, r.Problem, r.Note }.Where(s => s.Length > 0))}");
+            sb.AppendLine($"{AssetsText.CopyTotalVolumeM3}\t{OutputRows.Sum(r => r.TotalVolume):0.##}");
+            sb.AppendLine($"{AssetsText.CopyTotalMarket}\t{Num(OutputRows.Sum(r => r.Market.Total ?? 0))}");
+        }
         if (CompareColumns.Count > 1)
         {
             sb.AppendLine();
@@ -655,7 +684,20 @@ public sealed class ItemValuationViewModel : ReactiveObject
         CompareColumns = v.Stations.Select(s => s.Station).ToList();
         _allCompareRows = v.Values.Select(x => new CompareRowVm(x.Item, v.Stations, factor)).ToList();
         ApplyFilter();
-        _ = LoadIconsAsync(_allValueRows, _allCompareRows);
+
+        // Largest first. "Output" beside every material says nothing here: only what is left over
+        // keeps its word.
+        OutputRows = v.Output
+            .Select(x => new ValueRowVm(x.Item.Section == AssetsText.SectionOutput ? x with { Item = x.Item with { Section = "" } } : x, factor))
+            .OrderByDescending(r => r.MarketTotal)
+            .ToList();
+        HasOutput          = OutputRows.Count > 0;
+        OutputVolumeText   = $"{OutputRows.Sum(r => r.TotalVolume):N0} m³";
+        var outputMarket   = OutputRows.Sum(r => r.Market.Total ?? 0);
+        OutputMarketText   = outputMarket > 0 ? IskText.Compact(outputMarket) : "—";
+        OutputCoverageText = string.Format(AssetsText.CoveragePriced, OutputRows.Count(r => r.Market.Has), OutputRows.Count);
+
+        _ = LoadIconsAsync([.. _allValueRows, .. OutputRows], _allCompareRows);
         var stationTotals = v.Stations.Select(s => v.Values.Sum(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) ? u * factor * x.Item.Quantity : 0)).ToList();
         var bestStation = stationTotals.DefaultIfEmpty(0).Max();
         CompareTotals = v.Stations.Select((s, i) =>

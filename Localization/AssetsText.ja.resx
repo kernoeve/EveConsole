@@ -961,6 +961,9 @@ Warrior II 5
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>再処理価値</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>再処理後のリストの内容です。アプリの収率で計算し、このステーションの価格で評価します。再処理できないものはそのまま残り、残りとして表示されます。</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>クリップボードにアイテム名がないため、リストはそのままです。「リストを編集」ではどんなテキストでも入力できます。</value>
   </data>

@@ -964,6 +964,9 @@ Modifier la liste la fait réapparaître.</value>
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Valeur de retraitement</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>Ce que devient la liste une fois retraitée, aux rendements de l'application et aux prix de cette station. Ce qui ne peut pas être retraité reste tel quel et est marqué comme restant.</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>Le presse-papiers ne nomme aucun objet : la liste n'a donc pas été modifiée. Modifier la liste accepte n'importe quel texte.</value>
   </data>

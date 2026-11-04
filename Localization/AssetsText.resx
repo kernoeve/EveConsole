@@ -1281,6 +1281,10 @@ away: Edit list brings it back.</value>
     <value>Reprocessed value</value>
     <comment>Item Valuation, heading over the reprocessed columns.</comment>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>What the list comes to once reprocessed, at the app's yields, priced at this station. Anything that cannot be reprocessed stays as it is and is marked as left over.</value>
+    <comment>Item Valuation: tooltip on the heading of the reprocessed output list.</comment>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>The clipboard names no item, so the list was left as it was. Edit list takes any text.</value>
     <comment>Item Valuation status line after a paste that names no item. Edit list is the button's name.</comment>

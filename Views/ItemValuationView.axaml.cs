@@ -181,6 +181,13 @@ public partial class ItemValuationView : UserControl
     {
         if      (e.PropertyName == nameof(ItemValuationViewModel.CompareTotals)) RefreshCompareBand();
         else if (e.PropertyName == nameof(ItemValuationViewModel.ValueTotals))   RefreshValuesBand();
+        else if (e.PropertyName == nameof(ItemValuationViewModel.HasOutput))
+        {
+            // Half the tab each way when there is an output, none when not. The splitter moves it.
+            ValuesTab.RowDefinitions[4].Height    = _vm?.HasOutput == true ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+            ValuesTab.RowDefinitions[4].MinHeight = _vm?.HasOutput == true ? 140 : 0;
+            ValuesTab.RowDefinitions[2].MinHeight = _vm?.HasOutput == true ? 120 : 0;
+        }
     }
 
     // ── The values grid's band ──────────────────────────────────────────────

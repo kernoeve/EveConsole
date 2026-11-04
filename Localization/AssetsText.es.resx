@@ -964,6 +964,9 @@ con Enter. Una vez valorada, la lista se pliega:
   <data name="GroupReprocessedValue" xml:space="preserve">
     <value>Valor reprocesado</value>
   </data>
+  <data name="TipReprocessedOutput" xml:space="preserve">
+    <value>En qué se convierte la lista una vez reprocesada, con los rendimientos de la aplicación y a los precios de esta estación. Lo que no se puede reprocesar se queda como está y se marca como sobrante.</value>
+  </data>
   <data name="StatusClipboardNoItem" xml:space="preserve">
     <value>El portapapeles no nombra ningún objeto, así que la lista se ha dejado como estaba. «Editar lista» admite cualquier texto.</value>
   </data>

@@ -60,6 +60,12 @@ public sealed record Valuation(
     public double TotalBuild     => Values.Sum(v => (v.BuildUnit     ?? 0) * v.Item.Quantity);
     public double TotalReprocess => Values.Sum(v => (v.ReprocessUnit ?? 0) * v.Item.Quantity);
     public int    Unpriced       => Values.Count(v => v.MarketUnit is null && v.BuildUnit is null && v.ReprocessUnit is null);
+
+    /// <summary>
+    /// What the list comes to once reprocessed: the materials, then whatever could not go in. Empty
+    /// when <see cref="Reprocessed"/>, when that is already what <see cref="Values"/> holds.
+    /// </summary>
+    public IReadOnlyList<ItemValues> Output { get; init; } = [];
 }
 
 /// <summary>
@@ -154,9 +160,11 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
     {
         await EnsureTypesAsync(ct);
         var (items, unparsed) = Resolve(text, await OtherLanguageNamesAsync(text, ct));
+        var output = reprocess ? [] : await ReprocessAsync(items, ct);
         if (reprocess) items = await ReprocessAsync(items, ct);
 
         var typeIds = items.Where(i => i.TypeId > 0).Select(i => i.TypeId).Distinct().ToList();
+        var pricedIds = typeIds.Union(output.Where(i => i.TypeId > 0).Select(i => i.TypeId)).ToList();
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -165,7 +173,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         var materials = await db.SdeTypeMaterials.AsNoTracking()
             .Where(m => typeIds.Contains(m.TypeId))
             .ToListAsync(ct);
-        var allTypeIds = typeIds.Union(materials.Select(m => m.MaterialTypeId)).ToList();
+        var allTypeIds = pricedIds.Union(materials.Select(m => m.MaterialTypeId)).ToList();
 
         var stations = new List<StationPrices> { await PriceAtAsync(db, primary, allTypeIds, basis, ct) };
         foreach (var station in compare)
@@ -173,16 +181,15 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         var primaryPrices = stations[0].UnitByType;
 
         var contracts = (await db.ContractPrices.AsNoTracking()
-                .Where(c => typeIds.Contains(c.TypeId))
+                .Where(c => pricedIds.Contains(c.TypeId))
                 .ToListAsync(ct))
             .ToDictionary(c => c.TypeId, c => ContractPricing.EffectivePrice(c));
         var builds = await db.BuildCosts.AsNoTracking()
-            .Where(b => typeIds.Contains(b.TypeId) && b.TotalCost > 0)
+            .Where(b => pricedIds.Contains(b.TypeId) && b.TotalCost > 0)
             .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
         var reprocessUnits = ReprocessValues(materials, primaryPrices);
 
-        var values = new List<ItemValues>(items.Count);
-        foreach (var item in items)
+        ItemValues Priced(ValuedItem item)
         {
             double? market = null; var fromContract = false;
             if (item.TypeId > 0)
@@ -192,10 +199,13 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
             }
             double? build = builds.TryGetValue(item.TypeId, out var b) ? b : null;
             double? reprocessed = reprocessUnits.TryGetValue(item.TypeId, out var r) ? r : null;
-            values.Add(new ItemValues(item, market, fromContract, build, reprocessed));
+            return new ItemValues(item, market, fromContract, build, reprocessed);
         }
 
-        return new Valuation(values, stations, unparsed, basis, reprocess);
+        return new Valuation([.. items.Select(Priced)], stations, unparsed, basis, reprocess)
+        {
+            Output = [.. output.Select(Priced)],
+        };
     }
 
     /// <summary>The pasted lines as items: names resolved and merged by type, names the SDE does
