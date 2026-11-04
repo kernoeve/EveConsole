@@ -1796,9 +1796,9 @@ public class LogisticsGenerator(
     /// <summary>
     /// Fills each station's wants from the nearest station that can spare the material.
     ///
-    /// <para>A source is only offered what it holds beyond its own jobs' need, so satisfying one
-    /// structure never starves another's work. Same system first, then gate distance, then station
-    /// id so two equally good sources always resolve the same way.</para>
+    /// <para>A source is only offered what it holds beyond its own need and its level, so satisfying
+    /// one structure never starves another. Same system first, then gate distance, then station id
+    /// so two equally good sources always resolve the same way.</para>
     /// </summary>
     private async Task<List<Move>> AllocateAsync(
         Dictionary<(long Station, int TypeId), Want> want,
@@ -1808,15 +1808,13 @@ public class LogisticsGenerator(
         var moves = new List<Move>();
         if (want.Count == 0) { LastFacts = HaulPlanFacts.None; return moves; }
 
-        // ⚠️ Spare stock: what a station holds beyond what its own JOBS want. A station level is not
-        // a claim on anything until the jobs are served: it manages where surplus sits, and is last.
-        // Protected up front, 2,500 Power Cores "kept" at a yard with no use for them held 686 there
-        // and pulled in 979 more, while the jobs stopped at the next structure over got none.
+        // ⚠️ Spare stock: what a station holds beyond its own jobs AND its level. A level protects
+        // what a station already holds, so one large need elsewhere cannot wipe out every buffer in
+        // the region. What it does not do is pull stock in while a job wants it: see below.
         var spare = new Dictionary<(long Station, int TypeId), long>();
         foreach (var (key, qty) in stock)
         {
-            var w    = want.GetValueOrDefault(key);
-            var free = qty - (w is null ? 0 : w.Qty - w.Level);
+            var free = qty - (want.GetValueOrDefault(key)?.Qty ?? 0);
             if (free > 0) spare[key] = free;
         }
         var spareBefore = new Dictionary<(long Station, int TypeId), long>(spare);
@@ -1838,13 +1836,10 @@ public class LogisticsGenerator(
         var suppliers = new HashSet<long>();
         long currentDest = 0;
 
-        // Moves what it can of a gap to a station. For a level, a source keeps its own level.
-        async Task FillAsync(long dest, int typeId, long gap, HaulReason reason, int priority, bool forLevel)
+        // Moves what it can of a gap to a station, and says how much it could not.
+        async Task<long> FillAsync(long dest, int typeId, long gap, HaulReason reason, int priority)
         {
             if (dest != currentDest) { suppliers.Clear(); currentDest = dest; }
-
-            long Offer(KeyValuePair<(long Station, int TypeId), long> s) =>
-                forLevel ? s.Value - (want.GetValueOrDefault(s.Key)?.Level ?? 0) : s.Value;
 
             var destSystem = systems.GetValueOrDefault(dest);
             if (destSystem != 0 && !jumpCache.ContainsKey(destSystem))
@@ -1869,11 +1864,11 @@ public class LogisticsGenerator(
             //    else would buy or haul the same goods a second time.
             var need = gap;
             var sources = spare
-                .Where(s => s.Key.TypeId == typeId && s.Key.Station != dest && Offer(s) > 0)
+                .Where(s => s.Key.TypeId == typeId && s.Key.Station != dest && s.Value > 0)
                 .Where(s => s.Key.Station > 0 || IsInTransit(s.Key.Station)
                             || systems.GetValueOrDefault(s.Key.Station) == destSystem && destSystem != 0)
                 .OrderByDescending(s => s.Key.Station < 0)
-                .ThenByDescending(s => Offer(s) >= need)
+                .ThenByDescending(s => s.Value >= need)
                 .ThenByDescending(s => suppliers.Contains(s.Key.Station))
                 .ThenBy(s => Distance(distances, systems, s.Key.Station))
                 .ThenBy(s => want.ContainsKey((s.Key.Station, typeId)) ? 1 : 0)
@@ -1883,14 +1878,18 @@ public class LogisticsGenerator(
             foreach (var s in sources)
             {
                 if (gap <= 0) break;
-                var take = Math.Min(gap, Offer(s));
+                var take = Math.Min(gap, s.Value);
                 moves.Add(new Move(s.Key.Station, dest, typeId, take, reason, priority));
                 spare[s.Key] -= take;
                 gap -= take;
                 suppliers.Add(s.Key.Station);
                 received[(dest, typeId)] = received.GetValueOrDefault((dest, typeId)) + take;
             }
+            return gap;
         }
+
+        // Items a job still lacks after every source has given what it can.
+        var stillWanted = new HashSet<int>();
 
         // ── Jobs first, by how urgent they are ────────────────────────────
         //
@@ -1917,15 +1916,17 @@ public class LogisticsGenerator(
                      .ThenBy(k => k.Key.TypeId))
         {
             var gap = w.Qty - w.Level - stock.GetValueOrDefault((dest, typeId));
-            if (gap > 0) await FillAsync(dest, typeId, gap, w.Reason, w.Priority, forLevel: false);
+            if (gap > 0 && await FillAsync(dest, typeId, gap, w.Reason, w.Priority) > 0)
+                stillWanted.Add(typeId);
         }
 
         // ── Then station levels, from what is left ────────────────────────
         //
-        // ⚠️ Always last, whatever else the station wants. A level only moves surplus around: it
-        // takes what no job anywhere wants and no other station's level holds.
+        // ⚠️ Always last, and only for what is surplus: no job anywhere still wants it, whether that
+        // job could start today or not. Filled ahead of them, 2,500 Power Cores "kept" at a yard with
+        // no use for them pulled in 979 more, while the jobs stopped at the next structure got none.
         foreach (var ((dest, typeId), w) in want
-                     .Where(k => k.Value.Level > 0)
+                     .Where(k => k.Value.Level > 0 && !stillWanted.Contains(k.Key.TypeId))
                      .OrderBy(k => k.Key.Station)
                      .ThenBy(k => k.Key.TypeId))
         {
@@ -1940,7 +1941,7 @@ public class LogisticsGenerator(
             var jobPart = w.Qty - w.Level;
             if (have >= jobPart + w.Level * (1 - restockBand)) continue;
 
-            await FillAsync(dest, typeId, gap, HaulReason.Restock, 0, forLevel: true);
+            await FillAsync(dest, typeId, gap, HaulReason.Restock, 0);
         }
 
         LastFacts = new HaulPlanFacts(
