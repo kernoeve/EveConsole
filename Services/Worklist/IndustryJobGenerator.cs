@@ -835,14 +835,18 @@ public class IndustryJobGenerator(
                         ? job.Runs
                         : await AffordableRunsAsync(job.Runs);
 
+                    // ⚠️ Only a job that can start is cut to its materials. One waiting on a slot
+                    // needs a slot, and by the time it has one the stock will have moved: if a run
+                    // of it could go today, the slot is what stops it. It reads as short of materials
+                    // only when not one run could go, which a slot would not change.
+                    if (busy && runnable > 0) runnable = job.Runs;
+
                     if (runnable <= 0) printsShort.Add(job.Print.ItemId);
                     else if (busy)     printsNoSlot.Add(job.Print.ItemId);
 
-                    // What the startable half takes, whether or not it can start today. Used only
-                    // to measure the remainder honestly: those materials are spoken for by the
-                    // first row, so counting them as available to the second would understate the
-                    // shortage — and when every slot happens to be busy, would report no shortage
-                    // at all and print an empty list of missing things.
+                    // What the startable half takes. Used only to measure the remainder honestly:
+                    // those materials are spoken for by the first row, so counting them as available
+                    // to the second would understate the shortage.
                     var claimed = committed;
 
                     if (runnable > 0)
@@ -865,24 +869,15 @@ public class IndustryJobGenerator(
                         // A slot is only taken by a job that can actually start.
                         if (!busy) slotsLeft[owner.Config.CharacterId][pool] -= 1;
 
-                        // ⚠️ Materials are reserved by ANY job that is planned, including one
-                        // waiting on a slot. They are two different resources and only the slot
-                        // is free again next pass: a waiting job still eats its materials the
-                        // moment it starts, so leaving them unreserved lets the next pass see
-                        // the same stock and plan the same units over again.
-                        //
-                        // That is why the same thirteen runs appeared four times. The reactor
-                        // holds 2,563,078 Tritanium against 10,000 a run and every reaction slot
-                        // is full, so every job after the first was slot-blocked, reserved
-                        // nothing, and the pass after it measured against untouched stock and
-                        // cut an identical job. The shelf was credited each time — coverage rose
-                        // — while the material it would consume was promised away repeatedly.
-                        //
-                        // What the reader should see instead is one waiting job for what the
-                        // material covers, and the rest reported as blocked for want of it.
-                        foreach (var (typeId, qty) in mats)
-                            committed[(siteId.Value, typeId)] =
-                                committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
+                        // ⚠️ Materials are reserved only by a job that can start. They used to be reserved
+                        // by any job planned, including one waiting on a slot, so with reaction slots
+                        // full the queue spent the stock on paper and the jobs behind it read "short of
+                        // materials" while the materials sat in the hangar, beside jobs that could not
+                        // have used them. A job is short of what the jobs really starting leave it.
+                        if (!busy)
+                            foreach (var (typeId, qty) in mats)
+                                committed[(siteId.Value, typeId)] =
+                                    committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
 
                         Emit(runnable, readiness, blockedBy, "",
                              runnable < job.Runs
@@ -1223,6 +1218,13 @@ public class IndustryJobGenerator(
                         var npShort = MissingAtSite(
                             stock, inScope, ctx, eligible[0], npMats, siteId.Value, committed, heldForSite, docking);
 
+                        // Whether a run of it could go on what is here. Short of the whole job but not
+                        // of a run is not short: see the printed path above.
+                        var npOneRun = await MaterialsForAsync(
+                            ctx, d.TypeId, (long)Math.Max(1, product.Quantity), refMe, ct);
+                        var npOut = MissingAtSite(
+                            stock, inScope, ctx, eligible[0], npOneRun, siteId.Value, committed, heldForSite, docking).Count > 0;
+
                         // ⚠️ A print is the answer only if there is a slot to run it in, after the jobs
                         // ahead of this one have theirs. With reaction slots at 181/181, a job whose
                         // formulas were all running read "blueprints all in use" and told the reader
@@ -1233,7 +1235,7 @@ public class IndustryJobGenerator(
                             slotsLeft[c.Config.CharacterId].GetValueOrDefault(pool)
                             - slotsSpoken.GetValueOrDefault((c.Config.CharacterId, pool)) > 0);
                         var onPrint = slotFor is not null;
-                        if (slotFor is not null && npShort.Count == 0)
+                        if (slotFor is not null && !npOut)
                             slotsSpoken[(slotFor.Config.CharacterId, pool)] =
                                 slotsSpoken.GetValueOrDefault((slotFor.Config.CharacterId, pool)) + 1;
 
@@ -1271,23 +1273,17 @@ public class IndustryJobGenerator(
 
                         // Anything but a print reads the way a job with its print does: short of
                         // materials, or else waiting on a slot.
-                        var waiting = !onPrint && (wantsPrint || noSlot > 0) && npShort.Count == 0;
+                        var waiting = !onPrint && (wantsPrint || noSlot > 0) && !npOut;
                         var why = onPrint && reference is null ? WorklistText.BlockedNoBlueprintOwned
                             : onPrint && noneHere   ? string.Format(WorklistText.BlockedNoBlueprintFreeAt, siteName, reference!.Describe())
                             : onPrint               ? string.Format(WorklistText.BlockedAllPrintsInUse, running, starting)
-                            : npShort.Count > 0     ? MaterialsWhy(npShort)
                             : waiting               ? WorklistText.WaitingAllSlotsBusy
+                            : npShort.Count > 0     ? MaterialsWhy(npShort)
                             :                         WorklistText.BlockedPrintHeldForMaterials;
 
-                        // ⚠️ Reserved, and credited, as any job waiting on a slot is: it will happen,
-                        // and it eats these the moment it starts. Unreserved, every row in the queue
-                        // measured against the same stock and all of them reported nothing missing.
-                        if (waiting)
-                        {
-                            foreach (var (typeId, qty) in npMats)
-                                committed[(siteId.Value, typeId)] = committed.GetValueOrDefault((siteId.Value, typeId)) + qty;
-                            state.Planned += runs * (long)Math.Max(1, product.Quantity);
-                        }
+                        // Credited as any job waiting on a slot is: it will happen. Its materials are
+                        // not reserved: see the printed path above.
+                        if (waiting) state.Planned += runs * (long)Math.Max(1, product.Quantity);
 
                         items.Add(new WorklistItem
                         {
@@ -1309,7 +1305,7 @@ public class IndustryJobGenerator(
                             BlockedBy      = why,
                             BlockedByPrint = onPrint,
                             PrintMissing   = onPrint && noneHere,
-                            Shortages      = [.. npShort.Select(m => new WorklistShortage(
+                            Shortages      = waiting ? [] : [.. npShort.Select(m => new WorklistShortage(
                                                     m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
                                                     { Print = ctx.BpTypeIds.Contains(m.TypeId) ? PrintKind.Copy : PrintKind.None })],
                             LocationId    = siteId.Value,
