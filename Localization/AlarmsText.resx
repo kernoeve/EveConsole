@@ -2400,4 +2400,48 @@
     <value>{0} light years out</value>
     <comment>Spoken, in IntelSaidReportedAt: straight-line distance from the watched system. {0} the light years (one decimal).</comment>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Tasks</value>
+    <comment>Scheduler, tab: the list of tasks and their editor.</comment>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Calendar</value>
+    <comment>Scheduler, tab: a calendar of the runs to come.</comment>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Month</value>
+    <comment>Scheduler calendar, button: show a whole month.</comment>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Week</value>
+    <comment>Scheduler calendar, button: show a whole week.</comment>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>Day</value>
+    <comment>Scheduler calendar, button: show a single day.</comment>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Today</value>
+    <comment>Scheduler calendar, button: go back to today.</comment>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Previous</value>
+    <comment>Scheduler calendar, tooltip on the back arrow: the month, week or day before.</comment>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Next</value>
+    <comment>Scheduler calendar, tooltip on the forward arrow: the month, week or day after.</comment>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>+{0} more</value>
+    <comment>Scheduler calendar, in a day of the month grid when not every task fits. {0} is how many more; clicking opens the day. Keep it short.</comment>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd, MMM d yyyy</value>
+    <comment>Scheduler calendar, title of the day view, e.g. Wednesday, Nov 4 2026. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Shows what will run from now on, in EVE time, while the app is open. Tasks switched off are not shown, and times after an interval task's next run are estimates, since each run counts from the last one. Click a task to edit it.</value>
+    <comment>Scheduler calendar, note under the grid.</comment>
+  </data>
 </root>

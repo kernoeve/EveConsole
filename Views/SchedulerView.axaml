@@ -75,14 +75,30 @@
         <TextBlock Grid.Column="4" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
-        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
-                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
+        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
+                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
 
     <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="300,1,*">
+    <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Padding="0"
+                Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
+      <TabControl.Styles>
+        <Style Selector="TabItem">
+          <Setter Property="FontSize"   Value="11" />
+          <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Padding"    Value="14 6" />
+        </Style>
+        <Style Selector="TabItem:selected">
+          <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+      </TabControl.Styles>
+
+    <!-- ══ Tasks ════════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:AlarmsText.SchedulerTabTasks}">
+    <Grid ColumnDefinitions="300,1,*">
 
       <!-- ── Left: the tasks ────────────────────────────────────────────── -->
       <ListBox Grid.Column="0" ItemsSource="{Binding Tasks}"
@@ -773,5 +789,12 @@
 
       </Grid>
     </Grid>
+    </TabItem>
+
+    <!-- ══ Calendar ═════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:AlarmsText.SchedulerTabCalendar}">
+      <views:SchedulerCalendarView DataContext="{Binding Calendar}" />
+    </TabItem>
+    </TabControl>
   </Grid>
 </UserControl>

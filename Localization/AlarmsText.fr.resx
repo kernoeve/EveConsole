@@ -1801,4 +1801,37 @@
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>à {0} années-lumière</value>
   </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Tâches</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Calendrier</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Mois</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Semaine</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>Jour</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Aujourd'hui</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>+{0} de plus</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd d MMM yyyy</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Affiche ce qui s'exécutera à partir de maintenant, en heure d'EVE, tant que l'application est ouverte. Les tâches désactivées n'apparaissent pas, et les heures après la prochaine exécution d'une tâche à intervalle sont des estimations, car chaque exécution compte depuis la précédente. Cliquez sur une tâche pour la modifier.</value>
+  </data>
 </root>
