@@ -1328,7 +1328,8 @@ public class IndustryJobGenerator(
                             PrintMissing   = onPrint && noneHere,
                             Runs           = (int)runs,
                             HasSlot        = false,
-                            ThenNeedsPrint = wantsPrint && slotFor is not null,
+                            // Its free print goes to the job ahead of it once materials come, too.
+                            ThenNeedsPrint = slotFor is not null || noSlot == 0 && onMats > 0,
                             Bill           = waiting || onPrint ? [] : BillOf(npMats, eligible[0], committed),
                             Shortages      = waiting || onPrint ? [] : [.. npShort.Select(m => new WorklistShortage(
                                                     m.TypeId, m.Name, m.Short, m.Wanted, m.MustBuy)
