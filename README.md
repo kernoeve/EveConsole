@@ -12,11 +12,11 @@
 
 **EVE Console** is a desktop companion app for [EVE Online](https://www.eveonline.com/), running locally on the players system.  Ultimately I run many tools for my day to date activities in Eve (i.e., Ravworks, jEveAssets, Excel, etc.), and was looking for a single tool, where all of my data stayed local, and was completely free with source.  While the tool does not do everything today, it does the things I need it to do.  There is an AI agent integrated into the application, and it was added as I needed to play around with it to get some better familiarity in agent integration for my job, so we ended up with it in this tool.  It does have access to view all of the data in the tools DB, so possibly can answer questions that the UI is not setup to do.  Agent does come with optional TTS and voice input.  Included a number of both external paid options, as well as local alternatives to provide a variety of options, and also for me to get a little exposure with each.  That all being said, it will not be active unless you actually set it up, so you can ignore it if you choose.
 
-Runs natively on both Windows and Linux, which is why I went with Avalonia in the first place.  Linux ships as either an AppImage that keeps itself updated, or a plain tarball you extract and run.  I develop on Windows and test on both.
+Runs natively on Windows, Linux and macOS, which is why I went with Avalonia in the first place.  Linux ships as either an AppImage that keeps itself updated, or a plain tarball you extract and run.  macOS gets an installer or a portable zip, for Apple Silicon and Intel; they are not signed by Apple yet, so macOS asks you to allow them the first time.  I develop on Windows and test on all three.
 
 By default everything sits in a local SQLite file and that is all you need.  If you would rather run it against PostgreSQL you can point it at a server instead, and then you can have several clients open at once -- different machines, same data.  In that setup exactly one of them does the background work and the rest just read.  You can also run it with no window at all (`--headless`), or install it as a Windows service or a systemd user unit, so the polling keeps going when nothing is open.  None of that is required; the default is still one client and one file.
 
-There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.  The interface also comes in eight languages: English, German, Spanish, French, Japanese, Korean, Russian and Simplified Chinese, with item, station and other game names in the same language the game client uses.
+There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.  You can also make your own in the theme editor.  The interface also comes in eight languages: English, German, Spanish, French, Japanese, Korean, Russian and Simplified Chinese, with item, station and other game names in the same language the game client uses.
 
 Keep in mind this application is still very green.  You are free to play around with it, but do expect issues during use.  Do not give up your old tools for this quite yet.  Needs a bit of a hardening period.
 
@@ -141,9 +141,9 @@ Keep in mind this application is still very green.  You are free to play around 
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
 - Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
-- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
+- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon (menu bar on macOS) shows which client is doing the work
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
-- Eight UI themes: light, dark, and blue/pink/beige in both.  Applies immediately, remembered per machine rather than per database
+- Eight UI themes: light, dark, and blue/pink/beige in both, or your own from the theme editor, with colour pickers and a live preview.  Applies immediately, remembered per machine rather than per database
 - Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one
 - UI scale from 50% to 200%, per machine
 - The main window splits into two sides with tabs dragged between them, and any tool can be dragged out into a window of its own
@@ -157,7 +157,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Planetary Industry - Every colony of your PI characters: when extractors end, when storage fills or inputs run out, what each colony imports and exports, what is sitting there waiting to be hauled, and profit per day.  Feeds Overview alerts, an alarm and worklist tasks
 - Production Calculator - Accurate calculation of production jobs for the player.  Includes build costs, materials needed, etc.  Reports what you are missing and turns it into a shopping list
 - Market Overview - What you have on the market, broken down by market group.  Sell and buy order units and ISK, alongside what has actually sold
-- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Eleven sources you can switch on and off independently - industry jobs, logistics, invention and copying, refining, material purchases, standing buy orders, inventory levels, corp projects, skill queues, asset safety and planetary industry
+- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Twelve sources you can switch on and off independently - industry jobs, completed jobs, logistics, invention and copying, refining, material purchases, standing buy orders, inventory levels, corp projects, skill queues, asset safety and planetary industry
 - Order Tracker - Track items you have agreed to supply.  Pending orders are matched against stock, active industry jobs and the contracts that deliver them, so an order completes itself when the contract is accepted
 - Standing Buy Orders - Declare the buy orders you intend to keep standing at a station or structure, and see whether they are actually there, outbid, or nearly expired
 - Sale Posting - Build shareable sale postings from your stock, with build/market/contract pricing and a configurable sale price.  Renders to Plain, Slack, Discord, Markdown, HTML or BBCode
@@ -165,7 +165,9 @@ Keep in mind this application is still very green.  You are free to play around 
 - LP Market Values - What your loyalty points are actually worth, offer by offer, priced against the market
 - Contracts - Browse your contracts and their items
 - Industry Jobs - Every running job, with a check on whether it is actually getting the rig bonus you planned for
-- Industry Opportunities - What is worth building right now.  Can be narrowed by item name, like Trade Opportunities
+- Industry Opportunities - What is worth building right now, with a Summary of what sold at a profit in the last 30 days and a Detail grid with its group and meta filters.  Can be narrowed by item name, like Trade Opportunities
+- Indy Parks - Define your parks, then compare them side by side: build, copy, invention and research costs, with each item's cost over time as system indices moved
+- System Index - Today's index for all six activities across a list of systems, with a chart per activity
 - Item Valuation - Paste a list (from the game client, in any language) and see what it is worth at any station: market, build and reprocessed values side by side, with stations compared
 - Stores - Run your own store.  Buyers order by EVE mail, or on a small web site of your own on Cloudflare that the app deploys and keeps current, and orders land in the Order Tracker
 - Price Overrides - Pin a price when you disagree with the market
@@ -195,16 +197,18 @@ Keep in mind this application is still very green.  You are free to play around 
 - Corp Projects - View active and historical corp project details
 - Standing projects - Allows you to define projects you want to always maintain (i.e., destroy NPC projects in any system in region X with ADM below 4.0)
 - Top 10 Lists - Produces activity top 10 lists based on corp ESI data
+- Corp Structures - Your corporation's Upwell structures, starbases and skyhooks: state, services, fuel left and when it runs out, fuel ISK a day and Metenox pickup value.  Checks each structure against a saved fit, with alerts for fuel, attacks, a wrong fit and low ammo or fighters
+- Mercenary Dens - Each character's dens: planet, skyhook owner, state, infomorphs an hour, development and anarchy, reinforcement and open tactical operations, with alerts for them
 
 ### Other
 - Character Viewer - Similar to the one in game in case you are abstaining from logging your character in for some reason
-- Item Browser - Full items browser, and description/attributes/etc. of every item in the game.  Also includes current market orders and price history for defined markets.
+- Item Browser - Full items browser, and description/attributes/etc. of every item in the game.  Also includes current market orders and price history for defined markets, and a Quickbar of items kept to hand.
 - Asset Viewer - Search across all personal and corp assets
 - Killmail viewer - Corp and personal, or everything in New Eden if you turn the zKillboard feed on
 - Player Entities - Every pilot, corp and alliance the app has met in a killmail, contract or chat log.  Shows zKillboard's stats for each, and pages in their whole kill and loss history from zKillboard
 - NPC Entities - Agents, NPC corporations and factions out of the SDE.  Search an agent by name, or ask what is in a station
 - Alerts - On the overview of the main screen alerts will show for things the tool believes you should look at (definable)
-- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (wake-up call), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
+- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (undocked too long), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
 - Eve Mail - Read and write eve mail... just because
 - Notifications - Your in-game notifications, without logging in
 - Slack - Optional.  Sends alerts to a direct message with yourself, and posts corp reports and sale postings to channels
@@ -215,7 +219,7 @@ Keep in mind this application is still very green.  You are free to play around 
 ### AI Agent ("Eden")
 - Built-in conversational assistant with access to your character/corp data via tool calls
 - Configurable to use external (Claude/OpenAI) or local (i.e., Ollama).  Models are picked from the service's own list, a role each (conversation, data questions, summaries), with a fallback when one fails
-- Optional text-to-speech (Piper or Kokoro locally, your own speech server, OpenAI or ElevenLabs) and speech-to-text (local Whisper or OpenAI) with a push-to-talk key, for hands-free interaction
+- Optional text-to-speech (Piper or Kokoro locally -- Piper is not available on macOS -- your own speech server, OpenAI or ElevenLabs) and speech-to-text (local Whisper or OpenAI) with a push-to-talk key, for hands-free interaction
 - Customizable name and voices
 - AI Usage - What the agent has cost you, call by call
 
@@ -223,9 +227,9 @@ Keep in mind this application is still very green.  You are free to play around 
 
 ## Tech stack
 
-- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net10.0`
-- .NET 9, [ReactiveUI](https://www.reactiveui.net/) (MVVM)
-- EF Core 9, with SQLite for local persistence or PostgreSQL for a shared one
+- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows, Linux and macOS, `net10.0`
+- .NET 10, [ReactiveUI](https://www.reactiveui.net/) (MVVM)
+- EF Core 10, with SQLite for local persistence or PostgreSQL for a shared one
 - [LiveChartsCore](https://livecharts.dev/) for charts
 - CCP's [ESI API](https://esi.evetech.net/ui/) for all game data, with local caching of the Static Data Export (SDE)
 
@@ -234,8 +238,8 @@ Keep in mind this application is still very green.  You are free to play around 
 ## Getting started
 
 ### Requirements
-- Windows 10/11, or Linux (developed against Arch; anything current should be fine)
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- Windows 10/11, macOS 15 or later (Apple Silicon or Intel), or Linux (developed against Arch; anything current should be fine)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - On Linux only: **VLC**, which is the one thing the app cannot carry itself -- it loads the system copy for alarm sounds.  `pacman -S vlc` on Arch, `apt install libvlc-dev` on Debian/Ubuntu.  Everything else is in the build
 - PostgreSQL is optional.  Only needed if you want several clients on one database
 
@@ -248,11 +252,13 @@ dotnet restore
 dotnet run
 ```
 
-If you would rather not build it, grab a release: an installer on Windows, and on Linux either the `.AppImage` (`chmod +x` it and run -- it keeps itself updated) or the tarball, which you extract anywhere and run with `./EveConsole`.
+If you would rather not build it, grab a release: an installer on Windows; a `.pkg` installer or a portable zip on macOS (`osx-arm64` for Apple Silicon, `osx-x64` for Intel); and on Linux either the `.AppImage` (`chmod +x` it and run -- it keeps itself updated) or the tarball, which you extract anywhere and run with `./EveConsole`.
+
+The macOS builds are not signed by Apple yet, so macOS stops them the first time: open **System Settings** > **Privacy & Security**, scroll down and click **Open Anyway**, for the installer and again for the app on its first launch.
 
 On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO.
 
-Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace) or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
+Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace), `~/.local/share/EveConsole/EveConsole.db` on Linux, or `~/Library/Application Support/EveConsole/EveConsole.db` on macOS.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
 
 See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
 
