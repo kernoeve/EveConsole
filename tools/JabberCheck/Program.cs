@@ -232,6 +232,20 @@ void Check(string name, bool ok, string detail = "")
 }
 
 // ── Saving, reading and forgetting ────────────────────────────────────────────
+// ── Who an answer is from ─────────────────────────────────────────────────────
+{
+    var me = XmppAddress.Parse("me@example/home");
+
+    Check("answers: from who was asked", XmppClient.AnswerIsFrom("conference.example", "conference.example", me));
+    Check("answers: from anyone else, ignored", !XmppClient.AnswerIsFrom("conference.example", "stranger@example/x", me));
+    Check("answers: a stranger cannot answer what was asked of the server", !XmppClient.AnswerIsFrom(null, "stranger@example/x", me));
+    Check("answers: the server, about this account, in any of its forms",
+          XmppClient.AnswerIsFrom(null, null, me) && XmppClient.AnswerIsFrom(null, "me@example", me) && XmppClient.AnswerIsFrom(null, "me@example/home", me) && XmppClient.AnswerIsFrom(null, "example", me));
+    Check("answers: no name given is fine only from this account's own side", XmppClient.AnswerIsFrom("example", null, me) && XmppClient.AnswerIsFrom("me@example", null, me) && !XmppClient.AnswerIsFrom("conference.example", null, me));
+    Check("answers: letter case does not matter", XmppClient.AnswerIsFrom("Conference.Example", "conference.example", me));
+    Check("answers: another resource of who was asked is someone else", !XmppClient.AnswerIsFrom("them@example/a", "them@example/b", me));
+}
+
 // ── The server's archive: only ever this account's own ──────────────────────
 {
     var self = XmppAddress.Parse("me@example/home");
@@ -341,7 +355,7 @@ try
 
     Check("unread: counted for the alert", await service.UnreadAlertsAsync() == 3);
 
-    var fixedOne = From("other@example", "d", "corrected") with { IsCorrection = true };
+    var fixedOne = From("other@example", "d", "corrected") with { IsCorrection = true, ReplaceId = "c" };
     var edited = new List<string>();
     service.ConversationEdited += (_, c) => edited.Add(c);
     await service.StoreAsync(session, fixedOne);
@@ -350,7 +364,7 @@ try
         var rows = await db.JabberMessages.Where(m => m.Conversation == "other@example").ToListAsync();
         Check("correction: changes their last message, adding none", rows.Count == 1 && rows[0].Body == "corrected" && edited.SequenceEqual(["other@example"]), string.Join(",", rows.Select(r => r.Body)));
     }
-    await service.StoreAsync(session, From("new@example", "e", "nothing to correct") with { IsCorrection = true });
+    await service.StoreAsync(session, From("new@example", "e", "nothing to correct") with { IsCorrection = true, ReplaceId = "z" });
     await using (var db = factory.CreateDbContext())
     {
         Check("correction: with nothing of theirs saved, it stands as a message", await db.JabberMessages.AnyAsync(m => m.Conversation == "new@example"));
@@ -421,6 +435,31 @@ try
 
         await using var cleanup = factory.CreateDbContext();
         await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
+
+    // Rules a hostile member or a strange clock could otherwise get round.
+    {
+        var outsider = new XmppMessage(XmppAddress.Parse("notjoined@c.example/Nick"), XmppAddress.Parse("me@example"), "groupchat", "me!", "", "g1", null, "", false);
+        Check("rooms: talk from a room this account is not in has nowhere to go", await service.StoreAsync(session, outsider) is null);
+
+        var future = await service.StoreAsync(session, From("clock@example", "f1", "from the future") with { Sent = new DateTimeOffset(2099, 1, 1, 0, 0, 0, TimeSpan.Zero) });
+        Check("dates: one far ahead is taken as now", future is not null && string.CompareOrdinal(future.SentAt, "2090") < 0, future?.SentAt ?? "");
+
+        await service.StoreAsync(session, From("fix@example", "orig", "before"));
+        var wrongId = await service.StoreAsync(session, From("fix@example", "x1", "not a fix of that") with { IsCorrection = true, ReplaceId = "other" });
+        await using (var db = factory.CreateDbContext())
+            Check("correction: naming another message changes nothing, and stands alone", wrongId is not null && await db.JabberMessages.AnyAsync(m => m.Conversation == "fix@example" && m.Body == "before"));
+
+        var replayed = await service.StoreAsync(session, From("fix@example", "x2", "old correction") with { IsCorrection = true, ReplaceId = "gone", Sent = DateTimeOffset.UtcNow.AddHours(-3) });
+        Check("correction: an old one in replayed history is not a new message", replayed is null);
+
+        await using (var db = factory.CreateDbContext())
+            await db.JabberMessages.Where(m => m.Conversation == "fix@example" || m.Conversation == "clock@example").ExecuteDeleteAsync();
+
+        var pm = JabberService.ToStored(session.Account, null, null,
+            new XmppMessage(XmppAddress.Parse("me@example/home"), XmppAddress.Parse("r@c.example/Nick"), "chat", "psst", "", "p1", null, "", true),
+            DateTimeOffset.UtcNow, privateInRoom: true);
+        Check("rooms: a private word I send stays with that person", pm.Conversation == "r@c.example/Nick" && pm.IsOutgoing, pm.Conversation);
     }
 
     var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());

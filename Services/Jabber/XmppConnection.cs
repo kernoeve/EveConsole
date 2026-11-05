@@ -354,22 +354,36 @@ public sealed class XmppConnection : IAsyncDisposable
     /// <summary>A single space: the keep-alive the protocol allows, which also proves the link still works.</summary>
     public Task KeepAliveAsync(CancellationToken ct) => WriteRawAsync(" ", ct);
 
+    /// <summary>A server that stops reading must not leave a write waiting for ever: pings go through here too.</summary>
+    private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(30);
+
     private async Task WriteRawAsync(string text, CancellationToken ct)
     {
         var bytes = Encoding.UTF8.GetBytes(text);
 
-        await _writeLock.WaitAsync(ct);
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        limit.CancelAfter(WriteTimeout);
         try
         {
-            var stream = _stream ?? throw new XmppException(XmppFailure.Network, "Not connected.");
-            await stream.WriteAsync(bytes, ct);
-            await stream.FlushAsync(ct);
+            await _writeLock.WaitAsync(limit.Token);
+            try
+            {
+                var stream = _stream ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+                await stream.WriteAsync(bytes, limit.Token);
+                await stream.FlushAsync(limit.Token);
+            }
+            finally { _writeLock.Release(); }
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            try { _tcp?.Close(); }
+            catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException) { /* closing it was the point */ }
+            throw new XmppException(XmppFailure.Network, "The server stopped taking data.");
         }
         catch (Exception e) when (e is IOException or ObjectDisposedException or SocketException)
         {
             throw new XmppException(XmppFailure.Network, e.Message, e);
         }
-        finally { _writeLock.Release(); }
     }
 
     // ── Login ─────────────────────────────────────────────────────────────────

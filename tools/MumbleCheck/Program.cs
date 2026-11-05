@@ -123,6 +123,97 @@ static string RawFile(string path)
     Check("protobuf: random bytes never do worse than malformed", wrong.Length == 0, wrong);
 }
 
+// ── Voice encryption, against the published OCB vectors ───────────────────────
+{
+    using var aes = System.Security.Cryptography.Aes.Create();
+    var key = Enumerable.Range(0, 16).Select(i => (byte)i).ToArray();
+    aes.Key = key;
+    var tag = new byte[16];
+
+    MumbleCrypt.OcbEncrypt(aes, [], [], key, tag, modifyOnAttack: false);
+    Check("crypt: the published tag of nothing", Hex(tag) == "BF3108130773AD5EC70EC69E7875A7B0", Hex(tag));
+
+    var source = Enumerable.Range(0, 40).Select(i => (byte)i).ToArray();
+    var crypted = new byte[40];
+    MumbleCrypt.OcbEncrypt(aes, source, crypted, key, tag, modifyOnAttack: false);
+    Check("crypt: the published 40 bytes", Hex(crypted) == "F75D6BC8B4DC8D66B836A2B08B32A6369F1CD3C5228D79FD6C267F5F6AA7B231C7DFB9D59951AE9C", Hex(crypted));
+
+    var back = new byte[40];
+    var backTag = new byte[16];
+    MumbleCrypt.OcbDecrypt(aes, crypted, back, key, backTag);
+    Check("crypt: and back", back.SequenceEqual(source) && backTag.SequenceEqual(tag));
+
+    // Two ends, as a client and server would be: each one's outgoing nonce the other's incoming.
+    using var a = new MumbleCrypt();
+    using var z = new MumbleCrypt();
+    var n1 = new byte[16]; n1[0] = 1; n1[1] = 0x55;
+    var n2 = new byte[16]; n2[0] = 2; n2[1] = 0x66;
+    a.SetKey(key, n1, n2);
+    z.SetKey(key, n2, n1);
+
+    foreach (var size in new[] { 0, 1, 15, 16, 17, 31, 32, 33, 48, 200, 1000 })
+    {
+        var words = new byte[size];
+        new Random(size).NextBytes(words);
+        var sent = a.Encrypt(words)!;
+        Check($"crypt: {size} bytes are 4 longer on the wire", sent.Length == size + MumbleCrypt.Overhead);
+        Check($"crypt: {size} bytes arrive", z.Decrypt(sent)?.SequenceEqual(words) == true);
+    }
+
+    var once = a.Encrypt(new byte[] { 1, 2, 3 })!;
+    Check("crypt: the first time", z.Decrypt(once) is not null);
+    Check("crypt: the same packet twice is a replay, refused", z.Decrypt(once) is null);
+
+    var tampered = a.Encrypt(new byte[] { 1, 2, 3, 4, 5 })!;
+    tampered[^1] ^= 1;
+    Check("crypt: a changed packet is refused", z.Decrypt(tampered) is null);
+    Check("crypt: and does not spoil what comes next", z.Decrypt(a.Encrypt(new byte[] { 9 })!) is [9]);
+
+    var first = a.Encrypt(new byte[] { 1 })!;
+    var second = a.Encrypt(new byte[] { 2 })!;
+    Check("crypt: arriving out of order, the later one", z.Decrypt(second) is [2]);
+    Check("crypt: arriving out of order, the earlier one", z.Decrypt(first) is [1]);
+    Check("crypt: and carries on", z.Decrypt(a.Encrypt(new byte[] { 3 })!) is [3]);
+
+    var seen = 0;
+    for (var i = 0; i < 1000; i++)
+        if (z.Decrypt(a.Encrypt(new byte[] { (byte)i })!) is [var v] && v == (byte)i) seen++;
+    Check("crypt: past the one-byte nonce's wraparound, several times over", seen == 1000, $"{seen}");
+
+    var skipped = 0;
+    for (var i = 0; i < 300; i++)
+    {
+        var p = a.Encrypt(new byte[] { 7 })!;
+        if (i % 3 != 0) continue;
+        if (z.Decrypt(p) is [7]) skipped++;
+    }
+    Check("crypt: packets lost on the way do not break it", skipped == 100, $"{skipped}");
+    Check("crypt: and it counts them", z.Lost > 0);
+
+    using var other = new MumbleCrypt();
+    other.SetKey(new byte[16], n2, n1);
+    Check("crypt: the wrong key is refused", other.Decrypt(a.Encrypt(new byte[] { 1, 2 })!) is null);
+
+    using var empty = new MumbleCrypt();
+    Check("crypt: no key yet, no packets", empty.Encrypt(new byte[] { 1 }) is null && empty.Decrypt(new byte[8]) is null);
+
+    var threw = false;
+    try { empty.SetKey(new byte[3], n1, n2); }
+    catch (InvalidDataException) { threw = true; }
+    Check("crypt: a server's wrong-sized key is refused, not used", threw && !empty.IsReady);
+
+    var noise = new Random(99);
+    var wrong = "";
+    for (var i = 0; i < 20_000 && wrong.Length == 0; i++)
+    {
+        var junk = new byte[noise.Next(0, 80)];
+        noise.NextBytes(junk);
+        try { if (z.Decrypt(junk) is not null) wrong = "accepted " + Hex(junk); }
+        catch (Exception e) { wrong = e.GetType().Name + " " + Hex(junk); }
+    }
+    Check("crypt: random bytes are refused without trouble", wrong.Length == 0 || wrong.StartsWith("accepted", StringComparison.Ordinal) , wrong);
+}
+
 // ── Encoder into mixer: a tone in, the same tone out ──────────────────────────
 {
     var encoder = new MumbleEncoder(MumbleEncoder.BitrateFor(72_000));
@@ -284,6 +375,85 @@ static string RawFile(string path)
     await stop.CancelAsync();
     listener.Stop();
     try { await serving; } catch (OperationCanceledException) { /* stopping it */ }
+}
+
+// ── A hostile server, against the real client ─────────────────────────────────
+{
+    // ⚠️ One packet of this used to overflow the stack, which nothing can catch and which ends the whole app. If this
+    // comes back, this check does not fail so much as vanish, and that is the failure.
+    var threw = false;
+    try { var at = 0; MumbleVarint.Read(Enumerable.Repeat((byte)0xF8, 1_000_000).ToArray(), ref at); }
+    catch (InvalidDataException) { threw = true; }
+    Check("hostile: a megabyte of negation is refused, not recursed", threw);
+
+    threw = false;
+    try { MumbleVoicePacket.Decode(new byte[] { 0x80 }.Concat(Enumerable.Repeat((byte)0xF8, 1_000_000)).ToArray()); }
+    catch (InvalidDataException) { threw = true; }
+    Check("hostile: the same inside a voice packet", threw);
+
+    using var cert = MumbleClient.NewClientCertificate("hostile.test");
+    var trusted = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(cert.RawData));
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+    static byte[] Frame(MumbleMessage type, byte[] body)
+    {
+        var f = new byte[6 + body.Length];
+        f[0] = (byte)((int)type >> 8); f[1] = (byte)type;
+        f[2] = (byte)(body.Length >> 24); f[3] = (byte)(body.Length >> 16); f[4] = (byte)(body.Length >> 8); f[5] = (byte)body.Length;
+        body.CopyTo(f, 6);
+        return f;
+    }
+
+    var finished = new TaskCompletionSource();
+    var serving = Task.Run(async () =>
+    {
+        using var tcp = await listener.AcceptTcpClientAsync();
+        await using var tls = new SslStream(tcp.GetStream());
+        await tls.AuthenticateAsServerAsync(cert);
+
+        // Channels that try to go round in a circle.
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 0).Text(3, "Top").ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 1).UInt(2, 0).Text(3, "A").ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 2).UInt(2, 1).Text(3, "B").ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 1).UInt(2, 2).ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 3).UInt(2, 3).Text(3, "Self").ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.UserState, new PbWriter().UInt(1, 5).Text(3, "Ann").UInt(5, 2).ToArray()));
+
+        // A voice packet of nothing but negations: the connection should not even notice.
+        await tls.WriteAsync(Frame(MumbleMessage.UdpTunnel, new byte[] { 0x80 }.Concat(Enumerable.Repeat((byte)0xF8, 1_000_000)).ToArray()));
+
+        // Keys of the wrong size: no UDP, and no trouble.
+        await tls.WriteAsync(Frame(MumbleMessage.CryptSetup, new PbWriter().Bytes(1, new byte[3]).Bytes(2, new byte[3]).Bytes(3, new byte[3]).ToArray()));
+
+        await tls.WriteAsync(Frame(MumbleMessage.ServerSync, new PbWriter().UInt(1, 5).ToArray()));
+        await finished.Task;
+    });
+
+    await using (var client = new MumbleClient(new MumbleLogin("127.0.0.1", port, "Ann", "", null, trusted, [])))
+    {
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        await client.ConnectAsync(limit.Token);
+
+        var a = client.ChannelOf(1);
+        var self = client.ChannelOf(3);
+        Check("hostile: a channel cannot be moved inside its own child", a?.Parent == 0, a?.Parent?.ToString() ?? "");
+        Check("hostile: a channel cannot be its own parent", self?.Parent is null, self?.Parent?.ToString() ?? "");
+        Check("hostile: walking the tree ends", MumbleService.PathOf(client, 2) == "A/B", MumbleService.PathOf(client, 2));
+        Check("hostile: finding a channel ends", MumbleService.FindChannel(client, "A/B/C/D") is null);
+        Check("hostile: still connected after all that", client.Me?.Name == "Ann");
+        Check("hostile: wrong-sized keys mean no UDP, not a failure", !client.IsUsingUdp);
+    }
+    finished.TrySetResult();
+    listener.Stop();
+    try { await serving; } catch (Exception e) when (e is IOException or ObjectDisposedException or SocketException) { /* the client hung up, which ends it */ }
+
+    var flood = "<" + new string('<', 4_000_000);
+    var clock = System.Diagnostics.Stopwatch.StartNew();
+    var kept = MumbleService.PlainText(flood);
+    Check("hostile: megabytes of '<' take no time", clock.ElapsedMilliseconds < 2000 && kept.Length > 0, $"{clock.ElapsedMilliseconds} ms");
+    Check("text: an unclosed '<' stays as words", MumbleService.PlainText("a < b") == "a < b");
 }
 
 // ── What is kept, and where ───────────────────────────────────────────────────

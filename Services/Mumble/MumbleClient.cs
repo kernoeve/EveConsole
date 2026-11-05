@@ -47,7 +47,7 @@ public sealed class MumbleUser
 
 public sealed record MumbleLogin(
     string Host, int Port, string Username, string Password, X509Certificate2? ClientCertificate,
-    string TrustedCertificate, IReadOnlyList<string> Tokens);
+    string TrustedCertificate, IReadOnlyList<string> Tokens, bool ForceTcp = false);
 
 public sealed record MumbleTextMessage(uint? Actor, IReadOnlyList<uint> Sessions, IReadOnlyList<uint> Channels, string Message);
 
@@ -64,6 +64,12 @@ public sealed class MumbleClient : IAsyncDisposable
 {
     private const uint ClaimedVersion = 1 << 16 | 4 << 8;   // 1.4.0
     private const int MaxMessage = 8 * 1024 * 1024;
+
+    /// <summary>Far beyond any real server, and short of what a hostile one could otherwise make this hold.</summary>
+    private const int MostChannels = 20_000, MostUsers = 20_000;
+
+    /// <summary>A server that stops reading must not leave a write waiting for ever: pings go through here too.</summary>
+    private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(15);
 
@@ -79,6 +85,14 @@ public sealed class MumbleClient : IAsyncDisposable
     private TcpClient? _tcp;
     private Stream? _stream;
     private int _unansweredPings;
+
+    private readonly MumbleCrypt _crypt = new();
+    private MumbleUdpChannel? _udp;
+    private int _udpOpening;
+    private volatile bool _closed;
+
+    /// <summary>Whether voice is going over UDP right now, rather than the TLS connection.</summary>
+    public bool IsUsingUdp => _udp?.IsWorking == true;
 
     public MumbleClient(MumbleLogin login) => _login = login;
 
@@ -255,18 +269,28 @@ public sealed class MumbleClient : IAsyncDisposable
         frame[5] = (byte)body.Length;
         body.CopyTo(frame, 6);
 
-        await _writeLock.WaitAsync(ct);
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        limit.CancelAfter(WriteTimeout);
         try
         {
-            var stream = _stream ?? throw new MumbleException(MumbleFailure.Network, "Not connected.");
-            await stream.WriteAsync(frame, ct);
-            await stream.FlushAsync(ct);
+            await _writeLock.WaitAsync(limit.Token);
+            try
+            {
+                var stream = _stream ?? throw new MumbleException(MumbleFailure.Network, "Not connected.");
+                await stream.WriteAsync(frame, limit.Token);
+                await stream.FlushAsync(limit.Token);
+            }
+            finally { _writeLock.Release(); }
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            Close();   // wakes the read loop, which reports the loss and reconnects
+            throw new MumbleException(MumbleFailure.Network, "The server stopped taking data.");
         }
         catch (Exception e) when (e is IOException or ObjectDisposedException or SocketException)
         {
             throw new MumbleException(MumbleFailure.Network, e.Message, e);
         }
-        finally { _writeLock.Release(); }
     }
 
     // ── What the server says ──────────────────────────────────────────────────
@@ -346,6 +370,10 @@ public sealed class MumbleClient : IAsyncDisposable
             case MumbleMessage.PermissionDenied:
                 Denied?.Invoke(m.Text(4) ?? "");
                 break;
+
+            case MumbleMessage.CryptSetup:
+                ApplyCrypt(m);
+                break;
         }
     }
 
@@ -354,9 +382,14 @@ public sealed class MumbleClient : IAsyncDisposable
         lock (_gate)
         {
             var id = (uint)(m.UInt(1) ?? 0);
-            if (!_channels.TryGetValue(id, out var channel)) _channels[id] = channel = new MumbleChannel { Id = id };
+            if (!_channels.TryGetValue(id, out var channel))
+            {
+                if (_channels.Count >= MostChannels) return;
+                _channels[id] = channel = new MumbleChannel { Id = id };
+            }
 
-            if (m.UInt(2) is { } parent) channel.Parent = (uint)parent;
+            // ⚠️ Never a loop: a channel inside itself would have anything walking the tree going round for ever.
+            if (m.UInt(2) is { } parent && !WouldLoop(id, (uint)parent)) channel.Parent = (uint)parent;
             if (m.Text(3) is { } name) channel.Name = name;
             if (m.Text(5) is { } description) channel.Description = description;
             if (m.Bool(8) is { } temporary) channel.Temporary = temporary;
@@ -369,12 +402,29 @@ public sealed class MumbleClient : IAsyncDisposable
         }
     }
 
+    /// <summary>Whether this channel is already somewhere above the proposed parent, or is that parent.</summary>
+    private bool WouldLoop(uint channel, uint parent)
+    {
+        var at = parent;
+        for (var steps = 0; steps <= MostChannels; steps++)
+        {
+            if (at == channel) return true;
+            if (!_channels.TryGetValue(at, out var above) || above.Parent is not { } next) return false;
+            at = next;
+        }
+        return true;
+    }
+
     private void ApplyUser(PbMessage m)
     {
         lock (_gate)
         {
             var session = (uint)(m.UInt(1) ?? 0);
-            if (!_users.TryGetValue(session, out var user)) _users[session] = user = new MumbleUser { Session = session };
+            if (!_users.TryGetValue(session, out var user))
+            {
+                if (_users.Count >= MostUsers) return;
+                _users[session] = user = new MumbleUser { Session = session };
+            }
 
             if (m.Text(3) is { } name) user.Name = name;
             if (m.UInt(4) is { } userId) user.UserId = (uint)userId;
@@ -426,8 +476,69 @@ public sealed class MumbleClient : IAsyncDisposable
     }
 
     /// <summary>A voice frame, over the control connection.</summary>
-    public Task SendVoiceAsync(MumbleVoicePacket packet, CancellationToken ct) =>
-        SendAsync(MumbleMessage.UdpTunnel, packet.Encode(), ct);
+    public Task SendVoiceAsync(MumbleVoicePacket packet, CancellationToken ct)
+    {
+        var bytes = packet.Encode();
+        return _udp?.TrySend(bytes) == true ? Task.CompletedTask : SendAsync(MumbleMessage.UdpTunnel, bytes, ct);
+    }
+
+    /// <summary>Starts on UDP once the server has given the keys. Nothing depends on it working.</summary>
+    private void ApplyCrypt(PbMessage m)
+    {
+        byte[]? key = m.Bytes(1), clientNonce = m.Bytes(2), serverNonce = m.Bytes(3);
+        try
+        {
+            if (key is { Length: > 0 } && clientNonce is not null && serverNonce is not null)
+            {
+                _crypt.SetKey(key, clientNonce, serverNonce);
+                if (!_login.ForceTcp && Interlocked.Exchange(ref _udpOpening, 1) == 0) _ = OpenUdpAsync();
+            }
+            else if (serverNonce is { Length: > 0 })
+            {
+                _crypt.SetDecryptNonce(serverNonce);
+            }
+            else if (_crypt.IsReady)
+            {
+                // The server has lost track of this client's nonce, and is asking where it has got to.
+                Quietly(SendAsync(MumbleMessage.CryptSetup, new PbWriter().Bytes(2, _crypt.EncryptNonce()).ToArray(), CancellationToken.None));
+            }
+        }
+        catch (InvalidDataException) { /* a bad key means no UDP, and TCP carries on */ }
+    }
+
+    private async Task OpenUdpAsync()
+    {
+        var channel = await MumbleUdpChannel.OpenAsync(_login.Host, _login.Port, _crypt, DeliverUdp,
+            askForResync: () => Quietly(SendAsync(MumbleMessage.CryptSetup, [], CancellationToken.None)),
+            onSilent: TellServerToUseTcp, CancellationToken.None);
+
+        if (channel is null) return;
+        if (_closed) { channel.Dispose(); return; }
+
+        _udp = channel;
+        if (_closed) channel.Dispose();
+    }
+
+    private Task DeliverUdp(byte[] plain)
+    {
+        if (MumbleVoicePacket.Decode(plain) is { } voice) VoiceReceived?.Invoke(voice);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// ⚠️ A server answers on UDP once it has heard this client there, even when its answers are not getting
+    /// through, which would leave someone connected and hearing nothing. Anything tunnelled over TCP tells it to
+    /// stop, and a ping is the smallest thing to send.
+    /// </summary>
+    private void TellServerToUseTcp()
+    {
+        using var to = new MemoryStream(12);
+        to.WriteByte(1 << 5);
+        MumbleVarint.Write(to, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+        Quietly(SendAsync(MumbleMessage.UdpTunnel, to.ToArray(), CancellationToken.None));
+    }
+
+    private static void Quietly(Task send) => _ = send.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
     /// <summary>Who hears what this client says on a target, by the rule the server applies. For display.</summary>
     public IReadOnlyList<MumbleUser> UsersIn(uint channel)
@@ -437,6 +548,8 @@ public sealed class MumbleClient : IAsyncDisposable
 
     private void Close()
     {
+        _closed = true;
+        _udp?.Dispose();
         try { _tcp?.Close(); } catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException) { /* going anyway */ }
     }
 

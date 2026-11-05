@@ -283,6 +283,7 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         lock (_gate)
         {
+            _wantOutput = true;
             if (_output is not null) return true;
             if (!EnsureInitialized()) { LastError = "PortAudio could not start."; return false; }
 
@@ -313,10 +314,32 @@ public sealed class MumbleAudioDevices : IDisposable
         }
     }
 
+    /// <summary>
+    /// Reopens the speakers if their stream has ended, as unplugging a headset does. Called every couple of seconds.
+    /// ⚠️ Not run against real hardware being unplugged: it tries, and says why if it cannot.
+    /// </summary>
+    public void KeepOutputAlive()
+    {
+        lock (_gate)
+        {
+            if (!_wantOutput) return;
+            if (_output is not null)
+            {
+                try { if (_output.IsActive) return; }
+                catch (Exception e) when (e is PortAudioException or InvalidOperationException or ObjectDisposedException) { /* gone, then */ }
+                Close(ref _output);
+            }
+        }
+        StartOutput();
+    }
+
+    private bool _wantOutput;
+
     public void StopOutput()
     {
         lock (_gate)
         {
+            _wantOutput = false;
             Close(ref _output);
             _outputCallback = null;
         }

@@ -187,7 +187,14 @@ public static class MumbleVarint
         if ((first & 0xF0) == 0xE0) return Bytes(data, ref at, 3, first & 0x0F);
         if ((first & 0xFC) == 0xF0) return Bytes(data, ref at, 4, 0);
         if ((first & 0xFC) == 0xF4) return Bytes(data, ref at, 8, 0);
-        if ((first & 0xFC) == 0xF8) return ~Read(data, ref at);
+
+        // ⚠️ One negation and no more. Each one otherwise recurses, so a packet of a megabyte of this byte overflows
+        // the stack, which nothing can catch and which takes the whole app with it.
+        if ((first & 0xFC) == 0xF8)
+        {
+            if (at < data.Length && (data[at] & 0xF8) == 0xF8) throw new InvalidDataException("A voice packet has a number negated twice.");
+            return ~Read(data, ref at);
+        }
         return ~(long)(first & 0x03);
     }
 }

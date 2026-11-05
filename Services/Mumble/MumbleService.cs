@@ -1,6 +1,6 @@
+using System.Text;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -38,6 +38,8 @@ public sealed class MumbleSession(MumbleServer server)
     internal CancellationTokenSource? Run { get; set; }
     internal Task? Loop { get; set; }
     internal Dictionary<string, double> Volumes { get; set; } = [];
+    internal bool MicFailed { get; set; }
+    internal Task? VoiceSending { get; set; }
     internal GlobalHotkeyService? WhisperHook { get; set; }
     internal GlobalHotkeyService? ShoutHook { get; set; }
     internal MumbleEncoder? Encoder { get; set; }
@@ -70,7 +72,7 @@ public sealed class MumbleSession(MumbleServer server)
 /// <para>⚠️ Desktop only, for the same reason as Jabber: a worker logging in as the owner would fight
 /// their real client for the same seat, and has no one to listen.</para>
 /// </summary>
-public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
+public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
 {
     public const int MaxChatLines = 500;
     public const string InputDevicePref = "mumble.input_device";
@@ -89,8 +91,22 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     private readonly Dictionary<int, MumbleSession> _sessions = [];
     private readonly object _gate = new();
     private readonly List<short> _micBuffer = new(MumbleEncoder.FrameSamples * 2);
-    private readonly Channel<short[]> _frames = Channel.CreateBounded<short[]>(new BoundedChannelOptions(50)
+    private readonly Channel<VoiceWork> _frames = Channel.CreateBounded<VoiceWork>(new BoundedChannelOptions(50)
         { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
+
+    /// <summary>
+    /// Key presses, in the order they happened. ⚠️ Never handled on the keyboard hook's own thread: Windows gives it a
+    /// few hundred milliseconds, opening a microphone can take longer, and a hook that runs late misses the release
+    /// or is removed without a word, leaving someone transmitting.
+    /// </summary>
+    private readonly Channel<Action> _keyEvents = Channel.CreateUnbounded<Action>(new UnboundedChannelOptions { SingleReader = true });
+    private Task? _keyWorker;
+
+    /// <summary>A frame for everyone talking, or the last one for someone who just stopped.</summary>
+    private readonly record struct VoiceWork(short[]? Frame, MumbleSession? EndOf, MumbleTalk EndMode);
+
+    /// <summary>What the protocol lets a message be, past which no real person's text goes.</summary>
+    private const int MostChatChars = 20_000;
 
     private CancellationTokenSource? _micClose;
     private Task? _sender;
@@ -150,6 +166,7 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         Devices = new MumbleAudioDevices(Mixer) { InputDevice = _inputDevice, OutputDevice = _outputDevice, MicrophoneGain = _micGain };
         Devices.Captured += OnCaptured;
         _sender = Task.Run(SendFramesAsync, CancellationToken.None);
+        _keyWorker = Task.Run(HandleKeysAsync, CancellationToken.None);
         StartTalkerWatch();
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -205,6 +222,9 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         }
 
         var session = Track(server);
+
+        // A key changed while held would never be seen to come up.
+        StopTalking(session);
         BindKeys(session);
         SessionChanged?.Invoke(session);
         return session;
@@ -245,10 +265,19 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         var reference = CertificateReference(server.Id);
         var saved = AppConfig.GetServicePassword(reference);
 
+        // ⚠️ Saved but not readable right now, as with a locked keychain, is not the same as never saved. Making a
+        // new one would throw away the registered name for good, so this waits and tries again.
+        if (saved is null && AppConfig.HasServicePassword(reference))
+            throw new MumbleException(MumbleFailure.Network, "This server's saved identity cannot be opened right now.");
+
         if (saved is not null)
         {
             try { return MumbleClient.LoadIdentity(Convert.FromBase64String(saved)); }
-            catch (Exception e) when (e is FormatException or System.Security.Cryptography.CryptographicException) { /* made afresh below */ }
+            catch (System.Security.Cryptography.CryptographicException e)
+            {
+                throw new MumbleException(MumbleFailure.Network, "This server's saved identity cannot be opened right now.", e);
+            }
+            catch (FormatException) { /* not a certificate at all, so nothing is lost by making one */ }
         }
 
         var made = MumbleClient.NewClientCertificate(server.Username.Length > 0 ? server.Username : "EVE Console");
@@ -276,12 +305,19 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         Task? loop;
         lock (_gate) { run = session.Run; loop = session.Loop; }
 
-        if (run is not null) await run.CancelAsync();
-        if (session.Client is { } client) await client.DisposeAsync();
-
-        if (loop is not null)
-            try { await loop.WaitAsync(TimeSpan.FromSeconds(5)); }
-            catch (Exception e) when (e is TimeoutException or OperationCanceledException) { /* it is told to stop, and will */ }
+        // ⚠️ Nothing here may throw: this is what the Disconnect button and closing the app wait on, and a failure
+        // would leave one stuck on and the other unable to quit.
+        try
+        {
+            if (run is not null) await run.CancelAsync();
+            if (session.Client is { } client) await client.DisposeAsync();
+            if (loop is not null) await loop.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        catch (Exception e) when (e is not (TimeoutException or OperationCanceledException))
+        {
+            errors.Log(nameof(MumbleService), "disconnect", e);
+        }
+        catch (Exception) { /* it is told to stop, and will */ }
 
         SetState(session, MumbleState.Offline, MumbleProblem.None, "");
     }
@@ -325,13 +361,18 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
                 }, e.Message);
                 return;
             }
-            catch (Exception e) when (e is MumbleException or IOException or TimeoutException or OperationCanceledException or InvalidOperationException)
+            catch (Exception e)
             {
+                // ⚠️ Everything. This loop is the only thing bringing the connection back, and a database that is
+                // busy or a value it does not like must not end that without a word.
+                if (e is not (MumbleException or IOException or TimeoutException or OperationCanceledException))
+                    errors.Log(nameof(MumbleService), "keep connected", e);
                 session.Detail = e.Message;
             }
             finally
             {
-                await EndConnectionAsync(session);
+                try { await EndConnectionAsync(session); }
+                catch (Exception e) when (e is not OperationCanceledException) { errors.Log(nameof(MumbleService), "end a connection", e); }
             }
 
             // Told to stop: the failure that just ended the read loop is that, and not worth retrying.
@@ -432,7 +473,9 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     public static string PathOf(MumbleClient client, uint channel)
     {
         var names = new List<string>();
-        for (var c = client.ChannelOf(channel); c?.Parent is { } parent; c = client.ChannelOf(parent)) names.Insert(0, c.Name);
+        // The client refuses loops, and the count is here so that a mistake there could not hang this.
+        var steps = 0;
+        for (var c = client.ChannelOf(channel); c?.Parent is { } parent && steps < 1000; c = client.ChannelOf(parent), steps++) names.Insert(0, c.Name);
         return string.Join('/', names);
     }
 
@@ -479,7 +522,11 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     {
         if (session.Server.SelfDeafened || session.Client is not { } client) return;
 
-        var gain = client.UserOf(packet.Session) is { } user ? session.VolumeOf(user) : 1.0;
+        // ⚠️ Only from someone the server has said is there. Each new speaker costs a decoder kept until they leave,
+        // so sessions made up on the spot would use up memory without limit.
+        if (client.UserOf(packet.Session) is not { } user) return;
+
+        var gain = session.VolumeOf(user);
         if (gain <= 0) return;
 
         Mixer.Receive(session.Server.Id, packet, gain);
@@ -508,8 +555,6 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
 
     // ── Text ──────────────────────────────────────────────────────────────────
 
-    [GeneratedRegex("<[^>]+>")]
-    private static partial Regex Tags();
 
     /// <summary>Mumble text is HTML, and anyone can send anything. It is shown as plain words, never rendered.</summary>
     public static string PlainText(string html)
@@ -517,13 +562,39 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         var withBreaks = html.Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase)
                              .Replace("<br/>", "\n", StringComparison.OrdinalIgnoreCase)
                              .Replace("<br />", "\n", StringComparison.OrdinalIgnoreCase);
-        return WebUtility.HtmlDecode(Tags().Replace(withBreaks, "")).Trim();
+        return WebUtility.HtmlDecode(WithoutTags(withBreaks)).Trim();
+    }
+
+    /// <summary>
+    /// ⚠️ By hand and in one pass, not a regex: megabytes of "&lt;" with no "&gt;" would take a regex minutes, on the
+    /// connection's reading thread.
+    /// </summary>
+    private static string WithoutTags(string html)
+    {
+        var words = new StringBuilder(html.Length);
+        var at = 0;
+        while (at < html.Length)
+        {
+            var open = html.IndexOf('<', at);
+            if (open < 0) { words.Append(html, at, html.Length - at); break; }
+
+            words.Append(html, at, open - at);
+
+            var close = html.IndexOf('>', open + 1);
+            if (close < 0) { words.Append(html, open, html.Length - open); break; }
+
+            at = close + 1;
+        }
+        return words.ToString();
     }
 
     private void OnText(MumbleSession session, MumbleClient client, MumbleTextMessage text)
     {
         var sender = text.Actor is { } actor ? client.UserOf(actor)?.Name ?? "" : "";
-        var line = new MumbleChatLine(DateTimeOffset.UtcNow, sender, PlainText(text.Message), text.Sessions.Count > 0, false);
+        var words = PlainText(text.Message);
+        if (words.Length > MostChatChars) words = words[..MostChatChars] + "\u2026";
+
+        var line = new MumbleChatLine(DateTimeOffset.UtcNow, sender, words, text.Sessions.Count > 0, false);
         session.AddChat(line);
         ChatReceived?.Invoke(session, line);
     }
@@ -594,8 +665,8 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
             if (key == 0) return null;
             var hook = new GlobalHotkeyService
             {
-                OnPress   = () => StartTalking(session, mode),
-                OnRelease = () => StopTalking(session, mode),
+                OnPress   = () => _keyEvents.Writer.TryWrite(() => StartTalking(session, mode)),
+                OnRelease = () => _keyEvents.Writer.TryWrite(() => StopTalking(session, mode)),
             };
             hook.Configure(key);
             return hook;
@@ -617,9 +688,31 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         Interlocked.Exchange(ref session.Talking, (int)mode);
         _micClose?.Cancel();
 
-        if (Devices is { } devices && !devices.StartInput()) session.Detail = devices.LastError ?? "";
+        if (Devices is { } devices && !devices.StartInput())
+        {
+            // Saying so, rather than showing them as talking to a room that hears nothing.
+            Interlocked.Exchange(ref session.Talking, (int)MumbleTalk.None);
+            session.MicFailed = true;
+            session.Detail = devices.LastError ?? "";
+            SessionChanged?.Invoke(session);
+        }
+        else if (session.MicFailed)
+        {
+            session.MicFailed = false;
+            session.Detail = "";
+            SessionChanged?.Invoke(session);
+        }
 
         TalkersChanged?.Invoke();
+    }
+
+    private async Task HandleKeysAsync()
+    {
+        await foreach (var key in _keyEvents.Reader.ReadAllAsync())
+        {
+            try { key(); }
+            catch (Exception e) { errors.Log(nameof(MumbleService), "handle a key", e); }
+        }
     }
 
     /// <summary>Stops, if this key is the one talking: letting go of Shout while holding the other changes nothing.</summary>
@@ -630,13 +723,9 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         var was = (MumbleTalk)Interlocked.Exchange(ref session.Talking, (int)MumbleTalk.None);
         if (was == MumbleTalk.None) return;
 
-        // The last frame says they let go, so the listeners' clients stop at once rather than timing out.
-        if (session.Client is { } client && session.Encoder is { } encoder)
-        {
-            var packet = encoder.Encode(new short[MumbleEncoder.FrameSamples], TargetOf(was), last: true);
-            _ = client.SendVoiceAsync(packet, CancellationToken.None)
-                      .ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
-        }
+        // The last frame says they let go, so the listeners' clients stop at once rather than timing out. It goes
+        // through the sender: an encoder has state, and only one thread may ever use it.
+        _frames.Writer.TryWrite(new VoiceWork(null, session, was));
 
         ReleaseMicIfIdle();
         TalkersChanged?.Invoke();
@@ -669,7 +758,7 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
             {
                 var frame = _micBuffer.GetRange(0, MumbleEncoder.FrameSamples).ToArray();
                 _micBuffer.RemoveRange(0, MumbleEncoder.FrameSamples);
-                _frames.Writer.TryWrite(frame);
+                _frames.Writer.TryWrite(new VoiceWork(frame, null, MumbleTalk.None));
             }
         }
     }
@@ -678,31 +767,56 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     public void StartWithoutDevices()
     {
         _sender ??= Task.Run(SendFramesAsync, CancellationToken.None);
+        _keyWorker ??= Task.Run(HandleKeysAsync, CancellationToken.None);
         StartTalkerWatch();
     }
 
     private async Task SendFramesAsync()
     {
-        await foreach (var frame in _frames.Reader.ReadAllAsync())
-        {
-            foreach (var session in Sessions)
-            {
-                var mode = session.TalkingNow;
-                if (mode == MumbleTalk.None || session.Client is not { } client || session.Encoder is not { } encoder) continue;
+        var silence = new short[MumbleEncoder.FrameSamples];
 
-                try { await client.SendVoiceAsync(encoder.Encode(frame, TargetOf(mode), last: false), CancellationToken.None); }
-                catch (Exception e) when (e is MumbleException or IOException or ObjectDisposedException) { /* the connection's own loop reports it */ }
+        await foreach (var work in _frames.Reader.ReadAllAsync())
+        {
+            // ⚠️ Whatever goes wrong costs one frame. Ending this loop would end voice on every server until a restart.
+            try
+            {
+                if (work.EndOf is { Client: { } endClient, Encoder: { } endEncoder } ended)
+                    SendOut(ended, endClient, endEncoder.Encode(silence, TargetOf(work.EndMode), last: true), mustGo: true);
+                else if (work.Frame is { } frame)
+                    foreach (var session in Sessions)
+                    {
+                        var mode = session.TalkingNow;
+                        if (mode == MumbleTalk.None || session.Client is not { } client || session.Encoder is not { } encoder) continue;
+                        SendOut(session, client, encoder.Encode(frame, TargetOf(mode), last: false), mustGo: false);
+                    }
             }
+            catch (Exception e) { errors.Log(nameof(MumbleService), "send voice", e); }
         }
     }
 
+    /// <summary>
+    /// ⚠️ Never waited on: one server that has stopped reading must not hold up the others. A frame that cannot go
+    /// yet is dropped, which is the only useful thing to do with speech that is already late.
+    /// </summary>
+    private static void SendOut(MumbleSession session, MumbleClient client, MumbleVoicePacket packet, bool mustGo)
+    {
+        if (!mustGo && session.VoiceSending is { IsCompleted: false }) return;
+
+        session.VoiceSending = client.SendVoiceAsync(packet, CancellationToken.None)
+                                     .ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+    }
+
     private Timer? _talkerTimer;
+    private int _talkerTicks;
     private string _lastTalkers = "";
 
     private void StartTalkerWatch()
     {
         _talkerTimer ??= new Timer(_ =>
         {
+            // Every couple of seconds: a headset unplugged ends its stream without saying so.
+            if (++_talkerTicks % 20 == 0) Devices?.KeepOutputAlive();
+
             var now = string.Join('|', Talkers().Select(t => $"{t.ServerId}:{t.Session}:{t.Mode}"));
             if (now == _lastTalkers) return;
             _lastTalkers = now;

@@ -18,6 +18,9 @@ public sealed record XmppMessage(
     /// <summary>The sender corrected their last message: this replaces it rather than following it.</summary>
     public bool IsCorrection { get; init; }
 
+    /// <summary>Which of their messages a correction replaces.</summary>
+    public string ReplaceId { get; init; } = "";
+
     /// <summary>Came out of the server's archive, under this id, rather than being delivered.</summary>
     public string ArchiveId { get; init; } = "";
 }
@@ -90,8 +93,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     private static readonly TimeSpan IqTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(60);
 
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<XElement>> _pending = new();
-    private long _nextId;
+    private readonly ConcurrentDictionary<string, (string? To, TaskCompletionSource<XElement> Answer)> _pending = new();
     private CancellationTokenSource? _run;
 
     public XmppAddress Self => connection.Bound;
@@ -136,7 +138,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         finally
         {
             await run.CancelAsync();
-            foreach (var (_, waiting) in _pending) waiting.TrySetCanceled(CancellationToken.None);
+            foreach (var (_, waiting) in _pending) waiting.Answer.TrySetCanceled(CancellationToken.None);
             _pending.Clear();
             await Task.WhenAny(pinger);
         }
@@ -153,12 +155,13 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             while (!ct.IsCancellationRequested)
             {
                 await Task.Delay(PingEvery, ct);
-                var answer = new XElement(Ping + "ping");
-                await QueryAsync("get", Self.Domain, answer, ct);
+
+                // ⚠️ Inside the loop: refusing a ping is still an answer, and the checking has to carry on after one.
+                try { await QueryAsync("get", Self.Domain, new XElement(Ping + "ping"), ct); }
+                catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { /* it answered */ }
             }
         }
         catch (OperationCanceledException) { /* the session is ending */ }
-        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { /* refused the ping, but it answered */ }
         catch (Exception e) when (e is XmppException or TimeoutException)
         {
             await connection.DisposeAsync();
@@ -183,7 +186,11 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
 
         if (type is "result" or "error")
         {
-            if (_pending.TryRemove(id, out var waiting)) waiting.TrySetResult(iq);
+            // ⚠️ Only from who was asked. Anyone who can see this account's address can send it stanzas, and an answer
+            // taken from them would be believed: bookmarks that join rooms, a contact list, somewhere to upload files.
+            if (_pending.TryGetValue(id, out var waiting) && AnswerIsFrom(waiting.To, (string?)iq.Attribute("from"), Self)
+                && _pending.TryRemove(id, out _))
+                waiting.Answer.TrySetResult(iq);
             return;
         }
 
@@ -342,6 +349,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             mine)
         {
             IsCorrection = inner.Element(Correct + "replace") is not null,
+            ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
         };
     }
 
@@ -378,7 +386,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             // it should be set up. An empty form takes the server's defaults, as an "instant" room.
             if (codes.Contains("110") && codes.Contains("201"))
                 Send(new XElement(Client + "iq", new XAttribute("type", "set"), new XAttribute("to", from.Bare),
-                    new XAttribute("id", "ec" + Interlocked.Increment(ref _nextId).ToString(CultureInfo.InvariantCulture)),
+                    new XAttribute("id", NewId()),
                     new XElement(MucOwner + "query", new XElement(DataForm + "x", new XAttribute("type", "submit")))));
 
             OccupantChanged?.Invoke(new XmppOccupant(
@@ -429,9 +437,9 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     /// <summary>Asks and waits for the answer. An error answer comes back as <see cref="XmppFailure.Protocol"/>.</summary>
     public async Task<XElement> QueryAsync(string type, string? to, XElement payload, CancellationToken ct)
     {
-        var id     = "ec" + Interlocked.Increment(ref _nextId).ToString(CultureInfo.InvariantCulture);
+        var id     = NewId();
         var answer = new TaskCompletionSource<XElement>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pending[id] = answer;
+        _pending[id] = (to, answer);
 
         try
         {
@@ -450,6 +458,25 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             return result;
         }
         finally { _pending.TryRemove(id, out _); }
+    }
+
+    /// <summary>Unguessable as well as unique: what answers a question is matched on this.</summary>
+    private static string NewId() => "ec" + Guid.NewGuid().ToString("N");
+
+    /// <summary>
+    /// Whether a reply came from who was asked. Asking nobody in particular means this account's own server, which
+    /// may leave out who it is, or give the account's address or its own.
+    /// </summary>
+    public static bool AnswerIsFrom(string? asked, string? from, XmppAddress self)
+    {
+        var who = from is null ? (XmppAddress?)null : XmppAddress.Parse(from);
+
+        if (asked is null) return who is null || who.Value.Bare == self.Bare || who.Value.Bare == self.Domain;
+
+        var target = XmppAddress.Parse(asked);
+        if (who is null) return target.Bare == self.Bare || target.Bare == self.Domain;
+
+        return who.Value.Full == target.Full;
     }
 
     /// <summary>What a person or a service says it can do. Empty when it does not answer.</summary>
@@ -669,7 +696,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                 var info = await QueryAsync("get", item.Jid, new XElement(DiscoInfo + "query"), ct);
                 if (ParseUploadService(item.Jid, info) is { } service) return service;
             }
-            catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { /* a service with nothing to say about itself */ }
+            catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { /* a service with nothing to say about itself */ }
         }
         return null;
     }

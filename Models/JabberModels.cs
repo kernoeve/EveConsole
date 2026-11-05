@@ -54,6 +54,9 @@ public class JabberRoom
 
     public bool   AutoJoin  { get; set; } = true;
 
+    /// <summary>Left by the person: stays out of the list, and is not rejoined from the server's bookmarks.</summary>
+    public bool   Left      { get; set; }
+
     /// <summary>See <see cref="JabberRoomAlert"/>.</summary>
     public int    AlertMode { get; set; } = JabberRoomAlert.Mentions;
 }
@@ -95,4 +98,7 @@ public class JabberStoredMessage
 
     /// <summary>Tells a repeat from a new one: a reconnect's history, or a second client of the owner's.</summary>
     public string DedupeKey    { get; set; } = "";
+
+    /// <summary>The id it was sent with, which is what a correction names.</summary>
+    public string MessageId    { get; set; } = "";
 }

@@ -652,12 +652,20 @@ public sealed class JabberViewModel : ReactiveObject
         return new JabberMessageVm(m, sender);
     }
 
+    /// <summary>A busy room left open for days should not grow without end. The rest are a click away.</summary>
+    private const int MostShown = 2000;
+
     private void OnMessage(JabberStoredMessage message)
     {
         if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row
             || row.AccountId != message.AccountId || row.Key != message.Conversation) return;
 
         Messages.Add(ToVm(message, row));
+        if (Messages.Count > MostShown)
+        {
+            Messages.RemoveAt(0);
+            HasEarlier = true;
+        }
         ScrollToEndRequested?.Invoke();
         _ = MarkOpenConversationReadAsync();
     }

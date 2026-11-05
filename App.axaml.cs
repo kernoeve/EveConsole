@@ -2694,6 +2694,7 @@ public class App : Application
                         "Name"      TEXT    NOT NULL DEFAULT '',
                         "Nickname"  TEXT    NOT NULL DEFAULT '',
                         "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "Left"      INTEGER NOT NULL DEFAULT 0,
                         "AlertMode" INTEGER NOT NULL DEFAULT 1
                     )
                     """);
@@ -2710,7 +2711,8 @@ public class App : Application
                         "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
                         "IsRead"       INTEGER NOT NULL DEFAULT 0,
                         "IsAlert"      INTEGER NOT NULL DEFAULT 0,
-                        "DedupeKey"    TEXT    NOT NULL DEFAULT ''
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+                        "MessageId"    TEXT    NOT NULL DEFAULT ''
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");

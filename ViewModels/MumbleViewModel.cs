@@ -77,6 +77,9 @@ public sealed class MumbleViewModel : ReactiveObject
     public const string OverlayXPref = "mumble.overlay.x";
     public const string OverlayYPref = "mumble.overlay.y";
 
+    private const int MostDepth = 64;
+    private const int MostChatShown = 1000;
+
     private readonly MumbleService _service;
     private readonly AppPreferencesService _prefs;
     private int _refreshQueued;
@@ -208,14 +211,17 @@ public sealed class MumbleViewModel : ReactiveObject
 
         if (session.State != MumbleState.Connected || session.Client is not { } client) return;
 
-        var channels = client.Channels;
-        var users    = client.Users;
+        // ⚠️ Looked up, not searched: this runs each time someone starts or stops talking, on servers of hundreds.
+        var channels = client.Channels.ToDictionary(c => c.Id);
+        var children = client.Channels.Where(c => c.Parent is not null).ToLookup(c => c.Parent!.Value);
+        var users    = client.Users.ToLookup(u => u.ChannelId);
         var me       = client.Session;
+        var shown    = new HashSet<uint>();
 
         void Add(uint channel, int depth)
         {
-            var c = channels.FirstOrDefault(x => x.Id == channel);
-            if (c is null) return;
+            // However a server describes its channels, this cannot go round in circles or too deep for the stack.
+            if (depth > MostDepth || !shown.Add(channel) || !channels.TryGetValue(channel, out var c)) return;
 
             rows.Add(new MumbleRowVm
             {
@@ -223,7 +229,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 Text = c.Name.Length > 0 ? c.Name : MumbleText.RootChannel,
             });
 
-            foreach (var u in users.Where(u => u.ChannelId == channel).OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase))
+            foreach (var u in users[channel].OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase))
                 rows.Add(new MumbleRowVm
                 {
                     Kind = MumbleRowKind.User, ServerId = id, Id = u.Session, Depth = depth + 1,
@@ -232,7 +238,7 @@ public sealed class MumbleViewModel : ReactiveObject
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",
                 });
 
-            foreach (var child in channels.Where(x => x.Parent == channel)
+            foreach (var child in children[channel]
                                           .OrderBy(x => x.Position).ThenBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase))
                 Add(child.Id, depth + 1);
         }
@@ -348,7 +354,7 @@ public sealed class MumbleViewModel : ReactiveObject
         {
             var server = session.Server;
             ServerState  = StateText(session);
-            ServerDetail = session.State is MumbleState.Reconnecting ? session.Detail : "";
+            ServerDetail = session.State is MumbleState.Failed ? "" : session.Detail;
             IsConnected  = session.State == MumbleState.Connected;
             CanConnect   = session.State is MumbleState.Offline or MumbleState.Failed;
             IsMuted      = server.SelfMuted;
@@ -366,7 +372,8 @@ public sealed class MumbleViewModel : ReactiveObject
             {
                 case MumbleRowKind.Server:
                     Title = row.Text;
-                    Subtitle = $"{server.Username}@{server.Host}:{server.Port}";
+                    Subtitle = $"{server.Username}@{server.Host}:{server.Port}"
+                             + (session is { State: MumbleState.Connected, Client: { } voice } ? voice.IsUsingUdp ? " \u00B7 UDP" : " \u00B7 TCP" : "");
                     break;
 
                 case MumbleRowKind.Channel:
@@ -422,6 +429,7 @@ public sealed class MumbleViewModel : ReactiveObject
     {
         if (SelectedRow?.ServerId != session.Server.Id) return;
         Chat.Add(new MumbleChatVm(line));
+        if (Chat.Count > MostChatShown) Chat.RemoveAt(0);
         ScrollChatRequested?.Invoke();
     }
 

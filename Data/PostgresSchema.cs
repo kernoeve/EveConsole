@@ -1184,6 +1184,7 @@ public static class PostgresSchema
             "Name"      TEXT    NOT NULL DEFAULT '',
             "Nickname"  TEXT    NOT NULL DEFAULT '',
             "AutoJoin"  BOOLEAN NOT NULL DEFAULT TRUE,
+            "Left"      BOOLEAN NOT NULL DEFAULT FALSE,
             "AlertMode" INTEGER NOT NULL DEFAULT 1,
             CONSTRAINT "PK_JabberRooms" PRIMARY KEY ("Id")
         )
@@ -1201,6 +1202,7 @@ public static class PostgresSchema
             "IsRead"       BOOLEAN NOT NULL DEFAULT FALSE,
             "IsAlert"      BOOLEAN NOT NULL DEFAULT FALSE,
             "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+            "MessageId"    TEXT    NOT NULL DEFAULT '',
             CONSTRAINT "PK_JabberMessages" PRIMARY KEY ("Id")
         )
         """,

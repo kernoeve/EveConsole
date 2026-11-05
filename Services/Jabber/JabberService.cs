@@ -37,6 +37,12 @@ public sealed class JabberRoomState(JabberRoom room)
     public XmppRoomFailure? Failure { get; set; }
     public string FailureText { get; set; } = "";
 
+    /// <summary>
+    /// The room has finished replaying its history, which its subject marks. ⚠️ After that a date on a message says
+    /// nothing: a member could put an old one on theirs to name someone without setting off the alert.
+    /// </summary>
+    public bool HistoryDone { get; set; }
+
     public Dictionary<string, XmppOccupant> Occupants { get; } = new(StringComparer.Ordinal);
 }
 
@@ -236,13 +242,19 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         Task? loop;
         lock (_gate) { run = session.Run; loop = session.Loop; }
 
-        if (run is not null) await run.CancelAsync();
-
-        if (session.Client is { } client) await client.DisposeAsync();
-
-        if (loop is not null)
-            try { await loop.WaitAsync(TimeSpan.FromSeconds(5)); }
-            catch (Exception e) when (e is TimeoutException or OperationCanceledException) { /* it is told to stop, and will */ }
+        // ⚠️ Nothing here may throw: this is what the Disconnect button and closing the app wait on, and a failure
+        // would leave one stuck on and the other unable to quit.
+        try
+        {
+            if (run is not null) await run.CancelAsync();
+            if (session.Client is { } client) await client.DisposeAsync();
+            if (loop is not null) await loop.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        catch (Exception e) when (e is not (TimeoutException or OperationCanceledException))
+        {
+            errors.Log(nameof(JabberService), "disconnect", e);
+        }
+        catch (Exception) { /* it is told to stop, and will */ }
 
         SetState(session, JabberState.Offline, JabberProblem.None, "");
     }
@@ -283,17 +295,25 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
                 }, e.Message);
                 return;
             }
-            catch (Exception e) when (e is XmppException or IOException or TimeoutException or OperationCanceledException or InvalidOperationException)
+            catch (Exception e)
             {
+                // ⚠️ Everything. This loop is the only thing bringing the connection back, and a database that is
+                // busy or a value it does not like must not end that without a word.
+                if (e is not (XmppException or IOException or TimeoutException or OperationCanceledException))
+                    errors.Log(nameof(JabberService), "keep connected", e);
                 session.Detail = e.Message;
             }
             finally
             {
-                if (session.Client is { } client)
+                try
                 {
-                    session.Client = null;
-                    await client.DisposeAsync();
+                    if (session.Client is { } client)
+                    {
+                        session.Client = null;
+                        await client.DisposeAsync();
+                    }
                 }
+                catch (Exception e) when (e is not OperationCanceledException) { errors.Log(nameof(JabberService), "end a connection", e); }
                 MarkDisconnected(session);
             }
 
@@ -349,7 +369,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             session.Locked(s => s.InviteMap[invite.Room] = invite);
             SessionChanged?.Invoke(session);
         };
-        client.RoomSubjectChanged += (room, subject) => session.Locked(s => { if (s.RoomMap.TryGetValue(room, out var r)) r.Subject = subject; });
+        client.RoomSubjectChanged += (room, subject) => session.Locked(s =>
+        {
+            if (!s.RoomMap.TryGetValue(room, out var r)) return;
+            r.Subject = subject;
+            r.HistoryDone = true;
+        });
 
         var reading = client.RunAsync(ct);
         var saving  = SaveInboxAsync(session, inbox.Reader, ct);
@@ -395,6 +420,21 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         catch (TimeoutException) { /* an archive too slow to wait for is not worth failing over */ }
         catch (XmppException) { /* not having it costs only what the server's stored messages already cover */ }
         catch (IOException) { /* the connection went: the next one asks again */ }
+        catch (Exception e) { errors.Log(nameof(JabberService), "catch up from the archive", e); }
+    }
+
+    private async Task FindUploadServiceAsync(JabberSession session, XmppClient client, CancellationToken ct)
+    {
+        try
+        {
+            session.UploadService = await client.FindUploadServiceAsync(ct);
+            SessionChanged?.Invoke(session);
+        }
+        catch (Exception e) when (e is not (OperationCanceledException or XmppException or TimeoutException or IOException))
+        {
+            errors.Log(nameof(JabberService), "look for file upload", e);
+        }
+        catch (Exception) { session.UploadService = null; }
     }
 
     /// <summary>Everything a fresh connection needs, in the order that loses nothing.</summary>
@@ -415,16 +455,15 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         try { session.ConferenceServices = await client.ConferenceServicesAsync(ct); }
         catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.ConferenceServices = []; }
 
-        try { session.UploadService = await client.FindUploadServiceAsync(ct); }
-        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.UploadService = null; }
-
-        // Not waited on: being connected should not hang on a long archive.
+        // Not waited on: being connected should not hang on a long archive, or on a service that never answers.
+        _ = FindUploadServiceAsync(session, client, ct);
         _ = CatchUpFromArchiveAsync(session, client, ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         // Rooms saved on the server join the account's list the first time they are seen.
-        foreach (var bookmark in await client.GetBookmarksAsync(ct))
+        // ⚠️ By address, once each: a list saved with a room in it twice would otherwise break the login every time.
+        foreach (var bookmark in (await client.GetBookmarksAsync(ct)).DistinctBy(b => b.Jid))
         {
             if (await db.JabberRooms.AnyAsync(r => r.AccountId == session.Account.Id && r.RoomJid == bookmark.Jid, ct)) continue;
             db.JabberRooms.Add(new JabberRoom
@@ -439,10 +478,10 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         session.Locked(s =>
         {
             s.RoomMap.Clear();
-            foreach (var room in rooms) s.RoomMap[room.RoomJid] = new JabberRoomState(room);
+            foreach (var room in rooms.Where(r => !r.Left)) s.RoomMap[room.RoomJid] = new JabberRoomState(room);
         });
 
-        foreach (var room in rooms.Where(r => r.AutoJoin))
+        foreach (var room in rooms.Where(r => r.AutoJoin && !r.Left))
             await JoinCoreAsync(session, client, room, ct);
     }
 
@@ -452,7 +491,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var password = await Task.Run(() => AppConfig.GetServicePassword(RoomPasswordReference(room.Id)) ?? "", ct);
         var since = await LastSeenInAsync(session.Account.Id, room.RoomJid, ct);
 
-        session.Locked(s => { if (s.RoomMap.TryGetValue(room.RoomJid, out var r)) { r.Nick = nick; r.Failure = null; r.FailureText = ""; } });
+        session.Locked(s => { if (s.RoomMap.TryGetValue(room.RoomJid, out var r)) { r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false; } });
         await client.JoinRoomAsync(room.RoomJid, nick, password, since, ct);
     }
 
@@ -570,7 +609,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (retry is { } r)
         {
             var nick = NicknameFor(session.Account, r) + "_";
-            session.Locked(s => { if (s.RoomMap.TryGetValue(room, out var state)) state.Nick = nick; });
+            session.Locked(s => { if (s.RoomMap.TryGetValue(room, out var state)) { state.Nick = nick; state.HistoryDone = false; } });
             _ = client.JoinRoomAsync(room, nick, "", null, ct)
                       .ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         }
@@ -578,16 +617,35 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         SessionChanged?.Invoke(session);
     }
 
+    private const int SaveAttempts = 5;
+
+    /// <summary>A date this far ahead is a wrong clock or a lie: left in, it would stop catch-up asking for anything.</summary>
+    private static readonly TimeSpan MostAhead = TimeSpan.FromMinutes(5);
+
     private async Task SaveInboxAsync(JabberSession session, ChannelReader<XmppMessage> inbox, CancellationToken ct)
     {
         try
         {
             await foreach (var message in inbox.ReadAllAsync(CancellationToken.None))
             {
-                try { await StoreAsync(session, message, CancellationToken.None); }
-                catch (Exception e) when (e is DbUpdateException or InvalidOperationException or IOException)
+                // ⚠️ A message is the whole point, and a busy database usually clears in moments, so it gets several
+                // tries. This worker must also never end: the inbox would fill up behind it unsaved.
+                for (var attempt = 1; ; attempt++)
                 {
-                    errors.Log(nameof(JabberService), "save a message", e);
+                    try
+                    {
+                        await StoreAsync(session, message, CancellationToken.None);
+                        break;
+                    }
+                    catch (Exception e) when (e is not OperationCanceledException)
+                    {
+                        if (attempt >= SaveAttempts)
+                        {
+                            errors.Log(nameof(JabberService), "save a message", e);
+                            break;
+                        }
+                        await Task.Delay(TimeSpan.FromSeconds(attempt * 2), CancellationToken.None);
+                    }
                 }
             }
         }
@@ -600,11 +658,28 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var known = session.Locked(s => s.RoomMap.GetValueOrDefault(message.From.Bare));
         var room  = message.Type == "groupchat" ? known : null;
 
-        var row = ToStored(session.Account, room?.Nick, room?.Room, message, DateTimeOffset.UtcNow, privateInRoom: known is not null && room is null);
+        // ⚠️ Room talk from a room this account is not in has no conversation to go to and could never be read.
+        if (message.Type == "groupchat" && known is null) return null;
+
+        var now = DateTimeOffset.UtcNow;
+        if (room is { HistoryDone: true } && message.Sent is not null) message = message with { Sent = null };
+        if (message.Sent > now + MostAhead) message = message with { Sent = now };
+
+        // What this account says privately to someone in a room stays with them, not with the room.
+        var privateTo = message is { FromThisAccount: true, To.Resource.Length: > 0 }
+                     && session.Locked(s => s.RoomMap.ContainsKey(message.To.Bare));
+
+        var row = ToStored(session.Account, room?.Nick, room?.Room, message, now, privateInRoom: known is not null && room is null || privateTo);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        if (message.IsCorrection && await ApplyCorrectionAsync(db, row, ct)) return null;
+        if (message.IsCorrection)
+        {
+            if (await ApplyCorrectionAsync(db, row, message.ReplaceId, ct)) return null;
+
+            // Replayed history can hold corrections of things long since changed again. They are not new messages.
+            if (message.Sent is not null) return null;
+        }
 
         if (message.ArchiveId.Length > 0)
         {
@@ -661,13 +736,16 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// A correction changes that person's latest message in the conversation, which is the only one the
     /// protocol lets them correct. False when nothing of theirs is saved, and it stands as a new message.
     /// </summary>
-    private async Task<bool> ApplyCorrectionAsync(AppDbContext db, JabberStoredMessage row, CancellationToken ct)
+    private async Task<bool> ApplyCorrectionAsync(AppDbContext db, JabberStoredMessage row, string replaces, CancellationToken ct)
     {
         var last = await db.JabberMessages
             .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation)
             .OrderByDescending(m => m.Id).Take(50)
             .FirstOrDefaultAsync(m => m.Sender == row.Sender, ct);
-        if (last is null) return false;
+
+        // ⚠️ The one it names. In a room a nickname can pass to someone else, who could otherwise rewrite the last
+        // thing its old owner said, and replayed history would overwrite whatever came since.
+        if (last is null || replaces.Length == 0 || last.MessageId != replaces) return false;
 
         last.Body = row.Body;
         await db.SaveChangesAsync(ct);
@@ -690,7 +768,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var isRoom = message.Type == "groupchat";
 
         // A carbon of what this account said elsewhere belongs to the person it was said to.
-        var conversation = privateInRoom ? message.From.Full
+        var conversation = privateInRoom ? (message.FromThisAccount ? message.To.Full : message.From.Full)
                          : isRoom || !message.FromThisAccount ? message.From.Bare : message.To.Bare;
         var sender       = isRoom || privateInRoom ? message.From.Resource : message.From.Bare;
 
@@ -712,6 +790,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             IsRead       = outgoing || replayed,
             IsAlert      = alert,
             DedupeKey    = DedupeKey(conversation, sender, message),
+            MessageId    = message.Id,
         };
     }
 
@@ -844,6 +923,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             if (nickname.Length > 0) room.Nickname = nickname;
             room.AutoJoin = true;
+            room.Left = false;
         }
         await db.SaveChangesAsync(ct);
 
@@ -868,7 +948,17 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             await client.LeaveRoomAsync(roomJid, state.Nick, ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid).ExecuteDeleteAsync(ct);
+
+        // ⚠️ Kept, marked as left: a room saved in the server's bookmarks would otherwise be back on the next connect.
+        var id = session.Account.Id;
+        await db.JabberRooms.Where(r => r.AccountId == id && r.RoomJid == roomJid)
+                .ExecuteUpdateAsync(u => u.SetProperty(r => r.Left, true), ct);
+
+        // Nothing is left to open them with, and an alert nobody can clear would stay for ever.
+        var cleared = await db.JabberMessages.Where(m => m.AccountId == id && m.Conversation == roomJid && !m.IsRead)
+                              .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
+        if (cleared > 0) UnreadChanged?.Invoke();
+
         SessionChanged?.Invoke(session);
     }
 

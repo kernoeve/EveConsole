@@ -427,14 +427,26 @@ public static class AppConfig
         return string.IsNullOrEmpty(plain) ? null : plain;
     }
 
-    /// <summary>Saves a password under a reference, or removes it when given nothing.</summary>
+    /// <summary>Whether something is saved under a reference, whether or not it can be opened right now.</summary>
+    public static bool HasServicePassword(string reference) =>
+        !string.IsNullOrEmpty(Load().ServicePasswords?.GetValueOrDefault(reference));
+
+    private static readonly object ServicePasswordGate = new();
+
+    /// <summary>
+    /// Saves a password under a reference, or removes it when given nothing. ⚠️ One at a time: servers connecting at
+    /// the same moment each read, change and write the whole file, and the last would undo the others.
+    /// </summary>
     public static void SetServicePassword(string reference, string? password)
     {
-        var c = Load();
-        c.ServicePasswords ??= [];
-        if (string.IsNullOrEmpty(password)) c.ServicePasswords.Remove(reference);
-        else c.ServicePasswords[reference] = SecretStore.Protect(password, reference);
-        Save(c);
+        lock (ServicePasswordGate)
+        {
+            var c = Load();
+            c.ServicePasswords ??= [];
+            if (string.IsNullOrEmpty(password)) c.ServicePasswords.Remove(reference);
+            else c.ServicePasswords[reference] = SecretStore.Protect(password, reference);
+            Save(c);
+        }
     }
 
     // ── UI state ──────────────────────────────────────────────────────────────
