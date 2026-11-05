@@ -2472,4 +2472,85 @@
   <data name="RichTopLabel" xml:space="preserve">
     <value>Leader</value>
   </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Today's indices, with the 7-day change (Slack table)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>All six charts in one picture (image)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>Index history</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} is the lowest for that activity. {1} {2} show the change over 7 days, in points.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Lowest emoji</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Rising emoji</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Falling emoji</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>For the Slack table. Blank uses the standard one shown. A custom emoji only shows in a workspace that has it.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Summary by job (Slack table)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>A box for each job (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} is the best park for that job. Each percentage is how far behind the best.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Each percentage is how far behind the best park for that job.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Build</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Market value {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>{0} BPC</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} run(s), ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 to ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% to TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>+{0} more parks</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Market value from</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Default market</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Default price</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>The market value in a job's box. Defaults follow Market defaults, with any price overrides; picking either reads that market's own price.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Today's indices, with the 7-day change (image)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Today's indices</value>
+  </data>
 </root>

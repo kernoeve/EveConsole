@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SkiaSharp;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Slack rich format check
@@ -232,6 +233,183 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     Check("long name: cut to fit the box", longRow.Contains("...") && Drawn(longRow.Replace("&amp;", "&")) <= 18460 + 166, Drawn(longRow.Replace("&amp;", "&")).ToString());
 }
 
+// ── System Index and Indy Park Compare ────────────────────────────────────────
+
+{
+    Check("emoji name: with colons", SlackRichBlocks.EmojiNameOr(":green_down:", "x") == "green_down");
+    Check("emoji name: without", SlackRichBlocks.EmojiNameOr(" green_down ", "x") == "green_down");
+    Check("emoji name: blank is the default", SlackRichBlocks.EmojiNameOr("", "x") == "x" && SlackRichBlocks.EmojiNameOr(null, "x") == "x");
+    Check("emoji name: nonsense is the default, not a failed post", SlackRichBlocks.EmojiNameOr("a b!", "x") == "x" && SlackRichBlocks.EmojiNameOr("UPPER", "x") == "x");
+
+    Check("outputs: the Slack table is not a picture", !SystemIndexOutputs.IsPicture(SystemIndexOutputs.NativeTable) && !SystemIndexOutputs.IsPicture(SystemIndexOutputs.Table));
+    Check("outputs: combined and activities are", SystemIndexOutputs.IsPicture(SystemIndexOutputs.Combined) && SystemIndexOutputs.IsPicture("manufacturing"));
+    Check("outputs: a new index section uses one upload", SystemIndexOutputs.Default.Count(SystemIndexOutputs.IsPicture) == 1);
+    Check("outputs: a new park section uses none", !ParkCompareOutputs.Default.Any(ParkCompareOutputs.IsPicture));
+
+    MessageBlock Index(params string[] o) => new() { Type = MessageBlock.TypeSystemIndex, IndexOutputs = [.. o] };
+    MessageBlock Park(params string[] o) => new() { Type = MessageBlock.TypeParkCompare, CompareOutputs = [.. o] };
+    Check("saved: a schedule's text table stays text", !Index(SystemIndexOutputs.Table).UsesSlackRich && !Park(ParkCompareOutputs.SummaryJobsTable).UsesSlackRich);
+    Check("saved: a picture alone is not blocks", !Index("manufacturing").UsesSlackRich && !Park(ParkCompareOutputs.SummaryJobsImage).UsesSlackRich);
+    Check("ticked: the Slack table is", Index(SystemIndexOutputs.NativeTable).UsesSlackRich);
+    Check("ticked: the park table and boxes are", Park(ParkCompareOutputs.NativeTable).UsesSlackRich && Park(ParkCompareOutputs.JobBoxes).UsesSlackRich);
+    Check("pictures: the Slack table draws none", !Index(SystemIndexOutputs.NativeTable).HasPictures && Index(SystemIndexOutputs.Combined).HasPictures);
+
+    // Index table: real cells, the dot before the value, ties marked, gaps said.
+    var indexItems = SlackRichBlocks.IndexTable("*Heading*", ["A", "B"], ["Mfg", "Inv"], "System",
+        [[0.05, 0.02], [0.04, 0.02]], [[0.11, -0.5], [0.0, null]], "dot", "up", "down", "{0} low {1} {2} change");
+    Check("index: heading, table, note", indexItems.Count == 3);
+    var indexTable = Json(indexItems[1].Block);
+    Check("index: a table with the system first", indexTable.GetProperty("type").GetString() == "table" && indexTable.GetProperty("rows")[0][0].GetProperty("text").GetString() == "System");
+    Check("index: every value column on the right", indexTable.GetProperty("column_settings")[1].GetProperty("align").GetString() == "right" && indexTable.GetProperty("column_settings")[0].GetProperty("align").GetString() == "left");
+
+    string[] Parts(JsonElement cell) => [.. cell.GetProperty("elements")[0].GetProperty("elements").EnumerateArray().Select(e =>
+        e.GetProperty("type").GetString() == "emoji" ? ":" + e.GetProperty("name").GetString() : e.GetProperty("text").GetString()!)];
+
+    var low = Parts(indexTable.GetProperty("rows")[2][1]);
+    Check("index: the lowest has its dot first, so the number stays in line", low[0] == ":dot" && low.Contains("4.00%"), string.Join("|", low));
+    var notLow = Parts(indexTable.GetProperty("rows")[1][1]);
+    Check("index: the others have none", !notLow.Contains(":dot"), string.Join("|", notLow));
+    Check("index: a rise", notLow.Contains(":up") && notLow.Contains(" 0.11"), string.Join("|", notLow));
+    var fall = Parts(indexTable.GetProperty("rows")[1][2]);
+    Check("index: a fall, and a tie for lowest marks both", fall.Contains(":down") && fall.Contains(" 0.50") && fall[0] == ":dot", string.Join("|", fall));
+    Check("index: no change says so", low.Contains("="), string.Join("|", low));
+    Check("index: no reading a week ago says nothing", Parts(indexTable.GetProperty("rows")[2][2]).Length == 3, string.Join("|", Parts(indexTable.GetProperty("rows")[2][2])));
+    var noteText = Json(indexItems[2].Block).GetProperty("elements")[0].GetProperty("text").GetString()!;
+    Check("index: the note shows all three of the section's emoji", noteText == ":dot: low :up: :down: change", noteText);
+
+    var gaps = Json(SlackRichBlocks.IndexTable("", ["A"], ["Mfg"], "System", [[null]], [[null]], "d", "u", "w", "{0}{1}{2}")[0].Block);
+    Check("index: a missing reading is a dash", gaps.GetProperty("rows")[1][1].GetProperty("text").GetString() == "–");
+
+    // Week's change.
+    var today = new DateOnly(2026, 11, 5);
+    SortedDictionary<DateOnly, double> Series(params (int Back, double V)[] s) => new(s.ToDictionary(x => today.AddDays(-x.Back), x => x.V));
+    Check("week: against 7 days back, in points", SystemIndexReport.WeekChange(Series((0, 0.05), (7, 0.04)), 0.05) is { } w && Math.Abs(w - 1) < 1e-9);
+    Check("week: a day or two's gap still counts", SystemIndexReport.WeekChange(Series((0, 0.05), (9, 0.03)), 0.05) is { } g && Math.Abs(g - 2) < 1e-9);
+    Check("week: a long gap is not a week's change", SystemIndexReport.WeekChange(Series((0, 0.05), (20, 0.03)), 0.05) is null);
+    Check("week: nothing older, no change", SystemIndexReport.WeekChange(Series((0, 0.05), (2, 0.04)), 0.05) is null);
+    Check("week: no history, no change", SystemIndexReport.WeekChange(null, 0.05) is null);
+
+    // Park table.
+    List<SlackParkRow> ParkRows(int parks) =>
+    [
+        new("Vexor", [.. Enumerable.Range(0, parks).Select(p => (SlackParkCell?)new(p == 0 ? "10.91M" : "11.01M +0.9%", p == 0, p == 1 ? "45m" : "1h 32m +109.4%", p == 1))]),
+        new("Ishtar", [.. Enumerable.Range(0, parks).Select(p => p == 2 ? null : (SlackParkCell?)new("1.00M", false, "1h", false))]),
+    ];
+    var parkItems = SlackRichBlocks.ParkTable("", "Job", ParkRows(3), ["P1", "P2", "P3"], "Cost", "Time", "dot", "{0} best");
+    var parkTable = Json(parkItems[0].Block);
+    string[] parkHead = [.. parkTable.GetProperty("rows")[0].EnumerateArray().Select(c => c.GetProperty("text").GetString()!)];
+    Check("park: job, then cost and time for each", parkHead.SequenceEqual(["Job", "P1 Cost", "P1 Time", "P2 Cost", "P2 Time", "P3 Cost", "P3 Time"]), string.Join("|", parkHead));
+    Check("park: the best has its dot first", Parts(parkTable.GetProperty("rows")[1][1])[0] == ":dot" && Parts(parkTable.GetProperty("rows")[1][4])[0] == ":dot");
+    Check("park: the others are plain, with how far behind", parkTable.GetProperty("rows")[1][3].GetProperty("text").GetString() == "11.01M +0.9%");
+    Check("park: a park that cannot do it is a dash", parkTable.GetProperty("rows")[2][5].GetProperty("text").GetString() == "–");
+    var manyParks = SlackRichBlocks.ParkTable("*H*", "Job", ParkRows(12), [.. Enumerable.Range(0, 12).Select(i => $"P{i}")], "Cost", "Time", "dot", "{0} best");
+    var tables = manyParks.Select(i => Json(i.Block)).Where(j => j.GetProperty("type").GetString() == "table").ToList();
+    Check("park: past a table's 20 columns, another table", tables.Count == 2 && tables.All(t => t.GetProperty("rows")[0].GetArrayLength() <= 20), tables.Count.ToString());
+    Check("park: every park shows", tables.Sum(t => (t.GetProperty("rows")[0].GetArrayLength() - 1) / 2) == 12);
+
+    // Job boxes.
+    SlackJobBox Box(int i, int parks = 3) => new($"Job {i}", "About", "https://images.evetech.net/types/34/icon?size=64",
+        [.. Enumerable.Range(0, parks).Select(p => p == 2 ? null : (SlackJobCell?)new(p == 0 ? "10.91M" : "119.64M", p == 0 ? "Best" : "+119.4%", p == 1 ? "45m" : "30d 16h", p == 1 ? "Best" : "+109.4%"))]);
+    var boxItems = SlackRichBlocks.JobBoxes([.. Enumerable.Range(0, 6).Select(i => Box(i))], ["North", "South", "East"], "the key", "+{0} more");
+    Check("boxes: a layout and the key", boxItems.Count == 2);
+    var boxLayout = Json(boxItems[0].Block);
+    Check("boxes: six jobs, three rows of two", boxLayout.GetProperty("rows").GetArrayLength() == 3 && boxLayout.GetProperty("rows")[0].GetProperty("items").GetArrayLength() == 2);
+    var firstBox = boxLayout.GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block");
+    Check("boxes: the job's title", firstBox.GetProperty("title").GetProperty("text").GetString() == "Job 0");
+    var boxKids = firstBox.GetProperty("child_blocks");
+    Check("boxes: details beside the picture, and every park under them", boxKids.GetArrayLength() == 4 && boxKids[0].GetProperty("accessory").GetProperty("type").GetString() == "image");
+
+    string BoxRow(JsonElement kid) => kid.GetProperty("elements")[0].GetProperty("text").GetString()!;
+    string[] Cells(string row) => row.Split(new[] { En, Third }, StringSplitOptions.RemoveEmptyEntries);
+    Check("boxes: park, cost and time, each with how far behind", Cells(BoxRow(boxKids[2])).SequenceEqual(["South", "119.64M", "+119.4%", "45m", "Best"]), BoxRow(boxKids[2]));
+    Check("boxes: the word Best, not an icon", Cells(BoxRow(boxKids[1])).Contains("Best") && !BoxRow(boxKids[1]).Contains(':'), BoxRow(boxKids[1]));
+    Check("boxes: not numbered", !BoxRow(boxKids[1]).StartsWith("1."));
+    Check("boxes: a park that cannot do it is a dash", Cells(BoxRow(boxKids[3])).SequenceEqual(["East", "–", "–"]), BoxRow(boxKids[3]));
+    Check("boxes: columns line up down a box", Math.Abs(Drawn(BoxRow(boxKids[1])) - Drawn(BoxRow(boxKids[2]))) <= 170, $"{Drawn(BoxRow(boxKids[1]))} {Drawn(BoxRow(boxKids[2]))}");
+
+    var oddBoxes = Json(SlackRichBlocks.JobBoxes([Box(0)], ["A", "B", "C"], "k", "+{0}")[0].Block);
+    Check("boxes: a lone job keeps its width", oddBoxes.GetProperty("rows")[0].GetProperty("items").GetArrayLength() == 2);
+    var lots = SlackRichBlocks.JobBoxes([.. Enumerable.Range(0, 13).Select(i => Box(i))], ["A", "B", "C"], "k", "+{0}");
+    Check("boxes: past ten jobs, another layout", lots.Count == 3 && Json(lots[0].Block).GetProperty("rows").GetArrayLength() == 5, lots.Count.ToString());
+    var crowd = Json(SlackRichBlocks.JobBoxes([Box(0, 12)], [.. Enumerable.Range(0, 12).Select(i => $"P{i}")], "k", "+{0} more")[0].Block)
+        .GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block").GetProperty("child_blocks");
+    Check("boxes: past a box's ten blocks, the rest are counted", crowd.GetArrayLength() == 10 && BoxRow(crowd[9]) == "+4 more", crowd.GetArrayLength().ToString());
+    var longPark = Json(SlackRichBlocks.JobBoxes([Box(0)], ["A park with a very long name that goes on and on", "B", "C"], "k", "+{0}")[0].Block)
+        .GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block").GetProperty("child_blocks");
+    Check("boxes: a long park name is cut to fit", BoxRow(longPark[1]).Contains("...") && Drawn(BoxRow(longPark[1])) <= 21500 + 170, Drawn(BoxRow(longPark[1])).ToString());
+
+    // What a box says.
+    ParkJobFacts Facts(CompareOp op, bool render = false, bool reaction = false, decimal? value = 11_000_000m) =>
+        new(0, op, 626, "Vexor", render, reaction, 10, value, Copies: 3, Level: 10, Target: "Ishtar", TargetRuns: 1, TargetMe: 2, TargetTe: 4);
+    var about = ParkCompareReport.BoxAbout(Facts(CompareOp.Build), 10);
+    Check("about: a build says how many of what, and what they sell for", about.Contains("Manufacturing") && about.Contains("10 × Vexor") && about.Contains("110.00M"), about);
+    Check("about: a reaction says so", ParkCompareReport.BoxAbout(Facts(CompareOp.Build, reaction: true), 1).StartsWith("Reaction"));
+    Check("about: with no price, no value line", !ParkCompareReport.BoxAbout(Facts(CompareOp.Build, value: null), 1).Contains("ISK"));
+    var copy = ParkCompareReport.BoxAbout(Facts(CompareOp.Copy), 30);
+    Check("about: a copy says copies and runs", copy.Contains('3') && copy.Contains("10"), copy);
+    var invent = ParkCompareReport.BoxAbout(Facts(CompareOp.Invention), 1);
+    Check("about: an invention says its target, runs, ME and TE", invent.Contains("Ishtar BPC") && invent.Contains("ME 2") && invent.Contains("TE 4"), invent);
+    Check("about: ME research says from and to", ParkCompareReport.BoxAbout(Facts(CompareOp.MeResearch), 1).Contains("ME 0 to ME 10"));
+    Check("about: TE research is in percent", ParkCompareReport.BoxAbout(Facts(CompareOp.TeResearch), 1).Contains("TE 0% to TE 20%"));
+    Check("title: a build names the operation", ParkCompareReport.BoxTitle(Facts(CompareOp.Build), "Vexor") == "Vexor — Build");
+    Check("title: a science job keeps its label", ParkCompareReport.BoxTitle(Facts(CompareOp.Copy), "Vexor Blueprint — Copy") == "Vexor Blueprint — Copy");
+    Check("image: a ship's render", ParkCompareReport.BoxImage(Facts(CompareOp.Build, render: true)).EndsWith("/626/render?size=128"));
+    Check("image: anything else built, an icon the server has", ParkCompareReport.BoxImage(Facts(CompareOp.Build)).EndsWith("/626/icon?size=64"));
+    Check("image: a copy, the copy's image", ParkCompareReport.BoxImage(Facts(CompareOp.Copy)).EndsWith("/626/bpc?size=64"));
+    Check("image: other science, the blueprint's", ParkCompareReport.BoxImage(Facts(CompareOp.MeResearch)).EndsWith("/626/bp?size=64"));
+}
+
+// ── The pictures ──────────────────────────────────────────────────────────────
+
+{
+    ParkCost Cost(int line, int park, string name, decimal total, double seconds) =>
+        new(park, name, park, new ParkCompareJob(34, "Item", 1, 10, Line: line), true, 1, total, 0, total, [], seconds);
+
+    var ranked = ParkCompareReport.Rank(
+    [
+        Cost(0, 1, "North", 100m, 3600), Cost(0, 2, "South", 110m, 1800), Cost(0, 3, "East", 200m, 7200),
+        Cost(1, 1, "North", 500m, 3600), Cost(1, 2, "South", 450m, 3600), Cost(1, 3, "East", 460m, 3600),
+    ]);
+    var summary = SKBitmap.Decode(ParkCompareReport.SummaryPng(ParkCompareReport.Pivot(ranked, ["First job", "Second job"], byPark: false)));
+    Check("summary picture: draws", summary is { Width: > 0, Height: > 0 });
+    Check("summary picture: wide enough to read when Slack makes it 600 across, not a sliver", summary.Width / (double)summary.Height is > 1.2 and < 4, $"{summary.Width}x{summary.Height}");
+    Check("post label: a build says so", ParkCompareReport.PostLabel(626, "Vexor", CompareOp.Build) == "Vexor — Build");
+    Check("post label: so does science", ParkCompareReport.PostLabel(971, "Vexor Blueprint", CompareOp.Copy) == "Vexor Blueprint — Copy");
+    Check("summary picture: nothing past its edge, so no heading is forcing the width", summary.Width < 1800, summary.Width.ToString());
+    bool Green(SKColor c) => c.Green > 150 && c.Red < 120;
+    bool Red(SKColor c)   => c.Red > 200 && c.Green < 130;
+    var colours = Enumerable.Range(0, summary.Height).SelectMany(y => Enumerable.Range(0, summary.Width).Select(x => summary.GetPixel(x, y))).ToList();
+    Check("summary picture: the best is in green", colours.Any(Green));
+    Check("summary picture: far behind is in red", colours.Any(Red));
+
+    var tablePicture = SKBitmap.Decode(SystemIndexReport.TablePng(["A-1", "B-2", "C-3"], ["Manufacturing", "Reaction", "Invention", "Copying", "ME Research", "TE Research"], "System",
+        [[0.05, 0.06, null, 0.03, 0.04, 0.05], [0.04, 0.07, 0.02, 0.05, 0.03, 0.06], [0.06, 0.05, 0.03, 0.04, 0.05, 0.04]],
+        [[0.11, -0.2, null, 0.0, 0.3, null], [-0.1, 0.2, 0.1, 0.0, -0.3, 0.1], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]));
+    Check("index picture: wide, so Slack's size leaves it readable", tablePicture.Width / (double)tablePicture.Height is > 1.5 and < 5, $"{tablePicture.Width}x{tablePicture.Height}");
+    var tableColours = Enumerable.Range(0, tablePicture.Height).SelectMany(y => Enumerable.Range(0, tablePicture.Width).Select(x => tablePicture.GetPixel(x, y))).ToList();
+    Check("index picture: the lowest and a fall are in green", tableColours.Any(Green));
+    Check("index picture: a rise is in red", tableColours.Any(Red));
+    Check("index picture: is a picture output, not a text one", SystemIndexOutputs.IsPicture(SystemIndexOutputs.TableImage)
+        && new MessageBlock { Type = MessageBlock.TypeSystemIndex, IndexOutputs = [SystemIndexOutputs.TableImage] }.HasPictures
+        && !new MessageBlock { Type = MessageBlock.TypeSystemIndex, IndexOutputs = [SystemIndexOutputs.TableImage] }.UsesSlackRich);
+
+    IndexSystem Sys(int i) => new(100 + i, $"System {i}", "Region", i);
+    var day = new DateOnly(2026, 11, 5);
+    var daily = new Dictionary<(int, string), SortedDictionary<DateOnly, double>>();
+    foreach (var a in CostIndexHistoryService.Activities)
+        foreach (var i in Enumerable.Range(0, 3))
+            daily[(100 + i, a)] = new(Enumerable.Range(0, 60).ToDictionary(d => day.AddDays(-d), d => 0.02 + i * 0.01 + d * 0.0001));
+
+    var combined = SystemIndexReport.CombinedPng([Sys(0), Sys(1), Sys(2)], daily);
+    Check("combined picture: draws", combined is not null);
+    var bitmap = SKBitmap.Decode(combined);
+    Check("combined picture: wide, because Slack limits a picture's height", bitmap.Width / (double)bitmap.Height > 1.7, $"{bitmap.Width}x{bitmap.Height}");
+    Check("combined picture: no history, no picture", SystemIndexReport.CombinedPng([Sys(0)], new Dictionary<(int, string), SortedDictionary<DateOnly, double>>()) is null);
+
+    var crowded = SKBitmap.Decode(SystemIndexReport.CombinedPng([.. Enumerable.Range(0, 3).Select(Sys).Select(s => s with { Name = new string('X', 30) + s.Name })], daily));
+    Check("combined picture: a legend too long for a row wraps rather than running off", crowded.Height > bitmap.Height, $"{crowded.Height} vs {bitmap.Height}");
+}
+
 // ── Wide tables and messages ──────────────────────────────────────────────────
 
 {
@@ -393,7 +571,7 @@ try
     var esi      = new EsiClient(new NoNetwork(), new EsiAuthService(new HttpClient()));
     var corp     = new CorpActivityService(factory, esi);
     var excludes = new CorpTop10ExcludeService(factory, esi);
-    var renderer = new ScheduledBlockRenderer(corp, null!, excludes, new CorpReportTitles(prefs), null!, null!, null!, factory);
+    var renderer = new ScheduledBlockRenderer(corp, null!, excludes, new CorpReportTitles(prefs), null!, null!, new CostIndexHistoryService(factory), factory);
 
     var (from, to) = (new DateTimeOffset(2026, 10, 1, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero));
 
@@ -468,7 +646,8 @@ try
     var errors = new AppErrorLogger(sp.GetRequiredService<IServiceScopeFactory>());
     var slack  = new SlackService(fake, prefs, errors, null!, factory);
     var online = new OnlineServices(fake, factory, prefs, null!, errors);
-    var runner = new SchedulerService(factory, renderer, slack, null!, online, errors);
+    var discord = new DiscordService(fake, prefs, errors, factory);
+    var runner = new SchedulerService(factory, renderer, slack, discord, online, errors);
 
     // The serializer writes a backtick as an escape, so that is what a fence looks like in a post.
     bool Fenced(string post) => post.Contains(@"\u0060\u0060\u0060");
@@ -501,6 +680,103 @@ try
 
     var (okNone, saidNone) = await Run([Top10("ratting")]);
     Check("run: an empty month posts nothing", okNone && fake.Posts.Count == 0 && saidNone == EveConsole.Localization.AlarmsText.RunRenderedEmpty, saidNone);
+
+    // ── Sections in order, their pictures with them, their heading once ──
+
+    await using (var db = factory.CreateDbContext())
+    {
+        db.SdeRegions.Add(new SdeRegion { RegionId = 1, Name = "Region" });
+        db.SdeSolarSystems.AddRange(new SdeSolarSystem { SolarSystemId = 501, RegionId = 1, Name = "Alpha" },
+                                    new SdeSolarSystem { SolarSystemId = 502, RegionId = 1, Name = "Beta" },
+                                    new SdeSolarSystem { SolarSystemId = 503, RegionId = 1, Name = "No History" });
+        foreach (var a in CostIndexHistoryService.Activities)
+            foreach (var s in new[] { 501, 502 })
+            {
+                db.IndustryCostIndices.Add(new IndustryCostIndex { SolarSystemId = s, Activity = a, CostIndex = s == 501 ? 0.04 : 0.05 });
+                for (var d = 0; d < 10; d++)
+                    db.MapIndustryIndices.Add(new MapIndustryIndex { SystemId = s, Activity = a, Bucket = $"2026-11-{d + 10:00} 00", CostIndex = 0.03 + d * 0.001 });
+            }
+        db.AppPreferences.Add(new AppPreference { Key = "online.key", Value = "test-key" });
+        await db.SaveChangesAsync();
+    }
+
+    MessageBlock Index(string title, params string[] outputs) => new()
+    {
+        Type = MessageBlock.TypeSystemIndex, SectionTitle = title, IndexSystemIds = [501, 502], IndexOutputs = [.. outputs],
+    };
+    MessageBlock Words(string text) => new() { Type = MessageBlock.TypeText, Text = text };
+    int Count(string text, string of) => text.Split(of).Length - 1;
+    string All(PostSegment s) => s.Text + JsonSerializer.Serialize(s.Messages.SelectMany(m => m.Blocks));
+
+    var ordered = await renderer.PlanPostAsync(
+        [Words("first"), Index("Head", SystemIndexOutputs.Combined), Words("second"), Index("Other", SystemIndexOutputs.Table)],
+        now, "Slack", canDraw: true, forWebhook: true);
+    Check("order: cut after the section with the picture", ordered.Segments.Count == 2, ordered.Segments.Count.ToString());
+    Check("order: words before it stay with it", ordered.Segments[0].Text.Contains("first") && !ordered.Segments[0].Text.Contains("second"), ordered.Segments[0].Text);
+    Check("order: its picture goes with it", ordered.Segments[0].Pictures.Count == 1 && ordered.Segments[1].Pictures.Count == 0);
+    Check("order: the next section comes after", ordered.Segments[1].Text.Contains("second") && ordered.Segments[1].Text.Contains("Other"));
+
+    Check("heading: a section of only a picture still has one", Count(ordered.Segments[0].Text, "Head") == 1, ordered.Segments[0].Text);
+    Check("heading: not over a table it has no table for", !ordered.Segments[0].Text.Contains("```"));
+    Check("picture title: only what it is, the heading is above it", ordered.Segments[0].Pictures[0].Title == "Index history", ordered.Segments[0].Pictures[0].Title);
+
+    var everything = await renderer.PlanPostAsync(
+        [Index("Head", SystemIndexOutputs.Table, SystemIndexOutputs.TableImage, SystemIndexOutputs.Combined, "manufacturing")],
+        now, "Slack", canDraw: true, forWebhook: true);
+    Check("heading: once, however many outputs", Count(All(everything.Segments[0]), "Head") == 1 && everything.Segments[0].Pictures.Count == 3, All(everything.Segments[0]));
+    Check("pictures: none repeats the heading", everything.Segments[0].Pictures.All(p => !p.Title.Contains("Head")));
+
+    var richPlan = await renderer.PlanPostAsync([Index("Head", SystemIndexOutputs.NativeTable, SystemIndexOutputs.TableImage)], now, "Slack", canDraw: true, forWebhook: true);
+    Check("heading: once in blocks too", richPlan.Segments[0].Messages.Count == 1 && Count(All(richPlan.Segments[0]), "Head") == 1 && richPlan.Segments[0].Pictures.Count == 1);
+
+    var nothing = await renderer.PlanPostAsync([Index("Head", SystemIndexOutputs.Combined)], now, "Slack", canDraw: false, forWebhook: true);
+    Check("heading: not when nothing prints: the picture cannot be sent", !nothing.AnyWords && nothing.Skipped == 1 && !nothing.AnyPictures);
+    var noHistory = await renderer.PlanPostAsync([new MessageBlock { Type = MessageBlock.TypeSystemIndex, SectionTitle = "Head", IndexSystemIds = [503], IndexOutputs = [SystemIndexOutputs.Combined] }], now, "Slack", canDraw: true, forWebhook: true);
+    Check("heading: not when nothing prints: no history to draw", !noHistory.AnyWords && !noHistory.AnyPictures);
+
+    var onDiscord = await renderer.PlanPostAsync([Index("Head", SystemIndexOutputs.NativeTable, SystemIndexOutputs.Combined), Words("after")], now, "Discord", canDraw: true, forWebhook: false);
+    Check("discord: the Slack table's text form, in order, picture with it", onDiscord.Segments.Count == 2 && onDiscord.Segments[0].Text.Contains("```") && onDiscord.Segments[0].Messages.Count == 0 && onDiscord.Segments[0].Pictures.Count == 1 && onDiscord.Segments[1].Text.Contains("after"));
+
+    Check("preview: names pictures for what they are", ScheduledBlockRenderer.PictureTitles(Index("Head", SystemIndexOutputs.Combined, "manufacturing")).All(t => !t.Contains("Head")));
+
+    var parkPicturesOnly = new MessageBlock { Type = MessageBlock.TypeParkCompare, SectionTitle = "Head", CompareOutputs = [ParkCompareOutputs.SummaryJobsImage] };
+    var parkWithFollow = await renderer.RenderAsync([parkPicturesOnly], now, default, "Slack", new HashSet<MessageBlock> { parkPicturesOnly });
+    Check("heading: a park section of only a picture still has one", Count(parkWithFollow.Text, "Head") == 1, parkWithFollow.Text);
+    var parkNoFollow = await renderer.RenderAsync([parkPicturesOnly], now);
+    Check("heading: not over a park picture that did not come", Count(parkNoFollow.Text, "Head") == 0, parkNoFollow.Text);
+
+    // Slack refused the format, so the words go as text, and a picture's section keeps its heading.
+    var (_, saidBackHead) = await Run([Top10("kills"), Index("Head", SystemIndexOutputs.Combined)], answer: "invalid_blocks");
+    Check("wire: format refused, the text keeps the heading over the picture", fake.Posts.Count(p => !p.Contains("\"blocks\"") && p.Contains("Head")) == 1, saidBackHead);
+
+    // And on the wire, a whole run.
+    var (okOrder, saidOrder) = await Run([Words("first"), Index("Head", SystemIndexOutputs.NativeTable, SystemIndexOutputs.Combined), Words("second")]);
+    var wire = fake.Posts.Where(p => p.Contains("\"blocks\"") || p.Contains("first") || p.Contains("second")).ToList();
+    Check("wire: words, then its picture, then the next section", okOrder && wire.Count == 3 && wire[0].Contains("first") && wire[0].Contains("Head") && wire[1].Contains("hosted.invalid") && wire[2].Contains("second"), saidOrder + " | " + string.Join(" || ", wire.Select(w => w[..Math.Min(60, w.Length)])));
+    Check("wire: says what it posted", saidOrder.Contains(string.Format(EveConsole.Localization.AlarmsText.RunChartsUploaded, 1)), saidOrder);
+
+    // Post 0 is the first section's words, post 1 its picture, so the second section's words are refused.
+    var (okGap, saidGap) = await Run([Words("first"), Index("Head", SystemIndexOutputs.Combined), Words("second"), Index("Later", SystemIndexOutputs.Combined), Words("third")], answer: "rate_limited", failFrom: 2);
+    Check("wire: a refusal part way counts as a run, so a retry does not repeat it", okGap && saidGap.Contains("rate_limited"), saidGap);
+    Check("wire: and nothing goes after the gap", fake.Posts.Count == 3 && !fake.Posts.Any(p => p.Contains("third")), string.Join(" || ", fake.Posts.Select(p => p[..Math.Min(60, p.Length)])));
+
+    var (okFirst, saidFirst) = await Run([Words("first"), Index("Head", SystemIndexOutputs.Combined)], answer: "no_service");
+    Check("wire: refused with nothing sent is a failed run, to try again", !okFirst && fake.Posts.Count == 1, saidFirst);
+
+    // Discord carries the same order, each picture a message under its title.
+    await using (var db = factory.CreateDbContext())
+    {
+        db.DiscordWebhooks.Add(new DiscordWebhook { Id = 1, Name = "fake", Url = "https://discord.com/api/webhooks/1/fake-token" });
+        await db.SaveChangesAsync();
+    }
+
+    fake.Reset(null, int.MaxValue);
+    var discordTask = new ScheduledTaskConfig { DestinationKind = SlackDestination.KindDiscord, DestinationId = "1", Blocks = [Words("first"), Index("Head", SystemIndexOutputs.Combined), Words("second")] };
+    var (okDiscord, saidDiscord) = await runner.RunOneAsync(new ScheduledTask { Id = 1, Name = "t", TaskType = ScheduledTaskType.SlackPost, Config = discordTask.ToJson() }, now);
+    Check("discord wire: words, then its picture, then the next section",
+        okDiscord && fake.Posts.Count == 3 && fake.Posts[0].Contains("first") && fake.Posts[0].Contains("Head") && fake.Posts[1].Contains("Index history") && fake.Posts[2].Contains("second"),
+        saidDiscord + " | " + string.Join(" || ", fake.Posts.Select(p => p[..Math.Min(60, p.Length)])));
+    Check("discord wire: heading once", fake.Posts.Count(p => p.Contains("Head")) == 1);
 
     // Sections past one message's limit: two messages, and the second refused, twice.
     List<MessageBlock> many = [Top10("kills"), .. Enumerable.Range(0, 60).Select(i => new MessageBlock { Type = MessageBlock.TypeText, Text = $"Line {i}" })];
@@ -546,12 +822,17 @@ sealed class FakeSlack : IHttpClientFactory
         if (answer is not null && failFrom == int.MaxValue) _failFrom = 0;
     }
 
-    public HttpClient CreateClient(string name) => new(new Handler(this));
+    public HttpClient CreateClient(string name) => new(new Handler(this)) { BaseAddress = new Uri("https://api.hosted.invalid/") };
 
     sealed class Handler(FakeSlack slack) : HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
+            // The image service, which answers with where the picture now is.
+            if (request.RequestUri!.Host == "api.hosted.invalid")
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                    { Content = new StringContent("""{"id":"abc","url":"https://img.hosted.invalid/abc.png"}""") };
+
             var body  = await request.Content!.ReadAsStringAsync(ct);
             var index = slack.Posts.Count;
             slack.Posts.Add(body);

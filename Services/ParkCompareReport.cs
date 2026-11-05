@@ -115,6 +115,13 @@ public static class ParkCompareReport
         op == CompareOp.Build ? SdeNames.Type(typeId, typeName) : $"{SdeNames.Type(typeId, typeName)} — {OpLabel(op)}";
 
     /// <summary>
+    /// The line as a post names it: the operation always, a build's too. A list on the Compare tab
+    /// reads fine with builds left bare, but a post is read on its own, beside research and copies.
+    /// </summary>
+    public static string PostLabel(int typeId, string typeName, CompareOp op) =>
+        $"{SdeNames.Type(typeId, typeName)} — {OpLabel(op)}";
+
+    /// <summary>
     /// Each line's parks ranked on cost and on time: the cheapest and the quickest marked, every
     /// other by how far behind. In list order, and within a line the cheapest first, a park that
     /// cannot do it last.
@@ -155,6 +162,59 @@ public static class ParkCompareReport
             : new(false, [.. parks.Select(p => p.Name)],
                   [.. lines.Select(l => new ComparePivotRow(lineLabels[l], [.. parks.Select(p => Cell(l, p.Id))]))]);
     }
+
+    // ── For Slack's own blocks ───────────────────────────────────────────────
+
+    /// <summary>The value and how far behind it is, or the value alone where it is the best.</summary>
+    private static string WithGap(string value, string gap, bool best) => best || gap.Length == 0 ? value : $"{value} {gap}";
+
+    /// <summary>The summary for <see cref="SlackRichBlocks.ParkTable"/>.</summary>
+    public static List<SlackParkRow> TableRows(ComparePivot jobs) =>
+    [
+        .. jobs.Rows.Select(r => new SlackParkRow(r.Title, [.. r.Cells.Select(c => c is null ? null : new SlackParkCell(
+            WithGap(c.TotalText, c.OverBestText, c.IsBest), c.IsBest,
+            WithGap(c.TimeText, c.SlowerText, c.IsFastest), c.IsFastest))])),
+    ];
+
+    /// <summary>A job's title in its box: what is made, and the operation.</summary>
+    public static string BoxTitle(ParkJobFacts facts, string label) =>
+        facts.Op == CompareOp.Build ? string.Format(AlarmsText.JobBoxBuildTitle, facts.Name) : label;
+
+    /// <summary>
+    /// What a job is, for its box. Build: how many of what, and what they sell for, to read against
+    /// the costs under it. Copy, invention and research: what comes out.
+    /// </summary>
+    public static string BoxAbout(ParkJobFacts f, long produced)
+    {
+        static string Bold(string s) => $"*{SlackColumns.Escape(s)}*";
+
+        return f.Op switch
+        {
+            CompareOp.Build => string.Join("\n", new[]
+            {
+                f.IsReaction ? IndustryText.IndexReaction : IndustryText.IndexManufacturing,
+                Bold(string.Format(AlarmsText.JobBoxUnits, produced, f.Name)),
+                f.UnitValue is { } unit ? string.Format(AlarmsText.JobBoxValue, Bold(MarketFmt.Isk((double)(unit * produced)))) : "",
+            }.Where(l => l.Length > 0)),
+            CompareOp.Copy => $"{IndustryText.IndexCopying}\n{Bold(string.Format(IndustryText.CompareDetailCopy, f.Copies, f.Quantity))}",
+            CompareOp.Invention when f.Target.Length > 0 =>
+                $"{IndustryText.IndexInvention}\n{Bold(string.Format(AlarmsText.JobBoxInventTarget, f.Target))}\n"
+                + Bold(string.Format(AlarmsText.JobBoxInventRuns, f.TargetRuns, f.TargetMe, f.TargetTe)),
+            CompareOp.Invention  => IndustryText.IndexInvention,
+            CompareOp.MeResearch => $"{IndustryText.IndexMeResearch}\n{Bold(string.Format(AlarmsText.JobBoxMeRange, f.Level))}",
+            _                    => $"{IndustryText.IndexTeResearch}\n{Bold(string.Format(AlarmsText.JobBoxTeRange, f.Level * 2))}",
+        };
+    }
+
+    /// <summary>A job's picture. ⚠️ Only what the image server has: a render of a ship, an icon of
+    /// anything else, a blueprint's own image. An address it does not answer fails the whole post.</summary>
+    public static string BoxImage(ParkJobFacts f) => f.Op switch
+    {
+        CompareOp.Build when f.HasRender => $"https://images.evetech.net/types/{f.ImageTypeId}/render?size=128",
+        CompareOp.Build                  => $"https://images.evetech.net/types/{f.ImageTypeId}/icon?size=64",
+        CompareOp.Copy                   => $"https://images.evetech.net/types/{f.ImageTypeId}/bpc?size=64",
+        _                                => $"https://images.evetech.net/types/{f.ImageTypeId}/bp?size=64",
+    };
 
     // ── The charts ───────────────────────────────────────────────────────────
 
@@ -342,18 +402,8 @@ public static class ParkCompareReport
 
     // The app's own dark chart palette, as the scheduled corp charts use, so a posted picture is
     // recognisably from this tool and reads on Discord's and Slack's dark themes.
-    private static readonly SKColor Canvas   = new(13, 13, 18);
-    private static readonly SKColor Header   = new(24, 24, 32);
-    private static readonly SKColor Rule     = new(40, 40, 52);
-    private static readonly SKColor Primary  = new(220, 220, 230);
-    private static readonly SKColor Muted    = new(150, 150, 165);
-    private static readonly SKColor Faint    = new(110, 110, 125);
-    private static readonly SKColor Good     = new(106, 170, 136);
-    private static readonly SKColor Bad      = new(204, 100, 100);
-    private static readonly SKColor[] Washes = [new(91, 155, 213, 0x2c), new(237, 125, 49, 0x2c), new(26, 188, 156, 0x2c)];
-
-    /// <summary>Drawn at twice the size laid out, so text stays sharp when the picture is opened.</summary>
-    private const float Scale = 2;
+    internal static readonly SKColor Canvas   = new(13, 13, 18);
+    internal static readonly SKColor FaintText = new(110, 110, 125);
 
     /// <summary>A chart as a PNG, on the dark ground, its legend under it.</summary>
     public static byte[] ChartPng(CompareChart chart, int width = 1100, int height = 460)
@@ -383,15 +433,19 @@ public static class ParkCompareReport
         (() => new SolidColorPaint(new SKColor(120, 120, 140)), () => new SolidColorPaint(new SKColor(30, 30, 42)));
 
     /// <summary>
-    /// The summary as a PNG: a heading, then each group's four columns under its name
-    /// and wash, a line where each group begins, best in green and a quarter or more behind in red.
+    /// The summary as a PNG, drawn to be read at the size Slack shows it: about 600 wide however big
+    /// it is. A column per group under its name and wash, each cell the cost above the time, each
+    /// with how far behind it is; best in green and a quarter or more behind in red.
+    ///
+    /// <para>⚠️ One column per group, not four. Four made a picture so wide that Slack's size took its
+    /// text below reading. No heading in the picture either: the post's title goes beside it, where
+    /// its emoji are drawn rather than printed as letters.</para>
     /// </summary>
-    public static byte[] SummaryPng(ComparePivot pivot, string heading)
+    public static byte[] SummaryPng(ComparePivot pivot)
     {
-        string[] heads = [IndustryText.CompareColCost, IndustryText.CompareColVsBest, IndustryText.CompareColTime, IndustryText.CompareColVsBest];
         var first = pivot.ByPark ? IndustryText.CompareColPark : IndustryText.CompareColJob;
-        var texts = new List<string> { heading, first };
-        texts.AddRange(heads); texts.AddRange(pivot.Groups);
+        var texts = new List<string> { first };
+        texts.AddRange(pivot.Groups);
         foreach (var row in pivot.Rows)
         {
             texts.Add(row.Title);
@@ -401,95 +455,84 @@ public static class ParkCompareReport
         // Faces are not disposed: the font manager keeps them, and the default one is shared.
         var typeface = PickTypeface(texts);
         var bold     = SKTypeface.FromFamilyName(typeface.FamilyName, SKFontStyle.Bold) ?? typeface;
-        using var body     = new SKFont(typeface, 11);
-        using var strong   = new SKFont(bold, 11);
-        using var title    = new SKFont(bold, 12.5f);
+        using var head   = new SKFont(bold, 32);
+        using var name   = new SKFont(typeface, 30);
+        using var value  = new SKFont(typeface, 30);
+        using var strong = new SKFont(bold, 30);
+        using var small  = new SKFont(typeface, 24);
 
-        const float pad = 14, cellPad = 8, rowH = 22;
-        float Text(SKFont f, string s) => Measure(f, s);
+        const float pad = 16, cell = 14, rowH = 84, headH = 58, between = 24;
 
-        // Column widths: the row names, then each of the four in every group.
-        var titleW = Math.Max(Text(body, first), pivot.Rows.Select(r => Text(body, r.Title)).DefaultIfEmpty(0).Max()) + 2 * cellPad;
-        var widths = new float[pivot.Groups.Count * 4];
-        for (var i = 0; i < widths.Length; i++)
-        {
-            var g = i / 4; var k = i % 4;
-            var w = Text(body, heads[k]);
-            foreach (var row in pivot.Rows)
-                if (row.Cells[g] is { } c) w = Math.Max(w, Text(body, k switch { 0 => c.TotalText, 1 => c.OverBestText, 2 => c.TimeText, _ => c.SlowerText }));
-            widths[i] = w + 2 * cellPad;
-        }
-        for (var g = 0; g < pivot.Groups.Count; g++)
-        {
-            var span = widths.Skip(4 * g).Take(4).Sum();
-            var need = Text(strong, pivot.Groups[g]) + 2 * cellPad;
-            if (need > span) widths[4 * g + 3] += need - span;
-        }
+        var nameW = Math.Max(Measure(head, first), pivot.Rows.Select(r => Measure(name, r.Title)).DefaultIfEmpty(0).Max()) + 2 * cell;
 
-        var tableW = titleW + widths.Sum();
-        var width  = Math.Max(tableW, Text(title, heading)) + 2 * pad;
-        var top    = pad + 18 + 8;
-        var height = top + rowH * (2 + pivot.Rows.Count) + pad;
+        var columnW = pivot.Groups.Select(g => Measure(head, g) + 2 * cell).DefaultIfEmpty(0).Max();
+        foreach (var row in pivot.Rows)
+            foreach (var c in row.Cells)
+            {
+                if (c is null) continue;
+                columnW = Math.Max(columnW, 2 * cell + between + Measure(c.IsBest ? strong : value, c.TotalText) + Measure(small, c.OverBestText));
+                columnW = Math.Max(columnW, 2 * cell + between + Measure(small, c.TimeText) + Measure(small, c.SlowerText));
+            }
 
-        var info = new SKImageInfo((int)Math.Ceiling(width * Scale), (int)Math.Ceiling(height * Scale));
-        using var surface = SKSurface.Create(info);
+        var width  = 2 * pad + nameW + columnW * pivot.Groups.Count;
+        var height = 2 * pad + headH + rowH * pivot.Rows.Count;
+
+        using var surface = SKSurface.Create(new SKImageInfo((int)Math.Ceiling(width), (int)Math.Ceiling(height)));
         var canvas = surface.Canvas;
-        canvas.Scale(Scale);
         canvas.Clear(Canvas);
 
         using var fill = new SKPaint { IsAntialias = true };
-        void Box(float x, float y, float w, float h, SKColor color) { fill.Color = color; canvas.DrawRect(x, y, w, h, fill); }
-        void Write(string s, float x, float y, SKFont f, SKColor color, bool alignRight = false, float cellW = 0, bool centre = false)
+        void Write(string s, float x, float y, SKFont f, SKColor colour)
         {
-            fill.Color = color;
-            var w  = Measure(f, s);
-            var at = centre ? x + (cellW - w) / 2 : alignRight ? x + cellW - cellPad - w : x + cellPad;
-            canvas.DrawText(s, at, y + rowH / 2 + f.Size * 0.36f, f, fill);
+            fill.Color = colour;
+            canvas.DrawText(s, x, y + f.Size * 0.36f, f, fill);
         }
-
-        fill.Color = Muted;  canvas.DrawText(heading, pad, pad + 13, title, fill);
-
-        float x0 = pad, yBand = top, yHead = top + rowH, yRows = top + 2 * rowH;
-        Box(x0, yHead, tableW, rowH, Header);
-
-        var x = x0 + titleW;
-        for (var g = 0; g < pivot.Groups.Count; g++)
+        void WriteRight(string s, float right, float y, SKFont f, SKColor colour) => Write(s, right - Measure(f, s), y, f, colour);
+        void Rule(float y, byte alpha)
         {
-            var span = widths.Skip(4 * g).Take(4).Sum();
-            var wash = Washes[g % 3];
-            Box(x + 1, yBand, span - 1, rowH - 1, wash);
-            Box(x, yHead, span, rowH * (1 + pivot.Rows.Count), wash);
-            Box(x, yHead, 1, rowH * (1 + pivot.Rows.Count), Rule);
-            Write(pivot.Groups[g], x, yBand, strong, Primary, cellW: span, centre: true);
-            x += span;
+            fill.Color = RuleColour.WithAlpha(alpha);
+            canvas.DrawRect(pad, y, width - 2 * pad, 1, fill);
         }
-
-        Write(first, x0, yHead, body, Muted);
-        x = x0 + titleW;
-        for (var i = 0; i < widths.Length; i++) { Write(heads[i % 4], x, yHead, body, Muted, alignRight: true, cellW: widths[i]); x += widths[i]; }
 
         static SKColor Colour(Standing s) => s switch
         {
-            Standing.Best      => Good,
-            Standing.FarBehind => Bad,
-            Standing.None      => Faint,
-            _                  => Primary,
+            Standing.Best      => BrightGood,
+            Standing.FarBehind => BrightBad,
+            _                  => BodyText,
         };
+
+        for (var g = 0; g < pivot.Groups.Count; g++)
+        {
+            var x = pad + nameW + columnW * g;
+            fill.Color = Wash(g);
+            canvas.DrawRect(x, pad, columnW, height - 2 * pad, fill);
+            Write(pivot.Groups[g], x + (columnW - Measure(head, pivot.Groups[g])) / 2, pad + headH / 2, head, HeadText);
+        }
+
+        Write(first, pad + cell, pad + headH / 2, head, HeadText);
+        Rule(pad + headH, 255);
 
         for (var r = 0; r < pivot.Rows.Count; r++)
         {
-            var y = yRows + r * rowH;
-            Write(pivot.Rows[r].Title, x0, y, body, Primary);
-            x = x0 + titleW;
+            var top = pad + headH + r * rowH;
+            Write(pivot.Rows[r].Title, pad + cell, top + rowH / 2, name, HeadText);
+
             for (var g = 0; g < pivot.Groups.Count; g++)
             {
-                var c = pivot.Rows[r].Cells[g];
-                string[] values = c is null ? ["–", "", "–", ""] : [c.TotalText, c.OverBestText, c.TimeText, c.SlowerText];
-                SKColor[] colours = c is null
-                    ? [Faint, Faint, Faint, Faint]
-                    : [Primary, Colour(c.CostStanding), Primary, Colour(c.TimeStanding)];
-                for (var k = 0; k < 4; k++) { Write(values[k], x, y, body, colours[k], alignRight: true, cellW: widths[4 * g + k]); x += widths[4 * g + k]; }
+                var x = pad + nameW + columnW * g;
+                if (pivot.Rows[r].Cells[g] is not { } c)
+                {
+                    Write("–", x + cell, top + 24, value, FaintText);
+                    continue;
+                }
+
+                Write(c.TotalText, x + cell, top + 24, c.IsBest ? strong : value, Colour(c.CostStanding));
+                WriteRight(c.OverBestText, x + columnW - cell, top + 24, small, Colour(c.CostStanding));
+                Write(c.TimeText, x + cell, top + 60, small, Colour(c.TimeStanding));
+                WriteRight(c.SlowerText, x + columnW - cell, top + 60, small, Colour(c.TimeStanding));
             }
+
+            Rule(top + rowH, 160);
         }
 
         using var image = surface.Snapshot();
@@ -497,9 +540,19 @@ public static class ParkCompareReport
         return data.ToArray();
     }
 
+    internal static readonly SKColor RuleColour = new(42, 44, 56);
+    internal static readonly SKColor HeadText   = new(232, 232, 240);
+    internal static readonly SKColor BodyText   = new(205, 205, 218);
+    internal static readonly SKColor BrightGood = new(72, 199, 116);
+    internal static readonly SKColor BrightBad  = new(240, 96, 96);
+    private static readonly SKColor[] SolidWashes = [new(27, 38, 54), new(46, 33, 28), new(22, 44, 42)];
+
+    /// <summary>A column's tint, in turn, so neighbours can be told apart.</summary>
+    internal static SKColor Wash(int column) => SolidWashes[column % SolidWashes.Length];
+
     /// <summary>How wide a text is in a font. ⚠️ Through a paint: SkiaSharp 2.88's SKFont measures
     /// glyph ids only, not a string.</summary>
-    private static float Measure(SKFont font, string text)
+    internal static float Measure(SKFont font, string text)
     {
         using var paint = new SKPaint(font);
         return paint.MeasureText(text);
@@ -510,7 +563,7 @@ public static class ParkCompareReport
     /// interface language needs glyphs it lacks — Chinese, Japanese, Korean — the face the system
     /// offers for the first such character.
     /// </summary>
-    private static SKTypeface PickTypeface(IEnumerable<string> texts)
+    internal static SKTypeface PickTypeface(IEnumerable<string> texts)
     {
         var face = SKTypeface.FromFamilyName("Segoe UI") ?? SKTypeface.FromFamilyName("DejaVu Sans") ?? SKTypeface.Default;
         using var font = new SKFont(face);
