@@ -49,7 +49,7 @@ public sealed record MumbleLogin(
     string Host, int Port, string Username, string Password, X509Certificate2? ClientCertificate,
     string TrustedCertificate, IReadOnlyList<string> Tokens, bool ForceTcp = false);
 
-public sealed record MumbleTextMessage(uint? Actor, IReadOnlyList<uint> Sessions, IReadOnlyList<uint> Channels, string Message);
+public sealed record MumbleTextMessage(uint? Actor, IReadOnlyList<uint> Sessions, IReadOnlyList<uint> Channels, IReadOnlyList<uint> Trees, string Message);
 
 /// <summary>
 /// One logged-in connection to a Mumble server: the channel tree, who is where, and voice over its control
@@ -368,6 +368,7 @@ public sealed class MumbleClient : IAsyncDisposable
                     m.UInt(1) is { } actor ? (uint)actor : null,
                     [.. m.UInts(2).Select(s => (uint)s)],
                     [.. m.UInts(3).Select(c => (uint)c)],
+                    [.. m.UInts(4).Select(c => (uint)c)],
                     m.Text(5) ?? ""));
                 break;
 
@@ -455,6 +456,10 @@ public sealed class MumbleClient : IAsyncDisposable
 
     public Task SendTextToChannelAsync(uint channel, string message, CancellationToken ct) =>
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(3, channel).Text(5, message).ToArray(), ct);
+
+    /// <summary>To a channel and every channel under it, as far as this user may write in each.</summary>
+    public Task SendTextToTreeAsync(uint channel, string message, CancellationToken ct) =>
+        SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(4, channel).Text(5, message).ToArray(), ct);
 
     public Task SendTextToUserAsync(uint session, string message, CancellationToken ct) =>
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(2, session).Text(5, message).ToArray(), ct);

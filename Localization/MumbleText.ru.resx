@@ -155,7 +155,7 @@
     <value>Громкость этого человека, только для вас</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>Сообщение в канал. Enter — отправить, Shift+Enter — новая строка.</value>
+    <value>Сообщение в {0}. Enter — отправить, Shift+Enter — новая строка.</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>Личное сообщение для {0}. Enter — отправить, Shift+Enter — новая строка.</value>
@@ -202,5 +202,13 @@
   <data name="ProblemRemoved" xml:space="preserve">
     <value>Сервер отключил вас: {0}. Подключение не восстановится, пока вы не подключитесь снова.</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Включая подканалы</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} и подканалы</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

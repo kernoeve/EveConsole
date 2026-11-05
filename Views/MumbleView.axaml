@@ -190,9 +190,10 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="10 6">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="10 6">
           <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="90" Watermark="{Binding ChatHint}" />
-          <Button Grid.Column="1" Content="{x:Static loc:MumbleText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding CanIncludeSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          <Button Grid.Column="2" Content="{x:Static loc:MumbleText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
         </Grid>
       </Grid>
 

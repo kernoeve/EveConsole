@@ -155,7 +155,7 @@
     <value>이 사람의 음량 (나에게만 적용)</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>채널에 메시지 보내기. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
+    <value>{0}에 메시지 보내기. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>{0}에게 비공개 메시지. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
@@ -202,5 +202,13 @@
   <data name="ProblemRemoved" xml:space="preserve">
     <value>서버에 의해 연결이 끊겼습니다: {0}. 다시 연결할 때까지 끊긴 상태로 유지됩니다.</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>하위 채널 포함</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} 및 하위 채널</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

@@ -38,8 +38,11 @@ public class MumbleServer
     public string LastChannel  { get; set; } = "";
 }
 
-/// <summary>One line of a server's text chat, kept as long as Jabber's history is.</summary>
-public class MumbleChatMessage
+/// <summary>
+/// One private message on a server, kept as long as Jabber's history is. Channel talk is not kept past the session:
+/// a server holds no history of it, so anything saved would be full of gaps from whenever this client was away.
+/// </summary>
+public class MumbleDirectMessage
 {
     public long   Id        { get; set; }
     public int    ServerId  { get; set; }
@@ -49,10 +52,6 @@ public class MumbleChatMessage
     /// <summary>UTC, as yyyy-MM-ddTHH:mm:ssZ: sorted text, because a DateTimeOffset cannot be filtered on SQLite.</summary>
     public string SentAt    { get; set; } = "";
 
-    /// <summary>The channel it was said in, as it was called then. Blank for a private message.</summary>
-    public string Channel   { get; set; } = "";
-
-    public bool   IsPrivate  { get; set; }
     public bool   IsOutgoing { get; set; }
 }
 

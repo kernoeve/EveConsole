@@ -155,7 +155,7 @@
     <value>この人の音量 (自分だけに適用)</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>チャンネルへのメッセージ。Enter で送信、Shift+Enter で改行。</value>
+    <value>{0} へのメッセージ。Enter で送信、Shift+Enter で改行します。</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>{0} へのプライベートメッセージ。Enter で送信、Shift+Enter で改行。</value>
@@ -202,5 +202,13 @@
   <data name="ProblemRemoved" xml:space="preserve">
     <value>サーバーにより切断されました: {0}。再度接続するまで切断されたままです。</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>サブチャンネルを含める</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} とサブチャンネル</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

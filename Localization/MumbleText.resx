@@ -204,8 +204,8 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <comment>Field.</comment>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>Message the channel. Enter sends, Shift+Enter starts a new line.</value>
-    <comment>Input hint.</comment>
+    <value>Message {0}. Enter sends, Shift+Enter starts a new line.</value>
+    <comment>Input hint. {0} = a channel's name.</comment>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>Private message to {0}. Enter sends, Shift+Enter starts a new line.</value>
@@ -258,5 +258,13 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="ProblemRemoved" xml:space="preserve">
     <value>Disconnected by the server: {0}. It stays off until you connect again.</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Include subchannels</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} and subchannels</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

@@ -155,7 +155,7 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Su volumen, solo para ti</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>Mensaje al canal. Intro envía, Mayús+Intro inicia otra línea.</value>
+    <value>Mensaje a {0}. Intro envía, Mayús+Intro inicia una línea nueva.</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>Mensaje privado a {0}. Intro envía, Mayús+Intro inicia otra línea.</value>
@@ -202,5 +202,13 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="ProblemRemoved" xml:space="preserve">
     <value>Desconectado por el servidor: {0}. Sigue desconectado hasta que vuelvas a conectarte.</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Incluir subcanales</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} y subcanales</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

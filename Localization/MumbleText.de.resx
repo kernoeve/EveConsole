@@ -155,7 +155,7 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Ihre Lautstärke, nur für dich</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>Nachricht an den Kanal. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
+    <value>Nachricht an {0}. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>Private Nachricht an {0}. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
@@ -202,5 +202,13 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="ProblemRemoved" xml:space="preserve">
     <value>Vom Server getrennt: {0}. Die Verbindung bleibt getrennt, bis du dich erneut verbindest.</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Unterkanäle einbeziehen</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} und Unterkanäle</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>

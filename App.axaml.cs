@@ -2670,18 +2670,16 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
-                    CREATE TABLE IF NOT EXISTS "MumbleChatMessages" (
+                    CREATE TABLE IF NOT EXISTS "MumbleDirectMessages" (
                         "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "ServerId"   INTEGER NOT NULL DEFAULT 0,
                         "Sender"     TEXT    NOT NULL DEFAULT '',
                         "Body"       TEXT    NOT NULL DEFAULT '',
                         "SentAt"     TEXT    NOT NULL DEFAULT '',
-                        "Channel"    TEXT    NOT NULL DEFAULT '',
-                        "IsPrivate"  INTEGER NOT NULL DEFAULT 0,
                         "IsOutgoing" INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleChatMessages_Server" ON "MumbleChatMessages" ("ServerId", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Server" ON "MumbleDirectMessages" ("ServerId", "Id")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

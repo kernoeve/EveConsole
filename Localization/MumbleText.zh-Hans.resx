@@ -155,7 +155,7 @@
     <value>此人的音量（仅对你生效）</value>
   </data>
   <data name="MessageHint" xml:space="preserve">
-    <value>向频道发消息。Enter 发送，Shift+Enter 换行。</value>
+    <value>发送消息到 {0}。按 Enter 发送，按 Shift+Enter 换行。</value>
   </data>
   <data name="PrivateHint" xml:space="preserve">
     <value>发给 {0} 的私信。Enter 发送，Shift+Enter 换行。</value>
@@ -202,5 +202,13 @@
   <data name="ProblemRemoved" xml:space="preserve">
     <value>已被服务器断开：{0}。在你重新连接之前将保持断开。</value>
     <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>包含子频道</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} 及子频道</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
   </data>
 </root>
