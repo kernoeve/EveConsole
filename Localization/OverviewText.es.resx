@@ -514,6 +514,12 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>Tienes {0} correos de EVE sin leer.</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>Tienes {0} mensajes de Jabber sin leer.</value>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>Tienes {0} mensaje de Jabber sin leer.</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>A {0} ({1}) se le acaba el combustible en {2}</value>
   </data>

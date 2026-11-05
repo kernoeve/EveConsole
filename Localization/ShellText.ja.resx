@@ -142,6 +142,9 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>EVEメール</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>通知</value>
   </data>

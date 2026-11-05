@@ -684,6 +684,14 @@
     <value>You have {0} unread EVE mails.</value>
     <comment>Overview alert, clicked to open the EVE Mail tool. {0} is the number of unread mails across the user's characters.</comment>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>You have {0} unread Jabber messages.</value>
+    <comment>Overview alert. {0} = unread messages needing attention. Clicking opens them.</comment>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>You have {0} unread Jabber message.</value>
+    <comment>Overview alert, one message. {0} = 1.</comment>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0} ({1}) runs out of fuel in {2}</value>
     <comment>Overview alert: {0} structure, {1} system, {2} time left ("2d 4h").</comment>

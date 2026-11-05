@@ -167,6 +167,10 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>Eve Mail</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+    <comment>Navigation: the Jabber chat tool.</comment>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notifications</value>
   </data>

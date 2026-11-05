@@ -484,6 +484,9 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>읽지 않은 EVE 메일이 {0}개 있습니다.</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>읽지 않은 Jabber 메시지가 {0}개 있습니다.</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0}({1})의 연료가 {2} 후에 떨어집니다</value>
   </data>

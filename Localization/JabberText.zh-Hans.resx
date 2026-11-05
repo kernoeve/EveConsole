@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>可以聊天</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>长时间离开</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>请勿打扰</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>出现我的名字或关键词时</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>每条消息</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>从不</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>想添加你</value>
+  </data>
+  <data name="HeadingRooms" xml:space="preserve">
+    <value>聊天室</value>
+  </data>
+  <data name="HeadingPeople" xml:space="preserve">
+    <value>联系人</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>连接已断开，将在 {0} 重试</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>服务器拒绝登录。请检查密码。</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>服务器证书不受信任。</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>服务器不提供加密，因此未发送任何内容。</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>此登录已在其他位置连接，因此已断开。</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>该昵称已被使用。</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>此聊天室需要密码。</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>你已被此聊天室封禁。</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>此聊天室仅限成员。</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>此聊天室不存在。</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>无法加入此聊天室。</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>你</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>未连接，因此未发送。</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0} 的证书，指纹：
+{1}
+
+仅在它与服务器管理员公布的内容一致时才信任。之后将只接受此证书。</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>地址格式应为 name@domain。</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>请输入此登录的密码。</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>删除“{0}”及其保存的所有消息？此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>将 {0} 从联系人中移除？</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>服务器未列出聊天室。你仍可以输入聊天室名称。</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>添加 Jabber 服务器，即可在此聊天，无需单独的客户端。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>添加服务器</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>请在左侧选择服务器、聊天室或联系人。</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>断开</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>信任此证书</value>
+  </data>
+  <data name="JoinRoom" xml:space="preserve">
+    <value>加入聊天室</value>
+  </data>
+  <data name="BrowseRooms" xml:space="preserve">
+    <value>浏览聊天室</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>加入</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>离开聊天室</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>添加联系人</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>移除联系人</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>接受</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>加载更早的消息</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>登录名 (name@domain)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>留空则保留已保存的密码。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>服务器主机（可选）</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>留空时根据登录域名查找服务器。如果你的团体指定了主机，请填写。</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>端口</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>从一开始就加密（通常为端口 5223）</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>聊天室昵称（可选）</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>资源（可选）</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>应用启动时连接</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>否则仅在你要求时连接。无论哪种方式，连接丢失后都会自动重连，直到你断开。</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>提醒关键词，以逗号分隔</value>
+  </data>
+  <data name="LabelRoom" xml:space="preserve">
+    <value>聊天室</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>提醒我</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>地址 (name@domain)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>需要注意的消息播放提示音</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>已读消息保留天数（0 表示全部保留）</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>输入消息。Enter 发送，Shift+Enter 换行。</value>
+  </data>
+</root>

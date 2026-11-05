@@ -554,6 +554,7 @@ public class App : Application
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
+                if (Services is not null) tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -2640,6 +2641,51 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberAccounts" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Address"            TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 5222,
+                        "DirectTls"          INTEGER NOT NULL DEFAULT 0,
+                        "Resource"           TEXT    NOT NULL DEFAULT '',
+                        "Nickname"           TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "AlertWords"         TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberRooms" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "AccountId" INTEGER NOT NULL DEFAULT 0,
+                        "RoomJid"   TEXT    NOT NULL DEFAULT '',
+                        "Name"      TEXT    NOT NULL DEFAULT '',
+                        "Nickname"  TEXT    NOT NULL DEFAULT '',
+                        "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberRooms_Room" ON "JabberRooms" ("AccountId", "RoomJid")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberMessages" (
+                        "Id"           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "AccountId"    INTEGER NOT NULL DEFAULT 0,
+                        "Conversation" TEXT    NOT NULL DEFAULT '',
+                        "IsRoom"       INTEGER NOT NULL DEFAULT 0,
+                        "Sender"       TEXT    NOT NULL DEFAULT '',
+                        "Body"         TEXT    NOT NULL DEFAULT '',
+                        "SentAt"       TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
+                        "IsRead"       INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"      INTEGER NOT NULL DEFAULT 0,
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
                         "CharacterId"          INTEGER NOT NULL,
                         "DenId"                INTEGER NOT NULL,
@@ -4222,6 +4268,7 @@ public class App : Application
 
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
+        _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
@@ -4913,6 +4960,7 @@ public class App : Application
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmMuteState>();
+        services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();

@@ -275,6 +275,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public SystemIndexViewModel           SystemIndexVm          { get; }
+    public JabberViewModel                JabberVm               { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -494,6 +495,25 @@ public class MainWindowViewModel : ReactiveObject
     /// timer rather than the clock's, because it costs a query — and off the UI thread, since
     /// SQLite has no real async I/O and awaiting it here would freeze the window.
     /// </summary>
+    /// <summary>
+    /// Keeps the Overview's alert in step with unread Jabber messages. It re-reads a lot, so a burst of
+    /// messages gets one refresh, and it never waits for its minute: a ping should show when it lands,
+    /// and reading one should clear it.
+    /// </summary>
+    private void WatchJabberAlerts(EveConsole.Services.Jabber.JabberService jabber)
+    {
+        var queued = 0;
+        jabber.UnreadChanged += () =>
+        {
+            if (Interlocked.Exchange(ref queued, 1) == 1) return;
+            _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
+            {
+                Interlocked.Exchange(ref queued, 0);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OverviewVm.LoadAsync());
+            }, TaskScheduler.Default);
+        };
+    }
+
     private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
@@ -951,6 +971,7 @@ public class MainWindowViewModel : ReactiveObject
             "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
+            "jabber"         => (ShellText.NavJabber,        JabberVm,          true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
             "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
             "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
@@ -1100,6 +1121,7 @@ public class MainWindowViewModel : ReactiveObject
         KillmailBrowserService          killmailBrowserService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
+        EveConsole.Services.Jabber.JabberService jabberService,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
         TimerForceService               timerForce,
@@ -1231,6 +1253,7 @@ public class MainWindowViewModel : ReactiveObject
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
+        JabberVm          = new JabberViewModel(jabberService, appPrefs, alarmSounds, alarmMute);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1253,6 +1276,8 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.NavigateToEveMail           = () => { OpenTool("eve_mail"); EveMailVm.ShowUnread(); };
+        OverviewVm.NavigateToJabber            = () => { OpenTool("jabber"); _ = JabberVm.ShowUnreadAsync(); };
+        WatchJabberAlerts(jabberService);
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1599,6 +1624,7 @@ public class MainWindowViewModel : ReactiveObject
             new("communication", ShellText.NavGroupCommunication,
             [
                 new NavItem("eve_mail", ShellText.NavEveMail),
+                new NavItem("jabber", ShellText.NavJabber),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),
             new("data", ShellText.NavGroupData,

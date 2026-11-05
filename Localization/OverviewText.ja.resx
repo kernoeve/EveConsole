@@ -484,6 +484,9 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>未読の EVE メールが {0} 件あります。</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>未読の Jabber メッセージが {0} 件あります。</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0}（{1}）の燃料が {2} 後に切れます</value>
   </data>

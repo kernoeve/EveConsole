@@ -113,6 +113,12 @@ jobs:
       - name: Slack rich format check
         run: dotnet run --project tools/SlackRichCheck/SlackRichCheck.csproj -c Release
 
+      # ⚠️ Does the Jabber client still refuse what it must? A server offering no encryption gets no
+      # password, a forged carbon puts no words in anyone's mouth, a reconnect's replayed history sets off
+      # no alerts, and private conversations stay out of the agent's reach. None of it shows from outside.
+      - name: Jabber check
+        run: dotnet run --project tools/JabberCheck/JabberCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>온라인</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>대화 가능</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>자리 비움</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>오래 자리 비움</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>방해 금지</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>내 이름이나 키워드가 나올 때</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>모든 메시지</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>알리지 않음</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>추가를 요청함</value>
+  </data>
+  <data name="HeadingRooms" xml:space="preserve">
+    <value>대화방</value>
+  </data>
+  <data name="HeadingPeople" xml:space="preserve">
+    <value>사람</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>연결됨</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>연결 중…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>연결이 끊겼습니다. {0}에 다시 시도합니다</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>연결 안 됨</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>서버가 로그인을 거부했습니다. 비밀번호를 확인하세요.</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>서버 인증서를 신뢰할 수 없습니다.</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>서버가 암호화를 제공하지 않아 아무것도 보내지 않았습니다.</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>이 계정이 다른 곳에서 접속하여 연결이 끊겼습니다.</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>이미 사용 중인 대화명입니다.</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>이 대화방에는 비밀번호가 필요합니다.</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>이 대화방에서 차단되었습니다.</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>회원 전용 대화방입니다.</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>존재하지 않는 대화방입니다.</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>대화방에 들어갈 수 없습니다.</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>나</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>연결되지 않아 보내지 못했습니다.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0}의 인증서, 지문:
+{1}
+
+서버 관리자가 공개한 값과 일치할 때만 신뢰하세요. 이후에는 이 인증서만 허용합니다.</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>주소는 name@domain 형식이어야 합니다.</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>이 계정의 비밀번호를 입력하세요.</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>"{0}"과(와) 저장된 모든 메시지를 삭제할까요? 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>{0}을(를) 연락처에서 삭제할까요?</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>서버에 표시된 대화방이 없습니다. 이름을 직접 입력할 수 있습니다.</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Jabber 서버를 추가하면 별도 클라이언트 없이 여기서 대화할 수 있습니다.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>서버 추가</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>왼쪽에서 서버, 대화방 또는 사람을 선택하세요.</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>연결</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>연결 끊기</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>편집</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>이 인증서 신뢰</value>
+  </data>
+  <data name="JoinRoom" xml:space="preserve">
+    <value>대화방 참가</value>
+  </data>
+  <data name="BrowseRooms" xml:space="preserve">
+    <value>대화방 찾아보기</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>참가</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>대화방 나가기</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>연락처 추가</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>연락처 삭제</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>수락</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>거절</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>보내기</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>이전 메시지 불러오기</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>로그인 (name@domain)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>비밀번호</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>비워 두면 저장된 비밀번호를 유지합니다.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>서버 호스트 (선택)</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>비워 두면 로그인 도메인에서 서버를 찾습니다. 그룹에서 지정한 호스트가 있으면 입력하세요.</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>포트</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>처음부터 암호화 (보통 포트 5223)</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>대화방 대화명 (선택)</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>리소스 (선택)</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>앱 시작 시 연결</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>그렇지 않으면 요청할 때만 연결합니다. 어느 쪽이든 연결이 끊기면 직접 끊을 때까지 자동으로 다시 연결합니다.</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>알림 키워드 (쉼표로 구분)</value>
+  </data>
+  <data name="LabelRoom" xml:space="preserve">
+    <value>대화방</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>알림</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>주소 (name@domain)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>확인이 필요한 메시지에 소리 재생</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>읽은 메시지 보관 기간 (일, 0은 전부 보관)</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>메시지를 입력하세요. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
+  </data>
+</root>

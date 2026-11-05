@@ -382,6 +382,7 @@ public class OverviewViewModel : ReactiveObject
     /// <summary>The Contracts tool on every character and personal corporation, active only, soonest to expire first.</summary>
     public Action?          NavigateToActiveContracts               { get; set; }
     public Action?          NavigateToEveMail                       { get; set; }
+    public Action?          NavigateToJabber                        { get; set; }
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
@@ -1749,6 +1750,19 @@ public class OverviewViewModel : ReactiveObject
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadMailAlert", ex); }
         }
+
+        // Jabber messages waiting to be read. Opening the conversation is what clears this.
+        try
+        {
+            var waiting = await Off(() => _db.JabberMessages.AsNoTracking().CountAsync(m => !m.IsRead && m.IsAlert));
+            if (waiting > 0)
+                newAlerts.Add(new AlertRowVm
+                {
+                    Message = Counted(nameof(OverviewText.AlertUnreadJabberOther), waiting),
+                    NavigateCommand = NavigateToJabber is not null ? ReactiveCommand.Create(NavigateToJabber) : null,
+                });
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadJabberAlert", ex); }
 
         // Structures — fuel, attacks and fit — for the corporations with structure alerts on.
         // An attack is dismissed like an asset safety alert: every copy of it, for good.

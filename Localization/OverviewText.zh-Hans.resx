@@ -484,6 +484,9 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>你有 {0} 封未读的 EVE 邮件。</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>你有 {0} 条未读 Jabber 消息。</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0}（{1}）的燃料将在 {2} 后耗尽</value>
   </data>

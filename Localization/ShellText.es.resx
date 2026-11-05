@@ -142,6 +142,9 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>Correo de EVE</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notificaciones</value>
   </data>

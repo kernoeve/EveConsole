@@ -568,6 +568,18 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>У вас {0} непрочитанного письма EVE.</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщений Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное сообщение Jabber.</value>
+  </data>
   <data name="AlertUnreadMailFew" xml:space="preserve">
     <value>У вас {0} непрочитанных письма EVE.</value>
   </data>

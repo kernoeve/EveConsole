@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>En ligne</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>Disponible pour discuter</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>Absent pour un moment</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>Ne pas déranger</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>Quand mon nom ou un mot-clé apparaît</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>Chaque message</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>Jamais</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>Souhaite vous ajouter</value>
+  </data>
+  <data name="HeadingRooms" xml:space="preserve">
+    <value>Salons</value>
+  </data>
+  <data name="HeadingPeople" xml:space="preserve">
+    <value>Personnes</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Connexion…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Connexion perdue, nouvel essai à {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Le serveur a refusé la connexion. Vérifiez le mot de passe.</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Le certificat du serveur n'est pas approuvé.</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Le serveur ne propose pas de chiffrement, rien n'a donc été envoyé.</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>Déconnecté car cet identifiant s'est connecté ailleurs.</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>Ce pseudo est déjà utilisé.</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>Ce salon nécessite un mot de passe.</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>Vous êtes banni de ce salon.</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>Ce salon est réservé aux membres.</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>Ce salon n'existe pas.</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>Impossible de rejoindre ce salon.</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>Vous</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Non connecté, le message n'a pas été envoyé.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Certificat de {0}, empreinte :
+{1}
+
+Faites-lui confiance seulement s'il correspond à ce que l'administrateur du serveur a publié. Ensuite, seul ce certificat sera accepté.</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>L'adresse doit ressembler à nom@domaine.</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Saisissez le mot de passe de cet identifiant.</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>Supprimer « {0} » et tous ses messages enregistrés ? Cette action est irréversible.</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>Retirer {0} de vos contacts ?</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>Le serveur n'affiche aucun salon. Vous pouvez quand même saisir un nom.</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Ajoutez un serveur Jabber pour discuter ici, sans client séparé.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Ajouter un serveur</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Choisissez un serveur, un salon ou une personne à gauche.</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Faire confiance à ce certificat</value>
+  </data>
+  <data name="JoinRoom" xml:space="preserve">
+    <value>Rejoindre un salon</value>
+  </data>
+  <data name="BrowseRooms" xml:space="preserve">
+    <value>Parcourir les salons</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Rejoindre</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>Quitter le salon</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>Ajouter un contact</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>Retirer le contact</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>Accepter</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>Charger les messages précédents</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>Identifiant (nom@domaine)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Laissez vide pour conserver le mot de passe enregistré.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Hôte du serveur (facultatif)</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>Vide, le serveur est trouvé via le domaine de l'identifiant. Renseignez-le si votre groupe indique un hôte précis.</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>Chiffré dès le départ (généralement port 5223)</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>Pseudo dans les salons (facultatif)</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>Ressource (facultatif)</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Se connecter au démarrage de l'application</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Sinon, il ne se connecte que sur demande. Dans les deux cas, il se reconnecte seul en cas de perte, jusqu'à ce que vous vous déconnectiez.</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>Mots-clés d'alerte, séparés par des virgules</value>
+  </data>
+  <data name="LabelRoom" xml:space="preserve">
+    <value>Salon</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>M'alerter</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>Adresse (nom@domaine)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Émettre un son pour les messages importants</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>Conserver les messages lus (jours, 0 = tous)</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Écrivez un message. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
+  </data>
+</root>

@@ -1,0 +1,314 @@
+// The Jabber client's rules: the login's arithmetic, what is refused, and what counts as read.
+// Needs no server: what a real one does is checked against a throwaway Openfire by hand.
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Xml.Linq;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
+using EveConsole.Services.Jabber;
+using Microsoft.EntityFrameworkCore;
+
+var checks = 0;
+var failures = new List<string>();
+
+void Check(string name, bool ok, string detail = "")
+{
+    checks++;
+    if (!ok) failures.Add($"  FAIL  {name}{(detail.Length > 0 ? " | " + detail : "")}");
+}
+
+// ── Addresses ─────────────────────────────────────────────────────────────────
+{
+    var a = XmppAddress.Parse("Name@Domain.COM/Some Resource");
+    Check("address: local and domain lower, resource kept", a.Bare == "name@domain.com" && a.Resource == "Some Resource", a.Full);
+    Check("address: a server alone", XmppAddress.Parse("conference.example").Bare == "conference.example");
+    Check("address: nothing", XmppAddress.Parse(null).Bare.Length == 0);
+    Check("address: a room nickname may hold a slash", XmppAddress.Parse("r@c.example/a/b").Resource == "a/b");
+}
+
+// ── The login, against the published test vectors ─────────────────────────────
+{
+    // RFC 5802, section 5.
+    var sha1 = new XmppScram("SCRAM-SHA-1", "user", "pencil", "fyko+d2lbbFgONRv9qkxdawL");
+    Check("scram: first message", sha1.ClientFirst() == "n,,n=user,r=fyko+d2lbbFgONRv9qkxdawL", sha1.ClientFirst());
+    var final1 = sha1.ClientFinal("r=fyko+d2lbbFgONRv9qkxdawL3rfcNHYJY1ZVvWVs7j,s=QSXCR+Q6sek8bf92,i=4096");
+    Check("scram sha-1: the RFC's proof", final1 == "c=biws,r=fyko+d2lbbFgONRv9qkxdawL3rfcNHYJY1ZVvWVs7j,p=v0X8v3Bz2T0CJGbJQyF0X+HI4Ts=", final1);
+    Check("scram sha-1: the server's signature is checked", sha1.ServerIsGenuine("v=rmF9pqV8S7suAoZWja4dJRkFsKQ="));
+    Check("scram: a wrong signature is refused", !sha1.ServerIsGenuine("v=AAAAAAAAAAAAAAAAAAAAAAAAAAA="));
+    Check("scram: no signature is refused", !sha1.ServerIsGenuine(""));
+
+    // RFC 7677, section 3.
+    var sha256 = new XmppScram("SCRAM-SHA-256", "user", "pencil", "rOprNGfwEbeRWgbNEkqO");
+    var final256 = sha256.ClientFinal("r=rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0,s=W22ZaJ0SNY7soEsUEjb6gQ==,i=4096");
+    Check("scram sha-256: the RFC's proof", final256.EndsWith(",p=dHzbZapWIk4jUhN+Ute9ytag9zjfMHgsqmmiz7AndVQ=", StringComparison.Ordinal), final256);
+    Check("scram sha-256: the server's signature is checked", sha256.ServerIsGenuine("v=6rriTRBi23WpRR/wtup+mMhUZUn/dB5nLTJRsjl95G4="));
+
+    bool Refused(string challenge)
+    {
+        try { new XmppScram("SCRAM-SHA-256", "user", "pencil", "abc").ClientFinal(challenge); return false; }
+        catch (XmppException e) { return e.Failure == XmppFailure.Login; }
+    }
+    Check("scram: a nonce not extending ours is refused", Refused("r=zzz,s=W22ZaJ0SNY7soEsUEjb6gQ==,i=4096"));
+    Check("scram: a hostile iteration count is refused", Refused("r=abcd,s=W22ZaJ0SNY7soEsUEjb6gQ==,i=2000000000"));
+    Check("scram: bad salt is refused", Refused("r=abcd,s=!!!,i=4096"));
+    Check("scram: a name with = and , is escaped", new XmppScram("SCRAM-SHA-1", "a=b,c", "p", "n").ClientFirst() == "n,,n=a=3Db=2Cc,r=n");
+}
+
+// ── Reading messages ──────────────────────────────────────────────────────────
+{
+    var self = XmppAddress.Parse("me@example/here");
+    var client = XmppClient.Client;
+
+    XElement Message(string from, string body, string type = "chat", params object[] extra) =>
+        new(client + "message", new XAttribute("from", from), new XAttribute("to", self.Full), new XAttribute("type", type), new XAttribute("id", "m1"),
+            new XElement(client + "body", body), extra);
+
+    var plain = XmppClient.ParseMessage(Message("them@example/x", "hello"), self);
+    Check("message: plain", plain is { Body: "hello", FromThisAccount: false, Sent: null } && plain.From.Bare == "them@example");
+
+    XElement Carbon(string from, string kind, string innerFrom, string innerTo) =>
+        new(client + "message", new XAttribute("from", from), new XAttribute("to", self.Full),
+            new XElement(XmppClient.Carbons + kind, new XElement(XmppClient.Forward + "forwarded",
+                new XElement(client + "message", new XAttribute("from", innerFrom), new XAttribute("to", innerTo), new XAttribute("type", "chat"),
+                    new XElement(client + "body", "copied")))));
+
+    var sent = XmppClient.ParseMessage(Carbon("me@example", "sent", "me@example/other", "them@example"), self);
+    Check("carbon: what this account sent elsewhere", sent is { FromThisAccount: true, Body: "copied" } && sent.To.Bare == "them@example");
+    var received = XmppClient.ParseMessage(Carbon("me@example", "received", "them@example/x", "me@example/other"), self);
+    Check("carbon: what it received elsewhere, as theirs", received is { FromThisAccount: false } && received.From.Bare == "them@example");
+    Check("carbon: from anyone else is refused, or they could put words in anyone's mouth",
+          XmppClient.ParseMessage(Carbon("evil@example", "sent", "me@example/other", "them@example"), self) is null);
+
+    var delayed = XmppClient.ParseMessage(Message("them@example/x", "old", "chat",
+        new XElement(XmppClient.Delay + "delay", new XAttribute("stamp", "2026-11-05T01:02:03Z"))), self);
+    Check("delay: when it was really sent", delayed?.Sent == new DateTimeOffset(2026, 11, 5, 1, 2, 3, TimeSpan.Zero), delayed?.Sent?.ToString() ?? "none");
+    var oldDelay = XmppClient.ParseMessage(Message("them@example/x", "old", "chat",
+        new XElement(XmppClient.OldDelay + "x", new XAttribute("stamp", "20261105T01:02:03"))), self);
+    Check("delay: the old form too", oldDelay?.Sent == new DateTimeOffset(2026, 11, 5, 1, 2, 3, TimeSpan.Zero));
+    Check("message: an error is not a message", XmppClient.ParseMessage(Message("them@example", "x", "error"), self) is null);
+
+    Check("clean: what XML cannot carry goes, the rest stays", XmppClient.Clean("a\u0001b\nc\td￾") == "ab\nc\td");
+}
+
+// ── What calls for attention ──────────────────────────────────────────────────
+{
+    Check("word: alone", JabberService.ContainsWord("is alice here?", "Alice"));
+    Check("word: at the edges", JabberService.ContainsWord("alice", "alice"));
+    Check("word: not inside another", !JabberService.ContainsWord("malice aforethought", "alice"));
+    Check("word: found after a false start", JabberService.ContainsWord("malice alice", "alice"));
+
+    var account = new JabberAccount { Id = 7, Address = "me@example", AlertWords = "fleet, cta" };
+    var room = new JabberRoom { RoomJid = "r@c.example", AlertMode = JabberRoomAlert.Mentions };
+    var now = new DateTimeOffset(2026, 11, 5, 12, 0, 0, TimeSpan.Zero);
+    XmppMessage Dm(string body, DateTimeOffset? sent = null) => new(XmppAddress.Parse("bot@example/x"), XmppAddress.Parse("me@example"), "chat", body, "", "i1", sent, "", false);
+    XmppMessage InRoom(string nick, string body, DateTimeOffset? sent = null) => new(XmppAddress.Parse($"r@c.example/{nick}"), XmppAddress.Parse("me@example"), "groupchat", body, "", "i2", sent, "", false);
+
+    var live = JabberService.ToStored(account, null, null, Dm("ping"), now);
+    Check("dm: unread and an alert", live is { IsRead: false, IsAlert: true, IsOutgoing: false, IsRoom: false, Conversation: "bot@example" });
+    var waited = JabberService.ToStored(account, null, null, Dm("ping", now.AddHours(-3)), now);
+    Check("dm: one that waited on the server is what they came back for", waited is { IsRead: false, IsAlert: true });
+    Check("dm: carries when it was really sent", waited.SentAt == "2026-11-05T09:00:00Z", waited.SentAt);
+    var normal = new XmppMessage(XmppAddress.Parse("bot@example"), XmppAddress.Parse("me@example"), "headline", "broadcast", "", "i", null, "", false);
+    Check("dm: a bot's headline or normal message counts as direct", JabberService.ToStored(account, null, null, normal, now) is { IsRoom: false, IsAlert: true });
+
+    var mine = JabberService.ToStored(account, null, null, new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("them@example"), "chat", "hi", "", "i", null, "", true), now);
+    Check("dm: what I said elsewhere is in their conversation, already read", mine is { Conversation: "them@example", IsOutgoing: true, IsRead: true, IsAlert: false });
+
+    Check("room: talk is unread, no alert", JabberService.ToStored(account, "Me", room, InRoom("Them", "hello"), now) is { IsRead: false, IsAlert: false, IsRoom: true, Sender: "Them" });
+    Check("room: my nickname alerts", JabberService.ToStored(account, "Me", room, InRoom("Them", "hey me!"), now).IsAlert);
+    Check("room: a keyword alerts", JabberService.ToStored(account, "Me", room, InRoom("Them", "FLEET up"), now).IsAlert);
+    Check("room: my own echo is read, not an alert", JabberService.ToStored(account, "Me", room, InRoom("Me", "hey me"), now) is { IsOutgoing: true, IsRead: true, IsAlert: false });
+    Check("room: replayed history is read, not an alert", JabberService.ToStored(account, "Me", room, InRoom("Them", "hey me", now.AddHours(-1)), now) is { IsRead: true, IsAlert: false });
+
+    var all = new JabberRoom { AlertMode = JabberRoomAlert.All };
+    var none = new JabberRoom { AlertMode = JabberRoomAlert.None };
+    Check("room: set to everything", JabberService.ToStored(account, "Me", all, InRoom("Them", "x"), now).IsAlert);
+    Check("room: set to nothing, even naming me", !JabberService.ToStored(account, "Me", none, InRoom("Them", "hey me"), now).IsAlert);
+
+    var pm = JabberService.ToStored(account, null, null, new XmppMessage(XmppAddress.Parse("r@c.example/Them"), XmppAddress.Parse("me@example"), "chat", "psst", "", "i", null, "", false), now, privateInRoom: true);
+    Check("room: a private message is its own conversation, and an alert", pm is { Conversation: "r@c.example/Them", IsRoom: false, IsAlert: true, Sender: "Them" });
+
+    Check("nick: the room's, then the account's, then the login's",
+          JabberService.NicknameFor(new JabberAccount { Address = "me@x", Nickname = "A" }, new JabberRoom { Nickname = "R" }) == "R"
+          && JabberService.NicknameFor(new JabberAccount { Address = "me@x", Nickname = "A" }, null) == "A"
+          && JabberService.NicknameFor(new JabberAccount { Address = "me@x" }, null) == "me");
+
+    var id1 = new XmppMessage(XmppAddress.Parse("a@x"), XmppAddress.Parse("b@x"), "chat", "same", "", "id", null, "srv", false);
+    var id2 = id1 with { Id = "other" };
+    Check("dedupe: the server's id wins", JabberService.DedupeKey("c", "s", id1) == JabberService.DedupeKey("c", "s", id2));
+    var noServer = id1 with { ServerId = "" };
+    Check("dedupe: then the sender's", JabberService.DedupeKey("c", "s", noServer) != JabberService.DedupeKey("c", "other", noServer));
+    var bare = id1 with { ServerId = "", Id = "", Sent = now };
+    Check("dedupe: then the words and time", JabberService.DedupeKey("c", "s", bare) == JabberService.DedupeKey("c", "s", bare));
+    var unstamped = id1 with { ServerId = "", Id = "" };
+    Check("dedupe: two with nothing to go on are not one", JabberService.DedupeKey("c", "s", unstamped) != JabberService.DedupeKey("c", "s", unstamped));
+    Check("resource: this machine's own, stable", JabberService.MachineResource() == JabberService.MachineResource() && JabberService.MachineResource().StartsWith("EVEConsole-", StringComparison.Ordinal));
+}
+
+// ── Where to connect ──────────────────────────────────────────────────────────
+{
+    var a = new XmppEndpoint("a.example", 5222, false);
+    var b = new XmppEndpoint("b.example", 5223, true);
+    var ordered = XmppDns.Order("d.example", [(20, 0, a), (10, 0, b)]);
+    Check("dns: lowest priority first, then the domain itself", ordered.SequenceEqual([b, a, new XmppEndpoint("d.example", 5222, false)]));
+    Check("dns: heavier first within a priority", XmppDns.Order("d", [(10, 1, a), (10, 9, b)])[0] == b);
+    Check("dns: no records, the domain on the usual port", XmppDns.Order("d", []).SequenceEqual([new XmppEndpoint("d", 5222, false)]));
+    Check("dns: the domain is not listed twice", XmppDns.Order("d", [(1, 1, new XmppEndpoint("d", 5222, false))]).Count == 1);
+}
+
+// ── A server offering no encryption gets no credentials ───────────────────────
+{
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+    var seen = new StringBuilder();
+
+    var server = Task.Run(async () =>
+    {
+        using var peer = await listener.AcceptTcpClientAsync();
+        var stream = peer.GetStream();
+        var buffer = new byte[4096];
+        var n = await stream.ReadAsync(buffer);
+        seen.Append(Encoding.UTF8.GetString(buffer, 0, n));
+
+        // Features with no starttls, and PLAIN on offer: the bait.
+        var answer = "<?xml version='1.0'?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' id='1' version='1.0'>"
+                   + "<stream:features><mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl'><mechanism>PLAIN</mechanism></mechanisms></stream:features>";
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(answer));
+
+        try
+        {
+            while ((n = await stream.ReadAsync(buffer)) > 0) seen.Append(Encoding.UTF8.GetString(buffer, 0, n));
+        }
+        catch (IOException) { /* the client went, as it should */ }
+    });
+
+    XmppFailure? failure = null;
+    await using (var c = new XmppConnection(new XmppLogin("me@example", "secret-password", "127.0.0.1", port)))
+    {
+        try { await c.ConnectAsync(new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token); }
+        catch (XmppException e) { failure = e.Failure; }
+    }
+    await server.WaitAsync(TimeSpan.FromSeconds(5));
+    listener.Stop();
+
+    Check("no encryption: refused, and not after a hang", failure == XmppFailure.NoEncryption, failure?.ToString() ?? "none");
+    Check("no encryption: nothing of the login was sent", !seen.ToString().Contains("auth", StringComparison.Ordinal)
+          && !seen.ToString().Contains(Convert.ToBase64String(Encoding.UTF8.GetBytes("\0me\0secret-password")), StringComparison.Ordinal), seen.ToString());
+}
+
+// ── Nothing listening is a failure to retry, not one that needs the person ────
+{
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+    listener.Stop();
+
+    XmppFailure? failure = null;
+    await using (var c = new XmppConnection(new XmppLogin("me@example", "x", "127.0.0.1", port)))
+    {
+        try { await c.ConnectAsync(CancellationToken.None); }
+        catch (XmppException e) { failure = e.Failure; }
+    }
+    Check("network: nothing there", failure == XmppFailure.Network, failure?.ToString() ?? "none");
+
+    Check("stream error: replaced is its own kind", XmppConnection.StreamError(new XElement(XmppConnection.Streams + "error",
+        new XElement(XNamespace.Get("urn:ietf:params:xml:ns:xmpp-streams") + "conflict"))).Failure == XmppFailure.Replaced);
+}
+
+// ── Saving, reading and forgetting ────────────────────────────────────────────
+var dbPath = Path.Combine(Path.GetTempPath(), $"jabbercheck-{Guid.NewGuid():N}.db");
+try
+{
+    var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={dbPath}").Options;
+    var factory = new Factory(options);
+    await using (var db = factory.CreateDbContext()) await db.Database.EnsureCreatedAsync();
+
+    var service = new JabberService(factory, new AppErrorLogger(null!));
+    var session = new JabberSession(new JabberAccount { Id = 1, Address = "me@example" });
+
+    await using (var db = factory.CreateDbContext())
+    {
+        db.JabberAccounts.Add(session.Account);
+        await db.SaveChangesAsync();
+    }
+
+    var stored = new List<JabberStoredMessage>();
+    var alerts = 0;
+    var unreadChanges = 0;
+    service.MessageStored += stored.Add;
+    service.AlertArrived += _ => alerts++;
+    service.UnreadChanged += () => unreadChanges++;
+
+    XmppMessage From(string who, string id, string body = "hi") =>
+        new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+
+    var first = await service.StoreAsync(session, From("bot@example", "a"));
+    Check("store: saved and announced", first is not null && stored.Count == 1 && alerts == 1 && unreadChanges == 1);
+    var repeat = await service.StoreAsync(session, From("bot@example", "a"));
+    Check("store: the same one again is nothing", repeat is null && stored.Count == 1 && alerts == 1);
+    await service.StoreAsync(session, From("bot@example", "b"));
+    await service.StoreAsync(session, From("other@example", "c"));
+
+    Check("unread: counted for the alert", await service.UnreadAlertsAsync() == 3);
+    var unread = await service.UnreadAsync();
+    Check("unread: by conversation", unread.Single(u => u.Conversation == "bot@example").Count == 2);
+
+    var page = await service.LoadConversationAsync(1, "bot@example");
+    Check("history: oldest first", page.Count == 2 && page[0].Id < page[1].Id);
+    var earlier = await service.LoadConversationAsync(1, "bot@example", page[1].Id, 10);
+    Check("history: paged back", earlier.Count == 1 && earlier[0].Id == page[0].Id);
+    var conversations = await service.ConversationsAsync(1);
+    Check("history: newest conversation first", conversations[0].Conversation == "other@example" && conversations.Count == 2);
+
+    await service.MarkReadAsync(1, "bot@example");
+    Check("read: clears that conversation's alerts", await service.UnreadAlertsAsync() == 1);
+    var before = unreadChanges;
+    await service.MarkReadAsync(1, "bot@example");
+    Check("read: nothing changed, nothing announced", unreadChanges == before);
+
+    // Old read messages go. Unread ones stay, however old.
+    await using (var db = factory.CreateDbContext())
+    {
+        db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = true, DedupeKey = "old-read" });
+        db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = false, DedupeKey = "old-unread" });
+        await db.SaveChangesAsync();
+    }
+    await service.PurgeOldAsync();
+    await using (var db = factory.CreateDbContext())
+    {
+        var left = await db.JabberMessages.Where(m => m.Conversation == "old@example").Select(m => m.DedupeKey).ToListAsync();
+        Check("purge: old read goes, old unread stays", left.SequenceEqual(["old-unread"]), string.Join(",", left));
+        Check("purge: recent stays", await db.JabberMessages.CountAsync(m => m.Conversation == "bot@example") == 2);
+    }
+
+    await using (var db = factory.CreateDbContext())
+    {
+        db.AppPreferences.Add(new AppPreference { Key = JabberService.HistoryDaysPref, Value = "0" });
+        db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = true, DedupeKey = "old-kept" });
+        await db.SaveChangesAsync();
+    }
+    await service.PurgeOldAsync();
+    await using (var db = factory.CreateDbContext())
+        Check("purge: zero keeps everything", await db.JabberMessages.AnyAsync(m => m.DedupeKey == "old-kept"));
+
+    var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
+    Check("agent: Jabber's tables are kept from the in-app agent",
+          !schema.TableNames.Any(t => t.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)) && schema.TableNames.Count > 0);
+}
+finally
+{
+    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+    try { File.Delete(dbPath); } catch (IOException) { /* a temp file, and the result is what matters */ }
+}
+
+Console.WriteLine($"Jabber check: {checks} check(s), {failures.Count} failure(s).");
+foreach (var f in failures) Console.WriteLine(f);
+return failures.Count == 0 ? 0 : 1;
+
+sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
+{
+    public AppDbContext CreateDbContext() => new(o);
+}

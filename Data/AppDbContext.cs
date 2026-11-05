@@ -90,6 +90,9 @@ public class AppDbContext : DbContext
     public DbSet<CorpStructureFit>      CorpStructureFits        => Set<CorpStructureFit>();
     public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
     public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
+    public DbSet<JabberAccount>         JabberAccounts           => Set<JabberAccount>();
+    public DbSet<JabberRoom>            JabberRooms              => Set<JabberRoom>();
+    public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
@@ -1183,6 +1186,22 @@ public class AppDbContext : DbContext
             e.Property(x => x.SkyhookId).ValueGeneratedNever();
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("EsiCorpSkyhookReagents"); });
+
+        mb.Entity<JabberAccount>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("JabberAccounts"); });
+
+        mb.Entity<JabberRoom>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AccountId, x.RoomJid }).IsUnique().HasDatabaseName("IX_JabberRooms_Room");
+            e.ToTable("JabberRooms"); });
+
+        mb.Entity<JabberStoredMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AccountId, x.DedupeKey }).IsUnique().HasDatabaseName("IX_JabberMessages_Dedupe");
+            e.HasIndex(x => new { x.AccountId, x.Conversation, x.Id }).HasDatabaseName("IX_JabberMessages_Conversation");
+            e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_JabberMessages_Unread");
+            e.ToTable("JabberMessages"); });
 
         mb.Entity<CharMercenaryDen>(e => {
             e.HasKey(x => new { x.CharacterId, x.DenId });

@@ -50,6 +50,7 @@
        A runtime guard is not enough — OperatingSystem.IsWindows() still leaves the type
        referenced, and the compiler wants the assembly on every target. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
+    <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 

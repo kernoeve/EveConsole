@@ -412,6 +412,31 @@ public static class AppConfig
     }
 
 
+    // ── Chat and voice logins ─────────────────────────────────────────────────
+    //
+    // ⚠️ Per machine and protected, like the database password. A DPAPI blob can only be opened on the
+    // machine that wrote it, so these could not live in a database several machines read. Each machine
+    // asks once. The reference becomes a keyring key and an argument to macOS's security tool, so it
+    // must stay free of spaces: "jabber-3", "mumble-1".
+
+    /// <summary>The password saved under a reference, or null if none or it cannot be opened here.</summary>
+    public static string? GetServicePassword(string reference)
+    {
+        var stored = Load().ServicePasswords?.GetValueOrDefault(reference);
+        var plain  = SecretStore.Unprotect(stored);
+        return string.IsNullOrEmpty(plain) ? null : plain;
+    }
+
+    /// <summary>Saves a password under a reference, or removes it when given nothing.</summary>
+    public static void SetServicePassword(string reference, string? password)
+    {
+        var c = Load();
+        c.ServicePasswords ??= [];
+        if (string.IsNullOrEmpty(password)) c.ServicePasswords.Remove(reference);
+        else c.ServicePasswords[reference] = SecretStore.Protect(password, reference);
+        Save(c);
+    }
+
     // ── UI state ──────────────────────────────────────────────────────────────
     //
     // A plain key/value bag for the small remembered-view settings: which overlay was showing,
@@ -961,6 +986,8 @@ public static class AppConfig
         [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
         // The Cloudflare API token, protected the same way and for the same reason.
         [JsonPropertyName("cloudflareToken")]    public string? CloudflareToken    { get; set; }
+        // Jabber and Mumble logins, each protected the same way, by a reference like "jabber-3".
+        [JsonPropertyName("servicePasswords")]   public Dictionary<string, string>? ServicePasswords { get; set; }
 
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }

@@ -114,6 +114,10 @@ public sealed class AgentSchema
             var table = entity.GetTableName();
             if (string.IsNullOrEmpty(table)) continue;
 
+            // ⚠️ Private conversations, some of them other people's words, are not for sending to a model
+            // provider because a question happened to reach for a table.
+            if (table.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)) continue;
+
             var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
             var columns = new List<Column>();
 
