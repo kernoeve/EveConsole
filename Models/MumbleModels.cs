@@ -25,17 +25,11 @@ public class MumbleServer
     /// wanted is kept up through a server going away, until they say disconnect.</summary>
     public bool   AutoConnect { get; set; }
 
-    /// <summary>The key that talks to the current channel. Zero for none.</summary>
+    /// <summary>The key that talks only to the current channel, and nothing linked to it. Zero for none.</summary>
     public int    WhisperKey { get; set; }
 
-    /// <summary>The key that shouts: the current channel and what hangs off it. Zero for none.</summary>
+    /// <summary>The key that shouts, the standard client's Push to Talk: the current channel and those linked to it. Zero for none.</summary>
     public int    ShoutKey   { get; set; }
-
-    /// <summary>A shout reaches the channels under this one.</summary>
-    public bool   ShoutChildren { get; set; } = true;
-
-    /// <summary>A shout reaches the channels linked to this one.</summary>
-    public bool   ShoutLinks    { get; set; }
 
     public bool   SelfMuted    { get; set; }
     public bool   SelfDeafened { get; set; }

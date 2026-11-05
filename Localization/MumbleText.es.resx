@@ -107,16 +107,10 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Tokens de acceso (opcional, separados por comas)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Tecla de susurro (habla a tu canal actual)</value>
+    <value>Tecla de susurro (habla solo a tu canal actual)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Tecla de grito</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>El grito llega a los canales bajo el actual</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>El grito llega a los canales enlazados al actual</value>
+    <value>Tecla de grito (pulsar para hablar: tu canal y los canales enlazados)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Estas teclas son solo para este servidor y funcionan mientras esté conectado, aunque la aplicación esté en segundo plano.</value>
@@ -180,5 +174,13 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>grito</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Desde {0}, el susurro llega solo a ese canal. El grito llega también a: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} no tiene canales enlazados, así que el susurro y el grito llegan solo a ese canal.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

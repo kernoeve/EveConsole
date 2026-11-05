@@ -1144,8 +1144,6 @@ public static class PostgresSchema
             "AutoConnect"        BOOLEAN NOT NULL DEFAULT FALSE,
             "WhisperKey"         INTEGER NOT NULL DEFAULT 0,
             "ShoutKey"           INTEGER NOT NULL DEFAULT 0,
-            "ShoutChildren"      BOOLEAN NOT NULL DEFAULT TRUE,
-            "ShoutLinks"         BOOLEAN NOT NULL DEFAULT FALSE,
             "SelfMuted"          BOOLEAN NOT NULL DEFAULT FALSE,
             "SelfDeafened"       BOOLEAN NOT NULL DEFAULT FALSE,
             "LastChannel"        TEXT    NOT NULL DEFAULT '',

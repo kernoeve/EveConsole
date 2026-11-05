@@ -292,6 +292,10 @@ static string RawFile(string path)
 
     Check("keys: different keys are fine", MumbleService.KeyClash(b, [a, b]) is null);
     Check("keys: a server does not clash with itself", MumbleService.KeyClash(a, [a]) is null);
+    Check("talk: shout is plain talk, as the standard client's Push to Talk", MumbleService.TargetOf(MumbleTalk.Shout) == 0);
+    Check("talk: whisper uses a saved target", MumbleService.TargetOf(MumbleTalk.Channel) != 0);
+    Check("talk: whisper's target is the channel alone, no links or subchannels",
+          MumbleClient.ChannelTargetMessage(1, 7).SequenceEqual(new PbWriter().UInt(1, 1).Bytes(2, new PbWriter().UInt(2, 7).ToArray()).ToArray()));
     Check("keys: the same talk key on another server", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7C }, [a]) == "One");
     Check("keys: my shout on their talk", MumbleService.KeyClash(new MumbleServer { Id = 2, ShoutKey = 0x7C }, [a]) == "One");
     Check("keys: my talk on their shout", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7D }, [a]) == "One");
@@ -421,6 +425,13 @@ static string RawFile(string path)
         await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 3).UInt(2, 3).Text(3, "Self").ToArray()));
         await tls.WriteAsync(Frame(MumbleMessage.UserState, new PbWriter().UInt(1, 5).Text(3, "Ann").UInt(5, 2).ToArray()));
 
+        // Links: a chain that closes on itself, one to a channel that does not exist, and one taken away again.
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 10).UInt(2, 0).Text(3, "L1").UInt(6, 11).UInt(6, 99).ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 11).UInt(2, 0).Text(3, "L2").UInt(6, 12).ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 12).UInt(2, 0).Text(3, "L3").UInt(6, 10).ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 13).UInt(2, 0).Text(3, "Lone").UInt(6, 10).ToArray()));
+        await tls.WriteAsync(Frame(MumbleMessage.ChannelState, new PbWriter().UInt(1, 13).UInt(7, 10).ToArray()));
+
         // A voice packet of nothing but negations: the connection should not even notice.
         await tls.WriteAsync(Frame(MumbleMessage.UdpTunnel, new byte[] { 0x80 }.Concat(Enumerable.Repeat((byte)0xF8, 1_000_000)).ToArray()));
 
@@ -442,6 +453,11 @@ static string RawFile(string path)
         Check("hostile: a channel cannot be its own parent", self?.Parent is null, self?.Parent?.ToString() ?? "");
         Check("hostile: walking the tree ends", MumbleService.PathOf(client, 2) == "A/B", MumbleService.PathOf(client, 2));
         Check("hostile: finding a channel ends", MumbleService.FindChannel(client, "A/B/C/D") is null);
+        Check("reach: a link of a link counts, and the walk ends", client.LinkedChannels(10).Order().SequenceEqual(new uint[] { 11, 12 }), string.Join(",", client.LinkedChannels(10)));
+        Check("reach: from anywhere along the chain, never itself", client.LinkedChannels(12).Order().SequenceEqual(new uint[] { 10, 11 }), string.Join(",", client.LinkedChannels(12)));
+        Check("reach: a link taken away is gone", client.LinkedChannels(13).Count == 0, string.Join(",", client.LinkedChannels(13)));
+        Check("reach: a channel below another is not reached by being below it", client.LinkedChannels(0).Count == 0, string.Join(",", client.LinkedChannels(0)));
+        Check("reach: an unknown channel reaches nothing", client.LinkedChannels(999).Count == 0);
         Check("hostile: still connected after all that", client.Me?.Name == "Ann");
         Check("hostile: wrong-sized keys mean no UDP, not a failure", !client.IsUsingUdp);
     }

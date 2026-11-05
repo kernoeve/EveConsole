@@ -456,16 +456,37 @@ public sealed class MumbleClient : IAsyncDisposable
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(2, session).Text(5, message).ToArray(), ct);
 
     /// <summary>
-    /// Saves where a voice target sends to. Shout is a channel with what hangs off it, set again whenever
-    /// this client moves, because the target names a channel by id rather than "wherever I am".
+    /// Saves a voice target that reaches this one channel and nothing linked to it or under it. It is set again
+    /// whenever this client moves, because the target names a channel by id rather than "wherever I am".
     /// </summary>
-    public Task SetChannelTargetAsync(int targetId, uint channel, bool children, bool links, CancellationToken ct)
-    {
-        var target = new PbWriter().UInt(2, channel);
-        if (links) target.Bool(4, true);
-        if (children) target.Bool(5, true);
+    public Task SetChannelTargetAsync(int targetId, uint channel, CancellationToken ct) =>
+        SendAsync(MumbleMessage.VoiceTarget, ChannelTargetMessage(targetId, channel), ct);
 
-        return SendAsync(MumbleMessage.VoiceTarget, new PbWriter().UInt(1, (ulong)targetId).Bytes(2, target.ToArray()).ToArray(), ct);
+    public static byte[] ChannelTargetMessage(int targetId, uint channel) =>
+        new PbWriter().UInt(1, (ulong)targetId).Bytes(2, new PbWriter().UInt(2, channel).ToArray()).ToArray();
+
+    /// <summary>
+    /// The other channels that plain talk from this one reaches. The server follows links onward, so a link of a
+    /// link counts. Being linked is not always enough: a channel's own permissions can still keep someone from
+    /// being heard in it.
+    /// </summary>
+    public IReadOnlyList<uint> LinkedChannels(uint channel)
+    {
+        lock (_gate)
+        {
+            var seen = new HashSet<uint> { channel };
+            var waiting = new Queue<uint>();
+            waiting.Enqueue(channel);
+            var found = new List<uint>();
+
+            while (waiting.TryDequeue(out var at))
+            {
+                if (!_channels.TryGetValue(at, out var current)) continue;
+                foreach (var link in current.Links)
+                    if (_channels.ContainsKey(link) && seen.Add(link)) { found.Add(link); waiting.Enqueue(link); }
+            }
+            return found;
+        }
     }
 
     public Task CreateChannelAsync(uint parent, string name, bool temporary, CancellationToken ct)

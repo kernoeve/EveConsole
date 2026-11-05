@@ -107,16 +107,10 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Jetons d'accès (facultatif, séparés par des virgules)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Touche de chuchotement (parle à votre canal actuel)</value>
+    <value>Touche de chuchotement (parle uniquement à votre canal actuel)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Touche de cri</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>Un cri atteint les canaux sous le canal actuel</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>Un cri atteint les canaux liés au canal actuel</value>
+    <value>Touche de cri (appuyer pour parler : votre canal et les canaux liés)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Ces touches sont propres à ce serveur et fonctionnent tant qu'il est connecté, même avec l'application en arrière-plan.</value>
@@ -180,5 +174,13 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>cri</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Depuis {0}, le chuchotement n'atteint que ce canal. Le cri atteint aussi : {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} n'a aucun canal lié : le chuchotement et le cri n'atteignent donc que ce canal.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

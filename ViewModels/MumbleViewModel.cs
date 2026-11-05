@@ -321,6 +321,9 @@ public sealed class MumbleViewModel : ReactiveObject
     private string _keysText = "";
     public string KeysText { get => _keysText; private set => this.RaiseAndSetIfChanged(ref _keysText, value); }
 
+    private string _reachText = "";
+    public string ReachText { get => _reachText; private set => this.RaiseAndSetIfChanged(ref _reachText, value); }
+
     private void ShowChosen()
     {
         foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ChatHint) })
@@ -345,6 +348,20 @@ public sealed class MumbleViewModel : ReactiveObject
         ScrollChatRequested?.Invoke();
     }
 
+    /// <summary>What each key reaches from where this client is now, read from the server's own channel links.</summary>
+    private static string ReachOf(MumbleSession session)
+    {
+        if (session.State != MumbleState.Connected || session.Client is not { } client || client.Me is not { } me) return "";
+
+        var linked = client.LinkedChannels(me.ChannelId).Select(Name).Order(StringComparer.CurrentCultureIgnoreCase).ToList();
+        return linked.Count == 0
+            ? string.Format(CultureInfo.CurrentCulture, MumbleText.ReachNoLinks, Name(me.ChannelId))
+            : string.Format(CultureInfo.CurrentCulture, MumbleText.ReachLinks, Name(me.ChannelId), string.Join(", ", linked));
+
+        // The root has no path, only its name.
+        string Name(uint id) => MumbleService.PathOf(client, id) is { Length: > 0 } path ? path : client.ChannelOf(id)?.Name ?? "";
+    }
+
     private void ShowDetail()
     {
         if (SelectedRow is not { } row || Session is not { } session) return;
@@ -367,6 +384,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 : "";
 
             KeysText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeysSummary, KeyName(server.WhisperKey), KeyName(server.ShoutKey));
+            ReachText = ReachOf(session);
 
             switch (row.Kind)
             {
@@ -510,7 +528,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private string _editName = "", _editHost = "", _editUsername = "", _editPassword = "", _editTokens = "";
     private int _editPort = 64738;
-    private bool _editAutoConnect, _editShoutChildren = true, _editShoutLinks;
+    private bool _editAutoConnect;
     private MumbleKeyChoice? _editWhisper, _editShout;
 
     public string EditName { get => _editName; set => this.RaiseAndSetIfChanged(ref _editName, value); }
@@ -522,8 +540,6 @@ public sealed class MumbleViewModel : ReactiveObject
     public bool EditAutoConnect { get => _editAutoConnect; set => this.RaiseAndSetIfChanged(ref _editAutoConnect, value); }
     public MumbleKeyChoice? EditWhisper { get => _editWhisper; set => this.RaiseAndSetIfChanged(ref _editWhisper, value); }
     public MumbleKeyChoice? EditShout { get => _editShout; set => this.RaiseAndSetIfChanged(ref _editShout, value); }
-    public bool EditShoutChildren { get => _editShoutChildren; set => this.RaiseAndSetIfChanged(ref _editShoutChildren, value); }
-    public bool EditShoutLinks { get => _editShoutLinks; set => this.RaiseAndSetIfChanged(ref _editShoutLinks, value); }
 
     public string PasswordNote => SecretStore.Description;
 
@@ -534,8 +550,6 @@ public sealed class MumbleViewModel : ReactiveObject
         EditPort = 64738;
         EditAutoConnect = false;
         EditWhisper = EditShout = KeyChoices[0];
-        EditShoutChildren = true;
-        EditShoutLinks = false;
         this.RaisePropertyChanged(nameof(EditIsExisting));
         IsEditing = true;
     }
@@ -546,7 +560,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
         _editId = s.Id;
         EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
-        EditAutoConnect = s.AutoConnect; EditShoutChildren = s.ShoutChildren; EditShoutLinks = s.ShoutLinks;
+        EditAutoConnect = s.AutoConnect;
         EditWhisper = KeyChoices.FirstOrDefault(k => k.Key == s.WhisperKey) ?? KeyChoices[0];
         EditShout   = KeyChoices.FirstOrDefault(k => k.Key == s.ShoutKey) ?? KeyChoices[0];
         this.RaisePropertyChanged(nameof(EditIsExisting));
@@ -564,7 +578,6 @@ public sealed class MumbleViewModel : ReactiveObject
             Port = EditPort is > 0 and < 65536 ? EditPort : 64738,
             Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), AutoConnect = EditAutoConnect,
             WhisperKey = EditWhisper?.Key ?? 0, ShoutKey = EditShout?.Key ?? 0,
-            ShoutChildren = EditShoutChildren, ShoutLinks = EditShoutLinks,
             SelfMuted = old?.SelfMuted ?? false, SelfDeafened = old?.SelfDeafened ?? false, LastChannel = old?.LastChannel ?? "",
             TrustedCertificate = old is not null && old.Host == EditHost.Trim() && old.Port == EditPort ? old.TrustedCertificate : "",
         };

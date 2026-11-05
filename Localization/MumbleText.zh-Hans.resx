@@ -107,16 +107,10 @@
     <value>访问令牌（可选，以逗号分隔）</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>耳语键（向当前频道讲话）</value>
+    <value>耳语键（仅向当前频道讲话）</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>呼喊键</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>呼喊可传到当前频道的子频道</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>呼喊可传到与当前频道相连的频道</value>
+    <value>呼喊键（按键通话：当前频道及其链接的频道）</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>这些按键仅用于此服务器，只要已连接，即使应用在后台也可使用。</value>
@@ -180,5 +174,13 @@
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>呼喊</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>从 {0} 发出的耳语只到达该频道。呼喊还会到达：{1}。</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} 没有链接的频道，因此耳语和呼喊都只到达该频道。</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

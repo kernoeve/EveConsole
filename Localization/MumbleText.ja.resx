@@ -107,16 +107,10 @@
     <value>アクセストークン (任意、カンマ区切り)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>ささやきキー (現在のチャンネルに話す)</value>
+    <value>ささやきキー (現在のチャンネルのみに話す)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>シャウトキー</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>シャウトは現在のチャンネルの下位にも届く</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>シャウトはリンクされたチャンネルにも届く</value>
+    <value>シャウトキー (プッシュトゥトーク: 現在のチャンネルとリンクされたチャンネル)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>これらのキーはこのサーバー専用で、接続中はアプリがバックグラウンドでも機能します。</value>
@@ -180,5 +174,13 @@
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>シャウト</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>{0} からのささやきはそのチャンネルのみに届きます。シャウトは次にも届きます: {1}。</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} にはリンクされたチャンネルがないため、ささやきとシャウトはどちらもそのチャンネルのみに届きます。</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

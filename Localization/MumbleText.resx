@@ -140,19 +140,11 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <comment>Field.</comment>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Whisper key (talks to your current channel)</value>
+    <value>Whisper key (talks only to your current channel)</value>
     <comment>Field.</comment>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Shout key</value>
-    <comment>Field.</comment>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>A shout reaches the channels below the current one</value>
-    <comment>Field.</comment>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>A shout reaches channels linked to the current one</value>
+    <value>Shout key (Push to Talk: your channel and channels linked to it)</value>
     <comment>Field.</comment>
   </data>
   <data name="KeysNote" xml:space="preserve">
@@ -238,5 +230,13 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="OverlayShout" xml:space="preserve">
     <value>shout</value>
     <comment>Overlay mark.</comment>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>From {0}, Whisper reaches only that channel. Shout also reaches: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} has no linked channels, so Whisper and Shout both reach only that channel.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

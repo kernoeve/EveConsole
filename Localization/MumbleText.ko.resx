@@ -107,16 +107,10 @@
     <value>액세스 토큰 (선택, 쉼표로 구분)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>귓속말 키 (현재 채널에 말하기)</value>
+    <value>귓속말 키 (현재 채널에만 말하기)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>외치기 키</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>외치기가 현재 채널의 하위 채널에 전달됨</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>외치기가 연결된 채널에 전달됨</value>
+    <value>외치기 키 (눌러서 말하기: 현재 채널과 연결된 채널)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>이 키는 이 서버 전용이며, 연결된 동안에는 앱이 백그라운드에 있어도 작동합니다.</value>
@@ -180,5 +174,13 @@
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>외침</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>{0}에서 귓속말은 해당 채널에만 전달됩니다. 외치기는 다음 채널에도 전달됩니다: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0}에는 연결된 채널이 없어 귓속말과 외치기 모두 해당 채널에만 전달됩니다.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

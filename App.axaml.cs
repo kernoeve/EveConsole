@@ -2656,8 +2656,6 @@ public class App : Application
                         "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
                         "WhisperKey"         INTEGER NOT NULL DEFAULT 0,
                         "ShoutKey"           INTEGER NOT NULL DEFAULT 0,
-                        "ShoutChildren"      INTEGER NOT NULL DEFAULT 1,
-                        "ShoutLinks"         INTEGER NOT NULL DEFAULT 0,
                         "SelfMuted"          INTEGER NOT NULL DEFAULT 0,
                         "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
                         "LastChannel"        TEXT    NOT NULL DEFAULT ''

@@ -107,16 +107,10 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Zugriffstoken (optional, durch Kommas getrennt)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Flüster-Taste (spricht in deinem aktuellen Kanal)</value>
+    <value>Flüster-Taste (spricht nur in deinem aktuellen Kanal)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Ruf-Taste</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>Ein Ruf erreicht die Kanäle unter dem aktuellen</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>Ein Ruf erreicht mit dem aktuellen verknüpfte Kanäle</value>
+    <value>Ruf-Taste (Push-to-Talk: dein Kanal und damit verknüpfte Kanäle)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Diese Tasten gelten nur für diesen Server und funktionieren, solange er verbunden ist, auch wenn die App im Hintergrund läuft.</value>
@@ -180,5 +174,13 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>Ruf</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Von {0} aus erreicht Flüstern nur diesen Kanal. Rufen erreicht zusätzlich: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} hat keine verknüpften Kanäle, daher erreichen Flüstern und Rufen nur diesen Kanal.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

@@ -80,7 +80,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public const string OutputVolumePref = "mumble.output_volume";
     public const string MicGainPref = "mumble.mic_gain";
 
-    private const int ShoutTarget = 1;
+    // Plain talk needs no saved target: the server sends it to the channel and everything linked to it, which is
+    // what the standard client's Push to Talk does, and Shout is that. Whisper has to name the channel to stop there.
+    private const int PlainTalk = 0;
+    private const int ChannelOnlyTarget = 1;
 
     /// <summary>How long the microphone stays open after the last key lets go, so a quick re-press loses nothing.</summary>
     private static readonly TimeSpan MicLinger = TimeSpan.FromSeconds(5);
@@ -429,7 +432,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         uint lastChannel = uint.MaxValue;
         client.Changed += () =>
         {
-            // Shout names a channel by id, so it follows this client whenever it moves.
+            // Whisper names a channel by id, so it follows this client whenever it moves.
             if (client.Me is { } me && me.ChannelId != lastChannel)
             {
                 lastChannel = me.ChannelId;
@@ -465,7 +468,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private static async Task SendTargetAsync(MumbleSession session, MumbleClient client, uint channel, CancellationToken ct)
     {
-        try { await client.SetChannelTargetAsync(ShoutTarget, channel, session.Server.ShoutChildren, session.Server.ShoutLinks, ct); }
+        try { await client.SetChannelTargetAsync(ChannelOnlyTarget, channel, ct); }
         catch (Exception e) when (e is MumbleException or OperationCanceledException or IOException) { /* the next connection sets it again */ }
     }
 
@@ -731,7 +734,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         TalkersChanged?.Invoke();
     }
 
-    private static int TargetOf(MumbleTalk mode) => mode == MumbleTalk.Shout ? ShoutTarget : 0;
+    public static int TargetOf(MumbleTalk mode) => mode == MumbleTalk.Shout ? PlainTalk : ChannelOnlyTarget;
 
     private void ReleaseMicIfIdle()
     {

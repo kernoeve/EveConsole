@@ -107,16 +107,10 @@
     <value>Токены доступа (необязательно, через запятую)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Клавиша шёпота (говорит в текущий канал)</value>
+    <value>Клавиша шёпота (говорит только в текущий канал)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Клавиша крика</value>
-  </data>
-  <data name="ShoutChildren" xml:space="preserve">
-    <value>Крик слышен в каналах ниже текущего</value>
-  </data>
-  <data name="ShoutLinks" xml:space="preserve">
-    <value>Крик слышен в связанных каналах</value>
+    <value>Клавиша крика (нажми и говори: ваш канал и связанные с ним)</value>
   </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Эти клавиши только для этого сервера и работают, пока он подключён, даже если приложение в фоне.</value>
@@ -180,5 +174,13 @@
   </data>
   <data name="OverlayShout" xml:space="preserve">
     <value>крик</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Из канала {0} шёпот слышен только в нём. Крик также слышен в: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>У канала {0} нет связанных каналов, поэтому шёпот и крик слышны только в нём.</value>
+    <comment>{0} = the channel the user is in.</comment>
   </data>
 </root>

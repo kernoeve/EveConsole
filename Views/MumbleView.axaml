@@ -109,8 +109,6 @@
           <ComboBox ItemsSource="{Binding KeyChoices}" SelectedItem="{Binding EditShout}" Width="220">
             <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:MumbleKeyChoice"><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
           </ComboBox>
-          <CheckBox IsChecked="{Binding EditShoutChildren}" Content="{x:Static loc:MumbleText.ShoutChildren}" Margin="0 8 0 0" />
-          <CheckBox IsChecked="{Binding EditShoutLinks}" Content="{x:Static loc:MumbleText.ShoutLinks}" />
           <TextBlock Classes="note" Text="{x:Static loc:MumbleText.KeysNote}" />
 
           <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:MumbleText.LabelAutoConnect}" Margin="0 12 0 0" />
@@ -131,6 +129,7 @@
         <TextBlock Text="{Binding ServerState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
         <TextBlock Classes="note" Text="{Binding ServerDetail}" IsVisible="{Binding ServerDetail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         <TextBlock Classes="note" Text="{Binding KeysText}" />
+        <TextBlock Classes="note" Text="{Binding ReachText}" IsVisible="{Binding ReachText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
         <Border IsVisible="{Binding HasCertificateProblem}" Background="{DynamicResource WarnSurfaceBrush}" CornerRadius="4" Padding="10" Margin="0 4" MaxWidth="620" HorizontalAlignment="Left">
           <StackPanel Spacing="8">
