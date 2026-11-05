@@ -278,4 +278,8 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
     <value>Mit „Annehmen“ kann diese Person sehen, wann du online bist, und du fragst auch nach ihrem Status. Mit „Ablehnen“ bleibt dein Status für sie verborgen. Nachrichten könnt ihr euch in beiden Fällen schicken.</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>Was du gerade machst, sichtbar für deine Kontakte (optional). Enter setzt es.</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

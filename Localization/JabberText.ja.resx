@@ -278,4 +278,8 @@
     <value>承諾すると、この相手はあなたのオンライン状態を見られるようになり、相手の状態の表示も申請します。辞退すると、あなたの状態は相手に表示されません。どちらの場合もメッセージは送り合えます。</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>連絡先に表示されるひとこと (任意)。Enter で設定します。</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

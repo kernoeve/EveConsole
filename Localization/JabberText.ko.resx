@@ -278,4 +278,8 @@
     <value>수락하면 이 사람이 내 접속 상태를 볼 수 있으며, 상대방의 상태도 볼 수 있도록 요청합니다. 거절하면 내 상태가 상대방에게 표시되지 않습니다. 어느 쪽이든 서로 메시지를 보낼 수 있습니다.</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>연락처에 표시되는 상태 메시지 (선택). Enter로 설정합니다.</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

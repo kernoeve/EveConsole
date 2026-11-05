@@ -278,4 +278,8 @@
     <value>接受后，此人可以看到你何时在线，同时也会请求查看对方的状态。拒绝后，对方看不到你的状态。无论如何，你们都可以互发消息。</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>你的联系人可以看到的状态消息（可选）。按 Enter 设置。</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

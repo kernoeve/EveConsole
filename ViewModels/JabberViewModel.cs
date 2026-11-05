@@ -692,6 +692,16 @@ public sealed class JabberViewModel : ReactiveObject
         }
     }
 
+    /// <summary>Sends what has been typed as this account's status, if it has changed.</summary>
+    public void ApplyStatusMessage()
+    {
+        if (Session is not { } session) return;
+
+        var words = StatusMessage.Trim();
+        if (words != session.Status) _ = _service.SetPresenceAsync(session, session.Show, words);
+    }
+
+    private int _statusAccount;
     private string _statusMessage = "";
     public string StatusMessage
     {
@@ -762,6 +772,13 @@ public sealed class JabberViewModel : ReactiveObject
                 ? string.Format(CultureInfo.CurrentCulture, JabberText.CertificateAsk, session.CertificateSubject, Grouped(session.CertificateFingerprint))
                 : "";
             ChosenShow = ShowChoices.FirstOrDefault(c => c.Show == session.Show);
+
+            // ⚠️ Only on coming to an account: this runs on every change, and would otherwise replace what is being typed.
+            if (_statusAccount != session.Account.Id)
+            {
+                _statusAccount = session.Account.Id;
+                StatusMessage = session.Status;
+            }
 
             RequestHelp = row.Kind == JabberRowKind.Request ? JabberText.RequestHelp : "";
 

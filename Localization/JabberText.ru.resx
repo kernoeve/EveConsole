@@ -278,4 +278,8 @@
     <value>Если принять, этот человек будет видеть, когда вы в сети, а вы запросите доступ к его статусу. Если отклонить, ваш статус останется для него скрытым. Переписываться можно в любом случае.</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>Чем вы заняты, это видят ваши контакты (необязательно). Enter — применить.</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

@@ -51,6 +51,8 @@ public partial class JabberView : UserControl
         };
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        StatusBox.LostFocus += (_, _) => (DataContext as JabberViewModel)?.ApplyStatusMessage();
+        StatusBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) (DataContext as JabberViewModel)?.ApplyStatusMessage(); };
     }
 
     // ⚠️ Told by which event, not by asking the window. It raises Activated before its IsActive turns true, so asking

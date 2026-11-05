@@ -359,4 +359,8 @@ Trust it only if this matches what the server's admin published. From then on, o
     <value>Accept lets this person see when you are online, and asks to see their status too. Decline keeps your status hidden from them. You can message each other either way.</value>
     <comment>On a contact request, above Accept and Decline.</comment>
   </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>What you are up to, seen by your contacts (optional). Enter sets it.</value>
+    <comment>Under the status choice.</comment>
+  </data>
 </root>

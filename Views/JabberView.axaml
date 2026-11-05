@@ -140,6 +140,7 @@
                 <DataTemplate x:DataType="vm:JabberShowChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
+            <TextBox x:Name="StatusBox" Text="{Binding StatusMessage}" Watermark="{x:Static loc:JabberText.StatusHint}" MaxLength="200" Width="420" HorizontalAlignment="Left" />
 
             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 8 0 0">
               <Button Content="{x:Static loc:JabberText.JoinRoom}" Command="{Binding BeginJoinCommand}" />
