@@ -92,11 +92,16 @@ public partial class MumbleView : UserControl
         if (DataContext is MumbleViewModel { Chat.Count: > 0 } vm) ChatList.ScrollIntoView(vm.Chat[^1]);
     }, DispatcherPriority.Background);
 
-    /// <summary>Double-clicking a channel joins it, as in every Mumble client.</summary>
+    /// <summary>Double-clicking a channel joins it, as in every Mumble client, and a person opens the conversation with them.</summary>
     private async void OnRowDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (DataContext is MumbleViewModel { SelectedRow.IsChannel: true } vm) await vm.JoinSelectedAsync();
+        if (DataContext is not MumbleViewModel vm) return;
+
+        if (vm.SelectedRow is { IsChannel: true }) await vm.JoinSelectedAsync();
+        else vm.MessageSelectedPerson();
     }
+
+    private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as MumbleViewModel)?.MessageSelectedPerson();
 
     private void OnDraftKey(object? sender, KeyEventArgs e)
     {

@@ -932,4 +932,8 @@
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>사용하지 않은 콜로니 슬롯이 있는 PI 캐릭터가 {0}명 있습니다.</value>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>읽지 않은 다이렉트 메시지가 {0}개 있습니다.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

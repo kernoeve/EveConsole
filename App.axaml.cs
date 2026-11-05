@@ -22,6 +22,7 @@ namespace EveConsole;
 public class App : Application
 {
     private Views.MumbleOverlayController? _mumbleOverlay;
+    private Views.MessagesWindowController? _messagesWindow;
 
     public static IServiceProvider Services { get; private set; } = null!;
 
@@ -559,6 +560,7 @@ public class App : Application
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
                 _mumbleOverlay?.Close();
+                _messagesWindow?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -2676,10 +2678,16 @@ public class App : Application
                         "Sender"     TEXT    NOT NULL DEFAULT '',
                         "Body"       TEXT    NOT NULL DEFAULT '',
                         "SentAt"     TEXT    NOT NULL DEFAULT '',
-                        "IsOutgoing" INTEGER NOT NULL DEFAULT 0
+                        "IsOutgoing" INTEGER NOT NULL DEFAULT 0,
+                        "PeerKey"    TEXT    NOT NULL DEFAULT '',
+                        "PeerName"   TEXT    NOT NULL DEFAULT '',
+                        "IsRead"     INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"    INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Server" ON "MumbleDirectMessages" ("ServerId", "Id")""");
+                foreach (var column in new[] { "\"PeerKey\" TEXT NOT NULL DEFAULT ''", "\"PeerName\" TEXT NOT NULL DEFAULT ''", "\"IsRead\" INTEGER NOT NULL DEFAULT 0", "\"IsAlert\" INTEGER NOT NULL DEFAULT 0" })
+                    try { db.Database.ExecuteSqlRaw("ALTER TABLE \"MumbleDirectMessages\" ADD COLUMN " + column); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -4315,6 +4323,7 @@ public class App : Application
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
         _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
+        _messagesWindow = new Views.MessagesWindowController(mainVm.MessagesVm, Services.GetRequiredService<AppPreferencesService>());
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
@@ -5008,6 +5017,9 @@ public class App : Application
         services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
         services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.JabberDmSource>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.MumbleDmSource>();
+        services.AddSingleton<EveConsole.Services.Messages.DirectMessagesService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();

@@ -165,6 +165,7 @@
       <StackPanel Grid.Row="0" IsVisible="{Binding ShowUser}" Margin="20 14 20 6" Spacing="6">
         <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
         <StackPanel IsVisible="{Binding !SelectedIsMe}" Spacing="4">
+          <Button Content="{x:Static loc:MessagesText.SendMessage}" Click="OnMessagePerson" HorizontalAlignment="Left" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.UserVolume}" />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Slider Minimum="0" Maximum="300" Value="{Binding UserVolume}" Width="260" />
@@ -183,7 +184,6 @@
                   <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                   <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                   <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
-                  <TextBlock Text="{x:Static loc:MumbleText.PrivateMark}" IsVisible="{Binding IsPrivate}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
                 </StackPanel>
                 <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
               </StackPanel>
@@ -192,7 +192,7 @@
         </ListBox>
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="10 6">
           <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="90" Watermark="{Binding ChatHint}" />
-          <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding CanIncludeSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
           <Button Grid.Column="2" Content="{x:Static loc:MumbleText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
         </Grid>
       </Grid>

@@ -383,6 +383,7 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToActiveContracts               { get; set; }
     public Action?          NavigateToEveMail                       { get; set; }
     public Action?          NavigateToJabber                        { get; set; }
+    public Action?          NavigateToMessages                      { get; set; }
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
@@ -1751,10 +1752,24 @@ public class OverviewViewModel : ReactiveObject
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadMailAlert", ex); }
         }
 
-        // Jabber messages waiting to be read. Opening the conversation is what clears this.
+        // Direct messages waiting to be read, from every service. Opening the conversation is what clears this.
         try
         {
-            var waiting = await Off(() => _db.JabberMessages.AsNoTracking().CountAsync(m => !m.IsRead && m.IsAlert));
+            var jabber = await Off(() => _db.JabberMessages.AsNoTracking().CountAsync(m => !m.IsRead && m.IsAlert && !m.IsRoom));
+            var mumble = await Off(() => _db.MumbleDirectMessages.AsNoTracking().CountAsync(m => !m.IsRead && m.IsAlert));
+            if (jabber + mumble > 0)
+                newAlerts.Add(new AlertRowVm
+                {
+                    Message = Counted(nameof(OverviewText.AlertUnreadDirectOther), jabber + mumble),
+                    NavigateCommand = NavigateToMessages is not null ? ReactiveCommand.Create(NavigateToMessages) : null,
+                });
+        }
+        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadDirectAlert", ex); }
+
+        // Jabber rooms that named this person. Opening the room is what clears this.
+        try
+        {
+            var waiting = await Off(() => _db.JabberMessages.AsNoTracking().CountAsync(m => !m.IsRead && m.IsAlert && m.IsRoom));
             if (waiting > 0)
                 newAlerts.Add(new AlertRowVm
                 {

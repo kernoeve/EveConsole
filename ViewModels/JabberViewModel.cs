@@ -41,9 +41,6 @@ public sealed class JabberRowVm : ReactiveObject
     public int    Unread      { get; init; }
     public bool   HasAlert    { get; init; }
 
-    /// <summary>A person on the contact list, rather than someone who has only written.</summary>
-    public bool   IsListed    { get; set; }
-
     public bool IsAccount => Kind == JabberRowKind.Account;
     public bool IsHeading => Kind == JabberRowKind.Heading;
     public bool IsItem    => Kind is JabberRowKind.Contact or JabberRowKind.Room or JabberRowKind.Request or JabberRowKind.Invite;
@@ -93,7 +90,6 @@ public sealed class JabberRowVm : ReactiveObject
     {
         ShownText = from.Text; ShownDetail = from.Detail; ShownDot = from.Dot;
         ShownUnread = from.Unread; ShownAlert = from.HasAlert;
-        IsListed = from.IsListed;
         return this;
     }
 }
@@ -178,7 +174,6 @@ public sealed class JabberViewModel : ReactiveObject
         AddContactCommand      = ReactiveCommand.CreateFromTask(AddContactAsync);
         CancelAddContactCommand = ReactiveCommand.Create(() => { IsAddingContact = false; });
         RemoveContactCommand   = ReactiveCommand.CreateFromTask(RemoveContactAsync);
-        AddOpenPersonCommand   = ReactiveCommand.CreateFromTask(AddOpenPersonAsync);
         AcceptRequestCommand   = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(true));
         DenyRequestCommand     = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(false));
         LoadEarlierCommand     = ReactiveCommand.CreateFromTask(LoadEarlierAsync);
@@ -186,7 +181,7 @@ public sealed class JabberViewModel : ReactiveObject
         foreach (var command in new IHandleObservableErrors[]
                  {
                      SendCommand, SaveAccountCommand, DeleteAccountCommand, DisconnectCommand, TrustCertificateCommand,
-                     BrowseRoomsCommand, JoinRoomCommand, LeaveRoomCommand, AddContactCommand, RemoveContactCommand, AddOpenPersonCommand,
+                     BrowseRoomsCommand, JoinRoomCommand, LeaveRoomCommand, AddContactCommand, RemoveContactCommand,
                      AcceptRequestCommand, DenyRequestCommand, LoadEarlierCommand,
                  })
             command.ThrownExceptions.Subscribe(e => StatusText = e.Message);
@@ -208,7 +203,6 @@ public sealed class JabberViewModel : ReactiveObject
         HistoryDays = int.TryParse(_prefs.Get(JabberService.HistoryDaysPref), out var days) ? days : JabberService.DefaultHistoryDays;
 
         _service.SessionChanged += _ => QueueRefresh();
-        _service.TypingChanged += (account, conversation, typing) => Dispatcher.UIThread.Post(() => OnTypingChanged(account, conversation, typing));
         _service.UnreadChanged  += QueueRefresh;
         _service.MessageStored  += m => Dispatcher.UIThread.Post(() => OnMessage(m));
         _service.AlertArrived   += OnAlert;
@@ -335,19 +329,11 @@ public sealed class JabberViewModel : ReactiveObject
             });
         }
 
-        // People: contacts, then anyone else who has written. A bot need not be on the contact list.
+        // Contacts. Anyone else who has written is in the Messages window, where every conversation is.
         var contacts = session.Contacts;
-        var known    = contacts.Select(c => c.Jid).ToHashSet(StringComparer.Ordinal);
-        var strangers = conversations.Where(c => !c.IsRoom && !known.Contains(c.Conversation)).Select(c => c.Conversation).ToList();
 
-        if (contacts.Count + strangers.Count > 0)
+        if (contacts.Count > 0)
             rows.Add(new JabberRowVm { Kind = JabberRowKind.Heading, AccountId = id, Key = "people", Text = JabberText.HeadingPeople });
-
-        foreach (var stranger in strangers)
-        {
-            var count = Unread(id, stranger);
-            rows.Add(new JabberRowVm { Kind = JabberRowKind.Contact, AccountId = id, Key = stranger, Text = stranger, Unread = count.Count, HasAlert = count.Alerts > 0 });
-        }
 
         var last = conversations.Where(c => !c.IsRoom).ToDictionary(c => c.Conversation, c => c.LastId, StringComparer.Ordinal);
         foreach (var contact in contacts
@@ -359,7 +345,7 @@ public sealed class JabberViewModel : ReactiveObject
             var count = Unread(id, contact.Jid);
             rows.Add(new JabberRowVm
             {
-                Kind = JabberRowKind.Contact, AccountId = id, Key = contact.Jid, IsListed = true,
+                Kind = JabberRowKind.Contact, AccountId = id, Key = contact.Jid,
                 Text = contact.Name.Length > 0 ? contact.Name : contact.Jid,
                 Detail = contact.Status, Dot = ShowDot(contact.Show),
                 Unread = count.Count, HasAlert = count.Alerts > 0,
@@ -453,14 +439,20 @@ public sealed class JabberViewModel : ReactiveObject
     public bool ShowWelcome => !HasAccounts && !IsEditingAccount;
 
     public bool ShowAccount      => SelectedRow is { IsAccount: true } && !IsEditingAccount;
-    public bool ShowConversation => SelectedRow is { Kind: JabberRowKind.Contact or JabberRowKind.Room } && !IsEditingAccount;
+    public bool ShowConversation => SelectedRow is { Kind: JabberRowKind.Room } && !IsEditingAccount;
     public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request or JabberRowKind.Invite } && !IsEditingAccount;
     public bool ShowNothing      => HasAccounts && SelectedRow is null && !IsEditingAccount;
     public bool ShowOccupants    => SelectedRow is { Kind: JabberRowKind.Room } && !IsEditingAccount;
-    public bool IsContactOpen    => SelectedRow is { Kind: JabberRowKind.Contact, IsListed: true };
+    public bool ShowPerson       => SelectedRow is { Kind: JabberRowKind.Contact } && !IsEditingAccount;
 
-    /// <summary>Someone who has written but is not on the contact list, as a broadcast bot usually is not.</summary>
-    public bool IsStrangerOpen   => SelectedRow is { Kind: JabberRowKind.Contact, IsListed: false };
+    /// <summary>Opens a conversation in the Messages window: account, address and name.</summary>
+    public Action<int, string, string>? OpenDirect { get; set; }
+
+    /// <summary>Opens the conversation with the contact selected.</summary>
+    public void MessageSelectedPerson()
+    {
+        if (SelectedRow is { Kind: JabberRowKind.Contact } row) OpenDirect?.Invoke(row.AccountId, row.Key, row.ShownText);
+    }
 
     private JabberSession? Session => SelectedRow is { } row ? _service.SessionOf(row.AccountId) : null;
 
@@ -479,29 +471,9 @@ public sealed class JabberViewModel : ReactiveObject
         get => _draft;
         set
         {
-            if (_draft == value) return;
             this.RaiseAndSetIfChanged(ref _draft, value);
-            OnDraftChanged();
         }
     }
-
-    // ── Typing notices ────────────────────────────────────────────────────────
-
-    private static readonly TimeSpan TypingRepeat = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan TypingPause  = TimeSpan.FromSeconds(15);
-
-    /// <summary>A notice nobody follows up on stops counting: their client may have just gone away.</summary>
-    private static readonly TimeSpan TypingForgotten = TimeSpan.FromSeconds(45);
-
-    private DateTime _lastTypingSent = DateTime.MinValue;
-    private (int Account, string Conversation)? _typingTo;
-    private int _typingEdits;
-    private (int Account, string Conversation)? _theyAreTyping;
-    private int _theyTypedStamp;
-
-    private string _typingText = "";
-    public string TypingText { get => _typingText; private set { this.RaiseAndSetIfChanged(ref _typingText, value); this.RaisePropertyChanged(nameof(IsSomeoneTyping)); } }
-    public bool IsSomeoneTyping => TypingText.Length > 0;
 
     // ── Files ─────────────────────────────────────────────────────────────────
 
@@ -533,7 +505,7 @@ public sealed class JabberViewModel : ReactiveObject
     /// <summary>Sends a file the person chose to the open conversation.</summary>
     public async Task SendFileAsync(Stream content, string fileName, long size)
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row || Session is not { } session) return;
+        if (SelectedRow is not { Kind: JabberRowKind.Room } row || Session is not { } session) return;
 
         if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)
         {
@@ -554,61 +526,6 @@ public sealed class JabberViewModel : ReactiveObject
         finally { SendingFile = ""; }
     }
 
-    private void OnDraftChanged()
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact } row || Session is not { } session) return;
-
-        if (string.IsNullOrWhiteSpace(_draft))
-        {
-            StopTyping();
-            return;
-        }
-
-        var edit = ++_typingEdits;
-        _ = Task.Delay(TypingPause).ContinueWith(_ => Dispatcher.UIThread.Post(() => { if (edit == _typingEdits) StopTyping(); }), TaskScheduler.Default);
-
-        if (DateTime.UtcNow - _lastTypingSent < TypingRepeat && _typingTo == (row.AccountId, row.Key)) return;
-
-        _lastTypingSent = DateTime.UtcNow;
-        _typingTo = (row.AccountId, row.Key);
-        Quietly(_service.SendTypingAsync(session, row.Key, true));
-    }
-
-    private void StopTyping()
-    {
-        if (_typingTo is not { } to) return;
-
-        _typingTo = null;
-        _lastTypingSent = DateTime.MinValue;
-        if (_service.SessionOf(to.Account) is { } session) Quietly(_service.SendTypingAsync(session, to.Conversation, false));
-    }
-
-    /// <summary>A courtesy, so a dropped connection here is nothing to report: sending the message itself will say.</summary>
-    private static void Quietly(Task send) =>
-        _ = send.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
-
-    private void OnTypingChanged(int account, string conversation, bool typing)
-    {
-        if (typing) _theyAreTyping = (account, conversation);
-        else if (_theyAreTyping == (account, conversation)) _theyAreTyping = null;
-
-        var stamp = ++_theyTypedStamp;
-        if (typing)
-            _ = Task.Delay(TypingForgotten).ContinueWith(_ => Dispatcher.UIThread.Post(() =>
-            {
-                if (stamp != _theyTypedStamp) return;
-                _theyAreTyping = null;
-                ShowTyping();
-            }), TaskScheduler.Default);
-
-        ShowTyping();
-    }
-
-    private void ShowTyping() =>
-        TypingText = SelectedRow is { Kind: JabberRowKind.Contact } row && _theyAreTyping == (row.AccountId, row.Key)
-            ? string.Format(CultureInfo.CurrentCulture, JabberText.Typing, row.ShownText)
-            : "";
-
     private string _status = "";
     public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
     public bool HasStatus => StatusText.Length > 0;
@@ -627,7 +544,7 @@ public sealed class JabberViewModel : ReactiveObject
 
     private async Task OpenSelectedAsync()
     {
-        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowOccupants), nameof(IsContactOpen), nameof(IsStrangerOpen) })
+        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowOccupants), nameof(ShowPerson) })
             this.RaisePropertyChanged(name);
 
         Messages.Clear();
@@ -636,7 +553,7 @@ public sealed class JabberViewModel : ReactiveObject
         StatusText = "";
         RefreshDetail();
 
-        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row) return;
+        if (SelectedRow is not { Kind: JabberRowKind.Room } row) return;
 
         var page = await Task.Run(() => _service.LoadConversationAsync(row.AccountId, row.Key, limit: PageSize));
         if (!ReferenceEquals(SelectedRow, row)) return;
@@ -652,7 +569,7 @@ public sealed class JabberViewModel : ReactiveObject
     public async Task MarkOpenConversationReadAsync()
     {
         if (!IsOnScreen || !IsWindowActive) return;
-        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row) return;
+        if (SelectedRow is not { Kind: JabberRowKind.Room } row) return;
         await Task.Run(() => _service.MarkReadAsync(row.AccountId, row.Key));
     }
 
@@ -669,7 +586,7 @@ public sealed class JabberViewModel : ReactiveObject
 
     private void OnMessage(JabberStoredMessage message)
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row
+        if (SelectedRow is not { Kind: JabberRowKind.Room } row
             || row.AccountId != message.AccountId || row.Key != message.Conversation) return;
 
         Messages.Add(ToVm(message, row));
@@ -693,15 +610,12 @@ public sealed class JabberViewModel : ReactiveObject
 
     private async Task SendAsync()
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row || Session is not { } session) return;
+        if (SelectedRow is not { Kind: JabberRowKind.Room } row || Session is not { } session) return;
 
         if (session.State != JabberState.Connected) { StatusText = JabberText.NotConnected; return; }
 
         var text = Draft;
 
-        // The message itself says they have finished, so no separate notice follows it.
-        _typingTo = null;
-        _lastTypingSent = DateTime.MinValue;
         Draft = "";
         try { await Task.Run(() => _service.SendAsync(session, row.Key, row.Kind == JabberRowKind.Room, text)); }
         catch { Draft = text; throw; }   // nothing typed is lost to a dropped connection
@@ -712,9 +626,7 @@ public sealed class JabberViewModel : ReactiveObject
     {
         await RefreshAsync();
 
-        var next = Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Contact, ShownAlert: true })
-                ?? Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Room, ShownAlert: true })
-                ?? Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Contact, HasUnread: true })
+        var next = Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Room, ShownAlert: true })
                 ?? Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Room, HasUnread: true });
 
         if (next is not null) SelectedRow = next;
@@ -722,7 +634,8 @@ public sealed class JabberViewModel : ReactiveObject
 
     private void OnAlert(JabberStoredMessage message)
     {
-        if (!SoundOn || _mute.Muted) return;
+        // A direct message is the Messages window's to sound.
+        if (!message.IsRoom || !SoundOn || _mute.Muted) return;
 
         // No sound for what is already on screen and being read.
         var open = SelectedRow;
@@ -852,10 +765,6 @@ public sealed class JabberViewModel : ReactiveObject
 
             RequestHelp = row.Kind == JabberRowKind.Request ? JabberText.RequestHelp : "";
 
-            // A person can join or leave the contact list with their conversation open.
-            this.RaisePropertyChanged(nameof(IsContactOpen));
-            this.RaisePropertyChanged(nameof(IsStrangerOpen));
-
             ArchiveText = "";
             if (session.State == JabberState.Connected)
             {
@@ -917,7 +826,6 @@ public sealed class JabberViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelAddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> RemoveContactCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddOpenPersonCommand { get; }
     public ReactiveCommand<Unit, Unit> AcceptRequestCommand { get; }
     public ReactiveCommand<Unit, Unit> DenyRequestCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadEarlierCommand { get; }
@@ -940,7 +848,7 @@ public sealed class JabberViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _isEditingAccount, value);
-            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome), nameof(ShowOccupants) })
+            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowPerson), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome), nameof(ShowOccupants) })
                 this.RaisePropertyChanged(name);
         }
     }
@@ -1115,13 +1023,6 @@ public sealed class JabberViewModel : ReactiveObject
 
         await Task.Run(() => _service.AddContactAsync(session, address.Bare, ContactName.Trim()));
         IsAddingContact = false;
-    }
-
-    /// <summary>Adds the person whose conversation is open, by the address they wrote from.</summary>
-    private async Task AddOpenPersonAsync()
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact, IsListed: false } row || Session is not { } session) return;
-        await Task.Run(() => _service.AddContactAsync(session, row.Key, ""));
     }
 
     private async Task RemoveContactAsync()

@@ -207,14 +207,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Message {0}. Enter sends, Shift+Enter starts a new line.</value>
     <comment>Input hint. {0} = a channel's name.</comment>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>Private message to {0}. Enter sends, Shift+Enter starts a new line.</value>
-    <comment>Input hint. {0} = person.</comment>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>private</value>
-    <comment>Mark on a private message.</comment>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>Send</value>
     <comment>Button.</comment>

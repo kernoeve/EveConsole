@@ -1344,4 +1344,12 @@ Replace '{1}' with '{0}'?</value>
     <value>{0} PI characters have unused colony slots.</value>
     <comment>Overview alert. {0} is the number of characters. "PI" is the game's abbreviation for Planetary Industry.</comment>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>You have {0} unread direct messages.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>You have {0} unread direct message.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

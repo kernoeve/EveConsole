@@ -699,4 +699,8 @@ Aktualisieren und starten? Nein schließt EVE Console und lässt die Datenbank u
 {1}
 Klicken für die ESI-Limits.</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Nachrichten</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

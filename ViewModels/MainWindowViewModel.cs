@@ -277,6 +277,10 @@ public class MainWindowViewModel : ReactiveObject
     public SystemIndexViewModel           SystemIndexVm          { get; }
     public JabberViewModel                JabberVm               { get; }
     public MumbleViewModel                MumbleVm               { get; }
+    public MessagesViewModel              MessagesVm             { get; }
+
+    /// <summary>The top bar's icon: the Messages window, on what most needs reading if anything does.</summary>
+    public ReactiveCommand<Unit, Unit> OpenMessagesCommand { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -501,10 +505,13 @@ public class MainWindowViewModel : ReactiveObject
     /// messages gets one refresh, and it never waits for its minute: a ping should show when it lands,
     /// and reading one should clear it.
     /// </summary>
-    private void WatchJabberAlerts(EveConsole.Services.Jabber.JabberService jabber)
+    private void WatchJabberAlerts(EveConsole.Services.Jabber.JabberService jabber, EveConsole.Services.Messages.DirectMessagesService messages)
     {
         var queued = 0;
-        jabber.UnreadChanged += () =>
+        jabber.UnreadChanged += Reload;
+        messages.UnreadChanged += Reload;
+
+        void Reload()
         {
             if (Interlocked.Exchange(ref queued, 1) == 1) return;
             _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
@@ -512,7 +519,15 @@ public class MainWindowViewModel : ReactiveObject
                 Interlocked.Exchange(ref queued, 0);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OverviewVm.LoadAsync());
             }, TaskScheduler.Default);
-        };
+        }
+    }
+
+    private Task OpenMessagesAsync()
+    {
+        if (MessagesVm.HasUnread) return MessagesVm.ShowUnreadAsync();
+
+        MessagesVm.ShowWindow();
+        return Task.CompletedTask;
     }
 
     private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
@@ -904,6 +919,13 @@ public class MainWindowViewModel : ReactiveObject
 
     public void OpenTool(string toolId)
     {
+        // A window of its own rather than a tab, so it can sit anywhere.
+        if (toolId == "messages")
+        {
+            _ = OpenMessagesAsync();
+            return;
+        }
+
         // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
         // still name them.
         if (toolId is "jump_planner" or "route_planner")
@@ -1125,6 +1147,7 @@ public class MainWindowViewModel : ReactiveObject
         ProductionCalculatorService     prodCalcService,
         EveConsole.Services.Jabber.JabberService jabberService,
         EveConsole.Services.Mumble.MumbleService mumbleService,
+        EveConsole.Services.Messages.DirectMessagesService directMessages,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
         TimerForceService               timerForce,
@@ -1258,6 +1281,10 @@ public class MainWindowViewModel : ReactiveObject
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         JabberVm          = new JabberViewModel(jabberService, appPrefs, alarmSounds, alarmMute);
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
+        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
+        OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
+        JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
+        MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1281,7 +1308,8 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.NavigateToEveMail           = () => { OpenTool("eve_mail"); EveMailVm.ShowUnread(); };
         OverviewVm.NavigateToJabber            = () => { OpenTool("jabber"); _ = JabberVm.ShowUnreadAsync(); };
-        WatchJabberAlerts(jabberService);
+        OverviewVm.NavigateToMessages          = () => _ = MessagesVm.ShowUnreadAsync();
+        WatchJabberAlerts(jabberService, directMessages);
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1627,6 +1655,7 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("communication", ShellText.NavGroupCommunication,
             [
+                new NavItem("messages", ShellText.NavMessages),
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("jabber", ShellText.NavJabber),
                 new NavItem("mumble", ShellText.NavMumble),

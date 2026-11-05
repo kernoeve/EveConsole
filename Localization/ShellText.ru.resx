@@ -711,4 +711,8 @@ PID: {2}
 {1}
 Нажмите, чтобы открыть лимиты ESI.</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Сообщения</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

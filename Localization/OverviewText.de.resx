@@ -1010,4 +1010,12 @@
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} PI-Charaktere haben ungenutzte Kolonie-Slots.</value>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>Du hast {0} ungelesene Direktnachrichten.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>Du hast {0} ungelesene Direktnachricht.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

@@ -157,12 +157,6 @@
   <data name="MessageHint" xml:space="preserve">
     <value>{0}에 메시지 보내기. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>{0}에게 비공개 메시지. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>비공개</value>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>보내기</value>
   </data>

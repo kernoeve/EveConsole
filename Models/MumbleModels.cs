@@ -52,7 +52,17 @@ public class MumbleDirectMessage
     /// <summary>UTC, as yyyy-MM-ddTHH:mm:ssZ: sorted text, because a DateTimeOffset cannot be filtered on SQLite.</summary>
     public string SentAt    { get; set; } = "";
 
+    /// <summary>Who the conversation is with: their certificate's hash where they have one, which outlasts a change of name.</summary>
+    public string PeerKey   { get; set; } = "";
+
+    /// <summary>What they were called at the time.</summary>
+    public string PeerName  { get; set; } = "";
+
     public bool   IsOutgoing { get; set; }
+    public bool   IsRead     { get; set; }
+
+    /// <summary>Calls for attention until read, as every private message does.</summary>
+    public bool   IsAlert    { get; set; }
 }
 
 /// <summary>How loud one person is on one server, for this listener.</summary>

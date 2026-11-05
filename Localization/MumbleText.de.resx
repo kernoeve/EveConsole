@@ -157,12 +157,6 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="MessageHint" xml:space="preserve">
     <value>Nachricht an {0}. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>Private Nachricht an {0}. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>privat</value>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>Senden</value>
   </data>

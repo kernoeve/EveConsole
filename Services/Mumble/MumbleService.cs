@@ -17,9 +17,13 @@ public enum MumbleProblem { None, Certificate, Password, Username, Removed, Othe
 public enum MumbleTalk { None, Channel, Shout }
 
 /// <summary>A line of a server's text chat, in memory for as long as the app runs.</summary>
-public sealed record MumbleChatLine(DateTimeOffset When, string Sender, string Text, bool IsPrivate, bool IsOutgoing)
+/// <summary>How one saved conversation stands.</summary>
+public sealed record MumbleDirectSummary(int ServerId, string PeerKey, string PeerName, string LastText, string LastAt, int Unread);
+
+/// <summary>A line of channel chat, which lasts the session. Private messages go to the Messages window.</summary>
+public sealed record MumbleChatLine(DateTimeOffset When, string Sender, string Text, bool IsOutgoing)
 {
-    /// <summary>The channel it was said in. Blank for a private message.</summary>
+    /// <summary>The channel it was said in.</summary>
     public string Channel { get; init; } = "";
 
     /// <summary>It went to that channel and the ones under it.</summary>
@@ -193,30 +197,41 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         foreach (var server in await db.MumbleServers.AsNoTracking().OrderBy(s => s.Id).ToListAsync(ct))
         {
             var session = Track(server);
-            await LoadChatAsync(session, ct);
             if (server.AutoConnect) Connect(session);
         }
     }
 
-    // ── Chat that outlasts the app ────────────────────────────────────────────
+    // ── Private messages, which outlast the app ───────────────────────────────
 
     private const string StoredDate = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private const int SaveAttempts = 5;
 
-    /// <summary>Private messages waiting to be saved, in order, so that a busy database never holds up the connection's reader.</summary>
-    private readonly Channel<(int ServerId, MumbleChatLine Line)> _chatSaves = Channel.CreateUnbounded<(int, MumbleChatLine)>();
+    /// <summary>Waiting to be saved, in order, so that a busy database never holds up the connection's reader.</summary>
+    private readonly Channel<MumbleDirectMessage> _chatSaves = Channel.CreateUnbounded<MumbleDirectMessage>();
     private Task? _chatSaver;   // ⚠️ Not SingleReader: that kind of channel cannot say how much is waiting, which shutting down asks.
+
+    /// <summary>A private message was saved, sent or received.</summary>
+    public event Action<MumbleDirectMessage>? DirectStored;
+
+    public event Action? DirectUnreadChanged;
 
     private void Record(MumbleSession session, MumbleChatLine line)
     {
         session.AddChat(line);
-        if (line.IsPrivate) _chatSaves.Writer.TryWrite((session.Server.Id, line));
         ChatReceived?.Invoke(session, line);
     }
 
+    private void RecordDirect(int serverId, MumbleUser peer, string sender, string body, bool outgoing) =>
+        _chatSaves.Writer.TryWrite(new MumbleDirectMessage
+        {
+            ServerId = serverId, PeerKey = UserKey(peer), PeerName = peer.Name, Sender = sender, Body = body,
+            SentAt = DateTimeOffset.UtcNow.UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture),
+            IsOutgoing = outgoing, IsRead = outgoing, IsAlert = !outgoing,
+        });
+
     private async Task SaveChatAsync()
     {
-        await foreach (var (serverId, line) in _chatSaves.Reader.ReadAllAsync())
+        await foreach (var row in _chatSaves.Reader.ReadAllAsync())
         {
             // ⚠️ A busy database usually clears in moments, so it gets several tries. This must never end, or nothing
             // said afterwards would be kept.
@@ -225,13 +240,12 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 try
                 {
                     await using var db = await dbFactory.CreateDbContextAsync();
-                    db.MumbleDirectMessages.Add(new MumbleDirectMessage
-                    {
-                        ServerId = serverId, Sender = line.Sender, Body = line.Text,
-                        SentAt = line.When.UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture),
-                        IsOutgoing = line.IsOutgoing,
-                    });
+                    row.Id = 0;
+                    db.MumbleDirectMessages.Add(row);
                     await db.SaveChangesAsync();
+
+                    DirectStored?.Invoke(row);
+                    if (!row.IsRead) DirectUnreadChanged?.Invoke();
                     break;
                 }
                 catch (Exception e)
@@ -247,17 +261,49 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         }
     }
 
-    /// <summary>A server's latest private messages, for its chat to open on.</summary>
-    private async Task LoadChatAsync(MumbleSession session, CancellationToken ct)
+    /// <summary>Someone on a server right now, by what a conversation with them is filed under. Null if they are not.</summary>
+    public MumbleUser? PersonOf(int serverId, string peerKey) =>
+        SessionOf(serverId)?.Client?.Users.FirstOrDefault(u => UserKey(u) == peerKey);
+
+    /// <summary>Every saved conversation, with how it stands.</summary>
+    public async Task<List<MumbleDirectSummary>> DirectSummariesAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var rows = await db.MumbleDirectMessages.AsNoTracking().Where(m => m.ServerId == session.Server.Id)
-                           .OrderByDescending(m => m.Id).Take(MaxChatLines).ToListAsync(ct);
+        var groups = await db.MumbleDirectMessages.AsNoTracking().Where(m => m.PeerKey != "")
+            .GroupBy(m => new { m.ServerId, m.PeerKey })
+            .Select(g => new { g.Key.ServerId, g.Key.PeerKey, Last = g.Max(m => m.Id), Unread = g.Count(m => !m.IsRead) })
+            .ToListAsync(ct);
 
-        foreach (var row in Enumerable.Reverse(rows))
-            session.AddChat(new MumbleChatLine(
-                DateTimeOffset.TryParse(row.SentAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when) ? when : DateTimeOffset.MinValue,
-                row.Sender, row.Body, true, row.IsOutgoing));
+        var ids  = groups.Select(g => g.Last).ToList();
+        var last = await db.MumbleDirectMessages.AsNoTracking().Where(m => ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
+
+        return [.. groups.Select(g => new MumbleDirectSummary(g.ServerId, g.PeerKey, last[g.Last].PeerName, last[g.Last].Body, last[g.Last].SentAt, g.Unread))];
+    }
+
+    public async Task<List<MumbleDirectMessage>> LoadDirectAsync(int serverId, string peerKey, long beforeId = long.MaxValue, int limit = 200, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var page = await db.MumbleDirectMessages.AsNoTracking()
+            .Where(m => m.ServerId == serverId && m.PeerKey == peerKey && m.Id < beforeId)
+            .OrderByDescending(m => m.Id).Take(limit).ToListAsync(ct);
+        page.Reverse();
+        return page;
+    }
+
+    public async Task MarkDirectReadAsync(int serverId, string peerKey, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var changed = await db.MumbleDirectMessages.Where(m => m.ServerId == serverId && m.PeerKey == peerKey && !m.IsRead)
+                              .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
+        if (changed > 0) DirectUnreadChanged?.Invoke();
+    }
+
+    /// <summary>To someone by what their conversation is filed under. ⚠️ They have to be connected: a server holds nothing for later.</summary>
+    public Task SendDirectAsync(int serverId, string peerKey, string message, CancellationToken ct = default)
+    {
+        if (SessionOf(serverId) is not { } session) throw new MumbleException(MumbleFailure.Network, "Not connected.");
+        var person = PersonOf(serverId, peerKey) ?? throw new MumbleException(MumbleFailure.Network, "They are not connected.");
+        return SendPrivateTextAsync(session, person, message, ct);
     }
 
     /// <summary>Private messages past the days Jabber's history is kept, by the same setting. Zero keeps them all.</summary>
@@ -271,7 +317,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             if (days <= 0) return;
 
             var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture);
-            await db.MumbleDirectMessages.Where(m => string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+            // ⚠️ Never an unread one: age is no reason to lose what was not seen.
+            await db.MumbleDirectMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
         }
         catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
         {
@@ -708,12 +755,21 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         var words = PlainText(text.Message);
         if (words.Length > MostChatChars) words = words[..MostChatChars] + "\u2026";
 
-        var isPrivate = text.Sessions.Count > 0;
-        var isTree = !isPrivate && text.Trees.Count > 0;
-        uint? where = isPrivate ? null : isTree ? text.Trees[0] : text.Channels.Count > 0 ? text.Channels[0] : null;
+        if (text.Sessions.Count > 0)
+        {
+            // Filed under who sent it, so a server's own notices, from nobody in particular, stay in its chat.
+            if (text.Actor is { } from && client.UserOf(from) is { } person)
+            {
+                RecordDirect(session.Server.Id, person, sender, words, false);
+                return;
+            }
+        }
+
+        var isTree = text.Trees.Count > 0;
+        uint? where = isTree ? text.Trees[0] : text.Channels.Count > 0 ? text.Channels[0] : null;
         var channel = where is { } id ? client.ChannelOf(id)?.Name ?? "" : "";
 
-        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, sender, words, isPrivate, false) { Channel = channel, IsTree = isTree });
+        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, sender, words, false) { Channel = channel, IsTree = isTree });
     }
 
     /// <summary>To a channel, by default the one this client is in, and if asked the ones under it too.</summary>
@@ -727,7 +783,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         if (andSubchannels) await client.SendTextToTreeAsync(target, html, ct);
         else await client.SendTextToChannelAsync(target, html, ct);
 
-        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, me.Name, message, false, true) { Channel = client.ChannelOf(target)?.Name ?? "", IsTree = andSubchannels });
+        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, me.Name, message, true) { Channel = client.ChannelOf(target)?.Name ?? "", IsTree = andSubchannels });
     }
 
     /// <summary>To one person, wherever on the server they are.</summary>
@@ -737,7 +793,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await client.SendTextToUserAsync(to.Session, WebUtility.HtmlEncode(message).Replace("\n", "<br>", StringComparison.Ordinal), ct);
 
-        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, $"{me.Name} \u2192 {to.Name}", message, true, true));
+        RecordDirect(session.Server.Id, to, me.Name, message, true);
     }
 
     public Task JoinChannelAsync(MumbleSession session, uint channel, CancellationToken ct = default) =>

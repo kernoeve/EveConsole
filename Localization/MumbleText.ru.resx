@@ -157,12 +157,6 @@
   <data name="MessageHint" xml:space="preserve">
     <value>Сообщение в {0}. Enter — отправить, Shift+Enter — новая строка.</value>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>Личное сообщение для {0}. Enter — отправить, Shift+Enter — новая строка.</value>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>личное</value>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>Отправить</value>
   </data>

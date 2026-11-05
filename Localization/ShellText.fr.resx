@@ -699,4 +699,8 @@ La mettre à jour et démarrer ? Non ferme EVE Console et laisse la base de donn
 {1}
 Cliquez pour voir les limites ESI.</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

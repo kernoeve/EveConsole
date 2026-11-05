@@ -1166,6 +1166,10 @@ public static class PostgresSchema
             "Body"       TEXT    NOT NULL DEFAULT '',
             "SentAt"     TEXT    NOT NULL DEFAULT '',
             "IsOutgoing" BOOLEAN NOT NULL DEFAULT FALSE,
+            "PeerKey"    TEXT    NOT NULL DEFAULT '',
+            "PeerName"   TEXT    NOT NULL DEFAULT '',
+            "IsRead"     BOOLEAN NOT NULL DEFAULT FALSE,
+            "IsAlert"    BOOLEAN NOT NULL DEFAULT FALSE,
             CONSTRAINT "PK_MumbleDirectMessages" PRIMARY KEY ("Id")
         )
         """,
@@ -1530,7 +1534,7 @@ public static class PostgresSchema
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberRooms_Room" ON "JabberRooms" ("AccountId", "RoomJid")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""",
         """CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""",
-        """CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Server" ON "MumbleDirectMessages" ("ServerId", "Id")""",
+        """CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""",
         """CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""",
         """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ManualJumpBridges_Pair" ON "ManualJumpBridges" ("FromSystemId", "ToSystemId")""",

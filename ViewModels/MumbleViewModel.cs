@@ -71,7 +71,6 @@ public sealed class MumbleChatVm(MumbleChatLine line)
 
     public string Channel => line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel;
     public bool HasChannel => line.Channel.Length > 0;
-    public bool IsPrivate => line.IsPrivate;
 }
 
 /// <summary>Somebody on the always-on-top list.</summary>
@@ -364,7 +363,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private void ShowChosen()
     {
-        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ChatHint), nameof(CanIncludeSubchannels) })
+        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ChatHint) })
             this.RaisePropertyChanged(name);
 
         StatusText = "";
@@ -472,20 +471,25 @@ public sealed class MumbleViewModel : ReactiveObject
 
     // ── Text ──────────────────────────────────────────────────────────────────
 
+    /// <summary>Opens a conversation in the Messages window: server, who it is filed under, and their name.</summary>
+    public Action<int, string, string>? OpenDirect { get; set; }
+
+    /// <summary>Opens the conversation with the person selected. Not for this client itself.</summary>
+    public void MessageSelectedPerson()
+    {
+        if (SelectedRow is { IsUser: true, IsMe: false } row && Session is { } session && session.Client?.UserOf(row.Id) is { } person)
+            OpenDirect?.Invoke(session.Server.Id, MumbleService.UserKey(person), person.Name);
+    }
+
     public ObservableCollection<MumbleChatVm> Chat { get; } = [];
     public event Action? ScrollChatRequested;
 
-    public string ChatHint => SelectedRow is { IsUser: true, IsMe: false } row
-        ? string.Format(CultureInfo.CurrentCulture, MumbleText.PrivateHint, row.Text)
-        : string.Format(CultureInfo.CurrentCulture, MumbleText.MessageHint, ChatChannelName);
+    public string ChatHint => string.Format(CultureInfo.CurrentCulture, MumbleText.MessageHint, ChatChannelName);
 
     /// <summary>The channel selected, or with nothing of the kind selected, the one this client is in.</summary>
     private uint? ChatChannel => SelectedRow is { IsChannel: true } row ? row.Id : Session?.Client?.Me?.ChannelId;
 
     private string ChatChannelName => ChatChannel is { } id ? Session?.Client?.ChannelOf(id)?.Name ?? "" : "";
-
-    /// <summary>A person's message is only ever to them.</summary>
-    public bool CanIncludeSubchannels => SelectedRow is not { IsUser: true, IsMe: false };
 
     private bool _includeSubchannels;
     public bool IncludeSubchannels { get => _includeSubchannels; set => this.RaiseAndSetIfChanged(ref _includeSubchannels, value); }
@@ -507,15 +511,11 @@ public sealed class MumbleViewModel : ReactiveObject
         var text = Draft;
         Draft = "";
 
-        // With someone else selected, it goes to them alone: nothing about that person is said to the channel.
-        var person = SelectedRow is { IsUser: true, IsMe: false } row ? session.Client?.UserOf(row.Id) : null;
         var channel = ChatChannel;
         var tree = IncludeSubchannels;
         try
         {
-            await Task.Run(() => person is not null
-                ? _service.SendPrivateTextAsync(session, person, text)
-                : _service.SendTextAsync(session, text, channel, tree));
+            await Task.Run(() => _service.SendTextAsync(session, text, channel, tree));
 
             // ⚠️ Not left on: the next message should not reach a whole tree of channels because this one did.
             IncludeSubchannels = false;

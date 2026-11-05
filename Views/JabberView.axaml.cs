@@ -86,6 +86,10 @@ public partial class JabberView : UserControl
     }
 
     /// <summary>Asks which file, then sends it to the open conversation.</summary>
+    private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as JabberViewModel)?.MessageSelectedPerson();
+
+    private void OnRowDoubleTapped(object? sender, TappedEventArgs e) => (DataContext as JabberViewModel)?.MessageSelectedPerson();
+
     private async void OnAttach(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not JabberViewModel vm || TopLevel.GetTopLevel(this) is not { } top) return;

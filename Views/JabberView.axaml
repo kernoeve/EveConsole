@@ -29,7 +29,7 @@
     <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfacePanelBrush}">
       <Button Grid.Row="0" Content="{x:Static loc:JabberText.AddServer}" Command="{Binding AddAccountCommand}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
 
-      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent">
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" DoubleTapped="OnRowDoubleTapped">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:JabberRowVm">
             <Grid>
@@ -195,7 +195,17 @@
         </StackPanel>
       </StackPanel>
 
-      <!-- A conversation -->
+      <!-- A contact. The conversation itself is in the Messages window. -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowPerson}" Margin="20 14" Spacing="8">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:MessagesText.SendMessage}" Click="OnMessagePerson" />
+          <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- A room -->
       <Grid Grid.Row="0" IsVisible="{Binding ShowConversation}" RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,Auto">
         <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="14 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
           <Grid ColumnDefinitions="*,Auto">
@@ -215,8 +225,6 @@
                 </ComboBox>
                 <Button Content="{x:Static loc:JabberText.LeaveRoom}" Command="{Binding LeaveRoomCommand}" />
               </StackPanel>
-              <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" IsVisible="{Binding IsContactOpen}" />
-              <Button Content="{x:Static loc:JabberText.AddContact}" Command="{Binding AddOpenPersonCommand}" IsVisible="{Binding IsStrangerOpen}" />
             </StackPanel>
           </Grid>
         </Border>
@@ -262,7 +270,6 @@
         </ListBox>
 
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
-          <TextBlock Text="{Binding TypingText}" IsVisible="{Binding IsSomeoneTyping}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextFaintBrush}" />
           <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
           <Grid ColumnDefinitions="*,Auto,Auto" Margin="10 6">
             <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120"

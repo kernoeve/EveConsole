@@ -693,4 +693,8 @@ PID: {2}
 {1}
 클릭하면 ESI 한도를 봅니다.</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>메시지</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

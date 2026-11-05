@@ -699,4 +699,8 @@ Base de datos: {2}
 {1}
 Haz clic para ver los límites de ESI.</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Mensajes</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

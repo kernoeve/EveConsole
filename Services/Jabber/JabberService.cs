@@ -13,6 +13,9 @@ public enum JabberState { Offline, Connecting, Connected, Reconnecting, Failed }
 /// <summary>What a stopped connection needs from the person, if anything.</summary>
 public enum JabberProblem { None, Password, Certificate, NoEncryption, Replaced, Other }
 
+/// <summary>How one saved direct conversation stands.</summary>
+public sealed record JabberDirectSummary(int AccountId, string Conversation, string LastText, string LastAt, int Unread, int Alerts);
+
 /// <summary>A contact as of the latest news: on the list, and how they appear right now.</summary>
 public sealed class JabberContact(string jid)
 {
@@ -1187,6 +1190,21 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             .Select(g => new { g.Key.Conversation, g.Key.IsRoom, Last = g.Max(m => m.Id) })
             .OrderByDescending(g => g.Last).ToListAsync(ct);
         return [.. rows.Select(r => (r.Conversation, r.IsRoom, r.Last))];
+    }
+
+    /// <summary>Every direct conversation across accounts, with how it stands, for the Messages window.</summary>
+    public async Task<List<JabberDirectSummary>> DirectSummariesAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var groups = await db.JabberMessages.AsNoTracking().Where(m => !m.IsRoom)
+            .GroupBy(m => new { m.AccountId, m.Conversation })
+            .Select(g => new { g.Key.AccountId, g.Key.Conversation, Last = g.Max(m => m.Id), Unread = g.Count(m => !m.IsRead), Alerts = g.Count(m => !m.IsRead && m.IsAlert) })
+            .ToListAsync(ct);
+
+        var ids  = groups.Select(g => g.Last).ToList();
+        var last = await db.JabberMessages.AsNoTracking().Where(m => ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
+
+        return [.. groups.Select(g => new JabberDirectSummary(g.AccountId, g.Conversation, last[g.Last].Body, last[g.Last].SentAt, g.Unread, g.Alerts))];
     }
 
     public async Task<List<JabberUnread>> UnreadAsync(CancellationToken ct = default)

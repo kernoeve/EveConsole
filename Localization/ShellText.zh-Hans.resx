@@ -693,4 +693,8 @@ PID：{2}
 {1}
 点击查看 ESI 限制。</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>消息</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

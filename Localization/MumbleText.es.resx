@@ -157,12 +157,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="MessageHint" xml:space="preserve">
     <value>Mensaje a {0}. Intro envía, Mayús+Intro inicia una línea nueva.</value>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>Mensaje privado a {0}. Intro envía, Mayús+Intro inicia otra línea.</value>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>privado</value>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>Enviar</value>
   </data>

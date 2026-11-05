@@ -1010,4 +1010,12 @@ Remplacer « {1} » par « {0} » ?</value>
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} personnages PI ont des emplacements de colonie inutilisés.</value>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>Vous avez {0} messages directs non lus.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>Vous avez {0} message direct non lu.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

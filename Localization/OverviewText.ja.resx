@@ -932,4 +932,8 @@
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>未使用のコロニースロットがあるPIキャラクターが{0}人います。</value>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>未読のダイレクトメッセージが {0} 件あります。</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

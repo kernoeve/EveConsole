@@ -693,4 +693,8 @@ PID：{2}
 {1}
 クリックで ESI の制限を表示します。</value>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>メッセージ</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

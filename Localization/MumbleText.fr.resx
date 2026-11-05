@@ -157,12 +157,6 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="MessageHint" xml:space="preserve">
     <value>Message à {0}. Entrée envoie, Maj+Entrée commence une nouvelle ligne.</value>
   </data>
-  <data name="PrivateHint" xml:space="preserve">
-    <value>Message privé à {0}. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
-  </data>
-  <data name="PrivateMark" xml:space="preserve">
-    <value>privé</value>
-  </data>
   <data name="Send" xml:space="preserve">
     <value>Envoyer</value>
   </data>

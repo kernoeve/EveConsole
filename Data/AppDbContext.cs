@@ -1200,7 +1200,7 @@ public class AppDbContext : DbContext
 
         mb.Entity<MumbleDirectMessage>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.ServerId, x.Id }).HasDatabaseName("IX_MumbleDirectMessages_Server");
+            e.HasIndex(x => new { x.ServerId, x.PeerKey, x.Id }).HasDatabaseName("IX_MumbleDirectMessages_Peer");
             e.ToTable("MumbleDirectMessages"); });
 
         mb.Entity<JabberAccount>(e => {

@@ -1010,4 +1010,12 @@
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} personajes de IP tienen ranuras de colonia sin usar.</value>
   </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>Tienes {0} mensajes directos sin leer.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>Tienes {0} mensaje directo sin leer.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
 </root>

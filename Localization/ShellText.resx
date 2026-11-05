@@ -885,4 +885,8 @@ Upgrade it and start? No closes EVE Console and leaves the database as it is.</v
 Click for the ESI limits.</value>
     <comment>Tooltip on the header's ESI slowed. {0} is the governor's state, {1} the error budget line.</comment>
   </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Main menu.</comment>
+  </data>
 </root>

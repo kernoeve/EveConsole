@@ -173,6 +173,21 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
 
+          <!-- Direct messages: dim with nothing new, lit with a count when something is waiting. -->
+          <Button Command="{Binding OpenMessagesCommand}" Background="Transparent" BorderThickness="0" Padding="4 1" Margin="0 0 10 0"
+                  VerticalAlignment="Center" ToolTip.Tip="{Binding MessagesVm.WindowTitle}" ToolTip.Placement="Bottom">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Grid>
+                <Path IsVisible="{Binding !MessagesVm.HasUnread}" Data="M2 2.5 h12 a1 1 0 0 1 1 1 v7 a1 1 0 0 1 -1 1 H7 l-3.2 3 v-3 H2 a1 1 0 0 1 -1 -1 v-7 a1 1 0 0 1 1 -1 z"
+                      Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.2" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding MessagesVm.HasUnread}" Data="M2 2.5 h12 a1 1 0 0 1 1 1 v7 a1 1 0 0 1 -1 1 H7 l-3.2 3 v-3 H2 a1 1 0 0 1 -1 -1 v-7 a1 1 0 0 1 1 -1 z"
+                      Fill="{DynamicResource WarnBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+              </Grid>
+              <TextBlock IsVisible="{Binding MessagesVm.HasUnread}" Text="{Binding MessagesVm.UnreadText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            </StackPanel>
+          </Button>
+
           <!-- My characters online. Hover lists who, where, and in what — three columns that
                line up without a grid's chrome, green when docked, orange when in space. -->
           <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"
