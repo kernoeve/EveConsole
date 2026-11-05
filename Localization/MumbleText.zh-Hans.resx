@@ -195,4 +195,8 @@
     <value>点击按钮，然后按要使用的键或鼠标按钮。它仍保留原有功能，因此用于打字的键在打字时也会讲话。</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>自动调整我的语音音量</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

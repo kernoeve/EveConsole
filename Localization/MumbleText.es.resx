@@ -195,4 +195,8 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Haz clic en el botón y pulsa la tecla o el botón del ratón que quieras usar. También sigue haciendo su función normal, así que una tecla con la que escribes hablará mientras escribes.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Nivelar mi voz automáticamente</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

@@ -79,6 +79,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public const string OutputDevicePref = "mumble.output_device";
     public const string OutputVolumePref = "mumble.output_volume";
     public const string MicGainPref = "mumble.mic_gain";
+    public const string AutoLevelPref = "mumble.auto_level";
 
     // Plain talk needs no saved target: the server sends it to the channel and everything linked to it, which is
     // what the standard client's Push to Talk does, and Shout is that. Whisper has to name the channel to stop there.
@@ -148,6 +149,11 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         get => _micGain;
         set { _micGain = value; if (Devices is { } d) d.MicrophoneGain = value; }
     }
+
+    /// <summary>Levels this person's voice before it is sent, as the standard client does.</summary>
+    public bool AutoLevel { get; set; } = true;
+
+    private readonly MumbleVoiceLeveler _leveler = new();
 
     public event Action<MumbleSession>? SessionChanged;
     public event Action<MumbleSession, MumbleChatLine>? ChatReceived;
@@ -688,6 +694,14 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         if (session.Client is null || session.Encoder is null || session.Server.SelfMuted) return;
 
+        // A new press starts clean: a few samples left from the last one are not part of what is being said now.
+        if (Sessions.All(s => s.TalkingNow == MumbleTalk.None))
+            lock (_micBuffer)
+            {
+                _micBuffer.Clear();
+                _leveler.StartTalk();
+            }
+
         Interlocked.Exchange(ref session.Talking, (int)mode);
         _micClose?.Cancel();
 
@@ -761,6 +775,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             {
                 var frame = _micBuffer.GetRange(0, MumbleEncoder.FrameSamples).ToArray();
                 _micBuffer.RemoveRange(0, MumbleEncoder.FrameSamples);
+                if (AutoLevel) _leveler.Process(frame);
                 _frames.Writer.TryWrite(new VoiceWork(frame, null, MumbleTalk.None));
             }
         }
@@ -826,6 +841,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             TalkersChanged?.Invoke();
         }, null, 100, 100);
     }
+
+    /// <summary>Whether someone is muted and deafened as things stand, or null if they are no longer there.</summary>
+    public (bool Muted, bool Deaf)? StateOf(int serverId, uint session) =>
+        SessionOf(serverId)?.Client?.UserOf(session) is { } user ? (user.Mute || user.SelfMute || user.Suppress, user.Deaf || user.SelfDeaf) : null;
 
     /// <summary>Everyone talking right now, across every server, with this client first where it is.</summary>
     public IReadOnlyList<MumbleTalker> Talkers()

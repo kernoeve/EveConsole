@@ -195,4 +195,8 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Cliquez sur le bouton, puis appuyez sur la touche ou le bouton de souris à utiliser. Il garde sa fonction normale : une touche de frappe parlera donc pendant que vous tapez.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Niveler ma voix automatiquement</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

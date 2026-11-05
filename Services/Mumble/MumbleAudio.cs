@@ -162,8 +162,10 @@ public sealed class MumbleEncoder
 
     public MumbleEncoder(int bitrate)
     {
-        _opus = OpusCodecFactory.CreateEncoder(MumbleMixer.SampleRate, 1, OpusApplication.OPUS_APPLICATION_VOIP);
+        // As the standard client sets it up at this bitrate: general audio, at a constant rate.
+        _opus = OpusCodecFactory.CreateEncoder(MumbleMixer.SampleRate, 1, OpusApplication.OPUS_APPLICATION_AUDIO);
         _opus.Bitrate = bitrate;
+        _opus.UseVBR = false;
     }
 
     /// <summary>The bitrate for a server's bandwidth limit, leaving room for the packets' own overhead.</summary>
@@ -181,6 +183,81 @@ public sealed class MumbleEncoder
         var packet = new MumbleVoicePacket(target, 0, _sequence, _packet.AsSpan(0, size).ToArray(), last);
         _sequence += SequenceStep;
         return packet;
+    }
+}
+
+/// <summary>
+/// Brings a voice up, or down, to a steady level. The standard client always does this, with room to raise a voice by
+/// 29 dB, climbing at 12 dB a second and falling at 60. A microphone that is simply quiet is otherwise just quiet to
+/// everyone. One voice at a time, 20 ms at a time, and fast: it runs on the sound device's thread.
+/// </summary>
+public sealed class MumbleVoiceLeveler
+{
+    public const double TargetDb = -18, MostRaiseDb = 29, MostLowerDb = -12;
+
+    private const double FrameSeconds = 0.02, RaisePerSecond = 12, FirstRaisePerSecond = 40, LowerPerSecond = 60;
+
+    /// <summary>How long it climbs quickly at first. ⚠️ The microphone is only open while talking, unlike the standard client's, so it has no silence to learn in.</summary>
+    private const int LearningFrames = 75;
+
+    /// <summary>What is held back at the start of a press: the key's click and the microphone opening are there, not the voice.</summary>
+    private const int QuietFrames = 3;
+
+    private const double LimitFrom = 0.7 * short.MaxValue, Ceiling = 0.98 * short.MaxValue;
+
+    private double _gainDb, _floorDb = -70, _levelPower;
+    private int _speechFrames, _framesIntoTalk;
+
+    public double GainDb => _gainDb;
+
+    public void StartTalk() => _framesIntoTalk = 0;
+
+    public void Process(Span<short> frame)
+    {
+        double sum = 0;
+        foreach (var s in frame) sum += (double)s * s;
+        var power = sum / frame.Length;
+        var db = power <= 1 ? -90 : 10 * Math.Log10(power / (32768.0 * 32768.0));
+
+        var before = _gainDb;
+
+        // The background: follows silence straight down, and creeps up only slowly, so a long sound never becomes it.
+        _floorDb = db < _floorDb ? db : _floorDb + FrameSeconds;
+
+        if (_framesIntoTalk >= QuietFrames && db > Math.Max(_floorDb + 10, -60))
+        {
+            _levelPower = _levelPower == 0 ? power : _levelPower + (power - _levelPower) * 0.066;
+
+            var level = 10 * Math.Log10(_levelPower / (32768.0 * 32768.0));
+            var wanted = Math.Clamp(TargetDb - level, MostLowerDb, MostRaiseDb);
+            var up = (_speechFrames < LearningFrames ? FirstRaisePerSecond : RaisePerSecond) * FrameSeconds;
+
+            _gainDb += Math.Clamp(wanted - _gainDb, -LowerPerSecond * FrameSeconds, up);
+            _speechFrames++;
+        }
+
+        var start = Math.Pow(10, before / 20);
+        var end = Math.Pow(10, _gainDb / 20);
+        var opening = _framesIntoTalk < QuietFrames ? 0.0 : _framesIntoTalk == QuietFrames ? -1.0 : 1.0;
+
+        for (var i = 0; i < frame.Length; i++)
+        {
+            var along = (double)i / frame.Length;
+            var value = frame[i] * (start + (end - start) * along) * (opening < 0 ? along : opening);
+            frame[i] = (short)Math.Round(Limit(value));
+        }
+
+        _framesIntoTalk++;
+    }
+
+    /// <summary>Rounds off what would otherwise clip, without turning everything down for one loud moment.</summary>
+    private static double Limit(double value)
+    {
+        var size = Math.Abs(value);
+        if (size <= LimitFrom) return value;
+
+        var room = Ceiling - LimitFrom;
+        return Math.Sign(value) * (LimitFrom + room * Math.Tanh((size - LimitFrom) / room));
     }
 }
 

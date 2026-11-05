@@ -251,4 +251,8 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Click a key's button, then press the key or mouse button to use. It also still does its normal job, so a key you type with will talk as you type.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Level my voice automatically</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

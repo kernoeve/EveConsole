@@ -195,4 +195,8 @@
     <value>버튼을 클릭한 다음 사용할 키나 마우스 버튼을 누르세요. 원래 기능도 그대로 동작하므로 입력에 쓰는 키는 입력하는 동안 말하게 됩니다.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>내 음성 레벨 자동 조정</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

@@ -195,4 +195,8 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Klicke auf die Schaltfläche und drücke dann die gewünschte Taste oder Maustaste. Sie behält ihre normale Funktion, eine Taste zum Tippen spricht also auch beim Tippen.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Meine Stimme automatisch ausgleichen</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

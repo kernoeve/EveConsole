@@ -15,6 +15,14 @@
         Background="Transparent"
         MinWidth="150">
 
+  <Window.Styles>
+    <Style Selector="Ellipse.talker"><Setter Property="Fill" Value="#60FFFFFF" /></Style>
+    <Style Selector="Ellipse.talker.active"><Setter Property="Fill" Value="#5CD672" /></Style>
+    <Style Selector="TextBlock.talker"><Setter Property="Foreground" Value="#A0FFFFFF" /><Setter Property="FontWeight" Value="Normal" /></Style>
+    <Style Selector="TextBlock.talker.active"><Setter Property="Foreground" Value="#7CF08F" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="Path.state"><Setter Property="Stroke" Value="#FFB454" /><Setter Property="StrokeThickness" Value="1.1" /><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+  </Window.Styles>
+
   <!-- Dragged by anywhere on it, and small: it sits over a game. -->
   <Border Background="#C8101418" CornerRadius="5" Padding="8 6" PointerPressed="OnDrag">
     <StackPanel Spacing="2">
@@ -23,8 +31,10 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:MumbleOverlayLine">
             <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 1">
-              <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="#5CD672" />
-              <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="White" />
+              <Ellipse Classes="talker" Classes.active="{Binding IsTalking}" Width="8" Height="8" VerticalAlignment="Center" />
+              <TextBlock Classes="talker" Classes.active="{Binding IsTalking}" Text="{Binding Name}" FontSize="13" />
+              <Path Classes="state" IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
+              <Path Classes="state" IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
               <TextBlock Text="{Binding Server}" FontSize="10" VerticalAlignment="Center" Foreground="#A0FFFFFF" />
               <TextBlock Text="{x:Static loc:MumbleText.OverlayShout}" IsVisible="{Binding IsShout}" FontSize="10" VerticalAlignment="Center" Foreground="#FFD27A" />
             </StackPanel>

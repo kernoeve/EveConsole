@@ -195,4 +195,8 @@
     <value>Нажмите на кнопку, затем на нужную клавишу или кнопку мыши. Она продолжит выполнять обычную функцию, поэтому клавиша для набора текста будет включать голос во время набора.</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Автоматически выравнивать мой голос</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

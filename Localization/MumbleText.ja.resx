@@ -195,4 +195,8 @@
     <value>ボタンをクリックしてから、使用するキーまたはマウスボタンを押します。通常の機能もそのまま動作するため、文字入力に使うキーでは入力中も発話します。</value>
     <comment>Under the key buttons.</comment>
   </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>自分の音声レベルを自動調整する</value>
+    <comment>Sound settings.</comment>
+  </data>
 </root>

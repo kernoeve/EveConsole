@@ -50,7 +50,10 @@
               <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto">
                 <Ellipse Classes="user" Classes.talking="{Binding Talking}" HorizontalAlignment="Left" />
                 <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <TextBlock Grid.Column="2" Text="{Binding Flags}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" Margin="6 0 0 0" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="6 0 0 0">
+                  <Path IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
+                  <Path IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
+                </StackPanel>
               </Grid>
             </Grid>
           </DataTemplate>
@@ -65,6 +68,7 @@
           <ComboBox ItemsSource="{Binding InputDevices}" SelectedItem="{Binding InputChoice}" HorizontalAlignment="Stretch" FontSize="11" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.MicVolume}" />
           <Slider Minimum="0" Maximum="300" Value="{Binding MicGain}" />
+          <CheckBox IsChecked="{Binding AutoLevelVoice}" FontSize="11" Content="{x:Static loc:MumbleText.AutoLevel}" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.Speakers}" />
           <ComboBox ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding OutputChoice}" HorizontalAlignment="Stretch" FontSize="11" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.SpeakerVolume}" />

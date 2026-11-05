@@ -45,10 +45,15 @@ public sealed class MumbleRowVm : ReactiveObject
     public bool Bad  { get => _bad;  set => this.RaiseAndSetIfChanged(ref _bad, value); }
     public bool IsMe { get => _isMe; set => this.RaiseAndSetIfChanged(ref _isMe, value); }
 
+    private bool _isMuted, _isDeaf;
+    public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
+    public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+
     public void Fill(MumbleRowVm from)
     {
         Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking;
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
+        IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
     }
 }
 
@@ -63,7 +68,24 @@ public sealed class MumbleChatVm(MumbleChatLine line)
 }
 
 /// <summary>Somebody on the always-on-top list.</summary>
-public sealed record MumbleOverlayLine(string Name, string Server, bool IsSelf, bool IsShout);
+/// <summary>Someone in the talking list: talking now, or recently enough to still be there.</summary>
+public sealed class MumbleOverlayLine(int serverId, uint session, string name, string server, bool isSelf) : ReactiveObject
+{
+    public int ServerId => serverId;
+    public uint Session => session;
+    public string Name => name;
+    public string Server => server;
+    public bool IsSelf => isSelf;
+
+    /// <summary>When they last had something to say, for how long they stay listed.</summary>
+    public DateTime LastTalked { get; set; } = DateTime.UtcNow;
+
+    private bool _isTalking, _isShout, _isMuted, _isDeaf;
+    public bool IsTalking { get => _isTalking; set => this.RaiseAndSetIfChanged(ref _isTalking, value); }
+    public bool IsShout { get => _isShout; set => this.RaiseAndSetIfChanged(ref _isShout, value); }
+    public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
+    public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+}
 
 /// <summary>
 /// The Mumble tool: each server's channels and people on the left, what is selected on the right.
@@ -122,6 +144,8 @@ public sealed class MumbleViewModel : ReactiveObject
 
         _speakerVolume = _prefs.GetLong(MumbleService.OutputVolumePref, 100);
         _micGain       = _prefs.GetLong(MumbleService.MicGainPref, 100);
+        _autoLevel     = _prefs.GetBool(MumbleService.AutoLevelPref, true);
+        _service.AutoLevel = _autoLevel;
         _showOverlay   = _prefs.GetBool(OverlayPref);
 
         _service.InputDevice   = _prefs.Get(MumbleService.InputDevicePref) ?? "";
@@ -131,6 +155,9 @@ public sealed class MumbleViewModel : ReactiveObject
 
         _service.SessionChanged += _ => QueueRefresh();
         _service.TalkersChanged += () => { QueueRefresh(); Dispatcher.UIThread.Post(RefreshOverlay); };
+
+        // Someone stops being listed by time passing, and their mute can change while they are quiet.
+        _overlayTimer = new Timer(_ => Dispatcher.UIThread.Post(() => { if (Talkers.Count > 0) RefreshOverlay(); }), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         _service.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnChat(session, line));
 
         QueueRefresh();
@@ -237,6 +264,8 @@ public sealed class MumbleViewModel : ReactiveObject
                     Text = u.Name, IsMe = u.Session == me,
                     Talking = talking.Contains((id, u.Session)),
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",
+                    IsDeaf = u.Deaf || u.SelfDeaf,
+                    IsMuted = u.Mute || u.SelfMute || u.Suppress,
                 });
 
             foreach (var child in children[channel]
@@ -728,6 +757,18 @@ public sealed class MumbleViewModel : ReactiveObject
         }
     }
 
+    private bool _autoLevel;
+    public bool AutoLevelVoice
+    {
+        get => _autoLevel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _autoLevel, value);
+            _service.AutoLevel = value;
+            _ = _prefs.SetBoolAsync(MumbleService.AutoLevelPref, value);
+        }
+    }
+
     public double MicGain
     {
         get => _micGain;
@@ -754,17 +795,43 @@ public sealed class MumbleViewModel : ReactiveObject
 
     public ObservableCollection<MumbleOverlayLine> Talkers { get; } = [];
 
+    /// <summary>The standard client's own default for how long someone stays in its talking list.</summary>
+    private static readonly TimeSpan KeptAfterTalking = TimeSpan.FromSeconds(10);
+
+    private readonly Timer _overlayTimer;
+
     private bool _nobodyTalking = true;
     public bool NobodyTalking { get => _nobodyTalking; private set => this.RaiseAndSetIfChanged(ref _nobodyTalking, value); }
 
     private void RefreshOverlay()
     {
-        var now = _service.Talkers().Select(t => new MumbleOverlayLine(t.Name, t.Server, t.IsSelf, t.Mode == MumbleTalk.Shout)).ToList();
+        var talking = _service.Talkers();
+        var when = DateTime.UtcNow;
+
+        foreach (var t in talking)
+        {
+            var line = Talkers.FirstOrDefault(l => l.ServerId == t.ServerId && l.Session == t.Session);
+            if (line is null) Talkers.Add(line = new MumbleOverlayLine(t.ServerId, t.Session, t.Name, t.Server, t.IsSelf));
+            line.LastTalked = when;
+            line.IsTalking = true;
+            line.IsShout = t.Mode == MumbleTalk.Shout;
+        }
 
         for (var i = Talkers.Count - 1; i >= 0; i--)
-            if (!now.Contains(Talkers[i])) Talkers.RemoveAt(i);
-        foreach (var line in now)
-            if (!Talkers.Contains(line)) Talkers.Add(line);
+        {
+            var line = Talkers[i];
+            var state = _service.StateOf(line.ServerId, line.Session);
+
+            // Gone from the server, or quiet for long enough. Until then they stay, as in the standard client's list.
+            if (state is null || when - line.LastTalked > KeptAfterTalking) { Talkers.RemoveAt(i); continue; }
+
+            line.IsMuted = state.Value.Muted;
+            line.IsDeaf = state.Value.Deaf;
+            if (talking.Any(t => t.ServerId == line.ServerId && t.Session == line.Session)) continue;
+
+            line.IsTalking = false;
+            line.IsShout = false;
+        }
 
         NobodyTalking = Talkers.Count == 0;
     }

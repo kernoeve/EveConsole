@@ -306,6 +306,46 @@ static string RawFile(string path)
     Check("mouse: the forward button", GlobalHotkeyService.MouseButton(0x020B, 2u << 16) == (GlobalHotkeyService.VkMouseForward, true));
     Check("mouse: the middle button", GlobalHotkeyService.MouseButton(0x0207, 0) == (GlobalHotkeyService.VkMouseMiddle, true) && GlobalHotkeyService.MouseButton(0x0208, 0) == (GlobalHotkeyService.VkMouseMiddle, false));
     Check("mouse: moving and the left button are not talking", GlobalHotkeyService.MouseButton(0x0200, 0) is null && GlobalHotkeyService.MouseButton(0x0201, 0) is null);
+    // Speech-like: bursts of tone with pauses, at a given level, returning what the listener's level would be.
+    static (double SpeechDb, double PeakDb, double FinalGain) Levelled(double db, double seconds, bool pop = false, double background = -74)
+    {
+        var leveler = new MumbleVoiceLeveler();
+        leveler.StartTalk();
+        var amplitude = Math.Pow(10, db / 20) * 32768 * Math.Sqrt(2);
+        var hiss = Math.Pow(10, background / 20) * 32768;
+        var random = new Random(7);
+        double sum = 0, peak = 0;
+        var counted = 0;
+        var frames = (int)(seconds * 50);
+        for (var f = 0; f < frames; f++)
+        {
+            var speaking = f % 50 < 38;
+            var frame = new short[MumbleEncoder.FrameSamples];
+            for (var i = 0; i < frame.Length; i++)
+            {
+                var v = (speaking ? Math.Sin(2 * Math.PI * 300 * (f * frame.Length + i) / 48000) * amplitude : 0) + (random.NextDouble() - 0.5) * hiss * 2;
+                if (pop && f == 1) v = 30000 * (i % 2 == 0 ? 1 : -1);
+                frame[i] = (short)Math.Clamp(v, short.MinValue, short.MaxValue);
+            }
+            leveler.Process(frame);
+            foreach (var s in frame) peak = Math.Max(peak, Math.Abs((double)s));
+            if (speaking && f >= frames * 3 / 4) { foreach (var s in frame) sum += (double)s * s; counted += frame.Length; }
+        }
+        return (counted == 0 ? -120 : 10 * Math.Log10(sum / counted / (32768.0 * 32768.0)), 20 * Math.Log10(Math.Max(peak, 1) / 32768), leveler.GainDb);
+    }
+
+    var quietVoice = Levelled(-38, 8);
+    Check("level: a quiet voice comes up to the target", Math.Abs(quietVoice.SpeechDb - MumbleVoiceLeveler.TargetDb) < 2, $"{quietVoice.SpeechDb:0.0} dBFS, gain {quietVoice.FinalGain:0.0}");
+    var loudVoice = Levelled(-6, 8);
+    Check("level: a loud voice comes down to it", Math.Abs(loudVoice.SpeechDb - MumbleVoiceLeveler.TargetDb) < 2.5, $"{loudVoice.SpeechDb:0.0} dBFS, gain {loudVoice.FinalGain:0.0}");
+    var veryQuiet = Levelled(-70 + 12, 12, background: -90);
+    Check("level: never raises by more than the standard client's most", veryQuiet.FinalGain <= MumbleVoiceLeveler.MostRaiseDb && veryQuiet.FinalGain > 25, $"gain {veryQuiet.FinalGain:0.0}");
+    Check("level: silence is not turned up to find something", Levelled(-120, 6).FinalGain == 0, $"gain {Levelled(-120, 6).FinalGain:0.0}");
+    var clipping = Levelled(-1, 3);
+    Check("level: never clips", clipping.PeakDb < -0.1, $"peak {clipping.PeakDb:0.00}");
+    var popped = Levelled(-38, 8, pop: true);
+    Check("level: the click at the start of a press is not sent", popped.PeakDb < quietVoice.PeakDb + 1, $"{popped.PeakDb:0.0} against {quietVoice.PeakDb:0.0}");
+    Check("level: and does not throw off the level", Math.Abs(popped.SpeechDb - quietVoice.SpeechDb) < 0.5, $"{popped.SpeechDb:0.0} against {quietVoice.SpeechDb:0.0}");
     Check("keys: the same talk key on another server", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7C }, [a]) == "One");
     Check("keys: my shout on their talk", MumbleService.KeyClash(new MumbleServer { Id = 2, ShoutKey = 0x7C }, [a]) == "One");
     Check("keys: my talk on their shout", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7D }, [a]) == "One");
