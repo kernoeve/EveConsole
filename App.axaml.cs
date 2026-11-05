@@ -554,7 +554,7 @@ public class App : Application
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
-                if (Services is not null) tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);

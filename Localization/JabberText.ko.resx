@@ -31,6 +31,9 @@
   <data name="RowWantsToAdd" xml:space="preserve">
     <value>추가를 요청함</value>
   </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0}님이 초대했습니다</value>
+  </data>
   <data name="HeadingRooms" xml:space="preserve">
     <value>대화방</value>
   </data>

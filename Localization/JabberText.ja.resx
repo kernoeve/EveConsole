@@ -31,6 +31,9 @@
   <data name="RowWantsToAdd" xml:space="preserve">
     <value>追加を希望しています</value>
   </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} から招待されました</value>
+  </data>
   <data name="HeadingRooms" xml:space="preserve">
     <value>ルーム</value>
   </data>

@@ -13,11 +13,18 @@ public enum XmppShow { Offline, Online, Chat, Away, ExtendedAway, DoNotDisturb }
 /// <param name="FromThisAccount">Written by this account in another client, and copied here.</param>
 public sealed record XmppMessage(
     XmppAddress From, XmppAddress To, string Type, string Body, string Subject, string Id,
-    DateTimeOffset? Sent, string ServerId, bool FromThisAccount);
+    DateTimeOffset? Sent, string ServerId, bool FromThisAccount)
+{
+    /// <summary>The sender corrected their last message: this replaces it rather than following it.</summary>
+    public bool IsCorrection { get; init; }
+}
 
 public sealed record XmppRosterItem(string Jid, string Name, string Subscription, bool AskedByUs, IReadOnlyList<string> Groups);
 
 public sealed record XmppPresence(XmppAddress From, XmppShow Show, string Status);
+
+/// <summary>An invitation into a room.</summary>
+public sealed record XmppInvite(string Room, string From, string Reason, string Password);
 
 /// <summary>Someone in a room, as of their latest presence there.</summary>
 /// <param name="Self">The server says this presence is about this client's own nickname.</param>
@@ -61,6 +68,9 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public static readonly XNamespace Bookmarks = "storage:bookmarks";
     public static readonly XNamespace Version   = "jabber:iq:version";
     public static readonly XNamespace Stanzas   = "urn:ietf:params:xml:ns:xmpp-stanzas";
+    public static readonly XNamespace Receipts  = "urn:xmpp:receipts";
+    public static readonly XNamespace Correct   = "urn:xmpp:message-correct:0";
+    public static readonly XNamespace DirectInvite = "jabber:x:conference";
 
     private static readonly TimeSpan IqTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(60);
@@ -83,6 +93,8 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public event Action<string, XmppRoomFailure, string>? RoomJoinFailed;
 
     public event Action<string, string>? RoomSubjectChanged;
+
+    public event Action<XmppInvite>? InviteReceived;
 
     /// <summary>
     /// Reads until the connection ends. Returns normally when cancelled or closed by the server, and
@@ -175,7 +187,10 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                 new XElement(DiscoInfo + "identity", new XAttribute("category", "client"), new XAttribute("type", "pc"), new XAttribute("name", "EVE Console")),
                 new XElement(DiscoInfo + "feature", new XAttribute("var", DiscoInfo.NamespaceName)),
                 new XElement(DiscoInfo + "feature", new XAttribute("var", Ping.NamespaceName)),
-                new XElement(DiscoInfo + "feature", new XAttribute("var", Carbons.NamespaceName))));
+                new XElement(DiscoInfo + "feature", new XAttribute("var", Carbons.NamespaceName)),
+                new XElement(DiscoInfo + "feature", new XAttribute("var", Receipts.NamespaceName)),
+                new XElement(DiscoInfo + "feature", new XAttribute("var", Correct.NamespaceName)),
+                new XElement(DiscoInfo + "feature", new XAttribute("var", DirectInvite.NamespaceName))));
             return;
         }
 
@@ -201,8 +216,20 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
 
     private void HandleMessage(XElement stanza)
     {
+        if (ParseInvite(stanza) is { } invite)
+        {
+            InviteReceived?.Invoke(invite);
+            return;
+        }
+
         var message = ParseMessage(stanza, Self);
         if (message is null) return;
+
+        // A sender asking to hear it arrived gets told, unless this is only a copy of someone's own.
+        if (stanza.Element(Receipts + "request") is not null && !message.FromThisAccount
+            && message.Type != "groupchat" && message.Id.Length > 0 && stanza.Attribute("from") is { } sender)
+            Send(new XElement(Client + "message", new XAttribute("to", sender.Value),
+                new XElement(Receipts + "received", new XAttribute("id", message.Id))));
 
         var type = (string?)stanza.Attribute("type") ?? "normal";
         if (type == "groupchat" && stanza.Element(Client + "subject") is { } subject && message.Body.Length == 0)
@@ -212,6 +239,30 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         }
 
         if (message.Body.Length > 0) MessageReceived?.Invoke(message);
+    }
+
+    /// <summary>An invitation, in either of the forms servers and clients send, or null.</summary>
+    public static XmppInvite? ParseInvite(XElement stanza)
+    {
+        if ((string?)stanza.Attribute("type") == "error") return null;
+
+        // Through the room, which says who sent it.
+        if (stanza.Element(MucUser + "x") is { } user && user.Element(MucUser + "invite") is { } through)
+            return new XmppInvite(
+                XmppAddress.Parse((string?)stanza.Attribute("from")).Bare,
+                XmppAddress.Parse((string?)through.Attribute("from")).Bare,
+                through.Element(MucUser + "reason")?.Value ?? "",
+                user.Element(MucUser + "password")?.Value ?? "");
+
+        // Directly from the person.
+        if (stanza.Element(DirectInvite + "x") is { } direct && (string?)direct.Attribute("jid") is { Length: > 0 } room)
+            return new XmppInvite(
+                XmppAddress.Parse(room).Bare,
+                XmppAddress.Parse((string?)stanza.Attribute("from")).Bare,
+                (string?)direct.Attribute("reason") ?? "",
+                (string?)direct.Attribute("password") ?? "");
+
+        return null;
     }
 
     /// <summary>
@@ -257,7 +308,10 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             (string?)inner.Attribute("id") ?? "",
             sent,
             (string?)inner.Element(StanzaId + "stanza-id")?.Attribute("id") ?? "",
-            mine);
+            mine)
+        {
+            IsCorrection = inner.Element(Correct + "replace") is not null,
+        };
     }
 
     private void HandlePresence(XElement stanza)

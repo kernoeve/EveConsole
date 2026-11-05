@@ -80,6 +80,14 @@ public partial class JabberView : UserControl
             vm.SendCommand.Execute().Subscribe(_ => { }, _ => { });
     }
 
+    /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>
+    private async void OnOpenLink(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Content: string url } && Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            && uri.Scheme is "http" or "https" && TopLevel.GetTopLevel(this) is { } top)
+            await top.Launcher.LaunchUriAsync(uri);
+    }
+
     private async Task<bool> AskAsync(string message)
     {
         // ⚠️ No window means nobody to ask, so nothing that cannot be undone goes ahead.

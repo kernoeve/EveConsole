@@ -69,6 +69,7 @@ public sealed class JabberSession(JabberAccount account)
     internal Dictionary<string, JabberContact> ContactMap { get; } = new(StringComparer.Ordinal);
     internal Dictionary<string, JabberRoomState> RoomMap { get; } = new(StringComparer.Ordinal);
     internal HashSet<string> Requests { get; } = new(StringComparer.Ordinal);
+    internal Dictionary<string, XmppInvite> InviteMap { get; } = new(StringComparer.Ordinal);
 
     public T Locked<T>(Func<JabberSession, T> read) { lock (_gate) return read(this); }
     internal void Locked(Action<JabberSession> change) { lock (_gate) change(this); }
@@ -76,6 +77,7 @@ public sealed class JabberSession(JabberAccount account)
     public IReadOnlyList<JabberContact> Contacts => Locked(s => (IReadOnlyList<JabberContact>)[.. s.ContactMap.Values]);
     public IReadOnlyList<JabberRoomState> Rooms => Locked(s => (IReadOnlyList<JabberRoomState>)[.. s.RoomMap.Values]);
     public IReadOnlyList<string> SubscriptionRequests => Locked(s => (IReadOnlyList<string>)[.. s.Requests]);
+    public IReadOnlyList<XmppInvite> Invites => Locked(s => (IReadOnlyList<XmppInvite>)[.. s.InviteMap.Values]);
 }
 
 /// <summary>Unread messages in one conversation.</summary>
@@ -107,6 +109,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     public event Action<JabberStoredMessage>? AlertArrived;
 
     public event Action? UnreadChanged;
+
+    /// <summary>Someone corrected a saved message: the conversation needs reading again.</summary>
+    public event Action<int, string>? ConversationEdited;
 
     public static string PasswordReference(int accountId) => $"jabber-{accountId}";
 
@@ -319,6 +324,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         client.RosterChanged += r => OnRosterItem(session, r);
         client.SubscriptionRequested += j => { session.Locked(s => s.Requests.Add(j)); SessionChanged?.Invoke(session); };
         client.RoomJoinFailed += (room, why, text) => OnJoinFailed(session, client, room, why, text, ct);
+        client.InviteReceived += invite =>
+        {
+            session.Locked(s => s.InviteMap[invite.Room] = invite);
+            SessionChanged?.Invoke(session);
+        };
         client.RoomSubjectChanged += (room, subject) => session.Locked(s => { if (s.RoomMap.TryGetValue(room, out var r)) r.Subject = subject; });
 
         var reading = client.RunAsync(ct);
@@ -537,6 +547,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var row = ToStored(session.Account, room?.Nick, room?.Room, message, DateTimeOffset.UtcNow, privateInRoom: known is not null && room is null);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        if (message.IsCorrection && await ApplyCorrectionAsync(db, row, ct)) return null;
+
         if (await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && m.DedupeKey == row.DedupeKey, ct)) return null;
 
         db.JabberMessages.Add(row);
@@ -553,6 +566,24 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (!row.IsRead) UnreadChanged?.Invoke();
         if (row.IsAlert && !row.IsRead) AlertArrived?.Invoke(row);
         return row;
+    }
+
+    /// <summary>
+    /// A correction changes that person's latest message in the conversation, which is the only one the
+    /// protocol lets them correct. False when nothing of theirs is saved, and it stands as a new message.
+    /// </summary>
+    private async Task<bool> ApplyCorrectionAsync(AppDbContext db, JabberStoredMessage row, CancellationToken ct)
+    {
+        var last = await db.JabberMessages
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation)
+            .OrderByDescending(m => m.Id).Take(50)
+            .FirstOrDefaultAsync(m => m.Sender == row.Sender, ct);
+        if (last is null) return false;
+
+        last.Body = row.Body;
+        await db.SaveChangesAsync(ct);
+        ConversationEdited?.Invoke(row.AccountId, row.Conversation);
+        return true;
     }
 
     /// <summary>
@@ -700,6 +731,14 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid).ExecuteDeleteAsync(ct);
+        SessionChanged?.Invoke(session);
+    }
+
+    /// <summary>Answers an invitation. A yes joins the room with whatever password came with it.</summary>
+    public async Task AnswerInviteAsync(JabberSession session, string room, bool accept, CancellationToken ct = default)
+    {
+        var invite = session.Locked(s => { s.InviteMap.Remove(room, out var i); return i; });
+        if (accept && invite is not null) await JoinRoomAsync(session, invite.Room, "", "", invite.Password, ct);
         SessionChanged?.Invoke(session);
     }
 

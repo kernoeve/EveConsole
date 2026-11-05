@@ -40,6 +40,10 @@
     <value>Wants to add you</value>
     <comment>Beside someone asking to be a contact.</comment>
   </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} invited you</value>
+    <comment>Beside a room invitation. {0} = who.</comment>
+  </data>
   <data name="HeadingRooms" xml:space="preserve">
     <value>Rooms</value>
     <comment>Section in the list.</comment>

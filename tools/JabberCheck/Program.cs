@@ -89,6 +89,19 @@ void Check(string name, bool ok, string detail = "")
     Check("delay: the old form too", oldDelay?.Sent == new DateTimeOffset(2026, 11, 5, 1, 2, 3, TimeSpan.Zero));
     Check("message: an error is not a message", XmppClient.ParseMessage(Message("them@example", "x", "error"), self) is null);
 
+    var through = new XElement(client + "message", new XAttribute("from", "room@c.example"),
+        new XElement(XmppClient.MucUser + "x",
+            new XElement(XmppClient.MucUser + "invite", new XAttribute("from", "them@example/x"), new XElement(XmppClient.MucUser + "reason", "join us")),
+            new XElement(XmppClient.MucUser + "password", "pw")));
+    Check("invite: through the room", XmppClient.ParseInvite(through) == new XmppInvite("room@c.example", "them@example", "join us", "pw"));
+    var direct = new XElement(client + "message", new XAttribute("from", "them@example/x"),
+        new XElement(XmppClient.DirectInvite + "x", new XAttribute("jid", "room@c.example"), new XAttribute("reason", "r")));
+    Check("invite: direct from the person", XmppClient.ParseInvite(direct) == new XmppInvite("room@c.example", "them@example", "r", ""));
+    Check("invite: an ordinary message is not one", XmppClient.ParseInvite(Message("them@example", "hello")) is null);
+    Check("correction: marked as one", XmppClient.ParseMessage(Message("them@example/x", "fixed", "chat",
+        new XElement(XmppClient.Correct + "replace", new XAttribute("id", "m0"))), self)?.IsCorrection == true);
+    Check("correction: a plain message is not one", plain?.IsCorrection == false);
+
     Check("clean: what XML cannot carry goes, the rest stays", XmppClient.Clean("a\u0001b\nc\td￾") == "ab\nc\td");
 }
 
@@ -253,6 +266,22 @@ try
     await service.StoreAsync(session, From("other@example", "c"));
 
     Check("unread: counted for the alert", await service.UnreadAlertsAsync() == 3);
+
+    var fixedOne = From("other@example", "d", "corrected") with { IsCorrection = true };
+    var edited = new List<string>();
+    service.ConversationEdited += (_, c) => edited.Add(c);
+    await service.StoreAsync(session, fixedOne);
+    await using (var db = factory.CreateDbContext())
+    {
+        var rows = await db.JabberMessages.Where(m => m.Conversation == "other@example").ToListAsync();
+        Check("correction: changes their last message, adding none", rows.Count == 1 && rows[0].Body == "corrected" && edited.SequenceEqual(["other@example"]), string.Join(",", rows.Select(r => r.Body)));
+    }
+    await service.StoreAsync(session, From("new@example", "e", "nothing to correct") with { IsCorrection = true });
+    await using (var db = factory.CreateDbContext())
+    {
+        Check("correction: with nothing of theirs saved, it stands as a message", await db.JabberMessages.AnyAsync(m => m.Conversation == "new@example"));
+        await db.JabberMessages.Where(m => m.Conversation == "new@example").ExecuteDeleteAsync();
+    }
     var unread = await service.UnreadAsync();
     Check("unread: by conversation", unread.Single(u => u.Conversation == "bot@example").Count == 2);
 

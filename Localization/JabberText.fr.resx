@@ -31,6 +31,9 @@
   <data name="RowWantsToAdd" xml:space="preserve">
     <value>Souhaite vous ajouter</value>
   </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} vous a invité</value>
+  </data>
   <data name="HeadingRooms" xml:space="preserve">
     <value>Salons</value>
   </data>

@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-public enum JabberRowKind { Account, Heading, Contact, Room, Request }
+public enum JabberRowKind { Account, Heading, Contact, Room, Request, Invite }
 
 /// <summary>A server's own line reads heavier than the people and rooms under it.</summary>
 public static class JabberBold
@@ -43,7 +43,7 @@ public sealed class JabberRowVm : ReactiveObject
 
     public bool IsAccount => Kind == JabberRowKind.Account;
     public bool IsHeading => Kind == JabberRowKind.Heading;
-    public bool IsItem    => Kind is JabberRowKind.Contact or JabberRowKind.Room or JabberRowKind.Request;
+    public bool IsItem    => Kind is JabberRowKind.Contact or JabberRowKind.Room or JabberRowKind.Request or JabberRowKind.Invite;
 
     public string Identity => $"{Kind}:{AccountId}:{Key}";
 
@@ -94,8 +94,15 @@ public sealed class JabberRowVm : ReactiveObject
     }
 }
 
-public sealed class JabberMessageVm(JabberStoredMessage m, string shownSender)
+public sealed partial class JabberMessageVm(JabberStoredMessage m, string shownSender)
 {
+    /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
+    public IReadOnlyList<string> Links { get; } = [.. UrlPattern().Matches(m.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+    public bool HasLinks => Links.Count > 0;
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex UrlPattern();
+
     public long   Id         => m.Id;
     public string Sender     { get; } = shownSender;
     public string Body       => m.Body;
@@ -199,6 +206,10 @@ public sealed class JabberViewModel : ReactiveObject
         _service.UnreadChanged  += QueueRefresh;
         _service.MessageStored  += m => Dispatcher.UIThread.Post(() => OnMessage(m));
         _service.AlertArrived   += OnAlert;
+        _service.ConversationEdited += (account, conversation) => Dispatcher.UIThread.Post(() =>
+        {
+            if (SelectedRow is { } row && row.AccountId == account && row.Key == conversation) _ = OpenSelectedAsync();
+        });
 
         QueueRefresh();
     }
@@ -288,6 +299,13 @@ public sealed class JabberViewModel : ReactiveObject
             Unread = _unread.Where(u => u.AccountId == id).Sum(u => u.Count),
             HasAlert = _unread.Any(u => u.AccountId == id && u.Alerts > 0),
         });
+
+        foreach (var invite in session.Invites)
+            rows.Add(new JabberRowVm
+            {
+                Kind = JabberRowKind.Invite, AccountId = id, Key = invite.Room, Text = invite.Room, Dot = "amber",
+                Detail = string.Format(CultureInfo.CurrentCulture, JabberText.RowInvitedBy, invite.From),
+            });
 
         foreach (var request in session.SubscriptionRequests)
             rows.Add(new JabberRowVm { Kind = JabberRowKind.Request, AccountId = id, Key = request, Text = request, Detail = JabberText.RowWantsToAdd, Dot = "amber" });
@@ -426,7 +444,7 @@ public sealed class JabberViewModel : ReactiveObject
 
     public bool ShowAccount      => SelectedRow is { IsAccount: true } && !IsEditingAccount;
     public bool ShowConversation => SelectedRow is { Kind: JabberRowKind.Contact or JabberRowKind.Room } && !IsEditingAccount;
-    public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request } && !IsEditingAccount;
+    public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request or JabberRowKind.Invite } && !IsEditingAccount;
     public bool ShowNothing      => HasAccounts && SelectedRow is null && !IsEditingAccount;
     public bool ShowOccupants    => SelectedRow is { Kind: JabberRowKind.Room } && !IsEditingAccount;
     public bool IsContactOpen    => SelectedRow is { Kind: JabberRowKind.Contact };
@@ -641,10 +659,10 @@ public sealed class JabberViewModel : ReactiveObject
         try
         {
             Title    = row.ShownText;
-            Subtitle = row.Kind == JabberRowKind.Account ? session.Account.Address : row.Key;
+            Subtitle = row.Kind == JabberRowKind.Account ? session.Account.Address : row.ShownDetail.Length > 0 && row.Kind == JabberRowKind.Invite ? row.ShownDetail : row.Key;
 
             AccountState  = StateText(session);
-            AccountDetail = session.State is JabberState.Failed or JabberState.Reconnecting ? session.Detail : "";
+            AccountDetail = session.State == JabberState.Reconnecting || session is { State: JabberState.Failed, Problem: JabberProblem.Other } ? session.Detail : "";
             IsConnected   = session.State == JabberState.Connected;
             CanConnect    = session.State is JabberState.Offline or JabberState.Failed;
             HasCertificateProblem = session.Problem == JabberProblem.Certificate && session.CertificateFingerprint.Length > 0;
@@ -910,8 +928,12 @@ public sealed class JabberViewModel : ReactiveObject
 
     private async Task AnswerRequestAsync(bool accept)
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Request } row || Session is not { } session) return;
-        await Task.Run(() => _service.AnswerRequestAsync(session, row.Key, accept));
+        if (SelectedRow is not { Kind: JabberRowKind.Request or JabberRowKind.Invite } row || Session is not { } session) return;
+
+        await Task.Run(() => row.Kind == JabberRowKind.Invite
+            ? _service.AnswerInviteAsync(session, row.Key, accept)
+            : _service.AnswerRequestAsync(session, row.Key, accept));
+
         SelectedRow = null;
     }
 }
