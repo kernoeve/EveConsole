@@ -1,0 +1,57 @@
+namespace EveConsole.Models;
+
+/// <summary>
+/// One Mumble server, with its own keys and its own idea of how to connect. Any number of them, connected
+/// at once if wanted, each talking only on its own keys.
+///
+/// <para>⚠️ The password and the client certificate are not here: they are held per machine in the config
+/// file, protected the way the database password is.</para>
+/// </summary>
+public class MumbleServer
+{
+    public int    Id       { get; set; }
+    public string Name     { get; set; } = "";
+    public string Host     { get; set; } = "";
+    public int    Port     { get; set; } = 64738;
+    public string Username { get; set; } = "";
+
+    /// <summary>Access tokens some channels ask for, separated by commas.</summary>
+    public string Tokens   { get; set; } = "";
+
+    /// <summary>Fingerprint of a certificate the person accepted, as most Mumble servers' are self-signed.</summary>
+    public string TrustedCertificate { get; set; } = "";
+
+    /// <summary>Connects when the app starts. Otherwise only when asked. Either way, a connection someone
+    /// wanted is kept up through a server going away, until they say disconnect.</summary>
+    public bool   AutoConnect { get; set; }
+
+    /// <summary>The key that talks to the current channel. Zero for none.</summary>
+    public int    WhisperKey { get; set; }
+
+    /// <summary>The key that shouts: the current channel and what hangs off it. Zero for none.</summary>
+    public int    ShoutKey   { get; set; }
+
+    /// <summary>A shout reaches the channels under this one.</summary>
+    public bool   ShoutChildren { get; set; } = true;
+
+    /// <summary>A shout reaches the channels linked to this one.</summary>
+    public bool   ShoutLinks    { get; set; }
+
+    public bool   SelfMuted    { get; set; }
+    public bool   SelfDeafened { get; set; }
+
+    /// <summary>The channel to return to on connecting, by its names from the root, as ids can change.</summary>
+    public string LastChannel  { get; set; } = "";
+}
+
+/// <summary>How loud one person is on one server, for this listener.</summary>
+public class MumbleUserVolume
+{
+    public int    ServerId { get; set; }
+
+    /// <summary>Their certificate's hash where they have one, which outlasts a change of name.</summary>
+    public string UserKey  { get; set; } = "";
+
+    /// <summary>1 as sent, 0 silent, up to 3.</summary>
+    public double Volume   { get; set; } = 1.0;
+}

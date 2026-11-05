@@ -555,6 +555,7 @@ public class App : Application
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -2641,6 +2642,33 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MumbleServers" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 64738,
+                        "Username"           TEXT    NOT NULL DEFAULT '',
+                        "Tokens"             TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "WhisperKey"         INTEGER NOT NULL DEFAULT 0,
+                        "ShoutKey"           INTEGER NOT NULL DEFAULT 0,
+                        "ShoutChildren"      INTEGER NOT NULL DEFAULT 1,
+                        "ShoutLinks"         INTEGER NOT NULL DEFAULT 0,
+                        "SelfMuted"          INTEGER NOT NULL DEFAULT 0,
+                        "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
+                        "LastChannel"        TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MumbleUserVolumes" (
+                        "ServerId" INTEGER NOT NULL DEFAULT 0,
+                        "UserKey"  TEXT    NOT NULL DEFAULT '',
+                        "Volume"   REAL    NOT NULL DEFAULT 1,
+                        PRIMARY KEY ("ServerId", "UserKey")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "Name"               TEXT    NOT NULL DEFAULT '',
@@ -4269,6 +4297,7 @@ public class App : Application
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
+        _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
@@ -4961,6 +4990,7 @@ public class App : Application
             sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
+        services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();

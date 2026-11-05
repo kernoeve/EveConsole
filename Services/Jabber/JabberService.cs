@@ -285,6 +285,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
                 MarkDisconnected(session);
             }
 
+            // Told to stop: the failure that just ended the read loop is that, and not worth retrying.
+            if (ct.IsCancellationRequested) break;
+
             if (DateTimeOffset.UtcNow - started > StableAfter) attempt = 0;
 
             var wait = TimeSpan.FromSeconds(BackoffSeconds[Math.Min(attempt, BackoffSeconds.Length - 1)]);

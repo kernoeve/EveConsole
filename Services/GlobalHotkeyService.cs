@@ -122,10 +122,20 @@ public sealed class GlobalHotkeyService : IDisposable
         IntPtr target, uint options, out IntPtr hotKeyRef);
     [DllImport(CarbonLib)] private static extern int UnregisterEventHotKey(IntPtr hotKeyRef);
     [DllImport(CarbonLib)] private static extern uint GetEventKind(IntPtr theEvent);
+    [DllImport(CarbonLib)] private static extern int GetEventParameter(IntPtr theEvent, uint name, uint desiredType,
+        IntPtr actualType, nuint size, IntPtr actualSize, out EventHotKeyID value);
 
     private const uint KEventClassKeyboard  = 0x6B657962;   // 'keyb'
     private const uint KEventHotKeyPressed  = 5;
     private const uint KEventHotKeyReleased = 6;
+    private const uint KEventParamDirectObject = 0x2D2D2D2D;   // '----'
+    private const uint TypeEventHotKeyId       = 0x686B6964;   // 'hkid'
+    private const int  EventNotHandled         = -9874;
+
+    // ⚠️ More than one of these can be alive: the agent's push-to-talk and each Mumble server's keys. Carbon
+    // hands every handler every hot key, so each keeps an id of its own and passes on what is not its.
+    private static int _nextMacId;
+    private readonly uint _macId = (uint)Interlocked.Increment(ref _nextMacId);
 
     private IntPtr              _macHotKey;
     private IntPtr              _macHandler;
@@ -162,8 +172,8 @@ public sealed class GlobalHotkeyService : IDisposable
                                              (nuint)kinds.Length, kinds, IntPtr.Zero, out _macHandler);
             if (status != 0) { MacError = $"InstallEventHandler {status}"; _macHandler = IntPtr.Zero; _macCallback = null; return; }
 
-            // 'EVEC': an id of our own; with one hot key there is nothing to tell apart.
-            status = RegisterEventHotKey(code, 0, new EventHotKeyID { signature = 0x45564543, id = 1 },
+            // 'EVEC': a signature of our own, and an id for this instance.
+            status = RegisterEventHotKey(code, 0, new EventHotKeyID { signature = 0x45564543, id = _macId },
                                          target, 0, out _macHotKey);
             if (status != 0)
             {
@@ -197,6 +207,10 @@ public sealed class GlobalHotkeyService : IDisposable
 
     private int MacCallback(IntPtr nextHandler, IntPtr theEvent, IntPtr userData)
     {
+        var read = GetEventParameter(theEvent, KEventParamDirectObject, TypeEventHotKeyId, IntPtr.Zero,
+                                     (nuint)Marshal.SizeOf<EventHotKeyID>(), IntPtr.Zero, out var pressed);
+        if (read != 0 || pressed.id != _macId) return EventNotHandled;
+
         switch (GetEventKind(theEvent))
         {
             case KEventHotKeyPressed when !_keyDown:
