@@ -146,6 +146,9 @@
         <DataTemplate DataType="vm:IndyParksViewModel">
           <views:IndyParksView />
         </DataTemplate>
+        <DataTemplate DataType="vm:MumbleViewModel">
+          <views:MumbleView />
+        </DataTemplate>
         <DataTemplate DataType="vm:JabberViewModel">
           <views:JabberView />
         </DataTemplate>

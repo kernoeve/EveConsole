@@ -276,6 +276,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndyParksViewModel             IndyParksVm            { get; }
     public SystemIndexViewModel           SystemIndexVm          { get; }
     public JabberViewModel                JabberVm               { get; }
+    public MumbleViewModel                MumbleVm               { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -972,6 +973,7 @@ public class MainWindowViewModel : ReactiveObject
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "jabber"         => (ShellText.NavJabber,        JabberVm,          true),
+            "mumble"         => (ShellText.NavMumble,        MumbleVm,          true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
             "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
             "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
@@ -1122,6 +1124,7 @@ public class MainWindowViewModel : ReactiveObject
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
         EveConsole.Services.Jabber.JabberService jabberService,
+        EveConsole.Services.Mumble.MumbleService mumbleService,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
         TimerForceService               timerForce,
@@ -1254,6 +1257,7 @@ public class MainWindowViewModel : ReactiveObject
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         JabberVm          = new JabberViewModel(jabberService, appPrefs, alarmSounds, alarmMute);
+        MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1625,6 +1629,7 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("jabber", ShellText.NavJabber),
+                new NavItem("mumble", ShellText.NavMumble),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),
             new("data", ShellText.NavGroupData,

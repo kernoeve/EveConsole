@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>サーバーを追加</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Mumble サーバーを追加すると、別のクライアントなしでここで通話できます。</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>聴取なし</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>ミュート</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>ルート</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>接続済み、{0} にいます</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>接続が切れました。{0} に再試行します</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>サーバーの証明書は信頼されていません。</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>サーバーがパスワードを拒否しました。</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>サーバーがこのユーザー名を拒否しました。</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0} の証明書、フィンガープリント:
+{1}
+
+多くの Mumble サーバーは独自の証明書を使います。想定どおりのサーバーの場合のみ信頼してください。以後はこの証明書のみ受け入れます。</value>
+  </data>
+  <data name="KeysSummary" xml:space="preserve">
+    <value>チャンネルキー: {0}。シャウトキー: {1}。</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>サーバーのホストとユーザー名を入力してください。</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>そのキーは {0} で使用中です。各キーは 1 つのサーバーでのみ通話できます。</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>「{0}」と保存された設定を削除しますか？証明書も削除されるため、そのサーバーの登録名は失われます。この操作は元に戻せません。</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>システムの既定</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>話している人を常に最前面に表示</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>サウンド設定</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>マイク</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>マイク音量</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>スピーカー</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>スピーカー音量</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>サーバーホスト</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>ポート</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>ユーザー名</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>パスワード (サーバーにある場合)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>空欄のままなら保存済みのパスワードを使います。</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>アクセストークン (任意、カンマ区切り)</value>
+  </data>
+  <data name="LabelWhisperKey" xml:space="preserve">
+    <value>現在のチャンネルに話すキー</value>
+  </data>
+  <data name="LabelShoutKey" xml:space="preserve">
+    <value>シャウトキー</value>
+  </data>
+  <data name="ShoutChildren" xml:space="preserve">
+    <value>シャウトは現在のチャンネルの下位にも届く</value>
+  </data>
+  <data name="ShoutLinks" xml:space="preserve">
+    <value>シャウトはリンクされたチャンネルにも届く</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>これらのキーはこのサーバー専用で、接続中はアプリがバックグラウンドでも機能します。</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>アプリ起動時に接続</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>それ以外は指示したときのみ接続します。どちらの場合も、切断するまでは接続が切れると自動で再接続します。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>この証明書を信頼</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>ミュート</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>聴取オフ</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>チャンネルに参加</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>この人の音量 (自分だけに適用)</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>チャンネルへのメッセージ。Enter で送信、Shift+Enter で改行。</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: 話している人</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>誰も話していません</value>
+  </data>
+  <data name="OverlayShout" xml:space="preserve">
+    <value>シャウト</value>
+  </data>
+</root>

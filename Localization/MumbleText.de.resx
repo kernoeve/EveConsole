@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Server hinzufügen</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Füge einen Mumble-Server hinzu, um hier ohne separaten Client zu sprechen.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Taub</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Stumm</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Stamm</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Verbunden, in {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Verbunden</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Verbinde…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Verbindung verloren, nächster Versuch um {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Nicht verbunden</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Das Zertifikat des Servers ist nicht vertrauenswürdig.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Der Server hat das Passwort abgelehnt.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>Der Server hat diesen Benutzernamen abgelehnt.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Zertifikat für {0}, Fingerabdruck:
+{1}
+
+Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn du diesen Server erwartest. Danach wird nur noch dieses Zertifikat akzeptiert.</value>
+  </data>
+  <data name="KeysSummary" xml:space="preserve">
+    <value>Kanal-Taste: {0}. Ruf-Taste: {1}.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Gib den Host des Servers und deinen Benutzernamen ein.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>Diese Taste wird bereits auf {0} verwendet. Jede Taste kann nur auf einem Server sprechen.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>"{0}" und die gespeicherten Einstellungen löschen? Auch das Zertifikat wird gelöscht, ein dort registrierter Name ginge also verloren. Das kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Immer im Vordergrund anzeigen, wer spricht</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Toneinstellungen</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Mikrofon</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Mikrofonlautstärke</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Lautsprecher</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Lautsprecherlautstärke</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Server-Host</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Benutzername</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Passwort (falls der Server eines hat)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Leer lassen, um das gespeicherte Passwort zu behalten.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Zugriffstoken (optional, durch Kommas getrennt)</value>
+  </data>
+  <data name="LabelWhisperKey" xml:space="preserve">
+    <value>Taste zum Sprechen im aktuellen Kanal</value>
+  </data>
+  <data name="LabelShoutKey" xml:space="preserve">
+    <value>Taste zum Rufen</value>
+  </data>
+  <data name="ShoutChildren" xml:space="preserve">
+    <value>Ein Ruf erreicht die Kanäle unter dem aktuellen</value>
+  </data>
+  <data name="ShoutLinks" xml:space="preserve">
+    <value>Ein Ruf erreicht mit dem aktuellen verknüpfte Kanäle</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>Diese Tasten gelten nur für diesen Server und funktionieren, solange er verbunden ist, auch wenn die App im Hintergrund läuft.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Beim App-Start verbinden</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Sonst verbindet es sich nur auf Wunsch. In beiden Fällen verbindet es sich nach einem Verbindungsverlust selbst neu, bis du trennst.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Diesem Zertifikat vertrauen</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Stumm</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Taub</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Kanal beitreten</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Ihre Lautstärke, nur für dich</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Nachricht an den Kanal. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Senden</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: wer spricht</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Niemand spricht</value>
+  </data>
+  <data name="OverlayShout" xml:space="preserve">
+    <value>Ruf</value>
+  </data>
+</root>

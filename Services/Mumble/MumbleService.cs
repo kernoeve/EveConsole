@@ -98,6 +98,38 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     public MumbleMixer Mixer { get; } = new();
     public MumbleAudioDevices? Devices { get; private set; }
 
+    private string _inputDevice = "", _outputDevice = "";
+    private double _micGain = 1.0;
+
+    /// <summary>The microphone by name, blank for the system's. Takes effect from the next time it opens.</summary>
+    public string InputDevice
+    {
+        get => _inputDevice;
+        set { _inputDevice = value; if (Devices is { } d) { d.InputDevice = value; d.StopInput(); } }
+    }
+
+    /// <summary>The speakers by name, blank for the system's. Switches at once if anything is connected.</summary>
+    public string OutputDevice
+    {
+        get => _outputDevice;
+        set
+        {
+            _outputDevice = value;
+            if (Devices is not { } d) return;
+            d.OutputDevice = value;
+            d.StopOutput();
+            if (Sessions.Any(s => s.State == MumbleState.Connected)) d.StartOutput();
+        }
+    }
+
+    public double OutputVolume { get => Mixer.Volume; set => Mixer.Volume = value; }
+
+    public double MicrophoneGain
+    {
+        get => _micGain;
+        set { _micGain = value; if (Devices is { } d) d.MicrophoneGain = value; }
+    }
+
     public event Action<MumbleSession>? SessionChanged;
     public event Action<MumbleSession, MumbleChatLine>? ChatReceived;
 
@@ -115,7 +147,7 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
     {
         if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
 
-        Devices = new MumbleAudioDevices(Mixer);
+        Devices = new MumbleAudioDevices(Mixer) { InputDevice = _inputDevice, OutputDevice = _outputDevice, MicrophoneGain = _micGain };
         Devices.Captured += OnCaptured;
         _sender = Task.Run(SendFramesAsync, CancellationToken.None);
         StartTalkerWatch();
@@ -488,7 +520,7 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         return WebUtility.HtmlDecode(Tags().Replace(withBreaks, "")).Trim();
     }
 
-    private void OnText(MumbleSession session, MumbleClient client, MumbleText text)
+    private void OnText(MumbleSession session, MumbleClient client, MumbleTextMessage text)
     {
         var sender = text.Actor is { } actor ? client.UserOf(actor)?.Name ?? "" : "";
         var line = new MumbleChatLine(DateTimeOffset.UtcNow, sender, PlainText(text.Message), text.Sessions.Count > 0, false);

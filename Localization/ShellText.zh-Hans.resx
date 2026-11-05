@@ -145,6 +145,9 @@
   <data name="NavJabber" xml:space="preserve">
     <value>Jabber</value>
   </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>通知</value>
   </data>

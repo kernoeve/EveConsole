@@ -21,6 +21,8 @@ namespace EveConsole;
 
 public class App : Application
 {
+    private Views.MumbleOverlayController? _mumbleOverlay;
+
     public static IServiceProvider Services { get; private set; } = null!;
 
     /// <summary>
@@ -556,6 +558,7 @@ public class App : Application
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
+                _mumbleOverlay?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
@@ -4298,6 +4301,7 @@ public class App : Application
         StartBackgroundServices();
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
         _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window

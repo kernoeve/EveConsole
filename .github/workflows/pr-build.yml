@@ -119,6 +119,12 @@ jobs:
       - name: Jabber check
         run: dotnet run --project tools/JabberCheck/JabberCheck.csproj -c Release
 
+      # ⚠️ Does the Mumble client still read what servers send, and refuse what it must? No password to a
+      # server whose certificate was not accepted, each key on one server only, and voice that comes out as
+      # it went in. None of it shows from outside until a fleet can't hear each other.
+      - name: Mumble check
+        run: dotnet run --project tools/MumbleCheck/MumbleCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

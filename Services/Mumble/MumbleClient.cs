@@ -49,7 +49,7 @@ public sealed record MumbleLogin(
     string Host, int Port, string Username, string Password, X509Certificate2? ClientCertificate,
     string TrustedCertificate, IReadOnlyList<string> Tokens);
 
-public sealed record MumbleText(uint? Actor, IReadOnlyList<uint> Sessions, IReadOnlyList<uint> Channels, string Message);
+public sealed record MumbleTextMessage(uint? Actor, IReadOnlyList<uint> Sessions, IReadOnlyList<uint> Channels, string Message);
 
 /// <summary>
 /// One logged-in connection to a Mumble server: the channel tree, who is where, and voice over its control
@@ -100,7 +100,7 @@ public sealed class MumbleClient : IAsyncDisposable
     /// <summary>A user left: their session, and whether they are this client.</summary>
     public event Action<uint>? UserLeft;
 
-    public event Action<MumbleText>? TextReceived;
+    public event Action<MumbleTextMessage>? TextReceived;
 
     /// <summary>A permission or action was refused, in the server's words if it gave any.</summary>
     public event Action<string>? Denied;
@@ -336,7 +336,7 @@ public sealed class MumbleClient : IAsyncDisposable
                 break;
 
             case MumbleMessage.TextMessage:
-                TextReceived?.Invoke(new MumbleText(
+                TextReceived?.Invoke(new MumbleTextMessage(
                     m.UInt(1) is { } actor ? (uint)actor : null,
                     [.. m.UInts(2).Select(s => (uint)s)],
                     [.. m.UInts(3).Select(c => (uint)c)],

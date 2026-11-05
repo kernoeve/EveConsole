@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Добавить сервер</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добавьте сервер Mumble, чтобы говорить здесь без отдельного клиента.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Без звука</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Без микрофона</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Корень</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Подключено, канал {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Связь потеряна, повтор в {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Сертификат сервера не является доверенным.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Сервер отклонил пароль.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>Сервер отклонил это имя пользователя.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Сертификат для {0}, отпечаток:
+{1}
+
+Большинство серверов Mumble используют собственный сертификат. Доверяйте ему, только если ожидаете этот сервер. После этого будет приниматься только этот сертификат.</value>
+  </data>
+  <data name="KeysSummary" xml:space="preserve">
+    <value>Клавиша канала: {0}. Клавиша крика: {1}.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Введите хост сервера и имя пользователя.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>Эта клавиша уже используется на {0}. Каждая клавиша работает только на одном сервере.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>Удалить «{0}» и сохранённые настройки? Сертификат тоже будет удалён, и зарегистрированное на этом сервере имя будет потеряно. Это действие нельзя отменить.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>Системное устройство</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Показывать говорящих поверх всех окон</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Настройки звука</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Микрофон</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Громкость микрофона</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Динамики</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Громкость динамиков</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Хост сервера</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Порт</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Имя пользователя</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Пароль (если есть на сервере)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить текущий пароль.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Токены доступа (необязательно, через запятую)</value>
+  </data>
+  <data name="LabelWhisperKey" xml:space="preserve">
+    <value>Клавиша разговора в текущем канале</value>
+  </data>
+  <data name="LabelShoutKey" xml:space="preserve">
+    <value>Клавиша крика</value>
+  </data>
+  <data name="ShoutChildren" xml:space="preserve">
+    <value>Крик слышен в каналах ниже текущего</value>
+  </data>
+  <data name="ShoutLinks" xml:space="preserve">
+    <value>Крик слышен в связанных каналах</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>Эти клавиши только для этого сервера и работают, пока он подключён, даже если приложение в фоне.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Подключаться при запуске приложения</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Иначе подключается только по запросу. В обоих случаях при потере связи переподключается сам, пока вы не отключитесь.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Доверять этому сертификату</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Выкл. микрофон</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Выкл. звук</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Войти в канал</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Громкость этого человека, только для вас</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Сообщение в канал. Enter — отправить, Shift+Enter — новая строка.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: кто говорит</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Никто не говорит</value>
+  </data>
+  <data name="OverlayShout" xml:space="preserve">
+    <value>крик</value>
+  </data>
+</root>

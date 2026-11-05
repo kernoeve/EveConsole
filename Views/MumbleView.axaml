@@ -1,0 +1,194 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.MumbleView"
+             x:DataType="vm:MumbleViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="Ellipse.dot.good"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="Ellipse.dot.warn"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Ellipse.dot.bad"><Setter Property="Fill" Value="{DynamicResource BadBrush}" /></Style>
+    <!-- A person talking has a lit dot: the first thing the eye should find in a full channel. -->
+    <Style Selector="Ellipse.user"><Setter Property="Width" Value="9" /><Setter Property="Height" Value="9" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
+    <Style Selector="Ellipse.user.talking"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ToggleButton"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ListBox#Rows ListBoxItem"><Setter Property="Padding" Value="6 2" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="ListBox#ChatList ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox#ChatList ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox#ChatList ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="300,4,*">
+
+    <!-- ── Servers, channels and people ──────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfacePanelBrush}">
+      <Button Grid.Row="0" Content="{x:Static loc:MumbleText.AddServer}" Command="{Binding AddServerCommand}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" DoubleTapped="OnRowDoubleTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:MumbleRowVm">
+            <Grid Margin="{Binding Indent}">
+              <!-- A server -->
+              <Grid IsVisible="{Binding IsServer}" ColumnDefinitions="14,*,Auto" Margin="0 3 0 0">
+                <Ellipse Classes="dot" Classes.good="{Binding Good}" Classes.warn="{Binding Warn}" Classes.bad="{Binding Bad}" HorizontalAlignment="Left" />
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding Text}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding Detail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding Detail}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding Flags}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+              </Grid>
+              <!-- A channel -->
+              <TextBlock IsVisible="{Binding IsChannel}" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+              <!-- A person -->
+              <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto">
+                <Ellipse Classes="user" Classes.talking="{Binding Talking}" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Grid.Column="2" Text="{Binding Flags}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" Margin="6 0 0 0" />
+              </Grid>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <StackPanel Grid.Row="2" Margin="8" Spacing="4">
+        <CheckBox IsChecked="{Binding ShowOverlay}" FontSize="11" Content="{x:Static loc:MumbleText.ShowOverlay}" />
+        <Button Content="{x:Static loc:MumbleText.AudioSettings}" Command="{Binding ToggleAudioCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+        <StackPanel IsVisible="{Binding IsAudioOpen}" Spacing="2">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.Microphone}" />
+          <ComboBox ItemsSource="{Binding InputDevices}" SelectedItem="{Binding InputChoice}" HorizontalAlignment="Stretch" FontSize="11" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.MicVolume}" />
+          <Slider Minimum="0" Maximum="300" Value="{Binding MicGain}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.Speakers}" />
+          <ComboBox ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding OutputChoice}" HorizontalAlignment="Stretch" FontSize="11" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.SpeakerVolume}" />
+          <Slider Minimum="0" Maximum="200" Value="{Binding SpeakerVolume}" />
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+
+    <GridSplitter Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}" />
+
+    <!-- ── The pane on the right ─────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+
+      <StackPanel Grid.Row="1" IsVisible="{Binding ShowWelcome}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="420">
+        <TextBlock Text="{x:Static loc:MumbleText.Welcome}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        <Button Content="{x:Static loc:MumbleText.AddServer}" Command="{Binding AddServerCommand}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <!-- The server editor -->
+      <ScrollViewer Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsEditing}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20 14" Width="520" HorizontalAlignment="Left">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelName}" />
+          <TextBox Text="{Binding EditName}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelHost}" />
+          <TextBox Text="{Binding EditHost}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelPort}" />
+          <NumericUpDown Value="{Binding EditPort}" Minimum="1" Maximum="65535" Increment="1" FormatString="0" Width="130" HorizontalAlignment="Left" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelUsername}" />
+          <TextBox Text="{Binding EditUsername}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelPassword}" />
+          <TextBox Text="{Binding EditPassword}" PasswordChar="●" />
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.PasswordKeep}" IsVisible="{Binding EditIsExisting}" />
+          <TextBlock Classes="note" Text="{Binding PasswordNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelTokens}" />
+          <TextBox Text="{Binding EditTokens}" />
+
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelWhisperKey}" />
+          <ComboBox ItemsSource="{Binding KeyChoices}" SelectedItem="{Binding EditWhisper}" Width="220">
+            <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:MumbleKeyChoice"><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelShoutKey}" />
+          <ComboBox ItemsSource="{Binding KeyChoices}" SelectedItem="{Binding EditShout}" Width="220">
+            <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:MumbleKeyChoice"><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
+          </ComboBox>
+          <CheckBox IsChecked="{Binding EditShoutChildren}" Content="{x:Static loc:MumbleText.ShoutChildren}" Margin="0 8 0 0" />
+          <CheckBox IsChecked="{Binding EditShoutLinks}" Content="{x:Static loc:MumbleText.ShoutLinks}" />
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.KeysNote}" />
+
+          <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:MumbleText.LabelAutoConnect}" Margin="0 12 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.AutoConnectNote}" />
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 14 0 0">
+            <Button Content="{x:Static loc:MumbleText.Save}" Command="{Binding SaveServerCommand}" />
+            <Button Content="{x:Static loc:MumbleText.Cancel}" Command="{Binding CancelEditCommand}" />
+            <Button Content="{x:Static loc:MumbleText.Delete}" Command="{Binding DeleteServerCommand}" IsVisible="{Binding EditIsExisting}" Margin="24 0 0 0" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- A server -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowServer}" Margin="20 14 20 6" Spacing="6">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+        <TextBlock Text="{Binding ServerState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock Classes="note" Text="{Binding ServerDetail}" IsVisible="{Binding ServerDetail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <TextBlock Classes="note" Text="{Binding KeysText}" />
+
+        <Border IsVisible="{Binding HasCertificateProblem}" Background="{DynamicResource WarnSurfaceBrush}" CornerRadius="4" Padding="10" Margin="0 4" MaxWidth="620" HorizontalAlignment="Left">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding CertificateText}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <Button Content="{x:Static loc:MumbleText.TrustCertificate}" Command="{Binding TrustCertificateCommand}" />
+          </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:MumbleText.Connect}" Command="{Binding ConnectCommand}" IsVisible="{Binding CanConnect}" />
+          <Button Content="{x:Static loc:MumbleText.Disconnect}" Command="{Binding DisconnectCommand}" IsVisible="{Binding !CanConnect}" />
+          <Button Content="{x:Static loc:MumbleText.Edit}" Command="{Binding EditServerCommand}" />
+          <ToggleButton Content="{x:Static loc:MumbleText.Mute}" IsChecked="{Binding IsMuted, Mode=OneWay}" Command="{Binding ToggleMuteCommand}" />
+          <ToggleButton Content="{x:Static loc:MumbleText.Deafen}" IsChecked="{Binding IsDeafened, Mode=OneWay}" Command="{Binding ToggleDeafenCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- A channel -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowChannel}" Margin="20 14 20 6" Spacing="6">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextFaintBrush}" />
+        <Button Content="{x:Static loc:MumbleText.JoinChannel}" Command="{Binding JoinChannelCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <!-- A person -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowUser}" Margin="20 14 20 6" Spacing="6">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <StackPanel IsVisible="{Binding !SelectedIsMe}" Spacing="4">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.UserVolume}" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Slider Minimum="0" Maximum="300" Value="{Binding UserVolume}" Width="260" />
+            <TextBlock Text="{Binding UserVolumeText}" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Text chat, for whichever server is selected -->
+      <Grid Grid.Row="1" IsVisible="{Binding ShowChat}" RowDefinitions="*,Auto">
+        <ListBox x:Name="ChatList" ItemsSource="{Binding Chat}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MumbleChatVm">
+              <StackPanel Margin="14 3">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+                  <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                </StackPanel>
+                <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="10 6">
+          <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="90" Watermark="{x:Static loc:MumbleText.MessageHint}" />
+          <Button Grid.Column="1" Content="{x:Static loc:MumbleText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+        </Grid>
+      </Grid>
+
+      <TextBlock Grid.Row="2" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4" Foreground="{DynamicResource BadBrush}" />
+    </Grid>
+  </Grid>
+</UserControl>

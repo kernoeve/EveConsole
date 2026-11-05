@@ -171,6 +171,10 @@
     <value>Jabber</value>
     <comment>Navigation: the Jabber chat tool.</comment>
   </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+    <comment>Navigation: the Mumble voice tool.</comment>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notifications</value>
   </data>

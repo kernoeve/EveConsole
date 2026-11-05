@@ -1,0 +1,353 @@
+// The Mumble client's rules: its wire formats, what is refused, what each key may do, and what is kept where.
+// Needs no server and no sound hardware: what a real server does is checked against a throwaway one by hand.
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using EveConsole.Data;
+using EveConsole.Models;
+using EveConsole.Services;
+using EveConsole.Services.Mumble;
+using Microsoft.EntityFrameworkCore;
+
+var checks = 0;
+var failures = new List<string>();
+
+void Check(string name, bool ok, string detail = "")
+{
+    checks++;
+    if (!ok) failures.Add($"  FAIL  {name}{(detail.Length > 0 ? " | " + detail : "")}");
+}
+
+static string Hex(byte[] b) => Convert.ToHexString(b);
+
+// The database is open: reading its bytes has to share it.
+static string RawFile(string path)
+{
+    using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+    using var reader = new StreamReader(file, System.Text.Encoding.Latin1);
+    return reader.ReadToEnd();
+}
+
+// ── Mumble's own number format, from its protocol document ───────────────────
+{
+    (long Value, string Bytes)[] vectors =
+    [
+        (0, "00"), (0x7F, "7F"),
+        (0x80, "8080"), (0x3FFF, "BFFF"),
+        (0x4000, "C04000"), (0x1FFFFF, "DFFFFF"),
+        (0x200000, "E0200000"), (0xFFFFFFF, "EFFFFFFF"),
+        (0x10000000, "F010000000"), (0xFFFFFFFFL, "F0FFFFFFFF"),
+        (0x100000000L, "F40000000100000000"),
+        (-1, "FC"), (-4, "FF"),
+        (-5, "F804"),
+    ];
+
+    foreach (var (value, bytes) in vectors)
+    {
+        using var to = new MemoryStream();
+        MumbleVarint.Write(to, value);
+        Check($"varint: {value} writes as the document says", Hex(to.ToArray()) == bytes, Hex(to.ToArray()));
+
+        var at = 0;
+        var back = MumbleVarint.Read(to.ToArray(), ref at);
+        Check($"varint: {value} reads back", back == value && at == to.Length, $"{back} at {at}");
+    }
+
+    var threw = false;
+    try { var at = 0; MumbleVarint.Read(new byte[] { 0xC0 }, ref at); }
+    catch (InvalidDataException) { threw = true; }
+    Check("varint: cut short is refused, not read past the end", threw);
+}
+
+// ── Protobuf, by hand ─────────────────────────────────────────────────────────
+{
+    var bytes = new PbWriter().UInt(1, 300).Text(2, "héllo").Bool(3, true).UInt(4, 7).UInt(4, 8).Bytes(5, [1, 2, 3]).ToArray();
+    Check("protobuf: a known encoding", Hex(bytes).StartsWith("08AC02", StringComparison.Ordinal), Hex(bytes));
+
+    var m = new PbMessage(bytes);
+    Check("protobuf: numbers", m.UInt(1) == 300);
+    Check("protobuf: text is UTF-8", m.Text(2) == "héllo", m.Text(2) ?? "");
+    Check("protobuf: true", m.Bool(3) == true);
+    Check("protobuf: repeated fields keep every value", m.UInts(4).SequenceEqual([7UL, 8UL]));
+    Check("protobuf: blobs", m.Bytes(5) is [1, 2, 3]);
+    Check("protobuf: absent is absent, not zero", !m.Has(9) && m.UInt(9) is null && m.Text(9) is null);
+}
+
+// ── Voice packets ─────────────────────────────────────────────────────────────
+{
+    byte[] opus = [0xDE, 0xAD, 0xBE, 0xEF];
+
+    var sent = new MumbleVoicePacket(1, 0, 9, opus, Last: false).Encode();
+    Check("voice out: Opus, the shout target, no session", Hex(sent) == "81" + "09" + "04" + "DEADBEEF", Hex(sent));
+
+    var lastOne = new MumbleVoicePacket(0, 0, 200, opus, Last: true).Encode();
+    Check("voice out: channel talk is target 0, and the last frame says so", Hex(lastOne) == "80" + "80C8" + "A004" + "DEADBEEF", Hex(lastOne));
+
+    // As the server relays it: with who it came from.
+    byte[] relayed = [0x80 | 2, 5, 9, 0x84, 0x00 | 0x04, ..opus];
+    relayed[3] = 0xA0; // 0x2004: 4 bytes, and the last
+    var got = MumbleVoicePacket.Decode(relayed);
+    Check("voice in: read", got is { Target: 2, Session: 5, Sequence: 9, Last: true } && got.Value.Opus.SequenceEqual(opus), got?.ToString() ?? "null");
+
+    Check("voice in: an old codec is not played", MumbleVoicePacket.Decode(new byte[] { 0x00, 1, 1, 1, 0 }) is null);
+    Check("voice in: a ping is not played", MumbleVoicePacket.Decode(new byte[] { 0x20, 1, 1 }) is null);
+
+    var threw = false;
+    try { MumbleVoicePacket.Decode(new byte[] { 0x80, 5, 9, 0x20 }); }
+    catch (InvalidDataException) { threw = true; }
+    Check("voice in: longer than it is, refused", threw);
+
+    // A hostile server can send anything: nothing but "malformed" may come of it, for the connection to handle.
+    var random = new Random(12345);
+    var wrong = "";
+    for (var i = 0; i < 20_000 && wrong.Length == 0; i++)
+    {
+        var junk = new byte[random.Next(0, 40)];
+        random.NextBytes(junk);
+        if (junk.Length > 0 && i % 2 == 0) junk[0] = (byte)(0x80 | junk[0] & 0x1F);
+        try { MumbleVoicePacket.Decode(junk); }
+        catch (InvalidDataException) { /* as it should */ }
+        catch (Exception e) { wrong = e.GetType().Name + " " + Hex(junk); }
+    }
+    Check("voice in: random bytes never do worse than malformed", wrong.Length == 0, wrong);
+
+    wrong = "";
+    for (var i = 0; i < 20_000 && wrong.Length == 0; i++)
+    {
+        var junk = new byte[random.Next(0, 60)];
+        random.NextBytes(junk);
+        try { _ = new PbMessage(junk); }
+        catch (InvalidDataException) { /* as it should */ }
+        catch (Exception e) { wrong = e.GetType().Name + " " + Hex(junk); }
+    }
+    Check("protobuf: random bytes never do worse than malformed", wrong.Length == 0, wrong);
+}
+
+// ── Encoder into mixer: a tone in, the same tone out ──────────────────────────
+{
+    var encoder = new MumbleEncoder(MumbleEncoder.BitrateFor(72_000));
+    var phase = 0.0;
+    short[] Frame()
+    {
+        var s = new short[MumbleEncoder.FrameSamples];
+        for (var i = 0; i < s.Length; i++) { s[i] = (short)(Math.Sin(phase) * 16000); phase += 2 * Math.PI * 440 / MumbleMixer.SampleRate; }
+        return s;
+    }
+
+    // ⚠️ One in, one out, as a live conversation goes: the mixer drops what piles up, to keep the delay short.
+    (double Rms, int Read) Play(MumbleMixer mixer, int server, uint session, int frames, double gain = 1.0)
+    {
+        var collected = new List<short>();
+        var read = 0;
+        var buffer = new short[MumbleMixer.SamplesPer10Ms];
+        for (var f = 0; f < frames; f++)
+        {
+            mixer.Receive(server, encoder.Encode(Frame(), 0, last: false) with { Session = session }, gain);
+            if (mixer.ReadMix(buffer) > 0) read++;
+            collected.AddRange(buffer);
+        }
+
+        // Past the codec's own start.
+        var tail = collected.Skip(collected.Count / 2).Select(v => (double)v * v).ToList();
+        return (tail.Count == 0 ? 0 : Math.Sqrt(tail.Average()), read);
+    }
+
+    var mixer = new MumbleMixer();
+    var heard = Play(mixer, 1, 5, 60);
+    var expected = 16000 / Math.Sqrt(2);
+    Check("mixer: what went in comes out, about as loud", Math.Abs(heard.Rms - expected) < expected * 0.15, $"{heard.Rms:N0} vs {expected:N0}");
+    Check("mixer: says who is talking", mixer.TalkingNow().Contains((1, 5)));
+
+    var quietMixer = new MumbleMixer();
+    var half = Play(quietMixer, 1, 5, 60, gain: 0.5);
+    Check("mixer: one person's volume", Math.Abs(half.Rms - expected / 2) < expected * 0.1, $"{half.Rms:N0}");
+
+    var lowMixer = new MumbleMixer { Volume = 0.25 };
+    var low = Play(lowMixer, 1, 5, 60);
+    Check("mixer: the speaker volume", Math.Abs(low.Rms - expected / 4) < expected * 0.1, $"{low.Rms:N0}");
+
+    var two = new MumbleMixer();
+    Play(two, 1, 5, 10);
+    Play(two, 2, 5, 10);
+    two.RemoveServer(1);
+    Check("mixer: the same session on two servers is two people, and one server leaving takes only its own",
+          !two.TalkingNow().Contains((1, 5)));
+
+    var loud = new MumbleMixer { Volume = 10 };
+    var buffer = new short[MumbleMixer.SamplesPer10Ms];
+    for (var f = 0; f < 30; f++) loud.Receive(1, encoder.Encode(Frame(), 0, false) with { Session = 1 });
+    var wrapped = false;
+    var previous = (short)0;
+    for (var f = 0; f < 30; f++)
+    {
+        loud.ReadMix(buffer);
+        foreach (var v in buffer) { if (Math.Abs(v - previous) > 40000) wrapped = true; previous = v; }
+    }
+    Check("mixer: too loud clips, and never wraps around into noise", !wrapped);
+
+    var junkMixer = new MumbleMixer();
+    var survived = true;
+    try { junkMixer.Receive(1, new MumbleVoicePacket(0, 9, 1, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF], false)); }
+    catch (Exception) { survived = false; }
+    Check("mixer: voice that does not decode costs only that frame", survived);
+
+    Check("encoder: stays within what the server allows", MumbleEncoder.BitrateFor(40_000) <= 40_000 && MumbleEncoder.BitrateFor(0) > 0, $"{MumbleEncoder.BitrateFor(40_000)}");
+}
+
+// ── Each key belongs to one server ────────────────────────────────────────────
+{
+    var a = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x7C, ShoutKey = 0x7D };
+    var b = new MumbleServer { Id = 2, Name = "Two", WhisperKey = 0x7E, ShoutKey = 0x7F };
+
+    Check("keys: different keys are fine", MumbleService.KeyClash(b, [a, b]) is null);
+    Check("keys: a server does not clash with itself", MumbleService.KeyClash(a, [a]) is null);
+    Check("keys: the same talk key on another server", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7C }, [a]) == "One");
+    Check("keys: my shout on their talk", MumbleService.KeyClash(new MumbleServer { Id = 2, ShoutKey = 0x7C }, [a]) == "One");
+    Check("keys: my talk on their shout", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7D }, [a]) == "One");
+    Check("keys: one server's two keys must differ too", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", WhisperKey = 0x7C, ShoutKey = 0x7C }, []) == "Three");
+    Check("keys: no key clashes with no key", MumbleService.KeyClash(new MumbleServer { Id = 2 }, [new MumbleServer { Id = 1 }]) is null);
+    Check("keys: a server with no name is named by its host", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 5 }, [new MumbleServer { Id = 1, Host = "voice.example", WhisperKey = 5 }]) == "voice.example");
+}
+
+// ── Text arrives as HTML and is shown as words ────────────────────────────────
+{
+    Check("text: tags go", MumbleService.PlainText("<p>Fleet <b>up</b></p>") == "Fleet up");
+    Check("text: entities are read", MumbleService.PlainText("a &lt;b&gt; &amp; c") == "a <b> & c");
+    Check("text: line breaks stay", MumbleService.PlainText("one<br>two<br/>three<BR />four") == "one\ntwo\nthree\nfour");
+    Check("text: scripts are only words at most", !MumbleService.PlainText("<script>x()</script>").Contains('<'));
+    Check("text: a picture does not fill the screen with its data", MumbleService.PlainText("""<img src="data:image/png;base64,AAAA"/>""").Length == 0);
+}
+
+// ── Certificates: nothing passes unless it is the one accepted ────────────────
+{
+    using var serverCert = MumbleClient.NewClientCertificate("voice.test");
+    var fingerprintOf = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(serverCert.RawData));
+
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+    var heardPassword = false;
+    using var stop = new CancellationTokenSource();
+    var serving = Task.Run(async () =>
+    {
+        while (!stop.IsCancellationRequested)
+        {
+            TcpClient tcp;
+            try { tcp = await listener.AcceptTcpClientAsync(stop.Token); }
+            catch (OperationCanceledException) { return; }
+
+            _ = Task.Run(async () =>
+            {
+                using var _1 = tcp;
+                try
+                {
+                    await using var tls = new SslStream(tcp.GetStream());
+                    await tls.AuthenticateAsServerAsync(serverCert);
+                    var buffer = new byte[4096];
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    while (await tls.ReadAsync(buffer, timeout.Token) is var n and > 0)
+                        if (System.Text.Encoding.UTF8.GetString(buffer, 0, n).Contains("secret-password", StringComparison.Ordinal))
+                            heardPassword = true;
+                }
+                catch (Exception e) when (e is IOException or OperationCanceledException or System.Security.Authentication.AuthenticationException)
+                {
+                    // A client refusing the certificate hangs up, which is the point.
+                }
+            });
+        }
+    });
+
+    async Task<MumbleException?> Try(string trusted)
+    {
+        await using var client = new MumbleClient(new MumbleLogin("127.0.0.1", port, "Ann", "secret-password", null, trusted, []));
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        try { await client.ConnectAsync(limit.Token); return null; }
+        catch (MumbleException e) { return e; }
+        catch (OperationCanceledException) { return null; }
+    }
+
+    var first = await Try("");
+    Check("certificate: an unknown one stops the login", first?.Failure == MumbleFailure.Certificate, first?.Message ?? "no failure");
+    Check("certificate: and shows what to compare", string.Equals(first?.CertificateFingerprint, fingerprintOf, StringComparison.OrdinalIgnoreCase), first?.CertificateFingerprint ?? "");
+    Check("certificate: and names who it says it is", first?.CertificateSubject?.Contains("voice.test", StringComparison.Ordinal) == true, first?.CertificateSubject ?? "");
+
+    var changed = await Try(new string('A', 64));
+    Check("certificate: one other than the accepted one is refused", changed?.Failure == MumbleFailure.Certificate, changed?.Message ?? "no failure");
+
+    await Task.Delay(200);
+    Check("certificate: no password went to a server not trusted", !heardPassword);
+
+    var accepted = await Try(fingerprintOf);
+    Check("certificate: the accepted one passes, whatever else happens next", accepted?.Failure != MumbleFailure.Certificate, accepted?.Message ?? "");
+
+    await stop.CancelAsync();
+    listener.Stop();
+    try { await serving; } catch (OperationCanceledException) { /* stopping it */ }
+}
+
+// ── What is kept, and where ───────────────────────────────────────────────────
+var profile = Path.Combine(Path.GetTempPath(), "mumblecheck-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(profile);
+AppConfig.UseProfile(profile);
+
+var dbPath = Path.Combine(profile, "check.db");
+var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={dbPath}").Options;
+var factory = new Factory(options);
+
+try
+{
+    await using (var db = factory.CreateDbContext()) await db.Database.EnsureCreatedAsync();
+
+    var service = new MumbleService(factory, new AppErrorLogger(null!));
+    service.StartWithoutDevices();
+
+    var session = await service.SaveServerAsync(new MumbleServer { Name = "Local", Host = "voice.example", Username = "Ann", WhisperKey = 0x7C, ShoutKey = 0x7D }, "kept-secret");
+    var id = session.Server.Id;
+    Check("save: given an id", id > 0);
+    Check("save: not connected until asked", session.State == MumbleState.Offline);
+
+    var config = File.ReadAllText(Path.Combine(profile, "config.json"));
+    Check("password: not in the config file in the clear", !config.Contains("kept-secret", StringComparison.Ordinal) && config.Contains(MumbleService.PasswordReference(id), StringComparison.Ordinal));
+    Check("password: read back", AppConfig.GetServicePassword(MumbleService.PasswordReference(id)) == "kept-secret");
+    Check("password: not in the database", !RawFile(dbPath).Contains("kept-secret", StringComparison.Ordinal));
+
+    await service.SaveServerAsync(session.Server, null);
+    Check("password: saving without one keeps it", AppConfig.GetServicePassword(MumbleService.PasswordReference(id)) == "kept-secret");
+
+    var user = new MumbleUser { Session = 3, Name = "Bob", Hash = "abc" };
+    await service.SetUserVolumeAsync(session, user, 1.5);
+    Check("volume: remembered by who they are, not by session", session.VolumeOf(user) == 1.5 && session.VolumeOf(new MumbleUser { Session = 99, Name = "Bob", Hash = "abc" }) == 1.5);
+    Check("volume: nobody else's", session.VolumeOf(new MumbleUser { Session = 3, Name = "Bob", Hash = "other" }) == 1.0);
+    await using (var db = factory.CreateDbContext())
+        Check("volume: saved", await db.MumbleUserVolumes.AnyAsync(v => v.ServerId == id && v.UserKey == "abc" && v.Volume == 1.5));
+
+    await service.DisconnectAsync(session);
+
+    await service.DeleteServerAsync(id);
+    await using (var db = factory.CreateDbContext())
+    {
+        Check("delete: the server goes", !await db.MumbleServers.AnyAsync());
+        Check("delete: its volumes go with it", !await db.MumbleUserVolumes.AnyAsync());
+    }
+    Check("delete: its password goes", string.IsNullOrEmpty(AppConfig.GetServicePassword(MumbleService.PasswordReference(id))));
+    Check("delete: and it is out of the list", service.Sessions.Count == 0);
+
+    var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
+    Check("agent: Mumble's tables are kept from the in-app agent",
+          !schema.TableNames.Any(t => t.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)) && schema.TableNames.Count > 0);
+}
+finally
+{
+    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+    try { Directory.Delete(profile, recursive: true); } catch (IOException) { /* a temp folder, and the result is what matters */ }
+}
+
+Console.WriteLine($"Mumble check: {checks} check(s), {failures.Count} failure(s).");
+foreach (var f in failures) Console.WriteLine(f);
+return failures.Count == 0 ? 0 : 1;
+
+sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
+{
+    public AppDbContext CreateDbContext() => new(o);
+}
