@@ -192,12 +192,32 @@ public class IndustryBrowserViewModel : ReactiveObject
     /// Note column simply stays empty without it.</summary>
     private readonly IndyFacilityCheckService? _facilityCheck;
 
+    /// <summary>Optional the same way: an invention job then simply shows no output levels.</summary>
+    private readonly Services.Worklist.InventionService? _invention;
+
     public IndustryBrowserViewModel(string connectionString,
-                                    IndyFacilityCheckService? facilityCheck = null)
+                                    IndyFacilityCheckService? facilityCheck = null,
+                                    Services.Worklist.InventionService? invention = null)
     {
         _connectionString = connectionString;
         _facilityCheck    = facilityCheck;
+        _invention        = invention;
         EnsureSchema();
+    }
+
+    /// <summary>The copy an invention row's job makes on success, or null if it cannot be known.</summary>
+    public async Task<Services.Worklist.InventedPrint?> InventedPrintAsync(GridRow row)
+    {
+        if (_invention is null
+            || !NumberText.TryParse(row[ColProductTypeId], out long invented) || invented <= 0
+            || !NumberText.TryParse(row[ColInstallerId], out long installer)
+            || !double.TryParse(row["Probability"], System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out var chance))
+            return null;
+
+        try { return await _invention.OutcomeOfJobAsync((int)invented, installer, chance); }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception) { return null; }   // a label beside a job, not worth failing the panel for
     }
 
     // ── Load ──────────────────────────────────────────────────────────────────
@@ -781,7 +801,9 @@ public class IndustryBrowserViewModel : ReactiveObject
                 CASE WHEN bl."Quantity" = -2 OR j."ActivityId" = 8 THEN 1 ELSE 0 END             AS "Blueprint Is Copy",
                 COALESCE(ch_comp."Name", '')                                                   AS "Completed By",
                 j."ActivityId"                                                                  AS "Activity Id",
-                j."Probability"                                                                 AS "Probability",
+                -- As text: the grid rounds a number to two places on SQLite, which turned 23.2% into
+                -- 23.0% and could misread the decryptor a low chance points to.
+                CAST(j."Probability" AS TEXT)                                                   AS "Probability",
                 j."OwnerId"                                                                     AS "Owner Id",
                 j."OwnerType"                                                                   AS "Owner Type",
                 -- Hidden: what the names in the grid and the detail panel open.

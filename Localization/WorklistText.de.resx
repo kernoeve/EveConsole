@@ -1780,6 +1780,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>Begrenzt durch die maximale Auftragsdauer ({0:0.#} Tg.).</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Auf das bemessen, was Aufträgen fehlt. Der Rest füllt nur den Bestand auf und wartet, bis er an der Reihe ist.</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Bemessen an einer voll erforschten Blaupause (TE{0}) – keine ist vorhanden.</value>
   </data>
@@ -2496,6 +2499,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (zum Kopieren)</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (für die Fertigung)</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Zweck</value>

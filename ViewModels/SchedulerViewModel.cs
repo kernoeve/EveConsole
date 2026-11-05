@@ -1986,6 +1986,14 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private async Task DeleteAsync()
     {
+        // Nothing saved and nothing typed has nothing to lose, so it just closes. ⚠️ A saved task is
+        // asked about even with no edits: deleting one cannot be undone, and its schedule goes with it.
+        if ((EditingId != 0 || IsDirty) && ConfirmDiscard is not null)
+        {
+            var name = Name.Trim().Length > 0 ? Name.Trim() : AlarmsText.ThisTask;
+            if (!await ConfirmDiscard(string.Format(AlarmsText.ConfirmDeleteTask, name))) return;
+        }
+
         if (EditingId == 0) { HasEditor = false; return; }
 
         var id = EditingId;

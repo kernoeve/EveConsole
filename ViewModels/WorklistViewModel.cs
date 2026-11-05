@@ -1276,7 +1276,9 @@ public sealed class ObservationPointVm : ReactiveObject
     public ObservationPointVm(ObservationPoint p)
     {
         _p = p;
-        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b, p.Print);
+        if (p.IsFormula)              _ = ItemIcons.LoadFormulaAsync(p.TypeId, b => Icon = b);
+        else if (p.PictureTypeId > 0) _ = ItemIcons.LoadAsync(p.PictureTypeId, b => Icon = b, blueprint: true);
+        else if (p.TypeId > 0)        _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b, p.Print);
     }
 
     public string Text => _p.Text;

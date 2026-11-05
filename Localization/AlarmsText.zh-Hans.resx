@@ -775,6 +775,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>已删除。</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>删除“{0}”？此操作无法撤销。</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>没有可渲染的内容：此任务没有任何区块。</value>
   </data>

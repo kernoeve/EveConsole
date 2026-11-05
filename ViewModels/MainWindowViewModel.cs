@@ -1484,7 +1484,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
-        IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck);
+        IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck, new Services.Worklist.InventionService(dbFactory));
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 

@@ -1765,6 +1765,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>{0:0.#}일 작업 기간 제한에 걸렸습니다.</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>작업에 부족한 만큼으로 맞췄습니다. 나머지는 재고 수준만 채우므로 차례를 기다립니다.</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>완전히 연구된 원본(TE{0}) 기준으로 산정했습니다 — 보유한 것이 없습니다.</value>
   </data>
@@ -2475,6 +2478,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (복사용)</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (제조용)</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>용도</value>

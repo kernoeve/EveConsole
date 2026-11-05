@@ -1765,6 +1765,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>ジョブの最大期間（{0:0.#}日）で制限されています。</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>ジョブに不足している分に合わせています。残りは在庫レベルを満たすだけなので、順番を待ちます。</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>完全に研究済みのブループリント（TE{0}）を前提に算出しています — 所有しているものはありません。</value>
   </data>
@@ -2475,6 +2478,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0}（コピー用）</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0}（製造用）</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>用途</value>

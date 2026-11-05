@@ -778,6 +778,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Gelöscht.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>"{0}" löschen? Das kann nicht rückgängig gemacht werden.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Nichts darzustellen: Diese Aufgabe hat keine Abschnitte.</value>
   </data>

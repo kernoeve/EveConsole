@@ -1036,6 +1036,10 @@
     <value>Deleted.</value>
     <comment>Scheduler status line after a task was deleted.</comment>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>Delete "{0}"? This cannot be undone.</value>
+    <comment>Scheduler: asked before a scheduled task is deleted. {0} = the task's name.</comment>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Nothing to render: this task has no blocks.</value>
     <comment>Scheduler status line on Preview of a task with no sections.</comment>

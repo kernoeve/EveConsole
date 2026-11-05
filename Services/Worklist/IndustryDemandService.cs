@@ -401,7 +401,7 @@ public class IndustryDemandService(
         var avail = await invLevels.LoadAvailableAsync(
             items.Where(kv => groups.ContainsKey(kv.Key))
                  .Select(kv => (groups[kv.Key], (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
-                 .ToList(), ct);
+                 .ToList(), ct, withScopeStations: true);
 
         var result = new Dictionary<int, BuildDemand>();
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
@@ -518,7 +518,7 @@ public class IndustryDemandService(
         var availByGroup = await invLevels.LoadAvailableAsync(
             itemsByGroup.Select(kv => (groups[kv.Key],
                                        (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
-                        .ToList(), ct);
+                        .ToList(), ct, withScopeStations: true);
 
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
         {

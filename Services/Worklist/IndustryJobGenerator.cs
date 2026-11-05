@@ -470,11 +470,11 @@ public class IndustryJobGenerator(
             var consuming = s.Demand.OrderUnits + s.Demand.ParentUnits;
             var onShelf   = Math.Max(0, s.Demand.ShelfHave + accounted - consuming);
 
-            var pct = Math.Clamp(100.0 * onShelf / level, 0.0, 100.0);
+            // Below a final, the shelf alone says too little: see ForStockCoverage.
+            if (!s.Demand.IsFinal)
+                return WorklistPriority.ForStockCoverage(s.Demand.ShelfHave + accounted, consuming, level);
 
-            return s.Demand.IsFinal
-                ? WorklistPriority.ForFinalStock(pct)
-                : WorklistPriority.ForStock(pct);
+            return WorklistPriority.ForFinalStock(Math.Clamp(100.0 * onShelf / level, 0.0, 100.0));
         }
 
         // What this item is worth to the most urgent thing STILL waiting on it.
@@ -561,6 +561,12 @@ public class IndustryJobGenerator(
                     // of one — and took the fiber ahead of conduits a hull would need next. A band
                     // from a stock rule below the final band still comes down as before.
                     if (candidate >= WorklistPriority.ServesOther && JobsHeldUpNow(s) == 0) continue;
+
+                    // ⚠️ An item with a level of its own is ranked on its own coverage. Handed down
+                    // from an emptier stock item above it, Core Temperature Regulators at 85% took the
+                    // number of a capital part at 38% and went ahead of conduits at 17%. Only an item
+                    // with no level has nothing else to go on. A sold job stopped for it still counts.
+                    if (candidate < WorklistPriority.ServesOther && s.Demand.ShelfLevel > 0) continue;
 
                     // ⚠️ Capped at ServesOther. Serving a hull is worth less than being the hull,
                     // or the parts sort above the ship and the emptiest hull on the board drags
@@ -722,7 +728,18 @@ public class IndustryJobGenerator(
                     .Select(c => WorklistIndyCharReach.Of(c, corps))
                     .ToList();
 
-                var runsNeeded = IndustryJobSplit.RunsFor(d.Units, Math.Max(1, product.Quantity));
+                // Below a final, no more than the jobs are short of while they are short at all. The
+                // rest gets another visit, whatever becomes of this job: see UnitsForNextJob.
+                var unitsNext = state.Demand.IsFinal
+                    ? d.Units
+                    : WorklistPriority.UnitsForNextJob(
+                          d.Units,
+                          state.Demand.ShelfHave + (state.Demand.Units - state.Remaining),
+                          state.Demand.OrderUnits + state.Demand.ParentUnits,
+                          state.Demand.ShelfLevel);
+                var cappedForJobs = unitsNext < d.Units;
+
+                var runsNeeded = IndustryJobSplit.RunsFor(unitsNext, Math.Max(1, product.Quantity));
 
                 // ⚠️ Minus the prints this pass has already committed. UsableAt filters on
                 // LockedInJob, which is what EVE says right now — it knows nothing about a job
@@ -996,7 +1013,7 @@ public class IndustryJobGenerator(
                             Quantity      = produced,
                             Detail        = shortText
                                           + " " + string.Format(WorklistText.PrintAt, job.Print.Describe(), siteName)
-                                          + $"{durText}{capText}{extraDetail}{leftover}",
+                                          + $"{durText}{capText}{(cappedForJobs ? " " + WorklistText.JobSizedToJobsShort : "")}{extraDetail}{leftover}",
                             Readiness     = readiness,
                             BlockedBy     = blockedBy,
                             Shortages     = shortages ?? [],
@@ -1122,6 +1139,11 @@ public class IndustryJobGenerator(
                 // another turn. One job, then back to the picker — the same rule as everywhere
                 // else here.
                 if (split.RunsUnassigned > 0 && split.Jobs.Count > 0)
+                    state.Done = false;
+
+                // ⚠️ Not "had its say" when this job was only the jobs' share, even if it came back
+                // blocked: the rest has not been said at all, and would drop off the list.
+                if (cappedForJobs && state.Remaining > 0)
                     state.Done = false;
 
                 if (split.RunsUnassigned > 0 && split.Jobs.Count == 0)

@@ -775,6 +775,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>삭제했습니다.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>"{0}"을(를) 삭제할까요? 되돌릴 수 없습니다.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>표시할 내용이 없습니다: 이 예약 작업에는 블록이 없습니다.</value>
   </data>

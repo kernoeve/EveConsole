@@ -778,6 +778,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Eliminado.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>¿Eliminar "{0}"? Esta acción no se puede deshacer.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Nada que mostrar: esta tarea no tiene bloques.</value>
   </data>
