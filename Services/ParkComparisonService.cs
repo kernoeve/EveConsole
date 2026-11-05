@@ -24,6 +24,17 @@ public enum CompareOp { Build, Copy, Invention, MeResearch, TeResearch }
 public sealed record ParkCompareJob(int TypeId, string TypeName, long Quantity, int MeLevel,
     CompareOp Op = CompareOp.Build, int Copies = 1, int TargetLevel = 10, int DecryptorTypeId = 0, int Line = 0);
 
+/// <summary>What a job-list line is, in the terms a post describes it in.</summary>
+/// <param name="ImageTypeId">The type to picture: what a build makes, or the blueprint.</param>
+/// <param name="HasRender">The image server has a render of it: ships do, most items only an icon.</param>
+/// <param name="IsReaction">A build that is a reaction, not manufacturing.</param>
+/// <param name="Quantity">Build: units. Copy: runs on each copy.</param>
+/// <param name="UnitValue">What one unit of a build's output sells for; null when no price is known.</param>
+/// <param name="Target">Invention: what the invented blueprint makes.</param>
+public sealed record ParkJobFacts(
+    int Line, CompareOp Op, int ImageTypeId, string Name, bool HasRender, bool IsReaction, long Quantity,
+    decimal? UnitValue, int Copies = 1, int Level = 10, string Target = "", int TargetRuns = 0, int TargetMe = 0, int TargetTe = 0);
+
 /// <summary>
 /// The share of a plan's job cost that one job's system cost index sets:
 /// <c>Round(Weight × index[SystemId, Activity])</c>, which was <see cref="Gross"/> at today's index.
@@ -102,6 +113,99 @@ public sealed class ParkComparisonService(ProductionCalculatorService calc, IDbC
             products.FirstOrDefault(p => p.TypeId == id && (p.Activity == "manufacturing" || p.Activity == "reaction"))?.ProductTypeId ?? 0,
             products.Any(p => p.TypeId == id && p.Activity == "invention")));
     }
+
+    /// <summary>
+    /// What each line IS, for a post that says so beside its numbers: the item, what a build's
+    /// output is worth, and what a science job comes to.
+    ///
+    /// <para>⚠️ From the same recipes the costing uses. An invention's target is the likeliest, as
+    /// <see cref="ScienceFactsAsync"/> has it, so the words cannot name a different item from the
+    /// one the numbers under them were worked out for.</para>
+    ///
+    /// <para>The market value follows Market defaults, overrides included, as every other screen's
+    /// does. Either choice made here reads the market's own price instead.</para>
+    /// </summary>
+    /// <param name="marketConfigId">The market to read, 0 for the default.</param>
+    /// <param name="priceType">A <see cref="MarketPriceType"/>, empty for the default.</param>
+    public async Task<List<ParkJobFacts>> JobFactsAsync(
+        IReadOnlyList<ParkCompareJob> jobs, int anyParkId, int marketConfigId = 0, string priceType = "",
+        CancellationToken ct = default)
+    {
+        var facts = await ScienceFactsAsync(jobs, ct);
+        var ctx   = await calc.LoadContextAsync(anyParkId, ct);
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        int Output(ParkCompareJob j) => facts.Blueprints.TryGetValue(j.TypeId, out var bp) && bp.Product > 0 ? bp.Product : j.TypeId;
+        var builds = jobs.Where(j => j.Op == CompareOp.Build).Select(Output).Distinct().ToList();
+
+        var ships = (await (from t in db.SdeTypes.AsNoTracking()
+                            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                            where builds.Contains(t.TypeId) && g.CategoryId == ShipCategory
+                            select t.TypeId).ToListAsync(ct)).ToHashSet();
+        var reacted = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => builds.Contains(p.ProductTypeId) && p.Activity == "reaction")
+                .Select(p => p.ProductTypeId).ToListAsync(ct)).ToHashSet();
+
+        var picked = marketConfigId > 0 || priceType.Length > 0;
+        var prices = new Dictionary<int, double>();
+        if (picked)
+        {
+            var defaults = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
+            var config   = marketConfigId > 0 ? marketConfigId : defaults?.ManufacturingConfigId ?? 0;
+            var type     = priceType.Length > 0 ? priceType : defaults?.ManufacturingPriceType ?? MarketPriceType.Sell;
+            prices = (await db.MarketItemPrices.AsNoTracking()
+                    .Where(p => p.ConfigId == config && builds.Contains(p.TypeId)).ToListAsync(ct))
+                .ToDictionary(p => p.TypeId, p => type switch
+                {
+                    MarketPriceType.Buy  => p.BuyPrice,
+                    MarketPriceType.Sell => p.SellPrice,
+                    _                    => p.Midpoint,
+                });
+        }
+
+        decimal? Price(int typeId)
+        {
+            decimal price;
+            if (picked) price = prices.TryGetValue(typeId, out var p) ? (decimal)p : 0;
+            else price = ctx.Overrides.TryGetValue(typeId, out var o) && o.MarketValue is { } set ? set
+                       : ctx.UnitCosts.GetValueOrDefault(typeId);
+            return price > 0 ? price : null;
+        }
+
+        var result = new List<ParkJobFacts>();
+        foreach (var job in jobs)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (job.Op == CompareOp.Build)
+            {
+                var output = Output(job);
+                result.Add(new ParkJobFacts(job.Line, job.Op, output, SdeNames.Type(output, job.TypeName),
+                    ships.Contains(output), reacted.Contains(output), job.Quantity, Price(output)));
+                continue;
+            }
+
+            var line = new ParkJobFacts(job.Line, job.Op, job.TypeId, SdeNames.Type(job.TypeId, job.TypeName),
+                false, false, job.Quantity, null, job.Copies, job.TargetLevel);
+
+            if (job.Op == CompareOp.Invention && facts.Recipes.TryGetValue(job.TypeId, out var recipe))
+            {
+                var decryptor = facts.Decryptors.FirstOrDefault(d => d.TypeId == job.DecryptorTypeId) ?? Decryptor.None;
+                var plan      = InventionService.Plan(recipe, decryptor, Math.Max(1, job.Quantity), ScienceCost.SkillsAtFive(recipe));
+                var product   = await db.SdeBlueprintProducts.AsNoTracking()
+                    .Where(p => p.TypeId == recipe.InventedBlueprintTypeId && p.Activity == "manufacturing")
+                    .Select(p => p.ProductTypeId).FirstOrDefaultAsync(ct);
+                var shown     = product > 0 ? product : recipe.InventedBlueprintTypeId;
+                var name      = await db.SdeTypes.AsNoTracking().Where(t => t.TypeId == shown).Select(t => t.Name).FirstOrDefaultAsync(ct) ?? "";
+                line = line with { Target = SdeNames.Type(shown, name), TargetRuns = plan.RunsPerBpc, TargetMe = plan.InventedMe, TargetTe = plan.InventedTe };
+            }
+
+            result.Add(line);
+        }
+        return result;
+    }
+
+    private const int ShipCategory = 6;
 
     /// <summary>Every job-list line in every park given, park by park.</summary>
     public async Task<List<ParkCost>> CompareAsync(
