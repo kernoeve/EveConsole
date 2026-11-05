@@ -193,21 +193,24 @@ public sealed class MumbleEncoder
 /// </summary>
 public sealed class MumbleVoiceLeveler
 {
-    /// <summary>Where the standard client put the same voice, measured the same way from what the server sent on.</summary>
-    public const double TargetDb = -21;
+    /// <summary>
+    /// What is aimed for. ⚠️ Real speech lands about 3 dB under it, because this follows a voice's louder moments:
+    /// this is what brought one voice to the standard client's -21 dBFS, measured at a listener on the same server.
+    /// </summary>
+    public const double TargetDb = -18;
 
     public const double MostRaiseDb = 29, MostLowerDb = -12;
 
     /// <summary>What the pauses between words are lowered by: the standard client's own noise suppression strength.</summary>
     public const double PauseLowerDb = -30;
 
-    private const double FrameSeconds = 0.02, RaisePerSecond = 12, FirstRaisePerSecond = 25, LowerPerSecond = 60;
+    private const double FrameSeconds = 0.02, RaisePerSecond = 12, FirstRaisePerSecond = 60, LowerPerSecond = 60;
 
     /// <summary>The loudest a frame may be turned up to. ⚠️ Below full scale, because Opus can overshoot what it was given by a decibel or so.</summary>
     private const double GuardDb = -3;
 
     /// <summary>How long a voice's end is left alone before the pause counts as one.</summary>
-    private const int PauseAfterFrames = 15;
+    private const int PauseAfterFrames = 8;
 
     /// <summary>How long it climbs quickly at first. ⚠️ The microphone is only open while talking, unlike the standard client's, so it has no silence to learn in.</summary>
     private const int LearningFrames = 75;

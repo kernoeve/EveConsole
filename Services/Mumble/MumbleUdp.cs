@@ -63,8 +63,13 @@ public sealed class MumbleCrypt : IDisposable
         {
             if (_aes is null) return null;
 
-            for (var i = 0; i < Block; i++)
-                if (++_encryptIv[i] != 0) break;
+            Advance();
+
+            // ⚠️ A packet's first byte goes out in the clear, and a server looks at it before decrypting: 1 can read as
+            // someone outside asking for a ping, so the packet is answered as one and its voice thrown away. That was 20 ms
+            // lost in every 256 packets, about every 5 seconds of talking. Skipping the number costs nothing: to the
+            // server it looks like one packet lost on the way, which it already allows for.
+            if (_encryptIv[0] == 1) Advance();
 
             var packet = new byte[plain.Length + Overhead];
             Span<byte> tag = stackalloc byte[Block];
@@ -73,6 +78,12 @@ public sealed class MumbleCrypt : IDisposable
             packet[0] = _encryptIv[0];
             tag[..3].CopyTo(packet.AsSpan(1));
             return packet;
+        }
+
+        void Advance()
+        {
+            for (var i = 0; i < Block; i++)
+                if (++_encryptIv[i] != 0) break;
         }
     }
 

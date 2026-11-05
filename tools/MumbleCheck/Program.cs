@@ -393,6 +393,26 @@ static string RawFile(string path)
     var popped = Levelled(-38, 8, pop: true);
     Check("level: the click at the start of a press is not sent", popped.PeakDb < quietVoice.PeakDb + 1, $"{popped.PeakDb:0.0} against {quietVoice.PeakDb:0.0}");
     Check("level: and does not throw off the level", Math.Abs(popped.SpeechDb - quietVoice.SpeechDb) < 0.5, $"{popped.SpeechDb:0.0} against {quietVoice.SpeechDb:0.0}");
+    {
+        var key = new byte[16]; var one = new byte[16]; var two = new byte[16];
+        new Random(1).NextBytes(key); new Random(2).NextBytes(one); new Random(3).NextBytes(two);
+        using var left = new MumbleCrypt();
+        using var right = new MumbleCrypt();
+        left.SetKey(key, one, two);
+        right.SetKey(key, two, one);
+        var payload = new byte[110];
+        int firstByteOne = 0, unreadable = 0;
+        for (var i = 0; i < 2000; i++)
+        {
+            new Random(i).NextBytes(payload);
+            var packet = left.Encrypt(payload)!;
+            if (packet[0] == 1) firstByteOne++;
+            if (right.Decrypt(packet) is not { } back || !back.SequenceEqual(payload)) unreadable++;
+        }
+        Check("udp: no packet starts with the byte a server can take for a ping", firstByteOne == 0, $"{firstByteOne} did");
+        Check("udp: skipping it costs nothing at the far end", unreadable == 0, $"{unreadable} unreadable of 2000");
+    }
+
     Check("keys: the same talk key on another server", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7C }, [a]) == "One");
     Check("keys: my shout on their talk", MumbleService.KeyClash(new MumbleServer { Id = 2, ShoutKey = 0x7C }, [a]) == "One");
     Check("keys: my talk on their shout", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7D }, [a]) == "One");
