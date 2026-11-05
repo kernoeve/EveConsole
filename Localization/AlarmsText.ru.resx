@@ -784,6 +784,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Удалено.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>Удалить «{0}»? Это действие нельзя отменить.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Нечего показать: в этой задаче нет блоков.</value>
   </data>

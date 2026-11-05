@@ -1765,6 +1765,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>受 {0:0.#} 天任务时长上限的限制。</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>按任务所缺数量确定。其余部分仅用于补足库存水平，将排队等候。</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>流程数按完全研究的蓝图（TE{0}）规划——目前一张都没有。</value>
   </data>
@@ -2475,6 +2478,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0}（用于复制）</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0}（用于制造）</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>用途</value>

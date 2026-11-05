@@ -37,6 +37,9 @@
   <data name="SuccessChance" xml:space="preserve">
     <value>Taux de réussite</value>
   </data>
+  <data name="OutputRunsEach" xml:space="preserve">
+    <value>{0:N0} cycles chacune</value>
+  </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Temps restant</value>
   </data>

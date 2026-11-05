@@ -775,6 +775,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>削除しました。</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>「{0}」を削除しますか？この操作は元に戻せません。</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>表示する内容がありません：このタスクにはブロックがありません。</value>
   </data>

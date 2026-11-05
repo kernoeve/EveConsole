@@ -1810,6 +1810,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>Ограничено длительностью проекта в {0:0.#} д.</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Размер равен нехватке для проектов. Остальное только пополняет запас и ждёт своей очереди.</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Рассчитано по полностью исследованному чертежу (TE{0}) — своего чертежа нет.</value>
   </data>
@@ -2538,6 +2541,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (для копирования)</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (для производства)</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Назначение</value>

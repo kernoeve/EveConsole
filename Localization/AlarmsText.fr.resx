@@ -778,6 +778,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Tâche supprimée.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>Supprimer « {0} » ? Cette action est irréversible.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Rien à générer : cette tâche n'a aucun bloc.</value>
   </data>

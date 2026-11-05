@@ -49,6 +49,26 @@ public sealed record InventionRecipe(
     int    ManufacturedTypeId = 0,
     bool   BlueprintTarget    = false);
 
+/// <summary>The blueprint copy one invention success produces.</summary>
+public sealed record InventedPrint(int Me, int Te, int Runs);
+
+/// <summary>What a science job leaves its print at.</summary>
+public static class ResearchOutcome
+{
+    public const int MaxMe = 10;
+    public const int MaxTe = 20;
+
+    /// <summary>A print's levels once a job ends: one ME or 2% TE a research run, and a copy keeps
+    /// its source's. Null for a job that does not change or hand back a print.</summary>
+    public static (int Me, int Te)? Levels(long activityId, int me, int te, int runs) => activityId switch
+    {
+        3 => (me, Math.Min(MaxTe, te + 2 * runs)),
+        4 => (Math.Min(MaxMe, me + runs), te),
+        5 => (me, te),
+        _ => null,
+    };
+}
+
 /// <summary>What a given amount of T2 production actually costs in invention.</summary>
 /// <param name="Attempts">Invention runs to expect to need. An expectation, not a guarantee — see
 /// the note on <see cref="InventionService.Plan"/>.</param>
@@ -491,6 +511,56 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         // Capped at certainty. Nothing in the game reaches it, but a plan that divided by a chance
         // above one would ask for fewer attempts than successes.
         return Math.Clamp(chance, 0.0001, 1.0);
+    }
+
+    /// <summary>
+    /// Which decryptor a job used, read back from the chance it was given: ESI never names it, but
+    /// the chance is the same sum as <see cref="Chance"/>, so what it holds beyond the base and the
+    /// installer's skills is the decryptor.
+    ///
+    /// <para>On the player's own 80 jobs, 74 land exactly on a multiplier and the rest within 2.5%,
+    /// where a skill has moved since. ⚠️ Null past 3%: a wrong ME is worse than none. A multiplier of
+    /// one reads as no decryptor, though Symmetry has the same one and cannot be told apart.</para>
+    /// </summary>
+    public static Decryptor? IdentifyDecryptor(
+        double jobChance, double chanceWithout, IReadOnlyList<Decryptor> all)
+    {
+        if (jobChance <= 0 || chanceWithout <= 0) return null;
+
+        var ratio = jobChance / chanceWithout;
+        var best  = Decryptor.None;
+
+        foreach (var d in all)
+            if (Math.Abs(d.ChanceMultiplier - ratio) < Math.Abs(best.ChanceMultiplier - ratio)) best = d;
+
+        return Math.Abs(best.ChanceMultiplier - ratio) / best.ChanceMultiplier <= 0.03 ? best : null;
+    }
+
+    /// <summary>What one invention success hands back, with a given decryptor.</summary>
+    public static InventedPrint Outcome(int baseRuns, Decryptor decryptor) => new(
+        BaseInventedMe + decryptor.MeModifier,
+        BaseInventedTe + decryptor.TeModifier,
+        Math.Max(1, baseRuns + decryptor.RunModifier));
+
+    /// <summary>
+    /// The blueprint copy an invention job makes on success. Null when it cannot be known: the
+    /// recipe is gone, or the chance fits no decryptor for this installer's skills.
+    /// </summary>
+    public async Task<InventedPrint?> OutcomeOfJobAsync(
+        int inventedBlueprintTypeId, long installerId, double jobChance, CancellationToken ct = default)
+    {
+        var recipes = await LoadAsync([inventedBlueprintTypeId], ct);
+        if (!recipes.TryGetValue(inventedBlueprintTypeId, out var recipe)) return null;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var skills = await db.EsiSkills.AsNoTracking()
+            .Where(s => s.CharacterId == installerId)
+            .ToDictionaryAsync(s => s.SkillId, s => s.ActiveSkillLevel, ct);
+        if (skills.Count == 0) return null;
+
+        var decryptor = IdentifyDecryptor(jobChance, Chance(recipe, Decryptor.None, skills), await DecryptorsAsync(ct));
+
+        return decryptor is null ? null : Outcome(recipe.BaseRunsPerSuccess, decryptor);
     }
 
     /// <summary>

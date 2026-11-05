@@ -2364,6 +2364,10 @@
     <value>Capped by the {0:0.#}-day job length.</value>
     <comment>Added to a Worklist job's detail: why the job is no longer. {0} is the maximum job length in days, set on the Other tab.</comment>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Sized to what jobs are short of. The rest only fills the level, so it waits its turn.</value>
+    <comment>Added to a Worklist job's detail: this job makes only what the jobs consuming the item are short of, and the item's stock level comes after.</comment>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Sized against a fully researched print (TE{0}) — none is owned.</value>
     <comment>Added to a Worklist job's detail when no blueprint is owned. {0} is the time efficiency assumed. TE is EVE's time efficiency.</comment>
@@ -3319,6 +3323,10 @@
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (for copying)</value>
     <comment>A product named with its originals at the copy lab, where a summary lists it to buy another. {0} = item name.</comment>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (for manufacturing)</value>
+    <comment>A product named with its originals at a factory, where a summary lists it to buy another, so it is clear the other original at the copy lab is not the one counted. {0} = item name.</comment>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Use</value>

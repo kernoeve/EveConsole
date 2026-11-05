@@ -81,6 +81,12 @@ public sealed record HaulPlanFacts(
 /// </summary>
 public enum NeedDriverKind { Build, BlueprintFor, Invention, CopiesForInvention, StationLevel }
 
+/// <summary>Work that wants an original of some blueprint: where, how urgently, and to make what.</summary>
+public readonly record struct WantedPrint(long Site, int Priority, int ProductTypeId, long Units);
+
+/// <summary>A free original outside the park, and the site it should go to.</summary>
+public sealed record SpareOriginalMove(long From, long To, int TypeId, int Priority, int ProductTypeId, long Units);
+
 public sealed record StationNeed(
     long   StationId,
     string StationName,
@@ -214,7 +220,7 @@ public class LogisticsGenerator(
     private async Task<List<WorklistItem>> BuildAsync(
         AppDbContext db, int parkId, CancellationToken ct)
     {
-        var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
+        var (want, stock, drivers, ctx, spareOriginals) = await GatherAsync(db, parkId, ct);
         if (ctx is null) return [];
 
         var systems = await SystemsAsync(db, ct);
@@ -262,6 +268,7 @@ public class LogisticsGenerator(
 
         var moves = new List<Move>(await RefiningMovesAsync(db, ctx, parkId, stock, ct));
         moves.AddRange(await AllocateAsync(want, stock, systems, ct));
+        moves.AddRange(spareOriginals.Select(m => new Move(m.From, m.To, m.TypeId, 1, HaulReason.Unblocking, m.Priority)));
         moves.AddRange(SurplusMoves(await SurplusHomesAsync(db, ct), want, stock));
 
         // Covered by a courier still on its way: nothing to fly until it lands — a want at its
@@ -1082,13 +1089,14 @@ public class LogisticsGenerator(
     private async Task<(Dictionary<(long Station, int TypeId), Want> Want,
                         Dictionary<(long Station, int TypeId), long> Stock,
                         Dictionary<(long Station, int TypeId), List<NeedDriver>> Drivers,
-                        ProductionContext? Ctx)>
+                        ProductionContext? Ctx,
+                        List<SpareOriginalMove> SpareOriginals)>
         GatherAsync(AppDbContext db, int parkId, CancellationToken ct)
     {
         var ctx = await production.LoadContextAsync(parkId, ct);
 
         var candidates = await assignment.LoadCandidatesAsync(ct);
-        if (candidates.Count == 0) return ([], [], [], null);
+        if (candidates.Count == 0) return ([], [], [], null, []);
         var corps   = await assignment.UsableCorporationsAsync(settings.IncludeNonPersonalCorps, ct);
         var reaches = candidates
             .Select(c => WorklistIndyCharReach.Of(c, corps))
@@ -1198,14 +1206,37 @@ public class LogisticsGenerator(
         var printsInAssets = await blueprints.OwnedInAssetsAsync(
             ctx.BlueprintByProduct.Values.Select(b => b.TypeId).Distinct().ToList(), owned, ct);
 
+        var printsForBuilds = new Dictionary<int, WantedPrint>();
+        var printsForCopies = new Dictionary<int, WantedPrint>();
+
         await AddJobDemandAsync(db, ctx, meMap, allPrints, owned, printsInAssets,
-                                scope, wrapped, corps, inScope, Need, ct);
+                                scope, wrapped, corps, inScope, Need, printsForBuilds, printsForCopies, ct);
         await AddStationLevelDemandAsync(db, Need, ct);
 
-        if ((await InventionService.LabsAsync(db, parkId, ct)).Copying is { } copyLab)
-            KeepCopyLabOriginals(allPrints, owned, copyLab.Site, Need);
+        var copyLabSite = (await InventionService.LabsAsync(db, parkId, ct)).Copying?.Site;
+        if (copyLabSite is { } copyLab)
+            KeepCopyLabOriginals(allPrints, owned, copyLab, Need);
 
-        return (want, stock, drivers, ctx);
+        var parkSites = (await db.IndyStructures.AsNoTracking()
+                .Where(s => s.ParkId == parkId && s.RealStructureId != null)
+                .Select(s => s.RealStructureId!.Value)
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        var spareOriginals = SpareOriginalMoves(
+            allPrints.Where(owned.Owns), parkSites, copyLabSite, scope, printsForBuilds, printsForCopies);
+
+        // ⚠️ Off the stock the allocation works from, or it could also take the same print for
+        // another want, and said as the trip's reason the way any print's want is.
+        foreach (var m in spareOriginals)
+        {
+            stock[(m.From, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((m.From, m.TypeId)) - 1);
+
+            if (!drivers.TryGetValue((m.To, m.TypeId), out var why)) drivers[(m.To, m.TypeId)] = why = [];
+            why.Add(new NeedDriver(m.ProductTypeId, "", NeedDriverKind.BlueprintFor, m.Units, 1));
+        }
+
+        return (want, stock, drivers, ctx, spareOriginals);
     }
 
     /// <summary>
@@ -1225,7 +1256,7 @@ public class LogisticsGenerator(
 
         try
         {
-            var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
+            var (want, stock, drivers, ctx, _) = await GatherAsync(db, parkId, ct);
             if (want.Count == 0 || ctx is null) return [];
             var printFacts = await PrintFactsAsync(ctx, ct);
 
@@ -1408,7 +1439,9 @@ public class LogisticsGenerator(
         IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, int> printsInAssets,
         HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps, ScopeStock inScope,
-        NeedFn need, CancellationToken ct)
+        NeedFn need,
+        Dictionary<int, WantedPrint> printsForBuilds, Dictionary<int, WantedPrint> printsForCopies,
+        CancellationToken ct)
     {
         var rules = await db.WorklistInvRules.AsNoTracking()
             .Where(r => r.Enabled && r.Action == "Build")
@@ -1424,7 +1457,7 @@ public class LogisticsGenerator(
         // old per-rule reading of it came out as zero.
         var demand = await demands.GatherAsync(db, ctx, rules, groups, scope, wrapped, corps, inScope, ct);
 
-        await AddInventionDemandAsync(db, ctx, demand, allPrints, owned, printsInAssets, corps, need, ct);
+        await AddInventionDemandAsync(db, ctx, demand, allPrints, owned, printsInAssets, corps, need, printsForCopies, ct);
 
         foreach (var (typeId, d) in demand.OrderBy(d => d.Key))
         {
@@ -1470,6 +1503,9 @@ public class LogisticsGenerator(
             //
             // In practice this is quiet: a print normally already sits at the structure that
             // builds from it, so the want is met by stock and no move comes of it.
+            if (ctx.BlueprintByProduct.TryGetValue(typeId, out var builtFrom))
+                printsForBuilds.TryAdd(builtFrom.TypeId, new WantedPrint(site, d.Priority, typeId, d.Units));
+
             if (ctx.BlueprintByProduct.TryGetValue(typeId, out var bpProd)
                 && !OriginalBusyAt(allPrints, owned, bpProd.TypeId, site))
             {
@@ -1499,7 +1535,7 @@ public class LogisticsGenerator(
         AppDbContext db, ProductionContext ctx, Dictionary<int, BuildDemand> demand,
         IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, int> printsInAssets, HashSet<long>? corps,
-        NeedFn need, CancellationToken ct)
+        NeedFn need, Dictionary<int, WantedPrint> printsForCopies, CancellationToken ct)
     {
         var candidates = (await assignment.LoadCandidatesAsync(ct))
             .Where(c => c.Runs(IndustryPool.Science)).ToList();
@@ -1557,6 +1593,10 @@ public class LogisticsGenerator(
             // job has to be run — the invention generator copies only from an original standing
             // at the copy lab, so one anywhere else needs this trip first.
             var mine = allPrints.Where(p => p.TypeId == source && owned.Owns(p)).ToList();
+
+            if (copyLab is { } toCopy && mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs) < n.Plan.CopyRunsNeeded)
+                printsForCopies.TryAdd(source, new WantedPrint(toCopy.Site, n.Demand.Priority, n.Recipe.ProductTypeId, n.Demand.Units));
+
             if (copyLab is { } cl
                 && mine.Any(p => p.IsOriginal)
                 // ⚠️ None there at all, busy or free: a busy one is copying already, and a free one
@@ -1599,6 +1639,50 @@ public class LogisticsGenerator(
         IReadOnlyList<BlueprintStock> allPrints, PrintOwnership owned, int typeId, long site) =>
         allPrints.Count(p => p.TypeId == typeId && !p.IsOriginal && p.LockedInJob
                           && p.LocationId == site && owned.Owns(p));
+
+    /// <summary>
+    /// Where each free original goes: a newly bought one landing at a staging station, say, or one
+    /// finished at a research lab.
+    ///
+    /// <para>⚠️ Separate from every want. A site whose own original is busy asks for nothing, which
+    /// left a new original where it landed with nothing asking for it. And a want is met from any
+    /// print of the type, so it could have been answered with a copy from next door instead.</para>
+    ///
+    /// <para>⚠️ Only the copy lab keeps its originals (user rule). Anywhere else is fair game unless a
+    /// job is running on the print, research labs inside the park included.</para>
+    ///
+    /// <para>To the factory while anything is queued to build from it, since that is what holds up
+    /// jobs; otherwise to the copy lab if copies are short. With no work for it, it stays put.</para>
+    ///
+    /// <para>⚠️ To the lab only from outside the park. Nothing comes back out of the copy lab, so a
+    /// factory's idle original sent there because no build was queued that hour would never return:
+    /// a Chimera print did exactly that in the first live run, and every other would have followed.</para>
+    /// </summary>
+    /// <param name="scope">Stations that count, or null for all: a print beyond them is not in reach.</param>
+    public static List<SpareOriginalMove> SpareOriginalMoves(
+        IEnumerable<BlueprintStock> ownedPrints, IReadOnlySet<long> parkSites, long? copyLab,
+        IReadOnlySet<long>? scope,
+        IReadOnlyDictionary<int, WantedPrint> forBuilds, IReadOnlyDictionary<int, WantedPrint> forCopies)
+    {
+        var moves = new List<SpareOriginalMove>();
+
+        foreach (var p in ownedPrints.OrderBy(p => p.ItemId))
+        {
+            if (!p.IsOriginal || p.LockedInJob || p.LocationId <= 0) continue;
+            if (p.LocationId == copyLab) continue;
+            if (scope is not null && !scope.Contains(p.LocationId)) continue;
+
+            if (!forBuilds.TryGetValue(p.TypeId, out var wanted) && !forCopies.TryGetValue(p.TypeId, out wanted))
+                continue;
+
+            if (p.LocationId == wanted.Site) continue;   // already where the work is
+            if (wanted.Site == copyLab && parkSites.Contains(p.LocationId)) continue;
+
+            moves.Add(new SpareOriginalMove(p.LocationId, wanted.Site, p.TypeId, wanted.Priority, wanted.ProductTypeId, wanted.Units));
+        }
+
+        return moves;
+    }
 
     /// <summary>
     /// Keeps the copy lab's originals where they are.

@@ -496,23 +496,27 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>The scope is resolved once per distinct (scope, location) rather than per group,
     /// since rules routinely share one.</para>
     /// </remarks>
+    /// <param name="withScopeStations">Also count assets at the worklist's "Also count these
+    /// stations", for a group whose own scope leaves them out. ⚠️ The worklist only: its Asset Scope
+    /// said a trade hub's stock counted, and items with an inventory rule never saw it, so 1,642 Core
+    /// Temperature Regulators in Jita were built again. The inventory tool shows the group's own scope.</param>
     public Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableAsync(
         IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
-        CancellationToken ct = default, bool packagedOnly = false)
+        CancellationToken ct = default, bool packagedOnly = false, bool withScopeStations = false)
     {
         // Three generators gather the same demand from the same rules, so they ask this with
         // the same groups and the same types. Keyed by exactly that, so a different request —
         // the inventory tool asking for one group — is its own load. Results are records the
         // callers only read.
-        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:")
+        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:") + (withScopeStations ? "S:" : "")
                 + string.Join("|", requests.OrderBy(r => r.Group.Id)
                       .Select(r => $"{r.Group.Id}=" + string.Join(",", r.TypeIds.Distinct().OrderBy(t => t))));
-        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly));
+        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly, withScopeStations));
     }
 
     private async Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableUncachedAsync(
         IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
-        CancellationToken ct, bool packagedOnly)
+        CancellationToken ct, bool packagedOnly, bool withScopeStations)
     {
         var result = new Dictionary<int, Dictionary<int, InvAvailability>>();
         requests = requests.Where(r => r.TypeIds.Count > 0).ToList();
@@ -719,11 +723,20 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     .ToList();
         }
 
+        List<long> scopeStations = withScopeStations
+            ? await db.WorklistIndyScopeStations.AsNoTracking().Select(s => s.LocationId).ToListAsync(ct)
+            : [];
+
         // ── Per group: the same filters the per-group queries applied, in memory ──
         foreach (var (group, typeIds) in requests)
         {
             var wanted        = typeIds.ToHashSet();
             var stationFilter = scopeFilters[(group.Scope, group.LocationId)];
+
+            // Stock only: a job or an order is measured where the group says, wherever its output goes.
+            var assetFilter = stationFilter is null || scopeStations.Count == 0
+                ? stationFilter
+                : [.. stationFilter, .. scopeStations];
 
             var assets    = new Dictionary<int, long>();
             var jobs      = new Dictionary<int, long>();
@@ -733,8 +746,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             if (group.IncludeAssets)
             {
                 var rows = assetRows.Where(a => wanted.Contains(a.TypeId));
-                if (stationFilter != null)
-                    rows = rows.Where(a => stationFilter.Contains(a.RootLocationId));
+                if (assetFilter != null)
+                    rows = rows.Where(a => assetFilter.Contains(a.RootLocationId));
 
                 // Packaged only: skip assembled and fitted hulls. The group setting is the usual
                 // source; the parameter is how the sale posting tool overrides it per posting.
@@ -766,14 +779,14 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 {
                     if (!wanted.Contains(d.TypeId)) continue;
                     if (!ownerFilter.Contains(d.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(d.Site)) continue;
+                    if (assetFilter != null && !assetFilter.Contains(d.Site)) continue;
                     assets[d.TypeId] = assets.GetValueOrDefault(d.TypeId) + d.Units;
                 }
                 foreach (var p in deliveredPrints)
                 {
                     if (!wanted.Contains(p.TypeId)) continue;
                     if (!ownerFilter.Contains(p.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
+                    if (assetFilter != null && !assetFilter.Contains(p.Site)) continue;
                     assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
                 }
 
@@ -784,7 +797,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 {
                     if (!wanted.Contains(m.TypeId) || bpTypeIds.Contains(m.TypeId)) continue;
                     if (!ownerFilter.Contains(m.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(m.Site)) continue;
+                    if (assetFilter != null && !assetFilter.Contains(m.Site)) continue;
                     if ((packagedOnly || group.PackagedOnly) && m.IsSingleton) continue;
                     assets[m.TypeId] = Math.Max(0, assets.GetValueOrDefault(m.TypeId) + m.Units);
                 }

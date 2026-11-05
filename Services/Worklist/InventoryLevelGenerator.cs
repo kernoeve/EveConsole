@@ -97,7 +97,7 @@ public class InventoryLevelGenerator(
         var availByGroup = await invLevels.LoadAvailableAsync(
             itemsByGroup.Select(kv => (groups[kv.Key],
                                        (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
-                        .ToList(), ct);
+                        .ToList(), ct, withScopeStations: true);
         var allNames  = await invLevels.GetTypeNamesAsync(allTypeIds, ct);
 
         // ⚠️ Blueprints are not raised here. MaterialPurchaseGenerator totals a print's stock

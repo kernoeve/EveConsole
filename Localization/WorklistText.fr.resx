@@ -1780,6 +1780,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>Limité par la durée de travail de {0:0.#} jours.</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Dimensionné sur ce qui manque aux travaux. Le reste ne fait que remplir le niveau et attend son tour.</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Dimensionné sur un plan entièrement recherché (TE{0}) — aucun n'est possédé.</value>
   </data>
@@ -2496,6 +2499,9 @@
   </data>
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (pour la copie)</value>
+  </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (pour la fabrication)</value>
   </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Usage</value>
