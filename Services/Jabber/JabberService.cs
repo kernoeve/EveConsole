@@ -67,6 +67,12 @@ public sealed class JabberSession(JabberAccount account)
     internal Task? Loop { get; set; }
 
     internal Dictionary<string, JabberContact> ContactMap { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Whose clients have shown they understand typing notices. ⚠️ Nobody else is sent any, as the protocol
+    /// asks: a broadcast bot or a pager has no use for them, and some treat every message as a command.
+    /// </summary>
+    internal HashSet<string> SendsTyping { get; } = new(StringComparer.Ordinal);
     internal Dictionary<string, JabberRoomState> RoomMap { get; } = new(StringComparer.Ordinal);
     internal HashSet<string> Requests { get; } = new(StringComparer.Ordinal);
     internal Dictionary<string, XmppInvite> InviteMap { get; } = new(StringComparer.Ordinal);
@@ -112,6 +118,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
     /// <summary>Someone corrected a saved message: the conversation needs reading again.</summary>
     public event Action<int, string>? ConversationEdited;
+
+    /// <summary>Someone started or stopped typing: account, conversation, whether they are.</summary>
+    public event Action<int, string, bool>? TypingChanged;
 
     public static string PasswordReference(int accountId) => $"jabber-{accountId}";
 
@@ -322,6 +331,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         // One worker per connection keeps messages in order, and the database off the reading thread.
         var inbox = Channel.CreateUnbounded<XmppMessage>(new UnboundedChannelOptions { SingleReader = true });
         client.MessageReceived += m => inbox.Writer.TryWrite(m);
+        client.TypingChanged += (from, typing) =>
+        {
+            session.Locked(s => s.SendsTyping.Add(from.Bare));
+            TypingChanged?.Invoke(account.Id, from.Bare, typing);
+        };
         client.PresenceChanged += p => OnPresence(session, p);
         client.OccupantChanged += o => OnOccupant(session, o);
         client.RosterChanged += r => OnRosterItem(session, r);
@@ -683,6 +697,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (isRoom) return;
 
         await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", text, "", id, null, "", true), ct);
+    }
+
+    /// <summary>Tells someone this account is typing to them, if their client has shown it can use that.</summary>
+    public async Task SendTypingAsync(JabberSession session, string conversation, bool typing, CancellationToken ct = default)
+    {
+        if (session.Client is { } client && session.Locked(s => s.SendsTyping.Contains(conversation)))
+            await client.SendTypingAsync(conversation, typing, ct);
     }
 
     public async Task SetPresenceAsync(JabberSession session, XmppShow show, string status, CancellationToken ct = default)

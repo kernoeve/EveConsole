@@ -68,7 +68,7 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <comment>{0} = subject, {1} = SHA-256 fingerprint.</comment>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>Channel key: {0}. Shout key: {1}.</value>
+    <value>Whisper key: {0}. Shout key: {1}.</value>
     <comment>{0}, {1} = key names.</comment>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
@@ -140,11 +140,11 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <comment>Field.</comment>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Key to talk to the current channel</value>
+    <value>Whisper key (talks to your current channel)</value>
     <comment>Field.</comment>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Key to shout</value>
+    <value>Shout key</value>
     <comment>Field.</comment>
   </data>
   <data name="ShoutChildren" xml:space="preserve">
@@ -214,6 +214,14 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="MessageHint" xml:space="preserve">
     <value>Message the channel. Enter sends, Shift+Enter starts a new line.</value>
     <comment>Input hint.</comment>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>Private message to {0}. Enter sends, Shift+Enter starts a new line.</value>
+    <comment>Input hint. {0} = person.</comment>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>private</value>
+    <comment>Mark on a private message.</comment>
   </data>
   <data name="Send" xml:space="preserve">
     <value>Send</value>

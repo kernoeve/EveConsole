@@ -53,7 +53,7 @@
 Большинство серверов Mumble используют собственный сертификат. Доверяйте ему, только если ожидаете этот сервер. После этого будет приниматься только этот сертификат.</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>Клавиша канала: {0}. Клавиша крика: {1}.</value>
+    <value>Клавиша шёпота: {0}. Клавиша крика: {1}.</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Введите хост сервера и имя пользователя.</value>
@@ -107,7 +107,7 @@
     <value>Токены доступа (необязательно, через запятую)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Клавиша разговора в текущем канале</value>
+    <value>Клавиша шёпота (говорит в текущий канал)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
     <value>Клавиша крика</value>
@@ -162,6 +162,12 @@
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Сообщение в канал. Enter — отправить, Shift+Enter — новая строка.</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>Личное сообщение для {0}. Enter — отправить, Shift+Enter — новая строка.</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>личное</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>Отправить</value>

@@ -53,7 +53,7 @@
 La mayoría de servidores Mumble usan su propio certificado. Confía en él solo si esperas este servidor. A partir de entonces solo se aceptará este certificado.</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>Tecla de canal: {0}. Tecla de grito: {1}.</value>
+    <value>Tecla de susurro: {0}. Tecla de grito: {1}.</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Introduce el host del servidor y tu nombre de usuario.</value>
@@ -107,10 +107,10 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Tokens de acceso (opcional, separados por comas)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Tecla para hablar al canal actual</value>
+    <value>Tecla de susurro (habla a tu canal actual)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Tecla para gritar</value>
+    <value>Tecla de grito</value>
   </data>
   <data name="ShoutChildren" xml:space="preserve">
     <value>El grito llega a los canales bajo el actual</value>
@@ -162,6 +162,12 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Mensaje al canal. Intro envía, Mayús+Intro inicia otra línea.</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>Mensaje privado a {0}. Intro envía, Mayús+Intro inicia otra línea.</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>privado</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>Enviar</value>

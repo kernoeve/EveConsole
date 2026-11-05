@@ -256,11 +256,14 @@
           </ListBox.ItemTemplate>
         </ListBox>
 
-        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="10 6">
-          <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120"
-                   Watermark="{x:Static loc:JabberText.MessageHint}" />
-          <Button Grid.Column="1" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-        </Grid>
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+          <TextBlock Text="{Binding TypingText}" IsVisible="{Binding IsSomeoneTyping}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextFaintBrush}" />
+          <Grid ColumnDefinitions="*,Auto" Margin="10 6">
+            <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120"
+                     Watermark="{x:Static loc:JabberText.MessageHint}" />
+            <Button Grid.Column="1" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          </Grid>
+        </StackPanel>
       </Grid>
 
       <TextBlock Grid.Row="1" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4"

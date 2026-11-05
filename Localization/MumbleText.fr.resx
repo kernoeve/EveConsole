@@ -53,7 +53,7 @@
 La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui confiance seulement si vous attendez ce serveur. Ensuite, seul ce certificat sera accepté.</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>Touche de canal : {0}. Touche de cri : {1}.</value>
+    <value>Touche de chuchotement : {0}. Touche de cri : {1}.</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Saisissez l'hôte du serveur et votre nom d'utilisateur.</value>
@@ -107,10 +107,10 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Jetons d'accès (facultatif, séparés par des virgules)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Touche pour parler au canal actuel</value>
+    <value>Touche de chuchotement (parle à votre canal actuel)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Touche pour crier</value>
+    <value>Touche de cri</value>
   </data>
   <data name="ShoutChildren" xml:space="preserve">
     <value>Un cri atteint les canaux sous le canal actuel</value>
@@ -162,6 +162,12 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Message au canal. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>Message privé à {0}. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>privé</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>Envoyer</value>

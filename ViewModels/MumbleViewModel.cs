@@ -317,7 +317,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private void ShowChosen()
     {
-        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat) })
+        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ChatHint) })
             this.RaisePropertyChanged(name);
 
         StatusText = "";
@@ -411,6 +411,10 @@ public sealed class MumbleViewModel : ReactiveObject
     public ObservableCollection<MumbleChatVm> Chat { get; } = [];
     public event Action? ScrollChatRequested;
 
+    public string ChatHint => SelectedRow is { IsUser: true, IsMe: false } row
+        ? string.Format(CultureInfo.CurrentCulture, MumbleText.PrivateHint, row.Text)
+        : MumbleText.MessageHint;
+
     private string _draft = "";
     public string Draft { get => _draft; set => this.RaiseAndSetIfChanged(ref _draft, value); }
 
@@ -426,7 +430,15 @@ public sealed class MumbleViewModel : ReactiveObject
         if (Session is not { } session) return;
         var text = Draft;
         Draft = "";
-        try { await Task.Run(() => _service.SendTextAsync(session, text)); }
+
+        // With someone else selected, it goes to them alone: nothing about that person is said to the channel.
+        var person = SelectedRow is { IsUser: true, IsMe: false } row ? session.Client?.UserOf(row.Id) : null;
+        try
+        {
+            await Task.Run(() => person is not null
+                ? _service.SendPrivateTextAsync(session, person, text)
+                : _service.SendTextAsync(session, text));
+        }
         catch { Draft = text; throw; }
     }
 

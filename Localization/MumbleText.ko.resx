@@ -53,7 +53,7 @@
 대부분의 Mumble 서버는 자체 인증서를 사용합니다. 예상한 서버일 때만 신뢰하세요. 이후에는 이 인증서만 허용합니다.</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>채널 키: {0}. 외치기 키: {1}.</value>
+    <value>귓속말 키: {0}. 외치기 키: {1}.</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>서버 호스트와 사용자 이름을 입력하세요.</value>
@@ -107,7 +107,7 @@
     <value>액세스 토큰 (선택, 쉼표로 구분)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>현재 채널에 말하기 키</value>
+    <value>귓속말 키 (현재 채널에 말하기)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
     <value>외치기 키</value>
@@ -162,6 +162,12 @@
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>채널에 메시지 보내기. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>{0}에게 비공개 메시지. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>비공개</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>보내기</value>

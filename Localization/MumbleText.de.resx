@@ -53,7 +53,7 @@
 Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn du diesen Server erwartest. Danach wird nur noch dieses Zertifikat akzeptiert.</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>Kanal-Taste: {0}. Ruf-Taste: {1}.</value>
+    <value>Flüster-Taste: {0}. Ruf-Taste: {1}.</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Gib den Host des Servers und deinen Benutzernamen ein.</value>
@@ -107,10 +107,10 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Zugriffstoken (optional, durch Kommas getrennt)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Taste zum Sprechen im aktuellen Kanal</value>
+    <value>Flüster-Taste (spricht in deinem aktuellen Kanal)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
-    <value>Taste zum Rufen</value>
+    <value>Ruf-Taste</value>
   </data>
   <data name="ShoutChildren" xml:space="preserve">
     <value>Ein Ruf erreicht die Kanäle unter dem aktuellen</value>
@@ -162,6 +162,12 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Nachricht an den Kanal. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>Private Nachricht an {0}. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>privat</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>Senden</value>

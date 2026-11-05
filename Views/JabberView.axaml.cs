@@ -1,3 +1,4 @@
+using EveConsole.Services;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -81,11 +82,11 @@ public partial class JabberView : UserControl
     }
 
     /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>
-    private async void OnOpenLink(object? sender, RoutedEventArgs e)
+    private void OnOpenLink(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { Content: string url } && Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            && uri.Scheme is "http" or "https" && TopLevel.GetTopLevel(this) is { } top)
-            await top.Launcher.LaunchUriAsync(uri);
+            && uri.Scheme is "http" or "https")
+            ExternalLinks.Open(url);
     }
 
     private async Task<bool> AskAsync(string message)

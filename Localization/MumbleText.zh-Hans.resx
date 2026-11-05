@@ -53,7 +53,7 @@
 大多数 Mumble 服务器使用自己的证书。仅在你确认是此服务器时才信任。之后将只接受此证书。</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>频道键：{0}。呼喊键：{1}。</value>
+    <value>耳语键：{0}。呼喊键：{1}。</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>请输入服务器主机和用户名。</value>
@@ -107,7 +107,7 @@
     <value>访问令牌（可选，以逗号分隔）</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>向当前频道讲话的按键</value>
+    <value>耳语键（向当前频道讲话）</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
     <value>呼喊键</value>
@@ -162,6 +162,12 @@
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>向频道发消息。Enter 发送，Shift+Enter 换行。</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>发给 {0} 的私信。Enter 发送，Shift+Enter 换行。</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>私信</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>发送</value>

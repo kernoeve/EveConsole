@@ -539,6 +539,18 @@ public sealed partial class MumbleService(IDbContextFactory<AppDbContext> dbFact
         ChatReceived?.Invoke(session, line);
     }
 
+    /// <summary>To one person, wherever on the server they are.</summary>
+    public async Task SendPrivateTextAsync(MumbleSession session, MumbleUser to, string message, CancellationToken ct = default)
+    {
+        if (session.Client is not { Me: { } me } client) throw new MumbleException(MumbleFailure.Network, "Not connected.");
+
+        await client.SendTextToUserAsync(to.Session, WebUtility.HtmlEncode(message).Replace("\n", "<br>", StringComparison.Ordinal), ct);
+
+        var line = new MumbleChatLine(DateTimeOffset.UtcNow, $"{me.Name} \u2192 {to.Name}", message, true, true);
+        session.AddChat(line);
+        ChatReceived?.Invoke(session, line);
+    }
+
     public Task JoinChannelAsync(MumbleSession session, uint channel, CancellationToken ct = default) =>
         session.Client?.JoinChannelAsync(channel, ct) ?? Task.CompletedTask;
 

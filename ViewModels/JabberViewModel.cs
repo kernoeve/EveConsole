@@ -203,6 +203,7 @@ public sealed class JabberViewModel : ReactiveObject
         HistoryDays = int.TryParse(_prefs.Get(JabberService.HistoryDaysPref), out var days) ? days : JabberService.DefaultHistoryDays;
 
         _service.SessionChanged += _ => QueueRefresh();
+        _service.TypingChanged += (account, conversation, typing) => Dispatcher.UIThread.Post(() => OnTypingChanged(account, conversation, typing));
         _service.UnreadChanged  += QueueRefresh;
         _service.MessageStored  += m => Dispatcher.UIThread.Post(() => OnMessage(m));
         _service.AlertArrived   += OnAlert;
@@ -461,7 +462,89 @@ public sealed class JabberViewModel : ReactiveObject
     public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
 
     private string _draft = "";
-    public string Draft { get => _draft; set => this.RaiseAndSetIfChanged(ref _draft, value); }
+    public string Draft
+    {
+        get => _draft;
+        set
+        {
+            if (_draft == value) return;
+            this.RaiseAndSetIfChanged(ref _draft, value);
+            OnDraftChanged();
+        }
+    }
+
+    // ── Typing notices ────────────────────────────────────────────────────────
+
+    private static readonly TimeSpan TypingRepeat = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan TypingPause  = TimeSpan.FromSeconds(15);
+
+    /// <summary>A notice nobody follows up on stops counting: their client may have just gone away.</summary>
+    private static readonly TimeSpan TypingForgotten = TimeSpan.FromSeconds(45);
+
+    private DateTime _lastTypingSent = DateTime.MinValue;
+    private (int Account, string Conversation)? _typingTo;
+    private int _typingEdits;
+    private (int Account, string Conversation)? _theyAreTyping;
+    private int _theyTypedStamp;
+
+    private string _typingText = "";
+    public string TypingText { get => _typingText; private set { this.RaiseAndSetIfChanged(ref _typingText, value); this.RaisePropertyChanged(nameof(IsSomeoneTyping)); } }
+    public bool IsSomeoneTyping => TypingText.Length > 0;
+
+    private void OnDraftChanged()
+    {
+        if (SelectedRow is not { Kind: JabberRowKind.Contact } row || Session is not { } session) return;
+
+        if (string.IsNullOrWhiteSpace(_draft))
+        {
+            StopTyping();
+            return;
+        }
+
+        var edit = ++_typingEdits;
+        _ = Task.Delay(TypingPause).ContinueWith(_ => Dispatcher.UIThread.Post(() => { if (edit == _typingEdits) StopTyping(); }), TaskScheduler.Default);
+
+        if (DateTime.UtcNow - _lastTypingSent < TypingRepeat && _typingTo == (row.AccountId, row.Key)) return;
+
+        _lastTypingSent = DateTime.UtcNow;
+        _typingTo = (row.AccountId, row.Key);
+        Quietly(_service.SendTypingAsync(session, row.Key, true));
+    }
+
+    private void StopTyping()
+    {
+        if (_typingTo is not { } to) return;
+
+        _typingTo = null;
+        _lastTypingSent = DateTime.MinValue;
+        if (_service.SessionOf(to.Account) is { } session) Quietly(_service.SendTypingAsync(session, to.Conversation, false));
+    }
+
+    /// <summary>A courtesy, so a dropped connection here is nothing to report: sending the message itself will say.</summary>
+    private static void Quietly(Task send) =>
+        _ = send.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+
+    private void OnTypingChanged(int account, string conversation, bool typing)
+    {
+        if (typing) _theyAreTyping = (account, conversation);
+        else if (_theyAreTyping == (account, conversation)) _theyAreTyping = null;
+
+        var stamp = ++_theyTypedStamp;
+        if (typing)
+            _ = Task.Delay(TypingForgotten).ContinueWith(_ => Dispatcher.UIThread.Post(() =>
+            {
+                if (stamp != _theyTypedStamp) return;
+                _theyAreTyping = null;
+                ShowTyping();
+            }), TaskScheduler.Default);
+
+        ShowTyping();
+    }
+
+    private void ShowTyping() =>
+        TypingText = SelectedRow is { Kind: JabberRowKind.Contact } row && _theyAreTyping == (row.AccountId, row.Key)
+            ? string.Format(CultureInfo.CurrentCulture, JabberText.Typing, row.ShownText)
+            : "";
 
     private string _status = "";
     public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
@@ -544,6 +627,10 @@ public sealed class JabberViewModel : ReactiveObject
         if (session.State != JabberState.Connected) { StatusText = JabberText.NotConnected; return; }
 
         var text = Draft;
+
+        // The message itself says they have finished, so no separate notice follows it.
+        _typingTo = null;
+        _lastTypingSent = DateTime.MinValue;
         Draft = "";
         try { await Task.Run(() => _service.SendAsync(session, row.Key, row.Kind == JabberRowKind.Room, text)); }
         catch { Draft = text; throw; }   // nothing typed is lost to a dropped connection

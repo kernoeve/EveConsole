@@ -61,6 +61,8 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public static readonly XNamespace DataForm  = "jabber:x:data";
     public static readonly XNamespace Carbons   = "urn:xmpp:carbons:2";
     public static readonly XNamespace Forward   = "urn:xmpp:forward:0";
+    public static readonly XNamespace ChatStates = "http://jabber.org/protocol/chatstates";
+    public static readonly XNamespace Hints     = "urn:xmpp:hints";
     public static readonly XNamespace Delay     = "urn:xmpp:delay";
     public static readonly XNamespace OldDelay  = "jabber:x:delay";
     public static readonly XNamespace StanzaId  = "urn:xmpp:sid:0";
@@ -82,6 +84,9 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public XmppAddress Self => connection.Bound;
 
     public event Action<XmppMessage>? MessageReceived;
+
+    /// <summary>What someone's client says about them: true while they are typing.</summary>
+    public event Action<XmppAddress, bool>? TypingChanged;
     public event Action<XmppPresence>? PresenceChanged;
     public event Action<XmppOccupant>? OccupantChanged;
     public event Action<XmppRosterItem>? RosterChanged;
@@ -232,6 +237,13 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                 new XElement(Receipts + "received", new XAttribute("id", message.Id))));
 
         var type = (string?)stanza.Attribute("type") ?? "normal";
+
+        // ⚠️ Live ones only. A carbon's sits inside what it carries, so it never reads here, and a stored one
+        // is about a moment long gone.
+        if (type != "groupchat" && !message.FromThisAccount && message.Sent is null
+            && stanza.Elements().FirstOrDefault(e => e.Name.Namespace == ChatStates) is { } state)
+            TypingChanged?.Invoke(message.From, state.Name.LocalName == "composing");
+
         if (type == "groupchat" && stanza.Element(Client + "subject") is { } subject && message.Body.Length == 0)
         {
             RoomSubjectChanged?.Invoke(message.From.Bare, subject.Value);
@@ -506,11 +518,23 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public async Task<string> SendMessageAsync(string to, string type, string body, CancellationToken ct)
     {
         var id = "ec" + Interlocked.Increment(ref _nextId).ToString(CultureInfo.InvariantCulture);
-        await connection.WriteAsync(new XElement(Client + "message",
+        var message = new XElement(Client + "message",
             new XAttribute("to", to), new XAttribute("type", type), new XAttribute("id", id),
-            new XElement(Client + "body", Clean(body))), ct);
+            new XElement(Client + "body", Clean(body)));
+
+        // Says this client understands typing notices, so one that does can start sending them.
+        if (type == "chat") message.Add(new XElement(ChatStates + "active"));
+
+        await connection.WriteAsync(message, ct);
         return id;
     }
+
+    /// <summary>Tells someone this account has started or stopped typing to them. Never stored for later.</summary>
+    public Task SendTypingAsync(string to, bool typing, CancellationToken ct) =>
+        connection.WriteAsync(new XElement(Client + "message",
+            new XAttribute("to", to), new XAttribute("type", "chat"),
+            new XElement(ChatStates + (typing ? "composing" : "paused")),
+            new XElement(Hints + "no-store")), ct);
 
     /// <summary>Enters a room. History since a moment asks only for what has not been seen.</summary>
     public Task JoinRoomAsync(string room, string nick, string password, DateTimeOffset? since, CancellationToken ct)

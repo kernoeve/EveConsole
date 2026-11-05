@@ -53,7 +53,7 @@
 多くの Mumble サーバーは独自の証明書を使います。想定どおりのサーバーの場合のみ信頼してください。以後はこの証明書のみ受け入れます。</value>
   </data>
   <data name="KeysSummary" xml:space="preserve">
-    <value>チャンネルキー: {0}。シャウトキー: {1}。</value>
+    <value>ささやきキー: {0}。シャウトキー: {1}。</value>
   </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>サーバーのホストとユーザー名を入力してください。</value>
@@ -107,7 +107,7 @@
     <value>アクセストークン (任意、カンマ区切り)</value>
   </data>
   <data name="LabelWhisperKey" xml:space="preserve">
-    <value>現在のチャンネルに話すキー</value>
+    <value>ささやきキー (現在のチャンネルに話す)</value>
   </data>
   <data name="LabelShoutKey" xml:space="preserve">
     <value>シャウトキー</value>
@@ -162,6 +162,12 @@
   </data>
   <data name="MessageHint" xml:space="preserve">
     <value>チャンネルへのメッセージ。Enter で送信、Shift+Enter で改行。</value>
+  </data>
+  <data name="PrivateHint" xml:space="preserve">
+    <value>{0} へのプライベートメッセージ。Enter で送信、Shift+Enter で改行。</value>
+  </data>
+  <data name="PrivateMark" xml:space="preserve">
+    <value>プライベート</value>
   </data>
   <data name="Send" xml:space="preserve">
     <value>送信</value>
