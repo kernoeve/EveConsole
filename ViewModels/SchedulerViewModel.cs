@@ -292,6 +292,17 @@ public sealed class MessageBlockVm : ReactiveObject
         // channel, so it is somebody's choice to make. A saved section keeps what it was saved with.
         _slackRich = fresh ? model.Type == MessageBlock.TypeTop10 : model.SlackRich;
 
+        // Blank stays blank: it means the Market defaults or the standard emoji, whatever they
+        // become, not what they happen to be today.
+        _indexBestEmoji = model.IndexBestEmoji;
+        _indexUpEmoji   = model.IndexUpEmoji;
+        _indexDownEmoji = model.IndexDownEmoji;
+        CompareMarkets  = [new MarketConfigChoice(0, AlarmsText.CompareMarketDefault), .. Markets];
+        if (model.CompareMarketConfigId > 0 && CompareMarkets.All(m => m.Id != model.CompareMarketConfigId))
+            CompareMarkets = [.. CompareMarkets, new MarketConfigChoice(model.CompareMarketConfigId, $"#{model.CompareMarketConfigId}")];
+        _compareMarket = CompareMarkets.First(m => m.Id == model.CompareMarketConfigId || (model.CompareMarketConfigId <= 0 && m.Id == 0));
+        _comparePrice  = ComparePrices.FirstOrDefault(p => p.Key == model.ComparePriceType) ?? ComparePrices[0];
+
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
@@ -592,7 +603,7 @@ public sealed class MessageBlockVm : ReactiveObject
 
     private bool HasChosenPictures =>
         (IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
-        || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(k => k != SystemIndexOutputs.Table));
+        || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(SystemIndexOutputs.IsPicture));
 
     /// <summary>True while an Indy Park Compare or System Index section has pictures chosen and
     /// the task is aimed at a webhook that cannot show them: its tables will go, its pictures will
@@ -695,6 +706,41 @@ public sealed class MessageBlockVm : ReactiveObject
 
     /// <summary>The pictures and tables the section posts.</summary>
     public MultiChoice CompareOutputsPicker { get; }
+
+    /// <summary>Where a job box's market value comes from. The first choice is the Market defaults.</summary>
+    public IReadOnlyList<MarketConfigChoice> CompareMarkets { get; }
+
+    private MarketConfigChoice _compareMarket;
+    public MarketConfigChoice CompareMarket
+    {
+        get => _compareMarket;
+        set => this.RaiseAndSetIfChanged(ref _compareMarket, value ?? CompareMarkets[0]);
+    }
+
+    /// <summary>The price it reads. The first choice is the Market defaults.</summary>
+    public IReadOnlyList<LabelledChoice> ComparePrices { get; } =
+    [
+        new("", AlarmsText.ComparePriceDefault),
+        new(MarketPriceType.Sell, MarketPriceType.Label(MarketPriceType.Sell)),
+        new(MarketPriceType.Midpoint, MarketPriceType.Label(MarketPriceType.Midpoint)),
+        new(MarketPriceType.Buy, MarketPriceType.Label(MarketPriceType.Buy)),
+    ];
+
+    private LabelledChoice _comparePrice;
+    public LabelledChoice ComparePrice
+    {
+        get => _comparePrice;
+        set => this.RaiseAndSetIfChanged(ref _comparePrice, value ?? ComparePrices[0]);
+    }
+
+    private string _indexBestEmoji = "";
+    public string IndexBestEmoji { get => _indexBestEmoji; set => this.RaiseAndSetIfChanged(ref _indexBestEmoji, value ?? ""); }
+
+    private string _indexUpEmoji = "";
+    public string IndexUpEmoji { get => _indexUpEmoji; set => this.RaiseAndSetIfChanged(ref _indexUpEmoji, value ?? ""); }
+
+    private string _indexDownEmoji = "";
+    public string IndexDownEmoji { get => _indexDownEmoji; set => this.RaiseAndSetIfChanged(ref _indexDownEmoji, value ?? ""); }
 
     // ── System Index ─────────────────────────────────────────────────────────
 
@@ -969,6 +1015,11 @@ public sealed class MessageBlockVm : ReactiveObject
         CompareOutputs       = [.. CompareOutputsPicker.SelectedKeys],
         IndexSystemIds       = [.. _indexIds],
         IndexOutputs         = [.. IndexOutputsPicker.SelectedKeys],
+        IndexBestEmoji       = IndexBestEmoji.Trim(),
+        IndexUpEmoji         = IndexUpEmoji.Trim(),
+        IndexDownEmoji       = IndexDownEmoji.Trim(),
+        CompareMarketConfigId = CompareMarket.Id,
+        ComparePriceType     = ComparePrice.Key,
     };
 }
 
@@ -1976,37 +2027,50 @@ public sealed class SchedulerViewModel : ReactiveObject
         try
         {
             // In the markup the destination will get, so a Discord task previews as Discord.
-            var render = await _renderer.RenderAsync(
-                [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow,
-                formatName: Destination?.IsDiscord == true ? "Discord" : "Slack");
+            var format    = Destination?.IsDiscord == true ? "Discord" : "Slack";
+            var signedOut = Destination?.IsWebhook == true && !_onlineSignedIn;
 
-            // WARN Charts are named, not drawn. They contribute no text, so a preview that
-            // showed only the text would call a chart-only message empty and read as broken.
-            // Drawing them here would also mean rendering twice for a button that sends nothing.
-            // A Compare or System Index section names each of its pictures the same way.
-            var noted = string.Join("\n", Blocks.Where(b => b.IsChart)
-                .Select(b => b.ShowWebhookChartWarning
-                    ? string.Format(AlarmsText.PreviewChartSkipped, b.Heading)
-                    : string.Format(AlarmsText.PreviewChartUploaded, b.Heading))
-                .Concat(Blocks.Where(b => b.IsParkCompare || b.IsSystemIndex).SelectMany(b =>
-                    ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true && !_onlineSignedIn
-                        ? string.Format(AlarmsText.PreviewChartSkipped, title)
-                        : string.Format(AlarmsText.PreviewChartUploaded, title))))
+            // ⚠️ A section at a time, its pictures named under its own text, because that is the
+            // order it posts in.
+            var parts      = new List<string>();
+            var anyDynamic = false;
+            var characters = 0;
+
+            foreach (var b in Blocks)
+            {
+                var model = b.ToModel();
+
+                // WARN Charts are named, not drawn. They contribute no text, so a preview that
+                // showed only the text would call a chart-only message empty and read as broken.
+                // Drawing them here would also mean rendering twice for a button that sends nothing.
+                // A Compare or System Index section names each of its pictures the same way.
+                List<string> pictures = b.IsChart ? [b.Heading]
+                    : b.IsParkCompare || b.IsSystemIndex ? ScheduledBlockRenderer.PictureTitles(model) : [];
+
+                var follow = pictures.Count > 0 && !b.IsChart && !signedOut ? new HashSet<MessageBlock> { model } : null;
+                var render = await _renderer.RenderAsync([model], DateTime.UtcNow, formatName: format, picturesFollow: follow);
+
+                anyDynamic |= render.AnyDynamicContent;
+                characters += render.Text.Length;
+
+                var lines = new List<string>();
+                if (render.Text.Length > 0) lines.Add(render.Text);
+                lines.AddRange(pictures.Select(title => string.Format(signedOut ? AlarmsText.PreviewChartSkipped : AlarmsText.PreviewChartUploaded, title)));
+
                 // The numbers are what a preview is for, so the text shows them, and says it is
                 // not how Slack will draw them.
-                .Concat(Destination?.IsDiscord == true ? [] : Blocks.Where(b => b.ToModel().UsesSlackRich)
-                    .Select(b => string.Format(AlarmsText.PreviewSlackRich, b.Heading))));
+                if (format == "Slack" && model.UsesSlackRich) lines.Add(string.Format(AlarmsText.PreviewSlackRich, b.Heading));
 
-            var shown = string.Join("\n\n",
-                new[] { render.Text, noted }.Where(t => t.Length > 0));
+                if (lines.Count > 0) parts.Add(string.Join("\n", lines));
+            }
 
-            PreviewText = shown.Length > 0 ? shown : AlarmsText.PreviewEmpty;
+            PreviewText = parts.Count > 0 ? string.Join("\n\n", parts) : AlarmsText.PreviewEmpty;
 
             // The preview is also where you find out the switch would have held the post back,
             // rather than finding out from a channel that stayed quiet.
-            StatusText = SkipIfNoDynamicContent && !render.AnyDynamicContent
+            StatusText = SkipIfNoDynamicContent && !anyDynamic
                 ? AlarmsText.StatusWouldNotPost
-                : string.Format(AlarmsText.StatusCharacters, render.Text.Length);
+                : string.Format(AlarmsText.StatusCharacters, characters);
         }
         catch (Exception ex)
         {

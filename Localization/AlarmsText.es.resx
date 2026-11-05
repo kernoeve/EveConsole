@@ -1864,4 +1864,85 @@
   <data name="RichTopLabel" xml:space="preserve">
     <value>Líder</value>
   </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Índices de hoy, con el cambio a 7 días (tabla de Slack)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>Los seis gráficos en una imagen (imagen)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>Historial de índices</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} es el más bajo de esa actividad. {1} {2} muestran el cambio en 7 días, en puntos.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Emoji del más bajo</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Emoji de subida</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Emoji de bajada</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>Para la tabla de Slack. En blanco usa el estándar indicado. Un emoji personalizado solo se ve en un espacio de trabajo que lo tenga.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Resumen por trabajo (tabla de Slack)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>Un recuadro por trabajo (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} es el mejor parque para ese trabajo. Cada porcentaje indica la distancia al mejor.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Cada porcentaje indica la distancia al mejor parque para ese trabajo.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Fabricación</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Valor de mercado {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>BPC de {0}</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} ejecución(es), ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 a ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% a TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>+{0} parques más</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Valor de mercado de</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Mercado predeterminado</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Precio predeterminado</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>El valor de mercado en el recuadro de un trabajo. Lo predeterminado sigue los ajustes de mercado, con las anulaciones de precio; elegir cualquiera lee el precio propio de ese mercado.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Índices de hoy, con el cambio a 7 días (imagen)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Índices de hoy</value>
+  </data>
 </root>

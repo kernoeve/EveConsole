@@ -1864,4 +1864,85 @@
   <data name="RichTopLabel" xml:space="preserve">
     <value>Leader</value>
   </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Indices du jour, avec la variation sur 7 jours (tableau Slack)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>Les six graphiques en une seule image (image)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>Historique des indices</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} est le plus bas pour cette activité. {1} {2} indiquent la variation sur 7 jours, en points.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Emoji du plus bas</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Emoji de hausse</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Emoji de baisse</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>Pour le tableau Slack. Vide utilise l'emoji standard indiqué. Un emoji personnalisé ne s'affiche que dans un espace de travail qui le possède.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Résumé par tâche (tableau Slack)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>Un encadré par tâche (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} est le meilleur parc pour cette tâche. Chaque pourcentage indique l'écart avec le meilleur.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Chaque pourcentage indique l'écart avec le meilleur parc pour cette tâche.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Fabrication</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Valeur marchande {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>BPC de {0}</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} cycle(s), ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 à ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0 % à TE {0} %</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>+{0} parcs de plus</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Valeur marchande depuis</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Marché par défaut</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Prix</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Prix par défaut</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>La valeur marchande dans l'encadré d'une tâche. Par défaut, elle suit les réglages de marché, avec les prix forcés ; un choix lit le prix propre à ce marché.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Indices du jour, avec la variation sur 7 jours (image)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Indices du jour</value>
+  </data>
 </root>

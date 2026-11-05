@@ -1936,4 +1936,85 @@
   <data name="RichTopLabel" xml:space="preserve">
     <value>Лидер</value>
   </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Индексы на сегодня с изменением за 7 дней (таблица Slack)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>Все шесть графиков на одной картинке (изображение)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>История индексов</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} — самый низкий для этой работы. {1} {2} — изменение за 7 дней в пунктах.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Эмодзи самого низкого</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Эмодзи роста</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Эмодзи падения</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>Для таблицы Slack. Если пусто, используется показанный стандартный эмодзи. Свой эмодзи виден только в рабочем пространстве, где он есть.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Сводка по работам (таблица Slack)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>Блок на каждую работу (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} — лучший парк для этой работы. Каждый процент показывает отставание от лучшего.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Каждый процент показывает отставание от лучшего парка для этой работы.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Производство</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Рыночная стоимость {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>BPC: {0}</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>Циклов: {0:N0}, ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 до ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% до TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>Ещё парков: {0}</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Рыночная стоимость из</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Рынок по умолчанию</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Цена</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Цена по умолчанию</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>Рыночная стоимость в блоке работы. По умолчанию следует настройкам рынка и заменам цен; при выборе читается собственная цена этого рынка.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Индексы на сегодня с изменением за 7 дней (изображение)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Индексы на сегодня</value>
+  </data>
 </root>

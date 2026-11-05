@@ -68,7 +68,7 @@ public sealed class MessageBlock
     /// </summary>
     public bool HasPictures => IsChart
         || (Type == TypeParkCompare && CompareOutputs.Any(ParkCompareOutputs.IsPicture))
-        || (Type == TypeSystemIndex && IndexOutputs.Any(o => o != SystemIndexOutputs.Table));
+        || (Type == TypeSystemIndex && IndexOutputs.Any(SystemIndexOutputs.IsPicture));
 
     /// <summary>
     /// Top 10 and standing project blocks: post to Slack with images and lined-up columns rather
@@ -82,7 +82,15 @@ public sealed class MessageBlock
 
     /// <summary>Whether this section is one of the kinds that has a rich format, and asks for it.</summary>
     [JsonIgnore]
-    public bool UsesSlackRich => SlackRich && Type is TypeTop10 or TypeProjects;
+    public bool UsesSlackRich => Type switch
+    {
+        TypeTop10 or TypeProjects => SlackRich,
+
+        // These two choose their outputs from a list, so the choice is already there.
+        TypeSystemIndex => IndexOutputs.Contains(SystemIndexOutputs.NativeTable),
+        TypeParkCompare => CompareOutputs.Any(ParkCompareOutputs.IsRich),
+        _               => false,
+    };
 
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
@@ -235,6 +243,14 @@ public sealed class MessageBlock
     /// <summary>Indy Park Compare blocks: what to post, by <see cref="ParkCompareOutputs"/> key.</summary>
     public List<string> CompareOutputs { get; set; } = [];
 
+    /// <summary>Indy Park Compare blocks: where a job box's market value is read, 0 for the market
+    /// the Market defaults name.</summary>
+    public int CompareMarketConfigId { get; set; }
+
+    /// <summary>Indy Park Compare blocks: the price it reads, a <see cref="Models.MarketPriceType"/>,
+    /// empty for the one the Market defaults name.</summary>
+    public string ComparePriceType { get; set; } = "";
+
     // ── System Index blocks ──────────────────────────────────────────────────
 
     /// <summary>System Index blocks: the systems, in order; the order picks each line's colour.
@@ -244,6 +260,14 @@ public sealed class MessageBlock
     /// <summary>System Index blocks: the table and the activities charted, by
     /// <see cref="SystemIndexOutputs"/> key.</summary>
     public List<string> IndexOutputs { get; set; } = [];
+
+    /// <summary>
+    /// System Index blocks: the emoji the Slack table marks with, by name. Blank is the standard
+    /// one. A custom emoji shows only in a workspace that has it, so none is assumed.
+    /// </summary>
+    public string IndexBestEmoji { get; set; } = "";
+    public string IndexUpEmoji   { get; set; } = "";
+    public string IndexDownEmoji { get; set; } = "";
 
     /// <summary>The calculation this section asks for.</summary>
     public IndustryOppsQuery ToOppsQuery() => new()
@@ -274,18 +298,28 @@ public static class ParkCompareOutputs
     public const string SummaryParksTable = "summary_parks_table";
     public const string DetailTable       = "detail_table";
 
-    /// <summary>In the order offered, which is the order posted: tables in the message, then the
-    /// pictures under it.</summary>
-    public static readonly string[] All =
-        [SummaryJobsImage, SummaryParksImage, CostChart, TimeChart, SummaryJobsTable, SummaryParksTable, DetailTable];
+    /// <summary>The summary as Slack's own table. Elsewhere, the summary's text table.</summary>
+    public const string NativeTable = "summary_jobs_native";
 
-    /// <summary>What a new section starts with.</summary>
-    public static readonly string[] Default = [SummaryJobsImage, CostChart, TimeChart];
+    /// <summary>A box for each job, in Slack's blocks. Elsewhere, the summary's text table.</summary>
+    public const string JobBoxes = "job_boxes";
+
+    /// <summary>In the order offered. A post's blocks and text come first, then the pictures.</summary>
+    public static readonly string[] All =
+        [NativeTable, JobBoxes, SummaryJobsImage, SummaryParksImage, CostChart, TimeChart, SummaryJobsTable, SummaryParksTable, DetailTable];
+
+    /// <summary>What a new section starts with: nothing that uses up uploads.</summary>
+    public static readonly string[] Default = [NativeTable, JobBoxes];
 
     public static bool IsPicture(string key) => key is SummaryJobsImage or SummaryParksImage or CostChart or TimeChart;
 
+    /// <summary>Built from Slack's own blocks, so it has a text form for everywhere else.</summary>
+    public static bool IsRich(string key) => key is NativeTable or JobBoxes;
+
     public static string Label(string key) => key switch
     {
+        NativeTable       => AlarmsText.CompareOutNative,
+        JobBoxes          => AlarmsText.CompareOutBoxes,
         SummaryJobsImage  => AlarmsText.CompareOutSummaryJobsImage,
         SummaryParksImage => AlarmsText.CompareOutSummaryParksImage,
         CostChart         => AlarmsText.CompareOutCostChart,
@@ -314,13 +348,30 @@ public static class SystemIndexOutputs
 {
     public const string Table = "table";
 
-    public static readonly string[] All = [Table, .. CostIndexHistoryService.Activities];
+    /// <summary>Today's indices as Slack's own table, with the week's change. Elsewhere, the text table.</summary>
+    public const string NativeTable = "native_table";
+
+    /// <summary>The same table as a picture, for colours Slack's own table cannot have.</summary>
+    public const string TableImage = "table_image";
+
+    /// <summary>Every activity's chart in one picture: one upload rather than six.</summary>
+    public const string Combined = "combined";
+
+    public static readonly string[] All = [NativeTable, TableImage, Table, Combined, .. CostIndexHistoryService.Activities];
 
     /// <summary>What a new section starts with.</summary>
-    public static readonly string[] Default = [Table, "manufacturing"];
+    public static readonly string[] Default = [NativeTable, Combined];
 
-    public static string Label(string key) =>
-        key == Table ? AlarmsText.IndexOutTable : string.Format(AlarmsText.IndexOutChart, SystemIndexReport.ActivityName(key));
+    public static bool IsPicture(string key) => key is not (Table or NativeTable);
+
+    public static string Label(string key) => key switch
+    {
+        Table       => AlarmsText.IndexOutTable,
+        NativeTable => AlarmsText.IndexOutNative,
+        TableImage  => AlarmsText.IndexOutTableImage,
+        Combined    => AlarmsText.IndexOutCombined,
+        _           => string.Format(AlarmsText.IndexOutChart, SystemIndexReport.ActivityName(key)),
+    };
 }
 
 /// <summary>How much of a standing project list to report.</summary>
@@ -411,6 +462,22 @@ public sealed record SlackRichMessage(IReadOnlyList<object> Blocks, string Fallb
 /// <summary>A task's sections as rich Slack messages, in the order composed.</summary>
 public sealed record SlackRichPost(IReadOnlyList<SlackRichMessage> Messages, bool AnyDynamicContent);
 
+/// <summary>Sections that go out together, then the pictures of the last of them.</summary>
+/// <param name="Text">What they say, when not in <paramref name="Messages"/>.</param>
+/// <param name="Messages">What they say in Slack's blocks, when any of them asked for that.</param>
+/// <param name="PicturesFollow">The section the pictures belong to, if it drew any.</param>
+public sealed record PostSegment(
+    IReadOnlyList<MessageBlock> Sections, string Text, IReadOnlyList<SlackRichMessage> Messages,
+    IReadOnlyList<(byte[] Png, string Title)> Pictures, IReadOnlySet<MessageBlock> PicturesFollow);
+
+/// <summary>What a task sends, in order.</summary>
+/// <param name="Skipped">Sections whose pictures cannot be sent to this destination.</param>
+public sealed record PostPlan(IReadOnlyList<PostSegment> Segments, bool AnyDynamicContent, int Skipped)
+{
+    public bool AnyWords    => Segments.Any(s => s.Text.Length > 0 || s.Messages.Count > 0);
+    public bool AnyPictures => Segments.Any(s => s.Pictures.Count > 0);
+}
+
 /// <summary>
 /// Turns message blocks into the text a scheduled post sends.
 ///
@@ -489,9 +556,9 @@ public class ScheduledBlockRenderer(
     public static List<string> PictureTitles(MessageBlock b) => b.Type switch
     {
         MessageBlock.TypeParkCompare => [.. ParkCompareOutputs.All.Where(k => ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k))
-                                              .Select(k => $"{CompareHeading(b)} — {ParkCompareOutputs.Title(k)}")],
-        MessageBlock.TypeSystemIndex => [.. SystemIndexOutputs.All.Where(k => k != SystemIndexOutputs.Table && b.IndexOutputs.Contains(k))
-                                              .Select(k => $"{IndexHeading(b)} — {SystemIndexReport.ActivityName(k)}")],
+                                              .Select(ParkCompareOutputs.Title)],
+        MessageBlock.TypeSystemIndex => [.. SystemIndexOutputs.All.Where(k => SystemIndexOutputs.IsPicture(k) && b.IndexOutputs.Contains(k))
+                                              .Select(IndexPictureTitle)],
         _ => [],
     };
 
@@ -531,31 +598,84 @@ public class ScheduledBlockRenderer(
             [.. costs.SelectMany(c => c.Terms).Select(t => t.SystemId).Distinct()],
             [.. costs.SelectMany(c => c.Terms).Select(t => t.Activity).Distinct()], ct);
 
-        return new CompareRun(costs, ParkCompareReport.Rank(costs), [.. b.CompareJobs.Select(j => j.Label)], history);
+        return new CompareRun(costs, ParkCompareReport.Rank(costs),
+            [.. b.CompareJobs.Select(j => ParkCompareReport.PostLabel(j.T, j.N, j.Operation))], history);
     }
 
-    private async Task<string> ParkCompareAsync(MessageBlock b, string formatName, CancellationToken ct)
+    private static string ParkTextTable(CompareRun run, string key, string heading, string formatName) => key switch
     {
-        var tables = ParkCompareOutputs.All.Where(k => !ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k)).ToList();
-        if (tables.Count == 0) return "";
-        if (await CompareRunAsync(b, ct) is not { } run) return "";
+        ParkCompareOutputs.SummaryJobsTable  => ParkCompareReport.SummaryTable(
+            ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), heading, formatName),
+        ParkCompareOutputs.SummaryParksTable => ParkCompareReport.SummaryTable(
+            ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), heading, formatName),
+        _ => ParkCompareReport.DetailTable(run.Ranked, heading, formatName),
+    };
 
-        string Table(string key, string heading) => key switch
-        {
-            ParkCompareOutputs.SummaryJobsTable  => ParkCompareReport.SummaryTable(
-                ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), heading, formatName),
-            ParkCompareOutputs.SummaryParksTable => ParkCompareReport.SummaryTable(
-                ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), heading, formatName),
-            _ => ParkCompareReport.DetailTable(run.Ranked, heading, formatName),
-        };
+    private static List<string> ParkTextKeys(MessageBlock b) =>
+        [.. ParkCompareOutputs.All.Where(k => !ParkCompareOutputs.IsPicture(k) && !ParkCompareOutputs.IsRich(k) && b.CompareOutputs.Contains(k))];
+
+    /// <param name="picturesFollow">Pictures come after this text, so with no table of its own the
+    /// section still says its heading over them.</param>
+    private async Task<string> ParkCompareAsync(MessageBlock b, string formatName, bool picturesFollow, CancellationToken ct)
+    {
+        var tables = ParkTextKeys(b);
+
+        // Where Slack's blocks do not reach (Discord, a preview, a format Slack refused), a section
+        // that asked for them still says its numbers, as the summary's text table.
+        if (b.CompareOutputs.Any(ParkCompareOutputs.IsRich) && !tables.Contains(ParkCompareOutputs.SummaryJobsTable))
+            tables.Insert(0, ParkCompareOutputs.SummaryJobsTable);
+
+        if (tables.Count == 0) return picturesFollow ? OutputFormat.ByName(formatName).Bold(CompareHeading(b)) : "";
+        if (await CompareRunAsync(b, ct) is not { } run) return "";
 
         // One table goes under the section's own title, which says enough; with more, the title
         // heads the section and each table is named under it.
-        if (tables.Count == 1) return Table(tables[0], CompareHeading(b));
+        if (tables.Count == 1) return ParkTextTable(run, tables[0], CompareHeading(b), formatName);
 
         var parts = new List<string> { OutputFormat.ByName(formatName).Bold(CompareHeading(b)) };
-        parts.AddRange(tables.Select(key => Table(key, ParkCompareOutputs.Title(key))));
+        parts.AddRange(tables.Select(key => ParkTextTable(run, key, ParkCompareOutputs.Title(key), formatName)));
         return string.Join("\n\n", parts.Where(p => p.Length > 0));
+    }
+
+    /// <summary>The section in Slack's blocks, one heading over whatever it was asked for.</summary>
+    private async Task<List<SlackRichItem>> ParkCompareRichAsync(MessageBlock b, CancellationToken ct)
+    {
+        var items = new List<SlackRichItem>();
+        if (await CompareRunAsync(b, ct) is not { } run) return items;
+
+        var pivot = ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false);
+        if (pivot.Rows.Count == 0) return items;
+
+        var heading = OutputFormat.ByName("Slack").Bold(CompareHeading(b));
+        items.Add(new SlackRichItem(SlackRichBlocks.TextSection(heading), Room: 3));
+
+        if (b.CompareOutputs.Contains(ParkCompareOutputs.NativeTable))
+            items.AddRange(SlackRichBlocks.ParkTable(
+                "", IndustryText.CompareColJob, ParkCompareReport.TableRows(pivot), pivot.Groups,
+                IndustryText.CompareColCost, IndustryText.CompareColTime, SlackRichBlocks.DefaultBestEmoji, AlarmsText.ParkRichNote));
+
+        if (b.CompareOutputs.Contains(ParkCompareOutputs.JobBoxes))
+        {
+            var jobs  = b.CompareJobs.Select((j, i) => j.ToJob(i)).ToList();
+            var facts = await parkCompare.JobFactsAsync(jobs, run.Costs[0].ParkId, b.CompareMarketConfigId, b.ComparePriceType, ct);
+
+            var boxes = pivot.Rows.Select((row, line) =>
+            {
+                var f        = facts[line];
+                var produced = run.Costs.FirstOrDefault(c => c.Job.Line == line && c.Buildable)?.Produced ?? f.Quantity;
+                return new SlackJobBox(
+                    ParkCompareReport.BoxTitle(f, row.Title), ParkCompareReport.BoxAbout(f, produced), ParkCompareReport.BoxImage(f),
+                    [.. row.Cells.Select(c => c is null ? null : new SlackJobCell(c.TotalText, c.OverBestText, c.TimeText, c.SlowerText))]);
+            }).ToList();
+
+            items.AddRange(SlackRichBlocks.JobBoxes(boxes, pivot.Groups, AlarmsText.JobBoxesNote, AlarmsText.JobBoxMoreParks));
+        }
+
+        foreach (var key in ParkTextKeys(b))
+            foreach (var part in SlackMessageSplitter.Split(ParkTextTable(run, key, ParkCompareOutputs.Title(key), "Slack"), SlackRichBlocks.MaxSectionText))
+                items.Add(new SlackRichItem(SlackRichBlocks.TextSection(part), Room: 2));
+
+        return items;
     }
 
     private async Task<List<(byte[] Png, string Title)>> ParkComparePicturesAsync(MessageBlock b, int width, CancellationToken ct)
@@ -563,19 +683,18 @@ public class ScheduledBlockRenderer(
         var pictures = ParkCompareOutputs.All.Where(k => ParkCompareOutputs.IsPicture(k) && b.CompareOutputs.Contains(k)).ToList();
         if (pictures.Count == 0 || await CompareRunAsync(b, ct) is not { } run) return [];
 
-        var heading = CompareHeading(b);
         var (labels, separators) = ParkCompareReport.PostPaints();
         var drawn = new List<(byte[] Png, string Title)>();
         foreach (var key in pictures)
         {
             ct.ThrowIfCancellationRequested();
-            var title = $"{heading} — {ParkCompareOutputs.Title(key)}";
+            var title = ParkCompareOutputs.Title(key);
             byte[]? png = key switch
             {
                 ParkCompareOutputs.SummaryJobsImage  => ParkCompareReport.SummaryPng(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false), title),
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: false)),
                 ParkCompareOutputs.SummaryParksImage => ParkCompareReport.SummaryPng(
-                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true), title),
+                    ParkCompareReport.Pivot(run.Ranked, run.Labels, byPark: true)),
                 ParkCompareOutputs.CostChart => ParkCompareReport.CostChart(run.Costs, run.History, null, labels, separators) is { } cost
                     ? ParkCompareReport.ChartPng(cost, width) : null,
                 // Taller: the job names under the bars are tilted once there are a few.
@@ -592,28 +711,98 @@ public class ScheduledBlockRenderer(
     private static string IndexHeading(MessageBlock b) =>
         b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingSystemIndex;
 
-    private async Task<string> SystemIndexAsync(MessageBlock b, string formatName, CancellationToken ct)
+    /// <summary>A picture's name. Only what it is: the section's heading is above it.</summary>
+    private static string IndexPictureTitle(string key) => key switch
     {
-        if (!b.IndexOutputs.Contains(SystemIndexOutputs.Table) || b.IndexSystemIds.Count == 0) return "";
+        SystemIndexOutputs.Combined   => AlarmsText.IndexCombinedTitle,
+        SystemIndexOutputs.TableImage => AlarmsText.IndexTableImageTitle,
+        _                             => SystemIndexReport.ActivityName(key),
+    };
+
+    /// <summary>Today's value and the week's change, by system then activity.</summary>
+    private static (double?[][] Values, double?[][] Changes) IndexNumbers(
+        IReadOnlyList<IndexSystem> systems,
+        IReadOnlyDictionary<(int SystemId, string Activity), double> current,
+        IReadOnlyDictionary<(int SystemId, string Activity), SortedDictionary<DateOnly, double>> daily)
+    {
+        var acts   = CostIndexHistoryService.Activities;
+        var values = systems.Select(s => acts.Select(a => current.TryGetValue((s.SystemId, a), out var v) ? v : (double?)null).ToArray()).ToArray();
+        return (values, systems.Select((s, i) => acts.Select((a, n) => values[i][n] is { } now
+            ? SystemIndexReport.WeekChange(daily.GetValueOrDefault((s.SystemId, a)), now) : null).ToArray()).ToArray());
+    }
+
+    /// <param name="picturesFollow">Pictures come after this text, so with no table of its own the
+    /// section still says its heading over them.</param>
+    private async Task<string> SystemIndexAsync(MessageBlock b, string formatName, bool picturesFollow, CancellationToken ct)
+    {
+        // The Slack table's text form, where Slack's blocks do not reach.
+        var wanted = b.IndexOutputs.Contains(SystemIndexOutputs.Table) || b.IndexOutputs.Contains(SystemIndexOutputs.NativeTable);
+        if (b.IndexSystemIds.Count == 0) return "";
+        if (!wanted) return picturesFollow ? OutputFormat.ByName(formatName).Bold(IndexHeading(b)) : "";
+
         var systems = await SystemIndexReport.LookUpAsync(dbFactory, b.IndexSystemIds, ct);
         var current = await indexHistory.CurrentAsync([.. systems.Select(s => s.SystemId)], ct);
         return SystemIndexReport.Table(systems, current, IndexHeading(b), formatName);
     }
 
-    private async Task<List<(byte[] Png, string Title)>> SystemIndexPicturesAsync(MessageBlock b, int width, CancellationToken ct)
+    /// <summary>The section's table in Slack's own block, and its text table too if that was also ticked.</summary>
+    private async Task<List<SlackRichItem>> SystemIndexRichAsync(MessageBlock b, CancellationToken ct)
     {
-        var activities = CostIndexHistoryService.Activities.Where(b.IndexOutputs.Contains).ToList();
-        if (activities.Count == 0 || b.IndexSystemIds.Count == 0) return [];
+        if (b.IndexSystemIds.Count == 0) return [];
 
         var systems = await SystemIndexReport.LookUpAsync(dbFactory, b.IndexSystemIds, ct);
-        var daily   = await indexHistory.DailyAsync([.. systems.Select(s => s.SystemId)], activities, ct);
+        if (systems.Count == 0) return [];
+
+        var ids     = systems.Select(s => s.SystemId).ToList();
+        var acts    = CostIndexHistoryService.Activities;
+        var current = await indexHistory.CurrentAsync(ids, ct);
+        var daily   = await indexHistory.DailyAsync(ids, acts, ct);
+
+        var (values, changes) = IndexNumbers(systems, current, daily);
+
+        var items = SlackRichBlocks.IndexTable(
+            OutputFormat.ByName("Slack").Bold(IndexHeading(b)),
+            [.. systems.Select(s => s.Name)], [.. acts.Select(SystemIndexReport.ActivityName)], IndustryText.IndexColSystem,
+            values, changes,
+            SlackRichBlocks.EmojiNameOr(b.IndexBestEmoji, SlackRichBlocks.DefaultBestEmoji),
+            SlackRichBlocks.EmojiNameOr(b.IndexUpEmoji, SlackRichBlocks.DefaultUpEmoji),
+            SlackRichBlocks.EmojiNameOr(b.IndexDownEmoji, SlackRichBlocks.DefaultDownEmoji),
+            AlarmsText.IndexRichNote);
+
+        if (b.IndexOutputs.Contains(SystemIndexOutputs.Table))
+            foreach (var part in SlackMessageSplitter.Split(SystemIndexReport.Table(systems, current, "", "Slack"), SlackRichBlocks.MaxSectionText))
+                items.Add(new SlackRichItem(SlackRichBlocks.TextSection(part), Room: 2));
+
+        return items;
+    }
+
+    private async Task<List<(byte[] Png, string Title)>> SystemIndexPicturesAsync(MessageBlock b, int width, CancellationToken ct)
+    {
+        var table      = b.IndexOutputs.Contains(SystemIndexOutputs.TableImage);
+        var combined   = b.IndexOutputs.Contains(SystemIndexOutputs.Combined);
+        var activities = CostIndexHistoryService.Activities.Where(b.IndexOutputs.Contains).ToList();
+        if ((activities.Count == 0 && !combined && !table) || b.IndexSystemIds.Count == 0) return [];
+
+        var systems = await SystemIndexReport.LookUpAsync(dbFactory, b.IndexSystemIds, ct);
+        var ids     = systems.Select(s => s.SystemId).ToList();
+        var daily   = await indexHistory.DailyAsync(ids, combined || table ? CostIndexHistoryService.Activities : activities, ct);
         var (labels, separators) = ParkCompareReport.PostPaints();
-        var heading = IndexHeading(b);
 
         var drawn = new List<(byte[] Png, string Title)>();
+        if (table && systems.Count > 0)
+        {
+            var (values, changes) = IndexNumbers(systems, await indexHistory.CurrentAsync(ids, ct), daily);
+            drawn.Add((SystemIndexReport.TablePng(
+                [.. systems.Select(s => s.Name)], [.. CostIndexHistoryService.Activities.Select(SystemIndexReport.ActivityName)],
+                IndustryText.IndexColSystem, values, changes), IndexPictureTitle(SystemIndexOutputs.TableImage)));
+        }
+
+        if (combined && SystemIndexReport.CombinedPng(systems, daily) is { } all)
+            drawn.Add((all, IndexPictureTitle(SystemIndexOutputs.Combined)));
+
         foreach (var activity in activities)
             if (SystemIndexReport.Chart(activity, systems, daily, labels, separators, textSize: 10) is { } chart)
-                drawn.Add((ParkCompareReport.ChartPng(chart, width), $"{heading} — {SystemIndexReport.ActivityName(activity)}"));
+                drawn.Add((ParkCompareReport.ChartPng(chart, width), IndexPictureTitle(activity)));
         return drawn;
     }
 
@@ -624,9 +813,11 @@ public class ScheduledBlockRenderer(
     /// Slack post, "Discord" for a Discord one, as the export formats name them. Only headings and
     /// the reports' own exports change with it; a text section is sent as it was typed.</para>
     /// </summary>
+    /// <param name="picturesFollow">The sections whose pictures are going out straight after this
+    /// text, so that one with no table still says its heading.</param>
     public async Task<RenderedMessage> RenderAsync(
         IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default,
-        string formatName = "Slack")
+        string formatName = "Slack", IReadOnlySet<MessageBlock>? picturesFollow = null)
     {
         var parts      = new List<string>();
         var anyDynamic = false;
@@ -635,7 +826,7 @@ public class ScheduledBlockRenderer(
         {
             ct.ThrowIfCancellationRequested();
 
-            var text = await RenderSectionAsync(b, nowUtc, formatName, ct);
+            var text = await RenderSectionAsync(b, nowUtc, formatName, picturesFollow?.Contains(b) == true, ct);
 
             if (text.Length == 0) continue;
 
@@ -646,7 +837,7 @@ public class ScheduledBlockRenderer(
         return new RenderedMessage(string.Join("\n\n", parts), anyDynamic);
     }
 
-    private async Task<string> RenderSectionAsync(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct) =>
+    private async Task<string> RenderSectionAsync(MessageBlock b, DateTime nowUtc, string formatName, bool picturesFollow, CancellationToken ct) =>
         b.Type switch
         {
             MessageBlock.TypeText     => b.Text.Trim(),
@@ -655,8 +846,8 @@ public class ScheduledBlockRenderer(
             MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
             MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
             MessageBlock.TypeIndustryOpps => await IndustryOppsAsync(b, formatName, ct),
-            MessageBlock.TypeParkCompare  => await ParkCompareAsync(b, formatName, ct),
-            MessageBlock.TypeSystemIndex  => await SystemIndexAsync(b, formatName, ct),
+            MessageBlock.TypeParkCompare  => await ParkCompareAsync(b, formatName, picturesFollow, ct),
+            MessageBlock.TypeSystemIndex  => await SystemIndexAsync(b, formatName, picturesFollow, ct),
 
             // A chart contributes no text. It is uploaded separately, by whoever is posting.
             _                         => "",
@@ -670,7 +861,8 @@ public class ScheduledBlockRenderer(
     /// arrive with the list.</para>
     /// </summary>
     public async Task<SlackRichPost> RenderSlackRichAsync(
-        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default)
+        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default,
+        IReadOnlySet<MessageBlock>? picturesFollow = null)
     {
         var items      = new List<SlackRichItem>();
         var said       = new List<string>();
@@ -698,9 +890,21 @@ public class ScheduledBlockRenderer(
                 items.AddRange(table);
                 if (table.Count > 0) said.Add(b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingStandingProjects);
             }
+            else if (b.UsesSlackRich && b.Type == MessageBlock.TypeSystemIndex)
+            {
+                var table = await SystemIndexRichAsync(b, ct);
+                items.AddRange(table);
+                if (table.Count > 0) said.Add(IndexHeading(b));
+            }
+            else if (b.UsesSlackRich && b.Type == MessageBlock.TypeParkCompare)
+            {
+                var section = await ParkCompareRichAsync(b, ct);
+                items.AddRange(section);
+                if (section.Count > 0) said.Add(CompareHeading(b));
+            }
             else
             {
-                var text = await RenderSectionAsync(b, nowUtc, "Slack", ct);
+                var text = await RenderSectionAsync(b, nowUtc, "Slack", picturesFollow?.Contains(b) == true, ct);
 
                 // Cut as a plain post is, so a code block closes at the end of one section and
                 // opens at the start of the next.
@@ -719,6 +923,65 @@ public class ScheduledBlockRenderer(
         return new SlackRichPost(
             [.. SlackRichBlocks.Pack(items).Select(m => new SlackRichMessage(m, fallback))],
             anyDynamic);
+    }
+
+    /// <summary>
+    /// A task as what goes out, in order: each section's words, then that section's pictures, before
+    /// the next section starts.
+    ///
+    /// <para>⚠️ Cut at each section with pictures. A message's text and a picture are separate posts,
+    /// so keeping every picture to the end put a section's table and picture a whole message apart.
+    /// Sections with no pictures between them stay in one message, so a line of explanation still
+    /// arrives with the list it explains.</para>
+    /// </summary>
+    /// <param name="canDraw">False where pictures cannot be sent: they are counted, not drawn.</param>
+    public async Task<PostPlan> PlanPostAsync(
+        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, string formatName, bool canDraw, bool forWebhook,
+        CancellationToken ct = default)
+    {
+        var segments   = new List<PostSegment>();
+        var group      = new List<MessageBlock>();
+        var anyDynamic = false;
+        var skipped    = 0;
+
+        async Task CloseAsync(IReadOnlyList<(byte[] Png, string Title)> pictures, IReadOnlySet<MessageBlock> follow)
+        {
+            if (group.Count == 0 && pictures.Count == 0) return;
+
+            var sections = group.ToList();
+            group.Clear();
+
+            if (formatName == "Slack" && sections.Any(b => b.UsesSlackRich))
+            {
+                var rich = await RenderSlackRichAsync(sections, nowUtc, ct, follow);
+                anyDynamic |= rich.AnyDynamicContent;
+                segments.Add(new PostSegment(sections, "", rich.Messages, pictures, follow));
+                return;
+            }
+
+            var render = await RenderAsync(sections, nowUtc, ct, formatName, follow);
+            anyDynamic |= render.AnyDynamicContent;
+            segments.Add(new PostSegment(sections, render.Text.Trim(), [], pictures, follow));
+        }
+
+        foreach (var b in blocks)
+        {
+            ct.ThrowIfCancellationRequested();
+            group.Add(b);
+
+            if (!b.HasPictures) continue;
+
+            // No point drawing what cannot be sent. The count is still reported, so a task
+            // pointed at a webhook says what it could not do rather than looking complete.
+            if (!canDraw) { skipped++; continue; }
+
+            var pictures = await RenderPicturesAsync(b, ct, forWebhook);
+            await CloseAsync(pictures, pictures.Count > 0 ? new HashSet<MessageBlock> { b } : new HashSet<MessageBlock>());
+        }
+
+        await CloseAsync([], new HashSet<MessageBlock>());
+
+        return new PostPlan([.. segments.Where(s => s.Text.Length > 0 || s.Messages.Count > 0 || s.Pictures.Count > 0)], anyDynamic, skipped);
     }
 
     /// <summary>The calendar month a "months back" block names.</summary>

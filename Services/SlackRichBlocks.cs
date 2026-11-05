@@ -198,6 +198,20 @@ public sealed record SlackRichColumn(string Header, bool Right);
 /// <summary>One row of a wide table. The icon is null where the row has nothing to show.</summary>
 public sealed record SlackRichTableRow(IReadOnlyList<string> Cells, string? Icon, string IconAlt);
 
+/// <summary>A job's row in the park table. A cell is null where the park does not do the job.</summary>
+public sealed record SlackParkRow(string Title, IReadOnlyList<SlackParkCell?> Cells);
+
+/// <summary>One park's cost and time for a job, each with how far behind it is already in the text.</summary>
+public sealed record SlackParkCell(string Cost, bool BestCost, string Time, bool BestTime);
+
+/// <summary>One park's numbers in a job's box.</summary>
+public sealed record SlackJobCell(string Total, string Over, string Time, string Slower);
+
+/// <summary>A job's box.</summary>
+/// <param name="About">What the job is, as Slack markup, beside its picture.</param>
+/// <param name="Cells">A park each, in the one order every box uses; null where it does not do the job.</param>
+public sealed record SlackJobBox(string Title, string About, string ImageUrl, IReadOnlyList<SlackJobCell?> Cells);
+
 /// <summary>A block on its way into a message.</summary>
 /// <param name="Block">What Slack gets.</param>
 /// <param name="Repeat">Goes first in the next message if this block has to start one: the header
@@ -527,6 +541,259 @@ public static class SlackRichBlocks
 
         return items;
     }
+
+    // ── Real tables ──────────────────────────────────────────────────────────
+
+    /// <summary>The standard emoji a section uses unless it names its own.</summary>
+    public const string DefaultBestEmoji = "large_green_circle";
+    public const string DefaultUpEmoji   = "small_red_triangle";
+    public const string DefaultDownEmoji = "small_red_triangle_down";
+
+    /// <summary>A table takes 20 columns: the row name, and two for each of nine parks.</summary>
+    private const int ParksPerTable = 9;
+
+    /// <summary>
+    /// An emoji's name from what somebody typed, with or without its colons. Blank, or anything
+    /// that could not be a name, is the default: a stray character here would fail the whole post.
+    /// </summary>
+    public static string EmojiNameOr(string? typed, string fallback)
+    {
+        var name = (typed ?? "").Trim().Trim(':');
+        return name.Length > 0 && EmojiName.IsMatch($":{name}:") && EmojiName.Match($":{name}:").Length == name.Length + 2 ? name : fallback;
+    }
+
+    private static Dictionary<string, object> RawCell(string text) => new() { ["type"] = "raw_text", ["text"] = text };
+
+    private static Dictionary<string, object> RichCell(params object[] parts) => new()
+    {
+        ["type"]     = "rich_text",
+        ["elements"] = new object[] { new Dictionary<string, object> { ["type"] = "rich_text_section", ["elements"] = parts } },
+    };
+
+    private static Dictionary<string, object> Words(string text) => new() { ["type"] = "text", ["text"] = text };
+
+    private static Dictionary<string, object> EmojiPart(string name) => new() { ["type"] = "emoji", ["name"] = name };
+
+    /// <summary>A table, its first column on the left and the rest on the right.</summary>
+    private static Dictionary<string, object> NativeTable(List<object> rows, int columns) => new()
+    {
+        ["type"]            = "table",
+        ["rows"]            = rows,
+        ["column_settings"] = Enumerable.Range(0, columns)
+            .Select(i => (object)new Dictionary<string, object> { ["align"] = i == 0 ? "left" : "right" }).ToList(),
+    };
+
+    /// <summary>
+    /// The System Index as a table: a row per system, however many, and the fixed activities across.
+    ///
+    /// <para>⚠️ The emoji goes before the value, in a right-aligned cell, so the numbers stay in line.
+    /// After it, the dots line up and the numbers move, and the numbers are what is being read.</para>
+    /// </summary>
+    /// <param name="values">By system then activity: today's index as a fraction, null when unknown.</param>
+    /// <param name="changes">The same: the change over the week in points, null when unknown.</param>
+    public static List<SlackRichItem> IndexTable(
+        string heading, IReadOnlyList<string> systems, IReadOnlyList<string> activities, string systemHeader,
+        double?[][] values, double?[][] changes, string best, string up, string down, string note)
+    {
+        var lowest = Enumerable.Range(0, activities.Count)
+            .Select(a => values.Select(v => v[a]).Where(v => v is not null).DefaultIfEmpty(null).Min()).ToArray();
+
+        var rows = new List<object> { Header(systemHeader, activities) };
+
+        for (var s = 0; s < systems.Count; s++)
+        {
+            var row = new List<object> { RawCell(systems[s]) };
+            for (var a = 0; a < activities.Count; a++)
+            {
+                if (values[s][a] is not { } value) { row.Add(RawCell("–")); continue; }
+
+                var parts = new List<object>();
+                if (value == lowest[a]) { parts.Add(EmojiPart(best)); parts.Add(Words(" ")); }
+                parts.Add(Words(SystemIndexReport.Pct(value)));
+
+                if (changes[s][a] is { } change)
+                {
+                    var rounded = Math.Round(change, 2);
+                    parts.Add(Words(" "));
+                    if (rounded == 0) parts.Add(Words("="));
+                    else
+                    {
+                        parts.Add(EmojiPart(rounded > 0 ? up : down));
+                        parts.Add(Words($" {Math.Abs(rounded):0.00}"));
+                    }
+                }
+                row.Add(RichCell([.. parts]));
+            }
+            rows.Add(row);
+        }
+
+        var items = new List<SlackRichItem>();
+        if (heading.Length > 0) items.Add(new SlackRichItem(TextSection(heading), Room: 3));
+        items.Add(new SlackRichItem(NativeTable(rows, activities.Count + 1), Room: 2));
+        items.Add(new SlackRichItem(Context(Mrkdwn(string.Format(note, $":{best}:", $":{up}:", $":{down}:"), verbatim: false))));
+        return items;
+    }
+
+    private static List<object> Header(string first, IEnumerable<string> rest)
+    {
+        var header = new List<object> { RawCell(first) };
+        header.AddRange(rest.Select(r => (object)RawCell(r)));
+        return header;
+    }
+
+    /// <summary>
+    /// The park comparison as a table: a row per job, and a cost and a time column per park. Past
+    /// what one table takes, the next parks go in a table of their own.
+    /// </summary>
+    public static List<SlackRichItem> ParkTable(
+        string heading, string jobHeader, IReadOnlyList<SlackParkRow> rows, IReadOnlyList<string> parks,
+        string costHeader, string timeHeader, string best, string note)
+    {
+        var items = new List<SlackRichItem>();
+        if (rows.Count == 0 || parks.Count == 0) return items;
+
+        if (heading.Length > 0) items.Add(new SlackRichItem(TextSection(heading), Room: 3));
+
+        object Cell(string? text, bool isBest)
+        {
+            if (text is null) return RawCell("–");
+            return isBest ? RichCell(EmojiPart(best), Words(" "), Words(text)) : RawCell(text);
+        }
+
+        for (var from = 0; from < parks.Count; from += ParksPerTable)
+        {
+            var shown  = Enumerable.Range(from, Math.Min(ParksPerTable, parks.Count - from)).ToList();
+            var table  = new List<object>
+            {
+                Header(jobHeader, shown.SelectMany(p => new[] { $"{parks[p]} {costHeader}", $"{parks[p]} {timeHeader}" })),
+            };
+
+            foreach (var row in rows)
+            {
+                var cells = new List<object> { RawCell(row.Title) };
+                foreach (var p in shown)
+                {
+                    var c = row.Cells[p];
+                    cells.Add(Cell(c?.Cost, c?.BestCost == true));
+                    cells.Add(Cell(c?.Time, c?.BestTime == true));
+                }
+                table.Add(cells);
+            }
+
+            items.Add(new SlackRichItem(NativeTable(table, shown.Count * 2 + 1), Room: 2));
+        }
+
+        items.Add(new SlackRichItem(Context(Mrkdwn(string.Format(note, $":{best}:"), verbatim: false))));
+        return items;
+    }
+
+    // ── Job boxes ────────────────────────────────────────────────────────────
+
+    /// <summary>What a park's row may take in a box two to a row. More room than a Top 10 row,
+    /// which has a rank and an icon before its text.</summary>
+    private const int JobRowLimit = 21500;
+
+    private const int JobLeadGap   = 500;
+    private const int JobNumberGap = 300;
+
+    /// <summary>A container holds 10 blocks: the job's details, and nine parks.</summary>
+    private const int ParksPerBox = 9;
+
+    /// <summary>
+    /// A box for each job, two to a row: what the job is and its picture, then every park in the
+    /// same order, so the boxes read across as well as down.
+    ///
+    /// <para>⚠️ The columns are measured across every box, not box by box, for the same reason.</para>
+    /// </summary>
+    public static List<SlackRichItem> JobBoxes(
+        IReadOnlyList<SlackJobBox> boxes, IReadOnlyList<string> parks, string note, string moreParks)
+    {
+        var items = new List<SlackRichItem>();
+        if (boxes.Count == 0) return items;
+
+        var cells = boxes.SelectMany(b => b.Cells).ToList();
+
+        int Widest(Func<SlackJobCell, string> pick) => cells.Where(c => c is not null).Select(c => SlackColumns.Width(pick(c!))).DefaultIfEmpty(0).Max();
+        var total  = Widest(c => c.Total);
+        var over   = Widest(c => c.Over);
+        var time   = Widest(c => c.Time);
+        var slower = Widest(c => c.Slower);
+
+        var numbers   = JobLeadGap + total + JobNumberGap + over + JobLeadGap + time + JobNumberGap + slower;
+        var parkLimit = JobRowLimit - numbers;
+        var names     = parks.Select(p => SlackColumns.Cut(p, parkLimit)).ToList();
+        var nameWidth = names.Select(SlackColumns.Width).DefaultIfEmpty(0).Max();
+
+        var costAt   = nameWidth + JobLeadGap;
+        var overAt   = costAt + total + JobNumberGap;
+        var timeAt   = overAt + over + JobLeadGap;
+        var slowerAt = timeAt + time + JobNumberGap;
+
+        int[]  starts = [0, costAt, overAt, timeAt, slowerAt];
+        int[]  widths = [nameWidth, total, over, time, slower];
+        bool[] right  = [false, true, true, true, true];
+
+        var cards = boxes.Select(box =>
+        {
+            var children = new List<object>
+            {
+                new Dictionary<string, object>
+                {
+                    ["type"]      = "section",
+                    ["text"]      = Mrkdwn(box.About),
+                    ["accessory"] = Image(box.ImageUrl, box.Title),
+                },
+            };
+
+            // Past what a box holds, the last row says how many more there are.
+            var shown = parks.Count > ParksPerBox ? ParksPerBox - 1 : parks.Count;
+            for (var p = 0; p < shown; p++)
+            {
+                var c = box.Cells[p];
+                string[] row = c is null ? [names[p], "–", "", "–", ""] : [names[p], c.Total, c.Over, c.Time, c.Slower];
+                children.Add(Context(Mrkdwn(SlackColumns.Place(row, starts, widths, right))));
+            }
+            if (shown < parks.Count) children.Add(Context(Mrkdwn(string.Format(moreParks, parks.Count - shown))));
+
+            return (object)new Dictionary<string, object>
+            {
+                ["block"] = new Dictionary<string, object>
+                {
+                    ["type"]            = "container",
+                    ["title"]           = PlainTitle(box.Title),
+                    ["rich_text_title"] = RichTitle(box.Title),
+                    ["width"]           = "full",
+                    ["child_blocks"]    = children,
+                },
+            };
+        }).ToList();
+
+        // A layout takes five rows, so past ten jobs the next ones go in a layout of their own.
+        for (var at = 0; at < cards.Count; at += LayoutRows * BoxesPerRow)
+        {
+            var group = cards.Skip(at).Take(LayoutRows * BoxesPerRow).ToList();
+            var rows  = new List<object>();
+            for (var i = 0; i < group.Count; i += BoxesPerRow)
+            {
+                var pair = group.Skip(i).Take(BoxesPerRow).ToList();
+                if (pair.Count < BoxesPerRow) pair.Add(new Dictionary<string, object> { ["block"] = TextSection(NothingToShow) });
+                rows.Add(new Dictionary<string, object> { ["items"] = pair });
+            }
+
+            items.Add(new SlackRichItem(new Dictionary<string, object>
+            {
+                ["type"]       = "layout",
+                ["label"]      = "Jobs",
+                ["grid_lines"] = "none",
+                ["rows"]       = rows,
+            }));
+        }
+
+        items.Add(new SlackRichItem(Context(Mrkdwn(note))));
+        return items;
+    }
+
+    private const int LayoutRows = 5;
 
     // ── Messages ─────────────────────────────────────────────────────────────
 

@@ -391,6 +391,19 @@
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
                                   <views:MultiChoiceDropDown DataContext="{Binding CompareOutputsPicker}" FontSize="12" />
                                 </StackPanel>
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CompareMarketLabel}" />
+                                    <ComboBox ItemsSource="{Binding CompareMarkets}" SelectedItem="{Binding CompareMarket}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ComparePriceLabel}" />
+                                    <ComboBox ItemsSource="{Binding ComparePrices}" SelectedItem="{Binding ComparePrice}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.CompareMarketNote}" />
                                 <StackPanel>
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionJobsLabel}" />
                                   <views:CompareJobListView DataContext="{Binding CompareJobList}" MaxHeight="460" />
@@ -449,6 +462,21 @@
                                   </ItemsControl>
                                 </StackPanel>
                                 <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.SystemIndexSectionNote}" />
+                                <Grid ColumnDefinitions="*,12,*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiBest}" />
+                                    <TextBox Text="{Binding IndexBestEmoji}" Watermark=":large_green_circle:" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiUp}" />
+                                    <TextBox Text="{Binding IndexUpEmoji}" Watermark=":small_red_triangle:" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="4">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiDown}" />
+                                    <TextBox Text="{Binding IndexDownEmoji}" Watermark=":small_red_triangle_down:" />
+                                  </StackPanel>
+                                </Grid>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.IndexEmojiNote}" />
                                 <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
                                         Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
                                         CornerRadius="3" Padding="8 6">

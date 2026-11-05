@@ -1828,4 +1828,85 @@
   <data name="RichTopLabel" xml:space="preserve">
     <value>榜首</value>
   </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>今日指数及 7 天变化（Slack 表格）</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>六张图表合为一张（图片）</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>指数历史</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} 是该活动的最低值。{1} {2} 表示 7 天内的变化（点）。</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>最低值表情</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>上升表情</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>下降表情</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>用于 Slack 表格。留空则使用所示的标准表情。自定义表情只在拥有它的工作区显示。</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>按作业汇总（Slack 表格）</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>每个作业一个方框（Slack）</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} 是该作业的最佳园区。每个百分比表示与最佳的差距。</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>每个百分比表示与该作业最佳园区的差距。</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — 制造</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{1} × {0:N0}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>市场价值 {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>{0} BPC</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} 流程，ME {1}，TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 至 ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% 至 TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>另有 {0} 个园区</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>市场价值来源</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>默认市场</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>价格</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>默认价格</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>作业方框中的市场价值。默认遵循市场默认设置和价格覆盖；选择任一项则读取该市场自身的价格。</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>今日指数及 7 天变化（图片）</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>今日指数</value>
+  </data>
 </root>
