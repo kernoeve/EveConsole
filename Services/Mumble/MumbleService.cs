@@ -827,8 +827,12 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         if (!mustGo && session.VoiceSending is { IsCompleted: false }) return;
 
-        session.VoiceSending = client.SendVoiceAsync(packet, CancellationToken.None)
-                                     .ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+        // ⚠️ Over UDP it has finished by now. Wrapping that in a continuation made it look unfinished for a moment, and a
+        // sound device hands over frames in bursts, so the next one could arrive in that moment and be thrown away.
+        var sending = client.SendVoiceAsync(packet, CancellationToken.None);
+        session.VoiceSending = sending.IsCompletedSuccessfully
+            ? sending
+            : sending.ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
     }
 
     private Timer? _talkerTimer;
