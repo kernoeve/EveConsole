@@ -183,4 +183,16 @@
     <value>{0}에는 연결된 채널이 없어 귓속말과 외치기 모두 해당 채널에만 전달됩니다.</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>키 또는 마우스 버튼을 누르세요 (Esc로 취소)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>지우기</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>버튼을 클릭한 다음 사용할 키나 마우스 버튼을 누르세요. 원래 기능도 그대로 동작하므로 입력에 쓰는 키는 입력하는 동안 말하게 됩니다.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

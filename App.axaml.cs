@@ -2693,9 +2693,11 @@ public class App : Application
                         "Nickname"  TEXT    NOT NULL DEFAULT '',
                         "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
                         "Left"      INTEGER NOT NULL DEFAULT 0,
-                        "AlertMode" INTEGER NOT NULL DEFAULT 1
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1,
+                        "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberRooms" ADD COLUMN "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberRooms_Room" ON "JabberRooms" ("AccountId", "RoomJid")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberMessages" (

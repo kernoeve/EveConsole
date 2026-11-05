@@ -250,4 +250,28 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="MessageHint" xml:space="preserve">
     <value>Écrivez un message. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Ce serveur conserve une archive des messages directs : ceux que vous manquez sont récupérés à la connexion.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Ce serveur ne conserve pas d'archive des messages directs. Il peut tout de même garder ceux envoyés pendant que vous êtes hors ligne.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>{0} salons rejoints sur {1} conservent une archive. Les messages manqués dans ceux-ci sont récupérés à la connexion ; les autres n'affichent que ce qu'ils rejouent quand vous entrez.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Ce salon conserve une archive : les messages que vous manquez sont récupérés à la connexion.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Ce salon ne conserve pas d'archive : vous ne voyez que ce qu'il rejoue quand vous entrez.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>Ce salon a une archive mais ne la partage pas avec ce compte : vous ne voyez que ce qu'il rejoue quand vous entrez.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

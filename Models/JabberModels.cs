@@ -59,6 +59,13 @@ public class JabberRoom
 
     /// <summary>See <see cref="JabberRoomAlert"/>.</summary>
     public int    AlertMode { get; set; } = JabberRoomAlert.Mentions;
+
+    /// <summary>
+    /// Where an unfinished catch-up from the room's archive starts again, as sorted UTC text. Blank when there is
+    /// none. ⚠️ Kept apart from the newest saved message, because a live message saved during a catch-up that then
+    /// gets cut off is newer than everything still missing, and asking from it would lose those for good.
+    /// </summary>
+    public string ArchiveResumeFrom { get; set; } = "";
 }
 
 public static class JabberRoomAlert

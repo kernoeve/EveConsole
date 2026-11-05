@@ -797,6 +797,22 @@ public sealed class JabberViewModel : ReactiveObject
     public string AccountDetail { get => _accountDetail; private set => this.RaiseAndSetIfChanged(ref _accountDetail, value); }
     public string CertificateText { get => _certificateText; private set => this.RaiseAndSetIfChanged(ref _certificateText, value); }
 
+    private string _archiveText = "";
+    public string ArchiveText { get => _archiveText; private set => this.RaiseAndSetIfChanged(ref _archiveText, value); }
+
+    /// <summary>What a server keeps for this account, for its own pane. Blank until it has been asked.</summary>
+    public static string AccountArchiveLine(bool? keepsDirect, int roomsWithArchive, int roomsJoined)
+    {
+        var direct = keepsDirect switch { true => JabberText.ArchiveDirectYes, false => JabberText.ArchiveDirectNo, _ => "" };
+        var rooms  = roomsJoined > 0 ? string.Format(CultureInfo.CurrentCulture, JabberText.ArchiveRoomsCount, roomsWithArchive, roomsJoined) : "";
+        return string.Join(' ', new[] { direct, rooms }.Where(t => t.Length > 0));
+    }
+
+    /// <summary>What one room keeps, for the top of its conversation. Blank until it has been asked.</summary>
+    public static string RoomArchiveLine(bool? keeps, bool refused) =>
+        refused ? JabberText.ArchiveRoomRefused
+        : keeps switch { true => JabberText.ArchiveRoomYes, false => JabberText.ArchiveRoomNo, _ => "" };
+
     private void RefreshDetail()
     {
         if (SelectedRow is not { } row || Session is not { } session) return;
@@ -818,6 +834,18 @@ public sealed class JabberViewModel : ReactiveObject
                 ? string.Format(CultureInfo.CurrentCulture, JabberText.CertificateAsk, session.CertificateSubject, Grouped(session.CertificateFingerprint))
                 : "";
             ChosenShow = ShowChoices.FirstOrDefault(c => c.Show == session.Show);
+
+            ArchiveText = "";
+            if (session.State == JabberState.Connected)
+            {
+                if (row.Kind == JabberRowKind.Account)
+                {
+                    var (keeping, joined) = session.Locked(s => (s.RoomMap.Values.Count(r => r.Joined && r.HasArchive == true && !r.ArchiveRefused), s.RoomMap.Values.Count(r => r.Joined)));
+                    ArchiveText = AccountArchiveLine(session.HasArchive, keeping, joined);
+                }
+                else if (row.Kind == JabberRowKind.Room && session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)) is { } here)
+                    ArchiveText = RoomArchiveLine(here.HasArchive, here.ArchiveRefused);
+            }
 
             if (row.Kind == JabberRowKind.Room)
             {

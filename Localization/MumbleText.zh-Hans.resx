@@ -183,4 +183,16 @@
     <value>{0} 没有链接的频道，因此耳语和呼喊都只到达该频道。</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>请按一个键或鼠标按钮（Esc 取消）</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>清除</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>点击按钮，然后按要使用的键或鼠标按钮。它仍保留原有功能，因此用于打字的键在打字时也会讲话。</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

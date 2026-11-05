@@ -250,4 +250,28 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   <data name="MessageHint" xml:space="preserve">
     <value>Nachricht schreiben. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Dieser Server führt ein Archiv der Direktnachrichten, verpasste werden beim Verbinden nachgeholt.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Dieser Server führt kein Archiv der Direktnachrichten. Nachrichten, die gesendet werden, während du offline bist, hält er eventuell trotzdem bereit.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>{0} von {1} beigetretenen Räumen führen ein Archiv. Dort verpasste Nachrichten werden beim Verbinden nachgeholt; die anderen zeigen nur, was sie beim Beitritt wiederholen.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Dieser Raum führt ein Archiv: Verpasste Nachrichten werden beim Verbinden nachgeholt.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Dieser Raum führt kein Archiv: Du siehst nur, was er beim Beitritt wiederholt.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>Dieser Raum hat ein Archiv, gibt es aber für dieses Konto nicht frei: Du siehst nur, was er beim Beitritt wiederholt.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

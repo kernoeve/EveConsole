@@ -102,13 +102,16 @@
           <TextBox Text="{Binding EditTokens}" />
 
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelWhisperKey}" />
-          <ComboBox ItemsSource="{Binding KeyChoices}" SelectedItem="{Binding EditWhisper}" Width="220">
-            <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:MumbleKeyChoice"><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
-          </ComboBox>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Content="{Binding WhisperKeyText}" Command="{Binding CaptureWhisperCommand}" MinWidth="220" />
+            <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding ClearWhisperCommand}" />
+          </StackPanel>
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelShoutKey}" />
-          <ComboBox ItemsSource="{Binding KeyChoices}" SelectedItem="{Binding EditShout}" Width="220">
-            <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:MumbleKeyChoice"><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
-          </ComboBox>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Content="{Binding ShoutKeyText}" Command="{Binding CaptureShoutCommand}" MinWidth="220" />
+            <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding ClearShoutCommand}" />
+          </StackPanel>
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.KeysHow}" />
           <TextBlock Classes="note" Text="{x:Static loc:MumbleText.KeysNote}" />
 
           <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:MumbleText.LabelAutoConnect}" Margin="0 12 0 0" />

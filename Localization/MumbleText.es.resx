@@ -183,4 +183,16 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>{0} no tiene canales enlazados, así que el susurro y el grito llegan solo a ese canal.</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Pulsa una tecla o un botón del ratón (Esc cancela)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Quitar</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Haz clic en el botón y pulsa la tecla o el botón del ratón que quieras usar. También sigue haciendo su función normal, así que una tecla con la que escribes hablará mientras escribes.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

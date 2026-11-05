@@ -1183,6 +1183,7 @@ public static class PostgresSchema
             "Nickname"  TEXT    NOT NULL DEFAULT '',
             "AutoJoin"  BOOLEAN NOT NULL DEFAULT TRUE,
             "Left"      BOOLEAN NOT NULL DEFAULT FALSE,
+            "ArchiveResumeFrom" TEXT NOT NULL DEFAULT '',
             "AlertMode" INTEGER NOT NULL DEFAULT 1,
             CONSTRAINT "PK_JabberRooms" PRIMARY KEY ("Id")
         )
@@ -1676,6 +1677,9 @@ public static class PostgresSchema
         // Groups an item must be in to be listed; empty for every group. Mirrored in App.axaml.cs.
         """
         ALTER TABLE "IndustryOpportunitiesSettings" ADD COLUMN IF NOT EXISTS "IncludedMarketGroupIds" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberRooms" ADD COLUMN IF NOT EXISTS "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''
         """,
     ];
 }

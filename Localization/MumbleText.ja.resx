@@ -183,4 +183,16 @@
     <value>{0} にはリンクされたチャンネルがないため、ささやきとシャウトはどちらもそのチャンネルのみに届きます。</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>キーまたはマウスボタンを押してください (Esc でキャンセル)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>クリア</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>ボタンをクリックしてから、使用するキーまたはマウスボタンを押します。通常の機能もそのまま動作するため、文字入力に使うキーでは入力中も発話します。</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

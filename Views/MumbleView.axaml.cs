@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using EveConsole.Services;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -23,6 +24,37 @@ public partial class MumbleView : UserControl
         };
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        AddHandler(KeyDownEvent, OnCaptureKey, RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, OnCapturePointer, RoutingStrategies.Tunnel);
+    }
+
+    /// <summary>While a talk key is being chosen, the next key pressed is that key and does nothing else.</summary>
+    private void OnCaptureKey(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not MumbleViewModel { IsCapturingKey: true } vm) return;
+
+        e.Handled = true;
+        if (e.Key == Key.Escape) vm.CancelKeyCapture();
+        else vm.TakeCapturedKey(GlobalHotkeyService.VkOf(e.Key));
+    }
+
+    /// <summary>The same for a mouse button. The left one never talks: it is how anything is clicked, so it cancels.</summary>
+    private void OnCapturePointer(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MumbleViewModel { IsCapturingKey: true } vm) return;
+
+        var vk = e.GetCurrentPoint(this).Properties.PointerUpdateKind switch
+        {
+            PointerUpdateKind.MiddleButtonPressed => GlobalHotkeyService.VkMouseMiddle,
+            PointerUpdateKind.XButton1Pressed     => GlobalHotkeyService.VkMouseBack,
+            PointerUpdateKind.XButton2Pressed     => GlobalHotkeyService.VkMouseForward,
+            _                                     => 0,
+        };
+
+        if (vk == 0 || !GlobalHotkeyService.AvailableHere(vk)) { vm.CancelKeyCapture(); return; }
+
+        e.Handled = true;
+        vm.TakeCapturedKey(vk);
     }
 
     private void ScrollChat() => Dispatcher.UIThread.Post(() =>

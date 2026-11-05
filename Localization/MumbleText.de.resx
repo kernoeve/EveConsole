@@ -183,4 +183,16 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>{0} hat keine verknüpften Kanäle, daher erreichen Flüstern und Rufen nur diesen Kanal.</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Taste oder Maustaste drücken (Esc bricht ab)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Löschen</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Klicke auf die Schaltfläche und drücke dann die gewünschte Taste oder Maustaste. Sie behält ihre normale Funktion, eine Taste zum Tippen spricht also auch beim Tippen.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

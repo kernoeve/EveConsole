@@ -6,8 +6,10 @@ using System.Text;
 using System.Xml.Linq;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Localization;
 using EveConsole.Services;
 using EveConsole.Services.Jabber;
+using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 var checks = 0;
@@ -272,6 +274,34 @@ void Check(string name, bool ok, string detail = "")
     Check("archive: with no question asked, refused", XmppClient.ParseArchived(Archived("me@example", "q1", "friend@example"), self, null) is null);
     Check("archive: room messages have their own history", XmppClient.ParseArchived(Archived("me@example", "q1", "room@c.example/nick", "groupchat"), self, "q1") is null);
     Check("archive: nothing to say, nothing kept", XmppClient.ParseArchived(Archived("me@example", "q1", "friend@example", body: ""), self, "q1") is null);
+
+    const string Room = "room@c.example";
+    var said = XmppClient.ParseRoomArchived(Archived(Room, "q1", Room + "/Them", "groupchat"), Room, "q1");
+    Check("room archive: read", said is { Body: "hello", ArchiveId: "arc-1", Id: "m1", Type: "groupchat", FromThisAccount: false } && said.From.Resource == "Them");
+    Check("room archive: dated when it was said", said?.Sent == new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.Zero));
+    Check("room archive: from someone in the room, refused", XmppClient.ParseRoomArchived(Archived(Room + "/Them", "q1", Room + "/Other", "groupchat"), Room, "q1") is null);
+    Check("room archive: from another room, refused", XmppClient.ParseRoomArchived(Archived("other@c.example", "q1", "other@c.example/Them", "groupchat"), Room, "q1") is null);
+    Check("room archive: with no sender at all, refused", XmppClient.ParseRoomArchived(Archived(null, "q1", Room + "/Them", "groupchat"), Room, "q1") is null);
+    Check("room archive: naming someone in another room, refused", XmppClient.ParseRoomArchived(Archived(Room, "q1", "other@c.example/Them", "groupchat"), Room, "q1") is null);
+    Check("room archive: a private message inside it, refused", XmppClient.ParseRoomArchived(Archived(Room, "q1", Room + "/Them", "chat"), Room, "q1") is null);
+    Check("room archive: not in answer to the question, refused", XmppClient.ParseRoomArchived(Archived(Room, "other", Room + "/Them", "groupchat"), Room, "q1") is null);
+    Check("room archive: with no question asked, refused", XmppClient.ParseRoomArchived(Archived(Room, "q1", Room + "/Them", "groupchat"), Room, null) is null);
+    Check("room archive: nothing to say, nothing kept", XmppClient.ParseRoomArchived(Archived(Room, "q1", Room + "/Them", "groupchat", body: ""), Room, "q1") is null);
+
+    var account = new JabberAccount { Id = 1, Address = "me@example" };
+    var kept = new JabberRoom { RoomJid = Room };
+    var missed = new XmppMessage(XmppAddress.Parse(Room + "/Them"), self, "groupchat", "hello", "", "m1", DateTimeOffset.UtcNow.AddHours(-2), "", false) { ArchiveId = "arc-1" };
+    Check("room archive: what was missed is unread, as it would have been", JabberService.ToStored(account, "Me", kept, missed, DateTimeOffset.UtcNow) is { IsRead: false, IsAlert: false, IsRoom: true });
+    Check("room archive: naming me is an alert", JabberService.ToStored(account, "Me", kept, missed with { Body = "hey me" }, DateTimeOffset.UtcNow) is { IsRead: false, IsAlert: true });
+    Check("room archive: what I said elsewhere is mine, and read", JabberService.ToStored(account, "Them", kept, missed, DateTimeOffset.UtcNow) is { IsRead: true, IsOutgoing: true });
+    Check("room archive: a replay is still only history", JabberService.ToStored(account, "Me", kept, missed with { ArchiveId = "", Body = "hey me" }, DateTimeOffset.UtcNow) is { IsRead: true, IsAlert: false });
+
+    Check("lines: nothing said until asked", JabberViewModel.RoomArchiveLine(null, false).Length == 0 && JabberViewModel.AccountArchiveLine(null, 0, 0).Length == 0);
+    Check("lines: a room that keeps one", JabberViewModel.RoomArchiveLine(true, false) == JabberText.ArchiveRoomYes);
+    Check("lines: a room that does not", JabberViewModel.RoomArchiveLine(false, false) == JabberText.ArchiveRoomNo);
+    Check("lines: refused outranks having one", JabberViewModel.RoomArchiveLine(true, true) == JabberText.ArchiveRoomRefused);
+    Check("lines: the server's, with the rooms counted", JabberViewModel.AccountArchiveLine(true, 2, 5) is { } both && both.StartsWith(JabberText.ArchiveDirectYes, StringComparison.Ordinal) && both.Contains('2') && both.Contains('5'));
+    Check("lines: no rooms, no count", JabberViewModel.AccountArchiveLine(false, 0, 0) == JabberText.ArchiveDirectNo);
 }
 
 // ── Repeats ───────────────────────────────────────────────────────────────────

@@ -43,6 +43,21 @@ public sealed class JabberRoomState(JabberRoom room)
     /// </summary>
     public bool HistoryDone { get; set; }
 
+    /// <summary>The room says it keeps an archive. Null until asked.</summary>
+    public bool? HasArchive { get; set; }
+
+    /// <summary>It says it keeps one, but would not share it with this account.</summary>
+    public bool ArchiveRefused { get; set; }
+
+    /// <summary>Where catching up on this room starts. Null for a room with nothing saved yet.</summary>
+    internal DateTimeOffset? CatchUpFrom { get; set; }
+
+    /// <summary>
+    /// What the room has sent while its archive is being read, or null when it is not. ⚠️ A conversation lists in
+    /// the order messages were saved, so these wait their turn behind the older ones the archive is still giving.
+    /// </summary>
+    internal List<XmppMessage>? Held { get; set; }
+
     public Dictionary<string, XmppOccupant> Occupants { get; } = new(StringComparer.Ordinal);
 }
 
@@ -71,7 +86,13 @@ public sealed class JabberSession(JabberAccount account)
     /// <summary>Where this server takes files, if it does.</summary>
     public XmppUploadService? UploadService { get; internal set; }
 
+    /// <summary>The server says it keeps an archive of this account's direct messages. Null until asked.</summary>
+    public bool? HasArchive { get; internal set; }
+
     internal XmppClient? Client { get; set; }
+
+    /// <summary>Where this connection's messages go to be saved.</summary>
+    internal ChannelWriter<XmppMessage>? Inbox { get; set; }
     internal CancellationTokenSource? Run { get; set; }
     internal Task? Loop { get; set; }
 
@@ -353,14 +374,15 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         // One worker per connection keeps messages in order, and the database off the reading thread.
         var inbox = Channel.CreateUnbounded<XmppMessage>(new UnboundedChannelOptions { SingleReader = true });
-        client.MessageReceived += m => inbox.Writer.TryWrite(m);
+        session.Inbox = inbox.Writer;
+        client.MessageReceived += m => { if (Arriving(session, m) is { } now) inbox.Writer.TryWrite(now); };
         client.TypingChanged += (from, typing) =>
         {
             session.Locked(s => s.SendsTyping.Add(from.Bare));
             TypingChanged?.Invoke(account.Id, from.Bare, typing);
         };
         client.PresenceChanged += p => OnPresence(session, p);
-        client.OccupantChanged += o => OnOccupant(session, o);
+        client.OccupantChanged += o => OnOccupant(session, client, o, ct);
         client.RosterChanged += r => OnRosterItem(session, r);
         client.SubscriptionRequested += j => { session.Locked(s => s.Requests.Add(j)); SessionChanged?.Invoke(session); };
         client.RoomJoinFailed += (room, why, text) => OnJoinFailed(session, client, room, why, text, ct);
@@ -404,6 +426,10 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         try
         {
+            session.HasArchive = await client.HasArchiveAsync(ct);
+            SessionChanged?.Invoke(session);
+            if (session.HasArchive != true) return;
+
             string? last;
             await using (var db = await dbFactory.CreateDbContextAsync(ct))
                 last = await db.JabberMessages.AsNoTracking()
@@ -411,16 +437,121 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
                     .OrderByDescending(m => m.Id).Select(m => m.SentAt).FirstOrDefaultAsync(ct);
 
             if (last is null || !DateTimeOffset.TryParse(last, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var since)) return;
-            if (!await client.HasArchiveAsync(ct)) return;
 
-            // A little before, since neither clock is to be trusted; what overlaps is recognised and dropped.
-            await client.QueryArchiveAsync(since - TimeSpan.FromMinutes(5), ct);
+            await client.QueryArchiveAsync(since - ArchiveOverlap, ct);
         }
         catch (OperationCanceledException) { /* disconnected meanwhile: the next connection asks again */ }
         catch (TimeoutException) { /* an archive too slow to wait for is not worth failing over */ }
         catch (XmppException) { /* not having it costs only what the server's stored messages already cover */ }
         catch (IOException) { /* the connection went: the next one asks again */ }
         catch (Exception e) { errors.Log(nameof(JabberService), "catch up from the archive", e); }
+    }
+
+    /// <summary>Asked for a little before, since neither clock is to be trusted. What overlaps is recognised and dropped.</summary>
+    private static readonly TimeSpan ArchiveOverlap = TimeSpan.FromMinutes(5);
+
+    private const string StoredDate = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+    /// <summary>
+    /// A message as it comes off the connection: what to save now, or null if a room's catch-up is keeping it back.
+    ///
+    /// <para>⚠️ A room's date is judged here, on the thread reading the connection, and not when the message is saved.
+    /// The subject that ends a room's replay takes effect at once while saving waits its turn, so judged at saving, a
+    /// replay could be taken for live talk: unread, dated now, and setting off alerts for what was said long ago.</para>
+    /// </summary>
+    private static XmppMessage? Arriving(JabberSession session, XmppMessage message)
+    {
+        if (message.Type != "groupchat" || message.ArchiveId.Length > 0) return message;
+
+        return session.Locked(s =>
+        {
+            if (!s.RoomMap.TryGetValue(message.From.Bare, out var room)) return message;
+
+            var judged = message with { Sent = room.HistoryDone ? null : message.Sent, DateJudged = true };
+            if (room.Held is not { } held) return judged;
+
+            held.Add(judged);
+            return null;
+        });
+    }
+
+    /// <summary>Lets go what a room's catch-up kept back, in order, ahead of anything that arrives from now on.</summary>
+    private static void ReleaseHeld(JabberSession session, JabberRoomState room) => session.Locked(s =>
+    {
+        if (room.Held is { } held && s.Inbox is { } inbox)
+            foreach (var message in held) inbox.TryWrite(message);
+        room.Held = null;
+    });
+
+    private async Task SetArchiveResumeAsync(int roomId, DateTimeOffset? from, CancellationToken ct)
+    {
+        var text = from?.UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture) ?? "";
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        await db.JabberRooms.Where(r => r.Id == roomId).ExecuteUpdateAsync(u => u.SetProperty(r => r.ArchiveResumeFrom, text), ct);
+    }
+
+    /// <summary>
+    /// Where catching up on a room starts: where an unfinished one stopped, or else the last message saved. Null for
+    /// a room with nothing saved, which starts from what it replays on joining. No further back than history is kept:
+    /// what was unread would never be purged, and a long absence should not bring back what would be deleted anyway.
+    /// </summary>
+    private async Task<DateTimeOffset?> CatchUpStartAsync(JabberRoom room, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var resume = await db.JabberRooms.AsNoTracking().Where(r => r.Id == room.Id).Select(r => r.ArchiveResumeFrom).FirstOrDefaultAsync(ct);
+        var from = DateTimeOffset.TryParse(resume, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var stopped)
+            ? stopped
+            : await LastSeenInAsync(room.AccountId, room.RoomJid, ct);
+        if (from is null) return null;
+
+        var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
+        var days  = int.TryParse(saved, out var d) ? d : DefaultHistoryDays;
+        var oldest = DateTimeOffset.UtcNow.AddDays(-days);
+
+        return days > 0 && from < oldest ? oldest : from;
+    }
+
+    /// <summary>
+    /// What was said in a room while away, if it keeps an archive. Runs once this client is in the room, since some
+    /// rooms only show their archive to those who are.
+    /// </summary>
+    private async Task CatchUpRoomAsync(JabberSession session, XmppClient client, JabberRoomState room, CancellationToken ct)
+    {
+        try
+        {
+            // A room that keeps its description from outsiders may tell someone inside.
+            if (room.HasArchive != true && await client.RoomHasArchiveAsync(room.Room.RoomJid, ct))
+                session.Locked(_ =>
+                {
+                    room.HasArchive = true;
+                    if (room.CatchUpFrom is not null) room.Held ??= [];
+                });
+
+            if (room.HasArchive != true || room.CatchUpFrom is not { } from) return;
+
+            await SetArchiveResumeAsync(room.Room.Id, from, ct);
+            var result = await client.QueryArchiveAsync(from - ArchiveOverlap, ct, room.Room.RoomJid);
+
+            // Cut short by its size, it carries on from there next time. Otherwise there is nothing to carry on from.
+            await SetArchiveResumeAsync(room.Room.Id, result.Complete ? null : result.Newest ?? from, ct);
+        }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol)
+        {
+            // Asking again would only be refused again, and what it replayed on joining is about to be saved.
+            session.Locked(_ => room.ArchiveRefused = true);
+            await SetArchiveResumeAsync(room.Room.Id, null, CancellationToken.None);
+        }
+        catch (OperationCanceledException) { /* disconnected meanwhile: the next connection carries on from the mark */ }
+        catch (TimeoutException) { /* too slow to wait for: the next connection carries on from the mark */ }
+        catch (XmppException) { /* the connection went: the next one carries on from the mark */ }
+        catch (IOException) { /* the same */ }
+        catch (Exception e) { errors.Log(nameof(JabberService), "catch up on a room", e); }
+        finally
+        {
+            ReleaseHeld(session, room);
+            SessionChanged?.Invoke(session);
+        }
     }
 
     private async Task FindUploadServiceAsync(JabberSession session, XmppClient client, CancellationToken ct)
@@ -440,6 +571,8 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Everything a fresh connection needs, in the order that loses nothing.</summary>
     private async Task SetUpSessionAsync(JabberSession session, XmppClient client, CancellationToken ct)
     {
+        session.HasArchive = null;
+
         // Contacts first, so presence arriving next has someone to attach to.
         var roster = await client.GetRosterAsync(ct);
         session.Locked(s =>
@@ -481,17 +614,29 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             foreach (var room in rooms.Where(r => !r.Left)) s.RoomMap[room.RoomJid] = new JabberRoomState(room);
         });
 
-        foreach (var room in rooms.Where(r => r.AutoJoin && !r.Left))
-            await JoinCoreAsync(session, client, room, ct);
+        // Together: each first asks whether its room keeps an archive, and one slow room should not hold up the rest.
+        await Task.WhenAll(rooms.Where(r => r.AutoJoin && !r.Left).Select(room => JoinCoreAsync(session, client, room, ct)));
     }
 
     private async Task JoinCoreAsync(JabberSession session, XmppClient client, JabberRoom room, CancellationToken ct)
     {
         var nick = NicknameFor(session.Account, room);
         var password = await Task.Run(() => AppConfig.GetServicePassword(RoomPasswordReference(room.Id)) ?? "", ct);
-        var since = await LastSeenInAsync(session.Account.Id, room.RoomJid, ct);
+        var since = await CatchUpStartAsync(room, ct);
+        var hasArchive = await client.RoomHasArchiveAsync(room.RoomJid, ct);
 
-        session.Locked(s => { if (s.RoomMap.TryGetValue(room.RoomJid, out var r)) { r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false; } });
+        session.Locked(s =>
+        {
+            if (!s.RoomMap.TryGetValue(room.RoomJid, out var r)) return;
+
+            r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false;
+            r.HasArchive = hasArchive; r.ArchiveRefused = false;
+            r.CatchUpFrom = since;
+
+            // ⚠️ From before the join goes out, so that nothing it replays is saved ahead of what is older.
+            r.Held = hasArchive && since is not null ? [] : null;
+        });
+
         await client.JoinRoomAsync(room.RoomJid, nick, password, since, ct);
     }
 
@@ -577,8 +722,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         static XmppShow Rank(XmppShow x) => x;
     }
 
-    private void OnOccupant(JabberSession session, XmppOccupant occupant)
+    private void OnOccupant(JabberSession session, XmppClient client, XmppOccupant occupant, CancellationToken ct)
     {
+        JabberRoomState? entered = null;
         session.Locked(s =>
         {
             if (!s.RoomMap.TryGetValue(occupant.Room, out var room)) return;
@@ -588,10 +734,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
             if (occupant.Self)
             {
+                if (!occupant.Left && !room.Joined) entered = room;
                 room.Joined = !occupant.Left;
                 if (!occupant.Left) room.Nick = occupant.Nick;
             }
         });
+
+        if (entered is not null) _ = CatchUpRoomAsync(session, client, entered, ct);
         SessionChanged?.Invoke(session);
     }
 
@@ -603,7 +752,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             if (!s.RoomMap.TryGetValue(room, out var state)) return;
             if (why == XmppRoomFailure.NickInUse && !state.Nick.EndsWith('_')) retry = state.Room;
-            else { state.Failure = why; state.FailureText = text; }
+            else
+            {
+                state.Failure = why; state.FailureText = text;
+                ReleaseHeld(session, state);
+            }
         });
 
         if (retry is { } r)
@@ -662,7 +815,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (message.Type == "groupchat" && known is null) return null;
 
         var now = DateTimeOffset.UtcNow;
-        if (room is { HistoryDone: true } && message.Sent is not null) message = message with { Sent = null };
+        if (room is { HistoryDone: true } && message is { Sent: not null, ArchiveId.Length: 0, DateJudged: false }) message = message with { Sent = null };
         if (message.Sent > now + MostAhead) message = message with { Sent = now };
 
         // What this account says privately to someone in a room stays with them, not with the room.
@@ -681,10 +834,14 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             if (message.Sent is not null) return null;
         }
 
-        if (message.ArchiveId.Length > 0)
+        // Something a room replayed may have just come out of its archive too, known there by other ids.
+        if (message.ArchiveId.Length > 0 || room is not null && message.Sent is not null)
         {
             if (await AlreadyHaveArchivedAsync(db, row, message, ct)) return null;
-            row.DedupeKey = $"s:{row.Conversation}:{message.ArchiveId}";
+
+            // The server's own id where there is one, since the room's replay and live messages carry that one.
+            if (message.ArchiveId.Length > 0)
+                row.DedupeKey = $"s:{row.Conversation}:{(message.ServerId.Length > 0 ? message.ServerId : message.ArchiveId)}";
         }
 
         if (await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && m.DedupeKey == row.DedupeKey, ct)) return null;
@@ -701,7 +858,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         MessageStored?.Invoke(row);
         if (!row.IsRead) UnreadChanged?.Invoke();
-        if (row.IsAlert && !row.IsRead) AlertArrived?.Invoke(row);
+
+        // ⚠️ Not one sound per mention for a whole absence: a room's catch-up shows as unread, and that is enough.
+        if (row.IsAlert && !row.IsRead && !(row.IsRoom && message.ArchiveId.Length > 0)) AlertArrived?.Invoke(row);
         return row;
     }
 
@@ -719,7 +878,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (message.Id.Length > 0) keys.Add(DedupeKey(row.Conversation, row.Sender, plain));
 
         if (await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && keys.Contains(m.DedupeKey), ct)) return true;
-        if (message.Id.Length > 0) return false;
+        if (message.Id.Length > 0)
+            return await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation
+                                                      && m.MessageId == message.Id && m.Sender == row.Sender && m.Body == row.Body, ct);
 
         var recent = await db.JabberMessages.AsNoTracking()
             .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation && m.Sender == row.Sender && m.Body == row.Body)
@@ -775,7 +936,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var outgoing = message.FromThisAccount
                     || isRoom && roomNick is { Length: > 0 } && string.Equals(sender, roomNick, StringComparison.Ordinal);
 
-        var replayed = isRoom && message.Sent is not null;
+        // ⚠️ What a room's archive gives is not this: it is asked only for what came after the last message seen, so
+        // all of it really was missed, and someone named in it should be told.
+        var replayed = isRoom && message.Sent is not null && message.ArchiveId.Length == 0;
         var alert    = !outgoing && !replayed && (!isRoom || RoomAlerts(account, roomNick, room, message.Body));
 
         return new JabberStoredMessage

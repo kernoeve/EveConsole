@@ -250,4 +250,28 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   <data name="MessageHint" xml:space="preserve">
     <value>Escribe un mensaje. Intro envía, Mayús+Intro inicia otra línea.</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Este servidor guarda un archivo de mensajes directos, así que los que te pierdas se recuperan al conectarte.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Este servidor no guarda un archivo de mensajes directos. Aun así, puede retener los enviados mientras estás desconectado.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>{0} de {1} salas unidas guardan un archivo. Los mensajes que te pierdas en ellas se recuperan al conectarte; las demás solo muestran lo que repiten al unirte.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Esta sala guarda un archivo: los mensajes que te pierdas se recuperan al conectarte.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Esta sala no guarda un archivo: solo ves lo que repite al unirte.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>Esta sala tiene un archivo, pero no lo comparte con esta cuenta: solo ves lo que repite al unirte.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

@@ -37,19 +37,124 @@ public sealed class GlobalHotkeyService : IDisposable
         ("Numpad -",    0x6D,  0xFFAD, 0x4E),
     ];
 
+    /// <summary>A key or button someone can press to talk.</summary>
+    public sealed record AnyKey(string Name, int WinVk, uint X11Keysym, uint MacKeyCode, Avalonia.Input.Key Key = Avalonia.Input.Key.None);
+
+    public const int VkMouseMiddle = 0x04, VkMouseBack = 0x05, VkMouseForward = 0x06;
+
+    /// <summary>
+    /// Everything that can be pressed to talk, on a keyboard or a mouse. Mouse buttons are Windows only so far: the
+    /// other systems' hot keys are for the keyboard. Escape is not here, because it cancels choosing.
+    /// </summary>
+    public static readonly IReadOnlyList<AnyKey> AnyKeys = BuildAnyKeys();
+
+    private static List<AnyKey> BuildAnyKeys()
+    {
+        // kVK_ANSI_A to Z, and 0 to 9, which a Mac does not number in order.
+        uint[] macLetters = [0x00, 0x0B, 0x08, 0x02, 0x0E, 0x03, 0x05, 0x04, 0x22, 0x26, 0x28, 0x25, 0x2E, 0x2D, 0x1F, 0x23, 0x0C, 0x0F, 0x01, 0x11, 0x20, 0x09, 0x0D, 0x07, 0x10, 0x06];
+        uint[] macDigits  = [0x1D, 0x12, 0x13, 0x14, 0x15, 0x17, 0x16, 0x1A, 0x1C, 0x19];
+        uint[] macKeypad  = [0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5B, 0x5C];
+        uint[] macF       = [0x7A, 0x78, 0x63, 0x76, 0x60, 0x61, 0x62, 0x64, 0x65, 0x6D, 0x67, 0x6F, 0x69, 0x6B, 0x71, 0x6A, 0x40, 0x4F, 0x50, 0x5A];
+
+        var keys = new List<AnyKey>();
+        for (var i = 0; i < 26; i++)
+            keys.Add(new(((char)('A' + i)).ToString(), 0x41 + i, (uint)(0x61 + i), macLetters[i], Avalonia.Input.Key.A + i));
+        for (var i = 0; i < 10; i++)
+            keys.Add(new(i.ToString(System.Globalization.CultureInfo.InvariantCulture), 0x30 + i, (uint)(0x30 + i), macDigits[i], Avalonia.Input.Key.D0 + i));
+        for (var i = 0; i < 10; i++)
+            keys.Add(new($"Numpad {i}", 0x60 + i, (uint)(0xFFB0 + i), macKeypad[i], Avalonia.Input.Key.NumPad0 + i));
+        for (var i = 0; i < 24; i++)
+            keys.Add(new($"F{i + 1}", 0x70 + i, (uint)(0xFFBE + i), i < macF.Length ? macF[i] : NoMacKey, Avalonia.Input.Key.F1 + i));
+
+        keys.AddRange(
+        [
+            new("Numpad *", 0x6A, 0xFFAA, 0x43, Avalonia.Input.Key.Multiply),
+            new("Numpad +", 0x6B, 0xFFAB, 0x45, Avalonia.Input.Key.Add),
+            new("Numpad -", 0x6D, 0xFFAD, 0x4E, Avalonia.Input.Key.Subtract),
+            new("Numpad .", 0x6E, 0xFFAE, 0x41, Avalonia.Input.Key.Decimal),
+            new("Numpad /", 0x6F, 0xFFAF, 0x4B, Avalonia.Input.Key.Divide),
+            new("Space",       0x20, 0x0020, 0x31, Avalonia.Input.Key.Space),
+            new("Tab",         0x09, 0xFF09, 0x30, Avalonia.Input.Key.Tab),
+            new("Enter",       0x0D, 0xFF0D, 0x24, Avalonia.Input.Key.Enter),
+            new("Backspace",   0x08, 0xFF08, 0x33, Avalonia.Input.Key.Back),
+            new("Caps Lock",   0x14, 0xFFE5, NoMacKey, Avalonia.Input.Key.CapsLock),
+            new("Left",        0x25, 0xFF51, 0x7B, Avalonia.Input.Key.Left),
+            new("Up",          0x26, 0xFF52, 0x7E, Avalonia.Input.Key.Up),
+            new("Right",       0x27, 0xFF53, 0x7C, Avalonia.Input.Key.Right),
+            new("Down",        0x28, 0xFF54, 0x7D, Avalonia.Input.Key.Down),
+            new("Insert",      0x2D, 0xFF63, 0x72, Avalonia.Input.Key.Insert),
+            new("Delete",      0x2E, 0xFFFF, 0x75, Avalonia.Input.Key.Delete),
+            new("Home",        0x24, 0xFF50, 0x73, Avalonia.Input.Key.Home),
+            new("End",         0x23, 0xFF57, 0x77, Avalonia.Input.Key.End),
+            new("Page Up",     0x21, 0xFF55, 0x74, Avalonia.Input.Key.PageUp),
+            new("Page Down",   0x22, 0xFF56, 0x79, Avalonia.Input.Key.PageDown),
+            new("Pause",       0x13, 0xFF13, NoMacKey, Avalonia.Input.Key.Pause),
+            new("Scroll Lock", 0x91, 0xFF14, NoMacKey, Avalonia.Input.Key.Scroll),
+            new("Num Lock",    0x90, 0xFF7F, NoMacKey, Avalonia.Input.Key.NumLock),
+            new("Left Shift",  0xA0, 0xFFE1, NoMacKey, Avalonia.Input.Key.LeftShift),
+            new("Right Shift", 0xA1, 0xFFE2, NoMacKey, Avalonia.Input.Key.RightShift),
+            new("Left Ctrl",   0xA2, 0xFFE3, NoMacKey, Avalonia.Input.Key.LeftCtrl),
+            new("Right Ctrl",  0xA3, 0xFFE4, NoMacKey, Avalonia.Input.Key.RightCtrl),
+            new("Left Alt",    0xA4, 0xFFE9, NoMacKey, Avalonia.Input.Key.LeftAlt),
+            new("Right Alt",   0xA5, 0xFFEA, NoMacKey, Avalonia.Input.Key.RightAlt),
+            new("Left Win",    0x5B, 0xFFEB, NoMacKey, Avalonia.Input.Key.LWin),
+            new("Right Win",   0x5C, 0xFFEC, NoMacKey, Avalonia.Input.Key.RWin),
+            new(";",           0xBA, 0x003B, 0x29, Avalonia.Input.Key.OemSemicolon),
+            new("=",           0xBB, 0x003D, 0x18, Avalonia.Input.Key.OemPlus),
+            new(",",           0xBC, 0x002C, 0x2B, Avalonia.Input.Key.OemComma),
+            new("-",           0xBD, 0x002D, 0x1B, Avalonia.Input.Key.OemMinus),
+            new(".",           0xBE, 0x002E, 0x2F, Avalonia.Input.Key.OemPeriod),
+            new("/",           0xBF, 0x002F, 0x2C, Avalonia.Input.Key.OemQuestion),
+            new("`",           0xC0, 0x0060, 0x32, Avalonia.Input.Key.OemTilde),
+            new("[",           0xDB, 0x005B, 0x21, Avalonia.Input.Key.OemOpenBrackets),
+            new("\\",          0xDC, 0x005C, 0x2A, Avalonia.Input.Key.OemPipe),
+            new("]",           0xDD, 0x005D, 0x1E, Avalonia.Input.Key.OemCloseBrackets),
+            new("'",           0xDE, 0x0027, 0x27, Avalonia.Input.Key.OemQuotes),
+            new("Mouse Middle",  VkMouseMiddle,  0, NoMacKey),
+            new("Mouse Back",    VkMouseBack,    0, NoMacKey),
+            new("Mouse Forward", VkMouseForward, 0, NoMacKey),
+        ]);
+        return keys;
+    }
+
+    /// <summary>The Windows key code for a key pressed in the app. Zero for one that is not offered, or not here.</summary>
+    public static int VkOf(Avalonia.Input.Key key) =>
+        key != Avalonia.Input.Key.None && AnyKeys.FirstOrDefault(k => k.Key == key) is { } found && AvailableHere(found.WinVk) ? found.WinVk : 0;
+
     /// <summary>Whether this machine can take a key as the push-to-talk key: on a Mac, only the
-    /// ones its keyboard has.</summary>
-    public static bool AvailableHere(int vk) =>
-        vk == 0 || !OperatingSystem.IsMacOS() || VkToMacKeyCode(vk) != NoMacKey;
+    /// ones its keyboard has; off Windows, not a mouse button.</summary>
+    public static bool AvailableHere(int vk)
+    {
+        if (vk == 0 || OperatingSystem.IsWindows()) return true;
+        return OperatingSystem.IsMacOS() ? VkToMacKeyCode(vk) != NoMacKey : VkToX11Keysym(vk) != 0;
+    }
 
     public static uint VkToMacKeyCode(int vk) =>
-        KeyOptions.FirstOrDefault(k => k.WinVk == vk) is { Name: not null } k ? k.MacKeyCode : NoMacKey;
+        AnyKeys.FirstOrDefault(k => k.WinVk == vk)?.MacKeyCode ?? NoMacKey;
 
     public static string VkName(int vk) =>
-        KeyOptions.FirstOrDefault(k => k.WinVk == vk).Name ?? $"VK 0x{vk:X2}";
+        AnyKeys.FirstOrDefault(k => k.WinVk == vk)?.Name ?? KeyOptions.FirstOrDefault(k => k.WinVk == vk).Name ?? $"VK 0x{vk:X2}";
 
     public static uint VkToX11Keysym(int vk) =>
-        KeyOptions.FirstOrDefault(k => k.WinVk == vk).X11Keysym;
+        AnyKeys.FirstOrDefault(k => k.WinVk == vk)?.X11Keysym ?? 0;
+
+    /// <summary>What a Windows low-level mouse message says about a button that can talk, or null for anything else.</summary>
+    public static (int Vk, bool Down)? MouseButton(int message, uint mouseData)
+    {
+        const int MiddleDown = 0x0207, MiddleUp = 0x0208, SideDown = 0x020B, SideUp = 0x020C;
+
+        // The high word says which side button: 1 is the one browsers go back with.
+        var side = (mouseData >> 16) switch { 1 => VkMouseBack, 2 => VkMouseForward, _ => 0 };
+
+        return message switch
+        {
+            MiddleDown => (VkMouseMiddle, true),
+            MiddleUp   => (VkMouseMiddle, false),
+            SideDown when side != 0 => (side, true),
+            SideUp when side != 0   => (side, false),
+            _ => null,
+        };
+    }
 
     // ── Shared state ──────────────────────────────────────────────────────────
     private int           _configuredVk;
@@ -254,7 +359,19 @@ public sealed class GlobalHotkeyService : IDisposable
         public IntPtr dwExtraInfo;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MSLLHOOKSTRUCT
+    {
+        public int    x;
+        public int    y;
+        public uint   mouseData;
+        public uint   flags;
+        public uint   time;
+        public IntPtr dwExtraInfo;
+    }
+
     private const int WH_KEYBOARD_LL = 13;
+    private const int WH_MOUSE_LL    = 14;
     private const int WM_KEYDOWN     = 0x0100;
     private const int WM_KEYUP       = 0x0101;
     private const int WM_SYSKEYDOWN  = 0x0104;
@@ -310,8 +427,10 @@ public sealed class GlobalHotkeyService : IDisposable
         var ready = new ManualResetEventSlim(false);
         _winThread = new Thread(() =>
         {
-            _winHookProc   = WinHookCallback;
-            _winHookHandle = SetWindowsHookEx(WH_KEYBOARD_LL, _winHookProc, GetModuleHandle(null), 0);
+            // A mouse hook is called for every movement, so it is only there for someone who talks with a mouse button.
+            var mouse = _configuredVk is VkMouseMiddle or VkMouseBack or VkMouseForward;
+            _winHookProc   = mouse ? WinMouseCallback : WinHookCallback;
+            _winHookHandle = SetWindowsHookEx(mouse ? WH_MOUSE_LL : WH_KEYBOARD_LL, _winHookProc, GetModuleHandle(null), 0);
             _winThreadId   = GetCurrentThreadId();
             if (_winHookHandle == IntPtr.Zero)
                 System.Diagnostics.Debug.WriteLine($"[Hotkey] SetWindowsHookEx failed: {Marshal.GetLastWin32Error()}");
@@ -340,6 +459,28 @@ public sealed class GlobalHotkeyService : IDisposable
             System.Diagnostics.Debug.WriteLine("[Hotkey] the hook thread did not stop in time");
         _winThread   = null;
         _winThreadId = 0;
+    }
+
+    private IntPtr WinMouseCallback(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        const int MouseMove = 0x0200;
+
+        if (nCode >= 0 && wParam != MouseMove
+            && MouseButton((int)wParam, Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam).mouseData) is { } button
+            && button.Vk == _configuredVk)
+        {
+            if (button.Down && !_keyDown)
+            {
+                _keyDown = true;
+                OnPress?.Invoke();
+            }
+            else if (!button.Down)
+            {
+                _keyDown = false;
+                OnRelease?.Invoke();
+            }
+        }
+        return CallNextHookEx(_winHookHandle, nCode, wParam, lParam);
     }
 
     private IntPtr WinHookCallback(int nCode, IntPtr wParam, IntPtr lParam)

@@ -92,9 +92,10 @@ public sealed class MumbleViewModel : ReactiveObject
         _service = service;
         _prefs   = prefs;
 
-        KeyChoices = [.. GlobalHotkeyService.KeyOptions
-            .Where(k => GlobalHotkeyService.AvailableHere(k.WinVk))
-            .Select(k => new MumbleKeyChoice(k.WinVk, k.WinVk == 0 ? MumbleText.KeyNone : k.Name))];
+        CaptureWhisperCommand = ReactiveCommand.Create(() => Capture(KeyBeingSet.Whisper));
+        CaptureShoutCommand   = ReactiveCommand.Create(() => Capture(KeyBeingSet.Shout));
+        ClearWhisperCommand   = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditWhisper = ChoiceFor(0); });
+        ClearShoutCommand     = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditShout = ChoiceFor(0); });
 
         var hasText = this.WhenAnyValue(x => x.Draft, d => !string.IsNullOrWhiteSpace(d));
 
@@ -509,7 +510,41 @@ public sealed class MumbleViewModel : ReactiveObject
 
     // ── The server editor ─────────────────────────────────────────────────────
 
-    public IReadOnlyList<MumbleKeyChoice> KeyChoices { get; }
+    private enum KeyBeingSet { None, Whisper, Shout }
+    private KeyBeingSet _keyBeingSet;
+
+    public ReactiveCommand<Unit, Unit> CaptureWhisperCommand { get; }
+    public ReactiveCommand<Unit, Unit> CaptureShoutCommand { get; }
+    public ReactiveCommand<Unit, Unit> ClearWhisperCommand { get; }
+    public ReactiveCommand<Unit, Unit> ClearShoutCommand { get; }
+
+    public static MumbleKeyChoice ChoiceFor(int vk) => new(vk, vk == 0 ? MumbleText.KeyNone : GlobalHotkeyService.VkName(vk));
+
+    /// <summary>The next key or button pressed in this tool goes to one of the two talk keys.</summary>
+    public bool IsCapturingKey => _keyBeingSet != KeyBeingSet.None;
+
+    public string WhisperKeyText => _keyBeingSet == KeyBeingSet.Whisper ? MumbleText.KeyPressNow : EditWhisper?.Label ?? MumbleText.KeyNone;
+    public string ShoutKeyText   => _keyBeingSet == KeyBeingSet.Shout ? MumbleText.KeyPressNow : EditShout?.Label ?? MumbleText.KeyNone;
+
+    private void Capture(KeyBeingSet which)
+    {
+        _keyBeingSet = which;
+        this.RaisePropertyChanged(nameof(IsCapturingKey));
+        this.RaisePropertyChanged(nameof(WhisperKeyText));
+        this.RaisePropertyChanged(nameof(ShoutKeyText));
+    }
+
+    public void CancelKeyCapture() => Capture(KeyBeingSet.None);
+
+    /// <summary>Takes what was pressed for the talk key being chosen. Zero is something that cannot be used: it keeps waiting.</summary>
+    public void TakeCapturedKey(int vk)
+    {
+        if (vk == 0) return;
+
+        if (_keyBeingSet == KeyBeingSet.Whisper) EditWhisper = ChoiceFor(vk);
+        else if (_keyBeingSet == KeyBeingSet.Shout) EditShout = ChoiceFor(vk);
+        Capture(KeyBeingSet.None);
+    }
 
     private bool _isEditing;
     public bool IsEditing
@@ -538,8 +573,17 @@ public sealed class MumbleViewModel : ReactiveObject
     public string EditPassword { get => _editPassword; set => this.RaiseAndSetIfChanged(ref _editPassword, value); }
     public string EditTokens { get => _editTokens; set => this.RaiseAndSetIfChanged(ref _editTokens, value); }
     public bool EditAutoConnect { get => _editAutoConnect; set => this.RaiseAndSetIfChanged(ref _editAutoConnect, value); }
-    public MumbleKeyChoice? EditWhisper { get => _editWhisper; set => this.RaiseAndSetIfChanged(ref _editWhisper, value); }
-    public MumbleKeyChoice? EditShout { get => _editShout; set => this.RaiseAndSetIfChanged(ref _editShout, value); }
+    public MumbleKeyChoice? EditWhisper
+    {
+        get => _editWhisper;
+        set { this.RaiseAndSetIfChanged(ref _editWhisper, value); this.RaisePropertyChanged(nameof(WhisperKeyText)); }
+    }
+
+    public MumbleKeyChoice? EditShout
+    {
+        get => _editShout;
+        set { this.RaiseAndSetIfChanged(ref _editShout, value); this.RaisePropertyChanged(nameof(ShoutKeyText)); }
+    }
 
     public string PasswordNote => SecretStore.Description;
 
@@ -549,7 +593,8 @@ public sealed class MumbleViewModel : ReactiveObject
         EditName = EditHost = EditUsername = EditPassword = EditTokens = "";
         EditPort = 64738;
         EditAutoConnect = false;
-        EditWhisper = EditShout = KeyChoices[0];
+        EditWhisper = EditShout = ChoiceFor(0);
+        CancelKeyCapture();
         this.RaisePropertyChanged(nameof(EditIsExisting));
         IsEditing = true;
     }
@@ -561,14 +606,16 @@ public sealed class MumbleViewModel : ReactiveObject
         _editId = s.Id;
         EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
         EditAutoConnect = s.AutoConnect;
-        EditWhisper = KeyChoices.FirstOrDefault(k => k.Key == s.WhisperKey) ?? KeyChoices[0];
-        EditShout   = KeyChoices.FirstOrDefault(k => k.Key == s.ShoutKey) ?? KeyChoices[0];
+        EditWhisper = ChoiceFor(s.WhisperKey);
+        EditShout   = ChoiceFor(s.ShoutKey);
+        CancelKeyCapture();
         this.RaisePropertyChanged(nameof(EditIsExisting));
         IsEditing = true;
     }
 
     private async Task SaveAsync()
     {
+        CancelKeyCapture();
         if (EditHost.Trim().Length == 0 || EditUsername.Trim().Length == 0) { StatusText = MumbleText.HostAndNameRequired; return; }
 
         var old = _editId != 0 ? _service.SessionOf(_editId)?.Server : null;

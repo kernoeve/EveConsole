@@ -23,7 +23,15 @@ public sealed record XmppMessage(
 
     /// <summary>Came out of the server's archive, under this id, rather than being delivered.</summary>
     public string ArchiveId { get; init; } = "";
+
+    /// <summary>Its date has already been judged, on arrival: it was held back until a room's catch-up finished.</summary>
+    public bool DateJudged { get; init; }
 }
+
+/// <summary>How far an archive query got.</summary>
+/// <param name="Complete">The archive had nothing more to give.</param>
+/// <param name="Newest">The date of the last message it gave, if any.</param>
+public sealed record XmppArchiveResult(bool Complete, DateTimeOffset? Newest);
 
 /// <summary>Where this server takes files, and the largest it says it will.</summary>
 public sealed record XmppUploadService(string Jid, long MaxBytes);
@@ -243,7 +251,15 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     {
         if (stanza.Element(Mam + "result") is not null)
         {
-            if (ParseArchived(stanza, Self, _archiveQuery) is { } archived) MessageReceived?.Invoke(archived);
+            var archived = _archiveRoom is { } room
+                ? ParseRoomArchived(stanza, room, _archiveQuery)
+                : ParseArchived(stanza, Self, _archiveQuery);
+
+            if (archived is not null)
+            {
+                _archiveNewest = archived.Sent ?? _archiveNewest;
+                MessageReceived?.Invoke(archived);
+            }
             return;
         }
 
@@ -583,6 +599,11 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     // ── The server's archive ──────────────────────────────────────────────────
 
     private volatile string? _archiveQuery;
+    private volatile string? _archiveRoom;
+    private DateTimeOffset? _archiveNewest;
+
+    // One at a time: an answer is matched to the one question being asked.
+    private readonly SemaphoreSlim _archiveTurn = new(1, 1);
 
     /// <summary>
     /// One message out of this account's own archive, or null for anything else.
@@ -602,18 +623,23 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         var inner     = forwarded?.Element(Client + "message");
         if (forwarded is null || inner is null) return null;
 
-        // Rooms have their own history, asked for on joining.
+        // A room's messages come from the room's own archive.
         var type = (string?)inner.Attribute("type") ?? "normal";
         if (type is "groupchat" or "error") return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
         if (body.Length == 0) return null;
 
+        var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
+
+        return ArchivedMessage(result, forwarded, inner, sender, type, body, sender.Bare == self.Bare);
+    }
+
+    private static XmppMessage ArchivedMessage(XElement result, XElement forwarded, XElement inner, XmppAddress sender, string type, string body, bool mine)
+    {
         DateTimeOffset? sent = null;
         if (DateTimeOffset.TryParse((string?)forwarded.Element(Delay + "delay")?.Attribute("stamp"), CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp)) sent = stamp;
-
-        var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
 
         return new XmppMessage(
             sender,
@@ -623,29 +649,76 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             (string?)inner.Attribute("id") ?? "",
             sent,
             (string?)inner.Element(StanzaId + "stanza-id")?.Attribute("id") ?? "",
-            sender.Bare == self.Bare)
+            mine)
         {
             ArchiveId = (string?)result.Attribute("id") ?? "",
+            IsCorrection = inner.Element(Correct + "replace") is not null,
+            ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
         };
+    }
+
+    /// <summary>
+    /// One message out of a room's archive, or null for anything else.
+    ///
+    /// <para>⚠️ Only from the room itself, never one of the people in it, and only in answer to a question asked now.
+    /// Everyone in a room can send from room/nickname, so a stanza from one of those could otherwise put words in
+    /// anyone's mouth, dated whenever they like.</para>
+    /// </summary>
+    public static XmppMessage? ParseRoomArchived(XElement stanza, string room, string? expectedQuery)
+    {
+        var result = stanza.Element(Mam + "result");
+        if (result is null || expectedQuery is null || (string?)result.Attribute("queryid") != expectedQuery) return null;
+
+        var from = XmppAddress.Parse((string?)stanza.Attribute("from"));
+        if (from.Bare != room || from.Resource.Length > 0) return null;
+
+        var forwarded = result.Element(Forward + "forwarded");
+        var inner     = forwarded?.Element(Client + "message");
+        if (forwarded is null || inner is null) return null;
+
+        if ((string?)inner.Attribute("type") != "groupchat") return null;
+
+        var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
+        if (sender.Bare != room) return null;
+
+        var body = inner.Element(Client + "body")?.Value ?? "";
+        return body.Length == 0 ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
     }
 
     /// <summary>Whether this account's server keeps an archive to ask.</summary>
     public async Task<bool> HasArchiveAsync(CancellationToken ct) =>
         (await FeaturesOfAsync(Self.Bare, ct)).Contains(Mam.NamespaceName);
 
-    /// <summary>Asks for everything since a moment. It arrives as ordinary messages, before this returns.</summary>
-    public async Task QueryArchiveAsync(DateTimeOffset since, CancellationToken ct)
+    /// <summary>
+    /// Whether a room says it keeps an archive. ⚠️ Not long to wait: rooms are joined at login, and a room on a far
+    /// server that never answers must not hold that up.
+    /// </summary>
+    public async Task<bool> RoomHasArchiveAsync(string room, CancellationToken ct)
+    {
+        try { return (await FeaturesOfAsync(room, ct).WaitAsync(TimeSpan.FromSeconds(5), ct)).Contains(Mam.NamespaceName); }
+        catch (TimeoutException) { return false; }
+    }
+
+    /// <summary>
+    /// Asks for everything since a moment, from this account's archive or from a room's. It arrives as ordinary
+    /// messages, before this returns.
+    /// </summary>
+    public async Task<XmppArchiveResult> QueryArchiveAsync(DateTimeOffset since, CancellationToken ct, string? room = null)
     {
         const int PageSize = 100, MostPages = 20;
 
+        await _archiveTurn.WaitAsync(ct);
+
         var query = "ec" + Guid.NewGuid().ToString("N");
+        _archiveNewest = null;
+        _archiveRoom = room;
         _archiveQuery = query;
         try
         {
             string? after = null;
             for (var page = 0; page < MostPages; page++)
             {
-                var answer = await QueryAsync("set", null, new XElement(Mam + "query",
+                var answer = await QueryAsync("set", room, new XElement(Mam + "query",
                     new XAttribute("queryid", query),
                     new XElement(DataForm + "x", new XAttribute("type", "submit"),
                         new XElement(DataForm + "field", new XAttribute("var", "FORM_TYPE"), new XAttribute("type", "hidden"),
@@ -657,13 +730,19 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                         after is null ? null : new XElement(Rsm + "after", after))), ct);
 
                 var fin = answer.Element(Mam + "fin");
-                if (fin is null || (string?)fin.Attribute("complete") == "true") return;
+                if (fin is null || (string?)fin.Attribute("complete") == "true") return new XmppArchiveResult(true, _archiveNewest);
 
                 after = fin.Element(Rsm + "set")?.Element(Rsm + "last")?.Value;
-                if (string.IsNullOrEmpty(after)) return;
+                if (string.IsNullOrEmpty(after)) return new XmppArchiveResult(true, _archiveNewest);
             }
+            return new XmppArchiveResult(false, _archiveNewest);
         }
-        finally { _archiveQuery = null; }
+        finally
+        {
+            _archiveQuery = null;
+            _archiveRoom = null;
+            _archiveTurn.Release();
+        }
     }
 
     // ── Files ─────────────────────────────────────────────────────────────────

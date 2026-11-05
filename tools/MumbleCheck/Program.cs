@@ -296,6 +296,16 @@ static string RawFile(string path)
     Check("talk: whisper uses a saved target", MumbleService.TargetOf(MumbleTalk.Channel) != 0);
     Check("talk: whisper's target is the channel alone, no links or subchannels",
           MumbleClient.ChannelTargetMessage(1, 7).SequenceEqual(new PbWriter().UInt(1, 1).Bytes(2, new PbWriter().UInt(2, 7).ToArray()).ToArray()));
+    Check("any key: every one has a name and its own code", GlobalHotkeyService.AnyKeys.All(k => k.Name.Length > 0 && k.WinVk != 0) && GlobalHotkeyService.AnyKeys.Select(k => k.WinVk).Distinct().Count() == GlobalHotkeyService.AnyKeys.Count);
+    Check("any key: letters, with the system's own codes", GlobalHotkeyService.VkOf(Avalonia.Input.Key.T) == 0x54 && GlobalHotkeyService.VkName(0x54) == "T" && GlobalHotkeyService.VkToX11Keysym(0x54) == 0x74 && GlobalHotkeyService.VkToMacKeyCode(0x54) == 0x11);
+    Check("any key: the keys on a normal keyboard", new[] { Avalonia.Input.Key.F1, Avalonia.Input.Key.F12, Avalonia.Input.Key.Space, Avalonia.Input.Key.LeftCtrl, Avalonia.Input.Key.RightAlt, Avalonia.Input.Key.CapsLock, Avalonia.Input.Key.OemTilde, Avalonia.Input.Key.NumPad5, Avalonia.Input.Key.D7 }.All(k => GlobalHotkeyService.VkOf(k) != 0));
+    Check("any key: F1 and F24 where Windows has them", GlobalHotkeyService.VkOf(Avalonia.Input.Key.F1) == 0x70 && GlobalHotkeyService.VkOf(Avalonia.Input.Key.F24) == 0x87 && GlobalHotkeyService.VkName(0x7C) == "F13");
+    Check("any key: Escape is kept for cancelling", GlobalHotkeyService.VkOf(Avalonia.Input.Key.Escape) == 0);
+    Check("any key: nothing pressed is nothing", GlobalHotkeyService.VkOf(Avalonia.Input.Key.None) == 0);
+    Check("mouse: the back button", GlobalHotkeyService.MouseButton(0x020B, 1u << 16) == (GlobalHotkeyService.VkMouseBack, true) && GlobalHotkeyService.MouseButton(0x020C, 1u << 16) == (GlobalHotkeyService.VkMouseBack, false));
+    Check("mouse: the forward button", GlobalHotkeyService.MouseButton(0x020B, 2u << 16) == (GlobalHotkeyService.VkMouseForward, true));
+    Check("mouse: the middle button", GlobalHotkeyService.MouseButton(0x0207, 0) == (GlobalHotkeyService.VkMouseMiddle, true) && GlobalHotkeyService.MouseButton(0x0208, 0) == (GlobalHotkeyService.VkMouseMiddle, false));
+    Check("mouse: moving and the left button are not talking", GlobalHotkeyService.MouseButton(0x0200, 0) is null && GlobalHotkeyService.MouseButton(0x0201, 0) is null);
     Check("keys: the same talk key on another server", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7C }, [a]) == "One");
     Check("keys: my shout on their talk", MumbleService.KeyClash(new MumbleServer { Id = 2, ShoutKey = 0x7C }, [a]) == "One");
     Check("keys: my talk on their shout", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x7D }, [a]) == "One");

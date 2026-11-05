@@ -239,4 +239,16 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>{0} has no linked channels, so Whisper and Shout both reach only that channel.</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Press a key or mouse button (Esc cancels)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Click a key's button, then press the key or mouse button to use. It also still does its normal job, so a key you type with will talk as you type.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>

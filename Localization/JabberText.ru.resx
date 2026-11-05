@@ -250,4 +250,28 @@
   <data name="MessageHint" xml:space="preserve">
     <value>Введите сообщение. Enter — отправить, Shift+Enter — новая строка.</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Этот сервер хранит архив личных сообщений, поэтому пропущенные будут получены при подключении.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Этот сервер не хранит архив личных сообщений. Сообщения, отправленные, пока вы не в сети, он всё же может сохранять.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>Архив хранят комнат: {0} из {1}. Пропущенные в них сообщения будут получены при подключении; остальные показывают только то, что повторяют при входе.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Эта комната хранит архив: пропущенные сообщения будут получены при подключении.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Эта комната не хранит архив: вы видите только то, что она повторяет при входе.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>У этой комнаты есть архив, но она не открывает его этой учётной записи: вы видите только то, что она повторяет при входе.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

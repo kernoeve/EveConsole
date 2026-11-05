@@ -331,4 +331,28 @@ Trust it only if this matches what the server's admin published. From then on, o
     <value>Write a message. Enter sends, Shift+Enter starts a new line.</value>
     <comment>Input hint.</comment>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>This server keeps an archive of direct messages, so ones you miss are caught up when you connect.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>This server keeps no archive of direct messages. It may still hold ones sent while you are offline.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>{0} of {1} joined rooms keep an archive. Messages you miss in those are caught up when you connect; the others show only what they replay when you join.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>This room keeps an archive: messages you miss are caught up when you connect.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>This room keeps no archive: you see only what it replays when you join.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>This room has an archive but will not share it with this account: you see only what it replays when you join.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

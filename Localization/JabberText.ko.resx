@@ -250,4 +250,28 @@
   <data name="MessageHint" xml:space="preserve">
     <value>메시지를 입력하세요. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>이 서버는 다이렉트 메시지 아카이브를 보관하므로 놓친 메시지는 연결할 때 가져옵니다.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>이 서버는 다이렉트 메시지 아카이브를 보관하지 않습니다. 오프라인일 때 보낸 메시지는 보관할 수 있습니다.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>참여 중인 방 {1}개 중 {0}개가 아카이브를 보관합니다. 해당 방에서 놓친 메시지는 연결할 때 가져오며, 나머지 방은 참여할 때 다시 보내는 내용만 표시합니다.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>이 방은 아카이브를 보관합니다. 놓친 메시지는 연결할 때 가져옵니다.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>이 방은 아카이브를 보관하지 않습니다. 참여할 때 다시 보내는 내용만 볼 수 있습니다.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>이 방에는 아카이브가 있지만 이 계정과 공유하지 않습니다. 참여할 때 다시 보내는 내용만 볼 수 있습니다.</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

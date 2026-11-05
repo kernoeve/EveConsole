@@ -250,4 +250,28 @@
   <data name="MessageHint" xml:space="preserve">
     <value>输入消息。Enter 发送，Shift+Enter 换行。</value>
   </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>此服务器保存私信存档，错过的私信会在连接时补回。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>此服务器不保存私信存档。不过它可能会保留你离线时发送的私信。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>已加入的 {1} 个房间中有 {0} 个保存存档。在这些房间错过的消息会在连接时补回；其他房间只显示加入时重放的内容。</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>此房间保存存档：错过的消息会在连接时补回。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>此房间不保存存档：你只能看到加入时重放的内容。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>此房间有存档，但不向此账户开放：你只能看到加入时重放的内容。</value>
+    <comment>At the top of a room.</comment>
+  </data>
 </root>

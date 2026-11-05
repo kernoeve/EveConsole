@@ -183,4 +183,16 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>{0} n'a aucun canal lié : le chuchotement et le cri n'atteignent donc que ce canal.</value>
     <comment>{0} = the channel the user is in.</comment>
   </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Appuyez sur une touche ou un bouton de souris (Échap annule)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Effacer</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Cliquez sur le bouton, puis appuyez sur la touche ou le bouton de souris à utiliser. Il garde sa fonction normale : une touche de frappe parlera donc pendant que vous tapez.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
 </root>
