@@ -2548,4 +2548,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>このコーポレーションには Upwell ストラクチャがありません。</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>ソロキル</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>ソロキル</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>トップ10 ソロキル</value>
+  </data>
 </root>

@@ -886,6 +886,92 @@ public class CorpActivityService
         return ApplyTop10WithTies(rows, excludeIds);
     }
 
+    /// <summary>
+    /// Kills a member made with no other pilot on the mail.
+    ///
+    /// <para>⚠️ Pilots, not attackers: rats and structures on the mail have no character, and
+    /// finishing something a rat was also shooting is still a solo kill.</para>
+    /// </summary>
+    public async Task<List<RankedPlayerRow>> GetTopSoloKillersAsync(
+        long corpId, DateTimeOffset since, DateTimeOffset? until = null,
+        IReadOnlySet<long>? excludeIds = null, CancellationToken ct = default)
+    {
+        using var db = _dbFactory.CreateDbContext();
+        var sinceStr = SqlCutoff(since);
+        var untilStr = SqlCutoff(until ?? DateTimeOffset.MaxValue);
+        var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
+            SELECT a."CharacterId", COUNT(DISTINCT d."KillMailId") AS "Amount"
+            FROM "KillMailDetails" d
+            JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
+                AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
+            JOIN "KillMailAttackers" a ON a."KillMailId" = d."KillMailId"
+            WHERE a."CorporationId" = {corpId}
+              AND d."VictimCorpId" != {corpId}
+              AND d."KillMailTime" >= {sinceStr}
+              AND d."KillMailTime" < {untilStr}
+              AND a."CharacterId" IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM "KillMailAttackers" other
+                  WHERE other."KillMailId" = d."KillMailId"
+                    AND other."CharacterId" IS NOT NULL
+                    AND other."CharacterId" <> a."CharacterId")
+            GROUP BY a."CharacterId"
+            ORDER BY COUNT(DISTINCT d."KillMailId") DESC
+            """).ToListAsync(ct);
+        return ApplyTop10WithTies(rows, excludeIds);
+    }
+
+    /// <summary>
+    /// What each id is: "character", "corporation" or "alliance", as ESI names them.
+    ///
+    /// <para>⚠️ Asked rather than worked out from the number. Entities created before 2010 share
+    /// one range of ids, so a range only settles the ones ESI cannot be asked about. An id still
+    /// unknown after that is left out, and the caller treats it as a pilot.</para>
+    /// </summary>
+    public async Task<Dictionary<long, string>> GetEntityKindsAsync(
+        IReadOnlyCollection<long> ids, CancellationToken ct = default)
+    {
+        var kinds = new Dictionary<long, string>();
+        if (ids.Count == 0) return kinds;
+
+        using var db = _dbFactory.CreateDbContext();
+
+        foreach (var c in await db.Characters.AsNoTracking().Where(c => ids.Contains(c.Id)).Select(c => c.Id).ToListAsync(ct))
+            kinds[c] = "character";
+
+        var cached = await db.UniverseNames.AsNoTracking()
+            .Where(u => ids.Contains(u.EntityId))
+            .Select(u => new { u.EntityId, u.Category })
+            .ToListAsync(ct);
+
+        foreach (var u in cached)
+            if (u.Category.Length > 0) kinds.TryAdd(u.EntityId, u.Category);
+
+        var unknown = ids.Where(id => !kinds.ContainsKey(id) && id is > 0 and <= int.MaxValue).Select(id => (int)id).ToList();
+        if (unknown.Count > 0)
+        {
+            try
+            {
+                foreach (var n in await _esi.GetNamesAsync(unknown, ct))
+                    kinds[n.Id] = n.Category;
+            }
+            catch (Exception ex)
+            {
+                // The ranges below still settle most of them, and a wrong image is not worth a
+                // post that never goes out.
+                System.Diagnostics.Debug.WriteLine($"[Names] kinds lookup failed: {ex.Message}");
+            }
+        }
+
+        foreach (var id in ids.Where(id => !kinds.ContainsKey(id)))
+        {
+            if (id is >= 98_000_000 and < 99_000_000 or >= 1_000_000 and < 2_000_000) kinds[id] = "corporation";
+            else if (id is >= 99_000_000 and < 100_000_000) kinds[id] = "alliance";
+        }
+
+        return kinds;
+    }
+
     public async Task<List<CorpProjectContributor>> GetProjectContributorsAsync(
         long corpId, string projectId, CancellationToken ct = default)
     {

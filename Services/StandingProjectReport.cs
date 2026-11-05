@@ -64,46 +64,35 @@ public static class StandingProjectReport
     };
 
     /// <summary>
-    /// A set of expanded rows as a fenced block.
+    /// The order a report lists its rows in.
     ///
-    /// <para>Columns are space-padded inside a code fence for the same reason the monthly summary
-    /// is: Slack renders proportionally, so nothing but a monospace block lines up.</para>
-    ///
-    /// <para>⚠️ The shape follows the project type, because the two are identified by different
-    /// things. A destroy-NPC row is a place, so it gets Region, System and the system's ADM. A
-    /// delivery is an item and where it goes, and has no system of its own to put in a column.</para>
+    /// <para>Region then system, so the list reads as a tour of the map rather than in whatever
+    /// order the scopes happened to expand. Rows with no system sort last rather than first, since
+    /// an empty string would otherwise head the list.</para>
     /// </summary>
-    public static string Export(
-        IReadOnlyList<StandingProjectGridRow> rows,
-        string heading,
-        string projectType      = DestroyNpc,
-        bool   showHeaders      = false,
-        bool   showIskLeft      = true,
-        bool   showLastCompleted = true,
-        string formatName       = "Slack")
-    {
-        if (rows.Count == 0) return "";
-
-        var byPlace = projectType == DestroyNpc;
-
-        // Region then system, so the list reads as a tour of the map rather than in whatever order
-        // the scopes happened to expand. Rows with no system sort last rather than first, since an
-        // empty string would otherwise head the list.
-        var ordered = byPlace
+    public static List<StandingProjectGridRow> Ordered(IEnumerable<StandingProjectGridRow> rows, string projectType) =>
+        projectType == DestroyNpc
             ? [.. rows.OrderBy(r => r.RegionName.Length == 0)
                       .ThenBy(r => r.RegionName, StringComparer.OrdinalIgnoreCase)
                       .ThenBy(r => r.SystemName, StringComparer.OrdinalIgnoreCase)]
-            : rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase).ToList();
+            : [.. rows.OrderBy(Describe, StringComparer.OrdinalIgnoreCase)];
 
-        // ⚠️ Header, cell and alignment defined together, so a column cannot be switched off or
-        // moved in one place and left behind in another. The optional ones are simply not added.
-        //
-        // Right is for the columns that hold a quantity: digits line up on their last character,
-        // so magnitudes are comparable down the column instead of every number starting in the
-        // same place and ending wherever it happens to.
+    /// <summary>
+    /// A report's columns: the text table and the rich rows print the same ones.
+    ///
+    /// <para>⚠️ Header, cell and alignment defined together, so a column cannot be switched off or
+    /// moved in one place and left behind in another. The optional ones are simply not added.</para>
+    ///
+    /// <para>Right is for the columns that hold a quantity: digits line up on their last character,
+    /// so magnitudes are comparable down the column instead of every number starting in the same
+    /// place and ending wherever it happens to.</para>
+    /// </summary>
+    public static List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)> Columns(
+        string projectType, bool showIskLeft, bool showLastCompleted)
+    {
         var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)>();
 
-        if (byPlace)
+        if (projectType == DestroyNpc)
         {
             cols.Add((CorpText.ColRegion, r => r.RegionName, false));
             // A named system that never expanded still has a name on the row; fall back to it
@@ -130,6 +119,33 @@ public static class StandingProjectReport
 
         cols.Add(("%", r => r.RemainingPercentText, true));
         if (showLastCompleted) cols.Add((CorpText.ReportColLastCompleted, LastDone, false));
+
+        return cols;
+    }
+
+    /// <summary>
+    /// A set of expanded rows as a fenced block.
+    ///
+    /// <para>Columns are space-padded inside a code fence for the same reason the monthly summary
+    /// is: Slack renders proportionally, so nothing but a monospace block lines up.</para>
+    ///
+    /// <para>⚠️ The shape follows the project type, because the two are identified by different
+    /// things. A destroy-NPC row is a place, so it gets Region, System and the system's ADM. A
+    /// delivery is an item and where it goes, and has no system of its own to put in a column.</para>
+    /// </summary>
+    public static string Export(
+        IReadOnlyList<StandingProjectGridRow> rows,
+        string heading,
+        string projectType      = DestroyNpc,
+        bool   showHeaders      = false,
+        bool   showIskLeft      = true,
+        bool   showLastCompleted = true,
+        string formatName       = "Slack")
+    {
+        if (rows.Count == 0) return "";
+
+        var ordered = Ordered(rows, projectType);
+        var cols    = Columns(projectType, showIskLeft, showLastCompleted);
 
         var headers = cols.Select(c => c.Header).ToArray();
         var aligns  = cols.Select(c => c.Right).ToArray();

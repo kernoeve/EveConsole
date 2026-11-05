@@ -3416,4 +3416,13 @@
     <value>No Upwell structures for this corporation.</value>
     <comment>Corp Structures → Config: the corporation has no Upwell structures.</comment>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Solo Kills</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>SOLO KILLS</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Top10 solo killers</value>
+  </data>
 </root>

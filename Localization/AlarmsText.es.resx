@@ -1837,4 +1837,28 @@
   <data name="WebhookHostedNote" xml:space="preserve">
     <value>Este webhook de Slack muestra las imágenes por su dirección, así que se suben a eveconsole.com y se guardan 12 meses. Cualquiera con el enlace puede verlas.</value>
   </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>En Slack, publicar con imágenes y columnas alineadas</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>Sin marcar, esta sección se publica como tabla de texto. Discord siempre recibe el texto.</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — aquí se muestra como texto; Slack recibe imágenes y columnas alineadas]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>{0} del total</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>Publicado(s) {0} mensaje(s) con imágenes.</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>Publicados {0} de {1} mensajes; Slack rechazó el siguiente: {2}.</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack no aceptó el formato con imágenes ({0}), así que se envió como texto.</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>Líder</value>
+  </data>
 </root>

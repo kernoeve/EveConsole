@@ -2569,4 +2569,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>Esta corporación no tiene estructuras Upwell.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Muertes en solitario</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>MUERTES EN SOLITARIO</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Top 10 muertes en solitario</value>
+  </data>
 </root>

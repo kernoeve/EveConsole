@@ -1801,4 +1801,28 @@
   <data name="WebhookHostedNote" xml:space="preserve">
     <value>この Slack Webhook は画像をアドレスで表示するため、画像は eveconsole.com にアップロードされ、12 か月間保管されます。リンクを知っている人は誰でも見ることができます。</value>
   </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>Slack では画像と揃えた列で投稿する</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>オフの場合、このセクションはテキストの表として投稿されます。Discord には常にテキストが送られます。</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — ここではテキストで表示。Slack には画像と揃えた列で送られます]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>全体の {0}</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>画像付きのメッセージを {0} 件投稿しました。</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>{1} 件中 {0} 件を投稿しました。Slack が次を拒否しました: {2}。</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack が画像付きの形式を受け付けなかったため ({0})、テキストで送信しました。</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>首位</value>
+  </data>
 </root>

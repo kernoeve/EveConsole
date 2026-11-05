@@ -288,6 +288,10 @@ public sealed class MessageBlockVm : ReactiveObject
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
 
+        // ⚠️ A new Top 10 starts rich. A new project list does not: as rows it runs long in the
+        // channel, so it is somebody's choice to make. A saved section keeps what it was saved with.
+        _slackRich = fresh ? model.Type == MessageBlock.TypeTop10 : model.SlackRich;
+
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
@@ -500,6 +504,12 @@ public sealed class MessageBlockVm : ReactiveObject
         get => _showLastCompleted;
         set => this.RaiseAndSetIfChanged(ref _showLastCompleted, value);
     }
+
+    private bool _slackRich;
+
+    /// <summary>Top 10 and standing projects: images and lined-up columns on Slack, or the text
+    /// table. Discord always gets the text.</summary>
+    public bool SlackRich { get => _slackRich; set => this.RaiseAndSetIfChanged(ref _slackRich, value); }
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -928,6 +938,7 @@ public sealed class MessageBlockVm : ReactiveObject
         ShowHeaders        = ShowHeaders,
         ShowIskLeft        = ShowIskLeft,
         ShowLastCompleted  = ShowLastCompleted,
+        SlackRich          = SlackRich,
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
@@ -1972,7 +1983,11 @@ public sealed class SchedulerViewModel : ReactiveObject
                 .Concat(Blocks.Where(b => b.IsParkCompare || b.IsSystemIndex).SelectMany(b =>
                     ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true && !_onlineSignedIn
                         ? string.Format(AlarmsText.PreviewChartSkipped, title)
-                        : string.Format(AlarmsText.PreviewChartUploaded, title)))));
+                        : string.Format(AlarmsText.PreviewChartUploaded, title))))
+                // The numbers are what a preview is for, so the text shows them, and says it is
+                // not how Slack will draw them.
+                .Concat(Destination?.IsDiscord == true ? [] : Blocks.Where(b => b.ToModel().UsesSlackRich)
+                    .Select(b => string.Format(AlarmsText.PreviewSlackRich, b.Heading))));
 
             var shown = string.Join("\n\n",
                 new[] { render.Text, noted }.Where(t => t.Length > 0));

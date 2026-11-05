@@ -18,11 +18,12 @@ public class CorpReportTitles(AppPreferencesService prefs)
     /// <summary>The Top 10 lists, in the order the exports print them.</summary>
     public static readonly (string Key, string Title)[] Top10Categories =
     [
-        ("ratting",  CorpText.Top10TitleRatting),
-        ("mining",   CorpText.Top10TitleMining),
-        ("kills",    CorpText.Top10TitleKills),
-        ("projects", CorpText.Top10TitleProjects),
-        ("industry", CorpText.Top10TitleIndustry),
+        ("ratting",   CorpText.Top10TitleRatting),
+        ("mining",    CorpText.Top10TitleMining),
+        ("kills",     CorpText.Top10TitleKills),
+        ("solokills", CorpText.Top10TitleSoloKills),
+        ("projects",  CorpText.Top10TitleProjects),
+        ("industry",  CorpText.Top10TitleIndustry),
     ];
 
     /// <summary>

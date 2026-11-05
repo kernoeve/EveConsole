@@ -104,6 +104,15 @@ jobs:
       - name: Worklist rank check
         run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
 
+      # ⚠️ Do the scheduled posts' rich Slack lists still line up, on a phone as well as a PC?
+      # Rows with images have no real columns, only padding worked out from the font, and only two
+      # kinds of blank keep their width in a container on a phone. Drift, a corp with a pilot's
+      # portrait, a share of the wrong total or a two-pilot kill called solo all look like a
+      # finished post. This checks the padding, Slack's block limits, and the lists from a
+      # throwaway database.
+      - name: Slack rich format check
+        run: dotnet run --project tools/SlackRichCheck/SlackRichCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

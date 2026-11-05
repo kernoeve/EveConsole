@@ -2569,4 +2569,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>Diese Corporation hat keine Upwell-Strukturen.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Solo-Abschüsse</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>SOLO-ABSCHÜSSE</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Top 10 Solo-Abschüsse</value>
+  </data>
 </root>

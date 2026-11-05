@@ -154,8 +154,14 @@ public class SchedulerService(
         // the online services, which is only possible once this database has signed in.
         var canHost = viaWebhook && await online.AccountAsync(ct) is not null;
 
-        var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
-        var body   = render.Text.Trim();
+        // Only a task with a section that asks for the rich format goes this way. Every other task
+        // renders, splits and posts as it always has.
+        var rich   = cfg.Blocks.Any(b => b.UsesSlackRich) ? await renderer.RenderSlackRichAsync(cfg.Blocks, now, ct) : null;
+        var render = rich is null ? await renderer.RenderAsync(cfg.Blocks, now, ct) : null;
+        var body   = render?.Text.Trim() ?? "";
+
+        var hasWords   = rich is not null ? rich.Messages.Count > 0 : body.Length > 0;
+        var anyDynamic = rich?.AnyDynamicContent ?? render!.AnyDynamicContent;
 
         // ⚠️ Charts are drawn BEFORE anything is decided, because whether they came out is part
         // of whether there is anything to post. A task of nothing but charts renders no text at
@@ -175,24 +181,24 @@ public class SchedulerService(
             drawn.AddRange(await renderer.RenderPicturesAsync(b, ct, forWebhook: viaWebhook));
         }
 
-        if (body.Length == 0 && drawn.Count == 0)
+        if (!hasWords && drawn.Count == 0)
             return (true, WithSkipped(AlarmsText.RunRenderedEmpty, skipped));
 
         // Asked for, and only then: a task whose static text is the point should still go out on a
         // quiet month. A chart that drew counts as something to say. ⚠️ Counts as the run either
         // way — it got as far as deciding what to send, and deciding to send nothing is a
         // decision, not a failure to retry.
-        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
+        if (cfg.SkipIfNoDynamicContent && !anyDynamic && drawn.Count == 0)
             return (true, WithSkipped(AlarmsText.RunNothingDynamic, skipped));
 
         var what = AlarmsText.RunPosted;
 
-        if (body.Length > 0)
+        // ⚠️ In parts, never whole. Slack splits a long message by length alone, through the
+        // middle of a code block, so a weekly post whose lists had grown arrived as two messages
+        // with every table in both broken. The splitter ends each part cleanly.
+        async Task<(bool Ok, string What)> PostTextAsync(string text)
         {
-            // ⚠️ In parts, never whole. Slack splits a long message by length alone, through the
-            // middle of a code block, so a weekly post whose lists had grown arrived as two
-            // messages with every table in both broken. The splitter ends each part cleanly.
-            var sent = await SlackMessageSplitter.PostAsync(body, (part, token) => viaWebhook
+            var sent = await SlackMessageSplitter.PostAsync(text, (part, token) => viaWebhook
                 ? PostWebhookAsync(cfg.DestinationId, part, token)
                 : slack.PostMessageAsync(cfg.DestinationId, part, ct: token), ct);
 
@@ -201,11 +207,45 @@ public class SchedulerService(
 
             // ⚠️ Some of it did. Failing the run would post those parts again on every retry, so
             // the run counts, and says what never arrived.
-            what = !sent.AllPosted
+            return (true, !sent.AllPosted
                 ? string.Format(AlarmsText.RunPostedPart, sent.Posted, sent.Total, sent.Characters, sent.Error)
                 : sent.Total > 1
                     ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
-                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
+                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters));
+        }
+
+        if (rich is { Messages.Count: > 0 })
+        {
+            var sent = await PostRichAsync(rich.Messages, (message, token) => viaWebhook
+                ? PostWebhookAsync(cfg.DestinationId, message.Fallback, token, message.Blocks)
+                : slack.PostMessageAsync(cfg.DestinationId, message.Fallback, blocks: message.Blocks, ct: token), ct);
+
+            if (sent.Posted > 0)
+            {
+                what = sent.AllPosted
+                    ? string.Format(AlarmsText.RunPostedRich, sent.Posted)
+                    : string.Format(AlarmsText.RunPostedRichPart, sent.Posted, sent.Total, sent.Error);
+            }
+            else if (SlackRichBlocks.RefusedForFormat(sent.Error))
+            {
+                // ⚠️ Slack would not take the format. The numbers are still worth more than a post
+                // that never comes, so they go as text, and the result says why it looks different.
+                var plain = (await renderer.RenderAsync(cfg.Blocks, now, ct)).Text.Trim();
+                var (ok, said) = await PostTextAsync(plain);
+                if (!ok) return (false, said);
+                what = string.Format(AlarmsText.RunRichRefused, sent.Error) + " " + said;
+            }
+            else
+            {
+                // Nothing reached the channel, so the next pass can try the whole thing again.
+                return (false, string.Format(AlarmsText.RunSlackRefused, sent.Error));
+            }
+        }
+        else if (body.Length > 0)
+        {
+            var (ok, said) = await PostTextAsync(body);
+            if (!ok) return (false, said);
+            what = said;
         }
 
         // After the text, so the message reads in the order it was composed: the words, then the
@@ -230,6 +270,37 @@ public class SchedulerService(
         if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
 
         return (true, WithSkipped(what, skipped));
+    }
+
+    /// <summary>
+    /// Posts rich messages in order, as <see cref="SlackMessageSplitter"/> posts parts: a second
+    /// apart, a later one tried twice since the ones before it are already in the channel, and
+    /// stopping at the first refused, since anything after a gap would read as nothing missing.
+    /// </summary>
+    public static async Task<SlackPartsResult> PostRichAsync(
+        IReadOnlyList<SlackRichMessage> messages,
+        Func<SlackRichMessage, CancellationToken, Task<SlackPostResult>> post,
+        CancellationToken ct = default,
+        TimeSpan? gap = null)
+    {
+        var between = gap ?? TimeSpan.FromSeconds(1);
+
+        for (var i = 0; i < messages.Count; i++)
+        {
+            if (i > 0) await Task.Delay(between, ct);
+
+            var res = await post(messages[i], ct);
+
+            if (!res.Ok && i > 0)
+            {
+                await Task.Delay(between * 3, ct);
+                res = await post(messages[i], ct);
+            }
+
+            if (!res.Ok) return new SlackPartsResult(i, messages.Count, 0, res.Error);
+        }
+
+        return new SlackPartsResult(messages.Count, messages.Count, 0, null);
     }
 
     /// <summary>

@@ -367,6 +367,11 @@
                                           Content="{x:Static loc:AlarmsText.ShowOnlyTheShare}" />
                                 <TextBlock Classes="hint"
                                            Text="{x:Static loc:AlarmsText.EachListPrintsTheNote}" />
+
+                                <CheckBox IsChecked="{Binding SlackRich}" Margin="0 4 0 0"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
                               </StackPanel>
 
                               <!-- Indy Park Compare: parks, the job list as the Compare tab edits it, and
@@ -512,6 +517,11 @@
                                   <CheckBox IsChecked="{Binding ShowIskLeft}" Content="{x:Static loc:AlarmsText.IskLeftColumn}" />
                                   <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="{x:Static loc:AlarmsText.LastCompletedColumn}" />
                                 </StackPanel>
+
+                                <CheckBox IsChecked="{Binding SlackRich}"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
