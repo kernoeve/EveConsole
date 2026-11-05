@@ -199,4 +199,8 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Nivelar mi voz automáticamente</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Desconectado por el servidor: {0}. Sigue desconectado hasta que vuelvas a conectarte.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

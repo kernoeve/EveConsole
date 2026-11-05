@@ -255,4 +255,8 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Level my voice automatically</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Disconnected by the server: {0}. It stays off until you connect again.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

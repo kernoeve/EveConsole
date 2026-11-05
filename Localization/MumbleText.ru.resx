@@ -199,4 +199,8 @@
     <value>Автоматически выравнивать мой голос</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Сервер отключил вас: {0}. Подключение не восстановится, пока вы не подключитесь снова.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

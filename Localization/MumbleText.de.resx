@@ -199,4 +199,8 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Meine Stimme automatisch ausgleichen</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Vom Server getrennt: {0}. Die Verbindung bleibt getrennt, bis du dich erneut verbindest.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

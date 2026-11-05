@@ -199,4 +199,8 @@
     <value>自动调整我的语音音量</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>已被服务器断开：{0}。在你重新连接之前将保持断开。</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

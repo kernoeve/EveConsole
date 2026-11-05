@@ -314,6 +314,7 @@ public sealed class MumbleViewModel : ReactiveObject
             MumbleProblem.Certificate => MumbleText.ProblemCertificate,
             MumbleProblem.Password    => MumbleText.ProblemPassword,
             MumbleProblem.Username    => MumbleText.ProblemUsername,
+            MumbleProblem.Removed     => string.Format(CultureInfo.CurrentCulture, MumbleText.ProblemRemoved, session.Detail),
             _                         => session.Detail,
         },
         _ => MumbleText.StateOffline,

@@ -199,4 +199,8 @@
     <value>내 음성 레벨 자동 조정</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>서버에 의해 연결이 끊겼습니다: {0}. 다시 연결할 때까지 끊긴 상태로 유지됩니다.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

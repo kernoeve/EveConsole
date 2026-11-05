@@ -334,9 +334,56 @@ static string RawFile(string path)
         return (counted == 0 ? -120 : 10 * Math.Log10(sum / counted / (32768.0 * 32768.0)), 20 * Math.Log10(Math.Max(peak, 1) / 32768), leveler.GainDb);
     }
 
+    // A long quiet stretch, then someone raising their voice: the moment that came through too hot.
+    static (double LoudestFrameDb, double PeakDb) Raised()
+    {
+        var leveler = new MumbleVoiceLeveler();
+        leveler.StartTalk();
+        double loudest = -120, peak = 0;
+        for (var f = 0; f < 300; f++)
+        {
+            var amplitude = Math.Pow(10, (f < 200 ? -42 : -15) / 20.0) * 32768 * Math.Sqrt(2);
+            var frame = new short[MumbleEncoder.FrameSamples];
+            for (var i = 0; i < frame.Length; i++) frame[i] = (short)Math.Clamp(Math.Sin(2 * Math.PI * 300 * (f * frame.Length + i) / 48000) * amplitude, short.MinValue, short.MaxValue);
+            leveler.Process(frame);
+            double sum = 0;
+            foreach (var s in frame) { sum += (double)s * s; peak = Math.Max(peak, Math.Abs((double)s)); }
+            loudest = Math.Max(loudest, 10 * Math.Log10(Math.Max(sum / frame.Length, 1) / (32768.0 * 32768.0)));
+        }
+        return (loudest, 20 * Math.Log10(peak / 32768));
+    }
+
+    var raised = Raised();
+    Check("level: a sudden loud word stays below clipping, with room for Opus", raised.PeakDb <= -1.4, $"peak {raised.PeakDb:0.0}");
+    Check("level: and is turned down at once", raised.LoudestFrameDb < -5, $"loudest frame {raised.LoudestFrameDb:0.0}");
+
+    static double PauseDb(double seconds)
+    {
+        var leveler = new MumbleVoiceLeveler();
+        leveler.StartTalk();
+        var random = new Random(3);
+        var amplitude = Math.Pow(10, -38 / 20.0) * 32768 * Math.Sqrt(2);
+        var hiss = Math.Pow(10, -60 / 20.0) * 32768;
+        double last = 0;
+        for (var f = 0; f < seconds * 50; f++)
+        {
+            var speaking = f < 150;
+            var frame = new short[MumbleEncoder.FrameSamples];
+            for (var i = 0; i < frame.Length; i++) frame[i] = (short)((speaking ? Math.Sin(2 * Math.PI * 300 * (f * frame.Length + i) / 48000) * amplitude : 0) + (random.NextDouble() - 0.5) * hiss);
+            leveler.Process(frame);
+            double sum = 0;
+            foreach (var s in frame) sum += (double)s * s;
+            last = 10 * Math.Log10(Math.Max(sum / frame.Length, 0.01) / (32768.0 * 32768.0));
+        }
+        return last;
+    }
+
+    var pauseLevel = PauseDb(5);
+    Check("level: the pauses between words are quieter than the voice raises them", pauseLevel < -60, $"{pauseLevel:0.0} dBFS");
+
     var quietVoice = Levelled(-38, 8);
     Check("level: a quiet voice comes up to the target", Math.Abs(quietVoice.SpeechDb - MumbleVoiceLeveler.TargetDb) < 2, $"{quietVoice.SpeechDb:0.0} dBFS, gain {quietVoice.FinalGain:0.0}");
-    var loudVoice = Levelled(-6, 8);
+    var loudVoice = Levelled(-12, 8);
     Check("level: a loud voice comes down to it", Math.Abs(loudVoice.SpeechDb - MumbleVoiceLeveler.TargetDb) < 2.5, $"{loudVoice.SpeechDb:0.0} dBFS, gain {loudVoice.FinalGain:0.0}");
     var veryQuiet = Levelled(-70 + 12, 12, background: -90);
     Check("level: never raises by more than the standard client's most", veryQuiet.FinalGain <= MumbleVoiceLeveler.MostRaiseDb && veryQuiet.FinalGain > 25, $"gain {veryQuiet.FinalGain:0.0}");

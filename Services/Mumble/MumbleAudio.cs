@@ -193,9 +193,21 @@ public sealed class MumbleEncoder
 /// </summary>
 public sealed class MumbleVoiceLeveler
 {
-    public const double TargetDb = -18, MostRaiseDb = 29, MostLowerDb = -12;
+    /// <summary>Where the standard client put the same voice, measured the same way from what the server sent on.</summary>
+    public const double TargetDb = -21;
 
-    private const double FrameSeconds = 0.02, RaisePerSecond = 12, FirstRaisePerSecond = 40, LowerPerSecond = 60;
+    public const double MostRaiseDb = 29, MostLowerDb = -12;
+
+    /// <summary>What the pauses between words are lowered by: the standard client's own noise suppression strength.</summary>
+    public const double PauseLowerDb = -30;
+
+    private const double FrameSeconds = 0.02, RaisePerSecond = 12, FirstRaisePerSecond = 25, LowerPerSecond = 60;
+
+    /// <summary>The loudest a frame may be turned up to. ⚠️ Below full scale, because Opus can overshoot what it was given by a decibel or so.</summary>
+    private const double GuardDb = -3;
+
+    /// <summary>How long a voice's end is left alone before the pause counts as one.</summary>
+    private const int PauseAfterFrames = 15;
 
     /// <summary>How long it climbs quickly at first. ⚠️ The microphone is only open while talking, unlike the standard client's, so it has no silence to learn in.</summary>
     private const int LearningFrames = 75;
@@ -203,10 +215,10 @@ public sealed class MumbleVoiceLeveler
     /// <summary>What is held back at the start of a press: the key's click and the microphone opening are there, not the voice.</summary>
     private const int QuietFrames = 3;
 
-    private const double LimitFrom = 0.7 * short.MaxValue, Ceiling = 0.98 * short.MaxValue;
+    private const double LimitFrom = 0.6 * short.MaxValue, Ceiling = 0.84 * short.MaxValue;
 
-    private double _gainDb, _floorDb = -70, _levelPower;
-    private int _speechFrames, _framesIntoTalk;
+    private double _gainDb, _appliedDb, _floorDb = -70, _levelPower, _pauseDb;
+    private int _speechFrames, _framesIntoTalk, _framesSinceSpeech = PauseAfterFrames;
 
     public double GainDb => _gainDb;
 
@@ -214,19 +226,22 @@ public sealed class MumbleVoiceLeveler
 
     public void Process(Span<short> frame)
     {
-        double sum = 0;
-        foreach (var s in frame) sum += (double)s * s;
+        double sum = 0, peak = 0;
+        foreach (var s in frame)
+        {
+            sum += (double)s * s;
+            peak = Math.Max(peak, Math.Abs((double)s));
+        }
         var power = sum / frame.Length;
         var db = power <= 1 ? -90 : 10 * Math.Log10(power / (32768.0 * 32768.0));
-
-        var before = _gainDb;
 
         // The background: follows silence straight down, and creeps up only slowly, so a long sound never becomes it.
         _floorDb = db < _floorDb ? db : _floorDb + FrameSeconds;
 
         if (_framesIntoTalk >= QuietFrames && db > Math.Max(_floorDb + 10, -60))
         {
-            _levelPower = _levelPower == 0 ? power : _levelPower + (power - _levelPower) * 0.066;
+            // Quick to hear a voice get louder, slow to believe it got quieter, or the next loud word comes through far too hot.
+            _levelPower = _levelPower == 0 ? power : _levelPower + (power - _levelPower) * (power > _levelPower ? 0.35 : 0.04);
 
             var level = 10 * Math.Log10(_levelPower / (32768.0 * 32768.0));
             var wanted = Math.Clamp(TargetDb - level, MostLowerDb, MostRaiseDb);
@@ -234,10 +249,23 @@ public sealed class MumbleVoiceLeveler
 
             _gainDb += Math.Clamp(wanted - _gainDb, -LowerPerSecond * FrameSeconds, up);
             _speechFrames++;
+            _framesSinceSpeech = 0;
         }
+        else _framesSinceSpeech++;
 
-        var start = Math.Pow(10, before / 20);
-        var end = Math.Pow(10, _gainDb / 20);
+        // One loud moment is turned down for that moment, without losing what has been learned about the voice.
+        var peakDb = peak <= 1 ? -90 : 20 * Math.Log10(peak / 32768.0);
+        var appliedDb = Math.Min(_gainDb, GuardDb - peakDb);
+
+        // Quiet between words, open again at once for the next.
+        var pauseDb = _framesSinceSpeech < PauseAfterFrames ? 0 : Math.Max(_pauseDb - 6, PauseLowerDb);
+
+        // Down at once, up gradually: easing into a loud frame would let its first part through at the old gain.
+        var start = Math.Pow(10, (Math.Min(_appliedDb, appliedDb) + _pauseDb) / 20);
+        var end = Math.Pow(10, (appliedDb + pauseDb) / 20);
+        _appliedDb = appliedDb;
+        _pauseDb = pauseDb;
+
         var opening = _framesIntoTalk < QuietFrames ? 0.0 : _framesIntoTalk == QuietFrames ? -1.0 : 1.0;
 
         for (var i = 0; i < frame.Length; i++)

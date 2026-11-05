@@ -10,7 +10,7 @@ namespace EveConsole.Services.Mumble;
 
 public enum MumbleState { Offline, Connecting, Connected, Reconnecting, Failed }
 
-public enum MumbleProblem { None, Certificate, Password, Username, Other }
+public enum MumbleProblem { None, Certificate, Password, Username, Removed, Other }
 
 /// <summary>What pressing a server's keys does.</summary>
 public enum MumbleTalk { None, Channel, Shout }
@@ -356,6 +356,13 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 session.CertificateFingerprint = e.CertificateFingerprint ?? "";
                 session.CertificateSubject     = e.CertificateSubject ?? "";
                 SetState(session, MumbleState.Failed, MumbleProblem.Certificate, e.Message);
+                return;
+            }
+            catch (MumbleException e) when (e.Failure == MumbleFailure.Removed)
+            {
+                // ⚠️ Not a dropped connection. Going straight back would undo a kick, and two clients on one login would
+                // throw each other off for ever. The standard client stays off too.
+                SetState(session, MumbleState.Failed, MumbleProblem.Removed, e.Message);
                 return;
             }
             catch (MumbleException e) when (e.Failure == MumbleFailure.Rejected

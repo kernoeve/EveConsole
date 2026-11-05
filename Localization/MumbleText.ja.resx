@@ -199,4 +199,8 @@
     <value>自分の音声レベルを自動調整する</value>
     <comment>Sound settings.</comment>
   </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>サーバーにより切断されました: {0}。再度接続するまで切断されたままです。</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
 </root>

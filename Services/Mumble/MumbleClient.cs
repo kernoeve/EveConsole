@@ -6,7 +6,7 @@ using EveConsole.Services;
 
 namespace EveConsole.Services.Mumble;
 
-public enum MumbleFailure { Network, Certificate, Rejected, Protocol }
+public enum MumbleFailure { Network, Certificate, Rejected, Protocol, Removed }
 
 public enum MumbleReject { None, WrongVersion, InvalidUsername, WrongUserPassword, WrongServerPassword, UsernameInUse, ServerFull, NoCertificate, AuthenticatorFail }
 
@@ -354,6 +354,10 @@ public sealed class MumbleClient : IAsyncDisposable
 
             case MumbleMessage.UserRemove:
                 var gone = (uint)(m.UInt(1) ?? 0);
+
+                // This client's own removal: kicked, banned, or this login connecting from somewhere else.
+                if (Me?.Session == gone) throw new MumbleException(MumbleFailure.Removed, m.Text(3) ?? "");
+
                 lock (_gate) _users.Remove(gone);
                 UserLeft?.Invoke(gone);
                 Changed?.Invoke();
