@@ -63,7 +63,14 @@ public sealed class MumbleChatVm(MumbleChatLine line)
 {
     public string Sender { get; } = line.Sender;
     public string Text   { get; } = line.Text;
-    public string When   { get; } = line.When.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
+
+    /// <summary>Time alone for today, with the date for anything older.</summary>
+    public string When { get; } = line.When.ToLocalTime().Date == DateTime.Today
+        ? line.When.ToLocalTime().ToString("t", CultureInfo.CurrentCulture)
+        : line.When.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);
+
+    public string Channel => line.Channel;
+    public bool HasChannel => line.Channel.Length > 0;
     public bool IsPrivate => line.IsPrivate;
 }
 

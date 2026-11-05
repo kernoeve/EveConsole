@@ -93,6 +93,7 @@ public class AppDbContext : DbContext
     public DbSet<JabberAccount>         JabberAccounts           => Set<JabberAccount>();
     public DbSet<MumbleServer>          MumbleServers            => Set<MumbleServer>();
     public DbSet<MumbleUserVolume>      MumbleUserVolumes        => Set<MumbleUserVolume>();
+    public DbSet<MumbleChatMessage>     MumbleChatMessages       => Set<MumbleChatMessage>();
     public DbSet<JabberRoom>            JabberRooms              => Set<JabberRoom>();
     public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
@@ -1196,6 +1197,11 @@ public class AppDbContext : DbContext
         mb.Entity<MumbleUserVolume>(e => {
             e.HasKey(x => new { x.ServerId, x.UserKey });
             e.ToTable("MumbleUserVolumes"); });
+
+        mb.Entity<MumbleChatMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.Id }).HasDatabaseName("IX_MumbleChatMessages_Server");
+            e.ToTable("MumbleChatMessages"); });
 
         mb.Entity<JabberAccount>(e => {
             e.HasKey(x => x.Id);

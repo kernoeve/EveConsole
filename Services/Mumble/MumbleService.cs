@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -16,7 +17,11 @@ public enum MumbleProblem { None, Certificate, Password, Username, Removed, Othe
 public enum MumbleTalk { None, Channel, Shout }
 
 /// <summary>A line of a server's text chat, in memory for as long as the app runs.</summary>
-public sealed record MumbleChatLine(DateTimeOffset When, string Sender, string Text, bool IsPrivate, bool IsOutgoing);
+public sealed record MumbleChatLine(DateTimeOffset When, string Sender, string Text, bool IsPrivate, bool IsOutgoing)
+{
+    /// <summary>The channel it was said in. Blank for a private message.</summary>
+    public string Channel { get; init; } = "";
+}
 
 /// <summary>Somebody talking right now, for the overlay.</summary>
 public sealed record MumbleTalker(int ServerId, string Server, uint Session, string Name, bool IsSelf, MumbleTalk Mode);
@@ -176,13 +181,98 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         Devices.Captured += OnCaptured;
         _sender = Task.Run(SendFramesAsync, CancellationToken.None);
         _keyWorker = Task.Run(HandleKeysAsync, CancellationToken.None);
+        _chatSaver ??= Task.Run(SaveChatAsync, CancellationToken.None);
         StartTalkerWatch();
+
+        await PurgeOldChatAsync(ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         foreach (var server in await db.MumbleServers.AsNoTracking().OrderBy(s => s.Id).ToListAsync(ct))
         {
             var session = Track(server);
+            await LoadChatAsync(session, ct);
             if (server.AutoConnect) Connect(session);
+        }
+    }
+
+    // ── Chat that outlasts the app ────────────────────────────────────────────
+
+    private const string StoredDate = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private const int SaveAttempts = 5;
+
+    /// <summary>What is waiting to be saved, in order, so that a busy database never holds up the connection's reader.</summary>
+    private readonly Channel<(int ServerId, MumbleChatLine Line)> _chatSaves = Channel.CreateUnbounded<(int, MumbleChatLine)>();
+    private Task? _chatSaver;   // ⚠️ Not SingleReader: that kind of channel cannot say how much is waiting, which shutting down asks.
+
+    private void Record(MumbleSession session, MumbleChatLine line)
+    {
+        session.AddChat(line);
+        _chatSaves.Writer.TryWrite((session.Server.Id, line));
+        ChatReceived?.Invoke(session, line);
+    }
+
+    private async Task SaveChatAsync()
+    {
+        await foreach (var (serverId, line) in _chatSaves.Reader.ReadAllAsync())
+        {
+            // ⚠️ A busy database usually clears in moments, so it gets several tries. This must never end, or nothing
+            // said afterwards would be kept.
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await using var db = await dbFactory.CreateDbContextAsync();
+                    db.MumbleChatMessages.Add(new MumbleChatMessage
+                    {
+                        ServerId = serverId, Sender = line.Sender, Body = line.Text, Channel = line.Channel,
+                        SentAt = line.When.UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture),
+                        IsPrivate = line.IsPrivate, IsOutgoing = line.IsOutgoing,
+                    });
+                    await db.SaveChangesAsync();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    if (attempt >= SaveAttempts)
+                    {
+                        errors.Log(nameof(MumbleService), "save a chat line", e);
+                        break;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(attempt * 2));
+                }
+            }
+        }
+    }
+
+    /// <summary>A server's latest lines, as they were, for its chat to open on.</summary>
+    private async Task LoadChatAsync(MumbleSession session, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var rows = await db.MumbleChatMessages.AsNoTracking().Where(m => m.ServerId == session.Server.Id)
+                           .OrderByDescending(m => m.Id).Take(MaxChatLines).ToListAsync(ct);
+
+        foreach (var row in Enumerable.Reverse(rows))
+            session.AddChat(new MumbleChatLine(
+                DateTimeOffset.TryParse(row.SentAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when) ? when : DateTimeOffset.MinValue,
+                row.Sender, row.Body, row.IsPrivate, row.IsOutgoing) { Channel = row.Channel });
+    }
+
+    /// <summary>Past the days Jabber's history is kept, by the same setting. Zero keeps it all.</summary>
+    private async Task PurgeOldChatAsync(CancellationToken ct)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == Jabber.JabberService.HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
+            var days  = int.TryParse(saved, out var d) ? d : Jabber.JabberService.DefaultHistoryDays;
+            if (days <= 0) return;
+
+            var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture);
+            await db.MumbleChatMessages.Where(m => string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+        }
+        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
+        {
+            errors.Log(nameof(MumbleService), "purge old chat", e);
         }
     }
 
@@ -191,6 +281,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         MumbleSession[] all;
         lock (_gate) all = [.. _sessions.Values];
         await Task.WhenAll(all.Select(DisconnectAsync));
+
+        // A moment for the last lines said to reach the database.
+        for (var waited = 0; _chatSaves.Reader.Count > 0 && waited < 20; waited++) await Task.Delay(100);
+
         _talkerTimer?.Dispose();
         Devices?.Dispose();
     }
@@ -248,6 +342,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.MumbleUserVolumes.Where(v => v.ServerId == id).ExecuteDeleteAsync(ct);
+        await db.MumbleChatMessages.Where(m => m.ServerId == id).ExecuteDeleteAsync(ct);
         await db.MumbleServers.Where(s => s.Id == id).ExecuteDeleteAsync(ct);
 
         await Task.Run(() =>
@@ -610,9 +705,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         var words = PlainText(text.Message);
         if (words.Length > MostChatChars) words = words[..MostChatChars] + "\u2026";
 
-        var line = new MumbleChatLine(DateTimeOffset.UtcNow, sender, words, text.Sessions.Count > 0, false);
-        session.AddChat(line);
-        ChatReceived?.Invoke(session, line);
+        var isPrivate = text.Sessions.Count > 0;
+        var channel = !isPrivate && text.Channels.Count > 0 ? client.ChannelOf(text.Channels[0])?.Name ?? "" : "";
+
+        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, sender, words, isPrivate, false) { Channel = channel });
     }
 
     public async Task SendTextAsync(MumbleSession session, string message, CancellationToken ct = default)
@@ -621,9 +717,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await client.SendTextToChannelAsync(me.ChannelId, WebUtility.HtmlEncode(message).Replace("\n", "<br>", StringComparison.Ordinal), ct);
 
-        var line = new MumbleChatLine(DateTimeOffset.UtcNow, me.Name, message, false, true);
-        session.AddChat(line);
-        ChatReceived?.Invoke(session, line);
+        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, me.Name, message, false, true) { Channel = client.ChannelOf(me.ChannelId)?.Name ?? "" });
     }
 
     /// <summary>To one person, wherever on the server they are.</summary>
@@ -633,9 +727,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await client.SendTextToUserAsync(to.Session, WebUtility.HtmlEncode(message).Replace("\n", "<br>", StringComparison.Ordinal), ct);
 
-        var line = new MumbleChatLine(DateTimeOffset.UtcNow, $"{me.Name} \u2192 {to.Name}", message, true, true);
-        session.AddChat(line);
-        ChatReceived?.Invoke(session, line);
+        Record(session, new MumbleChatLine(DateTimeOffset.UtcNow, $"{me.Name} \u2192 {to.Name}", message, true, true));
     }
 
     public Task JoinChannelAsync(MumbleSession session, uint channel, CancellationToken ct = default) =>
@@ -793,6 +885,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         _sender ??= Task.Run(SendFramesAsync, CancellationToken.None);
         _keyWorker ??= Task.Run(HandleKeysAsync, CancellationToken.None);
+        _chatSaver ??= Task.Run(SaveChatAsync, CancellationToken.None);
         StartTalkerWatch();
     }
 
