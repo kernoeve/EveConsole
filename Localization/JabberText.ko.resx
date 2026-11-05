@@ -7,6 +7,21 @@
   <data name="Typing" xml:space="preserve">
     <value>{0} 님이 입력 중…</value>
   </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>첨부</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>파일을 이 서버에 올리고 주소를 보냅니다. 주소를 아는 사람은 누구나 열 수 있습니다.</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>{0} 보내는 중…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0}의 크기는 {1}입니다. 이 서버는 {2}까지의 파일을 받습니다.</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0}을(를) 보내지 못했습니다: {1}</value>
+  </data>
   <data name="ShowOnline" xml:space="preserve">
     <value>온라인</value>
   </data>

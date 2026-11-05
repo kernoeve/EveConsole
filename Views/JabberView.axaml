@@ -258,10 +258,13 @@
 
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
           <TextBlock Text="{Binding TypingText}" IsVisible="{Binding IsSomeoneTyping}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextFaintBrush}" />
-          <Grid ColumnDefinitions="*,Auto" Margin="10 6">
+          <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
+          <Grid ColumnDefinitions="*,Auto,Auto" Margin="10 6">
             <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120"
                      Watermark="{x:Static loc:JabberText.MessageHint}" />
-            <Button Grid.Column="1" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="1" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
+                    ToolTip.Tip="{x:Static loc:JabberText.AttachTip}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="2" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
           </Grid>
         </StackPanel>
       </Grid>

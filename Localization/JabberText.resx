@@ -8,6 +8,26 @@
     <value>{0} is typing…</value>
     <comment>Under a conversation. {0} = person.</comment>
   </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>Attach</value>
+    <comment>Button: send a file.</comment>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>Puts the file on this server and sends its address. Anyone who has the address can open it.</value>
+    <comment>Tooltip.</comment>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>Sending {0}…</value>
+    <comment>Under a conversation. {0} = file name.</comment>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} is {1}. This server takes files up to {2}.</value>
+    <comment>{0} = file name, {1} and {2} = sizes.</comment>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} was not sent: {1}</value>
+    <comment>{0} = file name, {1} = why.</comment>
+  </data>
   <data name="ShowOnline" xml:space="preserve">
     <value>Online</value>
     <comment>Availability choice.</comment>

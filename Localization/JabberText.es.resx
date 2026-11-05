@@ -7,6 +7,21 @@
   <data name="Typing" xml:space="preserve">
     <value>{0} está escribiendo…</value>
   </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>Adjuntar</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>Sube el archivo a este servidor y envía su dirección. Cualquiera que tenga la dirección puede abrirlo.</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>Enviando {0}…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} ocupa {1}. Este servidor admite archivos de hasta {2}.</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} no se envió: {1}</value>
+  </data>
   <data name="ShowOnline" xml:space="preserve">
     <value>Conectado</value>
   </data>

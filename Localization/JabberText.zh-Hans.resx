@@ -7,6 +7,21 @@
   <data name="Typing" xml:space="preserve">
     <value>{0} 正在输入…</value>
   </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>附件</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>将文件放到此服务器并发送其地址。任何拥有该地址的人都可以打开它。</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>正在发送 {0}…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} 的大小为 {1}。此服务器接受不超过 {2} 的文件。</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} 未发送：{1}</value>
+  </data>
   <data name="ShowOnline" xml:space="preserve">
     <value>在线</value>
   </data>

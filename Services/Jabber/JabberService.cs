@@ -62,6 +62,9 @@ public sealed class JabberSession(JabberAccount account)
 
     public IReadOnlyList<string> ConferenceServices { get; internal set; } = [];
 
+    /// <summary>Where this server takes files, if it does.</summary>
+    public XmppUploadService? UploadService { get; internal set; }
+
     internal XmppClient? Client { get; set; }
     internal CancellationTokenSource? Run { get; set; }
     internal Task? Loop { get; set; }
@@ -364,6 +367,36 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         }
     }
 
+    /// <summary>
+    /// What was missed while away, if the server keeps an archive. The server's stored messages come out on
+    /// connecting anyway, so this mostly finds what those miss: what was said while another client was connected,
+    /// and what this account said from elsewhere.
+    ///
+    /// <para>⚠️ Only for an account with something saved already. A new one starts from now: years of an archive
+    /// arriving as unread messages would be no use to anyone.</para>
+    /// </summary>
+    private async Task CatchUpFromArchiveAsync(JabberSession session, XmppClient client, CancellationToken ct)
+    {
+        try
+        {
+            string? last;
+            await using (var db = await dbFactory.CreateDbContextAsync(ct))
+                last = await db.JabberMessages.AsNoTracking()
+                    .Where(m => m.AccountId == session.Account.Id && !m.IsRoom)
+                    .OrderByDescending(m => m.Id).Select(m => m.SentAt).FirstOrDefaultAsync(ct);
+
+            if (last is null || !DateTimeOffset.TryParse(last, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var since)) return;
+            if (!await client.HasArchiveAsync(ct)) return;
+
+            // A little before, since neither clock is to be trusted; what overlaps is recognised and dropped.
+            await client.QueryArchiveAsync(since - TimeSpan.FromMinutes(5), ct);
+        }
+        catch (OperationCanceledException) { /* disconnected meanwhile: the next connection asks again */ }
+        catch (TimeoutException) { /* an archive too slow to wait for is not worth failing over */ }
+        catch (XmppException) { /* not having it costs only what the server's stored messages already cover */ }
+        catch (IOException) { /* the connection went: the next one asks again */ }
+    }
+
     /// <summary>Everything a fresh connection needs, in the order that loses nothing.</summary>
     private async Task SetUpSessionAsync(JabberSession session, XmppClient client, CancellationToken ct)
     {
@@ -381,6 +414,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         try { session.ConferenceServices = await client.ConferenceServicesAsync(ct); }
         catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.ConferenceServices = []; }
+
+        try { session.UploadService = await client.FindUploadServiceAsync(ct); }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.UploadService = null; }
+
+        // Not waited on: being connected should not hang on a long archive.
+        _ = CatchUpFromArchiveAsync(session, client, ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -567,6 +606,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         if (message.IsCorrection && await ApplyCorrectionAsync(db, row, ct)) return null;
 
+        if (message.ArchiveId.Length > 0)
+        {
+            if (await AlreadyHaveArchivedAsync(db, row, message, ct)) return null;
+            row.DedupeKey = $"s:{row.Conversation}:{message.ArchiveId}";
+        }
+
         if (await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && m.DedupeKey == row.DedupeKey, ct)) return null;
 
         db.JabberMessages.Add(row);
@@ -584,6 +629,33 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (row.IsAlert && !row.IsRead) AlertArrived?.Invoke(row);
         return row;
     }
+
+    /// <summary>
+    /// Whether something out of the archive was already delivered. ⚠️ A delivered message is known by whatever it
+    /// carried then, so all of those are tried. One with no id at all, as some bots send, can only be known by
+    /// who said what and about when.
+    /// </summary>
+    private static async Task<bool> AlreadyHaveArchivedAsync(AppDbContext db, JabberStoredMessage row, XmppMessage message, CancellationToken ct)
+    {
+        var plain = message with { ServerId = "", ArchiveId = "" };
+
+        List<string> keys = [$"s:{row.Conversation}:{message.ArchiveId}"];
+        if (message.ServerId.Length > 0) keys.Add($"s:{row.Conversation}:{message.ServerId}");
+        if (message.Id.Length > 0) keys.Add(DedupeKey(row.Conversation, row.Sender, plain));
+
+        if (await db.JabberMessages.AnyAsync(m => m.AccountId == row.AccountId && keys.Contains(m.DedupeKey), ct)) return true;
+        if (message.Id.Length > 0) return false;
+
+        var recent = await db.JabberMessages.AsNoTracking()
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation && m.Sender == row.Sender && m.Body == row.Body)
+            .OrderByDescending(m => m.Id).Take(20).Select(m => m.SentAt).ToListAsync(ct);
+
+        return recent.Any(at => DateTimeOffset.TryParse(at, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when)
+                                && DateTimeOffset.TryParse(row.SentAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var mine)
+                                && (when - mine).Duration() < ArchiveSameMoment);
+    }
+
+    private static readonly TimeSpan ArchiveSameMoment = TimeSpan.FromMinutes(2);
 
     /// <summary>
     /// A correction changes that person's latest message in the conversation, which is the only one the
@@ -678,7 +750,14 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     public static string DedupeKey(string conversation, string sender, XmppMessage message)
     {
         if (message.ServerId.Length > 0) return $"s:{conversation}:{message.ServerId}";
-        if (message.Id.Length > 0)       return $"i:{conversation}:{sender}:{message.Id}";
+
+        // ⚠️ With the words as well: a bot whose counter started again after a restart reuses its ids, and its next
+        // broadcast is a new message however familiar the number. The same id and the same words is a real repeat.
+        if (message.Id.Length > 0)
+        {
+            var words = SHA256.HashData(Encoding.UTF8.GetBytes(message.Body));
+            return $"i:{conversation}:{sender}:{message.Id}:{Convert.ToHexString(words)[..16]}";
+        }
 
         var stamp = message.Sent?.UtcDateTime.ToString("O", CultureInfo.InvariantCulture) ?? Guid.NewGuid().ToString("N");
         var hash  = SHA256.HashData(Encoding.UTF8.GetBytes($"{conversation}|{sender}|{message.Body}|{stamp}"));
@@ -697,6 +776,41 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (isRoom) return;
 
         await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", text, "", id, null, "", true), ct);
+    }
+
+    private static readonly HttpClient Uploads = new() { Timeout = TimeSpan.FromMinutes(15) };
+
+    /// <summary>
+    /// ⚠️ Encrypted only, as the protocol requires: the file's address is the only thing protecting it. Plain http
+    /// is allowed to this machine alone, for testing.
+    /// </summary>
+    public static bool IsSafeUploadUrl(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback);
+
+    /// <summary>Puts a file on the server, and sends its address to the conversation.</summary>
+    public async Task SendFileAsync(JabberSession session, string conversation, bool isRoom, Stream content, string fileName, long size, string contentType, CancellationToken ct = default)
+    {
+        var client  = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        var service = session.UploadService ?? throw new XmppException(XmppFailure.Protocol, "This server does not take files.");
+
+        var slot = await client.RequestUploadSlotAsync(service.Jid, XmppClient.Clean(Path.GetFileName(fileName)), size, contentType, ct);
+        if (!IsSafeUploadUrl(slot.PutUrl) || !IsSafeUploadUrl(slot.GetUrl))
+            throw new XmppException(XmppFailure.Protocol, "The server offered an unencrypted address for the file.");
+
+        using var body = new StreamContent(content);
+        body.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        body.Headers.ContentLength = size;
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, slot.PutUrl) { Content = body };
+        foreach (var header in slot.Headers) request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+        using var response = await Uploads.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        response.EnsureSuccessStatusCode();
+
+        var id = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", slot.GetUrl, ct, slot.GetUrl);
+        if (!isRoom)
+            await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", slot.GetUrl, "", id, null, "", true), ct);
     }
 
     /// <summary>Tells someone this account is typing to them, if their client has shown it can use that.</summary>

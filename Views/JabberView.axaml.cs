@@ -1,5 +1,6 @@
 using EveConsole.Services;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -79,6 +80,20 @@ public partial class JabberView : UserControl
         e.Handled = true;
         if (DataContext is JabberViewModel vm && !string.IsNullOrWhiteSpace(vm.Draft))
             vm.SendCommand.Execute().Subscribe(_ => { }, _ => { });
+    }
+
+    /// <summary>Asks which file, then sends it to the open conversation.</summary>
+    private async void OnAttach(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not JabberViewModel vm || TopLevel.GetTopLevel(this) is not { } top) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { AllowMultiple = false });
+        if (files.Count == 0) return;
+
+        var file = files[0];
+        var size = (await file.GetBasicPropertiesAsync()).Size ?? 0;
+        await using var content = await file.OpenReadAsync();
+        await vm.SendFileAsync(content, file.Name, (long)size);
     }
 
     /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>

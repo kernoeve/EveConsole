@@ -491,6 +491,57 @@ public sealed class JabberViewModel : ReactiveObject
     public string TypingText { get => _typingText; private set { this.RaiseAndSetIfChanged(ref _typingText, value); this.RaisePropertyChanged(nameof(IsSomeoneTyping)); } }
     public bool IsSomeoneTyping => TypingText.Length > 0;
 
+    // ── Files ─────────────────────────────────────────────────────────────────
+
+    private bool _canAttach;
+    public bool CanAttach { get => _canAttach; private set => this.RaiseAndSetIfChanged(ref _canAttach, value); }
+
+    private string _sendingFile = "";
+    public string SendingFile { get => _sendingFile; private set { this.RaiseAndSetIfChanged(ref _sendingFile, value); this.RaisePropertyChanged(nameof(IsSendingFile)); } }
+    public bool IsSendingFile => SendingFile.Length > 0;
+
+    /// <summary>Plain words for a size: the person is choosing what to do about it.</summary>
+    public static string SizeText(long bytes) => bytes >= 1024 * 1024
+        ? $"{bytes / 1048576.0:N1} MB"
+        : $"{Math.Max(1, bytes / 1024):N0} KB";
+
+    /// <summary>What to tell the server the file is. Its name decides, as a browser's fetch of it will.</summary>
+    public static string ContentTypeOf(string fileName) => Path.GetExtension(fileName).ToLowerInvariant() switch
+    {
+        ".png"  => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif"  => "image/gif",
+        ".webp" => "image/webp",
+        ".pdf"  => "application/pdf",
+        ".txt" or ".log" => "text/plain",
+        ".zip"  => "application/zip",
+        _       => "application/octet-stream",
+    };
+
+    /// <summary>Sends a file the person chose to the open conversation.</summary>
+    public async Task SendFileAsync(Stream content, string fileName, long size)
+    {
+        if (SelectedRow is not { Kind: JabberRowKind.Contact or JabberRowKind.Room } row || Session is not { } session) return;
+
+        if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.FileTooBig, fileName, SizeText(size), SizeText(service.MaxBytes));
+            return;
+        }
+
+        StatusText = "";
+        SendingFile = string.Format(CultureInfo.CurrentCulture, JabberText.SendingFile, fileName);
+        try
+        {
+            await Task.Run(() => _service.SendFileAsync(session, row.Key, row.Kind == JabberRowKind.Room, content, fileName, size, ContentTypeOf(fileName)));
+        }
+        catch (Exception e) when (e is XmppException or HttpRequestException or IOException or TaskCanceledException)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.SendFileFailed, fileName, e.Message);
+        }
+        finally { SendingFile = ""; }
+    }
+
     private void OnDraftChanged()
     {
         if (SelectedRow is not { Kind: JabberRowKind.Contact } row || Session is not { } session) return;
@@ -745,6 +796,8 @@ public sealed class JabberViewModel : ReactiveObject
         _loadingDetail = true;
         try
         {
+            CanAttach = row.Kind is JabberRowKind.Contact or JabberRowKind.Room
+                        && session.UploadService is not null && session.State == JabberState.Connected;
             Title    = row.ShownText;
             Subtitle = row.Kind == JabberRowKind.Account ? session.Account.Address : row.ShownDetail.Length > 0 && row.Kind == JabberRowKind.Invite ? row.ShownDetail : row.Key;
 

@@ -17,7 +17,16 @@ public sealed record XmppMessage(
 {
     /// <summary>The sender corrected their last message: this replaces it rather than following it.</summary>
     public bool IsCorrection { get; init; }
+
+    /// <summary>Came out of the server's archive, under this id, rather than being delivered.</summary>
+    public string ArchiveId { get; init; } = "";
 }
+
+/// <summary>Where this server takes files, and the largest it says it will.</summary>
+public sealed record XmppUploadService(string Jid, long MaxBytes);
+
+/// <summary>Where to put a file, what to send with it, and the address others fetch it from.</summary>
+public sealed record XmppUploadSlot(string PutUrl, string GetUrl, IReadOnlyList<KeyValuePair<string, string>> Headers);
 
 public sealed record XmppRosterItem(string Jid, string Name, string Subscription, bool AskedByUs, IReadOnlyList<string> Groups);
 
@@ -62,6 +71,10 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public static readonly XNamespace Carbons   = "urn:xmpp:carbons:2";
     public static readonly XNamespace Forward   = "urn:xmpp:forward:0";
     public static readonly XNamespace ChatStates = "http://jabber.org/protocol/chatstates";
+    public static readonly XNamespace Mam       = "urn:xmpp:mam:2";
+    public static readonly XNamespace Rsm       = "http://jabber.org/protocol/rsm";
+    public static readonly XNamespace Upload    = "urn:xmpp:http:upload:0";
+    public static readonly XNamespace Oob       = "jabber:x:oob";
     public static readonly XNamespace Hints     = "urn:xmpp:hints";
     public static readonly XNamespace Delay     = "urn:xmpp:delay";
     public static readonly XNamespace OldDelay  = "jabber:x:delay";
@@ -221,6 +234,12 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
 
     private void HandleMessage(XElement stanza)
     {
+        if (stanza.Element(Mam + "result") is not null)
+        {
+            if (ParseArchived(stanza, Self, _archiveQuery) is { } archived) MessageReceived?.Invoke(archived);
+            return;
+        }
+
         if (ParseInvite(stanza) is { } invite)
         {
             InviteReceived?.Invoke(invite);
@@ -515,9 +534,11 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     }
 
     /// <summary>Sends a direct message, or a room message for type "groupchat". Returns its id.</summary>
-    public async Task<string> SendMessageAsync(string to, string type, string body, CancellationToken ct)
+    public async Task<string> SendMessageAsync(string to, string type, string body, CancellationToken ct, string? fileUrl = null)
     {
-        var id = "ec" + Interlocked.Increment(ref _nextId).ToString(CultureInfo.InvariantCulture);
+        // ⚠️ Unique for good, not for this connection: a counter starts again on the next one, and the same id
+        // to the same person reads as a repeat of what was already saved, so the new message would vanish.
+        var id = "ec" + Guid.NewGuid().ToString("N");
         var message = new XElement(Client + "message",
             new XAttribute("to", to), new XAttribute("type", type), new XAttribute("id", id),
             new XElement(Client + "body", Clean(body)));
@@ -525,8 +546,159 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         // Says this client understands typing notices, so one that does can start sending them.
         if (type == "chat") message.Add(new XElement(ChatStates + "active"));
 
+        // Tells a client that shows pictures that the words are a file's address, not something someone wrote.
+        if (fileUrl is not null) message.Add(new XElement(Oob + "x", new XElement(Oob + "url", fileUrl)));
+
         await connection.WriteAsync(message, ct);
         return id;
+    }
+
+    // ── The server's archive ──────────────────────────────────────────────────
+
+    private volatile string? _archiveQuery;
+
+    /// <summary>
+    /// One message out of this account's own archive, or null for anything else.
+    ///
+    /// <para>⚠️ Only from this account's own server and only in answer to a question asked now. Anyone can send a
+    /// stanza dressed as an archive result, and taken at face value it would put words in anyone's mouth, dated
+    /// whenever the forger likes.</para>
+    /// </summary>
+    public static XmppMessage? ParseArchived(XElement stanza, XmppAddress self, string? expectedQuery)
+    {
+        var result = stanza.Element(Mam + "result");
+        if (result is null || expectedQuery is null || (string?)result.Attribute("queryid") != expectedQuery) return null;
+
+        if ((string?)stanza.Attribute("from") is { } from && XmppAddress.Parse(from).Bare != self.Bare) return null;
+
+        var forwarded = result.Element(Forward + "forwarded");
+        var inner     = forwarded?.Element(Client + "message");
+        if (forwarded is null || inner is null) return null;
+
+        // Rooms have their own history, asked for on joining.
+        var type = (string?)inner.Attribute("type") ?? "normal";
+        if (type is "groupchat" or "error") return null;
+
+        var body = inner.Element(Client + "body")?.Value ?? "";
+        if (body.Length == 0) return null;
+
+        DateTimeOffset? sent = null;
+        if (DateTimeOffset.TryParse((string?)forwarded.Element(Delay + "delay")?.Attribute("stamp"), CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp)) sent = stamp;
+
+        var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
+
+        return new XmppMessage(
+            sender,
+            XmppAddress.Parse((string?)inner.Attribute("to")),
+            type, body,
+            inner.Element(Client + "subject")?.Value ?? "",
+            (string?)inner.Attribute("id") ?? "",
+            sent,
+            (string?)inner.Element(StanzaId + "stanza-id")?.Attribute("id") ?? "",
+            sender.Bare == self.Bare)
+        {
+            ArchiveId = (string?)result.Attribute("id") ?? "",
+        };
+    }
+
+    /// <summary>Whether this account's server keeps an archive to ask.</summary>
+    public async Task<bool> HasArchiveAsync(CancellationToken ct) =>
+        (await FeaturesOfAsync(Self.Bare, ct)).Contains(Mam.NamespaceName);
+
+    /// <summary>Asks for everything since a moment. It arrives as ordinary messages, before this returns.</summary>
+    public async Task QueryArchiveAsync(DateTimeOffset since, CancellationToken ct)
+    {
+        const int PageSize = 100, MostPages = 20;
+
+        var query = "ec" + Guid.NewGuid().ToString("N");
+        _archiveQuery = query;
+        try
+        {
+            string? after = null;
+            for (var page = 0; page < MostPages; page++)
+            {
+                var answer = await QueryAsync("set", null, new XElement(Mam + "query",
+                    new XAttribute("queryid", query),
+                    new XElement(DataForm + "x", new XAttribute("type", "submit"),
+                        new XElement(DataForm + "field", new XAttribute("var", "FORM_TYPE"), new XAttribute("type", "hidden"),
+                            new XElement(DataForm + "value", Mam.NamespaceName)),
+                        new XElement(DataForm + "field", new XAttribute("var", "start"),
+                            new XElement(DataForm + "value", since.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)))),
+                    new XElement(Rsm + "set",
+                        new XElement(Rsm + "max", PageSize),
+                        after is null ? null : new XElement(Rsm + "after", after))), ct);
+
+                var fin = answer.Element(Mam + "fin");
+                if (fin is null || (string?)fin.Attribute("complete") == "true") return;
+
+                after = fin.Element(Rsm + "set")?.Element(Rsm + "last")?.Value;
+                if (string.IsNullOrEmpty(after)) return;
+            }
+        }
+        finally { _archiveQuery = null; }
+    }
+
+    // ── Files ─────────────────────────────────────────────────────────────────
+
+    /// <summary>What a service's own description says about taking files, or null if it does not.</summary>
+    public static XmppUploadService? ParseUploadService(string jid, XElement info)
+    {
+        var query = info.Element(DiscoInfo + "query");
+        if (query is null || !query.Elements(DiscoInfo + "feature").Any(f => (string?)f.Attribute("var") == Upload.NamespaceName)) return null;
+
+        long most = 0;
+        foreach (var form in query.Elements(DataForm + "x"))
+        {
+            var fields = form.Elements(DataForm + "field").ToList();
+            if (fields.All(f => f.Element(DataForm + "value")?.Value != Upload.NamespaceName)) continue;
+
+            var size = fields.FirstOrDefault(f => (string?)f.Attribute("var") == "max-file-size")?.Element(DataForm + "value")?.Value;
+            if (long.TryParse(size, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0) most = parsed;
+        }
+        return new XmppUploadService(jid, most);
+    }
+
+    /// <summary>The first service on this server that takes files, or null.</summary>
+    public async Task<XmppUploadService?> FindUploadServiceAsync(CancellationToken ct)
+    {
+        foreach (var item in await ItemsOfAsync(Self.Domain, ct))
+        {
+            try
+            {
+                var info = await QueryAsync("get", item.Jid, new XElement(DiscoInfo + "query"), ct);
+                if (ParseUploadService(item.Jid, info) is { } service) return service;
+            }
+            catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { /* a service with nothing to say about itself */ }
+        }
+        return null;
+    }
+
+    /// <summary>Where to put a file, from the answer to asking for somewhere. Null if the answer does not say.</summary>
+    public static XmppUploadSlot? ParseUploadSlot(XElement answer)
+    {
+        var slot = answer.Element(Upload + "slot");
+        var put  = slot?.Element(Upload + "put");
+        var get  = (string?)slot?.Element(Upload + "get")?.Attribute("url");
+        var url  = (string?)put?.Attribute("url");
+        if (put is null || string.IsNullOrEmpty(url) || string.IsNullOrEmpty(get)) return null;
+
+        // ⚠️ Only the three the protocol allows: anything else is a server telling this client what to send.
+        string[] allowed = ["Authorization", "Cookie", "Expires"];
+        var headers = put.Elements(Upload + "header")
+            .Select(h => new KeyValuePair<string, string>((string?)h.Attribute("name") ?? "", h.Value))
+            .Where(h => allowed.Contains(h.Key, StringComparer.OrdinalIgnoreCase) && !h.Value.Contains('\n') && !h.Value.Contains('\r'))
+            .ToList();
+
+        return new XmppUploadSlot(url, get, headers);
+    }
+
+    public async Task<XmppUploadSlot> RequestUploadSlotAsync(string service, string fileName, long size, string contentType, CancellationToken ct)
+    {
+        var answer = await QueryAsync("get", service, new XElement(Upload + "request",
+            new XAttribute("filename", fileName), new XAttribute("size", size), new XAttribute("content-type", contentType)), ct);
+
+        return ParseUploadSlot(answer) ?? throw new XmppException(XmppFailure.Protocol, "The server gave nowhere to put the file.");
     }
 
     /// <summary>Tells someone this account has started or stopped typing to them. Never stored for later.</summary>

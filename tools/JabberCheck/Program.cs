@@ -232,6 +232,80 @@ void Check(string name, bool ok, string detail = "")
 }
 
 // ── Saving, reading and forgetting ────────────────────────────────────────────
+// ── The server's archive: only ever this account's own ──────────────────────
+{
+    var self = XmppAddress.Parse("me@example/home");
+
+    XElement Archived(string? outerFrom, string queryId, string innerFrom, string type = "chat", string body = "hello", string? innerId = "m1") =>
+        new(XmppClient.Client + "message",
+            outerFrom is null ? null : new XAttribute("from", outerFrom),
+            new XElement(XmppClient.Mam + "result", new XAttribute("queryid", queryId), new XAttribute("id", "arc-1"),
+                new XElement(XmppClient.Forward + "forwarded",
+                    new XElement(XmppClient.Delay + "delay", new XAttribute("stamp", "2026-01-02T03:04:05Z")),
+                    new XElement(XmppClient.Client + "message",
+                        new XAttribute("from", innerFrom), new XAttribute("to", "me@example"), new XAttribute("type", type),
+                        innerId is null ? null : new XAttribute("id", innerId),
+                        new XElement(XmppClient.Client + "body", body)))));
+
+    var good = XmppClient.ParseArchived(Archived("me@example", "q1", "friend@example/phone"), self, "q1");
+    Check("archive: read", good is { Body: "hello", ArchiveId: "arc-1", Id: "m1", FromThisAccount: false } && good.From.Bare == "friend@example");
+    Check("archive: dated when it was said", good?.Sent == new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.Zero), good?.Sent?.ToString() ?? "");
+    Check("archive: no 'from' means the server itself", XmppClient.ParseArchived(Archived(null, "q1", "friend@example"), self, "q1") is not null);
+    Check("archive: what this account said elsewhere is its own", XmppClient.ParseArchived(Archived("me@example", "q1", "me@example/phone"), self, "q1")?.FromThisAccount == true);
+
+    Check("archive: from anyone else, refused", XmppClient.ParseArchived(Archived("stranger@example", "q1", "friend@example"), self, "q1") is null);
+    Check("archive: not in answer to the question, refused", XmppClient.ParseArchived(Archived("me@example", "other", "friend@example"), self, "q1") is null);
+    Check("archive: with no question asked, refused", XmppClient.ParseArchived(Archived("me@example", "q1", "friend@example"), self, null) is null);
+    Check("archive: room messages have their own history", XmppClient.ParseArchived(Archived("me@example", "q1", "room@c.example/nick", "groupchat"), self, "q1") is null);
+    Check("archive: nothing to say, nothing kept", XmppClient.ParseArchived(Archived("me@example", "q1", "friend@example", body: ""), self, "q1") is null);
+}
+
+// ── Repeats ───────────────────────────────────────────────────────────────────
+{
+    XmppMessage Msg(string id, string body, string server = "") =>
+        new(XmppAddress.Parse("bot@example"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, server, false);
+
+    var key = JabberService.DedupeKey("bot@example", "bot@example", Msg("7", "Fleet up"));
+    Check("repeat: the same id and words is the same message", key == JabberService.DedupeKey("bot@example", "bot@example", Msg("7", "Fleet up")));
+    Check("repeat: a bot's restarted counter is a new message", key != JabberService.DedupeKey("bot@example", "bot@example", Msg("7", "Fleet down")));
+    Check("repeat: the server's own id decides when it gave one",
+          JabberService.DedupeKey("c", "s", Msg("1", "a", "srv")) == JabberService.DedupeKey("c", "s", Msg("2", "b", "srv")));
+}
+
+// ── Files ─────────────────────────────────────────────────────────────────────
+{
+    XElement Info(params XElement[] extra) => new(XmppClient.Client + "iq", new XElement(XmppClient.DiscoInfo + "query",
+        new XElement(XmppClient.DiscoInfo + "feature", new XAttribute("var", XmppClient.Upload.NamespaceName)), extra));
+
+    XElement Form(string size) => new(XmppClient.DataForm + "x",
+        new XElement(XmppClient.DataForm + "field", new XAttribute("var", "FORM_TYPE"), new XElement(XmppClient.DataForm + "value", XmppClient.Upload.NamespaceName)),
+        new XElement(XmppClient.DataForm + "field", new XAttribute("var", "max-file-size"), new XElement(XmppClient.DataForm + "value", size)));
+
+    Check("files: the service and its limit", XmppClient.ParseUploadService("up.example", Info(Form("5000"))) is { Jid: "up.example", MaxBytes: 5000 });
+    Check("files: no limit given is no limit known", XmppClient.ParseUploadService("up.example", Info())?.MaxBytes == 0);
+    Check("files: nonsense for a limit is no limit known", XmppClient.ParseUploadService("up.example", Info(Form("lots")))?.MaxBytes == 0);
+    Check("files: a service that does not take them", XmppClient.ParseUploadService("c.example",
+        new XElement(XmppClient.Client + "iq", new XElement(XmppClient.DiscoInfo + "query"))) is null);
+
+    var slot = XmppClient.ParseUploadSlot(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.Upload + "slot",
+        new XElement(XmppClient.Upload + "put", new XAttribute("url", "https://up.example/put"),
+            new XElement(XmppClient.Upload + "header", new XAttribute("name", "Authorization"), "Basic abc"),
+            new XElement(XmppClient.Upload + "header", new XAttribute("name", "Host"), "elsewhere.example"),
+            new XElement(XmppClient.Upload + "header", new XAttribute("name", "Cookie"), "a=1\r\nX-Injected: 1")),
+        new XElement(XmppClient.Upload + "get", new XAttribute("url", "https://up.example/get")))));
+    Check("files: where to put it and fetch it", slot is { PutUrl: "https://up.example/put", GetUrl: "https://up.example/get" });
+    Check("files: only the headers the protocol allows", slot?.Headers.Count == 1 && slot.Headers[0].Key == "Authorization", string.Join(",", slot?.Headers.Select(h => h.Key) ?? []));
+    Check("files: an answer with nowhere to put it", XmppClient.ParseUploadSlot(new XElement(XmppClient.Client + "iq")) is null);
+
+    Check("files: encrypted is fine", JabberService.IsSafeUploadUrl("https://up.example/x"));
+    Check("files: plain to another machine is refused", !JabberService.IsSafeUploadUrl("http://up.example/x"));
+    Check("files: plain to this machine, for testing", JabberService.IsSafeUploadUrl("http://127.0.0.1:7070/x"));
+    Check("files: anything else is refused", !JabberService.IsSafeUploadUrl("file:///c:/windows/x") && !JabberService.IsSafeUploadUrl("not a url"));
+
+    Check("files: sizes in plain words", EveConsole.ViewModels.JabberViewModel.SizeText(1_572_864) == 1.5.ToString("N1") + " MB" && EveConsole.ViewModels.JabberViewModel.SizeText(10) == "1 KB");
+    Check("files: a type from the name", EveConsole.ViewModels.JabberViewModel.ContentTypeOf("MAP.PNG") == "image/png" && EveConsole.ViewModels.JabberViewModel.ContentTypeOf("x.unknown") == "application/octet-stream");
+}
+
 var dbPath = Path.Combine(Path.GetTempPath(), $"jabbercheck-{Guid.NewGuid():N}.db");
 try
 {
@@ -322,6 +396,32 @@ try
     await service.PurgeOldAsync();
     await using (var db = factory.CreateDbContext())
         Check("purge: zero keeps everything", await db.JabberMessages.AnyAsync(m => m.DedupeKey == "old-kept"));
+
+    // What the archive holds is often already here, known by whatever it carried when delivered.
+    {
+        XmppMessage FromArchive(string archiveId, string id, string body, string server = "", DateTimeOffset? sent = null) =>
+            new(XmppAddress.Parse("arc@example"), XmppAddress.Parse("me@example"), "chat", body, "", id, sent, server, false) { ArchiveId = archiveId };
+        XmppMessage Live(string id, string body, string server = "", DateTimeOffset? sent = null) =>
+            new(XmppAddress.Parse("arc@example"), XmppAddress.Parse("me@example"), "chat", body, "", id, sent, server, false);
+
+        await service.StoreAsync(session, Live("L1", "delivered with an id"));
+        Check("archive store: delivered with an id is known by it", await service.StoreAsync(session, FromArchive("A1", "L1", "delivered with an id")) is null);
+
+        await service.StoreAsync(session, Live("L2", "delivered with the server's id", "S2"));
+        Check("archive store: delivered with the server's id is known by it", await service.StoreAsync(session, FromArchive("S2", "L2", "delivered with the server's id")) is null);
+
+        var moment = DateTimeOffset.UtcNow.AddMinutes(-30);
+        await service.StoreAsync(session, Live("", "a bot with no ids", sent: moment));
+        Check("archive store: no id, same words at about the same moment", await service.StoreAsync(session, FromArchive("A3", "", "a bot with no ids", sent: moment.AddSeconds(20))) is null);
+        Check("archive store: no id, same words hours apart is another message", await service.StoreAsync(session, FromArchive("A4", "", "a bot with no ids", sent: moment.AddHours(-3))) is not null);
+
+        var fresh = await service.StoreAsync(session, FromArchive("A5", "L5", "missed while away"));
+        Check("archive store: what was missed is unread and alerts", fresh is { IsRead: false, IsAlert: true, IsOutgoing: false });
+        Check("archive store: asking twice keeps one", await service.StoreAsync(session, FromArchive("A5", "L5", "missed while away")) is null);
+
+        await using var cleanup = factory.CreateDbContext();
+        await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
 
     var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
     Check("agent: Jabber's tables are kept from the in-app agent",
