@@ -1801,4 +1801,28 @@
   <data name="WebhookHostedNote" xml:space="preserve">
     <value>此 Slack Webhook 通过地址显示图片，因此图片会上传到 eveconsole.com 并保留 12 个月。任何拥有链接的人都可以查看。</value>
   </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>在 Slack 上以图片和对齐的列发布</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>取消勾选时，此部分以文本表格发布。Discord 始终收到文本。</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — 此处显示为文本；Slack 收到图片和对齐的列]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>占总额 {0}</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>已发布 {0} 条带图片的消息。</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>已发布 {0}/{1} 条消息；Slack 拒绝了下一条：{2}。</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack 不接受带图片的格式（{0}），因此以文本发送。</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>榜首</value>
+  </data>
 </root>

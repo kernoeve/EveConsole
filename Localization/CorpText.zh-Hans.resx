@@ -2548,4 +2548,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>该军团没有 Upwell 建筑。</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>单人击毁</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>单人击毁</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>前十单人击毁</value>
+  </data>
 </root>

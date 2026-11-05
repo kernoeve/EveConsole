@@ -2448,4 +2448,28 @@
     <value>This Slack webhook shows pictures by their address, so they are uploaded to eveconsole.com and kept for 12 months. Anyone with the link can see them.</value>
     <comment>Scheduler: note in a section with pictures when the task posts to a Slack webhook and the database is signed in to the Online Services.</comment>
   </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>On Slack, post with images and lined-up columns</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>Unticked, this section posts as the text table. Discord always gets the text.</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — shown as text here; Slack gets images and lined-up columns]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>{0} of total</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>Posted {0} message(s) with images.</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>Posted {0} of {1} messages; Slack refused the next: {2}.</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack would not take the format with images ({0}), so this went as text.</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>Leader</value>
+  </data>
 </root>

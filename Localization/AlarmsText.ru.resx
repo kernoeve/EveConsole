@@ -1909,4 +1909,28 @@
   <data name="WebhookHostedNote" xml:space="preserve">
     <value>Этот вебхук Slack показывает изображения по их адресу, поэтому они загружаются на eveconsole.com и хранятся 12 месяцев. Их может увидеть любой, у кого есть ссылка.</value>
   </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>В Slack публиковать с изображениями и выровненными столбцами</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>Если не отмечено, раздел публикуется текстовой таблицей. В Discord всегда отправляется текст.</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — здесь показано текстом; в Slack будут изображения и выровненные столбцы]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>{0} от общего</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>Опубликовано сообщений с изображениями: {0}.</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>Опубликовано {0} из {1} сообщений; Slack отклонил следующее: {2}.</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack не принял формат с изображениями ({0}), поэтому отправлен текст.</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>Лидер</value>
+  </data>
 </root>

@@ -2548,4 +2548,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>이 코퍼레이션에는 Upwell 구조물이 없습니다.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>솔로 킬</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>솔로 킬</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>상위 10 솔로 킬</value>
+  </data>
 </root>

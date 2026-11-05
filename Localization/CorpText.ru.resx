@@ -2611,4 +2611,13 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>У этой корпорации нет структур Upwell.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Соло-победы</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>СОЛО-ПОБЕДЫ</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Топ-10 соло-побед</value>
+  </data>
 </root>

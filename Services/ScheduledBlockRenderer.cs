@@ -70,6 +70,20 @@ public sealed class MessageBlock
         || (Type == TypeParkCompare && CompareOutputs.Any(ParkCompareOutputs.IsPicture))
         || (Type == TypeSystemIndex && IndexOutputs.Any(o => o != SystemIndexOutputs.Table));
 
+    /// <summary>
+    /// Top 10 and standing project blocks: post to Slack with images and lined-up columns rather
+    /// than as a fenced text table. Discord always gets the text.
+    ///
+    /// <para>⚠️ Off unless it was ticked. A task written yesterday has to keep saying what it said
+    /// yesterday, and a long project list as rich rows is longer in the channel than the same list
+    /// as a table, so it is a choice each section makes.</para>
+    /// </summary>
+    public bool SlackRich { get; set; }
+
+    /// <summary>Whether this section is one of the kinds that has a rich format, and asks for it.</summary>
+    [JsonIgnore]
+    public bool UsesSlackRich => SlackRich && Type is TypeTop10 or TypeProjects;
+
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
 
@@ -389,6 +403,14 @@ public sealed class ScheduledTaskConfig
 /// </param>
 public sealed record RenderedMessage(string Text, bool AnyDynamicContent);
 
+/// <summary>One Slack message in the rich format.</summary>
+/// <param name="Blocks">What it shows.</param>
+/// <param name="Fallback">What a notification says, where blocks cannot be shown.</param>
+public sealed record SlackRichMessage(IReadOnlyList<object> Blocks, string Fallback);
+
+/// <summary>A task's sections as rich Slack messages, in the order composed.</summary>
+public sealed record SlackRichPost(IReadOnlyList<SlackRichMessage> Messages, bool AnyDynamicContent);
+
 /// <summary>
 /// Turns message blocks into the text a scheduled post sends.
 ///
@@ -613,20 +635,7 @@ public class ScheduledBlockRenderer(
         {
             ct.ThrowIfCancellationRequested();
 
-            var text = b.Type switch
-            {
-                MessageBlock.TypeText     => b.Text.Trim(),
-                MessageBlock.TypeTop10    => await Top10Async(b, nowUtc, formatName, ct),
-                MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, formatName, ct),
-                MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
-                MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
-                MessageBlock.TypeIndustryOpps => await IndustryOppsAsync(b, formatName, ct),
-                MessageBlock.TypeParkCompare  => await ParkCompareAsync(b, formatName, ct),
-                MessageBlock.TypeSystemIndex  => await SystemIndexAsync(b, formatName, ct),
-
-                // A chart contributes no text. It is uploaded separately, by whoever is posting.
-                _                         => "",
-            };
+            var text = await RenderSectionAsync(b, nowUtc, formatName, ct);
 
             if (text.Length == 0) continue;
 
@@ -635,6 +644,81 @@ public class ScheduledBlockRenderer(
         }
 
         return new RenderedMessage(string.Join("\n\n", parts), anyDynamic);
+    }
+
+    private async Task<string> RenderSectionAsync(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct) =>
+        b.Type switch
+        {
+            MessageBlock.TypeText     => b.Text.Trim(),
+            MessageBlock.TypeTop10    => await Top10Async(b, nowUtc, formatName, ct),
+            MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, formatName, ct),
+            MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
+            MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
+            MessageBlock.TypeIndustryOpps => await IndustryOppsAsync(b, formatName, ct),
+            MessageBlock.TypeParkCompare  => await ParkCompareAsync(b, formatName, ct),
+            MessageBlock.TypeSystemIndex  => await SystemIndexAsync(b, formatName, ct),
+
+            // A chart contributes no text. It is uploaded separately, by whoever is posting.
+            _                         => "",
+        };
+
+    /// <summary>
+    /// Renders every block, in order, as Slack messages in the rich format.
+    ///
+    /// <para>Sections that have no rich format, or did not ask for it, go in as their text. ⚠️ In
+    /// the same message rather than one of their own: a line of explanation over a list has to
+    /// arrive with the list.</para>
+    /// </summary>
+    public async Task<SlackRichPost> RenderSlackRichAsync(
+        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default)
+    {
+        var items      = new List<SlackRichItem>();
+        var said       = new List<string>();
+        var anyDynamic = false;
+
+        foreach (var b in blocks)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var before = items.Count;
+
+            if (b.UsesSlackRich && b.Type == MessageBlock.TypeTop10)
+            {
+                var lists = await Top10ListsAsync(b, nowUtc, ct);
+                if (lists.Count > 0)
+                {
+                    var rich = await Top10RichListsAsync(lists, ct);
+                    items.Add(new SlackRichItem(SlackRichBlocks.Top10Boxes(rich, AlarmsText.HeadingTop10, AlarmsText.RichTopLabel, AlarmsText.RichShareOfTotal)));
+                    said.AddRange(lists.Select(l => l.Title));
+                }
+            }
+            else if (b.UsesSlackRich && b.Type == MessageBlock.TypeProjects)
+            {
+                var table = await StandingProjectsTableAsync(b, ct);
+                items.AddRange(table);
+                if (table.Count > 0) said.Add(b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingStandingProjects);
+            }
+            else
+            {
+                var text = await RenderSectionAsync(b, nowUtc, "Slack", ct);
+
+                // Cut as a plain post is, so a code block closes at the end of one section and
+                // opens at the start of the next.
+                foreach (var part in SlackMessageSplitter.Split(text, SlackRichBlocks.MaxSectionText))
+                    items.Add(new SlackRichItem(SlackRichBlocks.TextSection(part), Room: 2));
+
+                if (text.Length > 0) said.Add(text.Split('\n')[0].Trim());
+            }
+
+            if (items.Count > before && b.IsDynamic) anyDynamic = true;
+        }
+
+        var fallback = string.Join(" - ", said.Where(s => s.Length > 0));
+        if (fallback.Length > SlackRichBlocks.MaxTitle) fallback = fallback[..SlackRichBlocks.MaxTitle];
+
+        return new SlackRichPost(
+            [.. SlackRichBlocks.Pack(items).Select(m => new SlackRichMessage(m, fallback))],
+            anyDynamic);
     }
 
     /// <summary>The calendar month a "months back" block names.</summary>
@@ -655,9 +739,18 @@ public class ScheduledBlockRenderer(
         return (new DateTimeOffset(first), new DateTimeOffset(first.AddMonths(1)), label);
     }
 
-    private async Task<string> Top10Async(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct)
+    /// <summary>One ranked entity in a Top 10 list.</summary>
+    /// <param name="Value">The amount as printed, or null when the section hides it.</param>
+    /// <param name="Share">Of the whole, as the Top 10 tab shows it.</param>
+    private sealed record Top10Entry(long Id, string Name, string? Value, string? FeaturedValue, string Share);
+
+    private sealed record Top10List(string Title, List<Top10Entry> Rows);
+
+    /// <summary>The lists a Top 10 section asks for, ranked and named. Empty ones are left out.</summary>
+    private async Task<List<Top10List>> Top10ListsAsync(MessageBlock b, DateTime nowUtc, CancellationToken ct)
     {
-        if (b.CorpId <= 0 || b.Categories.Count == 0) return "";
+        var lists = new List<Top10List>();
+        if (b.CorpId <= 0 || b.Categories.Count == 0) return lists;
 
         var (from, to, label) = Window(b.MonthsBack, nowUtc);
 
@@ -666,10 +759,6 @@ public class ScheduledBlockRenderer(
         // tab came back in the post — the one place nobody would think to check it.
         var hidden = excludes.GetExcludeIds();
 
-        // Gathered before anything is printed, so every list shares one column grid rather than
-        // each finding its own widths and the five sections stepping in and out.
-        var lists = new List<(string Title, List<string[]> Cells)>();
-
         foreach (var key in b.Categories)
         {
             ct.ThrowIfCancellationRequested();
@@ -677,13 +766,13 @@ public class ScheduledBlockRenderer(
             // ⚠️ Project contributors come back already named and in a different shape. Every
             // other list is ids and amounts, so they are brought to one form here rather than
             // printed by a second copy of the loop below.
-            List<(long Id, decimal Amount)> rows;
+            List<(long Id, decimal Amount, double Percent)> rows;
             Dictionary<long, string> names;
 
             if (key == "projects")
             {
                 var contrib = await corp.GetTopProjectContributorsAsync(b.CorpId, from, to, hidden, ct);
-                rows  = [.. contrib.Select(c => (c.CharacterId, c.IskPayout))];
+                rows  = [.. contrib.Select(c => (c.CharacterId, c.IskPayout, c.Percent))];
                 names = contrib
                     .GroupBy(c => c.CharacterId)
                     .ToDictionary(g => g.Key, g => g.First().Name);
@@ -692,33 +781,28 @@ public class ScheduledBlockRenderer(
             {
                 var ranked = key switch
                 {
-                    "ratting"  => await corp.GetTopRattersAsync(b.CorpId, from, to, hidden, ct),
-                    "mining"   => await corp.GetTopMinersAsync(b.CorpId, from, to, hidden, ct),
-                    "kills"    => await corp.GetTopKillersAsync(b.CorpId, from, to, hidden, ct),
-                    "industry" => await corp.GetTopIndustryAsync(b.CorpId, from, to, hidden, ct),
-                    _          => [],
+                    "ratting"   => await corp.GetTopRattersAsync(b.CorpId, from, to, hidden, ct),
+                    "mining"    => await corp.GetTopMinersAsync(b.CorpId, from, to, hidden, ct),
+                    "kills"     => await corp.GetTopKillersAsync(b.CorpId, from, to, hidden, ct),
+                    "solokills" => await corp.GetTopSoloKillersAsync(b.CorpId, from, to, hidden, ct),
+                    "industry"  => await corp.GetTopIndustryAsync(b.CorpId, from, to, hidden, ct),
+                    _           => [],
                 };
 
-                rows  = [.. ranked.Select(x => (x.CharacterId, x.Amount))];
+                rows  = [.. ranked.Select(x => (x.CharacterId, x.Amount, x.Percent))];
                 names = await corp.ResolveNamesAsync(
                     rows.Select(x => x.Id).Distinct().ToList(), ct);
             }
 
             if (rows.Count == 0) continue;
 
-            // ⚠️ The share is of what this list totals, not of some corp-wide figure. These are
-            // the top ten, so the total is the ten shown DASH which is what "% of total" means on
-            // the tab this mirrors.
-            var total = rows.Sum(r => r.Amount);
-
             // Kills counts kills; everything else is ISK. Printing "1,204 ISK" for a kill count
             // would be a units error nobody would question in a Slack post — and it is why kills
             // keeps its number even when the ISK is suppressed.
-            var isKills   = key == "kills";
+            var isKills   = key is "kills" or "solokills";
             var showValue = isKills || !b.HideIsk;
 
-            var cells = new List<string[]>();
-            var rank  = 0;
+            var entries = new List<Top10Entry>();
 
             foreach (var row in rows)
             {
@@ -727,16 +811,52 @@ public class ScheduledBlockRenderer(
                     ? ((long)row.Amount).ToString("N0")
                     : MarketFmt.Isk((double)row.Amount);
 
-                var share = total > 0
-                    ? ((double)(row.Amount / total) * 100.0).ToString("F1") + "%"
-                    : "";
+                // ⚠️ Of the whole list, everyone below the top ten included, as the Top 10 tab
+                // shows it. This was once worked out from the rows printed, so a post gave a
+                // bigger share than the tab for the same person in the same month.
+                var share = row.Percent > 0 ? row.Percent.ToString("F1") + "%" : "";
 
-                cells.Add(showValue ? [$"{++rank}.", who, value, share]
-                                    : [$"{++rank}.", who, share]);
+                entries.Add(new Top10Entry(row.Id, who,
+                    showValue ? value : null,
+                    showValue ? (isKills ? value : $"{value} ISK") : null,
+                    share));
             }
 
-            lists.Add((titles.Top10TitleFor(key, label), cells));
+            lists.Add(new Top10List(titles.Top10TitleFor(key, label), entries));
         }
+
+        return lists;
+    }
+
+    /// <summary>
+    /// The lists with their images.
+    ///
+    /// <para>⚠️ Each row's own image, by what that row is. The industry tax list mixes pilots with
+    /// corps, and a corp's id does not show a portrait.</para>
+    /// </summary>
+    private async Task<List<SlackRichList>> Top10RichListsAsync(List<Top10List> lists, CancellationToken ct)
+    {
+        var kinds = await corp.GetEntityKindsAsync([.. lists.SelectMany(l => l.Rows).Select(r => r.Id).Distinct()], ct);
+
+        return [.. lists.Select(l => new SlackRichList(l.Title, [.. l.Rows.Select(r =>
+        {
+            var kind = kinds.GetValueOrDefault(r.Id, "character");
+            return new SlackRichRow(r.Name,
+                SlackRichBlocks.EntityImage(r.Id, kind, 64),
+                SlackRichBlocks.EntityImage(r.Id, kind, 128),
+                r.Value, r.FeaturedValue, r.Share);
+        })]))];
+    }
+
+    private async Task<string> Top10Async(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct)
+    {
+        // Gathered before anything is printed, so every list shares one column grid rather than
+        // each finding its own widths and the sections stepping in and out.
+        var lists = (await Top10ListsAsync(b, nowUtc, ct))
+            .Select(l => (l.Title, Cells: l.Rows.Select((r, i) => r.Value is { } value
+                ? new[] { $"{i + 1}.", r.Name, value, r.Share }
+                : [$"{i + 1}.", r.Name, r.Share]).ToList()))
+            .ToList();
 
         if (lists.Count == 0) return "";
 
@@ -838,7 +958,40 @@ public class ScheduledBlockRenderer(
     /// </summary>
     private async Task<string> StandingProjectsAsync(MessageBlock b, string formatName, CancellationToken ct)
     {
-        if (b.CorpId <= 0) return "";
+        var wanted = await StandingProjectRowsAsync(b, ct);
+
+        // ⚠️ Taken as written, blank included. The default lives in the editor now, filled into
+        // the box when the section is built; substituting it here as well would make a title
+        // impossible to remove.
+        var heading = b.SectionTitle.Trim();
+
+        return StandingProjectReport.Export(
+            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+    }
+
+    /// <summary>
+    /// The same rows, columns and order as the text table, each with its item's icon where it has
+    /// one. A destroy-NPC row is a place, and has none.
+    /// </summary>
+    private async Task<List<SlackRichItem>> StandingProjectsTableAsync(MessageBlock b, CancellationToken ct)
+    {
+        var wanted = await StandingProjectRowsAsync(b, ct);
+        if (wanted.Count == 0) return [];
+
+        var cols = StandingProjectReport.Columns(b.ProjectType, b.ShowIskLeft, b.ShowLastCompleted);
+
+        return SlackRichBlocks.Table(
+            b.SectionTitle.Trim(), b.ShowHeaders,
+            [.. cols.Select(c => new SlackRichColumn(c.Header, c.Right))],
+            [.. StandingProjectReport.Ordered(wanted, b.ProjectType).Select(r => new SlackRichTableRow(
+                [.. cols.Select(c => c.Cell(r))],
+                r.ItemTypeId is > 0 ? SlackRichBlocks.ItemIcon(r.ItemTypeId.Value) : null,
+                r.ItemTypeName))]);
+    }
+
+    private async Task<List<StandingProjectGridRow>> StandingProjectRowsAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.CorpId <= 0) return [];
 
         // ⚠️ The type comes from the DEFINITIONS, not from reading it back off an expanded row.
         // A row could only be classified by whether it names an item, and a delivery project saved
@@ -854,22 +1007,13 @@ public class ScheduledBlockRenderer(
             .Select(d => d.Id)
             .ToHashSet();
 
-        if (keep.Count == 0) return "";
+        if (keep.Count == 0) return [];
 
         var rows = await corp.BuildMaintainGridRowsAsync(b.CorpId, ct);
 
-        var wanted = rows
+        return [.. rows
             .Where(r => keep.Contains(r.DbId))
-            .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))
-            .ToList();
-
-        // ⚠️ Taken as written, blank included. The default lives in the editor now, filled into
-        // the box when the section is built; substituting it here as well would make a title
-        // impossible to remove.
-        var heading = b.SectionTitle.Trim();
-
-        return StandingProjectReport.Export(
-            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+            .Where(r => StandingProjectReport.Wanted(r, b.ProjectFilter))];
     }
 
     /// <summary>
