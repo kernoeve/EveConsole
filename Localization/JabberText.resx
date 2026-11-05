@@ -355,4 +355,8 @@ Trust it only if this matches what the server's admin published. From then on, o
     <value>This room has an archive but will not share it with this account: you see only what it replays when you join.</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Accept lets this person see when you are online, and asks to see their status too. Decline keeps your status hidden from them. You can message each other either way.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>

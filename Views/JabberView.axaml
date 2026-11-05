@@ -188,6 +188,7 @@
       <StackPanel Grid.Row="0" IsVisible="{Binding ShowRequest}" Margin="20 14" Spacing="8">
         <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
         <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock Text="{Binding RequestHelp}" IsVisible="{Binding RequestHelp, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" MaxWidth="620" HorizontalAlignment="Left" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
         <StackPanel Orientation="Horizontal" Spacing="8">
           <Button Content="{x:Static loc:JabberText.Accept}" Command="{Binding AcceptRequestCommand}" />
           <Button Content="{x:Static loc:JabberText.Decline}" Command="{Binding DenyRequestCommand}" />
@@ -215,6 +216,7 @@
                 <Button Content="{x:Static loc:JabberText.LeaveRoom}" Command="{Binding LeaveRoomCommand}" />
               </StackPanel>
               <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" IsVisible="{Binding IsContactOpen}" />
+              <Button Content="{x:Static loc:JabberText.AddContact}" Command="{Binding AddOpenPersonCommand}" IsVisible="{Binding IsStrangerOpen}" />
             </StackPanel>
           </Grid>
         </Border>

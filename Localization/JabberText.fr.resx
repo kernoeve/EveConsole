@@ -274,4 +274,8 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
     <value>Ce salon a une archive mais ne la partage pas avec ce compte : vous ne voyez que ce qu'il rejoue quand vous entrez.</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Accepter permet à cette personne de voir quand vous êtes en ligne et demande à voir son statut aussi. Refuser lui cache votre statut. Vous pouvez vous écrire dans les deux cas.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>

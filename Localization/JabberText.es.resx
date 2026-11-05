@@ -274,4 +274,8 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
     <value>Esta sala tiene un archivo, pero no lo comparte con esta cuenta: solo ves lo que repite al unirte.</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Aceptar permite que esta persona vea cuándo estás conectado y solicita ver también su estado. Rechazar mantiene tu estado oculto para ella. Podéis enviaros mensajes en ambos casos.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>

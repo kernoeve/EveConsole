@@ -274,4 +274,8 @@
     <value>此房间有存档，但不向此账户开放：你只能看到加入时重放的内容。</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>接受后，此人可以看到你何时在线，同时也会请求查看对方的状态。拒绝后，对方看不到你的状态。无论如何，你们都可以互发消息。</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>

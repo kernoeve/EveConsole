@@ -274,4 +274,8 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
     <value>Dieser Raum hat ein Archiv, gibt es aber für dieses Konto nicht frei: Du siehst nur, was er beim Beitritt wiederholt.</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Mit „Annehmen“ kann diese Person sehen, wann du online bist, und du fragst auch nach ihrem Status. Mit „Ablehnen“ bleibt dein Status für sie verborgen. Nachrichten könnt ihr euch in beiden Fällen schicken.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>

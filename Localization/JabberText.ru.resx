@@ -274,4 +274,8 @@
     <value>У этой комнаты есть архив, но она не открывает его этой учётной записи: вы видите только то, что она повторяет при входе.</value>
     <comment>At the top of a room.</comment>
   </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Если принять, этот человек будет видеть, когда вы в сети, а вы запросите доступ к его статусу. Если отклонить, ваш статус останется для него скрытым. Переписываться можно в любом случае.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
 </root>
