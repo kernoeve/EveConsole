@@ -50,7 +50,7 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender)
     }
 }
 
-/// <summary>One open conversation: a tab of the Messages window.</summary>
+/// <summary>One open conversation: a tab of the Messages tool.</summary>
 public sealed class MessagesTabVm : ReactiveObject
 {
     private const int PageSize = 100;
@@ -288,8 +288,8 @@ public sealed class MessagesTabVm : ReactiveObject
 }
 
 /// <summary>
-/// The Messages window: direct messages from every service, a tab per conversation, and a list of everything saved.
-/// It stays alive with the window shut, because a message arriving has to be counted and heard either way.
+/// The Messages tool: direct messages from every service, a tab per conversation, and a list of everything saved.
+/// It stays alive with its tab closed, because a message arriving has to be counted and heard either way.
 /// </summary>
 public sealed class MessagesViewModel : ReactiveObject
 {
@@ -332,10 +332,10 @@ public sealed class MessagesViewModel : ReactiveObject
     public ObservableCollection<MessagesTabVm> Tabs { get; } = [];
     public ObservableCollection<MessagesConversationVm> Conversations { get; } = [];
 
-    /// <summary>The window should come up, or forward.</summary>
-    public event Action? ShowWindowRequested;
+    /// <summary>The tool should come up, or forward, wherever it is.</summary>
+    public event Action? ShowRequested;
 
-    /// <summary>Set by the window: asks before something that cannot be undone.</summary>
+    /// <summary>Set by the view: asks before something that cannot be undone.</summary>
     public Func<string, Task<bool>>? Confirm { get; set; }
 
     private MessagesTabVm? _selectedTab;
@@ -431,7 +431,7 @@ public sealed class MessagesViewModel : ReactiveObject
     public string UnreadText => TotalUnread.ToString("N0", CultureInfo.CurrentCulture);
     public string WindowTitle => TotalUnread > 0 ? $"{MessagesText.WindowTitle} ({UnreadText})" : MessagesText.WindowTitle;
 
-    /// <summary>Whether the window is up and has the person's attention. Set by the window.</summary>
+    /// <summary>Whether this tool is on screen, in a window with the person's attention. Set by the view.</summary>
     public bool IsBeingLookedAt
     {
         get => _isBeingLookedAt;
@@ -443,28 +443,30 @@ public sealed class MessagesViewModel : ReactiveObject
     }
     private bool _isBeingLookedAt;
 
-    /// <summary>Brings the window up with a conversation open, whether or not anything is saved for it yet.</summary>
+    /// <summary>Brings the tool up with a conversation open, whether or not anything is saved for it yet.</summary>
     public void Open(DmKey key, string name)
     {
-        _ = OpenTabAsync(key, name);
-        ShowWindowRequested?.Invoke();
+        ShowRequested?.Invoke();
+        _ = OpenAfterRestoringAsync(key, name);
     }
 
-    /// <summary>Brings the window up as it was.</summary>
-    public void ShowWindow()
+    private async Task OpenAfterRestoringAsync(DmKey key, string name)
     {
-        RestoreTabs();
-        ShowWindowRequested?.Invoke();
+        await RestoreTabsAsync();
+        await OpenTabAsync(key, name);
     }
 
-    /// <summary>Brings the window up on what most needs reading.</summary>
+    /// <summary>Brings the tool up as it was.</summary>
+    public void Show() => ShowRequested?.Invoke();
+
+    /// <summary>Brings the tool up on what most needs reading.</summary>
     public async Task ShowUnreadAsync()
     {
+        ShowRequested?.Invoke();
+        await RestoreTabsAsync();
         await RefreshAsync();
-        RestoreTabs();
         var next = _all.FirstOrDefault(c => c.Alerts > 0) ?? _all.FirstOrDefault(c => c.Unread > 0);
         if (next is not null) await OpenTabAsync(next.Key, next.Name);
-        ShowWindowRequested?.Invoke();
     }
 
     private MessagesTabVm? TabOf(DmKey key) => Tabs.FirstOrDefault(t => t.Key == key);
@@ -476,7 +478,7 @@ public sealed class MessagesViewModel : ReactiveObject
         {
             if (_service.SourceOf(key) is not { } source) return;
 
-            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name)) { Confirm = Confirm };
+            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name)) { Confirm = AskAsync };
             Tabs.Add(tab);
             tab.Unread = _all.FirstOrDefault(c => c.Key == key)?.Unread ?? 0;
             await tab.LoadAsync();
@@ -494,13 +496,19 @@ public sealed class MessagesViewModel : ReactiveObject
         else SaveTabs();
     }
 
-    private bool _restored;
+    /// <summary>Asked of whichever view is showing now: a tab outlives any one of them, being dragged between windows.</summary>
+    private Task<bool> AskAsync(string message) => Confirm?.Invoke(message) ?? Task.FromResult(false);
 
-    /// <summary>The tabs left open last time. Only when the window first comes up: nothing is to be read before that.</summary>
-    private void RestoreTabs()
+    private bool _restored;
+    private Task? _restoring;
+
+    /// <summary>The tabs left open last time, once the tool first comes up. Waits for the list, which says what is still there.</summary>
+    public Task RestoreTabsAsync() => _restoring ??= RestoreAsync();
+
+    private async Task RestoreAsync()
     {
-        if (_restored) return;
-        _restored = true;
+        while (_refreshing) await Task.Delay(20);
+        await RefreshAsync();
 
         List<string>? saved = null;
         try { saved = JsonSerializer.Deserialize<List<string>>(_prefs.Get(OpenTabsPref) ?? "[]"); }
@@ -516,18 +524,19 @@ public sealed class MessagesViewModel : ReactiveObject
             // Nothing saved any more, as when its server was deleted: there is nothing to come back to.
             if (known is null) continue;
 
-            var tab = new MessagesTabVm(source, known) { Confirm = Confirm, Unread = known.Unread };
+            var tab = new MessagesTabVm(source, known) { Confirm = AskAsync, Unread = known.Unread };
             Tabs.Add(tab);
-            _ = tab.LoadAsync();
+            await tab.LoadAsync();
         }
 
+        _restored = true;
         if (SelectedTab is null) SelectedTab = Tabs.FirstOrDefault(t => t.Key == selected) ?? Tabs.FirstOrDefault();
     }
 
     private void SaveTabs()
     {
-        if (!_restored && Tabs.Count == 0) return;
-        _restored = true;
+        // ⚠️ Not before the last list has been read back, or opening one conversation would forget the rest.
+        if (!_restored) return;
 
         _ = _prefs.SetAsync(OpenTabsPref, JsonSerializer.Serialize(Tabs.Select(t => t.Key.Id).ToList()));
         _ = _prefs.SetAsync(SelectedTabPref, SelectedTab?.Key.Id ?? "");

@@ -1,14 +1,11 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:loc="using:EveConsole.Localization"
-        xmlns:vm="clr-namespace:EveConsole.ViewModels"
-        x:Class="EveConsole.Views.MessagesWindow"
-        x:DataType="vm:MessagesViewModel"
-        Title="{Binding WindowTitle}"
-        Width="980" Height="640" MinWidth="520" MinHeight="320"
-        Background="{DynamicResource SurfaceBaseBrush}">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.MessagesView"
+             x:DataType="vm:MessagesViewModel">
 
-  <Window.Styles>
+  <UserControl.Styles>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
     <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
@@ -20,7 +17,7 @@
     <Style Selector="ListBox.lines ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
     <Style Selector="Border.count"><Setter Property="CornerRadius" Value="8" /><Setter Property="Padding" Value="6 0" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
     <Style Selector="Border.count TextBlock"><Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" /></Style>
-  </Window.Styles>
+  </UserControl.Styles>
 
   <Grid ColumnDefinitions="Auto,*">
 
@@ -132,4 +129,4 @@
       </Grid>
     </Grid>
   </Grid>
-</Window>
+</UserControl>

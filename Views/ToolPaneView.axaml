@@ -152,6 +152,9 @@
         <DataTemplate DataType="vm:JabberViewModel">
           <views:JabberView />
         </DataTemplate>
+        <DataTemplate DataType="vm:MessagesViewModel">
+          <views:MessagesView />
+        </DataTemplate>
         <DataTemplate DataType="vm:SystemIndexViewModel">
           <views:SystemIndexView />
         </DataTemplate>
