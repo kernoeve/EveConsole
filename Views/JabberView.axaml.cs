@@ -33,8 +33,8 @@ public partial class JabberView : UserControl
             _window = TopLevel.GetTopLevel(this) as Window;
             if (_window is not null)
             {
-                _window.Activated   += OnWindowChanged;
-                _window.Deactivated += OnWindowChanged;
+                _window.Activated   += OnWindowActivated;
+                _window.Deactivated += OnWindowDeactivated;
             }
             NoteVisibility();
         };
@@ -43,8 +43,8 @@ public partial class JabberView : UserControl
         {
             if (_window is not null)
             {
-                _window.Activated   -= OnWindowChanged;
-                _window.Deactivated -= OnWindowChanged;
+                _window.Activated   -= OnWindowActivated;
+                _window.Deactivated -= OnWindowDeactivated;
             }
             _window = null;
             if (DataContext is JabberViewModel vm) vm.IsOnScreen = false;
@@ -53,14 +53,17 @@ public partial class JabberView : UserControl
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
     }
 
-    private void OnWindowChanged(object? sender, EventArgs e) => NoteVisibility();
+    // ⚠️ Told by which event, not by asking the window. It raises Activated before its IsActive turns true, so asking
+    // there answers no, and after one click away nothing open would ever count as read again.
+    private void OnWindowActivated(object? sender, EventArgs e) => NoteVisibility(true);
+    private void OnWindowDeactivated(object? sender, EventArgs e) => NoteVisibility(false);
 
-    private void NoteVisibility()
+    private void NoteVisibility(bool? windowActive = null)
     {
         if (DataContext is not JabberViewModel vm) return;
 
         vm.IsOnScreen     = this.IsAttachedToVisualTree();
-        vm.IsWindowActive = _window?.IsActive ?? true;
+        vm.IsWindowActive = windowActive ?? _window?.IsActive ?? true;
 
         // Coming back to a conversation with new messages in it is reading them.
         _ = vm.MarkOpenConversationReadAsync();
