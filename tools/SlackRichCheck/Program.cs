@@ -526,6 +526,230 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     Check("variant: nothing known", SlackPicture.BestVariant([]) == "icon");
 }
 
+// ── Text in a box ─────────────────────────────────────────────────────────────
+
+{
+    (string Title, string Body) Split(string text) => SlackRichBlocks.TitleAndBody(text);
+    const string NoTitle = " ";
+
+    Check("title: the first line, its bold off", Split("*Heading*\nWords") == ("Heading", "Words"));
+    Check("title: its italics too", Split("_Heading_\nWords") == ("Heading", "Words"));
+    Check("title: not plain", Split("Heading\nWords") == ("Heading", "Words"));
+    Check("title: bold on only part of it stays", Split("*Heading* more\nWords").Title == "*Heading* more");
+    Check("title: emoji stay in it", Split("*:a::b:  Heading  :c:*\nWords").Title == ":a::b:  Heading  :c:");
+    Check("title: Windows line ends", Split("*Heading*\r\nOne\r\nTwo") == ("Heading", "One\nTwo"));
+    Check("title: a blank line under it goes", Split("Heading\n\nWords").Body == "Words");
+    Check("title: nothing, for nothing", Split("  \n ") == ("", ""));
+    Check("title: one line has none to spare, and keeps its words", Split("Only line") == (NoTitle, "Only line"));
+
+    var longLine = new string('x', 151) + "\nWords";
+    Check("title: a line too long to be one stays in the words", Split(longLine) == (NoTitle, longLine));
+    Check("title: as long as one can be", Split(new string('x', 150) + "\nWords").Title.Length == 150);
+
+    const string Logo = "https://images.evetech.net/alliances/5/logo?size=128";
+
+    Check("text box: nothing for nothing", SlackRichBlocks.TextBoxes(" ", SlackBoxWidth.Wide, Logo).Count == 0);
+
+    var box = Json(SlackRichBlocks.TextBoxes("*Heading :x:*\nSee <https://example.com|this> @here", SlackBoxWidth.Narrow, Logo).Single().Block);
+    Check("text box: a box on its own, so it can be its size", box.GetProperty("type").GetString() == "container");
+    Check("text box: at the size asked for", box.GetProperty("width").GetString() == "narrow");
+    Check("text box: titled", box.GetProperty("title").GetProperty("text").GetString() == "Heading :x:");
+    Check("text box: an emoji in the title is drawn", box.GetProperty("rich_text_title").GetProperty("elements")[0].GetProperty("elements")[1].GetProperty("name").GetString() == "x");
+    Check("text box: the logo", box.GetProperty("icon").GetProperty("image_url").GetString() == Logo);
+    var words = box.GetProperty("child_blocks")[0];
+    Check("text box: the words", words.GetProperty("text").GetProperty("text").GetString() == "See <https://example.com|this> @here");
+    Check("text box: links and mentions still work", !words.GetProperty("text").TryGetProperty("verbatim", out _));
+
+    Check("text box: no logo", !Json(SlackRichBlocks.TextBoxes("A\nB", SlackBoxWidth.Standard, null).Single().Block).TryGetProperty("icon", out _));
+
+    var single = Json(SlackRichBlocks.TextBoxes("Only line", SlackBoxWidth.Wide, null).Single().Block);
+    Check("text box: one line goes under a blank title", single.GetProperty("title").GetProperty("text").GetString() == NoTitle && !single.TryGetProperty("rich_text_title", out _));
+    Check("text box: and keeps its words", single.GetProperty("child_blocks")[0].GetProperty("text").GetProperty("text").GetString() == "Only line");
+
+    var essay = SlackRichBlocks.TextBoxes("Heading\n" + string.Join("\n\n", Enumerable.Repeat(new string('y', 2500), 25)), SlackBoxWidth.Wide, Logo).Select(i => Json(i.Block)).ToList();
+    Check("text box: a long text carries on in another", essay.Count > 1, essay.Count.ToString());
+    Check("text box: none over what a box holds", essay.All(b => b.GetProperty("child_blocks").GetArrayLength() <= 10));
+    Check("text box: nothing over a section's limit", essay.SelectMany(b => b.GetProperty("child_blocks").EnumerateArray()).All(c => c.GetProperty("text").GetProperty("text").GetString()!.Length <= 3000));
+    Check("text box: the logo on the first only", essay[0].TryGetProperty("icon", out _) && essay.Skip(1).All(b => !b.TryGetProperty("icon", out _)));
+    Check("text box: every box titled", essay.All(b => b.GetProperty("title").GetProperty("text").GetString() == "Heading"));
+
+    MessageBlock Saved(string json) => ScheduledTaskConfig.FromJson($$"""{"Blocks":[{{json}}]}""").Blocks[0];
+    Check("text box: a section from before it has none", !Saved("""{"Type":"text"}""").UsesSlackRich && Saved("""{"Type":"text"}""").BoxWidth == SlackBoxWidth.None);
+    Check("text box: a size asks for one", Saved("""{"Type":"text","BoxWidth":"wide"}""").UsesSlackRich);
+    Check("text box: a size this version does not know is no box", !Saved("""{"Type":"text","BoxWidth":"huge"}""").UsesSlackRich);
+    Check("text box: only text has one", !Saved("""{"Type":"corp_monthly","BoxWidth":"wide"}""").UsesSlackRich);
+}
+
+// ── Items in a box ────────────────────────────────────────────────────────────
+
+{
+    EveConsole.ViewModels.IndustryRow Made(int i, double scale = 1) => new()
+    {
+        TypeId = 600 + i, TypeName = $"Hull {i}", BuildCost = 40_040_000 * scale, SellPrice = 50_000_000, Margin = 0.25,
+        UnitVol30d = 136 + i, IskVol30d = 6_280_000_000 * scale,
+    };
+
+    string[] keys = ["build_cost", "units_30d", "avg_price_30d", "margin_30d", "sales_30d", "profit_30d"];
+    var renamed = new Dictionary<string, string> { ["units_30d"] = "Units", ["avg_price_30d"] = "Avg" };
+
+    SlackItemList Listed(int rows, IEnumerable<string>? columns = null, bool headers = true, string sort = "profit_30d") =>
+        IndustryOppsReport.SlackList([.. Enumerable.Range(1, rows).Select(i => Made(i))], columns ?? keys, "T1 Hulls", sort, headers, "https://images.evetech.net/types/601/render?size=128", renamed);
+
+    var list = Listed(10);
+    Check("list: the item, then the columns asked for", list.Columns.Count == 7 && list.Columns[0].Header == EveConsole.Localization.IndustryText.ColItem);
+    Check("list: the rows' headers can be renamed", list.Columns[2].Header == "Units" && list.Columns[3].Header == "Avg");
+    Check("list: each row has its item's icon", list.Rows[0].Icon == "https://images.evetech.net/types/601/icon?size=64" && list.Rows[9].Icon.Contains("/types/610/"));
+
+    Check("top: what is not over a period comes first", list.Before.Single().Label == "Build Cost");
+    Check("top: the 30-day figures, in full words, in the grid's order",
+        list.InPeriod.Select(f => f.Label).SequenceEqual(["Units Sold", "Avg Price", "Margin %", "Total Sales", "Total Profit"]), string.Join(",", list.InPeriod.Select(f => f.Label)));
+    Check("top: the period is said", list.PeriodLine == "Activity over the last 30 days");
+    Check("top: the figure the list is sorted by stands out", list.InPeriod.Single(f => f.Strong).Label == "Total Profit" && !list.Before.Any(f => f.Strong));
+
+    var shuffled = Listed(2, ["profit_30d", "margin", "units_30d", "build_cost"]);
+    Check("top: the grid's order, whatever order the section has", shuffled.Before.Select(f => f.Label).SequenceEqual(["Build Cost", "Margin"]) && shuffled.InPeriod.Select(f => f.Label).SequenceEqual(["Units Sold", "Total Profit"]));
+    Check("top: a margin today is not a 30-day one", shuffled.Before.Any(f => f.Label == "Margin") && !shuffled.InPeriod.Any(f => f.Label == "Margin"));
+    Check("top: no 30-day columns, none there", Listed(2, ["build_cost"]).InPeriod.Count == 0);
+
+    Check("note: for a price from history", IndustryOppsReport.NeedsHistoryNote([new EveConsole.ViewModels.IndustryRow { HasSellOrders = false }], ["sell_price"]));
+    Check("note: not when no such column shows", !IndustryOppsReport.NeedsHistoryNote([new EveConsole.ViewModels.IndustryRow { HasSellOrders = false }], ["margin"]));
+    Check("note: not when every price is an order's", !IndustryOppsReport.NeedsHistoryNote([Made(1)], ["sell_price"]));
+
+    Check("items: nothing for no rows", SlackRichBlocks.ItemBoxes(Listed(0)).Count == 0);
+
+    var one = SlackRichBlocks.ItemBoxes(list);
+    Check("items: ten rows in one box", one.Count == 1, one.Count.ToString());
+    var box = Json(one[0].Block);
+    Check("items: a box on its own, which can hold a picture on the left", box.GetProperty("type").GetString() == "container");
+    Check("items: wide, while the rows fit", box.GetProperty("width").GetString() == "wide");
+    Check("items: titled", box.GetProperty("title").GetProperty("text").GetString() == "T1 Hulls");
+
+    var kids = box.GetProperty("child_blocks");
+    Check("items: number 1's layout and nine rows, all a box holds", kids.GetArrayLength() == 10, kids.GetArrayLength().ToString());
+
+    var topRows = kids[0].GetProperty("rows");
+    Check("items: number 1 and the header share the layout", kids[0].GetProperty("type").GetString() == "layout" && topRows.GetArrayLength() == 2);
+
+    var picture = topRows[0].GetProperty("items")[0];
+    Check("items: number 1's picture on the left", picture.GetProperty("block").GetProperty("type").GetString() == "image" && picture.GetProperty("block").GetProperty("image_url").GetString()!.Contains("/types/601/render"));
+
+    var figures = topRows[0].GetProperty("items")[1].GetProperty("block");
+    var said = figures.GetProperty("text").GetProperty("text").GetString()!.Split('\n');
+    Check("items: number 1 is named", said[0] == "Top Item: *Hull 1*", said[0]);
+    Check("items: then what is not over the period", said[1].StartsWith("Build Cost: 40.04M", StringComparison.Ordinal), said[1]);
+    Check("items: then the line that says the period", said[^1] == "*Activity over the last 30 days*", said[^1]);
+    var fields = figures.GetProperty("fields");
+    Check("items: then the 30-day figures in fields, which go two across", fields.GetArrayLength() == 5 && fields[0].GetProperty("text").GetString()!.StartsWith("Units Sold: ", StringComparison.Ordinal));
+    Check("items: the sorted figure in bold", fields[4].GetProperty("text").GetString()!.StartsWith("Total Profit: *", StringComparison.Ordinal), fields[4].GetProperty("text").GetString()!);
+
+    var noPeriod = Json(SlackRichBlocks.ItemBoxes(Listed(2, ["build_cost"]))[0].Block).GetProperty("child_blocks")[0].GetProperty("rows")[0].GetProperty("items")[1].GetProperty("block");
+    Check("items: no 30-day figures, no line and no fields", !noPeriod.TryGetProperty("fields", out _) && !noPeriod.GetProperty("text").GetProperty("text").GetString()!.Contains("30 days"));
+
+    // ── The rows ──
+    var rows = kids.EnumerateArray().Skip(1).ToList();
+    Check("rows: every one a plain block, so they all match", rows.All(r => r.GetProperty("type").GetString() == "context"));
+    Check("rows: start at number 2", rows[0].GetProperty("elements")[0].GetProperty("text").GetString()!.Contains("2.") && rows[8].GetProperty("elements")[0].GetProperty("text").GetString()!.Contains("10."));
+    Check("rows: with their own icon", rows[0].GetProperty("elements")[1].GetProperty("image_url").GetString()!.Contains("/types/602/icon"));
+    Check("rows: the name first", rows[0].GetProperty("elements")[2].GetProperty("text").GetString()!.StartsWith("Hull 2", StringComparison.Ordinal));
+
+    // Laid out as measured on a real post: 13.11 px per 1000 in a row, a header row drawing 2% narrower.
+    var header = topRows[1].GetProperty("items")[0].GetProperty("block").GetProperty("elements")[0].GetProperty("text").GetString()!;
+    Check("header: over the columns", header.Contains("Item") && header.Contains("Build Cost") && header.Contains("Profit"));
+    var rowEnd = Drawn(rows[0].GetProperty("elements")[2].GetProperty("text").GetString()!);
+    var headEnd = Drawn(header);
+    var expected = (int)(rowEnd * 393.0 / 385.0) + 3801;
+    Check("header: ends where the rows end", Math.Abs(headEnd - expected) <= 340, $"{headEnd} vs {expected}");
+
+    var bare = Json(SlackRichBlocks.ItemBoxes(Listed(5, headers: false))[0].Block).GetProperty("child_blocks");
+    Check("headers off: the layout holds only number 1", bare[0].GetProperty("rows").GetArrayLength() == 1);
+
+    var alone = Json(SlackRichBlocks.ItemBoxes(Listed(1))[0].Block).GetProperty("child_blocks");
+    Check("one item: no rows and no header for them", alone.GetArrayLength() == 1 && alone[0].GetProperty("rows").GetArrayLength() == 1);
+
+    // ── Too long ──
+    var longBoxes = SlackRichBlocks.ItemBoxes(Listed(40)).Select(i => Json(i.Block)).ToList();
+    Check("long: carries on in more boxes", longBoxes.Count == 5, longBoxes.Count.ToString());
+    Check("long: none over what a box holds", longBoxes.All(b => b.GetProperty("child_blocks").GetArrayLength() <= 10));
+    string HeadOf(JsonElement b) => b.GetProperty("child_blocks")[0].GetProperty("elements")[0].GetProperty("text").GetString()!;
+    Check("long: each later box opens with the header", longBoxes.Skip(1).All(b => HeadOf(b).Contains("Build Cost")));
+    var ranks = longBoxes.SelectMany(b => b.GetProperty("child_blocks").EnumerateArray())
+        .Where(c => c.GetProperty("type").GetString() == "context" && c.GetProperty("elements").GetArrayLength() == 3)
+        .Select(c => c.GetProperty("elements")[0].GetProperty("text").GetString()!.Trim('*', '.', ' ')).ToList();
+    Check("long: every item, once, in order", ranks.SequenceEqual(Enumerable.Range(2, 39).Select(i => i.ToString())), string.Join(",", ranks.Take(12)));
+    Check("long: the same size throughout", longBoxes.All(b => b.GetProperty("width").GetString() == "wide"));
+
+    // ── Too wide ──
+    string[] everything = [.. IndustryOppsReport.Columns.Where(c => c.Key != IndustryOppsReport.Item).Select(c => c.Key)];
+    var crowded = Listed(5, everything);
+    var wider = Json(SlackRichBlocks.ItemBoxes(crowded)[0].Block);
+    Check("too many columns: the box stays wide", wider.GetProperty("width").GetString() == "wide");
+    Check("too many columns: the last are left out", crowded.Columns.Count is > 3 and < 13, crowded.Columns.Count.ToString());
+    Check("too many columns: the first are the section's first", crowded.Columns.Skip(1).Select(c => c.Header)
+        .SequenceEqual(IndustryOppsReport.Columns.Where(c => c.Key != IndustryOppsReport.Item).Select(c => renamed.GetValueOrDefault(c.Key, c.Header)).Take(crowded.Columns.Count - 1)));
+    var widerKids = wider.GetProperty("child_blocks");
+    var widerRows = widerKids.EnumerateArray().Skip(1).Select(r => r.GetProperty("elements")[2].GetProperty("text").GetString()!).ToList();
+    Check("too many columns: every row stays inside the box", widerRows.All(r => Drawn(r) + 4424 <= 46750), string.Join(",", widerRows.Select(Drawn)));
+    var widerHeader = widerKids[0].GetProperty("rows")[1].GetProperty("items")[0].GetProperty("block").GetProperty("elements")[0].GetProperty("text").GetString()!;
+    Check("too many columns: the header stays on one line in the layout", Drawn(widerHeader) <= 51000, Drawn(widerHeader).ToString());
+    var leftOutFact = crowded.InPeriod.Select(f => f.Label).Concat(crowded.Before.Select(f => f.Label)).ToList();
+    Check("too many columns: what is left out is not among number 1's figures either", !leftOutFact.Contains("Total Profit"), string.Join(",", leftOutFact));
+    Check("too many columns: and neither is its sort mark", !crowded.InPeriod.Concat(crowded.Before).Any(f => f.Strong));
+
+    string[] saved = ["build_cost", "units_30d", "avg_price_30d", "margin_30d", "sales_30d", "profit_30d"];
+    Check("fit: a new section's columns", IndustryOppsReport.SlackBoxKeys(IndustryOppsReport.DefaultColumns, true).Count == IndustryOppsReport.DefaultColumns.Length - 1);
+    Check("fit: six columns with short headers", IndustryOppsReport.SlackBoxKeys(saved, true, renamed).Count == 6);
+    Check("fit: a long header can take a column's place",
+        IndustryOppsReport.SlackBoxKeys(saved, true, new Dictionary<string, string>(renamed) { ["build_cost"] = new string('W', 40) }).Count < 6);
+    Check("fit: with no headers, headers do not count",
+        IndustryOppsReport.SlackBoxKeys(saved, false, new Dictionary<string, string> { ["build_cost"] = new string('W', 40) }).Count == 6);
+    Check("fit: the item is never counted as one of them", !IndustryOppsReport.SlackBoxKeys(everything, true).Contains(IndustryOppsReport.Item));
+    Check("fit: real rows decide at post time", IndustryOppsReport.SlackBoxKeys([Made(1), Made(2)], everything, true).Count == crowded.Columns.Count - 1);
+    EveConsole.ViewModels.IndustryRow small = new() { BuildCost = 1, SellPrice = 1, UnitVol30d = 1, IskVol30d = 1 };
+    EveConsole.ViewModels.IndustryRow huge = new()
+    {
+        BuildCost = 1e15, SellPrice = 1e15, ProfitPerUnit = 1e15, ProfitPerSlotDay = 1e15, Margin = 99.9, UnitVol30d = 1e9, IskVol30d = 1e18,
+    };
+    int FittedCount(params EveConsole.ViewModels.IndustryRow[] fitted) => IndustryOppsReport.SlackBoxKeys(fitted, everything, false).Count;
+    Check("fit: number 1's figures take no room in the columns", FittedCount(huge, small) == FittedCount(small, small), $"{FittedCount(huge, small)} vs {FittedCount(small, small)}");
+    Check("fit: the rows under it do", FittedCount(small, huge) < FittedCount(small, small), $"{FittedCount(small, huge)} vs {FittedCount(small, small)}");
+
+    // What a line holds, by the measured figures: 46750, less a rank and icon of 4424, a gap of 750 after the name, and 8000 for the name.
+    Check("fit: one column, up to what is left", SlackRichBlocks.ItemColumnsFit([33576]));
+    Check("fit: one column, and not past it", !SlackRichBlocks.ItemColumnsFit([33577]));
+    Check("fit: two columns, with the 600 between them", SlackRichBlocks.ItemColumnsFit([16488, 16488]));
+    Check("fit: two columns, and not past it", !SlackRichBlocks.ItemColumnsFit([16488, 16489]));
+
+    var soldOut = new EveConsole.ViewModels.IndustryRow { TypeId = 800, TypeName = "No Orders", HasSellOrders = false, BuildCost = 1, SellPrice = 2 };
+    string[] sellLast = ["build_cost", "profit_unit", "margin", "build_time", "slot_days", "profit_slot_day", "units_30d", "avg_price_30d", "margin_30d", "sales_30d", "profit_30d", "sell_price"];
+    Check("history note: not for a column the box had no room for",
+        !IndustryOppsReport.NeedsHistoryNote([soldOut, soldOut], IndustryOppsReport.SlackBoxKeys([soldOut, soldOut], sellLast, true)));
+
+    EveConsole.ViewModels.IndustryRow LongName = new() { TypeId = 700, TypeName = new string('W', 90), BuildCost = 1, UnitVol30d = 1, IskVol30d = 1 };
+    var cutList = IndustryOppsReport.SlackList([Made(1), LongName, Made(3)], keys, "T", "profit_30d", true, "p", renamed);
+    var cutBox = Json(SlackRichBlocks.ItemBoxes(cutList)[0].Block);
+    var cutRow = cutBox.GetProperty("child_blocks")[1].GetProperty("elements")[2].GetProperty("text").GetString()!;
+    Check("long name: cut, not the numbers", cutRow.Contains("...") && cutRow.Contains("%"), cutRow);
+    Check("long name: the row stays inside the box it is in", Drawn(cutRow) + 4424 <= 46750, Drawn(cutRow).ToString());
+    Check("long name: a short one is left whole", cutBox.GetProperty("child_blocks")[2].GetProperty("elements")[2].GetProperty("text").GetString()!.StartsWith("Hull 3", StringComparison.Ordinal));
+    Check("number 1's name is not cut", cutBox.GetProperty("child_blocks")[0].GetProperty("rows")[0].GetProperty("items")[1].GetProperty("block").GetProperty("text").GetProperty("text").GetString()!.Contains("Hull 1"));
+
+    // A name is anyone's only if they name their own items, but a type's can hold an ampersand.
+    var markup = new EveConsole.ViewModels.IndustryRow { TypeId = 1, TypeName = "A&B", BuildCost = 1, UnitVol30d = 1, IskVol30d = 1 };
+    var escaped = Json(SlackRichBlocks.ItemBoxes(IndustryOppsReport.SlackList([markup, markup], keys, "T", "profit_30d", true, "p"))[0].Block).GetProperty("child_blocks");
+    Check("escape: in number 1's name", escaped[0].GetProperty("rows")[0].GetProperty("items")[1].GetProperty("block").GetProperty("text").GetProperty("text").GetString()!.Contains("A&amp;B"));
+    Check("escape: in a row", escaped[1].GetProperty("elements")[2].GetProperty("text").GetString()!.Contains("A&amp;B"));
+
+    var factBox = Json(SlackRichBlocks.ItemBoxes(new SlackItemList("T", "Leader", "p",
+        [new("L&M", "V&W")], "Period", [new("P&Q", "R&S")], "{0}: {1}", false, [new("Item", false)], [new("i", ["Name"])]))[0].Block)
+        .GetProperty("child_blocks")[0].GetProperty("rows")[0].GetProperty("items")[1].GetProperty("block");
+    Check("escape: in a figure and its label", factBox.GetProperty("text").GetProperty("text").GetString()!.Contains("L&amp;M: V&amp;W"));
+    Check("escape: in a 30-day figure too", factBox.GetProperty("fields")[0].GetProperty("text").GetString() == "P&amp;Q: R&amp;S");
+
+    MessageBlock Saved(string json) => ScheduledTaskConfig.FromJson($$"""{"Blocks":[{{json}}]}""").Blocks[0];
+    Check("saved: an Industry Ops list from before it stays text", !Saved("""{"Type":"industry_opps"}""").UsesSlackRich);
+    Check("saved: ticked, it is rich", Saved("""{"Type":"industry_opps","SlackRich":true}""").UsesSlackRich);
+}
+
 // ── A project list as text ────────────────────────────────────────────────────
 
 {
@@ -666,6 +890,62 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     Check("editor: a new project list starts in the Slack format", Editor(new MessageBlock { Type = MessageBlock.TypeProjects }, fresh: true).SlackRich);
     Check("editor: a new Top 10 still does", Editor(new MessageBlock { Type = MessageBlock.TypeTop10 }, fresh: true).SlackRich);
     Check("editor: a saved project list keeps what it was saved with", !Editor(new MessageBlock { Type = MessageBlock.TypeProjects }).SlackRich);
+    Check("editor: a new Industry Ops list starts in the Slack format", Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps }, fresh: true).SlackRich);
+    Check("editor: a saved one keeps what it was saved with", !Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps }).SlackRich);
+
+    // ── Columns, as many as the box holds ──
+    var columnsEd = Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps }, fresh: true);
+    Check("columns: a new section is not full", !columnsEd.OppsBoxFull && !columnsEd.HasOppsLeftOut && columnsEd.OppsAddable.Count > 0);
+    for (var i = 0; i < 20 && columnsEd.OppsToAdd is not null; i++) columnsEd.AddOppsColumnCommand.Execute().Subscribe();
+    var addedKeys = columnsEd.OppsTable.Where(c => !c.IsItem).Select(c => c.Key).ToList();
+    Check("columns: adding stops at what fits", addedKeys.Count < IndustryOppsReport.Columns.Count - 1 && IndustryOppsReport.SlackBoxKeys(addedKeys, true).Count == addedKeys.Count, addedKeys.Count.ToString());
+    Check("columns: then none is offered, and it says why", columnsEd.OppsAddable.Count == 0 && columnsEd.OppsBoxFull && !columnsEd.HasOppsLeftOut);
+    columnsEd.OppsTable[1].RemoveCommand.Execute().Subscribe();
+    Check("columns: removing one offers something again", columnsEd.OppsAddable.Count > 0 && columnsEd.OppsToAdd is not null);
+
+    columnsEd.SlackRich = false;
+    Check("columns: as text, every column is offered", columnsEd.OppsAddable.Count == IndustryOppsReport.Columns.Count - columnsEd.OppsTable.Count && !columnsEd.OppsBoxFull && !columnsEd.HasOppsLeftOut);
+
+    string[] allKeys = [.. IndustryOppsReport.Columns.Where(c => c.Key != IndustryOppsReport.Item).Select(c => c.Key)];
+    var tooMany = Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps, SlackRich = true, OppsColumns = [.. allKeys] });
+    Check("columns: a section saved with too many says what is left out", tooMany.HasOppsLeftOut && tooMany.OppsLeftOut.Contains(IndustryOppsReport.Columns[^1].Header) && !tooMany.OppsLeftOut.Contains(IndustryOppsReport.Columns[1].Header), tooMany.OppsLeftOut);
+    Check("columns: and keeps all of them, should it go back to text", tooMany.ToModel().OppsColumns.Count == allKeys.Length);
+    tooMany.SlackRich = false;
+    Check("columns: as text, nothing is left out", !tooMany.HasOppsLeftOut);
+
+    var renaming = Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps, SlackRich = true, OppsColumns = ["build_cost", "profit_unit", "margin"] });
+    Check("columns: fits to begin with", !renaming.HasOppsLeftOut);
+    renaming.OppsTable[1].Header = new string('W', 40);
+    Check("columns: a longer header is noticed", renaming.HasOppsLeftOut, renaming.OppsLeftOut);
+    renaming.OppsTable[1].Header = new string('W', 40);
+    renaming.ShowHeaders = false;
+    Check("columns: with headers off, a long one no longer counts", !renaming.HasOppsLeftOut, renaming.OppsLeftOut);
+    renaming.ShowHeaders = true;
+    renaming.OppsTable[1].Header = "Cost";
+    Check("columns: and a shorter one", !renaming.HasOppsLeftOut);
+
+    var heldPick = Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps, OppsColumns = ["build_cost"] });
+    heldPick.OppsToAdd = heldPick.OppsAddable[2];
+    var pickedKey = heldPick.OppsToAdd.Key;
+    heldPick.OppsTable[1].Header = "Typed";
+    Check("columns: typing a header keeps what the dropdown has picked", heldPick.OppsToAdd.Key == pickedKey);
+    heldPick.OppsTable[1].RemoveCommand.Execute().Subscribe();
+    Check("columns: and so does a list rebuilt around it", heldPick.OppsToAdd?.Key == pickedKey, heldPick.OppsToAdd?.Key ?? "none");
+
+    var headed = Editor(new MessageBlock { Type = MessageBlock.TypeIndustryOpps, OppsColumns = ["build_cost", "margin", "profit_unit"], OppsHeaders = new() { ["build_cost"] = "Cost" } });
+    headed.OppsTable[2].Header = " ";
+    var headedModel = headed.ToModel();
+    Check("columns: a renamed header is saved", headedModel.OppsHeaders.GetValueOrDefault("build_cost") == "Cost");
+    Check("columns: a blank one or one left alone is not", headedModel.OppsHeaders.Count == 1, string.Join(",", headedModel.OppsHeaders.Keys));
+
+    var plainText = Editor(new MessageBlock { Type = MessageBlock.TypeText }, fresh: true);
+    Check("editor: new text has no box", !plainText.HasBox && plainText.ToModel().BoxWidth == SlackBoxWidth.None);
+    plainText.BoxWidth = EveConsole.ViewModels.MessageBlockVm.BoxWidthOptions.First(w => w.Key == SlackBoxWidth.Wide);
+    Check("editor: a size gives it one", plainText.HasBox && plainText.ToModel().BoxWidth == SlackBoxWidth.Wide && plainText.ToModel().UsesSlackRich);
+    plainText.BoxWidth = null!;
+    Check("editor: a rebuilt dropdown handing back null changes nothing", plainText.BoxWidth.Key == SlackBoxWidth.Wide);
+    var boxedAgain = Editor(new MessageBlock { Type = MessageBlock.TypeText, Text = "A\nB", BoxWidth = SlackBoxWidth.Narrow, PictureKind = SlackPicture.Alliance, PictureId = 5, PictureName = "X" });
+    Check("editor: saved, its box and logo come back", boxedAgain.HasBox && boxedAgain.ToModel().BoxWidth == SlackBoxWidth.Narrow && boxedAgain.ToModel().PictureId == 5);
 }
 
 // ── The lists, from a database ────────────────────────────────────────────────
@@ -781,6 +1061,23 @@ try
     var unticked = Json((await renderer.RenderSlackRichAsync([ProjectList(false, [definition], "Mine")], DateTime.UtcNow)).Messages[0].Blocks[0]).GetProperty("text").GetProperty("text").GetString()!;
     Check("project post: unticked, the text table carries the title and words", unticked.Contains("Mine") && unticked.Contains("About this list") && unticked.Contains("```"), unticked);
     Check("project post: unticked, no picture", !unticked.Contains("images.evetech.net"));
+
+    // Text through the real renderer: the box on Slack, and the words as they are anywhere else.
+    MessageBlock Note(string width) => new()
+    {
+        Type = MessageBlock.TypeText, Text = "*Heading*\nWords", BoxWidth = width,
+        PictureKind = SlackPicture.Alliance, PictureId = 99,
+    };
+
+    var boxedPost = await renderer.RenderSlackRichAsync([Note(SlackBoxWidth.Standard)], DateTime.UtcNow);
+    var boxedText = Json(boxedPost.Messages[0].Blocks[0]);
+    Check("text post: a box at its size", boxedText.GetProperty("type").GetString() == "container" && boxedText.GetProperty("width").GetString() == "standard");
+    Check("text post: the logo", boxedText.GetProperty("icon").GetProperty("image_url").GetString()!.Contains("/alliances/99/logo"));
+    Check("text post: the title and words", boxedText.GetProperty("title").GetProperty("text").GetString() == "Heading" && boxedText.GetProperty("child_blocks")[0].GetProperty("text").GetProperty("text").GetString() == "Words");
+    Check("text post: not what makes a post worth sending", !boxedPost.AnyDynamicContent);
+
+    var unboxed = Json((await renderer.RenderSlackRichAsync([Note(SlackBoxWidth.None)], DateTime.UtcNow)).Messages[0].Blocks[0]);
+    Check("text post: no box, the words as written, and no logo", unboxed.GetProperty("type").GetString() == "section" && unboxed.GetProperty("text").GetProperty("text").GetString() == "*Heading*\nWords");
 
     // What the picture's search box finds.
     await using (var db = factory.CreateDbContext())

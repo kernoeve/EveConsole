@@ -290,9 +290,13 @@ public sealed class MessageBlockVm : ReactiveObject
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
 
-        // A new Top 10 or project list starts rich. A saved section keeps what it was saved with.
-        _slackRich = fresh ? model.Type is MessageBlock.TypeTop10 or MessageBlock.TypeProjects : model.SlackRich;
+        // A new Top 10, project list or Industry Ops list starts rich. A saved section keeps what it
+        // was saved with.
+        _slackRich = fresh
+            ? model.Type is MessageBlock.TypeTop10 or MessageBlock.TypeProjects or MessageBlock.TypeIndustryOpps
+            : model.SlackRich;
 
+        _boxWidth       = BoxWidthOptions.FirstOrDefault(w => w.Key == model.BoxWidth) ?? BoxWidthOptions[0];
         _introText      = model.IntroText;
         _pictureKind    = PictureKindOptions.FirstOrDefault(k => k.Key == model.PictureKind) ?? PictureKindOptions[0];
         _pictureId      = model.PictureId;
@@ -336,8 +340,9 @@ public sealed class MessageBlockVm : ReactiveObject
         foreach (var key in columns.Distinct().Where(known.ContainsKey))
             OppsTable.Add(Column(known[key], model.OppsHeaders.GetValueOrDefault(key)));
         AddOppsColumnCommand = ReactiveCommand.Create(AddOppsColumn);
+        OppsTable.CollectionChanged += (_, _) => RefreshAddable();
         RefreshAddable();
-        _oppsSortBy        = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
+        _oppsSortBy       = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
                              ?? OppsSortOptions.First(o => o.Key == IndustryOppsReport.DefaultSort);
         _oppsSortDirection = model.OppsSortDescending ? SortDirectionOptions[0] : SortDirectionOptions[1];
         _oppsRowLimit      = model.OppsRowLimit > 0 ? model.OppsRowLimit.ToString() : "";
@@ -399,6 +404,7 @@ public sealed class MessageBlockVm : ReactiveObject
                          nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
                          nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart), nameof(IsOpps),
                          nameof(IsParkCompare), nameof(IsSystemIndex),
+                         nameof(TextPicturePicker), nameof(ProjectPicturePicker),
                          nameof(Heading), nameof(ShowWebhookChartWarning), nameof(ShowWebhookPicturesWarning),
                          nameof(ShowWebhookHostedNote),
                      })
@@ -512,7 +518,15 @@ public sealed class MessageBlockVm : ReactiveObject
                                            ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
 
     private bool _showHeaders = true;
-    public bool ShowHeaders { get => _showHeaders; set => this.RaiseAndSetIfChanged(ref _showHeaders, value); }
+    public bool ShowHeaders
+    {
+        get => _showHeaders;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showHeaders, value);
+            RefreshAddable();   // a header can be what makes a column wide
+        }
+    }
 
     private bool _showIskLeft = true;
     public bool ShowIskLeft { get => _showIskLeft; set => this.RaiseAndSetIfChanged(ref _showIskLeft, value); }
@@ -528,7 +542,53 @@ public sealed class MessageBlockVm : ReactiveObject
 
     /// <summary>Top 10 and standing projects: images and lined-up columns on Slack, or the text
     /// table. Discord always gets the text.</summary>
-    public bool SlackRich { get => _slackRich; set => this.RaiseAndSetIfChanged(ref _slackRich, value); }
+    public bool SlackRich
+    {
+        get => _slackRich;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _slackRich, value);
+            RefreshAddable();
+        }
+    }
+
+    // ── Text: a box on Slack ──────────────────────────────────────────────────
+
+    public static readonly LabelledChoice[] BoxWidthOptions =
+    [
+        new(SlackBoxWidth.None,     AlarmsText.BoxWidthNone),
+        new(SlackBoxWidth.Narrow,   AlarmsText.BoxWidthNarrow),
+        new(SlackBoxWidth.Standard, AlarmsText.BoxWidthStandard),
+        new(SlackBoxWidth.Wide,     AlarmsText.BoxWidthWide),
+    ];
+
+    public IReadOnlyList<LabelledChoice> BoxWidths => BoxWidthOptions;
+
+    private LabelledChoice _boxWidth;
+    public LabelledChoice BoxWidth
+    {
+        get => _boxWidth;
+        set
+        {
+            // A ComboBox being rebuilt hands back null; that is not somebody choosing.
+            if (value is null) return;
+
+            this.RaiseAndSetIfChanged(ref _boxWidth, value);
+            this.RaisePropertyChanged(nameof(HasBox));
+        }
+    }
+
+    /// <summary>
+    /// What the picture's picker binds to, where this section has one.
+    ///
+    /// <para>⚠️ Null on any other kind of section, so that it builds nothing. A hidden picker is
+    /// still bound: two search boxes on one setting each write back what the other just cleared.</para>
+    /// </summary>
+    public MessageBlockVm? TextPicturePicker => IsText ? this : null;
+    public MessageBlockVm? ProjectPicturePicker => IsProjects ? this : null;
+
+    /// <summary>Whether a text section has a box, and so a place for a picture.</summary>
+    public bool HasBox => SlackBoxWidth.IsBox(_boxWidth.Key);
 
     // ── Standing projects: what introduces the list ──────────────────────────
 
@@ -1002,34 +1062,92 @@ public sealed class MessageBlockVm : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddOppsColumnCommand { get; }
 
-    private OppsColumnVm Column(IndustryOppsReport.Column c, string? header) => new(
-        c.Key, c.Header, header is { Length: > 0 } ? header : c.Header, c.Key == IndustryOppsReport.Item,
-        col => { OppsTable.Remove(col); RefreshAddable(); },
-        (col, by) =>
+    private OppsColumnVm Column(IndustryOppsReport.Column c, string? header)
+    {
+        var column = new OppsColumnVm(
+            c.Key, c.Header, header is { Length: > 0 } ? header : c.Header, c.Key == IndustryOppsReport.Item,
+            col => OppsTable.Remove(col),
+            (col, by) =>
+            {
+                // The item holds the first place: nothing moves above it.
+                var i = OppsTable.IndexOf(col);
+                var j = i + by;
+                if (i < 0 || j < 1 || j >= OppsTable.Count) return;
+                OppsTable.Move(i, j);
+            });
+
+        // A longer header can be what takes the box past its width.
+        column.PropertyChanged += (_, e) =>
         {
-            // The item holds the first place: nothing moves above it.
-            var i = OppsTable.IndexOf(col);
-            var j = i + by;
-            if (i < 0 || j < 1 || j >= OppsTable.Count) return;
-            OppsTable.Move(i, j);
-        });
+            if (e.PropertyName == nameof(OppsColumnVm.Header)) RefreshAddable();
+        };
+        return column;
+    }
 
     private void AddOppsColumn()
     {
         if (OppsToAdd is not { } pick) return;
-        var c = IndustryOppsReport.Columns.First(x => x.Key == pick.Key);
-        OppsTable.Add(Column(c, null));
-        RefreshAddable();
+        OppsTable.Add(Column(IndustryOppsReport.Columns.First(x => x.Key == pick.Key), null));
     }
 
-    /// <summary>The dropdown offers what is not in the table, in the grid's order, the first picked.</summary>
+    private bool _oppsBoxFull;
+
+    /// <summary>A column was kept off the dropdown because Slack's box has no room for it.</summary>
+    public bool OppsBoxFull { get => _oppsBoxFull; private set => this.RaiseAndSetIfChanged(ref _oppsBoxFull, value); }
+
+    private string _oppsLeftOut = "";
+
+    /// <summary>What the section has that its post will leave out, said when it has any: a section
+    /// saved with more than fits, or one that has only just been ticked for Slack.</summary>
+    public string OppsLeftOut
+    {
+        get => _oppsLeftOut;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _oppsLeftOut, value);
+            this.RaisePropertyChanged(nameof(HasOppsLeftOut));
+        }
+    }
+
+    public bool HasOppsLeftOut => OppsLeftOut.Length > 0;
+
+    /// <summary>
+    /// The dropdown offers what is not in the table, in the grid's order, and in Slack's format only
+    /// what its box has room for.
+    ///
+    /// <para>⚠️ Left alone when it would offer the same: typing a header comes through here, and a
+    /// ComboBox whose list is rebuilt loses the pick.</para>
+    /// </summary>
     private void RefreshAddable()
     {
-        OppsAddable.Clear();
-        foreach (var c in IndustryOppsReport.Columns.Where(c => OppsTable.All(t => t.Key != c.Key)))
-            OppsAddable.Add(new LabelledChoice(c.Key, c.Header));
-        OppsToAdd = OppsAddable.FirstOrDefault();
+        var limited = IsOpps && SlackRich;
+        var names   = OppsHeaderNames();
+        var keys    = OppsTable.Where(t => !t.IsItem).Select(t => t.Key).ToList();
+        bool Fits(string key) => IndustryOppsReport.SlackBoxKeys([.. keys, key], ShowHeaders, names).Contains(key);
+
+        var missing = IndustryOppsReport.Columns.Where(c => OppsTable.All(t => t.Key != c.Key)).ToList();
+        var offered = missing.Where(c => !limited || Fits(c.Key)).ToList();
+
+        if (!offered.Select(c => c.Key).SequenceEqual(OppsAddable.Select(c => c.Key)))
+        {
+            var held = OppsToAdd?.Key;
+            OppsAddable.Clear();
+            foreach (var c in offered) OppsAddable.Add(new LabelledChoice(c.Key, c.Header));
+            OppsToAdd = OppsAddable.FirstOrDefault(c => c.Key == held) ?? OppsAddable.FirstOrDefault();
+        }
+
+        var kept = limited ? IndustryOppsReport.SlackBoxKeys(keys, ShowHeaders, names) : keys;
+        OppsLeftOut = keys.Count > kept.Count
+            ? string.Format(AlarmsText.OppsBoxLeftOut, string.Join(", ", OppsTable.Where(t => !t.IsItem && !kept.Contains(t.Key)).Select(t => t.Header.Trim())))
+            : "";
+        OppsBoxFull = !HasOppsLeftOut && offered.Count < missing.Count;
     }
+
+    /// <summary>Only headers changed from the column's own: one left alone follows the interface
+    /// language, and a blank box means the column's own header too.</summary>
+    private Dictionary<string, string> OppsHeaderNames() => OppsTable
+        .Where(c => c.Header.Trim().Length > 0 && c.Header.Trim() != c.Name)
+        .ToDictionary(c => c.Key, c => c.Header.Trim());
 
     private LabelledChoice _oppsSortBy;
     public LabelledChoice OppsSortBy { get => _oppsSortBy; set => this.RaiseAndSetIfChanged(ref _oppsSortBy, value ?? OppsSortOptions[0]); }
@@ -1094,6 +1212,7 @@ public sealed class MessageBlockVm : ReactiveObject
         ShowLastCompleted  = ShowLastCompleted,
         SlackRich          = SlackRich,
         IntroText          = IntroText.Trim(),
+        BoxWidth           = BoxWidth.Key,
         PictureKind        = PictureKind.Key,
         PictureId          = _pictureId,
         PictureName        = _pictureName,
@@ -1114,12 +1233,8 @@ public sealed class MessageBlockVm : ReactiveObject
         OppsExcludedGroupIds = [.. _oppsExcludedIds],
         OppsIncludedGroupIds = [.. _oppsIncludedIds],
         OppsColumns          = [.. OppsTable.Where(c => !c.IsItem).Select(c => c.Key)],
-        // Only headers changed from the column's own: one left alone follows the interface
-        // language, and a blank box means the column's own header too.
-        OppsHeaders          = OppsTable
-            .Where(c => c.Header.Trim().Length > 0 && c.Header.Trim() != c.Name)
-            .ToDictionary(c => c.Key, c => c.Header.Trim()),
-        OppsSortBy           = OppsSortBy.Key,
+        OppsHeaders          = OppsHeaderNames(),
+        OppsSortBy          = OppsSortBy.Key,
         OppsSortDescending   = OppsSortDirection.Key == "desc",
         OppsRowLimit         = int.TryParse(OppsRowLimit.Trim(), out var limit) && limit > 0 ? limit : 0,
 

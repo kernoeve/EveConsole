@@ -1882,6 +1882,54 @@
   <data name="PictureKindType" xml:space="preserve">
     <value>Tipo de objeto</value>
   </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>CUADRO EN SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Sin cuadro</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Estrecho</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Estándar</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Ancho</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>La primera línea del texto se convierte en el título del cuadro. Discord y las publicaciones de texto lo dejan tal como está escrito.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Actividad de los últimos 30 días</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Unidades vendidas</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Precio medio</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Margen %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Ventas totales</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Beneficio total</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Artículo principal</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>El cuadro de Slack no tiene sitio para más columnas. Quita una para añadir otra.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Demasiado ancho para el cuadro de Slack. Estas columnas se omiten en la publicación: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — aquí se muestra como texto; Slack recibe imágenes y columnas alineadas]</value>
   </data>
