@@ -693,4 +693,7 @@ Aktualisieren und starten? Nein schließt EVE Console und lässt die Datenbank u
 {1}
 Klicken für die ESI-Limits.</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Kampfbericht</value>
+  </data>
 </root>

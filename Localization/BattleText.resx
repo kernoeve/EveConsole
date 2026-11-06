@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Open in entities</value>
+    <comment>On a pilot name: opens them in the player entities tool.</comment>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>Unknown ship</value>
+    <comment>The killmail does not say what this pilot was flying.</comment>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>Click an alliance to list its corporations. Double-click for details.</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Open the kill</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>Victim corporation</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>Victim alliance</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>Final blow</value>
+    <comment>Who landed the last hit on the victim.</comment>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>Final blow corporation</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>Final blow alliance</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>Find fights</value>
+    <comment>Button: search a period for large fights.</comment>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>Last 24 hours</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>Last 3 days</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>Last 7 days</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>blank = up to now</value>
+    <comment>Watermark of the end of the period searched.</comment>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>At least pilots:</value>
+    <comment>Smallest fight to list, in pilots involved.</comment>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>Only fights my pilots were in</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Find</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>Looking through the kills…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>Finds fights by where kills cluster, joining systems when the same pilots are in both. Open one to get a battle with its systems and times filled in, ready to adjust.</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>zKillboard is not importing all kills in Settings, so this only finds fights your characters and corporations were on.</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>This database holds no fights that size in this period.</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>Fights found: {0:N0}. The largest by ISK lost are listed first.</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>Pick a period of {0} days or less.</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>The smallest fight needs to be a whole number of pilots.</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>Open</value>
+    <comment>Button on a fight found.</comment>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>still going</value>
+    <comment>In the duration column: the fight has not ended.</comment>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>Your pilots were in this fight.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Started</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Duration</value>
+    <comment>Shown as hours:minutes.</comment>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>Systems</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>Largest sides</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>Deployables lost</value>
+    <comment>Mobile tractor units, mobile depots and the like.</comment>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>Remove this empty team</value>
+    <comment>Shown only on a team with nobody on it.</comment>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Add:</value>
+    <comment>Beside the box that adds a system or a whole constellation to the battle.</comment>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>System or constellation</value>
+    <comment>Watermark of the search box.</comment>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>blank = still going</value>
+    <comment>Watermark of an end time left empty: the fight has no end yet.</comment>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>Apply to all</value>
+    <comment>Button: gives every system in the list the times beside it.</comment>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>Give every system in the list these times.</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>Update this battle as kills arrive. Only systems with a blank or future end can gain kills.</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>Watching live: {0} of {1}</value>
+    <comment>How many of the systems in the battle can still gain kills.</comment>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  constellation  ·  {1}</value>
+    <comment>{0} is a constellation, {1} its region. Picking it adds all its systems.</comment>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>Kills: {0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>New battle</value>
+    <comment>Name of a battle not named yet, on its tab.</comment>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>New battle</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>Name this battle</value>
+    <comment>Watermark.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button: keep this battle in the saved list.</comment>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>Keep this battle in the list to pull up later. Once saved, its changes keep themselves.</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>Saved battles</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>Battles you save appear here.</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>Systems: {0}  ·  {1}</value>
+    <comment>{0} is a count of systems, {1} the time the battle starts.</comment>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>Open a saved battle, or start a new one.</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>Systems and times</value>
+    <comment>Heading of the fold-away part defining the battle.</comment>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Delete the saved battle "{0}"? Its kills stay in the database.</value>
+    <comment>{0} is the battle's name.</comment>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>Close this battle</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Delete this saved battle</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>Its end is blank or yet to come, so it can be watched live.</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>Add the systems and their times, then open the report. Leave an end blank for a fight still going.</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>Add at least one system.</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}: the start needs to look like 2026-01-31 18:00.</value>
+    <comment>{0} is a system. The sample date is typed literally: year-month-day, 24-hour clock.</comment>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}: the end needs to look like 2026-01-31 20:00, or be left blank.</value>
+    <comment>{0} is a system. The sample date is typed literally.</comment>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}: the end is before the start.</value>
+    <comment>{0} is a system.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>From (EVE time):</value>
+    <comment>Start of the time window of the battle.</comment>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>To (EVE time):</value>
+    <comment>End of the time window of the battle.</comment>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>yyyy-mm-dd hh:mm</value>
+    <comment>Watermark showing how to type a date and time. The digits typed are always year-month-day.</comment>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>Watch live</value>
+    <comment>Checkbox: keep the report updating as kills arrive.</comment>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>Open report</value>
+    <comment>Button that builds the battle report.</comment>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>live</value>
+    <comment>In the list of recent reports: this report has no end time.</comment>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>LIVE</value>
+    <comment>Short badge shown while the report is updating. Keep it very short.</comment>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>Kill link or id</value>
+    <comment>Watermark: paste a killmail link or number to start from that kill.</comment>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>Use kill</value>
+    <comment>Button: fill in the system and time from the kill typed beside it.</comment>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Team {0}</value>
+    <comment>{0} is a letter: A, B, C.</comment>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>Your side</value>
+    <comment>Marks the team the user's own pilots are on.</comment>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>ISK lost</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>Efficiency</value>
+    <comment>Share of all ISK lost that the other teams lost.</comment>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>Pilots</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>Damage dealt</value>
+    <comment>To ships, not counting damage to structures.</comment>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>Ships lost</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>Pods lost</value>
+    <comment>Capsules.</comment>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>Structures lost</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>Damage to structures</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>Sides</value>
+    <comment>Tab: which alliance is on which team.</comment>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Tab.</comment>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Tab.</comment>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>Timeline</value>
+    <comment>Tab.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Short column header.</comment>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>Lost</value>
+    <comment>Column: ships lost.</comment>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>ISK lost</value>
+    <comment>Short column header.</comment>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>Damage</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Column: kills this pilot was on the attacker list of.</comment>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Ship class, such as Battleship.</comment>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>Victim</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Attackers</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Value</value>
+    <comment>ISK value of the loss.</comment>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>Add a team</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>Sides are worked out from who shot whom. Move one with its arrows; once you do, the sides present stay where they are.</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>ISK lost over the fight</value>
+    <comment>Title of a chart: each team's losses adding up over time.</comment>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>Move to the team on the left</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>Move to the team on the right</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>Battle report</value>
+    <comment>Button on a killmail: open a battle report of the fight around this kill.</comment>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>Reading kills…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>No kill id found in that. Paste a kill link or its number.</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>Kill {0} is not in this database.</value>
+    <comment>{0} is a killmail number.</comment>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>Could not read the kills: {0}</value>
+    <comment>{0} is the error text.</comment>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>New kills could not be read, trying again: {0}</value>
+    <comment>{0} is the error text.</comment>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>Some names could not be fetched: {0}</value>
+    <comment>{0} is the error text.</comment>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Kills: {0:N0}  ·  Pilots: {1:N0}  ·  ISK lost: {2}</value>
+    <comment>{2} is already formatted, such as 1.25B.</comment>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} EVE time</value>
+    <comment>First and last kill, as HH:mm.</comment>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>This database holds no kills in these systems at this time.</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>Only the first {0:N0} kills are shown: narrow the time.</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>Last kill {0} ago</value>
+    <comment>{0} is elapsed time, as m:ss or h:mm:ss.</comment>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>zKillboard import is off in Settings, so this report only has kills from your own characters and corporations.</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>zKillboard is set to Mine + Corp in Settings, so this report only has kills your characters and corporations were on.</value>
+    <comment>Mine + Corp is the name of a choice in Settings.</comment>
+  </data>
+</root>

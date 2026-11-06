@@ -1,0 +1,613 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.BattleSessionView"
+             x:DataType="vm:BattleSessionViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <!-- Grids side by side need the room: the same sizes as the other dense lists. -->
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.statlabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.statvalue">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <!-- A name that opens its entity: plain text until the pointer is on it, so a list of thousands
+         does not read as a wall of underlines. -->
+    <Style Selector="Button.namelink">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4 0" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.namelink /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.namelink:pointerover TextBlock">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+    <Style Selector="TextBlock.bad">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
+    </Style>
+    <!-- ⚠️ A heading that folds, not a switch: the theme paints a checked toggle in the accent colour,
+         in every state, and the muted heading on it could not be read. -->
+    <Style Selector="ToggleButton.fold /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <!-- Live: a slow pulse says the numbers are still moving, without pulling the eye off them. -->
+    <Style Selector="Border.livebadge">
+      <Style.Animations>
+        <Animation Duration="0:0:2" IterationCount="INFINITE">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.55" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="12 10">
+
+    <!-- This battle: its name, opening it, keeping it, and its own switch for watching live -->
+    <WrapPanel Grid.Row="0" Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+      <TextBox Text="{Binding Name}" Width="220" FontSize="12" Watermark="{x:Static loc:BattleText.NameHint}" />
+      <Button Content="{x:Static loc:BattleText.OpenReport}" Command="{Binding RunCommand}" Padding="12 4" FontSize="12" />
+      <Button Content="{x:Static loc:BattleText.Save}" Command="{Binding SaveCommand}" IsVisible="{Binding !IsSaved}"
+              Padding="12 4" FontSize="12" ToolTip.Tip="{x:Static loc:BattleText.SaveTip}" />
+      <CheckBox IsChecked="{Binding WatchLive}" IsEnabled="{Binding CanWatchLive}" FontSize="12" VerticalAlignment="Center"
+                Content="{x:Static loc:BattleText.WatchLive}" ToolTip.Tip="{x:Static loc:BattleText.WatchLiveTip}" />
+      <Border Classes="livebadge" IsVisible="{Binding IsLive}" Background="{DynamicResource BadBrush}"
+              CornerRadius="3" Padding="7 1" VerticalAlignment="Center">
+        <TextBlock Text="{x:Static loc:BattleText.LiveBadge}" FontSize="11" FontWeight="Bold" Foreground="White" />
+      </Border>
+      <TextBlock Text="{Binding LastKillText}" FontSize="12" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding IsLive}" />
+    </WrapPanel>
+
+    <!-- Where and when: folded away once a report is open, for the room -->
+    <StackPanel Grid.Row="1" Spacing="6" Margin="0 6 0 0">
+      <ToggleButton Classes="fold" IsChecked="{Binding IsDefining}" Background="Transparent" BorderThickness="0" Padding="0 2"
+                    HorizontalAlignment="Left" Cursor="Hand">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <PathIcon Data="M0,0 L10,0 L5,6 Z" Width="9" Height="6" Foreground="{DynamicResource TextMutedBrush}"
+                    IsVisible="{Binding IsDefining}" VerticalAlignment="Center" />
+          <PathIcon Data="M0,0 L6,5 L0,10 Z" Width="6" Height="9" Foreground="{DynamicResource TextMutedBrush}"
+                    IsVisible="{Binding !IsDefining}" VerticalAlignment="Center" />
+          <TextBlock Text="{x:Static loc:BattleText.DefineHeader}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+        </StackPanel>
+      </ToggleButton>
+      <StackPanel Spacing="6" IsVisible="{Binding IsDefining}">
+        <WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.SystemLabel}" />
+            <TextBox Text="{Binding SearchText}" Width="190" FontSize="12"
+                     Watermark="{x:Static loc:BattleText.SystemHint}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.FromLabel}" />
+            <TextBox Text="{Binding FromText}" Width="130" FontSize="12"
+                     Watermark="{x:Static loc:BattleText.TimeHint}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.ToLabel}" />
+            <TextBox Text="{Binding ToText}" Width="130" FontSize="12"
+                     Watermark="{x:Static loc:BattleText.ToHint}" />
+          </StackPanel>
+          <Button Content="{x:Static loc:BattleText.ApplyTimes}" Command="{Binding ApplyTimesCommand}"
+                  Padding="10 4" FontSize="12" ToolTip.Tip="{x:Static loc:BattleText.ApplyTimesTip}" />
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBox Text="{Binding KillText}" Width="170" FontSize="12"
+                     Watermark="{x:Static loc:BattleText.KillHint}" />
+            <Button Content="{x:Static loc:BattleText.UseKill}" Command="{Binding FromKillCommand}"
+                    Padding="10 4" FontSize="12" />
+          </StackPanel>
+        </WrapPanel>
+
+        <!-- Search results: picking one adds it, a whole constellation at a time if asked -->
+        <Border IsVisible="{Binding ShowResults}" MaxHeight="200" Width="420" HorizontalAlignment="Left"
+                Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                BorderThickness="1" CornerRadius="3">
+          <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding PickedResult}" Background="Transparent" FontSize="12">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:BattleSearchResult">
+                <TextBlock Text="{Binding Label}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+
+        <!-- Every system in the battle, each with its own times -->
+        <ScrollViewer MaxHeight="170">
+          <ItemsControl ItemsSource="{Binding Systems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BattleSystemRowVm">
+                <Grid ColumnDefinitions="260,140,140,70,100,30" Margin="0 1">
+                  <TextBlock Text="{Binding Label}" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBox Grid.Column="1" Text="{Binding FromText}" FontSize="12" Margin="0 0 6 0" MinHeight="26" Padding="6 3"
+                           Watermark="{x:Static loc:BattleText.TimeHint}" />
+                  <TextBox Grid.Column="2" Text="{Binding ToText}" FontSize="12" Margin="0 0 6 0" MinHeight="26" Padding="6 3"
+                           Watermark="{x:Static loc:BattleText.ToHint}" />
+                  <TextBlock Grid.Column="3" Text="{x:Static loc:BattleText.LiveWord}" IsVisible="{Binding CanWatch}" FontSize="11"
+                             VerticalAlignment="Center" Foreground="{DynamicResource BadBrush}"
+                             ToolTip.Tip="{x:Static loc:BattleText.TipOpenEnded}" />
+                  <TextBlock Grid.Column="4" Text="{Binding KillsText}" FontSize="11" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextDimBrush}" />
+                  <Button Grid.Column="5" Classes="small" Content="✕" Background="Transparent" BorderThickness="0"
+                          Foreground="{DynamicResource BadBrush}" Command="{Binding RemoveCommand}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Where things stand -->
+    <TextBlock Grid.Row="2" Text="{Binding StatusText}" FontSize="12" Margin="0 8 0 0" TextWrapping="Wrap"
+               Classes.bad="{Binding IsError}" Classes.dim="{Binding !IsError}" />
+
+    <TextBlock Grid.Row="3" Text="{Binding CoverageNote}" IsVisible="{Binding HasCoverageNote}"
+               FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 3 0 0" />
+
+    <!-- Each team's numbers, side by side -->
+    <ItemsControl Grid.Row="4" ItemsSource="{Binding Teams}" IsVisible="{Binding HasReport}" Margin="0 8 0 0">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <UniformGrid Rows="1" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:BattleTeamVm">
+          <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                  BorderThickness="1" CornerRadius="3" Padding="10 6" Margin="0 0 8 0">
+            <StackPanel Spacing="5">
+              <StackPanel Orientation="Horizontal" Spacing="7">
+                <!-- Its colour on the chart: the chart's one legend. -->
+                <Ellipse Width="10" Height="10" Fill="{Binding Swatch}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{x:Static loc:BattleText.OursTag}" IsVisible="{Binding IsOurs}" FontSize="11"
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                <Button Classes="small" Content="✕" Command="{Binding RemoveCommand}" IsVisible="{Binding CanRemove}"
+                        Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                        Foreground="{DynamicResource BadBrush}" ToolTip.Tip="{x:Static loc:BattleText.TipRemoveTeam}" />
+              </StackPanel>
+              <Grid ColumnDefinitions="*,Auto,16,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="statlabel" Text="{x:Static loc:BattleText.CardIskLost}" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="statvalue" Text="{Binding IskLost}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="statlabel" Text="{x:Static loc:BattleText.CardEfficiency}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="statvalue" Text="{Binding Efficiency}" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="statlabel" Text="{x:Static loc:BattleText.CardPilots}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="statvalue" Text="{Binding Pilots}" />
+                <TextBlock Grid.Row="3" Grid.Column="0" Classes="statlabel" Text="{x:Static loc:BattleText.CardDamage}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Classes="statvalue" Text="{Binding Damage}" />
+                <TextBlock Grid.Row="0" Grid.Column="3" Classes="statlabel" Text="{x:Static loc:BattleText.CardShips}" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Classes="statvalue" Text="{Binding ShipsLost}" />
+                <TextBlock Grid.Row="1" Grid.Column="3" Classes="statlabel" Text="{x:Static loc:BattleText.CardPods}" />
+                <TextBlock Grid.Row="1" Grid.Column="4" Classes="statvalue" Text="{Binding PodsLost}" />
+                <TextBlock Grid.Row="2" Grid.Column="3" Classes="statlabel" Text="{x:Static loc:BattleText.CardStructures}" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Classes="statvalue" Text="{Binding StructuresLost}" />
+                <TextBlock Grid.Row="3" Grid.Column="3" Classes="statlabel" Text="{x:Static loc:BattleText.CardDeployables}" />
+                <TextBlock Grid.Row="3" Grid.Column="4" Classes="statvalue" Text="{Binding DeployablesLost}" />
+                <TextBlock Grid.Row="4" Grid.Column="3" Classes="statlabel" Text="{x:Static loc:BattleText.CardStructureDamage}" />
+                <TextBlock Grid.Row="4" Grid.Column="4" Classes="statvalue" Text="{Binding StructureDamage}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TabControl Grid.Row="5" IsVisible="{Binding HasReport}" SelectedIndex="{Binding SelectedTab}" Padding="0" Margin="0 6 0 0"
+                Background="{DynamicResource SurfaceBaseBrush}">
+
+      <!-- Who is on which side, and the arrows that change it -->
+      <TabItem Header="{x:Static loc:BattleText.TabSides}" FontSize="13">
+        <Grid RowDefinitions="Auto,*">
+          <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 4 0 6">
+            <Button Content="{x:Static loc:BattleText.AddTeam}" Command="{Binding AddTeamCommand}" Padding="10 3" FontSize="12" />
+            <TextBlock Text="{x:Static loc:BattleText.SidesNote}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+          </StackPanel>
+          <ItemsControl Grid.Row="1" ItemsSource="{Binding Teams}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Rows="1" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BattleTeamVm">
+                <DataGrid ItemsSource="{Binding SidesView}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26"
+                          CanUserReorderColumns="False" SelectionMode="Single" Margin="0 0 8 0"
+                          LoadingRow="OnRowLoading" Tapped="OnSideTapped" DoubleTapped="OnSideDoubleTapped"
+                          Background="{DynamicResource SurfaceBaseBrush}">
+                  <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="26" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Name}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:BattleSideVm">
+                          <Button Classes="small" Command="{Binding MoveLeftCommand}" IsVisible="{Binding CanMoveLeft}" Padding="5 4"
+                                  ToolTip.Tip="{x:Static loc:BattleText.TipMoveLeft}" HorizontalAlignment="Center">
+                            <PathIcon Data="M6,0 L0,5 L6,10 Z" Width="6" Height="10" />
+                          </Button>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Width="26" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Name}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:BattleSideVm">
+                          <Button Classes="small" Command="{Binding MoveRightCommand}" IsVisible="{Binding CanMoveRight}" Padding="5 4"
+                                  ToolTip.Tip="{x:Static loc:BattleText.TipMoveRight}" HorizontalAlignment="Center">
+                            <PathIcon Data="M0,0 L6,5 L0,10 Z" Width="6" Height="10" />
+                          </Button>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Width="26" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Name}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:BattleSideVm">
+                          <Image Source="{Binding Logo}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColName}" Width="*" MinWidth="90"
+                                            SortMemberPath="SortName" ClipboardContentBinding="{Binding Name}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:BattleSideVm">
+                          <!-- Click a row with corporations to open it; double-click for its details. -->
+                          <Grid ColumnDefinitions="12,*" Margin="{Binding NameMargin}" Background="Transparent" Cursor="Hand"
+                                ToolTip.Tip="{x:Static loc:BattleText.TipOpenSide}">
+                            <PathIcon Data="M0,0 L6,5 L0,10 Z" Width="5" Height="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center">
+                              <PathIcon.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                  <Binding Path="CanExpand" />
+                                  <Binding Path="!IsExpanded" />
+                                </MultiBinding>
+                              </PathIcon.IsVisible>
+                            </PathIcon>
+                            <PathIcon Data="M0,0 L10,0 L5,6 Z" Width="9" Height="5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                                      IsVisible="{Binding IsExpanded}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="{Binding NameWeight}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                          </Grid>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{x:Static loc:BattleText.ColPilots}" Binding="{Binding Pilots, StringFormat={}{0:N0}}" SortMemberPath="SortPilots" Width="52" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:BattleText.ColKills}" Binding="{Binding Kills, StringFormat={}{0:N0}}" SortMemberPath="SortKills" Width="48" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:BattleText.ColLost}" Binding="{Binding Lost, StringFormat={}{0:N0}}" SortMemberPath="SortLost" Width="44" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:BattleText.ColIskLost}" Binding="{Binding IskText}" SortMemberPath="SortIsk" Width="72" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:BattleText.ColDamage}" Binding="{Binding DamageText}" SortMemberPath="SortDamage" Width="66" CellStyleClasses="num" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+      </TabItem>
+
+      <!-- Every pilot in every hull: sort by a column for the top damage, the biggest losses -->
+      <TabItem Header="{x:Static loc:BattleText.TabPilots}" FontSize="13">
+        <ItemsControl ItemsSource="{Binding Teams}" Margin="0 4 0 0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BattleTeamVm">
+              <DataGrid ItemsSource="{Binding PilotsView}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                        CanUserReorderColumns="False" SelectionMode="Single" Margin="0 0 8 0"
+                        LoadingRow="OnRowLoading" Tapped="OnPilotTapped" DoubleTapped="OnPilotDoubleTapped" Classes="tinted"
+                        Background="{DynamicResource SurfaceBaseBrush}">
+                <!-- Bound, not set as a row loads, so a hull lost while watching tints its row at once. -->
+                <DataGrid.Styles>
+                  <Style Selector="DataGridRow" x:DataType="vm:BattlePilotVm">
+                    <Setter Property="Background" Value="{Binding RowTint}" />
+                  </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                  <!-- A click on a pilot with several hulls opens them. Their name is the link to the
+                       entity viewer; a double-click anywhere is the kill, and only ever the kill. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColPilot}" Width="*" MinWidth="140"
+                                          SortMemberPath="SortPilot" ClipboardContentBinding="{Binding Pilot}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattlePilotVm">
+                        <Grid ColumnDefinitions="12,24,*" Margin="4 0" Background="Transparent">
+                          <PathIcon Data="M0,0 L6,5 L0,10 Z" Width="5" Height="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center">
+                            <PathIcon.IsVisible>
+                              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="CanExpand" />
+                                <Binding Path="!IsExpanded" />
+                              </MultiBinding>
+                            </PathIcon.IsVisible>
+                          </PathIcon>
+                          <PathIcon Data="M0,0 L10,0 L5,6 Z" Width="9" Height="5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                                    IsVisible="{Binding IsExpanded}" />
+                          <Image Grid.Column="1" Source="{Binding Portrait}" Width="20" Height="20" VerticalAlignment="Center"
+                                 IsVisible="{Binding ShowsPilot}" />
+                          <Button Grid.Column="2" Classes="namelink" Command="{Binding OpenCommand}" IsVisible="{Binding ShowsPilot}"
+                                  ToolTip.Tip="{x:Static loc:BattleText.TipOpenPilot}">
+                            <TextBlock Text="{Binding Pilot}" FontSize="12" FontWeight="{Binding NameWeight}" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                          </Button>
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColShip}" Width="130"
+                                          SortMemberPath="SortShip" ClipboardContentBinding="{Binding Ship}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattlePilotVm">
+                        <Grid ColumnDefinitions="24,*" Margin="{Binding ShipMargin}">
+                          <Image Source="{Binding ShipIcon}" Width="20" Height="20" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding Ship}" FontSize="12" Margin="4 0 0 0"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColDamage}" Binding="{Binding DamageText}" SortMemberPath="SortDamage" Width="62" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColKills}" Binding="{Binding Kills, StringFormat={}{0:N0}}" SortMemberPath="SortKills" Width="44" CellStyleClasses="num" />
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColLost}" Width="44" SortMemberPath="SortLost" ClipboardContentBinding="{Binding LostText}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattlePilotVm">
+                        <Button IsVisible="{Binding HasLoss}" Click="OnLostClicked" Background="Transparent" BorderThickness="0" Padding="0 0 8 0"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" Cursor="Hand"
+                                ToolTip.Tip="{x:Static loc:BattleText.TipOpenKill}">
+                          <TextBlock Text="{Binding LostText}" FontSize="12" TextDecorations="Underline" Foreground="{DynamicResource AccentBrush}" />
+                        </Button>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColIskLost}" Binding="{Binding IskText}" SortMemberPath="SortIsk" Width="68" CellStyleClasses="num" />
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColCorp}" Width="124" SortMemberPath="SortCorp" ClipboardContentBinding="{Binding Corp}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattlePilotVm">
+                        <Grid ColumnDefinitions="22,*" Margin="4 0">
+                          <Image Source="{Binding CorpLogo.Image}" Width="18" Height="18" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding Corp}" FontSize="12" Margin="3 0 0 0"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColAlliance}" Width="124" SortMemberPath="SortAlliance" ClipboardContentBinding="{Binding Alliance}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattlePilotVm">
+                        <Grid ColumnDefinitions="22,*" Margin="4 0">
+                          <Image Source="{Binding AllianceLogo.Image}" Width="18" Height="18" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding Alliance}" FontSize="12" Margin="3 0 0 0"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </TabItem>
+
+      <!-- What each team brought and what it lost -->
+      <TabItem Header="{x:Static loc:BattleText.TabShips}" FontSize="13">
+        <ItemsControl ItemsSource="{Binding Teams}" Margin="0 4 0 0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BattleTeamVm">
+              <DataGrid ItemsSource="{Binding ShipsView}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26"
+                        CanUserReorderColumns="False" SelectionMode="Single" Margin="0 0 8 0"
+                        LoadingRow="OnRowLoading" Tapped="OnShipTapped" Background="{DynamicResource SurfaceBaseBrush}">
+                <DataGrid.Columns>
+                  <!-- A click opens a hull into who flew it, and an alliance into its corporations. The
+                       name is the link: the hull to the Item Browser, who flew it to entities. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColShip}" Width="*" MinWidth="170"
+                                          SortMemberPath="SortName" ClipboardContentBinding="{Binding Name}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattleShipVm">
+                        <Grid ColumnDefinitions="12,24,*" Margin="{Binding Indent}" Background="Transparent">
+                          <PathIcon Data="M0,0 L6,5 L0,10 Z" Width="5" Height="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center">
+                            <PathIcon.IsVisible>
+                              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="CanExpand" />
+                                <Binding Path="!IsExpanded" />
+                              </MultiBinding>
+                            </PathIcon.IsVisible>
+                          </PathIcon>
+                          <PathIcon Data="M0,0 L10,0 L5,6 Z" Width="9" Height="5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                                    IsVisible="{Binding IsExpanded}" />
+                          <Image Grid.Column="1" Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Center" />
+                          <Button Grid.Column="2" Classes="namelink" Command="{Binding OpenCommand}">
+                            <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                          </Button>
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColGroup}" Binding="{Binding Group}" SortMemberPath="SortGroup" Width="110" />
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColPilots}" Binding="{Binding Pilots, StringFormat={}{0:N0}}" SortMemberPath="SortPilots" Width="52" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColLost}" Binding="{Binding LostText}" SortMemberPath="SortLost" Width="44" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColIskLost}" Binding="{Binding IskText}" SortMemberPath="SortIsk" Width="72" CellStyleClasses="num" />
+                  <DataGridTextColumn Header="{x:Static loc:BattleText.ColDamage}" Binding="{Binding DamageText}" SortMemberPath="SortDamage" Width="66" CellStyleClasses="num" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </TabItem>
+
+      <!-- The fight in order: losses adding up, and each loss, newest first -->
+      <TabItem Header="{x:Static loc:BattleText.TabTimeline}" FontSize="13">
+        <Grid RowDefinitions="Auto,170,*">
+          <TextBlock Text="{x:Static loc:BattleText.ChartTitle}" FontSize="11" Margin="0 4 0 2"
+                     Foreground="{DynamicResource TextFaintBrush}" />
+          <lvc:CartesianChart Grid.Row="1" Series="{Binding ChartSeries}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" />
+          <!-- ⚠️ Covered until there is a line to draw, never hidden or see-through: a chart not on
+               screen when its series arrive keeps its empty axes once shown. -->
+          <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" IsVisible="{Binding !HasChart}" />
+          <DataGrid Grid.Row="2" ItemsSource="{Binding Kills}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                    CanUserReorderColumns="False" SelectionMode="Single" Margin="0 6 0 0"
+                    LoadingRow="OnRowLoading" DoubleTapped="OnKillDoubleTapped"
+                    Background="{DynamicResource SurfaceBaseBrush}">
+            <DataGrid.Columns>
+              <!-- Marks a kill that came in while watching, for a little while. -->
+              <DataGridTemplateColumn Width="18" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Time}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsNew}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:BattleText.ColTime}" Binding="{Binding Time}" SortMemberPath="TimeRaw" Width="72" />
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColTeam}" Width="84" SortMemberPath="TeamName" ClipboardContentBinding="{Binding TeamName}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="6 0" VerticalAlignment="Center">
+                      <Ellipse Width="8" Height="8" Fill="{Binding TeamBrush}" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding TeamName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColShip}" Width="170"
+                                      SortMemberPath="Ship" ClipboardContentBinding="{Binding Ship}">
+                <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:BattleKillVm">
+                        <Grid ColumnDefinitions="24,*" Margin="4 0">
+                          <Image Source="{Binding ShipIcon}" Width="20" Height="20" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding Ship}" FontSize="12" Margin="4 0 0 0"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </Grid>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColVictim}" Width="*" MinWidth="150"
+                                      SortMemberPath="Victim" ClipboardContentBinding="{Binding Victim}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding Portrait}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Classes="namelink" Command="{Binding OpenVictimCommand}" ToolTip.Tip="{x:Static loc:BattleText.TipOpenPilot}">
+                        <TextBlock Text="{Binding Victim}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                      </Button>
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColVictimCorp}" Width="170"
+                                      SortMemberPath="Corp" ClipboardContentBinding="{Binding Corp}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding VictimCorpLogo.Image}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Corp}" FontSize="12" Margin="4 0 0 0"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColVictimAlliance}" Width="170"
+                                      SortMemberPath="Alliance" ClipboardContentBinding="{Binding Alliance}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding VictimAllianceLogo.Image}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Alliance}" FontSize="12" Margin="4 0 0 0"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <!-- Who landed the last hit, beside who it landed on. -->
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColFinalBlow}" Width="160"
+                                      SortMemberPath="FinalBlow" ClipboardContentBinding="{Binding FinalBlow}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding FinalBlowPortrait.Image}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Classes="namelink" Command="{Binding OpenFinalBlowCommand}" ToolTip.Tip="{x:Static loc:BattleText.TipOpenPilot}">
+                        <TextBlock Text="{Binding FinalBlow}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                      </Button>
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColFinalBlowCorp}" Width="170"
+                                      SortMemberPath="FinalBlowCorp" ClipboardContentBinding="{Binding FinalBlowCorp}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding FinalBlowCorpLogo.Image}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding FinalBlowCorp}" FontSize="12" Margin="4 0 0 0"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{x:Static loc:BattleText.ColFinalBlowAlliance}" Width="170"
+                                      SortMemberPath="FinalBlowAlliance" ClipboardContentBinding="{Binding FinalBlowAlliance}">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:BattleKillVm">
+                    <Grid ColumnDefinitions="24,*" Margin="4 0">
+                      <Image Source="{Binding FinalBlowAllianceLogo.Image}" Width="20" Height="20" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding FinalBlowAlliance}" FontSize="12" Margin="4 0 0 0"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Grid>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="{x:Static loc:BattleText.ColSystem}" Binding="{Binding System}" Width="100" />
+              <DataGridTextColumn Header="{x:Static loc:BattleText.ColAttackers}" Binding="{Binding Attackers, StringFormat={}{0:N0}}" SortMemberPath="Attackers" Width="72" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:BattleText.ColValue}" Binding="{Binding ValueText}" SortMemberPath="Value" Width="86" CellStyleClasses="num" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

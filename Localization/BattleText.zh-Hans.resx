@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>在实体中打开</value>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>未知舰船</value>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>单击联盟可列出其军团。双击查看详情。</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>打开击杀</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>受害者军团</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>受害者联盟</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>最后一击</value>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>最后一击军团</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>最后一击联盟</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>查找战斗</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>过去 24 小时</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>过去 3 天</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>过去 7 天</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>留空＝截至现在</value>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>最少飞行员：</value>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>仅我的飞行员参与的战斗</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>查找</value>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>正在查看击杀…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>根据击杀集中的位置查找战斗，并合并有相同飞行员的星系。打开后会生成已填好星系和时间的战斗，可继续调整。</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>zKillboard 在设置中未导入全部击杀，因此只能找到你的角色和军团参与的战斗。</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>此数据库中没有此时段内该规模的战斗。</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>找到的战斗：{0:N0}。按损失 ISK 从大到小列出。</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>请选择 {0} 天以内的时段。</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>最小战斗必须是飞行员的整数。</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>你的飞行员参与了此战斗。</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>时长</value>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>最大阵营</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>损失可部署装置</value>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>移除此空队伍</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>添加：</value>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>星系或星座</value>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>留空＝仍在进行</value>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>应用到全部</value>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>将这些时间应用到列表中的所有星系。</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>击杀到达时更新此战斗。只有结束时间留空或在未来的星系才会增加击杀。</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>实时观看：{0}/{1}</value>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  星座  ·  {1}</value>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>击杀：{0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>新战斗</value>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>新战斗</value>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>为此战斗命名</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>将此战斗保存到列表以便日后打开。保存后，更改会自动保存。</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>已保存的战斗</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>你保存的战斗会显示在这里。</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>星系：{0}  ·  {1}</value>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>打开已保存的战斗，或开始新的战斗。</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>星系和时间</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>删除已保存的战斗“{0}”？其击杀仍保留在数据库中。</value>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>关闭此战斗</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>删除此已保存的战斗</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>结束时间留空或尚未到来，因此可以实时观看。</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>添加星系及其时间，然后打开报告。如果战斗仍在进行，请将结束时间留空。</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>请至少添加一个星系。</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}：开始时间应类似 2026-01-31 18:00。</value>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}：结束时间应类似 2026-01-31 20:00，或留空。</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}：结束时间早于开始时间。</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>开始（EVE时间）：</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>结束（EVE时间）：</value>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>yyyy-mm-dd hh:mm</value>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>实时观看</value>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>打开报告</value>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>实时</value>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>实时</value>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>击杀链接或 ID</value>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>使用击杀</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>队伍 {0}</value>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>你方</value>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>损失 ISK</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>效率</value>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>造成伤害</value>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>损失舰船</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>损失太空舱</value>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>损失建筑</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>对建筑伤害</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>阵营</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>时间线</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>损失 ISK</value>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>伤害</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>类别</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>队伍</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>受害者</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻击者</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>价值</value>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>添加队伍</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>阵营根据谁攻击了谁得出。可用箭头移动；移动后，现有阵营将保持原位。</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>战斗期间损失的 ISK</value>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>移到左侧队伍</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>移到右侧队伍</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>战斗报告</value>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>正在读取击杀…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>未找到击杀 ID。请粘贴击杀链接或编号。</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>击杀 {0} 不在此数据库中。</value>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>无法读取击杀：{0}</value>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>无法读取新击杀，正在重试：{0}</value>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>部分名称无法获取：{0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>击杀：{0:N0}  ·  飞行员：{1:N0}  ·  损失 ISK：{2}</value>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} EVE时间</value>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>此数据库中没有这些星系在此时段的击杀。</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>仅显示前 {0:N0} 条击杀：请缩小时间范围。</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>上次击杀在 {0} 前</value>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>zKillboard 导入在设置中已关闭，因此此报告仅包含你自己的角色和军团的击杀。</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>zKillboard 在设置中为“Mine + Corp”，因此此报告仅包含你的角色和军团参与的击杀。</value>
+  </data>
+</root>

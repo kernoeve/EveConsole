@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.BattleReportView"
+             x:DataType="vm:BattleReportViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Grid ColumnDefinitions="230,*">
+
+    <!-- The battles kept -->
+    <Border Grid.Column="0" Background="{DynamicResource SurfacePanelAltBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="10">
+        <Button Grid.Row="0" Content="{x:Static loc:BattleText.NewBattleButton}" Command="{Binding NewCommand}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="10 5" FontSize="12" />
+        <Button Grid.Row="1" Content="{x:Static loc:BattleText.FindFights}" Command="{Binding ToggleFinderCommand}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="10 5" FontSize="12" Margin="0 6 0 0" />
+        <TextBlock Grid.Row="2" Text="{x:Static loc:BattleText.SavedHeader}" FontSize="11" Margin="0 12 0 4"
+                   Foreground="{DynamicResource TextFaintBrush}" />
+        <TextBlock Grid.Row="3" Text="{x:Static loc:BattleText.SavedEmpty}" IsVisible="{Binding NoneSaved}"
+                   FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" />
+        <ScrollViewer Grid.Row="4">
+          <ItemsControl ItemsSource="{Binding Saved}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SavedBattleVm">
+                <Grid ColumnDefinitions="*,Auto" Margin="0 0 0 2">
+                  <Button Command="{Binding OpenCommand}" Background="Transparent" BorderThickness="0" Padding="4 3"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Cursor="Hand">
+                    <StackPanel Spacing="1">
+                      <StackPanel Orientation="Horizontal" Spacing="5">
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource BadBrush}" IsVisible="{Binding IsOpenEnded}"
+                                 VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:BattleText.TipOpenEnded}" />
+                        <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding Summary}" FontSize="10" TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource TextDimBrush}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="1" Content="✕" Command="{Binding DeleteCommand}" Background="Transparent"
+                          BorderThickness="0" Padding="5 2" FontSize="10" VerticalAlignment="Center"
+                          Foreground="{DynamicResource BadBrush}" ToolTip.Tip="{x:Static loc:BattleText.TipDelete}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <!-- The battles open now, each going on whichever one is showing -->
+    <Grid Grid.Column="1">
+      <Border IsVisible="{Binding ShowFinder}">
+        <views:BattleFinderView DataContext="{Binding Finder}" />
+      </Border>
+      <TextBlock Text="{x:Static loc:BattleText.NoneOpen}" IsVisible="{Binding ShowEmpty}" Margin="16"
+                 FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+      <TabControl ItemsSource="{Binding Open}" SelectedItem="{Binding Selected}" IsVisible="{Binding ShowTabs}"
+                  Padding="0" Background="{DynamicResource SurfaceBaseBrush}">
+        <TabControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:BattleSessionViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource BadBrush}" IsVisible="{Binding IsLive}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" FontSize="12" MaxWidth="190" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+              <Button Content="✕" Command="{Binding CloseCommand}" Background="Transparent" BorderThickness="0"
+                      Padding="4 0" FontSize="10" VerticalAlignment="Center"
+                      Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{x:Static loc:BattleText.TipClose}" />
+            </StackPanel>
+          </DataTemplate>
+        </TabControl.ItemTemplate>
+        <TabControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:BattleSessionViewModel">
+            <views:BattleSessionView />
+          </DataTemplate>
+        </TabControl.ContentTemplate>
+      </TabControl>
+    </Grid>
+  </Grid>
+</UserControl>

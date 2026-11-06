@@ -211,6 +211,18 @@
                 </StackPanel>
                 <TextBlock Text="{Binding Detail.LocationText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                            IsVisible="{Binding Detail.LocationText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="0 2 0 0">
+                  <Button Command="{Binding Detail.OpenBattleReportCommand}" Background="Transparent" BorderThickness="0" Padding="0"
+                          HorizontalContentAlignment="Left" Cursor="Hand">
+                    <TextBlock Text="{x:Static loc:BattleText.OpenBattleReport}" FontSize="10"
+                               Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" />
+                  </Button>
+                  <Button Command="{Binding Detail.OpenZkillboardCommand}" Background="Transparent" BorderThickness="0" Padding="0"
+                          HorizontalContentAlignment="Left" Cursor="Hand" ToolTip.Tip="{Binding Detail.ZkillboardUrl}">
+                    <TextBlock Text="zKillboard" FontSize="10"
+                               Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" />
+                  </Button>
+                </StackPanel>
               </StackPanel>
             </Grid>
             <!-- ISK summary — every TextBlock right-aligned individually, not just the

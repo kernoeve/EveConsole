@@ -1247,6 +1247,15 @@ public static class PostgresSchema
         """
         ALTER TABLE "Structures" ADD COLUMN IF NOT EXISTS "FacesTowardId" BIGINT NOT NULL DEFAULT 0
         """,
+        // The battles the user defined and kept. Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "SavedBattles" (
+            "Id"         SERIAL      PRIMARY KEY,
+            "Name"       TEXT        NOT NULL DEFAULT '',
+            "Definition" TEXT        NOT NULL DEFAULT '',
+            "UpdatedAt"  TIMESTAMPTZ NOT NULL
+        )
+        """,
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored for SQLite
         // in App.axaml.cs.
         """

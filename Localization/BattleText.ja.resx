@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>エンティティで開く</value>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>不明な艦船</value>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>アライアンスをクリックするとコーポレーションを表示します。ダブルクリックで詳細を開きます。</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>キルを開く</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>被害者コーポレーション</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>被害者アライアンス</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>ファイナルブロー</value>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>ファイナルブローのコーポレーション</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>ファイナルブローのアライアンス</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>戦闘を探す</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>過去24時間</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>過去3日</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>過去7日</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>空欄＝現在まで</value>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>最少パイロット数：</value>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>自分のパイロットが参加した戦闘のみ</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>検索</value>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>キルを検索中…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>キルが集中する場所から戦闘を探し、同じパイロットがいる星系をまとめます。開くと星系と時刻が入力された戦闘が作成され、調整できます。</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>設定で zKillboard がすべてのキルを取り込んでいないため、自分のキャラクターとコーポレーションが関わった戦闘のみ見つかります。</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>このデータベースには、この期間にその規模の戦闘はありません。</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>見つかった戦闘：{0:N0}。損失ISKの大きい順に表示します。</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>{0} 日以内の期間を選んでください。</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>最小の戦闘はパイロット数の整数で指定してください。</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>継続中</value>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>あなたのパイロットがこの戦闘に参加しました。</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>期間</value>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>最大の陣営</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>損失デプロイアブル</value>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>この空のチームを削除</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>追加：</value>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>星系またはコンステレーション</value>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>空欄＝継続中</value>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>すべてに適用</value>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>リスト内のすべての星系にこの時刻を設定します。</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>キルが届くたびにこの戦闘を更新します。終了が空欄または未来の星系のみキルが増えます。</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>ライブ監視中：{1} 件中 {0} 件</value>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  コンステレーション  ·  {1}</value>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>キル：{0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>新しい戦闘</value>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>新しい戦闘</value>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>戦闘に名前を付ける</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>この戦闘をリストに保存して後で開けるようにします。保存後の変更は自動で保存されます。</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>保存した戦闘</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>保存した戦闘はここに表示されます。</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>星系：{0}  ·  {1}</value>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>保存した戦闘を開くか、新しい戦闘を始めてください。</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>星系と時刻</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>保存した戦闘「{0}」を削除しますか？キルはデータベースに残ります。</value>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>この戦闘を閉じる</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>この保存した戦闘を削除</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>終了が空欄または未来のため、ライブで見ることができます。</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>星系と時刻を追加してレポートを開いてください。戦闘が継続中なら終了を空欄にします。</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>星系を1つ以上追加してください。</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}：開始は 2026-01-31 18:00 の形式で入力してください。</value>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}：終了は 2026-01-31 20:00 の形式にするか、空欄にしてください。</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}：終了が開始より前です。</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>開始（EVE時間）：</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>終了（EVE時間）：</value>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>yyyy-mm-dd hh:mm</value>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>ライブで見る</value>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>レポートを開く</value>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>ライブ</value>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>ライブ</value>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>キルのリンクまたはID</value>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>キルを使う</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>チーム{0}</value>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>あなたの陣営</value>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>損失ISK</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>効率</value>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>与ダメージ</value>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>損失艦船</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>損失カプセル</value>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>損失ストラクチャ</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>ストラクチャへのダメージ</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>陣営</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>タイムライン</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>損失</value>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>損失ISK</value>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>ダメージ</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>時刻</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>チーム</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>被害者</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻撃者</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>価値</value>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>チームを追加</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>陣営は誰が誰を撃ったかから判定します。矢印で移動できます。移動すると、現在の陣営はその位置に固定されます。</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>戦闘中の損失ISK</value>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>左のチームへ移動</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>右のチームへ移動</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>戦闘レポート</value>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>キルを読み込み中…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>キルIDが見つかりません。キルのリンクか番号を貼り付けてください。</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>キル {0} はこのデータベースにありません。</value>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>キルを読み込めませんでした：{0}</value>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>新しいキルを読み込めませんでした。再試行します：{0}</value>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>一部の名前を取得できませんでした：{0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>キル：{0:N0}  ·  パイロット：{1:N0}  ·  損失ISK：{2}</value>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} EVE時間</value>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>このデータベースには、この時間のこれらの星系のキルがありません。</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>最初の {0:N0} 件のキルのみ表示しています。時間を絞ってください。</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>最後のキルは {0} 前</value>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>設定で zKillboard の取り込みがオフのため、このレポートには自分のキャラクターとコーポレーションのキルのみが含まれます。</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>設定で zKillboard が「Mine + Corp」のため、このレポートには自分のキャラクターとコーポレーションが関わったキルのみが含まれます。</value>
+  </data>
+</root>
