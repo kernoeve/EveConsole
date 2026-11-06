@@ -2458,6 +2458,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Unticked, this section posts as the text table. Discord always gets the text.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXT ABOVE THE TABLE</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Printed under the title, on Slack and in the text table. Emoji, links and mentions work, and a mention really pings.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>PICTURE</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>In the Slack format only, beside the title. Slack's box always has a title, so a blank one uses the default.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Character</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Faction</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC corporation</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Item type</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — shown as text here; Slack gets images and lined-up columns]</value>
   </data>

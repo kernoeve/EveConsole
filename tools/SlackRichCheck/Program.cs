@@ -122,9 +122,6 @@ Check("blanks: none for less than the smallest", SlackColumns.Blanks(100).Text.L
     var blank = SlackColumns.Place(["Nocxium", "", "2026-11-04"], [0, 3000, 8000], [2000, 2000, 3000], [false, true, false]);
     Check("place: a blank cell keeps the next column in place", Math.Abs(Drawn(blank) - (8000 + SlackColumns.Width("2026-11-04"))) <= 166, Drawn(blank).ToString());
 
-    var offset = SlackColumns.Place(["Project"], [0], [3000], [false], 1923);
-    Check("place: an offset moves the first column", offset.StartsWith(SlackColumns.Blanks(1923).Text, StringComparison.Ordinal) && offset.EndsWith("Project", StringComparison.Ordinal));
-
     Check("escape: the three characters Slack's markup needs", SlackColumns.Escape("A&B <c>") == "A&amp;B &lt;c&gt;");
     Check("place: a name is escaped", SlackColumns.Place(["A&B"], [0], [2000], [false]) == "A&amp;B");
     Check("place: a name is measured as it draws, not escaped",
@@ -155,7 +152,6 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     Check("image: a corp's logo", SlackRichBlocks.EntityImage(5, "corporation", 64).Contains("/corporations/5/logo?size=64"));
     Check("image: an alliance's logo", SlackRichBlocks.EntityImage(5, "alliance", 128).Contains("/alliances/5/logo?size=128"));
     Check("image: unknown is a pilot", SlackRichBlocks.EntityImage(5, "", 64).Contains("/characters/5/portrait"));
-    Check("image: an item's icon", SlackRichBlocks.ItemIcon(34).Contains("/types/34/icon?size=64"));
 
     JsonElement Boxes(params SlackRichList[] lists) => Json(SlackRichBlocks.Top10Boxes(lists, "Top 10", "First", "{0} of total"));
 
@@ -410,44 +406,149 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     Check("combined picture: a legend too long for a row wraps rather than running off", crowded.Height > bitmap.Height, $"{crowded.Height} vs {bitmap.Height}");
 }
 
-// ── Wide tables and messages ──────────────────────────────────────────────────
+// ── Lists in a box ────────────────────────────────────────────────────────────
 
 {
     SlackRichColumn[] cols = [new("Project", false), new("Status", false), new("Remaining", true), new("Last Completed", false)];
-    SlackRichTableRow Item(int i) => new(
-        [$"Item {i} \u2192 Somewhere", i % 2 == 0 ? "Active" : "No Project", i % 2 == 0 ? "12.5K" : "", i % 2 == 0 ? "" : "2026-11-04"],
-        SlackRichBlocks.ItemIcon(34 + i), $"Item {i}");
+    IReadOnlyList<string> Item(int i) => [$"Item {i} to Somewhere", i % 2 == 0 ? "Active" : "No Project", i % 2 == 0 ? "12.5K" : "", i % 2 == 0 ? "" : "2026-11-04"];
 
-    var items = SlackRichBlocks.Table("*Heading*", true, cols, [.. Enumerable.Range(0, 5).Select(Item)]);
-    Check("table: heading, header, rows", items.Count == 7);
-    var first = Json(items[0].Block);
-    Check("table: the heading is a section", first.GetProperty("type").GetString() == "section" && first.GetProperty("text").GetProperty("text").GetString() == "*Heading*");
-    Check("table: the header row has no icon", Json(items[1].Block).GetProperty("elements").GetArrayLength() == 1);
-    var row = Json(items[2].Block).GetProperty("elements");
-    Check("table: a row has its item's icon", row[0].GetProperty("image_url").GetString()!.Contains("/types/34/icon"));
-    var header = Json(items[1].Block).GetProperty("elements")[0].GetProperty("text").GetString()!;
-    Check("table: the header starts past where the icon goes", header[0] is En or Third);
+    const string Picture = "https://images.evetech.net/types/626/render?size=128";
 
-    Check("table: no header when not asked", SlackRichBlocks.Table("", false, cols, [Item(0)]).Count == 1);
-    Check("table: no heading when blank", Json(SlackRichBlocks.Table("", false, cols, [Item(0)])[0].Block).GetProperty("type").GetString() == "context");
-    Check("table: nothing for no rows", SlackRichBlocks.Table("*Heading*", true, cols, []).Count == 0);
+    SlackListBox Listed(int rows, string text = "*About* the list", string? picture = Picture, bool headers = true, string title = "Destroy :dart: list") =>
+        new(title, text, picture, headers, cols, [.. Enumerable.Range(0, rows).Select(Item)]);
 
-    var noIcon = SlackRichBlocks.Table("", true, cols, [new(["A", "B", "C", "D"], null, "")]);
-    Check("table: a row with no icon is only its text", Json(noIcon[1].Block).GetProperty("elements").GetArrayLength() == 1);
-    Check("table: with no icons, the header does not step in", Json(noIcon[0].Block).GetProperty("elements")[0].GetProperty("text").GetString()![0] == 'P');
+    JsonElement BoxOf(SlackRichItem item) => Json(item.Block).GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block");
+    string LinesOf(JsonElement context) => context.GetProperty("elements")[0].GetProperty("text").GetString()!;
 
-    // A long list carries on in another message with its header.
-    var many = SlackRichBlocks.Table("*Heading*", true, cols, [.. Enumerable.Range(0, 120).Select(Item)]);
-    var packed = SlackRichBlocks.Pack(many);
+    Check("box: nothing for no rows", SlackRichBlocks.ListBoxes(Listed(0)).Count == 0);
+
+    var one = SlackRichBlocks.ListBoxes(Listed(3));
+    Check("box: one", one.Count == 1, one.Count.ToString());
+
+    var layout = Json(one[0].Block);
+    Check("box: alone in a layout, which is what makes it wider than standard",
+        layout.GetProperty("type").GetString() == "layout" && layout.GetProperty("rows").GetArrayLength() == 1 && layout.GetProperty("rows")[0].GetProperty("items").GetArrayLength() == 1);
+
+    var box = BoxOf(one[0]);
+    Check("box: a container at its full width", box.GetProperty("type").GetString() == "container" && box.GetProperty("width").GetString() == "full");
+    Check("box: its title", box.GetProperty("title").GetProperty("text").GetString() == "Destroy :dart: list");
+    Check("box: an emoji in its title is drawn",
+        box.GetProperty("rich_text_title").GetProperty("elements")[0].GetProperty("elements")[1].GetProperty("name").GetString() == "dart");
+    Check("box: the picture is its header icon", box.GetProperty("icon").GetProperty("image_url").GetString() == Picture);
+    Check("box: no picture, no icon", !BoxOf(SlackRichBlocks.ListBoxes(Listed(3, picture: null))[0]).TryGetProperty("icon", out _));
+
+    var children = box.GetProperty("child_blocks");
+    Check("box: text, rule, table", children.GetArrayLength() == 3
+        && children[0].GetProperty("type").GetString() == "section"
+        && children[1].GetProperty("type").GetString() == "divider"
+        && children[2].GetProperty("type").GetString() == "context", children.GetArrayLength().ToString());
+    Check("box: what somebody wrote is theirs, so mentions and links work", children[0].GetProperty("text").GetProperty("text").GetString() == "*About* the list" && !children[0].GetProperty("text").TryGetProperty("verbatim", out _));
+    Check("box: the rows are data, so a name cannot ping", children[2].GetProperty("elements")[0].GetProperty("verbatim").GetBoolean());
+
+    var lines = LinesOf(children[2]).Split('\n');
+    Check("box: a line for the header and each row, in one block", lines.Length == 4, lines.Length.ToString());
+    Check("box: headers first", lines[0].Contains("Remaining") && lines[1].StartsWith("Item 0", StringComparison.Ordinal));
+    Check("box: no headers when not asked",
+        !LinesOf(BoxOf(SlackRichBlocks.ListBoxes(Listed(3, headers: false))[0]).GetProperty("child_blocks")[2]).Contains("Remaining"));
+
+    var plain = BoxOf(SlackRichBlocks.ListBoxes(Listed(3, text: "  "))[0]).GetProperty("child_blocks");
+    Check("box: no text, no rule", plain.GetArrayLength() == 1 && plain[0].GetProperty("type").GetString() == "context", plain.GetArrayLength().ToString());
+
+    // ── Too wide ──
+    string[] wide = [new string('W', 60) + " to Somewhere Far Away", "Active", "12.5K", "2026-11-04"];
+    var tooWide = new SlackListBox("T", "", null, true, cols, [wide, Item(0)]);
+    var drawn = LinesOf(BoxOf(SlackRichBlocks.ListBoxes(tooWide)[0]).GetProperty("child_blocks")[0]).Split('\n');
+    Check("too wide: a long line is brought inside the box", drawn.All(l => Drawn(l) <= 51000), string.Join(",", drawn.Select(Drawn)));
+    Check("too wide: and comes close to its edge", drawn.Max(Drawn) > 49000, drawn.Max(Drawn).ToString());
+    Check("too wide: the first column gives way, marked", drawn[1].Contains("...") && drawn[1].StartsWith("WWW", StringComparison.Ordinal));
+    Check("too wide: the numbers are all still there", drawn[1].Contains("12.5K") && drawn[1].Contains("2026-11-04"));
+    Check("too wide: a name that fits is left whole", drawn[2].Contains("Item 0 to Somewhere") && !drawn[2].Contains("..."));
+    Check("fits: nothing is cut", !LinesOf(children[2]).Contains("..."));
+
+    SlackRichColumn[] many = [new("Name", false), .. Enumerable.Range(0, 8).Select(i => new SlackRichColumn(new string('M', 12), true))];
+    var crowded = new SlackListBox("T", "", null, true, many, [[new string('W', 60), .. Enumerable.Repeat("1", 8)]]);
+    var kept = LinesOf(BoxOf(SlackRichBlocks.ListBoxes(crowded)[0]).GetProperty("child_blocks")[0]).Split('\n')[1];
+    Check("crowded: the first column keeps something to read", SlackColumns.Width(kept[..kept.IndexOf("...", StringComparison.Ordinal)]) > 6000);
+
+    // ── Too long ──
+    var longList = SlackRichBlocks.ListBoxes(Listed(1000));
+    var boxes = longList.Select(BoxOf).ToList();
+    Check("long: carries on in more boxes", boxes.Count > 1, boxes.Count.ToString());
+    Check("long: no box over what Slack allows", boxes.All(b => b.GetProperty("child_blocks").GetArrayLength() <= 10), string.Join(",", boxes.Select(b => b.GetProperty("child_blocks").GetArrayLength())));
+
+    var tables = boxes.SelectMany(b => b.GetProperty("child_blocks").EnumerateArray()).Where(c => c.GetProperty("type").GetString() == "context").ToList();
+    Check("long: no block over Slack's text limit", tables.All(t => LinesOf(t).Length <= 3000), tables.Max(t => LinesOf(t).Length).ToString());
+
+    var rows = tables.SelectMany(t => LinesOf(t).Split('\n')).Where(l => l.StartsWith("Item ", StringComparison.Ordinal)).ToList();
+    Check("long: every row, once, in order", rows.Count == 1000 && rows.Select((l, i) => l.StartsWith($"Item {i} ", StringComparison.Ordinal)).All(x => x), rows.Count.ToString());
+
+    Check("long: each box opens with the header row", boxes.All(b => b.GetProperty("child_blocks").EnumerateArray().First(c => c.GetProperty("type").GetString() == "context") is var first && LinesOf(first).Split('\n')[0].Contains("Remaining")));
+    Check("long: the header is not repeated inside a box", boxes.All(b => b.GetProperty("child_blocks").EnumerateArray().Where(c => c.GetProperty("type").GetString() == "context").Count(c => LinesOf(c).Contains("Remaining")) == 1));
+    Check("long: the title on every box", boxes.All(b => b.GetProperty("title").GetProperty("text").GetString() == "Destroy :dart: list"));
+    Check("long: the picture on the first only", boxes[0].TryGetProperty("icon", out _) && boxes.Skip(1).All(b => !b.TryGetProperty("icon", out _)));
+    Check("long: the text on the first only", boxes.Count(b => b.GetProperty("child_blocks").EnumerateArray().Any(c => c.GetProperty("type").GetString() == "section")) == 1);
+
+    var wordy = BoxOf(SlackRichBlocks.ListBoxes(Listed(2, text: string.Join("\n\n", Enumerable.Repeat(new string('y', 900), 8))))[0]).GetProperty("child_blocks");
+    var sections = wordy.EnumerateArray().Where(c => c.GetProperty("type").GetString() == "section").ToList();
+    Check("wordy: long text is cut to what a section takes", sections.Count > 1 && sections.All(s => s.GetProperty("text").GetProperty("text").GetString()!.Length <= 3000), sections.Count.ToString());
+    Check("wordy: the rule comes after all of it", wordy[sections.Count].GetProperty("type").GetString() == "divider");
+
+    // ── Messages ──
+    var filler = Enumerable.Range(0, 120).Select(_ => new SlackRichItem(SlackRichBlocks.TextSection("x"))).ToList();
+    var packed = SlackRichBlocks.Pack(filler);
     Check("pack: cut to Slack's limit", packed.All(m => m.Count <= 50), string.Join(",", packed.Select(m => m.Count)));
-    Check("pack: nothing lost", packed.Sum(m => m.Count) == many.Count + (packed.Count - 1), $"{packed.Sum(m => m.Count)} of {many.Count}");
-    Check("pack: three messages", packed.Count == 3, packed.Count.ToString());
-    string HeaderText(object block) => Json(block).GetProperty("elements")[0].GetProperty("text").GetString()!;
-    Check("pack: each carries the header", packed.Skip(1).All(m => HeaderText(m[0]).Contains("Remaining")));
+    Check("pack: nothing lost", packed.Sum(m => m.Count) == filler.Count, packed.Sum(m => m.Count).ToString());
 
-    var filler = Enumerable.Range(0, 47).Select(_ => new SlackRichItem(SlackRichBlocks.TextSection("x"))).ToList();
-    var kept   = SlackRichBlocks.Pack([.. filler, .. SlackRichBlocks.Table("*Heading*", true, cols, [Item(0), Item(1)])]);
-    Check("pack: a heading is not left at the end of a message", kept.Count == 2 && kept[0].Count == 47, string.Join(",", kept.Select(m => m.Count)));
+    var nearlyFull = Enumerable.Range(0, 47).Select(_ => new SlackRichItem(SlackRichBlocks.TextSection("x"))).ToList();
+    var headed = SlackRichBlocks.Pack([.. nearlyFull, new SlackRichItem(SlackRichBlocks.TextSection("Heading"), Room: 3), new SlackRichItem(SlackRichBlocks.TextSection("y"))]);
+    Check("pack: a heading is not left at the end of a message", headed.Count == 2 && headed[0].Count == 47, string.Join(",", headed.Select(m => m.Count)));
+}
+
+// ── The picture ───────────────────────────────────────────────────────────────
+
+{
+    Check("picture: a character's portrait", SlackPicture.Url(SlackPicture.Character, 5, "") == "https://images.evetech.net/characters/5/portrait?size=128");
+    Check("picture: an agent's portrait", SlackPicture.Url(SlackPicture.Agent, 5, "") == "https://images.evetech.net/characters/5/portrait?size=128");
+    Check("picture: a corporation's logo", SlackPicture.Url(SlackPicture.Corporation, 5, "") == "https://images.evetech.net/corporations/5/logo?size=128");
+    Check("picture: an NPC corporation's logo", SlackPicture.Url(SlackPicture.NpcCorporation, 5, "") == "https://images.evetech.net/corporations/5/logo?size=128");
+    Check("picture: a faction's logo is under corporations", SlackPicture.Url(SlackPicture.Faction, 500001, "") == "https://images.evetech.net/corporations/500001/logo?size=128");
+    Check("picture: an alliance's logo", SlackPicture.Url(SlackPicture.Alliance, 5, "") == "https://images.evetech.net/alliances/5/logo?size=128");
+    Check("picture: a type's chosen picture", SlackPicture.Url(SlackPicture.Type, 626, "render") == "https://images.evetech.net/types/626/render?size=128");
+    Check("picture: a type not yet settled is its icon", SlackPicture.Url(SlackPicture.Type, 34, "") == "https://images.evetech.net/types/34/icon?size=128");
+    Check("picture: none", SlackPicture.Url(SlackPicture.None, 5, "") is null);
+    Check("picture: a kind with nothing picked", SlackPicture.Url(SlackPicture.Alliance, 0, "") is null);
+    Check("picture: a kind this version does not know", SlackPicture.Url("sun", 5, "") is null);
+
+    Check("variant: a render when there is one", SlackPicture.BestVariant(["icon", "render"]) == "render");
+    Check("variant: else the icon", SlackPicture.BestVariant(["icon"]) == "icon");
+    Check("variant: a blueprint's print", SlackPicture.BestVariant(["bp", "bpc"]) == "bp");
+    Check("variant: a copy's", SlackPicture.BestVariant(["bpc"]) == "bpc");
+    Check("variant: nothing known", SlackPicture.BestVariant([]) == "icon");
+}
+
+// ── A project list as text ────────────────────────────────────────────────────
+
+{
+    StandingProjectGridRow Rated(string payout) => new(
+        1, StandingProjectReport.DestroyNpc, "", "", "", null, "matched", "", "1.0K", payout, "10.0%", 10, null, "",
+        SystemName: "Jita", RegionName: "The Forge", Adm: 4.1);
+
+    var text = StandingProjectReport.Export([Rated("1.50M ISK")], "Heading", intro: " Line one\nLine two ");
+    var at = text.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
+    Check("text: heading, what was written, then the table", at[0] == "*Heading*" && at[1] == "Line one" && at[2] == "Line two" && at[3] == "```", string.Join("|", at.Take(4)));
+    Check("text: nothing written, nothing added", StandingProjectReport.Export([Rated("1M ISK")], "Heading").Split('\n')[1].TrimEnd('\r') == "```");
+    Check("text: no rows, nothing at all", StandingProjectReport.Export([], "Heading", intro: "Words") == "");
+    Check("text: keeps ISK on each row", text.Contains("1.50M ISK"));
+
+    string Isk(bool bare, string payout) =>
+        StandingProjectReport.Columns(StandingProjectReport.DestroyNpc, true, false, bare).First(c => c.Header == EveConsole.Localization.CorpText.ReportColIskLeft).Cell(Rated(payout));
+    Check("bare: the unit comes off", Isk(true, "1.50M ISK") == "1.50M");
+    Check("bare: not unless asked", Isk(false, "1.50M ISK") == "1.50M ISK");
+    Check("bare: blank stays blank", Isk(true, "") == "");
+
+    Check("title: as written", StandingProjectReport.BoxTitle(" Mine ", StandingProjectReport.DestroyNpc, ProjectFilters.All) == "Mine");
+    Check("title: blank is the heading it would have started with",
+        StandingProjectReport.BoxTitle("  ", StandingProjectReport.DeliverItem, ProjectFilters.Missing) == StandingProjectReport.DefaultTitle(StandingProjectReport.DeliverItem, ProjectFilters.Missing));
 }
 
 // ── Sending ───────────────────────────────────────────────────────────────────
@@ -499,6 +600,72 @@ List<SlackRichRow> Rows(int n) => [.. Enumerable.Range(1, n).Select(i => Row(i))
     var json = new ScheduledTaskConfig { Blocks = [new MessageBlock { Type = MessageBlock.TypeTop10, SlackRich = true }] }.ToJson();
     Check("saved: the choice survives saving", ScheduledTaskConfig.FromJson(json).Blocks[0].SlackRich);
     Check("saved: what is worked out is not stored", !json.Contains("UsesSlackRich"));
+
+    var before = Saved("""{"Type":"standing_projects"}""");
+    Check("saved: a section from before the picture has none", before.PictureKind == SlackPicture.None && before.PictureId == 0 && before.IntroText.Length == 0);
+
+    var pictured = ScheduledTaskConfig.FromJson(new ScheduledTaskConfig
+    {
+        Blocks = [new MessageBlock { Type = MessageBlock.TypeProjects, IntroText = "Words", PictureKind = SlackPicture.Type, PictureId = 626, PictureName = "Vexor", PictureVariant = "render" }],
+    }.ToJson()).Blocks[0];
+    Check("saved: the text and picture survive saving", pictured.IntroText == "Words" && pictured.PictureKind == SlackPicture.Type && pictured.PictureId == 626 && pictured.PictureName == "Vexor" && pictured.PictureVariant == "render");
+}
+
+// ── The picture in the editor ─────────────────────────────────────────────────
+
+{
+    EveConsole.ViewModels.MessageBlockVm Editor(MessageBlock model, bool fresh = false) => new(model, [], [], fresh: fresh);
+    var choice = (string kind) => EveConsole.ViewModels.MessageBlockVm.PictureKindOptions.First(k => k.Key == kind);
+
+    var empty = Editor(new MessageBlock { Type = MessageBlock.TypeProjects });
+    Check("editor: starts with no picture", empty.PictureKind.Key == SlackPicture.None && !empty.PicksPicture && empty.ToModel().PictureId == 0);
+
+    var ed = Editor(new MessageBlock { Type = MessageBlock.TypeProjects });
+    ed.PictureKind = choice(SlackPicture.Alliance);
+    Check("editor: a kind opens the search", ed.PicksPicture);
+
+    // In both orders: which of the two a search box sets first is its own business.
+    ed.PickedPicture = new EntityMatch(99, "Ember Cast Alliance", "");
+    ed.PictureSearch = "Ember Cast Alliance";
+    var picked = ed.ToModel();
+    Check("editor: a pick is kept", picked.PictureKind == SlackPicture.Alliance && picked.PictureId == 99 && picked.PictureName == "Ember Cast Alliance");
+
+    ed.PictureSearch = "";
+    ed.PictureSearch = "Ember Cast Alliance";
+    ed.PickedPicture = new EntityMatch(99, "Ember Cast Alliance", "");
+    Check("editor: a pick is kept, the text arriving first", ed.ToModel().PictureId == 99);
+
+    ed.PictureSearch = "Ember Cast Allianc";
+    ed.PickedPicture = null;
+    Check("editor: typing over a pick drops it", ed.ToModel().PictureId == 0 && ed.ToModel().PictureName.Length == 0);
+
+    ed.PictureSearch = "Ember Cast Alliance";
+    ed.PickedPicture = new EntityMatch(99, "Ember Cast Alliance", "");
+    ed.PictureSearch = "";
+    Check("editor: clearing the box drops it", ed.ToModel().PictureId == 0);
+
+    ed.PictureSearch = "Ember Cast Alliance";
+    ed.PickedPicture = new EntityMatch(99, "Ember Cast Alliance", "");
+    ed.PictureKind = choice(SlackPicture.Corporation);
+    Check("editor: another kind drops it, an id only means something in its own", ed.ToModel().PictureId == 0 && ed.PictureSearch.Length == 0);
+
+    ed.PictureKind = choice(SlackPicture.Alliance);
+    ed.PictureSearch = "Ember Cast Alliance";
+    ed.PickedPicture = new EntityMatch(99, "Ember Cast Alliance", "");
+    ed.PictureKind = null!;
+    Check("editor: a rebuilt dropdown handing back null changes nothing", ed.PictureKind.Key == SlackPicture.Alliance && ed.ToModel().PictureId == 99);
+
+    var reopened = Editor(new MessageBlock { Type = MessageBlock.TypeProjects, IntroText = "Words", PictureKind = SlackPicture.Type, PictureId = 626, PictureName = "Vexor", PictureVariant = "render" });
+    var again = reopened.ToModel();
+    Check("editor: a saved picture comes back as it was", reopened.PictureSearch == "Vexor" && again.PictureKind == SlackPicture.Type && again.PictureId == 626 && again.PictureVariant == "render");
+    Check("editor: saved text comes back", reopened.IntroText == "Words" && again.IntroText == "Words");
+
+    reopened.IntroText = "  Trimmed \n";
+    Check("editor: text is saved without its edges", reopened.ToModel().IntroText == "Trimmed");
+
+    Check("editor: a new project list starts in the Slack format", Editor(new MessageBlock { Type = MessageBlock.TypeProjects }, fresh: true).SlackRich);
+    Check("editor: a new Top 10 still does", Editor(new MessageBlock { Type = MessageBlock.TypeTop10 }, fresh: true).SlackRich);
+    Check("editor: a saved project list keeps what it was saved with", !Editor(new MessageBlock { Type = MessageBlock.TypeProjects }).SlackRich);
 }
 
 // ── The lists, from a database ────────────────────────────────────────────────
@@ -572,6 +739,67 @@ try
     var corp     = new CorpActivityService(factory, esi);
     var excludes = new CorpTop10ExcludeService(factory, esi);
     var renderer = new ScheduledBlockRenderer(corp, null!, excludes, new CorpReportTitles(prefs), null!, null!, new CostIndexHistoryService(factory), factory);
+
+    // A project list through the real renderer: what the section asks for has to reach Slack.
+    long definition;
+    await using (var db = factory.CreateDbContext())
+    {
+        var project = new CorpStandingProject
+        {
+            CorporationId = Corp, ProjectType = StandingProjectReport.DestroyNpc, ScopeType = "system",
+            SolarSystemId = 30000142, SolarSystemName = "Jita", CreatedAt = DateTimeOffset.UtcNow,
+        };
+        db.CorpStandingProjects.Add(project);
+        await db.SaveChangesAsync();
+        definition = project.Id;
+    }
+
+    MessageBlock ProjectList(bool rich, long[] include, string title = "") => new()
+    {
+        Type = MessageBlock.TypeProjects, CorpId = Corp, ProjectType = StandingProjectReport.DestroyNpc,
+        ProjectFilter = ProjectFilters.All, SlackRich = rich, SectionTitle = title, ShowHeaders = true,
+        IntroText = "About this list", PictureKind = SlackPicture.Alliance, PictureId = 99, PictureName = "Anyone",
+        IncludedProjectIds = [.. include],
+    };
+
+    var projectPost = await renderer.RenderSlackRichAsync([ProjectList(true, [definition])], DateTime.UtcNow);
+    Check("project post: one message, one box", projectPost.Messages.Count == 1 && projectPost.Messages[0].Blocks.Count == 1, projectPost.Messages.Count.ToString());
+    Check("project post: counts as having something to say", projectPost.AnyDynamicContent);
+
+    var projectBox = Json(projectPost.Messages[0].Blocks[0]).GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block");
+    Check("project post: the chosen picture", projectBox.GetProperty("icon").GetProperty("image_url").GetString()!.Contains("/alliances/99/logo"));
+    Check("project post: a blank title is the default, since a box needs one",
+        projectBox.GetProperty("title").GetProperty("text").GetString() == StandingProjectReport.DefaultTitle(StandingProjectReport.DestroyNpc, ProjectFilters.All));
+    Check("project post: what was written", projectBox.GetProperty("child_blocks")[0].GetProperty("text").GetProperty("text").GetString() == "About this list");
+    Check("project post: the row", projectBox.GetProperty("child_blocks")[2].GetProperty("elements")[0].GetProperty("text").GetString()!.Contains("Jita"));
+    Check("project post: a title that was written is kept",
+        Json((await renderer.RenderSlackRichAsync([ProjectList(true, [definition], "Mine")], DateTime.UtcNow)).Messages[0].Blocks[0]).GetProperty("rows")[0].GetProperty("items")[0].GetProperty("block").GetProperty("title").GetProperty("text").GetString() == "Mine");
+
+    var nothingListed = await renderer.RenderSlackRichAsync([ProjectList(true, [])], DateTime.UtcNow);
+    Check("project post: no rows, no title or text either", nothingListed.Messages.Count == 0 && !nothingListed.AnyDynamicContent, nothingListed.Messages.Count.ToString());
+
+    var unticked = Json((await renderer.RenderSlackRichAsync([ProjectList(false, [definition], "Mine")], DateTime.UtcNow)).Messages[0].Blocks[0]).GetProperty("text").GetProperty("text").GetString()!;
+    Check("project post: unticked, the text table carries the title and words", unticked.Contains("Mine") && unticked.Contains("About this list") && unticked.Contains("```"), unticked);
+    Check("project post: unticked, no picture", !unticked.Contains("images.evetech.net"));
+
+    // What the picture's search box finds.
+    await using (var db = factory.CreateDbContext())
+    {
+        db.SdeTypes.AddRange(
+            new SdeType { TypeId = 626, Name = "Vexor", Published = true },
+            new SdeType { TypeId = 12005, Name = "Vexor Navy Issue", Published = true },
+            new SdeType { TypeId = 99999, Name = "Vexor Prototype", Published = false });
+        db.UniverseNames.Add(new UniverseName { EntityId = 99_000_099, Name = "Ember Cast Alliance", Category = "alliance" });
+        await db.SaveChangesAsync();
+    }
+
+    var pictures = new SlackPictureSearch(new EntityBrowserService(factory), factory);
+    var vexors = await pictures.SearchAsync(SlackPicture.Type, "vExO");
+    Check("search: types by name, whatever the case, the shortest first", vexors.Select(m => m.Id).SequenceEqual([626L, 12005L]), string.Join(",", vexors.Select(m => m.Id)));
+    Check("search: too short to mean anything", (await pictures.SearchAsync(SlackPicture.Type, "v")).Count == 0);
+    Check("search: an entity by its kind", (await pictures.SearchAsync(SlackPicture.Alliance, "ember")).Single().Id == 99_000_099);
+    Check("search: another kind does not find it", (await pictures.SearchAsync(SlackPicture.Corporation, "ember")).Count == 0);
+    Check("search: nothing to find for no picture", (await pictures.SearchAsync(SlackPicture.None, "ember")).Count == 0);
 
     var (from, to) = (new DateTimeOffset(2026, 10, 1, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero));
 

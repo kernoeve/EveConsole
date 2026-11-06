@@ -1846,6 +1846,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Décoché, cette section est publiée sous forme de tableau de texte. Discord reçoit toujours le texte.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXTE AU-DESSUS DU TABLEAU</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Publié sous le titre, sur Slack et dans le tableau texte. Les emojis, liens et mentions fonctionnent, et une mention notifie vraiment.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>IMAGE</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Uniquement au format Slack, à côté du titre. L'encadré Slack a toujours un titre : un titre vide utilise celui par défaut.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Faction</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>Corporation PNJ</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Type d'objet</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — affiché ici en texte ; Slack reçoit des images et des colonnes alignées]</value>
   </data>

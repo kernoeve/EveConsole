@@ -254,8 +254,10 @@ public sealed class MessageBlockVm : ReactiveObject
         Func<Task<MarketGroupPickerResult?>>?        pickGroup = null,
         ParkComparisonService?                       parkCompare = null,
         IDbContextFactory<AppDbContext>?             dbFactory   = null,
-        Func<bool>?                                  picturesGoOnline = null)
+        Func<bool>?                                  picturesGoOnline = null,
+        SlackPictureSearch?                          pictures = null)
     {
+        _pictures    = pictures;
         _parkCompare = parkCompare;
         _dbFactory   = dbFactory;
         _destinationIsWebhook = destinationIsWebhook ?? (() => false);
@@ -288,9 +290,15 @@ public sealed class MessageBlockVm : ReactiveObject
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
 
-        // ⚠️ A new Top 10 starts rich. A new project list does not: as rows it runs long in the
-        // channel, so it is somebody's choice to make. A saved section keeps what it was saved with.
-        _slackRich = fresh ? model.Type == MessageBlock.TypeTop10 : model.SlackRich;
+        // A new Top 10 or project list starts rich. A saved section keeps what it was saved with.
+        _slackRich = fresh ? model.Type is MessageBlock.TypeTop10 or MessageBlock.TypeProjects : model.SlackRich;
+
+        _introText      = model.IntroText;
+        _pictureKind    = PictureKindOptions.FirstOrDefault(k => k.Key == model.PictureKind) ?? PictureKindOptions[0];
+        _pictureId      = model.PictureId;
+        _pictureName    = model.PictureName;
+        _pictureVariant = model.PictureVariant;
+        _pictureSearch  = model.PictureName;
 
         // Blank stays blank: it means the Market defaults or the standard emoji, whatever they
         // become, not what they happen to be today.
@@ -521,6 +529,106 @@ public sealed class MessageBlockVm : ReactiveObject
     /// <summary>Top 10 and standing projects: images and lined-up columns on Slack, or the text
     /// table. Discord always gets the text.</summary>
     public bool SlackRich { get => _slackRich; set => this.RaiseAndSetIfChanged(ref _slackRich, value); }
+
+    // ── Standing projects: what introduces the list ──────────────────────────
+
+    private string _introText;
+    public string IntroText { get => _introText; set => this.RaiseAndSetIfChanged(ref _introText, value); }
+
+    public static readonly LabelledChoice[] PictureKindOptions =
+    [
+        new(SlackPicture.None,           AlarmsText.PictureKindNone),
+        new(SlackPicture.Character,      AlarmsText.PictureKindCharacter),
+        new(SlackPicture.Corporation,    AlarmsText.PictureKindCorporation),
+        new(SlackPicture.Alliance,       AlarmsText.PictureKindAlliance),
+        new(SlackPicture.Faction,        AlarmsText.PictureKindFaction),
+        new(SlackPicture.NpcCorporation, AlarmsText.PictureKindNpcCorporation),
+        new(SlackPicture.Agent,          AlarmsText.PictureKindAgent),
+        new(SlackPicture.Type,           AlarmsText.PictureKindType),
+    ];
+
+    public IReadOnlyList<LabelledChoice> PictureKinds => PictureKindOptions;
+
+    private readonly SlackPictureSearch? _pictures;
+    private long   _pictureId;
+    private string _pictureName;
+    private string _pictureVariant;
+
+    private LabelledChoice _pictureKind;
+    public LabelledChoice PictureKind
+    {
+        get => _pictureKind;
+        set
+        {
+            // A ComboBox being rebuilt hands back null; that is not somebody choosing.
+            if (value is null || value == _pictureKind) return;
+
+            this.RaiseAndSetIfChanged(ref _pictureKind, value);
+            this.RaisePropertyChanged(nameof(PicksPicture));
+
+            // An id only means something within its kind.
+            PictureSearch = "";
+        }
+    }
+
+    /// <summary>Whether there is anything to search for.</summary>
+    public bool PicksPicture => _pictureKind.Key != SlackPicture.None;
+
+    private string _pictureSearch;
+
+    /// <summary>
+    /// The search box.
+    ///
+    /// <para>⚠️ What it says is what gets posted. Typing over a picked name drops the picture
+    /// rather than leaving the old one behind a box that now says something else.</para>
+    /// </summary>
+    public string PictureSearch
+    {
+        get => _pictureSearch;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _pictureSearch, value ?? "");
+
+            if (_pictureSearch == _pictureName) return;
+            _pictureId      = 0;
+            _pictureName    = "";
+            _pictureVariant = "";
+        }
+    }
+
+    private object? _pickedPicture;
+
+    /// <summary>What the box last had picked. ⚠️ It goes null the moment somebody types, which says
+    /// nothing: <see cref="PictureSearch"/> has already dealt with that.</summary>
+    public object? PickedPicture
+    {
+        get => _pickedPicture;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _pickedPicture, value);
+            if (value is not EntityMatch match) return;
+
+            _pictureId      = match.Id;
+            _pictureName    = match.Name;
+            _pictureVariant = "";
+
+            if (_pictureKind.Key == SlackPicture.Type) _ = SettleVariantAsync(match.Id);
+        }
+    }
+
+    private async Task SettleVariantAsync(long typeId)
+    {
+        var variant = await SlackPictureSearch.TypeVariantAsync(typeId);
+
+        // Picked something else while it was asking.
+        if (_pictureId == typeId) _pictureVariant = variant;
+    }
+
+    /// <summary>Feeds the search box.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> PicturePopulator =>
+        async (text, ct) => _pictures is null
+            ? []
+            : (await _pictures.SearchAsync(_pictureKind.Key, text ?? "", ct)).Cast<object>().ToList();
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -985,6 +1093,11 @@ public sealed class MessageBlockVm : ReactiveObject
         ShowIskLeft        = ShowIskLeft,
         ShowLastCompleted  = ShowLastCompleted,
         SlackRich          = SlackRich,
+        IntroText          = IntroText.Trim(),
+        PictureKind        = PictureKind.Key,
+        PictureId          = _pictureId,
+        PictureName        = _pictureName,
+        PictureVariant     = _pictureVariant,
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
@@ -1049,6 +1162,8 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// </summary>
     public Func<Task<MarketGroupPickerResult?>>? PickMarketGroup { get; set; }
 
+    private readonly SlackPictureSearch _pictures;
+
     public SchedulerViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         SchedulerService                scheduler,
@@ -1060,8 +1175,10 @@ public sealed class SchedulerViewModel : ReactiveObject
         AppErrorLogger                  errors,
         BatchAddService                 batch,
         ParkComparisonService           parkCompare,
-        OnlineServices                  online)
+        OnlineServices                  online,
+        SlackPictureSearch              pictures)
     {
+        _pictures    = pictures;
         _online      = online;
         _parkCompare = parkCompare;
         Batch      = batch;
@@ -1733,7 +1850,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             () => Destination?.IsWebhook == true && !_onlineSignedIn, Markets,
             () => PickMarketGroup?.Invoke() ?? Task.FromResult<MarketGroupPickerResult?>(null),
             _parkCompare, _dbFactory,
-            () => Destination?.IsWebhook == true && _onlineSignedIn);
+            () => Destination?.IsWebhook == true && _onlineSignedIn, _pictures);
 
     private void AddSection()
     {

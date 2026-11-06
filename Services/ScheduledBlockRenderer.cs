@@ -75,10 +75,25 @@ public sealed class MessageBlock
     /// than as a fenced text table. Discord always gets the text.
     ///
     /// <para>⚠️ Off unless it was ticked. A task written yesterday has to keep saying what it said
-    /// yesterday, and a long project list as rich rows is longer in the channel than the same list
-    /// as a table, so it is a choice each section makes.</para>
+    /// yesterday, so it is a choice each section makes.</para>
     /// </summary>
     public bool SlackRich { get; set; }
+
+    /// <summary>Standing project blocks: what somebody wrote about the list, printed between its
+    /// title and its table, in every format.</summary>
+    public string IntroText { get; set; } = "";
+
+    /// <summary>Standing project blocks: what the picture is, one of <see cref="SlackPicture"/>. It
+    /// shows in the Slack format only.</summary>
+    public string PictureKind { get; set; } = SlackPicture.None;
+
+    public long PictureId { get; set; }
+
+    /// <summary>The picture as it was picked, to show in the editor. Nothing posts it.</summary>
+    public string PictureName { get; set; } = "";
+
+    /// <summary>Which of a type's pictures: see <see cref="SlackPicture.BestVariant"/>.</summary>
+    public string PictureVariant { get; set; } = "";
 
     /// <summary>Whether this section is one of the kinds that has a rich format, and asks for it.</summary>
     [JsonIgnore]
@@ -886,9 +901,9 @@ public class ScheduledBlockRenderer(
             }
             else if (b.UsesSlackRich && b.Type == MessageBlock.TypeProjects)
             {
-                var table = await StandingProjectsTableAsync(b, ct);
-                items.AddRange(table);
-                if (table.Count > 0) said.Add(b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.HeadingStandingProjects);
+                var boxes = await StandingProjectsBoxesAsync(b, ct);
+                items.AddRange(boxes);
+                if (boxes.Count > 0) said.Add(StandingProjectReport.BoxTitle(b.SectionTitle, b.ProjectType, b.ProjectFilter));
             }
             else if (b.UsesSlackRich && b.Type == MessageBlock.TypeSystemIndex)
             {
@@ -1229,27 +1244,24 @@ public class ScheduledBlockRenderer(
         var heading = b.SectionTitle.Trim();
 
         return StandingProjectReport.Export(
-            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
+            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName, b.IntroText);
     }
 
-    /// <summary>
-    /// The same rows, columns and order as the text table, each with its item's icon where it has
-    /// one. A destroy-NPC row is a place, and has none.
-    /// </summary>
-    private async Task<List<SlackRichItem>> StandingProjectsTableAsync(MessageBlock b, CancellationToken ct)
+    /// <summary>The same rows, columns and order as the text table, in a box.</summary>
+    private async Task<List<SlackRichItem>> StandingProjectsBoxesAsync(MessageBlock b, CancellationToken ct)
     {
         var wanted = await StandingProjectRowsAsync(b, ct);
         if (wanted.Count == 0) return [];
 
-        var cols = StandingProjectReport.Columns(b.ProjectType, b.ShowIskLeft, b.ShowLastCompleted);
+        var cols = StandingProjectReport.Columns(b.ProjectType, b.ShowIskLeft, b.ShowLastCompleted, bareIsk: true);
 
-        return SlackRichBlocks.Table(
-            b.SectionTitle.Trim(), b.ShowHeaders,
+        return SlackRichBlocks.ListBoxes(new SlackListBox(
+            StandingProjectReport.BoxTitle(b.SectionTitle, b.ProjectType, b.ProjectFilter),
+            b.IntroText,
+            SlackPicture.Url(b.PictureKind, b.PictureId, b.PictureVariant),
+            b.ShowHeaders,
             [.. cols.Select(c => new SlackRichColumn(c.Header, c.Right))],
-            [.. StandingProjectReport.Ordered(wanted, b.ProjectType).Select(r => new SlackRichTableRow(
-                [.. cols.Select(c => c.Cell(r))],
-                r.ItemTypeId is > 0 ? SlackRichBlocks.ItemIcon(r.ItemTypeId.Value) : null,
-                r.ItemTypeName))]);
+            [.. StandingProjectReport.Ordered(wanted, b.ProjectType).Select(r => (IReadOnlyList<string>)[.. cols.Select(c => c.Cell(r))])]));
     }
 
     private async Task<List<StandingProjectGridRow>> StandingProjectRowsAsync(MessageBlock b, CancellationToken ct)

@@ -1918,6 +1918,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Если не отмечено, раздел публикуется текстовой таблицей. В Discord всегда отправляется текст.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>ТЕКСТ НАД ТАБЛИЦЕЙ</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Публикуется под заголовком, в Slack и в текстовой таблице. Работают эмодзи, ссылки и упоминания, причём упоминание действительно уведомляет.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>КАРТИНКА</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Только в формате Slack, рядом с заголовком. У блока Slack всегда есть заголовок, поэтому пустой заменяется заголовком по умолчанию.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Фракция</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC-корпорация</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Тип предмета</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — здесь показано текстом; в Slack будут изображения и выровненные столбцы]</value>
   </data>

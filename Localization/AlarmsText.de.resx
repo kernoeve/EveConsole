@@ -1846,6 +1846,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Ohne Haken wird dieser Abschnitt als Texttabelle gepostet. Discord bekommt immer den Text.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXT ÜBER DER TABELLE</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Steht unter dem Titel, auf Slack und in der Texttabelle. Emoji, Links und Erwähnungen funktionieren, und eine Erwähnung benachrichtigt wirklich.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>BILD</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Nur im Slack-Format, neben dem Titel. Slacks Box hat immer einen Titel, ein leerer verwendet daher den Standardtitel.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Keines</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC-Corporation</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Gegenstandstyp</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — hier als Text gezeigt; Slack bekommt Bilder und ausgerichtete Spalten]</value>
   </data>
