@@ -60,6 +60,29 @@ static string RawFile(string path)
         return samples;
     }
 
+    // Noise shaped like speech: bursts, each with its own colour. ⚠️ What the filter has to learn from: the buzz above is
+    // too thin to teach it much, or to show it going astray, which on a user's real voice it did while that passed.
+    static double[] Bursts(int seconds, int seed, double level)
+    {
+        var random = new Random(seed);
+        var samples = new double[Rate * seconds];
+        for (var at = 0; at < samples.Length;)
+        {
+            var syllable = random.Next(Rate / 10, Rate / 3);
+            var colour = 0.03 + random.NextDouble() * 0.25;
+            var loudness = level * (0.4 + random.NextDouble() * 0.6);
+            double low = 0, lower = 0;
+            for (var i = 0; i < syllable && at < samples.Length; i++, at++)
+            {
+                low += (random.NextDouble() * 2 - 1 - low) * colour;
+                lower += (low - lower) * colour;
+                samples[at] = lower * 4 * loudness * Math.Sin(Math.PI * i / syllable);
+            }
+            at += random.Next(Rate / 40, Rate / 6);
+        }
+        return samples;
+    }
+
     // A room: the sound arrives late, then again and again off the walls, fading.
     static double[] Room(double[] played, int delay, int seed, double level)
     {
@@ -102,7 +125,7 @@ static string RawFile(string path)
     // Echo alone, across the delays real sound devices give.
     foreach (var delay in new[] { Rate * 20 / 1000, Rate * 120 / 1000, Rate * 280 / 1000 })
     {
-        var played = SpeechLike(12, 1, 0.5);
+        var played = Bursts(12, 1, 0.5);
         var echo = Room(played, delay, 3, 0.4);
         var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
         cleanup.StartTalk();
@@ -160,6 +183,38 @@ static string RawFile(string path)
         }
         var echoDown = -20 * Math.Log10(Math.Abs(together / power) + 1e-9);
         Check("echo: stays down under a much louder voice", echoDown > 12, $"echo down {echoDown:F1} dB");
+    }
+
+    // ⚠️ The filter on its own, against the echo that was really there, sample for sample, through a long stretch of talking.
+    // The user heard this one fail: measured by how well the output lined up with the echo, it looked fine while the
+    // filter was adding echo. Measured like this, it cannot hide.
+    foreach (var (voiceLevel, atLeast) in new[] { (0.35, 8.0), (0.7, 5.0) })
+    {
+        const int Block = MumbleEchoCanceller.BlockSize;
+        var played = Bursts(40, 1, 0.5);
+        var near = Bursts(40, 2, voiceLevel);
+        for (var i = 0; i < Rate * 12; i++) near[i] = 0;
+        var echo = Room(played, Rate * 90 / 1000, 3, 0.4);
+
+        var filter = new MumbleEchoCanceller();
+        var left = new double[played.Length];
+        var farBlock = new double[Block]; var nearBlock = new double[Block];
+        for (var at = 0; at + Block <= played.Length; at += Block)
+        {
+            played.AsSpan(at, Block).CopyTo(farBlock);
+            for (var i = 0; i < Block; i++) nearBlock[i] = echo[at + i] + near[at + i];
+            filter.Far(farBlock);
+            filter.Near(nearBlock);
+            // What came out, less the voice, is what is left of the echo.
+            for (var i = 0; i < Block; i++) left[at + i] = nearBlock[i] - near[at + i];
+        }
+
+        var learned = Db(echo, Rate * 8, Rate * 12) - Db(left, Rate * 8, Rate * 12);
+        Check("echo: the filter alone removes most of it", learned > 15, $"{learned:F1} dB");
+
+        var worst = double.MaxValue;
+        for (var s = 12; s + 4 <= 40; s += 4) worst = Math.Min(worst, Db(echo, Rate * s, Rate * (s + 4)) - Db(left, Rate * s, Rate * (s + 4)));
+        Check($"echo: and keeps removing it through long talking at {voiceLevel}, never adding", worst > atLeast, $"worst stretch {worst:F1} dB");
     }
 
     // The room changes, as turning around with a laptop does.

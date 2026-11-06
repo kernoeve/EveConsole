@@ -70,9 +70,10 @@ internal sealed class MumbleFft
 /// into blocks and worked in frequency, the way Speex and the standard client's own do it, as a filter this long
 /// would otherwise be far too slow to run sample by sample.</para>
 ///
-/// <para>⚠️ Two copies of the filter. One keeps learning, and the other, the one that is heard, only takes on what the
-/// first has learned when that really does remove more. Someone talking over the echo looks to a learning filter like
-/// echo it got wrong, which sends it badly astray; it is the second copy that keeps that from being heard.</para>
+/// <para>⚠️ Someone talking over the echo looks to a learning filter like echo it got wrong, and left to itself it goes
+/// astray and starts adding echo. Two things stop that. How far it moves depends on how much of what it got wrong is
+/// really echo (see <see cref="Learn"/>), and of two copies, the one heard only takes on what the other has learned when
+/// that is far better (see <see cref="ChooseFilter"/>). The way Speex's echo canceller does it, on both counts.</para>
 /// </summary>
 public sealed class MumbleEchoCanceller
 {
@@ -82,12 +83,21 @@ public sealed class MumbleEchoCanceller
     /// <summary>About 430 ms: from speakers to microphone by way of both sound devices' own buffering, which is most of it.</summary>
     private const int Partitions = 40;
 
-    private const double LearningRate = 0.45;
+    /// <summary>How quickly the error's and the echo's spectra are followed: about the block's own length in seconds.</summary>
+    private const double SpectrumFollow = (double)BlockSize / MumbleMixer.SampleRate;
+
+    private const double LeakFollow = 2.0 * BlockSize / MumbleMixer.SampleRate, LeakMost = 0.5 * BlockSize / MumbleMixer.SampleRate;
+
+    /// <summary>However good the filter looks, some echo is always assumed left: real rooms never hold still.</summary>
+    private const double LeastLeak = 0.005;
+
+    /// <summary>How quickly it learns before it knows anything. A filter this long takes seconds to learn at Speex's quarter.</summary>
+    private const double FirstLearningRate = 0.4;
+
+    private const double Tiny = 1e-12, FarFloor = 1e-4 * Size;
 
     /// <summary>Below this nothing is playing, about -70 dBFS, and there is nothing to learn from.</summary>
     private const double SilentPower = 1e-7;
-
-    private const double Smoothing = 0.85;
 
     private readonly MumbleFft _fft = new(Size);
 
@@ -99,8 +109,11 @@ public sealed class MumbleEchoCanceller
     private readonly double[] _farOld = new double[BlockSize];
     private readonly double[] _re = new double[Size], _im = new double[Size];
     private readonly double[] _echoPower = new double[Bins];
+    private readonly double[] _echoNow = new double[Bins], _errorSlow = new double[Bins], _echoSlow = new double[Bins], _rate = new double[Bins];
     private int _newest, _quietBlocks = Partitions + 1, _rotating;
-    private double _heardError = 1e-9, _learnError = 1e-9;
+    private double _betterFast, _betterSlow, _spreadFast, _spreadSlow;
+    private double _leakTogether, _leakMoves, _leak = 1, _learned;
+    private bool _settled;
 
     private static double[][] NewPartitions()
     {
@@ -163,24 +176,60 @@ public sealed class MumbleEchoCanceller
         Estimate(_heardRe, _heardIm, heardEcho, keepPower: true);
         Estimate(_learnRe, _learnIm, learnEcho, keepPower: false);
 
-        double heardError = 0, learnError = 0;
+        double heardError = 0, learnError = 0, between = 0, echoEnergy = 0, errorWithEcho = 0, farEnergy = 0;
         for (var i = 0; i < BlockSize; i++)
         {
             var a = block[i] - heardEcho[i];
             var b = block[i] - learnEcho[i];
             heardError += a * a;
             learnError += b * b;
+            between += (a - b) * (a - b);
+            echoEnergy += learnEcho[i] * learnEcho[i];
+            errorWithEcho += b * learnEcho[i];
+            farEnergy += _farOld[i] * _farOld[i];
         }
-        _heardError = _heardError * Smoothing + heardError * (1 - Smoothing);
-        _learnError = _learnError * Smoothing + learnError * (1 - Smoothing);
 
-        if (_quietBlocks == 0) Learn(block, learnEcho);
+        if (_quietBlocks == 0) Learn(block, learnEcho, learnError, echoEnergy, errorWithEcho, farEnergy);
 
         for (var i = 0; i < BlockSize; i++) block[i] -= heardEcho[i];
 
-        // The learning copy is doing better: it is heard from now on. Gone far astray: back to what was working.
-        if (_learnError < _heardError * 0.9) Copy(_learnRe, _learnIm, _heardRe, _heardIm);
-        else if (_learnError > _heardError * 4) Copy(_heardRe, _heardIm, _learnRe, _learnIm);
+        // What is heard now would be what a little less of the voice is, so what the leak says is left goes to the next stage.
+        var left = Math.Min(2 * _leak, 0.5);
+        for (var b = 0; b < Bins; b++) _echoPower[b] *= left;
+
+        ChooseFilter(heardError, learnError, between);
+    }
+
+    /// <summary>
+    /// ⚠️ Whether the learning copy really is better. Not simply which has less error: with someone talking the error is
+    /// mostly them, and a filter bent out of shape can fit a little of a voice and come out ahead, then be heard adding
+    /// echo. The difference has to be large against how far apart the two are, over a short time or a longer one.
+    /// </summary>
+    private void ChooseFilter(double heardError, double learnError, double between)
+    {
+        var better = heardError - learnError;
+        var spread = heardError * between;
+
+        _betterFast = 0.6 * _betterFast + 0.4 * better;
+        _betterSlow = 0.85 * _betterSlow + 0.15 * better;
+        _spreadFast = 0.36 * _spreadFast + 0.16 * spread;
+        _spreadSlow = 0.7225 * _spreadSlow + 0.0225 * spread;
+
+        if (better * Math.Abs(better) > spread
+            || _betterFast * Math.Abs(_betterFast) > 0.5 * _spreadFast
+            || _betterSlow * Math.Abs(_betterSlow) > 0.25 * _spreadSlow)
+        {
+            Copy(_learnRe, _learnIm, _heardRe, _heardIm);
+            _betterFast = _betterSlow = _spreadFast = _spreadSlow = 0;
+        }
+        else if (-better * Math.Abs(better) > 4 * spread
+                 || -_betterFast * Math.Abs(_betterFast) > 4 * _spreadFast
+                 || -_betterSlow * Math.Abs(_betterSlow) > 4 * _spreadSlow)
+        {
+            // Gone astray: back to what is working.
+            Copy(_heardRe, _heardIm, _learnRe, _learnIm);
+            _betterFast = _betterSlow = _spreadFast = _spreadSlow = 0;
+        }
     }
 
     private void Estimate(double[][] filterRe, double[][] filterIm, Span<double> echo, bool keepPower)
@@ -213,8 +262,22 @@ public sealed class MumbleEchoCanceller
         _re.AsSpan(BlockSize, BlockSize).CopyTo(echo);
     }
 
-    private void Learn(ReadOnlySpan<double> block, ReadOnlySpan<double> echo)
+    /// <summary>
+    /// ⚠️ How far to move is the whole of it. What is left after the filter is echo it got wrong plus anyone talking, and
+    /// only the first says anything about the filter. So first: how much of the error rises and falls with the echo, which
+    /// a voice does not. From that, each frequency moves by the share of its error that is really left-over echo, and
+    /// hardly at all while someone talks, which is the way Speex's echo canceller goes about it. Before that, it is only
+    /// held back by how much was played against how much was heard.
+    /// </summary>
+    private void Learn(ReadOnlySpan<double> block, ReadOnlySpan<double> echo, double errorEnergy, double echoEnergy, double errorWithEcho, double farEnergy)
     {
+        // The echo's own spectrum, then the error's, each from just this block.
+        _re.AsSpan(0, BlockSize).Clear();
+        echo.CopyTo(_re.AsSpan(BlockSize));
+        Array.Clear(_im);
+        _fft.Forward(_re, _im);
+        for (var b = 0; b < Bins; b++) _echoNow[b] = _re[b] * _re[b] + _im[b] * _im[b];
+
         _re.AsSpan(0, BlockSize).Clear();
         for (var i = 0; i < BlockSize; i++) _re[BlockSize + i] = block[i] - echo[i];
         Array.Clear(_im);
@@ -223,17 +286,63 @@ public sealed class MumbleEchoCanceller
         var errorRe = new Span<double>(_re, 0, Bins);
         var errorIm = new Span<double>(_im, 0, Bins);
 
-        // How loud it has been at each frequency sets how far to move, so quiet ones learn as quickly as loud ones.
-        var floor = 1e-4 * Size;
+        // How the error moves with the echo, from block to block.
+        double together = 0, echoMoves = 0;
+        for (var b = 0; b < Bins; b++)
+        {
+            var error = errorRe[b] * errorRe[b] + errorIm[b] * errorIm[b];
+            _errorSlow[b] += SpectrumFollow * (error - _errorSlow[b]);
+            _echoSlow[b] += SpectrumFollow * (_echoNow[b] - _echoSlow[b]);
+            var e = error - _errorSlow[b];
+            var y = _echoNow[b] - _echoSlow[b];
+            together += e * y;
+            echoMoves += y * y;
+        }
+        echoMoves = Math.Sqrt(echoMoves);
+        if (echoMoves > 0) together /= echoMoves;
+
+        var follow = Math.Min(LeakFollow * echoEnergy, LeakMost * errorEnergy) / (errorEnergy + Tiny);
+        _leakTogether += follow * (together - _leakTogether);
+        _leakMoves += follow * (echoMoves - _leakMoves);
+
+        var leak = _leakMoves > Tiny ? Math.Clamp(_leakTogether / _leakMoves, LeastLeak, 1) : LeastLeak;
+        _leak = leak;
+
+        // The share of the whole error thought to be echo. At least as much as lines up with it right now.
+        var share = (0.0001 * farEnergy + 3 * leak * echoEnergy) / (errorEnergy + Tiny);
+        share = Math.Min(Math.Max(share, errorWithEcho * errorWithEcho / (Tiny + errorEnergy * echoEnergy)), 0.5);
+
+        // Getting started, with nothing yet to judge by. Held back only by how much was played against how much was heard.
+        var starting = 0.0;
+        if (!_settled)
+        {
+            starting = Math.Min(FirstLearningRate, FirstLearningRate * farEnergy / (errorEnergy + Tiny));
+            _learned += starting;
+            if (_learned > Partitions && leak > 0.03) _settled = true;
+        }
+
+        for (var b = 0; b < Bins; b++)
+        {
+            double rate;
+            if (_settled)
+            {
+                var error = errorRe[b] * errorRe[b] + errorIm[b] * errorIm[b] + Tiny;
+                var left = Math.Min(leak * _echoNow[b], 0.5 * error);
+                rate = (0.7 * left + 0.3 * share * error) / error;
+            }
+            else rate = starting;
+
+            _rate[b] = rate / (_farPower[b] + FarFloor);
+        }
+
         for (var p = 0; p < Partitions; p++)
         {
             var at = (_newest + p) % Partitions;
             double[] xr = _farRe[at], xi = _farIm[at], wr = _learnRe[p], wi = _learnIm[p];
             for (var b = 0; b < Bins; b++)
             {
-                var step = LearningRate / (_farPower[b] + floor);
-                wr[b] += step * (xr[b] * errorRe[b] + xi[b] * errorIm[b]);
-                wi[b] += step * (xr[b] * errorIm[b] - xi[b] * errorRe[b]);
+                wr[b] += _rate[b] * (xr[b] * errorRe[b] + xi[b] * errorIm[b]);
+                wi[b] += _rate[b] * (xr[b] * errorIm[b] - xi[b] * errorRe[b]);
             }
         }
 
@@ -296,8 +405,11 @@ public sealed class MumbleNoiseSuppressor
     /// <summary>The lowest points of a noise sit well under its average.</summary>
     private const double MinimumToAverage = 1.8;
 
-    /// <summary>A little more of what the filter thought it removed is assumed to remain than a tenth would suggest.</summary>
-    private const double EchoLeft = 0.25;
+    /// <summary>How far what is only echo is turned down. Further than noise, as nobody wants to hear any of it.</summary>
+    private const double EchoFloorDb = -40;
+
+    /// <summary>How quickly what is thought to be left of an echo fades: echoes tail off rather than stop.</summary>
+    private const double EchoFade = 0.6;
 
     private readonly MumbleFft _fft = new(Size);
     private readonly double[] _window = new double[Size];
@@ -305,6 +417,7 @@ public sealed class MumbleNoiseSuppressor
     private readonly double[] _re = new double[Size], _im = new double[Size];
     private readonly double[] _smoothed = new double[Bins], _least = new double[Bins];
     private readonly double[] _gain = new double[Bins], _lastRatio = new double[Bins];
+    private readonly double[] _echoLeft = new double[Bins];
     private bool _started;
 
     /// <summary>Whether steady background noise is taken out. Without it only what is left of an echo is.</summary>
@@ -327,7 +440,7 @@ public sealed class MumbleNoiseSuppressor
         Array.Clear(_im);
         _fft.Forward(_re, _im);
 
-        var floor = Math.Pow(10, FloorDb / 20);
+        double noiseFloor = Math.Pow(10, FloorDb / 20), echoFloor = Math.Pow(10, EchoFloorDb / 20);
         for (var b = 0; b < Bins; b++)
         {
             var power = _re[b] * _re[b] + _im[b] * _im[b];
@@ -335,8 +448,10 @@ public sealed class MumbleNoiseSuppressor
             _smoothed[b] = _started ? _smoothed[b] * NoiseSmoothing + power * (1 - NoiseSmoothing) : power;
             _least[b] = !_started || _smoothed[b] < _least[b] ? _smoothed[b] : _least[b] * NoiseRise;
 
-            var unwanted = (ReduceNoise ? _least[b] * MinimumToAverage : 0)
-                         + (b < echoPower.Length ? echoPower[b] * EchoLeft : 0);
+            _echoLeft[b] = Math.Max(_echoLeft[b] * EchoFade, b < echoPower.Length ? echoPower[b] : 0);
+
+            var noise = ReduceNoise ? _least[b] * MinimumToAverage : 0;
+            var unwanted = noise + _echoLeft[b];
 
             if (unwanted <= 0)
             {
@@ -347,6 +462,7 @@ public sealed class MumbleNoiseSuppressor
             {
                 var ratio = power / unwanted;
                 var clean = Carry * _gain[b] * _gain[b] * _lastRatio[b] + (1 - Carry) * Math.Max(ratio - 1, 0);
+                var floor = (noise * noiseFloor + _echoLeft[b] * echoFloor) / unwanted;
                 _gain[b] = Math.Max(clean / (1 + clean), floor);
                 _lastRatio[b] = ratio;
             }
@@ -377,6 +493,7 @@ public sealed class MumbleNoiseSuppressor
         Array.Clear(_tail);
         Array.Fill(_gain, 1.0);
         Array.Clear(_lastRatio);
+        Array.Clear(_echoLeft);
     }
 }
 
