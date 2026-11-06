@@ -174,6 +174,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             var session = Track(account);
             if (account.AutoConnect) Connect(session);
+
+            // ⚠️ Said even when it stays offline: what lists the servers looked before this read them.
+            SessionChanged?.Invoke(session);
         }
 
         await PurgeOldAsync(ct);

@@ -198,6 +198,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             var session = Track(server);
             if (server.AutoConnect) Connect(session);
+
+            // ⚠️ Said even when it stays offline: what lists the servers looked before this read them.
+            SessionChanged?.Invoke(session);
         }
     }
 
