@@ -149,6 +149,9 @@
         <DataTemplate DataType="vm:SystemIndexViewModel">
           <views:SystemIndexView />
         </DataTemplate>
+        <DataTemplate DataType="vm:BattleReportViewModel">
+          <views:BattleReportView />
+        </DataTemplate>
         <DataTemplate DataType="vm:ProductionCalculatorViewModel">
           <views:ProductionCalculatorView />
         </DataTemplate>

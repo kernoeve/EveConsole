@@ -687,4 +687,7 @@ PID：{2}
 {1}
 クリックで ESI の制限を表示します。</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>戦闘レポート</value>
+  </data>
 </root>

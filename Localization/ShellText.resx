@@ -877,4 +877,8 @@ Upgrade it and start? No closes EVE Console and leaves the database as it is.</v
 Click for the ESI limits.</value>
     <comment>Tooltip on the header's ESI slowed. {0} is the governor's state, {1} the error budget line.</comment>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Battle Report</value>
+    <comment>Tool name in the menu (Corp group) and its tab: a report of one battle, live or finished.</comment>
+  </data>
 </root>

@@ -693,4 +693,7 @@ La mettre à jour et démarrer ? Non ferme EVE Console et laisse la base de donn
 {1}
 Cliquez pour voir les limites ESI.</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Rapport de bataille</value>
+  </data>
 </root>

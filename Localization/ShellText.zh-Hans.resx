@@ -687,4 +687,7 @@ PID：{2}
 {1}
 点击查看 ESI 限制。</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>战斗报告</value>
+  </data>
 </root>

@@ -104,6 +104,13 @@ jobs:
       - name: Worklist rank check
         run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
 
+      # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
+      # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
+      # picks up all look like a finished report. This builds battles whose answers are known, on
+      # constructed kills and a throwaway database.
+      - name: Battle report check
+        run: dotnet run --project tools/BattleReportCheck/BattleReportCheck.csproj -c Release
+
       # ⚠️ Do the scheduled posts' rich Slack lists still line up, on a phone as well as a PC?
       # Rows with images have no real columns, only padding worked out from the font, and only two
       # kinds of blank keep their width in a container on a phone. Drift, a corp with a pilot's

@@ -687,4 +687,7 @@ PID: {2}
 {1}
 클릭하면 ESI 한도를 봅니다.</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>전투 보고서</value>
+  </data>
 </root>

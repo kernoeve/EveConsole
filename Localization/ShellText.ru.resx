@@ -705,4 +705,7 @@ PID: {2}
 {1}
 Нажмите, чтобы открыть лимиты ESI.</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Боевой отчёт</value>
+  </data>
 </root>

@@ -693,4 +693,7 @@ Base de datos: {2}
 {1}
 Haz clic para ver los límites de ESI.</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Informe de batalla</value>
+  </data>
 </root>
