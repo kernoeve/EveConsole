@@ -166,9 +166,6 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="OverlayNobody" xml:space="preserve">
     <value>Personne ne parle</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>cri</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>Depuis {0}, le chuchotement n'atteint que ce canal. Le cri atteint aussi : {1}.</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

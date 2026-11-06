@@ -41,6 +41,7 @@ public sealed class MumbleMixer
         public DateTime LastHeard;
         public bool Ended;
         public long LastSequence = -1;
+        public int Target;
     }
 
     private readonly object _gate = new();
@@ -82,6 +83,7 @@ public sealed class MumbleMixer
 
             speaker.LastHeard = DateTime.UtcNow;
             speaker.Ended = packet.Last;
+            speaker.Target = packet.Target;
 
             // A terminator carrying no sound only says they let go.
             if (packet.Opus.Length == 0) return;
@@ -158,6 +160,12 @@ public sealed class MumbleMixer
 
         Mixed?.Invoke(into);
         return heard;
+    }
+
+    /// <summary>What the last packet of someone's voice said it was: see <see cref="MumbleService.TalkOf"/>.</summary>
+    public int TargetOf(int server, uint session)
+    {
+        lock (_gate) return _speakers.TryGetValue((server, session), out var speaker) ? speaker.Target : 0;
     }
 
     /// <summary>Who is talking right now, by the last time a packet of theirs was seen.</summary>

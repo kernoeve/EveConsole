@@ -18,12 +18,37 @@ public partial class MumbleOverlayWindow : Window
     {
         InitializeComponent();
 
+        // ⚠️ Moving a window by hand ends its sizing to what is in it, and it is moved by hand. So it is told again whenever
+        // the list changes shape: without this, a list that grew was cut off, and one that shrank left an empty box.
+        DataContextChanged += (_, _) =>
+        {
+            if (_listening is not null) _listening.OverlayChanged -= FitToContent;
+            _listening = DataContext as MumbleViewModel;
+            if (_listening is not null) _listening.OverlayChanged += FitToContent;
+        };
+        Closed += (_, _) =>
+        {
+            if (_listening is not null) _listening.OverlayChanged -= FitToContent;
+            _listening = null;
+        };
+
         // Where it was left. Saved when it moves, so a crash loses nothing.
         PositionChanged += (_, e) =>
         {
             if (DataContext is MumbleViewModel vm && IsVisible) vm.SaveOverlayPosition(e.Point.X, e.Point.Y);
         };
     }
+
+    private MumbleViewModel? _listening;
+
+    private void FitToContent() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+    {
+        SizeToContent = SizeToContent.Manual;
+        ClearValue(WidthProperty);
+        ClearValue(HeightProperty);
+        SizeToContent = SizeToContent.WidthAndHeight;
+        InvalidateMeasure();
+    });
 
     private void OnDrag(object? sender, PointerPressedEventArgs e)
     {

@@ -219,10 +219,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Nobody talking</value>
     <comment>Overlay, when quiet.</comment>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>shout</value>
-    <comment>Overlay mark.</comment>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>From {0}, Whisper reaches only that channel. Shout also reaches: {1}.</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

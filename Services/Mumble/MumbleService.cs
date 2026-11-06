@@ -14,7 +14,10 @@ public enum MumbleState { Offline, Connecting, Connected, Reconnecting, Failed }
 public enum MumbleProblem { None, Certificate, Password, Username, Removed, Other }
 
 /// <summary>What pressing a server's keys does.</summary>
-public enum MumbleTalk { None, Channel, Shout }
+/// <summary>
+/// How someone is talking. Direct is to this client alone, and only ever heard from someone else.
+/// </summary>
+public enum MumbleTalk { None, Channel, Shout, Direct }
 
 /// <summary>A line of a server's text chat, in memory for as long as the app runs.</summary>
 /// <summary>How one saved conversation stands.</summary>
@@ -1106,6 +1109,18 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         TalkersChanged?.Invoke();
     }
 
+    /// <summary>
+    /// How someone is talking, by what a server says on each packet of their voice. The same marker the standard client
+    /// colours people by. ⚠️ Not the same numbers as what is sent: anything sent to a saved target, such as Whisper's own
+    /// channel, reaches a listener as 1, and plain talk, which is Shout, as 0.
+    /// </summary>
+    public static MumbleTalk TalkOf(int target) => target switch
+    {
+        0 => MumbleTalk.Shout,
+        2 => MumbleTalk.Direct,
+        _ => MumbleTalk.Channel,
+    };
+
     public static int TargetOf(MumbleTalk mode) => mode == MumbleTalk.Shout ? PlainTalk : ChannelOnlyTarget;
 
     private void ReleaseMicIfIdle()
@@ -1233,7 +1248,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         foreach (var (server, user) in Mixer.TalkingNow())
             if (SessionOf(server) is { Client: { } client } session && client.UserOf(user) is { } who)
-                result.Add(new MumbleTalker(server, Label(session), user, who.Name, false, MumbleTalk.Channel));
+                result.Add(new MumbleTalker(server, Label(session), user, who.Name, false, TalkOf(Mixer.TargetOf(server, user))));
 
         return result;
 

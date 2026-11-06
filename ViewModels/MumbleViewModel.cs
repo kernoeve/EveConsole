@@ -40,6 +40,24 @@ public sealed class MumbleRowVm : ReactiveObject
     public string Flags  { get => _flags;  set => this.RaiseAndSetIfChanged(ref _flags, value); }
 
     public bool Talking { get => _talking; set => this.RaiseAndSetIfChanged(ref _talking, value); }
+
+    private MumbleTalk _talkMode;
+
+    /// <summary>How they are talking, for the colour: the same as the standard client's.</summary>
+    public MumbleTalk TalkMode
+    {
+        get => _talkMode;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _talkMode, value);
+            this.RaisePropertyChanged(nameof(TalksChannel));
+            this.RaisePropertyChanged(nameof(TalksShout));
+            this.RaisePropertyChanged(nameof(TalksDirect));
+        }
+    }
+    public bool TalksChannel => _talkMode == MumbleTalk.Channel;
+    public bool TalksShout => _talkMode == MumbleTalk.Shout;
+    public bool TalksDirect => _talkMode == MumbleTalk.Direct;
     public bool Good { get => _good; set => this.RaiseAndSetIfChanged(ref _good, value); }
     public bool Warn { get => _warn; set => this.RaiseAndSetIfChanged(ref _warn, value); }
     public bool Bad  { get => _bad;  set => this.RaiseAndSetIfChanged(ref _bad, value); }
@@ -65,7 +83,7 @@ public sealed class MumbleRowVm : ReactiveObject
 
     public void Fill(MumbleRowVm from)
     {
-        Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking;
+        Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking; TalkMode = from.TalkMode;
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
         HasChildren = from.HasChildren; IsOpen = from.IsOpen;
@@ -88,11 +106,29 @@ public sealed class MumbleOverlayLine(int serverId, uint session, string name, s
     /// <summary>When they last had something to say, for how long they stay listed.</summary>
     public DateTime LastTalked { get; set; } = DateTime.UtcNow;
 
-    private bool _isTalking, _isShout, _isMuted, _isDeaf;
-    public bool IsTalking { get => _isTalking; set => this.RaiseAndSetIfChanged(ref _isTalking, value); }
-    public bool IsShout { get => _isShout; set => this.RaiseAndSetIfChanged(ref _isShout, value); }
-    public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
-    public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+    private bool _isMuted, _isDeaf;
+    private MumbleTalk _mode;
+
+    /// <summary>How they are talking, or None. The colours are the standard client's own.</summary>
+    public MumbleTalk Mode
+    {
+        get => _mode;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _mode, value);
+            foreach (var name in new[] { nameof(IsTalking), nameof(TalksChannel), nameof(TalksShout), nameof(TalksDirect) }) this.RaisePropertyChanged(name);
+        }
+    }
+    public bool IsTalking => _mode != MumbleTalk.None;
+    public bool TalksChannel => _mode == MumbleTalk.Channel;
+    public bool TalksShout => _mode == MumbleTalk.Shout;
+    public bool TalksDirect => _mode == MumbleTalk.Direct;
+
+    /// <summary>This client's own line always says whether it is muted or deafened, either way. Anyone else's only when they are.</summary>
+    public bool ShowMute => isSelf || _isMuted;
+    public bool ShowDeaf => isSelf || _isDeaf;
+    public bool IsMuted { get => _isMuted; set { this.RaiseAndSetIfChanged(ref _isMuted, value); this.RaisePropertyChanged(nameof(ShowMute)); } }
+    public bool IsDeaf { get => _isDeaf; set { this.RaiseAndSetIfChanged(ref _isDeaf, value); this.RaisePropertyChanged(nameof(ShowDeaf)); } }
 }
 
 /// <summary>
@@ -193,13 +229,13 @@ public sealed class MumbleViewModel : ReactiveObject
         _service.OutputVolume  = _speakerVolume / 100.0;
         _service.MicrophoneGain = _micGain / 100.0;
 
-        _service.SessionChanged += _ => QueueRefresh();
+        _service.SessionChanged += _ => { QueueRefresh(); Dispatcher.UIThread.Post(RefreshOverlay); };
         _service.TalkersChanged += () => { QueueRefresh(); Dispatcher.UIThread.Post(RefreshOverlay); };
 
         // Someone stops being listed by time passing, and their mute can change while they are quiet.
         _overlayTimer = new Timer(_ => Dispatcher.UIThread.Post(() =>
         {
-            if (Talkers.Count > 0) RefreshOverlay();
+            RefreshOverlay();
             if (IsAudioOpen) this.RaisePropertyChanged(nameof(MicLevelText));
         }), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         QueueRefresh();
@@ -255,7 +291,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private void Rebuild()
     {
-        var talking = _service.Talkers().Select(t => (t.ServerId, t.Session)).ToHashSet();
+        var talking = _service.Talkers().ToDictionary(t => (t.ServerId, t.Session), t => t.Mode);
         var wanted  = new List<MumbleRowVm>();
 
         foreach (var session in _service.Sessions) AddServer(wanted, session, talking);
@@ -279,7 +315,7 @@ public sealed class MumbleViewModel : ReactiveObject
         _ = RefreshAsync();
     }
 
-    private void AddServer(List<MumbleRowVm> rows, MumbleSession session, HashSet<(int, uint)> talking)
+    private void AddServer(List<MumbleRowVm> rows, MumbleSession session, Dictionary<(int, uint), MumbleTalk> talking)
     {
         var id = session.Server.Id;
         rows.Add(new MumbleRowVm
@@ -334,7 +370,8 @@ public sealed class MumbleViewModel : ReactiveObject
                 {
                     Kind = MumbleRowKind.User, ServerId = id, Id = u.Session, Depth = depth + 1,
                     Text = u.Name, IsMe = u.Session == me,
-                    Talking = talking.Contains((id, u.Session)),
+                    Talking = talking.ContainsKey((id, u.Session)),
+                    TalkMode = talking.GetValueOrDefault((id, u.Session)),
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",
                     IsDeaf = u.Deaf || u.SelfDeaf,
                     IsMuted = u.Mute || u.SelfMute || u.Suppress,
@@ -1272,18 +1309,38 @@ public sealed class MumbleViewModel : ReactiveObject
     private bool _nobodyTalking = true;
     public bool NobodyTalking { get => _nobodyTalking; private set => this.RaiseAndSetIfChanged(ref _nobodyTalking, value); }
 
+    /// <summary>The list changed in a way that changes how big it is. The window has to be told: see <see cref="MumbleOverlayWindow"/>.</summary>
+    public event Action? OverlayChanged;
+
+    private string _overlayShape = "";
+
     private void RefreshOverlay()
     {
         var talking = _service.Talkers();
         var when = DateTime.UtcNow;
+
+        // This client itself, first, on every server it is connected to, whether talking or not.
+        var mine = _service.Sessions
+            .Where(s => s.State == MumbleState.Connected && s.Client?.Me is not null)
+            .Select(s => (Session: s, Me: s.Client!.Me!))
+            .ToList();
+
+        var first = 0;
+        foreach (var (session, me) in mine)
+        {
+            var line = Talkers.FirstOrDefault(l => l.ServerId == session.Server.Id && l.Session == me.Session);
+            if (line is null)
+                Talkers.Insert(first, new MumbleOverlayLine(session.Server.Id, me.Session, me.Name,
+                    session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host, isSelf: true));
+            first++;
+        }
 
         foreach (var t in talking)
         {
             var line = Talkers.FirstOrDefault(l => l.ServerId == t.ServerId && l.Session == t.Session);
             if (line is null) Talkers.Add(line = new MumbleOverlayLine(t.ServerId, t.Session, t.Name, t.Server, t.IsSelf));
             line.LastTalked = when;
-            line.IsTalking = true;
-            line.IsShout = t.Mode == MumbleTalk.Shout;
+            line.Mode = t.Mode;
         }
 
         for (var i = Talkers.Count - 1; i >= 0; i--)
@@ -1292,17 +1349,27 @@ public sealed class MumbleViewModel : ReactiveObject
             var state = _service.StateOf(line.ServerId, line.Session);
 
             // Gone from the server, or quiet for long enough. Until then they stay, as in the standard client's list.
-            if (state is null || when - line.LastTalked > KeptAfterTalking) { Talkers.RemoveAt(i); continue; }
+            // Except this client, which stays for as long as it is connected.
+            var stays = line.IsSelf
+                ? mine.Any(m => m.Session.Server.Id == line.ServerId && m.Me.Session == line.Session)
+                : when - line.LastTalked <= KeptAfterTalking;
+            if (state is null || !stays) { Talkers.RemoveAt(i); continue; }
 
             line.IsMuted = state.Value.Muted;
             line.IsDeaf = state.Value.Deaf;
             if (talking.Any(t => t.ServerId == line.ServerId && t.Session == line.Session)) continue;
 
-            line.IsTalking = false;
-            line.IsShout = false;
+            line.Mode = MumbleTalk.None;
         }
 
         NobodyTalking = Talkers.Count == 0;
+
+        var shape = string.Join('|', Talkers.Select(l => $"{l.ServerId}:{l.Session}:{l.ShowMute}:{l.ShowDeaf}"));
+        if (shape != _overlayShape)
+        {
+            _overlayShape = shape;
+            OverlayChanged?.Invoke();
+        }
     }
 
     public (double X, double Y)? OverlayPosition =>

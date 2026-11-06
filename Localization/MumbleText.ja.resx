@@ -166,9 +166,6 @@
   <data name="OverlayNobody" xml:space="preserve">
     <value>誰も話していません</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>シャウト</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>{0} からのささやきはそのチャンネルのみに届きます。シャウトは次にも届きます: {1}。</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

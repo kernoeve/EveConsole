@@ -166,9 +166,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="OverlayNobody" xml:space="preserve">
     <value>Nadie habla</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>grito</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>Desde {0}, el susurro llega solo a ese canal. El grito llega también a: {1}.</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

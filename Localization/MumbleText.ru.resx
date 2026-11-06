@@ -166,9 +166,6 @@
   <data name="OverlayNobody" xml:space="preserve">
     <value>Никто не говорит</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>крик</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>Из канала {0} шёпот слышен только в нём. Крик также слышен в: {1}.</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

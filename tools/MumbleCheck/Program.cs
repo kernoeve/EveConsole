@@ -312,6 +312,30 @@ static string RawFile(string path)
     Check("voice: level at full scale", Math.Abs(MumbleVoiceGate.LevelOf(full)) < 0.01);
 }
 
+// ── How someone is talking, by what each packet of their voice says ─────────────────────
+{
+    Check("talk: plain talk is Shout, blue in the standard client", MumbleService.TalkOf(0) == MumbleTalk.Shout);
+    Check("talk: to a channel target is Channel, yellow", MumbleService.TalkOf(1) == MumbleTalk.Channel);
+    Check("talk: to this client alone is Direct, purple", MumbleService.TalkOf(2) == MumbleTalk.Direct);
+
+    var mixerOf = new MumbleMixer();
+    var opus = new MumbleEncoder(40_000);
+    var quiet = new short[MumbleEncoder.FrameSamples];
+    var made = opus.Encode(quiet, 0, last: false);
+    mixerOf.Receive(1, new MumbleVoicePacket(0, 5, 0, made.Opus, false));
+    Check("talk: remembered from the packet", mixerOf.TargetOf(1, 5) == 0);
+    mixerOf.Receive(1, new MumbleVoicePacket(1, 5, 2, made.Opus, false));
+    Check("talk: and follows them changing key", mixerOf.TargetOf(1, 5) == 1);
+    Check("talk: nobody known is plain", mixerOf.TargetOf(1, 99) == 0);
+
+    var wire = new MumbleVoicePacket(1, 0, 0, made.Opus, false).Encode();
+    var withSession = new byte[wire.Length + 1];
+    withSession[0] = wire[0];
+    withSession[1] = 5;
+    wire.AsSpan(1).CopyTo(withSession.AsSpan(2));
+    Check("talk: read off the wire", MumbleVoicePacket.Decode(withSession) is { Target: 1, Session: 5 });
+}
+
 // ── What is asked of a server about someone else ───────────────────────────────────────
 {
     var mute = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bool(6, true)));

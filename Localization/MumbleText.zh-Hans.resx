@@ -166,9 +166,6 @@
   <data name="OverlayNobody" xml:space="preserve">
     <value>无人讲话</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>呼喊</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>从 {0} 发出的耳语只到达该频道。呼喊还会到达：{1}。</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

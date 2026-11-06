@@ -17,10 +17,17 @@
 
   <Window.Styles>
     <Style Selector="Ellipse.talker"><Setter Property="Fill" Value="#60FFFFFF" /></Style>
-    <Style Selector="Ellipse.talker.active"><Setter Property="Fill" Value="#5CD672" /></Style>
+    <!-- The standard client's own colours for these. -->
+    <Style Selector="Ellipse.talker.channel"><Setter Property="Fill" Value="#FBBC05" /></Style>
+    <Style Selector="Ellipse.talker.shout"><Setter Property="Fill" Value="#44A3F2" /></Style>
+    <Style Selector="Ellipse.talker.direct"><Setter Property="Fill" Value="#B57EDC" /></Style>
     <Style Selector="TextBlock.talker"><Setter Property="Foreground" Value="#A0FFFFFF" /><Setter Property="FontWeight" Value="Normal" /></Style>
-    <Style Selector="TextBlock.talker.active"><Setter Property="Foreground" Value="#7CF08F" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock.talker.channel"><Setter Property="Foreground" Value="#FBBC05" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock.talker.shout"><Setter Property="Foreground" Value="#6CB8F6" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock.talker.direct"><Setter Property="Foreground" Value="#C9A0E8" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
     <Style Selector="Path.state"><Setter Property="Stroke" Value="#FFB454" /><Setter Property="StrokeThickness" Value="1.1" /><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <!-- Not muted or deafened, on this client's own line: there to be seen to be off. -->
+    <Style Selector="Path.state.off"><Setter Property="Stroke" Value="#50FFFFFF" /></Style>
   </Window.Styles>
 
   <!-- Dragged by anywhere on it, and small: it sits over a game. -->
@@ -31,12 +38,11 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:MumbleOverlayLine">
             <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 1">
-              <Ellipse Classes="talker" Classes.active="{Binding IsTalking}" Width="8" Height="8" VerticalAlignment="Center" />
-              <TextBlock Classes="talker" Classes.active="{Binding IsTalking}" Text="{Binding Name}" FontSize="13" />
-              <Path Classes="state" IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
-              <Path Classes="state" IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
+              <Ellipse Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Width="8" Height="8" VerticalAlignment="Center" />
+              <TextBlock Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Text="{Binding Name}" FontSize="13" />
+              <Path Classes="state" Classes.off="{Binding !IsMuted}" IsVisible="{Binding ShowMute}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
+              <Path Classes="state" Classes.off="{Binding !IsDeaf}" IsVisible="{Binding ShowDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
               <TextBlock Text="{Binding Server}" FontSize="10" VerticalAlignment="Center" Foreground="#A0FFFFFF" />
-              <TextBlock Text="{x:Static loc:MumbleText.OverlayShout}" IsVisible="{Binding IsShout}" FontSize="10" VerticalAlignment="Center" Foreground="#FFD27A" />
             </StackPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

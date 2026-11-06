@@ -166,9 +166,6 @@
   <data name="OverlayNobody" xml:space="preserve">
     <value>말하는 사람 없음</value>
   </data>
-  <data name="OverlayShout" xml:space="preserve">
-    <value>외침</value>
-  </data>
   <data name="ReachLinks" xml:space="preserve">
     <value>{0}에서 귓속말은 해당 채널에만 전달됩니다. 외치기는 다음 채널에도 전달됩니다: {1}.</value>
     <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>

@@ -15,7 +15,10 @@
     <Style Selector="Ellipse.dot.bad"><Setter Property="Fill" Value="{DynamicResource BadBrush}" /></Style>
     <!-- A person talking has a lit dot: the first thing the eye should find in a full channel. -->
     <Style Selector="Ellipse.user"><Setter Property="Width" Value="9" /><Setter Property="Height" Value="9" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
-    <Style Selector="Ellipse.user.talking"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <!-- The standard client's own colours: blue for plain talk, yellow to a channel, purple to this client alone. -->
+    <Style Selector="Ellipse.user.channel"><Setter Property="Fill" Value="#FBBC05" /></Style>
+    <Style Selector="Ellipse.user.shout"><Setter Property="Fill" Value="#44A3F2" /></Style>
+    <Style Selector="Ellipse.user.direct"><Setter Property="Fill" Value="#B57EDC" /></Style>
     <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
     <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
     <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
@@ -59,7 +62,7 @@
               </Grid>
               <!-- A person -->
               <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto">
-                <Ellipse Classes="user" Classes.talking="{Binding Talking}" HorizontalAlignment="Left" />
+                <Ellipse Classes="user" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" HorizontalAlignment="Left" />
                 <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="6 0 0 0">
                   <Path IsVisible="{Binding IsLocalMuted}" Data="M1.5 4.5h2l3-3v9l-3-3h-2zM8.5 4.5l3 3M11.5 4.5l-3 3" Stroke="{DynamicResource TextFaintBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.LocalMute}" />
