@@ -562,6 +562,28 @@ public sealed class MumbleVoiceCleanup
 
     public bool IsOn => CancelEcho || ReduceNoise;
 
+    /// <summary>Whether the frame just handed back was mostly echo that was taken out, with no one talking under it.</summary>
+    public bool LastFrameWasEcho { get; private set; }
+
+    /// <summary>
+    /// How much has to have been taken out for what is left not to be anyone talking. Someone talking over an echo keeps
+    /// their own voice, so far less goes, even with an echo a little louder than they are.
+    /// </summary>
+    private const double EchoRemovedRatio = 0.126;   // 9 dB
+
+    /// <summary>
+    /// Blocks an echo is taken to linger after, about 200 ms: the room's tail is too quiet to show as much taken out, and
+    /// on its own would look like someone talking. Ended at once if what is left gets louder, which an echo's tail does not.
+    /// </summary>
+    private const int EchoHoldBlocks = 20;
+    private const double VoiceRise = 4;   // 6 dB
+
+    /// <summary>What is followed from block to block, about 40 ms: a block on its own says little, and output runs a block behind.</summary>
+    private const double RemovedFollow = 0.4;
+
+    private double _beforeSmooth, _afterSmooth, _leftByEcho;
+    private int _echoHold;
+
     /// <summary>What has just gone to the speakers. On the sound device's thread, whether anyone is talking or not.</summary>
     public void Played(ReadOnlySpan<short> samples)
     {
@@ -581,6 +603,9 @@ public sealed class MumbleVoiceCleanup
     public void StartTalk()
     {
         _inCount = 0;
+        _beforeSmooth = _afterSmooth = _leftByEcho = 0;
+        _echoHold = 0;
+        LastFrameWasEcho = false;
         _noise.StartTalk();
 
         // A block ahead, so a whole frame can always be handed back: frames and blocks never fall further apart than that.
@@ -611,6 +636,9 @@ public sealed class MumbleVoiceCleanup
             _in.AsSpan(taken, Block).CopyTo(_block);
             taken += Block;
 
+            double before = 0;
+            foreach (var s in _block) before += s * s;
+
             var echoPower = ReadOnlySpan<double>.Empty;
             if (CancelEcho)
             {
@@ -622,6 +650,28 @@ public sealed class MumbleVoiceCleanup
 
             _noise.ReduceNoise = ReduceNoise;
             _noise.Process(_block, echoPower);
+
+            double after = 0;
+            foreach (var s in _block) after += s * s;
+            _beforeSmooth += RemovedFollow * (before - _beforeSmooth);
+            _afterSmooth += RemovedFollow * (after - _afterSmooth);
+
+            if (CancelEcho && !echoPower.IsEmpty && _afterSmooth < _beforeSmooth * EchoRemovedRatio)
+            {
+                _echoHold = EchoHoldBlocks;
+                _leftByEcho = Math.Max(_afterSmooth, 1e-9);
+                LastFrameWasEcho = true;
+            }
+            else if (_echoHold > 0 && _afterSmooth < _leftByEcho * VoiceRise)
+            {
+                _echoHold--;
+                LastFrameWasEcho = true;
+            }
+            else
+            {
+                _echoHold = 0;
+                LastFrameWasEcho = false;
+            }
 
             _block.AsSpan().CopyTo(_out.AsSpan(_outCount));
             _outCount += Block;

@@ -217,6 +217,65 @@ static string RawFile(string path)
         Check($"echo: and keeps removing it through long talking at {voiceLevel}, never adding", worst > atLeast, $"worst stretch {worst:F1} dB");
     }
 
+    // ⚠️ With levelling after it, as in real use. On a real room, levelling took what was left for a quiet voice and raised it,
+    // giving back most of what had been taken out, while echo cancelling on its own measured fine.
+    {
+        var played = Bursts(30, 1, 0.5);
+        var near = Bursts(30, 2, 0.25);
+        for (var i = 0; i < Rate * 15; i++) near[i] = 0;
+        var echo = Room(played, Rate * 90 / 1000, 3, 0.4);
+
+        double[] Chain(double[] heard, bool level, double[]? far = null)
+        {
+            var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+            var leveler = new MumbleVoiceLeveler();
+            cleanup.StartTalk();
+            leveler.StartTalk();
+            var mixed = new short[Frame];
+            var frame = new short[Frame];
+            var result = new double[heard.Length];
+            for (var at = 0; at + Frame <= heard.Length; at += Frame)
+            {
+                for (var i = 0; i < Frame; i++) mixed[i] = (short)Math.Clamp((far ?? played)[at + i] * 32768, short.MinValue, short.MaxValue);
+                cleanup.Played(mixed);
+                for (var i = 0; i < Frame; i++) frame[i] = (short)Math.Clamp(heard[at + i] * 32768, short.MinValue, short.MaxValue);
+                cleanup.Process(frame);
+                if (level) leveler.Process(frame, cleanup.LastFrameWasEcho);
+                for (var i = 0; i < Frame; i++) result[at + i] = frame[i] / 32768.0;
+            }
+            return result;
+        }
+
+        var alone = Chain(echo, level: true);
+        var without = Chain(echo, level: false);
+        var raised = Db(alone, Rate * 8, Rate * 15) - Db(without, Rate * 8, Rate * 15);
+        Check("levelling: does not raise what echo cancelling left", raised < 3, $"{raised:F1} dB raised");
+        Check("levelling: so a listener hears far less echo", Db(echo, Rate * 8, Rate * 15) - Db(alone, Rate * 8, Rate * 15) > 15, $"{Db(alone, Rate * 8, Rate * 15):F1} dBFS");
+
+        var both = Chain(Sum(echo, near), level: true);
+        var voiceAlone = Chain(near, level: true, far: Silence(30));
+        var lostOverEcho = Db(voiceAlone, Rate * 18, Rate * 30) - Db(both, Rate * 18, Rate * 30);
+        Check("levelling: someone talking over the echo is still levelled", Math.Abs(lostOverEcho) < 5, $"{lostOverEcho:F1} dB against the voice alone");
+
+        var quietOnly = new MumbleVoiceCleanup { CancelEcho = true };
+        var quietLeveler = new MumbleVoiceLeveler();
+        quietOnly.StartTalk();
+        quietLeveler.StartTalk();
+        var quiet = Bursts(10, 2, 0.03);
+        var raisedQuiet = new double[quiet.Length];
+        var noPlay = new short[Frame];
+        var buffer = new short[Frame];
+        for (var at = 0; at + Frame <= quiet.Length; at += Frame)
+        {
+            quietOnly.Played(noPlay);
+            for (var i = 0; i < Frame; i++) buffer[i] = (short)(quiet[at + i] * 32768);
+            quietOnly.Process(buffer);
+            quietLeveler.Process(buffer, quietOnly.LastFrameWasEcho);
+            for (var i = 0; i < Frame; i++) raisedQuiet[at + i] = buffer[i] / 32768.0;
+        }
+        Check("levelling: a quiet voice with nothing playing is still raised", Db(raisedQuiet, Rate * 4, Rate * 10) - Db(quiet, Rate * 4, Rate * 10) > 6, $"{Db(raisedQuiet, Rate * 4, Rate * 10) - Db(quiet, Rate * 4, Rate * 10):F1} dB");
+    }
+
     // The room changes, as turning around with a laptop does.
     {
         var played = SpeechLike(24, 1, 0.5);

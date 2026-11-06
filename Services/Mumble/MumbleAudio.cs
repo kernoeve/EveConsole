@@ -262,7 +262,12 @@ public sealed class MumbleVoiceLeveler
 
     public void StartTalk() => _framesIntoTalk = 0;
 
-    public void Process(Span<short> frame)
+    /// <param name="frame">One frame, in place.</param>
+    /// <param name="notSpeech">
+    /// Known not to be anyone talking, whatever its level says. ⚠️ Echo cancelling leaves a little behind, and this would
+    /// otherwise take that for a quiet voice and raise it by up to 29 dB, undoing nearly all of what was taken out.
+    /// </param>
+    public void Process(Span<short> frame, bool notSpeech = false)
     {
         double sum = 0, peak = 0;
         foreach (var s in frame)
@@ -276,7 +281,7 @@ public sealed class MumbleVoiceLeveler
         // The background: follows silence straight down, and creeps up only slowly, so a long sound never becomes it.
         _floorDb = db < _floorDb ? db : _floorDb + FrameSeconds;
 
-        if (_framesIntoTalk >= QuietFrames && db > Math.Max(_floorDb + 10, -60))
+        if (!notSpeech && _framesIntoTalk >= QuietFrames && db > Math.Max(_floorDb + 10, -60))
         {
             // Quick to hear a voice get louder, slow to believe it got quieter, or the next loud word comes through far too hot.
             _levelPower = _levelPower == 0 ? power : _levelPower + (power - _levelPower) * (power > _levelPower ? 0.35 : 0.04);

@@ -1157,7 +1157,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 var level = MumbleVoiceGate.LevelOf(frame);
                 MicLevelDb = level;
 
-                if (AutoLevel) _leveler.Process(frame);
+                if (AutoLevel) _leveler.Process(frame, _cleanup.IsOn && _cleanup.LastFrameWasEcho);
                 if (WantsOpenMic) GateByVoice(frame, level);
 
                 // Only once someone is talking: with the microphone open all the time, this would otherwise be most of it.
