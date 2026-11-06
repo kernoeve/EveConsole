@@ -94,7 +94,15 @@
       <Grid Grid.Row="0" IsVisible="{Binding ShowAddRooms}" RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0" Margin="14 10" Spacing="6">
           <TextBlock Text="{Binding AddingTo}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-          <TextBox Text="{Binding RoomFilter}" Watermark="{x:Static loc:GroupChatText.RoomFilterHint}" />
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBox Text="{Binding RoomFilter}" Watermark="{x:Static loc:GroupChatText.RoomFilterHint}" />
+            <TextBlock Grid.Column="1" Text="{x:Static loc:GroupChatText.LabelRoomSort}" FontSize="11" Margin="12 0 6 0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+            <ComboBox Grid.Column="2" ItemsSource="{Binding RoomSortChoices}" SelectedItem="{Binding RoomSort}" MinWidth="150" VerticalAlignment="Center">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:GroupRoomSortChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
           <TextBlock Classes="note" Text="{x:Static loc:GroupChatText.ReadingRooms}" IsVisible="{Binding IsLoadingRooms}" />
         </StackPanel>
 
@@ -133,7 +141,7 @@
           </ComboBox>
           <StackPanel Grid.Row="2" Grid.ColumnSpan="7" Orientation="Horizontal" Spacing="8" Margin="0 10 0 0">
             <Button Content="{x:Static loc:JabberText.Join}" Command="{Binding JoinRoomCommand}" />
-            <Button Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelAddRoomsCommand}" />
+            <Button Content="{x:Static loc:GroupChatText.DoneAdding}" Command="{Binding CancelAddRoomsCommand}" />
           </StackPanel>
         </Grid>
       </Grid>

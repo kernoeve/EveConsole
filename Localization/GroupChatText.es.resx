@@ -70,4 +70,16 @@
   <data name="RoomTypeTip" xml:space="preserve">
     <value>General es para hablar. Una sala de inteligencia también se analiza en busca de informes, como un canal de inteligencia en los registros de chat, y estos llegan al mapa y a las alarmas de inteligencia. Un informe que ya se tiene de otra fuente no se cuenta dos veces.</value>
   </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Listo</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Ordenar por</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Personas en la sala</value>
+  </data>
 </root>

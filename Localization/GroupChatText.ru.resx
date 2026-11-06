@@ -70,4 +70,16 @@
   <data name="RoomTypeTip" xml:space="preserve">
     <value>«Общая» — для разговоров. Комната разведки также читается на предмет донесений, как канал разведки в журналах чата, и они попадают на карту и в оповещения разведки. Донесение, уже полученное из другого источника, не учитывается дважды.</value>
   </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Сортировка</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Людей в комнате</value>
+  </data>
 </root>

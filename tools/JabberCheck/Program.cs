@@ -333,6 +333,32 @@ void Check(string name, bool ok, string detail = "")
         Check("person in a room: not someone's phone", !JabberService.IsSomeoneInARoom(XmppAddress.Parse("them@example.test/phone"), false, services));
     }
 
+    // ── Times in the chat tools: EVE time, always with the date ──────────────────────────
+    {
+        var evening = new DateTimeOffset(2026, 11, 5, 23, 30, 0, TimeSpan.FromHours(-7));
+        Check("chat time: EVE time, across midnight", ChatTime.Of(evening) == "2026-11-06 06:30");
+        Check("chat time: today has its date too", ChatTime.Of(DateTimeOffset.UtcNow).StartsWith(DateTimeOffset.UtcNow.UtcDateTime.ToString("yyyy-MM-dd"), StringComparison.Ordinal));
+        Check("chat time: as saved", ChatTime.Of("2026-11-06T01:29:53Z") == "2026-11-06 01:29");
+        Check("chat time: nothing readable, nothing shown", ChatTime.Of("not a time") == "");
+        Check("chat time: a retry's clock", ChatTime.Clock(evening) == "06:30:00");
+    }
+
+    // ── The list of rooms to join, by name or by how many are in them ─────────────────────
+    {
+        GroupRoomChoiceVm Listed(string name, int? people)
+        {
+            var room = new GroupRoomChoiceVm(new XmppRoomInfo($"{name}@rooms.example.test", name), false);
+            room.Apply(new XmppRoomDetails(room.Jid, name, "", "", people, false, false, false, false));
+            return room;
+        }
+
+        GroupRoomChoiceVm[] rooms = [Listed("Bravo", 2), Listed("alpha", 10), Listed("Charlie", 100), Listed("Delta", null), Listed("Echo", 10), Listed("Foxtrot", 0)];
+        string Order(int sort) => string.Join(",", GroupRoomChoiceVm.Sorted(rooms, sort).Select(r => r.Name));
+
+        Check("room sort: by name, any capitals", Order(GroupRoomChoiceVm.SortByName) == "alpha,Bravo,Charlie,Delta,Echo,Foxtrot");
+        Check("room sort: by number, not its digits", Order(GroupRoomChoiceVm.SortByPeople) == "Charlie,alpha,Echo,Bravo,Foxtrot,Delta");
+    }
+
     // ── Rooms marked Intel: what reaches the parser, and a report held from another source ──
     {
         var room = new JabberRoom { AccountId = 3, RoomJid = "ops@rooms.example.test", Name = "Operations" };

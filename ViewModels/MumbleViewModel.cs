@@ -293,7 +293,7 @@ public sealed class MumbleViewModel : ReactiveObject
             ? string.Format(CultureInfo.CurrentCulture, MumbleText.StateInChannel, c.Name) : MumbleText.StateConnected,
         MumbleState.Connecting   => MumbleText.StateConnecting,
         MumbleState.Reconnecting => session.NextAttempt is { } next
-            ? string.Format(CultureInfo.CurrentCulture, MumbleText.StateRetryAt, next.ToLocalTime().ToString("T", CultureInfo.CurrentCulture))
+            ? string.Format(CultureInfo.CurrentCulture, MumbleText.StateRetryAt, ChatTime.Clock(next))
             : MumbleText.StateConnecting,
         MumbleState.Failed => session.Problem switch
         {

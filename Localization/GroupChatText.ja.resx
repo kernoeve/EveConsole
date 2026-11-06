@@ -70,4 +70,16 @@
   <data name="RoomTypeTip" xml:space="preserve">
     <value>「一般」は会話用です。インテルのルームは、チャットログのインテルチャンネルと同様にレポートも読み取り、マップとインテルアラームに反映します。別のソースから既に得ているレポートは二重に数えません。</value>
   </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>並べ替え</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>ルームの人数</value>
+  </data>
 </root>

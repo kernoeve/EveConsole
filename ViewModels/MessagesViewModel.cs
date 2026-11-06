@@ -27,7 +27,7 @@ public sealed class MessagesConversationVm(DmSummary summary)
     public string Name => summary.Name;
     public string Where => $"{summary.Service} · {summary.Server}";
     public string LastText => summary.LastText;
-    public string LastAt => MessagesLineVm.Local(summary.LastAt);
+    public string LastAt => ChatTime.Of(summary.LastAt);
     public int Unread => summary.Unread;
     public bool HasUnread => summary.Unread > 0;
     public string UnreadText => summary.Unread.ToString("N0", CultureInfo.CurrentCulture);
@@ -42,7 +42,7 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender)
     public string Sender     { get; } = shownSender;
     public string Body       => line.Body;
     public bool   IsOutgoing => line.IsOutgoing;
-    public string When       { get; } = Local(line.SentAt);
+    public string When       { get; } = ChatTime.Of(line.SentAt);
 
     /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
     public IReadOnlyList<string> Links { get; } = [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
@@ -50,14 +50,6 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender)
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
     private static partial System.Text.RegularExpressions.Regex UrlPattern();
-
-    /// <summary>Time alone for today, with the date for anything older.</summary>
-    public static string Local(string sent)
-    {
-        if (!DateTimeOffset.TryParse(sent, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when)) return "";
-        var local = when.ToLocalTime();
-        return local.Date == DateTime.Today ? local.ToString("t", CultureInfo.CurrentCulture) : local.ToString("g", CultureInfo.CurrentCulture);
-    }
 }
 
 /// <summary>One open conversation: a tab of the Messages tool.</summary>

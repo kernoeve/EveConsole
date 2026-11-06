@@ -139,17 +139,13 @@ public sealed partial class GroupLineVm
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
     private static partial System.Text.RegularExpressions.Regex UrlPattern();
-
-    public static string WhenText(DateTimeOffset when)
-    {
-        var local = when.ToLocalTime();
-        return local.ToString(local.Date == DateTime.Today ? "t" : "g", CultureInfo.CurrentCulture);
-    }
 }
 
 public sealed record JabberAlertChoice(int Mode, string Label);
 
 public sealed record JabberRoomTypeChoice(int Type, string Label);
+
+public sealed record GroupRoomSortChoice(int Sort, string Label);
 
 public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 {
@@ -162,7 +158,12 @@ public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : ReactiveObject
 {
     public string Jid => room.Jid;
-    public bool IsJoined => joined;
+
+    private bool _isJoined = joined;
+    public bool IsJoined { get => _isJoined; set => this.RaiseAndSetIfChanged(ref _isJoined, value); }
+
+    /// <summary>How many are in it, to sort by: the number, as "10" would come before "2" by its words. Null until it says.</summary>
+    public int? PeopleCount { get; private set; }
 
     private string _name = room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.Jid).Local;
     private string _description = "", _topic = "", _people = "", _flags = "";
@@ -182,6 +183,7 @@ public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : Reactive
         if (details.Name.Length > 0) Name = details.Name;
         Description = details.Description;
         Topic = details.Subject.Length > 0 ? string.Format(CultureInfo.CurrentCulture, GroupChatText.RoomTopic, details.Subject) : "";
+        PeopleCount = details.People;
         People = details.People is { } count ? string.Format(CultureInfo.CurrentCulture, GroupChatText.RoomPeople, count) : "";
         Flags = string.Join(" · ", new[]
         {
@@ -196,6 +198,15 @@ public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : Reactive
         Name.Contains(words, StringComparison.CurrentCultureIgnoreCase)
         || Jid.Contains(words, StringComparison.CurrentCultureIgnoreCase)
         || Description.Contains(words, StringComparison.CurrentCultureIgnoreCase);
+
+    public const int SortByName = 0;
+    public const int SortByPeople = 1;
+
+    /// <summary>In the order asked for. Most people first, and a room that has not said how many goes last, by name.</summary>
+    public static IEnumerable<GroupRoomChoiceVm> Sorted(IEnumerable<GroupRoomChoiceVm> rooms, int sort) =>
+        sort == SortByPeople
+            ? rooms.OrderByDescending(r => r.PeopleCount ?? -1).ThenBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)
+            : rooms.OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase);
 }
 
 /// <summary>
@@ -218,9 +229,9 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>A busy room left open for days should not grow without end. The rest are a click away.</summary>
     private const int MostShown = MumbleService.MaxChatLines;
 
-    /// <summary>A server can list thousands, and asking each one is a question per room.</summary>
-    private const int MostRoomsAsked = 300;
+    /// <summary>A server can list thousands, and each is a question of its own: a few at a time, or it would be flooded.</summary>
     private const int RoomsAskedAtOnce = 6;
+    private const int ResortEveryMs = 1500;
 
     private readonly JabberService _jabber;
     private readonly MumbleService _mumble;
@@ -251,7 +262,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         AddRoomsCommand = ReactiveCommand.CreateFromTask(AddRoomsAsync);
         JoinAgainCommand = ReactiveCommand.CreateFromTask(JoinAgainAsync);
         JoinRoomCommand = ReactiveCommand.CreateFromTask(JoinRoomAsync);
-        CancelAddRoomsCommand = ReactiveCommand.Create(() => { IsAddingRooms = false; });
+        CancelAddRoomsCommand = ReactiveCommand.Create(FinishAddingRooms);
         AcceptInviteCommand = ReactiveCommand.CreateFromTask(() => AnswerInviteAsync(true));
         DeclineInviteCommand = ReactiveCommand.CreateFromTask(() => AnswerInviteAsync(false));
 
@@ -275,6 +286,13 @@ public sealed class GroupChatViewModel : ReactiveObject
             new(JabberRoomType.Intel, GroupChatText.RoomTypeIntel),
         ];
         _joinRoomType = RoomTypeChoices[0];
+
+        RoomSortChoices =
+        [
+            new(GroupRoomChoiceVm.SortByName, GroupChatText.RoomSortName),
+            new(GroupRoomChoiceVm.SortByPeople, GroupChatText.RoomSortPeople),
+        ];
+        _roomSort = RoomSortChoices[0];
 
         _soundOn = _prefs.GetBool(SoundPref, true);
 
@@ -431,6 +449,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         TotalUnread = Rows.Sum(r => r.ShownUnread);
         TotalMentions = Rows.Sum(r => r.ShownMentions);
         RefreshDetail();
+        SyncAddingRooms();
     }
 
     private void AddJabberRows(List<GroupChatRowVm> rows, JabberSession session, List<JabberRoom> rooms)
@@ -513,7 +532,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     }
 
     public bool ShowWelcome => !HasServers;
-    public bool ShowNothing => HasServers && SelectedRow is null;
+    public bool ShowNothing => HasServers && SelectedRow is null && !IsAddingRooms;
     public bool ShowConversation => SelectedRow is { Kind: GroupRowKind.Room or GroupRowKind.MumbleServer } && !IsAddingRooms;
     public bool ShowOccupants => SelectedRow is { IsRoom: true } && !IsAddingRooms;
     public bool ShowRoomControls => SelectedRow is { IsRoom: true };
@@ -621,11 +640,11 @@ public sealed class GroupChatViewModel : ReactiveObject
 
     private static GroupLineVm ToLine(JabberStoredMessage m) => new(
         m.Id, m.Sender, m.Body,
-        DateTimeOffset.TryParse(m.SentAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when) ? GroupLineVm.WhenText(when) : "",
+        ChatTime.Of(m.SentAt),
         "", m.IsMention);
 
     private static GroupLineVm ToLine(MumbleSession session, MumbleChatLine line) => new(
-        0, line.Sender, line.Text, GroupLineVm.WhenText(line.When),
+        0, line.Sender, line.Text, ChatTime.Of(line.When),
         line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel,
         NamesMe(session, line));
 
@@ -944,10 +963,30 @@ public sealed class GroupChatViewModel : ReactiveObject
     public bool IsLoadingRooms { get => _isLoadingRooms; private set => this.RaiseAndSetIfChanged(ref _isLoadingRooms, value); }
 
     private readonly List<GroupRoomChoiceVm> _allChoices = [];
+    private string _lastJoined = "";
+    private GroupChatRowVm? _rowBeforeAdding;
     private int _browseStamp;
     private int _addingAccount;
 
-    public ObservableCollection<GroupRoomChoiceVm> RoomChoices { get; } = [];
+    private ObservableCollection<GroupRoomChoiceVm> _roomChoices = [];
+
+    /// <summary>⚠️ Replaced whole rather than refilled: a server can list thousands, and each one added would be a change for the list to take in.</summary>
+    public ObservableCollection<GroupRoomChoiceVm> RoomChoices { get => _roomChoices; private set => this.RaiseAndSetIfChanged(ref _roomChoices, value); }
+
+    public IReadOnlyList<GroupRoomSortChoice> RoomSortChoices { get; }
+
+    private GroupRoomSortChoice _roomSort;
+
+    /// <summary>How the rooms are listed.</summary>
+    public GroupRoomSortChoice RoomSort
+    {
+        get => _roomSort;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _roomSort, value ?? RoomSortChoices[0]);
+            FillChoices();
+        }
+    }
 
     private string _roomFilter = "";
     public string RoomFilter
@@ -967,7 +1006,9 @@ public sealed class GroupChatViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _roomChoice, value);
-            if (value is null) return;
+
+            // Not when only the list was rearranged around it: what was chosen for it stays chosen.
+            if (value is null || value.Jid == JoinRoom) return;
 
             JoinRoom = value.Jid;
             JoinRoomType = TypeOfKept(value.Jid);
@@ -994,11 +1035,27 @@ public sealed class GroupChatViewModel : ReactiveObject
     private void FillChoices()
     {
         var words = RoomFilter.Trim();
-        var shown = _allChoices.Where(c => words.Length == 0 || c.Matches(words)).ToList();
+        var shown = GroupRoomChoiceVm.Sorted(_allChoices.Where(c => words.Length == 0 || c.Matches(words)), RoomSort.Sort).ToList();
         if (RoomChoices.SequenceEqual(shown)) return;
 
-        RoomChoices.Clear();
-        foreach (var choice in shown) RoomChoices.Add(choice);
+        var chosen = RoomChoice;
+        RoomChoices = new ObservableCollection<GroupRoomChoiceVm>(shown);
+        if (chosen is not null && shown.Contains(chosen)) RoomChoice = chosen;
+    }
+
+    /// <summary>Keeps the list of rooms honest while it stays open: which are joined, and why the last one tried would not have this person.</summary>
+    private void SyncAddingRooms()
+    {
+        if (!IsAddingRooms || _jabber.SessionOf(_addingAccount) is not { } session) return;
+
+        var joined = session.Locked(s => s.RoomMap.Values.Where(r => r.Joined).Select(r => r.Room.RoomJid).ToHashSet(StringComparer.Ordinal));
+        foreach (var choice in _allChoices) choice.IsJoined = joined.Contains(choice.Jid);
+
+        if (_lastJoined.Length > 0 && session.Locked(s => s.RoomMap.GetValueOrDefault(_lastJoined)) is { Failure: { } failure } refused)
+        {
+            StatusText = $"{JabberViewModel.DisplayRoom(refused.Room)}: {JabberViewModel.RoomFailureText(failure, refused.FailureText)}";
+            _lastJoined = "";
+        }
     }
 
     /// <summary>Lists what the server open offers, or the first one connected when something else is open.</summary>
@@ -1032,7 +1089,14 @@ public sealed class GroupChatViewModel : ReactiveObject
         JoinRoom = JoinNick = JoinPassword = "";
         JoinRoomType = RoomTypeChoices[0];
         _allChoices.Clear();
-        RoomChoices.Clear();
+        RoomChoices = [];
+        _lastJoined = "";
+
+        // ⚠️ Nothing stays selected on the left while this is open: clicking what is already selected changes nothing,
+        // so that one row could not be gone back to. Done brings it back.
+        _rowBeforeAdding = SelectedRow;
+        _selectedRow = null;
+        this.RaisePropertyChanged(nameof(SelectedRow));
         _roomFilter = "";
         this.RaisePropertyChanged(nameof(RoomFilter));
         StatusText = "";
@@ -1065,8 +1129,9 @@ public sealed class GroupChatViewModel : ReactiveObject
     private async Task AskRoomsAsync(JabberSession session, int stamp)
     {
         using var gate = new SemaphoreSlim(RoomsAskedAtOnce);
+        var sortedAt = Environment.TickCount64;
 
-        await Task.WhenAll(_allChoices.Take(MostRoomsAsked).ToList().Select(async choice =>
+        await Task.WhenAll(_allChoices.ToList().Select(async choice =>
         {
             await gate.WaitAsync();
             try
@@ -1074,12 +1139,29 @@ public sealed class GroupChatViewModel : ReactiveObject
                 if (stamp != _browseStamp) return;
 
                 var details = await Task.Run(() => _jabber.RoomDetailsAsync(session, choice.Jid));
-                if (details is not null && stamp == _browseStamp) choice.Apply(details);
+                if (details is null || stamp != _browseStamp) return;
+
+                choice.Apply(details);
+
+                // Every so often, not with each answer: the list should settle, not jump about under the pointer.
+                if (RoomSort.Sort == GroupRoomChoiceVm.SortByPeople && Environment.TickCount64 - sortedAt > ResortEveryMs)
+                {
+                    sortedAt = Environment.TickCount64;
+                    FillChoices();
+                }
             }
             finally { gate.Release(); }
         }));
 
         if (stamp == _browseStamp) FillChoices();   // a filter may match what only just arrived
+    }
+
+    /// <summary>Back to what was open before, if it is still there.</summary>
+    private void FinishAddingRooms()
+    {
+        IsAddingRooms = false;
+        if (SelectedRow is null && _rowBeforeAdding is { } before && Rows.Contains(before)) SelectedRow = before;
+        _rowBeforeAdding = null;
     }
 
     private async Task JoinRoomAsync()
@@ -1094,17 +1176,22 @@ public sealed class GroupChatViewModel : ReactiveObject
         var bare = XmppAddress.Parse(room).Bare;
         var choice = _allChoices.FirstOrDefault(c => c.Jid == bare);
 
-        // Already in it: there is nothing to do but go there, as what the dropdown now says it is for.
+        StatusText = "";
+
+        // Already in it: nothing to do but make it what the dropdown now says it is for.
         var type = JoinRoomType.Type;
         if (session.Locked(s => s.RoomMap.TryGetValue(bare, out var state) && state.Joined))
             await Task.Run(() => _jabber.SetRoomTypeAsync(session, bare, type));
         else
             await Task.Run(() => _jabber.JoinRoomAsync(session, room, choice?.Name ?? "", JoinNick.Trim(), JoinPassword, roomType: type));
 
+        // ⚠️ This stays open to join more: on a large server the list takes a while to come back. The nickname stays
+        // too, as someone going by another name goes by it in the next room as well.
+        _lastJoined = bare;
         JoinPassword = "";
-        IsAddingRooms = false;
+        JoinRoom = "";
+        RoomChoice = null;
+        JoinRoomType = RoomTypeChoices[0];
         await RefreshAsync();
-        SelectedRow = Rows.FirstOrDefault(r => r.IsRoom && r.ServerId == session.Account.Id && r.Key == bare);
-        RaisePanes();
     }
 }

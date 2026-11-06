@@ -70,4 +70,16 @@
   <data name="RoomTypeTip" xml:space="preserve">
     <value>General is for talking. An Intel room is also read for reports, like an intel channel in the chat logs, and they reach the map and the intel alarms. A report already held from another source is not counted twice.</value>
   </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Sort by</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>People in room</value>
+  </data>
 </root>

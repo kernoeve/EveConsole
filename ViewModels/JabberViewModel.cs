@@ -308,7 +308,7 @@ public sealed class JabberViewModel : ReactiveObject
         JabberState.Connected    => JabberText.StateConnected,
         JabberState.Connecting   => JabberText.StateConnecting,
         JabberState.Reconnecting => session.NextAttempt is { } next
-            ? string.Format(CultureInfo.CurrentCulture, JabberText.StateRetryAt, next.ToLocalTime().ToString("T", CultureInfo.CurrentCulture))
+            ? string.Format(CultureInfo.CurrentCulture, JabberText.StateRetryAt, ChatTime.Clock(next))
             : JabberText.StateConnecting,
         JabberState.Failed       => session.Problem switch
         {
