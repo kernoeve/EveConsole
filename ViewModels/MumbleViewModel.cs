@@ -72,7 +72,10 @@ public sealed class MumbleRowVm : ReactiveObject
     /// <summary>A channel with channels under it, which can be opened and closed.</summary>
     public bool HasChildren { get => _hasChildren; set => this.RaiseAndSetIfChanged(ref _hasChildren, value); }
 
-    private bool _isListening, _isLocalMuted;
+    private bool _isListening, _isLocalMuted, _isPriority;
+
+    /// <summary>Someone set as a priority speaker, whom others are turned down for.</summary>
+    public bool IsPriority { get => _isPriority; set => this.RaiseAndSetIfChanged(ref _isPriority, value); }
 
     /// <summary>A channel this client is hearing without being in it.</summary>
     public bool IsListening { get => _isListening; set => this.RaiseAndSetIfChanged(ref _isListening, value); }
@@ -87,7 +90,7 @@ public sealed class MumbleRowVm : ReactiveObject
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
         HasChildren = from.HasChildren; IsOpen = from.IsOpen;
-        IsListening = from.IsListening; IsLocalMuted = from.IsLocalMuted;
+        IsListening = from.IsListening; IsLocalMuted = from.IsLocalMuted; IsPriority = from.IsPriority;
     }
 }
 
@@ -376,6 +379,7 @@ public sealed class MumbleViewModel : ReactiveObject
                     IsDeaf = u.Deaf || u.SelfDeaf,
                     IsMuted = u.Mute || u.SelfMute || u.Suppress,
                     IsLocalMuted = session.IsLocalMuted(u),
+                    IsPriority = u.PrioritySpeaker,
                 });
 
             foreach (var child in children[channel]
