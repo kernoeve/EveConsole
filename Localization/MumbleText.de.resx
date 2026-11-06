@@ -319,4 +319,25 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>Temporär: verschwindet, wenn er leer ist</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Hintergrundgeräusche verringern</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Echo meiner Lautsprecher unterdrücken</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Für Lautsprecher, damit andere sich nicht über dein Mikrofon hören. Bei einem Headset gibt es nichts zu unterdrücken.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Pegel der Sprachaktivierung</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Mikrofon gerade: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Per Stimme sprechen, ohne Taste</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Dein Mikrofon bleibt offen, solange du mit diesem Server verbunden bist, und alles über dem Pegel in den Toneinstellungen wird gesendet. Die Tasten oben funktionieren weiterhin.</value>
+  </data>
 </root>

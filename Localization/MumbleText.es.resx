@@ -319,4 +319,25 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>Temporal: desaparece cuando se vacía</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Reducir el ruido de fondo</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Cancelar el eco de mis altavoces</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Para escuchar por altavoces, para que los demás no se oigan por tu micrófono. Con auriculares no hay nada que cancelar.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Nivel de activación por voz</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Micrófono ahora: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Hablar por voz, sin mantener una tecla</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Tu micrófono permanece abierto mientras estés conectado a este servidor, y se envía todo lo que supere el nivel de los ajustes de sonido. Las teclas de arriba siguen funcionando.</value>
+  </data>
 </root>

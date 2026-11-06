@@ -176,6 +176,12 @@ public sealed class MumbleViewModel : ReactiveObject
         _micGain       = _prefs.GetLong(MumbleService.MicGainPref, 100);
         _autoLevel     = _prefs.GetBool(MumbleService.AutoLevelPref, true);
         _service.AutoLevel = _autoLevel;
+        _echoCancel    = _prefs.GetBool(MumbleService.EchoCancelPref);
+        _noiseReduce   = _prefs.GetBool(MumbleService.NoiseReducePref);
+        _service.EchoCancel = _echoCancel;
+        _service.NoiseReduce = _noiseReduce;
+        _voiceLevel    = _prefs.GetLong(MumbleService.VoiceLevelPref, (long)MumbleService.DefaultVoiceLevelDb);
+        _service.VoiceLevelDb = _voiceLevel;
         _showOverlay   = _prefs.GetBool(OverlayPref);
 
         _service.InputDevice   = _prefs.Get(MumbleService.InputDevicePref) ?? "";
@@ -187,7 +193,11 @@ public sealed class MumbleViewModel : ReactiveObject
         _service.TalkersChanged += () => { QueueRefresh(); Dispatcher.UIThread.Post(RefreshOverlay); };
 
         // Someone stops being listed by time passing, and their mute can change while they are quiet.
-        _overlayTimer = new Timer(_ => Dispatcher.UIThread.Post(() => { if (Talkers.Count > 0) RefreshOverlay(); }), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        _overlayTimer = new Timer(_ => Dispatcher.UIThread.Post(() =>
+        {
+            if (Talkers.Count > 0) RefreshOverlay();
+            if (IsAudioOpen) this.RaisePropertyChanged(nameof(MicLevelText));
+        }), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         QueueRefresh();
     }
 
@@ -857,7 +867,8 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private string _editName = "", _editHost = "", _editUsername = "", _editPassword = "", _editTokens = "";
     private int _editPort = 64738;
-    private bool _editAutoConnect;
+    private bool _editAutoConnect, _editVoiceActivated;
+    public bool EditVoiceActivated { get => _editVoiceActivated; set => this.RaiseAndSetIfChanged(ref _editVoiceActivated, value); }
     private MumbleKeyChoice? _editWhisper, _editShout;
 
     public string EditName { get => _editName; set => this.RaiseAndSetIfChanged(ref _editName, value); }
@@ -887,6 +898,7 @@ public sealed class MumbleViewModel : ReactiveObject
         EditName = EditHost = EditUsername = EditPassword = EditTokens = "";
         EditPort = 64738;
         EditAutoConnect = false;
+        EditVoiceActivated = false;
         EditWhisper = EditShout = ChoiceFor(0);
         CancelKeyCapture();
         this.RaisePropertyChanged(nameof(EditIsExisting));
@@ -900,6 +912,7 @@ public sealed class MumbleViewModel : ReactiveObject
         _editId = s.Id;
         EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
         EditAutoConnect = s.AutoConnect;
+        EditVoiceActivated = s.VoiceActivated;
         EditWhisper = ChoiceFor(s.WhisperKey);
         EditShout   = ChoiceFor(s.ShoutKey);
         CancelKeyCapture();
@@ -917,7 +930,7 @@ public sealed class MumbleViewModel : ReactiveObject
         {
             Id = _editId, Name = EditName.Trim(), Host = EditHost.Trim(),
             Port = EditPort is > 0 and < 65536 ? EditPort : 64738,
-            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), AutoConnect = EditAutoConnect,
+            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), AutoConnect = EditAutoConnect, VoiceActivated = EditVoiceActivated,
             WhisperKey = EditWhisper?.Key ?? 0, ShoutKey = EditShout?.Key ?? 0,
             SelfMuted = old?.SelfMuted ?? false, SelfDeafened = old?.SelfDeafened ?? false, LastChannel = old?.LastChannel ?? "",
             TrustedCertificate = old is not null && old.Host == EditHost.Trim() && old.Port == EditPort ? old.TrustedCertificate : "",
@@ -1021,6 +1034,46 @@ public sealed class MumbleViewModel : ReactiveObject
             _ = _prefs.SetLongAsync(MumbleService.OutputVolumePref, (long)value);
         }
     }
+
+    private bool _echoCancel, _noiseReduce;
+    private double _voiceLevel;
+
+    public bool EchoCancel
+    {
+        get => _echoCancel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _echoCancel, value);
+            _service.EchoCancel = value;
+            _ = _prefs.SetBoolAsync(MumbleService.EchoCancelPref, value);
+        }
+    }
+
+    public bool NoiseReduce
+    {
+        get => _noiseReduce;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _noiseReduce, value);
+            _service.NoiseReduce = value;
+            _ = _prefs.SetBoolAsync(MumbleService.NoiseReducePref, value);
+        }
+    }
+
+    /// <summary>How loud a voice must be to count, in dB, for any server set to talk by voice.</summary>
+    public double VoiceLevel
+    {
+        get => _voiceLevel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _voiceLevel, value);
+            this.RaisePropertyChanged(nameof(VoiceLevelText));
+            _service.VoiceLevelDb = value;
+            _ = _prefs.SetLongAsync(MumbleService.VoiceLevelPref, (long)value);
+        }
+    }
+    public string VoiceLevelText => $"{VoiceLevel:N0} dB";
+    public string MicLevelText => string.Format(CultureInfo.CurrentCulture, MumbleText.MicLevelNow, _service.MicLevelDb.ToString("N0", CultureInfo.CurrentCulture));
 
     private bool _autoLevel;
     public bool AutoLevelVoice

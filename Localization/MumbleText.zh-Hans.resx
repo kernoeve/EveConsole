@@ -319,4 +319,25 @@
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>临时:清空后消失</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>降低背景噪音</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>消除扬声器回声</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>用于扬声器收听,避免他人通过您的麦克风听到自己。使用耳机时无需开启。</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>语音激活阈值</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>当前麦克风: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>通过语音说话,无需按键</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>连接到此服务器时麦克风保持打开,高于声音设置中阈值的声音都会发送。上面的按键仍然有效。</value>
+  </data>
 </root>

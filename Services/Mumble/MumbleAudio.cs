@@ -14,6 +14,11 @@ namespace EveConsole.Services.Mumble;
 /// </summary>
 public sealed class MumbleMixer
 {
+    public delegate void MixedHandler(ReadOnlySpan<short> samples);
+
+    /// <summary>What has just been handed to the speakers, silence included. On the sound device's thread.</summary>
+    public event MixedHandler? Mixed;
+
     public const int SampleRate = 48_000;
     public const int SamplesPer10Ms = SampleRate / 100;
 
@@ -130,6 +135,7 @@ public sealed class MumbleMixer
             }
         }
 
+        Mixed?.Invoke(into);
         return heard;
     }
 

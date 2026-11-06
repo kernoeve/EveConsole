@@ -373,4 +373,25 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>Temporary: goes away when it empties</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Reduce background noise</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Cancel echo from my speakers</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>For listening on speakers, so others don't hear themselves through your microphone. A headset has nothing to cancel.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Voice activation level</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Microphone just now: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Talk by voice, without holding a key</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Your microphone stays open while connected to this server, and whatever is louder than the level in Sound Settings goes out. The keys above still work.</value>
+  </data>
 </root>

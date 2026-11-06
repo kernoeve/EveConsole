@@ -319,4 +319,25 @@
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>一時的: 空になると消えます</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>背景ノイズを低減</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>スピーカーのエコーを除去</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>スピーカーで聴くときに、相手の声がマイクから戻らないようにします。ヘッドセットでは不要です。</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>音声起動レベル</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>現在のマイク: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>キーを押さず音声で話す</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>このサーバーに接続中はマイクが開いたままになり、サウンド設定のレベルを超える音が送信されます。上のキーも引き続き使えます。</value>
+  </data>
 </root>

@@ -319,4 +319,25 @@
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>Временный: исчезнет, когда опустеет</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Подавлять фоновый шум</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Подавлять эхо от динамиков</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Для динамиков: чтобы другие не слышали себя через ваш микрофон. С гарнитурой подавлять нечего.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Порог голосовой активации</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Микрофон сейчас: {0} дБ</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Говорить голосом, не удерживая клавишу</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Пока вы подключены к этому серверу, микрофон открыт, и всё громче порога из настроек звука передаётся. Клавиши выше продолжают работать.</value>
+  </data>
 </root>

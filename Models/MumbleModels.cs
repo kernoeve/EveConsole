@@ -36,6 +36,9 @@ public class MumbleServer
 
     /// <summary>The channel to return to on connecting, by its names from the root, as ids can change.</summary>
     public string LastChannel  { get; set; } = "";
+
+    /// <summary>Talks whenever the microphone hears a voice, rather than while a key is held. The microphone stays open while connected.</summary>
+    public bool   VoiceActivated { get; set; }
 }
 
 /// <summary>

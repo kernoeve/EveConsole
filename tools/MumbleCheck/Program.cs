@@ -31,6 +31,209 @@ static string RawFile(string path)
 
 // ── Mumble's own number format, from its protocol document ───────────────────
 
+// ── Echo cancelling and noise suppression ──────────────────────────────────────────────
+{
+    const int Rate = MumbleMixer.SampleRate, Frame = MumbleEncoder.FrameSamples;
+
+    // Something with speech's shape: a rising and falling buzz, in syllables, with pauses between them.
+    static double[] SpeechLike(int seconds, int seed, double level)
+    {
+        var random = new Random(seed);
+        var samples = new double[Rate * seconds];
+        double phase = 0, pitch = 110 + seed * 17, smooth = 0;
+        for (var at = 0; at < samples.Length;)
+        {
+            var syllable = random.Next(Rate / 10, Rate / 3);
+            var target = 90 + random.NextDouble() * 90 + seed * 10;
+            var loudness = level * (0.4 + random.NextDouble() * 0.6);
+            for (var i = 0; i < syllable && at < samples.Length; i++, at++)
+            {
+                pitch += (target - pitch) * 0.0005;
+                phase += 2 * Math.PI * pitch / Rate;
+                var buzz = 0.0;
+                for (var h = 1; h <= 12; h++) buzz += Math.Sin(phase * h + h * seed) / h;
+                smooth += (random.NextDouble() * 2 - 1 - smooth) * 0.2;
+                samples[at] = (buzz * 0.25 + smooth * 0.3) * loudness * Math.Sin(Math.PI * i / syllable);
+            }
+            at += random.Next(Rate / 20, Rate / 5);
+        }
+        return samples;
+    }
+
+    // A room: the sound arrives late, then again and again off the walls, fading.
+    static double[] Room(double[] played, int delay, int seed, double level)
+    {
+        var random = new Random(seed);
+        var echo = new double[played.Length];
+        var taps = new (int At, double Gain)[40];
+        for (var t = 0; t < taps.Length; t++)
+            taps[t] = (delay + t * t * 3 + random.Next(30), level * Math.Exp(-t * 0.12) * (random.Next(2) == 0 ? 1 : -1) * (0.5 + random.NextDouble() * 0.5));
+        foreach (var (at, gain) in taps)
+            for (var i = at; i < played.Length; i++) echo[i] += played[i - at] * gain;
+        return echo;
+    }
+
+    static double[] Run(MumbleVoiceCleanup cleanup, double[] played, double[] heard)
+    {
+        var mixed = new short[Frame];
+        var frame = new short[Frame];
+        var result = new double[heard.Length];
+        for (var at = 0; at + Frame <= heard.Length; at += Frame)
+        {
+            for (var i = 0; i < Frame; i++) mixed[i] = (short)Math.Clamp(played[at + i] * 32768, short.MinValue, short.MaxValue);
+            cleanup.Played(mixed);
+            for (var i = 0; i < Frame; i++) frame[i] = (short)Math.Clamp(heard[at + i] * 32768, short.MinValue, short.MaxValue);
+            cleanup.Process(frame);
+            for (var i = 0; i < Frame; i++) result[at + i] = frame[i] / 32768.0;
+        }
+        return result;
+    }
+
+    static double Db(double[] samples, int from, int to)
+    {
+        double sum = 0;
+        for (var i = from; i < to && i < samples.Length; i++) sum += samples[i] * samples[i];
+        return 10 * Math.Log10(sum / Math.Max(1, to - from) + 1e-12);
+    }
+
+    static double[] Sum(double[] a, double[] b) => [.. a.Select((s, i) => s + b[i])];
+    static double[] Silence(int seconds) => new double[Rate * seconds];
+
+    // Echo alone, across the delays real sound devices give.
+    foreach (var delay in new[] { Rate * 20 / 1000, Rate * 120 / 1000, Rate * 280 / 1000 })
+    {
+        var played = SpeechLike(12, 1, 0.5);
+        var echo = Room(played, delay, 3, 0.4);
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, played, echo);
+        var removed = Db(echo, Rate * 6, Rate * 12) - Db(result, Rate * 6, Rate * 12);
+        Check($"echo: gone at {delay * 1000 / Rate} ms late", removed > 15, $"{removed:F1} dB removed");
+    }
+
+    // Talking over it: the talker comes through, and the echo does not.
+    {
+        var played = SpeechLike(14, 1, 0.5);
+        var near = SpeechLike(14, 2, 0.35);
+        for (var i = 0; i < Rate * 6; i++) near[i] = 0;   // it learns the room first
+        var echo = Room(played, Rate * 90 / 1000, 3, 0.4);
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, played, Sum(echo, near));
+
+        var lost = Db(near, Rate * 7, Rate * 14) - Db(result, Rate * 7, Rate * 14);
+        Check("echo: someone talking over it still comes through", Math.Abs(lost) < 4, $"{lost:F1} dB changed");
+
+        // How much of the echo is still in there, by how well what came out lines up with it: the voice does not.
+        const int Late = MumbleEchoCanceller.BlockSize * 2;   // how far behind it comes out
+        double together = 0, echoPower = 0, voiceTogether = 0, voicePower = 0;
+        for (var i = Rate * 7; i < Rate * 14 - Late; i++)
+        {
+            together += result[i + Late] * echo[i];
+            echoPower += echo[i] * echo[i];
+            voiceTogether += result[i + Late] * near[i];
+            voicePower += near[i] * near[i];
+        }
+        var echoDown = -20 * Math.Log10(Math.Abs(together / echoPower) + 1e-9);
+        var voiceDown = -20 * Math.Log10(Math.Abs(voiceTogether / voicePower) + 1e-9);
+        Check("echo: and what was over them is far less", echoDown > 15, $"echo down {echoDown:F1} dB");
+        Check("echo: while the voice is barely touched", voiceDown < 4, $"voice down {voiceDown:F1} dB");
+    }
+
+    // The room changes, as turning around with a laptop does.
+    {
+        var played = SpeechLike(24, 1, 0.5);
+        var one = Room(played, Rate * 60 / 1000, 3, 0.4);
+        var two = Room(played, Rate * 150 / 1000, 5, 0.4);
+        var heard = new double[played.Length];
+        for (var i = 0; i < heard.Length; i++) heard[i] = i < Rate * 8 ? one[i] : two[i];
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, played, heard);
+        var removed = Db(heard, Rate * 18, Rate * 24) - Db(result, Rate * 18, Rate * 24);
+        Check("echo: follows a room that changes", removed > 20, $"{removed:F1} dB removed");
+    }
+
+    // Nothing played: the microphone goes through unharmed.
+    {
+        var near = SpeechLike(6, 2, 0.35);
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, Silence(6), near);
+        var changed = Math.Abs(Db(near, Rate, Rate * 6) - Db(result, Rate, Rate * 6));
+        Check("echo: with nothing playing, a voice is left alone", changed < 0.5, $"{changed:F2} dB changed");
+    }
+
+    // Noise: steady hiss and hum, with someone talking in it.
+    {
+        var near = SpeechLike(14, 2, 0.35);
+        var noise = new double[near.Length];
+        var random = new Random(9);
+        for (var i = 0; i < noise.Length; i++) noise[i] = (random.NextDouble() * 2 - 1) * 0.03 + Math.Sin(2 * Math.PI * 60 * i / Rate) * 0.02;
+
+        var cleanup = new MumbleVoiceCleanup { ReduceNoise = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, Silence(14), Sum(near, noise));
+
+        // Measured in the pauses, where there is only the noise.
+        double before = 0, after = 0; var pauses = 0;
+        for (var i = Rate * 4; i < near.Length - 2048; i++)
+        {
+            if (Math.Abs(near[i]) > 1e-9) continue;
+            var inPause = true;
+            for (var k = i - 1100; k < i + 1100 && inPause; k += 50) inPause = Math.Abs(near[Math.Clamp(k, 0, near.Length - 1)]) < 1e-9;
+            if (!inPause) continue;
+            before += noise[i] * noise[i];
+            after += result[i + MumbleEchoCanceller.BlockSize] * result[i + MumbleEchoCanceller.BlockSize];
+            pauses++;
+        }
+        var quieter = 10 * Math.Log10(before / Math.Max(after, 1e-12));
+        Check("noise: far quieter between words", pauses > 1000 && quieter > 10, $"{quieter:F1} dB over {pauses} samples");
+
+        var voice = Db(Sum(near, noise), Rate * 4, Rate * 14) - Db(result, Rate * 4, Rate * 14);
+        Check("noise: the voice survives", voice < 4, $"{voice:F1} dB less overall");
+    }
+
+    // Quick enough for the sound device's thread: well under the 20 ms each frame allows.
+    {
+        var played = SpeechLike(4, 1, 0.5);
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true, ReduceNoise = true };
+        cleanup.StartTalk();
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        Run(cleanup, played, Room(played, 2000, 3, 0.4));
+        var share = clock.Elapsed.TotalSeconds / 4;
+        Check("cleanup: takes a small share of the time it has", share < 0.25, $"{share:P1} of real time");
+    }
+
+    // Frames in and out stay the same size however blocks and frames fall against each other.
+    {
+        var cleanup = new MumbleVoiceCleanup { ReduceNoise = true };
+        cleanup.StartTalk();
+        var frame = new short[Frame];
+        var ok = true;
+        for (var i = 0; i < 2000; i++) { frame.AsSpan().Fill(1000); cleanup.Process(frame); if (frame.Length != Frame) ok = false; }
+        Check("cleanup: runs on for as long as a press does", ok);
+    }
+}
+
+// ── Voice activation ───────────────────────────────────────────────────────────────────
+{
+    var gate = new MumbleVoiceGate();
+    Check("voice: starts closed", !gate.IsOpen);
+    Check("voice: a quiet room stays closed", !gate.Update(-60, -40));
+    Check("voice: a voice opens it at once", gate.Update(-30, -40));
+    for (var i = 0; i < MumbleVoiceGate.HoldFrames - 1; i++) gate.Update(-60, -40);
+    Check("voice: held open over the gap between words", gate.IsOpen);
+    Check("voice: and closes after", !gate.Update(-60, -40));
+    Check("voice: exactly at the level counts", gate.Update(-40, -40));
+    gate.Close();
+    Check("voice: closes when told", !gate.IsOpen);
+    Check("voice: level of silence", MumbleVoiceGate.LevelOf(new short[960]) == -96);
+    var full = new short[960];
+    full.AsSpan().Fill(short.MaxValue);
+    Check("voice: level at full scale", Math.Abs(MumbleVoiceGate.LevelOf(full)) < 0.01);
+}
+
 // ── What is asked of a server about someone else ───────────────────────────────────────
 {
     var mute = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bool(6, true)));

@@ -79,6 +79,12 @@
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.MicVolume}" />
           <Slider Minimum="0" Maximum="300" Value="{Binding MicGain}" />
           <CheckBox IsChecked="{Binding AutoLevelVoice}" FontSize="11" Content="{x:Static loc:MumbleText.AutoLevel}" />
+          <CheckBox IsChecked="{Binding NoiseReduce}" FontSize="11" Content="{x:Static loc:MumbleText.NoiseReduce}" />
+          <CheckBox IsChecked="{Binding EchoCancel}" FontSize="11" Content="{x:Static loc:MumbleText.EchoCancel}" ToolTip.Tip="{x:Static loc:MumbleText.EchoCancelNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.VoiceLevel}" />
+          <Slider Minimum="-70" Maximum="-10" Value="{Binding VoiceLevel}" />
+          <TextBlock Classes="note" Text="{Binding VoiceLevelText}" />
+          <TextBlock Classes="note" Text="{Binding MicLevelText}" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.Speakers}" />
           <ComboBox ItemsSource="{Binding OutputDevices}" SelectedItem="{Binding OutputChoice}" HorizontalAlignment="Stretch" FontSize="11" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.SpeakerVolume}" />
@@ -130,6 +136,9 @@
 
           <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:MumbleText.LabelAutoConnect}" Margin="0 12 0 0" />
           <TextBlock Classes="note" Text="{x:Static loc:MumbleText.AutoConnectNote}" />
+
+          <CheckBox IsChecked="{Binding EditVoiceActivated}" Content="{x:Static loc:MumbleText.LabelVoiceActivated}" Margin="0 12 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.VoiceActivatedNote}" />
 
           <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 14 0 0">
             <Button Content="{x:Static loc:MumbleText.Save}" Command="{Binding SaveServerCommand}" />

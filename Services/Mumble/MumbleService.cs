@@ -63,6 +63,9 @@ public sealed class MumbleSession(MumbleServer server)
     /// <summary>What is being said right now, if anything, and what its last frame must be.</summary>
     internal volatile int Talking;
 
+    /// <summary>Talking because the microphone heard a voice, not because a key is held.</summary>
+    internal volatile bool TalkingByVoice;
+
     public MumbleTalk TalkingNow => (MumbleTalk)Talking;
 
     private readonly List<MumbleChatLine> _chat = [];
@@ -98,6 +101,15 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public const string OutputVolumePref = "mumble.output_volume";
     public const string MicGainPref = "mumble.mic_gain";
     public const string AutoLevelPref = "mumble.auto_level";
+    public const string EchoCancelPref = "mumble.echo_cancel";
+    public const string NoiseReducePref = "mumble.noise_reduce";
+    public const string VoiceLevelPref = "mumble.voice_level";
+
+    /// <summary>Where voice activation starts out: over a quiet room, under a voice at a normal distance.</summary>
+    public const double DefaultVoiceLevelDb = -40;
+
+    /// <summary>What is kept from just before a voice is noticed, so the start of the first word goes too.</summary>
+    private const int PreRollFrames = 5;
 
     // Plain talk needs no saved target: the server sends it to the channel and everything linked to it, which is
     // what the standard client's Push to Talk does, and Shout is that. Whisper has to name the channel to stop there.
@@ -170,6 +182,121 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     /// <summary>Levels this person's voice before it is sent, as the standard client does.</summary>
     public bool AutoLevel { get; set; } = true;
+
+    /// <summary>Takes what the speakers played back out of the microphone. For speakers: a headset has nothing to cancel.</summary>
+    public bool EchoCancel
+    {
+        get => _cleanup.CancelEcho;
+        set
+        {
+            lock (_micBuffer)
+            {
+                _cleanup.CancelEcho = value;
+                HookCleanup();
+                _cleanup.StartTalk();
+            }
+        }
+    }
+
+    public bool NoiseReduce
+    {
+        get => _cleanup.ReduceNoise;
+        set
+        {
+            lock (_micBuffer)
+            {
+                _cleanup.ReduceNoise = value;
+                _cleanup.StartTalk();
+            }
+        }
+    }
+
+    /// <summary>How loud a frame must be for voice activation to count it as talking.</summary>
+    public double VoiceLevelDb { get; set; } = DefaultVoiceLevelDb;
+
+    /// <summary>How loud the microphone was just now, while it is open.</summary>
+    public double MicLevelDb { get; private set; } = -96;
+
+    private readonly MumbleVoiceCleanup _cleanup = new();
+    private readonly MumbleVoiceGate _voiceGate = new();
+    private readonly Queue<short[]> _preRoll = new();
+    private bool _cleanupHooked;
+
+    private void HookCleanup()
+    {
+        if (_cleanupHooked) return;
+        _cleanupHooked = true;
+        Mixer.Mixed += _cleanup.Played;
+    }
+
+    /// <summary>Whether any server wants the microphone listening all the time.</summary>
+    public bool WantsOpenMic => Sessions.Any(ListensForVoice);
+
+    private static bool ListensForVoice(MumbleSession s) =>
+        s is { State: MumbleState.Connected, Server: { VoiceActivated: true, SelfMuted: false } };
+
+    /// <summary>Opens the microphone for voice activation, or lets it go when nothing wants it any more.</summary>
+    private void UpdateOpenMic()
+    {
+        if (!WantsOpenMic)
+        {
+            lock (_micBuffer) _voiceGate.Close();
+            foreach (var s in Sessions.Where(s => s.TalkingByVoice)) StopByVoice(s);
+            ReleaseMicIfIdle();
+            return;
+        }
+
+        _micClose?.Cancel();
+        if (Devices is { } devices && !devices.StartInput())
+            foreach (var s in Sessions.Where(ListensForVoice))
+            {
+                s.MicFailed = true;
+                s.Detail = devices.LastError ?? "";
+                SessionChanged?.Invoke(s);
+            }
+    }
+
+    private void StopByVoice(MumbleSession session)
+    {
+        session.TalkingByVoice = false;
+        StopTalking(session, MumbleTalk.Shout);
+    }
+
+    /// <summary>
+    /// Voice activation, for one frame already cleaned up and levelled. ⚠️ Plain talk, as the standard client's voice
+    /// activation is, and never over a key being held: letting go of that is what ends that.
+    /// </summary>
+    private void GateByVoice(short[] frame, double level)
+    {
+        var was = _voiceGate.IsOpen;
+        var open = _voiceGate.Update(level, VoiceLevelDb);
+
+        if (open && !was)
+        {
+            var started = false;
+            foreach (var s in Sessions.Where(s => ListensForVoice(s) && s.Client is not null && s.Encoder is not null && s.TalkingNow == MumbleTalk.None))
+            {
+                s.TalkingByVoice = true;
+                Interlocked.Exchange(ref s.Talking, (int)MumbleTalk.Shout);
+                started = true;
+            }
+            if (started)
+            {
+                while (_preRoll.TryDequeue(out var before)) _frames.Writer.TryWrite(new VoiceWork(before, null, MumbleTalk.None));
+                TalkersChanged?.Invoke();
+            }
+        }
+        else if (!open && was)
+        {
+            foreach (var s in Sessions.Where(s => s.TalkingByVoice)) StopByVoice(s);
+        }
+
+        if (!open)
+        {
+            _preRoll.Enqueue(frame);
+            while (_preRoll.Count > PreRollFrames) _preRoll.Dequeue();
+        }
+    }
 
     private readonly MumbleVoiceLeveler _leveler = new();
 
@@ -391,6 +518,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         // A key changed while held would never be seen to come up.
         StopTalking(session);
         BindKeys(session);
+        UpdateOpenMic();
         SessionChanged?.Invoke(session);
         return session;
     }
@@ -690,6 +818,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         session.State   = state;
         session.Problem = problem;
         session.Detail  = detail;
+        UpdateOpenMic();
         SessionChanged?.Invoke(session);
     }
 
@@ -869,6 +998,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         if (session.Client is { } client && session.State == MumbleState.Connected)
             await client.SetSelfMuteAsync(mute || deaf, deaf, ct);
 
+        UpdateOpenMic();
         SessionChanged?.Invoke(session);
     }
 
@@ -917,8 +1047,11 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             {
                 _micBuffer.Clear();
                 _leveler.StartTalk();
+                if (_cleanup.IsOn) _cleanup.StartTalk();
             }
 
+        // A key takes over from the voice: letting go of it, not a pause, is what ends this now.
+        session.TalkingByVoice = false;
         Interlocked.Exchange(ref session.Talking, (int)mode);
         _micClose?.Cancel();
 
@@ -969,13 +1102,13 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private void ReleaseMicIfIdle()
     {
-        if (Devices is null || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
+        if (Devices is null || WantsOpenMic || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
 
         _micClose?.Cancel();
         var closing = _micClose = new CancellationTokenSource();
         _ = Task.Delay(MicLinger, closing.Token).ContinueWith(t =>
         {
-            if (!t.IsCanceled && !Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) Devices?.StopInput();
+            if (!t.IsCanceled && !WantsOpenMic && !Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) Devices?.StopInput();
         }, TaskScheduler.Default);
     }
 
@@ -992,8 +1125,18 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             {
                 var frame = _micBuffer.GetRange(0, MumbleEncoder.FrameSamples).ToArray();
                 _micBuffer.RemoveRange(0, MumbleEncoder.FrameSamples);
+                if (_cleanup.IsOn) _cleanup.Process(frame);
+
+                // Before levelling, which would turn a quiet room up until it counted as a voice.
+                var level = MumbleVoiceGate.LevelOf(frame);
+                MicLevelDb = level;
+
                 if (AutoLevel) _leveler.Process(frame);
-                _frames.Writer.TryWrite(new VoiceWork(frame, null, MumbleTalk.None));
+                if (WantsOpenMic) GateByVoice(frame, level);
+
+                // Only once someone is talking: with the microphone open all the time, this would otherwise be most of it.
+                if (Sessions.Any(s => s.TalkingNow != MumbleTalk.None))
+                    _frames.Writer.TryWrite(new VoiceWork(frame, null, MumbleTalk.None));
             }
         }
     }

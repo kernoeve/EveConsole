@@ -319,4 +319,25 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="NewChannelTemporary" xml:space="preserve">
     <value>Temporaire : disparaît quand il se vide</value>
   </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Réduire le bruit de fond</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Supprimer l'écho de mes haut-parleurs</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Pour l'écoute sur haut-parleurs, afin que les autres ne s'entendent pas dans votre micro. Avec un casque, il n'y a rien à supprimer.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Niveau d'activation vocale</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Micro à l'instant : {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Parler à la voix, sans maintenir de touche</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Votre micro reste ouvert tant que vous êtes connecté à ce serveur, et tout ce qui dépasse le niveau des réglages audio est transmis. Les touches ci-dessus fonctionnent toujours.</value>
+  </data>
 </root>

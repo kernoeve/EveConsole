@@ -2690,7 +2690,8 @@ public class App : Application
                         "ShoutKey"           INTEGER NOT NULL DEFAULT 0,
                         "SelfMuted"          INTEGER NOT NULL DEFAULT 0,
                         "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
-                        "LastChannel"        TEXT    NOT NULL DEFAULT ''
+                        "LastChannel"        TEXT    NOT NULL DEFAULT '',
+                        "VoiceActivated"     INTEGER NOT NULL DEFAULT 0
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2703,6 +2704,7 @@ public class App : Application
                         PRIMARY KEY ("ServerId", "UserKey")
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "VoiceActivated" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "LocalMute" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "IgnoreText" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
